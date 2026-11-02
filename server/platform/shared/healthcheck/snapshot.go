@@ -47,7 +47,11 @@ func (s *Snapshot) Nodes() []*NodeSnapshot {
 }
 
 func (s *Snapshot) Leader() (*NodeSnapshot, bool) {
-	for _, node := range s.Nodes() {
+	if s == nil {
+		return nil, false
+	}
+
+	for _, node := range s.nodes {
 		if node != nil && node.IsLeader {
 			return node, true
 		}

@@ -49,11 +49,23 @@ type want struct {
 }
 
 var (
-	resolvedWant      = want{state: healthcheck.StateResolved}
-	unknownConfigWant = want{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonConfigUnavailable}
-	unknownStatsWant  = want{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonStatsUnavailable}
-	unknownDiagWant   = want{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonDiagnosticsUnavailable}
+	resolvedWant       = want{state: healthcheck.StateResolved}
+	unknownConfigWant  = want{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonConfigUnavailable}
+	unknownStatsWant   = want{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonStatsUnavailable}
+	unknownDiagWant    = want{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonDiagnosticsUnavailable}
+	unknownLicenseWant = want{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonLicenseUnavailable}
 )
+
+// onClusterLicense puts diag on an Enterprise license with the Cluster feature.
+func onClusterLicense(diag *model.SupportPacketDiagnostics) *model.SupportPacketDiagnostics {
+	diag.License = model.SupportPacketLicense{SkuShortName: model.LicenseShortSkuEnterprise, Features: &model.Features{Cluster: new(true)}}
+	return diag
+}
+
+func withLicense(diag *model.SupportPacketDiagnostics, license model.SupportPacketLicense) *model.SupportPacketDiagnostics {
+	diag.License = license
+	return diag
+}
 
 func firingWant(messageID string) want {
 	return want{state: healthcheck.StateFiring, messageID: messageID}

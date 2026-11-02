@@ -55,16 +55,26 @@ exports[`components/SystemNotice should match snapshot for admin, admin notice 1
         class="system-notice__footer"
       >
         <button
-          class="btn btn-primary btn-sm"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-small_we8pe_53"
           id="systemnotice_remindme"
+          type="button"
         >
-          Remind Me Later
+          <span
+            class="_button__label_we8pe_31"
+          >
+            Remind Me Later
+          </span>
         </button>
         <button
-          class="btn btn-tertiary btn-sm"
+          class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-small_we8pe_53"
           id="systemnotice_dontshow"
+          type="button"
         >
-          Don't Show Again
+          <span
+            class="_button__label_we8pe_31"
+          >
+            Don't Show Again
+          </span>
         </button>
       </div>
     </div>
@@ -118,16 +128,26 @@ exports[`components/SystemNotice should match snapshot for admin, regular notice
         class="system-notice__footer"
       >
         <button
-          class="btn btn-primary btn-sm"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-small_we8pe_53"
           id="systemnotice_remindme"
+          type="button"
         >
-          Remind Me Later
+          <span
+            class="_button__label_we8pe_31"
+          >
+            Remind Me Later
+          </span>
         </button>
         <button
-          class="btn btn-tertiary btn-sm"
+          class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-small_we8pe_53"
           id="systemnotice_dontshow"
+          type="button"
         >
-          Don't Show Again
+          <span
+            class="_button__label_we8pe_31"
+          >
+            Don't Show Again
+          </span>
         </button>
       </div>
     </div>
@@ -181,16 +201,26 @@ exports[`components/SystemNotice should match snapshot for regular user, admin a
         class="system-notice__footer"
       >
         <button
-          class="btn btn-primary btn-sm"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-small_we8pe_53"
           id="systemnotice_remindme"
+          type="button"
         >
-          Remind Me Later
+          <span
+            class="_button__label_we8pe_31"
+          >
+            Remind Me Later
+          </span>
         </button>
         <button
-          class="btn btn-tertiary btn-sm"
+          class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-small_we8pe_53"
           id="systemnotice_dontshow"
+          type="button"
         >
-          Don't Show Again
+          <span
+            class="_button__label_we8pe_31"
+          >
+            Don't Show Again
+          </span>
         </button>
       </div>
     </div>
@@ -252,16 +282,26 @@ exports[`components/SystemNotice should match snapshot for regular user, regular
         class="system-notice__footer"
       >
         <button
-          class="btn btn-primary btn-sm"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-small_we8pe_53"
           id="systemnotice_remindme"
+          type="button"
         >
-          Remind Me Later
+          <span
+            class="_button__label_we8pe_31"
+          >
+            Remind Me Later
+          </span>
         </button>
         <button
-          class="btn btn-tertiary btn-sm"
+          class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-small_we8pe_53"
           id="systemnotice_dontshow"
+          type="button"
         >
-          Don't Show Again
+          <span
+            class="_button__label_we8pe_31"
+          >
+            Don't Show Again
+          </span>
         </button>
       </div>
     </div>
@@ -317,16 +357,26 @@ exports[`components/SystemNotice should match snapshot for show function returni
         class="system-notice__footer"
       >
         <button
-          class="btn btn-primary btn-sm"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-small_we8pe_53"
           id="systemnotice_remindme"
+          type="button"
         >
-          Remind Me Later
+          <span
+            class="_button__label_we8pe_31"
+          >
+            Remind Me Later
+          </span>
         </button>
         <button
-          class="btn btn-tertiary btn-sm"
+          class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-small_we8pe_53"
           id="systemnotice_dontshow"
+          type="button"
         >
-          Don't Show Again
+          <span
+            class="_button__label_we8pe_31"
+          >
+            Don't Show Again
+          </span>
         </button>
       </div>
     </div>
@@ -380,10 +430,15 @@ exports[`components/SystemNotice should match snapshot for with allowForget equa
         class="system-notice__footer"
       >
         <button
-          class="btn btn-primary btn-sm"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-small_we8pe_53"
           id="systemnotice_remindme"
+          type="button"
         >
-          Remind Me Later
+          <span
+            class="_button__label_we8pe_31"
+          >
+            Remind Me Later
+          </span>
         </button>
       </div>
     </div>
@@ -416,16 +471,26 @@ exports[`components/SystemNotice should match snapshot when a custom icon is pas
         class="system-notice__footer"
       >
         <button
-          class="btn btn-primary btn-sm"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-small_we8pe_53"
           id="systemnotice_remindme"
+          type="button"
         >
-          Remind Me Later
+          <span
+            class="_button__label_we8pe_31"
+          >
+            Remind Me Later
+          </span>
         </button>
         <button
-          class="btn btn-tertiary btn-sm"
+          class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-small_we8pe_53"
           id="systemnotice_dontshow"
+          type="button"
         >
-          Don't Show Again
+          <span
+            class="_button__label_we8pe_31"
+          >
+            Don't Show Again
+          </span>
         </button>
       </div>
     </div>

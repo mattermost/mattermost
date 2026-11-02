@@ -27,7 +27,7 @@ var seatsOverDeployed = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityThreshold,
 	Subject:    seatsSubject,
-	Eval:       evalSeatsOverDeployed,
+	Eval:       healthcheck.Single(evalSeatsOverDeployed),
 }
 
 var seatsLimitReached = healthcheck.Rule{
@@ -42,7 +42,7 @@ var seatsLimitReached = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityThreshold,
 	Subject:    seatsSubject,
-	Eval:       evalSeatsLimitReached,
+	Eval:       healthcheck.Single(evalSeatsLimitReached),
 }
 
 var seatsNearCapacity = healthcheck.Rule{
@@ -57,7 +57,7 @@ var seatsNearCapacity = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityThreshold,
 	Subject:    seatsSubject,
-	Eval:       evalSeatsNearCapacity,
+	Eval:       healthcheck.Single(evalSeatsNearCapacity),
 }
 
 // seatsUsed mirrors GetServerLimits: single-channel guests are free unless on Entry or with guest accounts disabled.
@@ -97,58 +97,58 @@ func seatUtilization(s *healthcheck.Snapshot) (used int64, seats int, reasonID s
 	return used, seats, reasonID
 }
 
-func evalSeatUtilization(s *healthcheck.Snapshot, messageID string, fires func(pct float64) bool) []healthcheck.Result {
+func evalSeatUtilization(s *healthcheck.Snapshot, messageID string, fires func(pct float64) bool) healthcheck.Result {
 	used, seats, reasonID := seatUtilization(s)
 	if reasonID != "" {
-		return []healthcheck.Result{healthcheck.Unknown(reasonID)}
+		return healthcheck.Unknown(reasonID)
 	}
 
 	pct := 100 * float64(used) / float64(seats)
 	if !fires(pct) {
-		return []healthcheck.Result{healthcheck.Resolved().WithValue(pct)}
+		return healthcheck.Resolved().WithValue(pct)
 	}
 
-	return []healthcheck.Result{healthcheck.Firing(messageID).
+	return healthcheck.Firing(messageID).
 		WithDetail("used", strconv.FormatInt(used, 10)).
 		WithDetail("seats", strconv.Itoa(seats)).
 		WithDetail("percent", strconv.FormatFloat(pct, 'f', 1, 64)).
-		WithValue(pct)}
+		WithValue(pct)
 }
 
-func evalSeatsOverDeployed(s *healthcheck.Snapshot) []healthcheck.Result {
+func evalSeatsOverDeployed(s *healthcheck.Snapshot) healthcheck.Result {
 	return evalSeatUtilization(s, healthcheck.TranslationId("health.rule.seats_over_deployed.message"), func(pct float64) bool {
 		return pct > 100
 	})
 }
 
-func evalSeatsNearCapacity(s *healthcheck.Snapshot) []healthcheck.Result {
+func evalSeatsNearCapacity(s *healthcheck.Snapshot) healthcheck.Result {
 	return evalSeatUtilization(s, healthcheck.TranslationId("health.rule.seats_near_capacity.message"), func(pct float64) bool {
 		return pct >= nearCapacityPct && pct <= 100
 	})
 }
 
-func evalSeatsLimitReached(s *healthcheck.Snapshot) []healthcheck.Result {
+func evalSeatsLimitReached(s *healthcheck.Snapshot) healthcheck.Result {
 	// Packets predating the seat enforcement flag also lack an expiry, so false there means unrecorded.
 	if _, ok := s.LicenseExpiresAt(); !ok {
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonLicenseUnavailable)}
+		return healthcheck.Unknown(healthcheck.ReasonLicenseUnavailable)
 	}
 	license, _ := s.License()
 	if !license.IsSeatCountEnforced {
-		return []healthcheck.Result{healthcheck.Resolved()}
+		return healthcheck.Resolved()
 	}
 
 	used, seats, reasonID := seatUtilization(s)
 	if reasonID != "" {
-		return []healthcheck.Result{healthcheck.Unknown(reasonID)}
+		return healthcheck.Unknown(reasonID)
 	}
 
 	limit := int64(seats + model.SafeDereference(license.ExtraUsers))
 	if used < limit {
-		return []healthcheck.Result{healthcheck.Resolved().WithValue(float64(used))}
+		return healthcheck.Resolved().WithValue(float64(used))
 	}
 
-	return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.seats_limit_reached.message")).
+	return healthcheck.Firing(healthcheck.TranslationId("health.rule.seats_limit_reached.message")).
 		WithDetail("used", strconv.FormatInt(used, 10)).
 		WithDetail("limit", strconv.FormatInt(limit, 10)).
-		WithValue(float64(used))}
+		WithValue(float64(used))
 }

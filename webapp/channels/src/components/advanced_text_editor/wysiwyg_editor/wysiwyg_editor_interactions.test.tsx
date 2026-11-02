@@ -6,6 +6,7 @@ import type {Editor} from '@tiptap/react';
 import React from 'react';
 
 import {renderWithContext} from 'tests/react_testing_utils';
+import {postMessageOnKeyPress} from 'utils/post_utils';
 
 import WysiwygEditor from './wysiwyg_editor';
 import type {WysiwygEditorHandle} from './wysiwyg_editor';
@@ -179,6 +180,17 @@ describe('WysiwygEditor interactions', () => {
         expect(editor.getHTML()).toMatch(/https:\/\/mattermost\.com<\/a> hello<\/p>/);
     });
 
+    test('Enter after an unclosed fence typed as text adds a line instead of sending', () => {
+        const {editor} = renderEditor('');
+        typeText(editor, '``` - [ ] example');
+
+        const draft = serializeToMarkdown(editor);
+        const enter = {key: 'Enter', keyCode: 13} as React.KeyboardEvent;
+
+        expect(draft).toBe('``` - [ ] example');
+        expect(postMessageOnKeyPress(enter, draft, false, true, 0, 0, draft.length)).toEqual({allowSending: false});
+    });
+
     describe('switching channels', () => {
         const switchTo = (rerender: (ui: React.ReactElement) => void, ref: React.RefObject<WysiwygEditorHandle | null>, value: string, channelId: string) => {
             rerender(
@@ -252,6 +264,62 @@ describe('WysiwygEditor interactions', () => {
             switchTo(rerender, ref, 'typed text more', 'c1');
 
             expect(editor.getHTML()).toBe('<p>typed text</p>');
+        });
+    });
+
+    describe('appendQuote', () => {
+        test('quotes into an empty editor and leaves the caret after the quote', () => {
+            const {ref, editor} = renderEditor('');
+
+            act(() => {
+                ref.current!.appendQuote('Diam sapien\npellentesque\n\nvestibulum');
+            });
+            typeText(editor, 'my reply');
+
+            expect(serializeToMarkdown(editor)).toBe('> Diam sapien\n> pellentesque\n>\n> vestibulum\n\nmy reply');
+
+            // The reply must not be typed into the last paragraph, which the editor hides while it's empty
+            expect(editor.state.doc.lastChild!.type.name).toBe('paragraph');
+            expect(editor.state.doc.lastChild!.content.size).toBe(0);
+        });
+
+        test('appends the quote after existing content', () => {
+            const {ref, editor} = renderEditor('Hey there');
+
+            act(() => {
+                ref.current!.appendQuote('Diam sapien');
+            });
+            typeText(editor, 'my reply');
+
+            expect(serializeToMarkdown(editor)).toBe('Hey there\n\n> Diam sapien\n\nmy reply');
+            expect(editor.state.doc.lastChild!.content.size).toBe(0);
+        });
+
+        test('keeps the Markdown formatting of the quote', () => {
+            const {ref, editor} = renderEditor('');
+
+            act(() => {
+                ref.current!.appendQuote('## Key Objectives\n\n* **Performance:** faster\n* Security\n\n```javascript\nconst a = 1;\n```');
+            });
+
+            expect(editor.getJSON().content?.[0]).toMatchObject({
+                type: 'blockquote',
+                content: [
+                    {type: 'heading', attrs: {level: 2}},
+                    {type: 'bulletList'},
+                    {type: 'codeBlock', attrs: {language: 'javascript'}},
+                ],
+            });
+        });
+
+        test('does nothing for blank text', () => {
+            const {ref, editor} = renderEditor('Hey there');
+
+            act(() => {
+                ref.current!.appendQuote('  \n ');
+            });
+
+            expect(serializeToMarkdown(editor)).toBe('Hey there');
         });
     });
 });

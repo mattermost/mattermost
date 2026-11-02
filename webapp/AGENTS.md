@@ -12,6 +12,7 @@ Follow `webapp/STYLE_GUIDE.md` for canonical style, accessibility, and testing s
 - **New UI**: prefer `@mattermost/compass-ui` when a published (on npm) component exists. Import via subpaths:
   `import {Button} from '@mattermost/compass-ui/components/button';`
   Do not use the root barrel. Do not recreate Compass primitives.
+- **Button**: use Compass UI for text-based button UI. Do not use `@mattermost/shared` `Button` (removed); `buttonClassNames` from `@mattermost/shared/components/button` remains for menu triggers and similar class-only cases. Sizes: `x-small` / `small` / `medium` / `large`. Use `destructive` (boolean) and `appearance="inverted"` for those styles. For link-styled CTAs, use `asChild` with a single `<a>` or router `Link` child instead of nesting a button.
 - **Do not mass-migrate** existing UI components to Compass. Only switch when building new UI or when the task is an intentional migration of the code you are already changing.
 - **`@mattermost/compass-proto`**: prototyping package not published to npm (shells, call composites, hardcoded menu recipes, proto `WithTooltip`). Not for Mattermost webapp product code — do not add the dependency or import from it unless explicitly adopting that package. Prefer existing webapp / shared / MUI stacks for those surfaces.
 - **Exceptions (keep current stacks)**: icons → `@mattermost/compass-icons`; emoji → `Emoji` (`@mattermost/shared`); modals → existing shared / `GenericModal`; menus → existing MUI menus. Do not switch Modal/Menu to compass-ui yet.
@@ -38,6 +39,7 @@ Each has a contract type in `@mattermost/shared/types/global/` and a build-time 
 
 - `window.WebappUtils.modals` — contract `PublishedModalUtils`; allowlist in `published_modals.ts`.
 - `window.WebappUtils.editor` — contract `PublishedEditorUtils`; allowlist in `published_editor.ts`.
+- `window.WebappUtils.components` — contract `PublishedComponents`; allowlist in `published_components.ts`.
 
 **Adding an entry**
 

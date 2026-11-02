@@ -39,12 +39,14 @@ const (
 	SystemFirstAdminSetupComplete          = "FirstAdminSetupComplete"
 	SystemLastAccessiblePostTime           = "LastAccessiblePostTime"
 	SystemLastAccessibleFileTime           = "LastAccessibleFileTime"
-	SystemHostedPurchaseNeedsScreening     = "HostedPurchaseNeedsScreening"
 	SystemPostChannelTypeBackfillComplete  = "PostChannelTypeBackfillComplete"
 	AwsMeteringReportInterval              = 1
 	AwsMeteringDimensionUsageHrs           = "UsageHrs"
 	CloudRenewalEmail                      = "CloudRenewalEmail"
 )
+
+// Deprecated: The hosted purchase screening job has been removed.
+const SystemHostedPurchaseNeedsScreening = "HostedPurchaseNeedsScreening"
 
 const (
 	WarnMetricStatusLimitReached    = "true"

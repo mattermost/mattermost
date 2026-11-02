@@ -1,0 +1,178 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+package app
+
+import (
+	"slices"
+	"sync"
+
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+)
+
+// ShapePropertyFieldForCaller returns a per-caller reduced copy of field's
+// Permissions, leaving the stored field untouched. serveV3 false means the
+// caller's group is still on the v2 payload, which has no place for
+// Permissions at all.
+func (a *App) ShapePropertyFieldForCaller(rctx request.CTX, session model.Session, field *model.PropertyField, serveV3 bool) *model.PropertyField {
+	roles := sync.OnceValue(func() []string { return a.propertyCallerRoles(rctx, session.UserId) })
+	return a.shapePropertyFieldForCaller(rctx, session, field, serveV3, make(map[string]*model.PropertyField), roles)
+}
+
+// ShapePropertyFieldsForCaller applies ShapePropertyFieldForCaller to every
+// field in the slice, resolving each linked field's masking template at most
+// once no matter how many of the fields link to it, and the caller's roles at
+// most once no matter how many fields need them.
+func (a *App) ShapePropertyFieldsForCaller(rctx request.CTX, session model.Session, fields []*model.PropertyField, serveV3 bool) []*model.PropertyField {
+	templates := make(map[string]*model.PropertyField)
+	roles := sync.OnceValue(func() []string { return a.propertyCallerRoles(rctx, session.UserId) })
+	shaped := make([]*model.PropertyField, len(fields))
+	for i, field := range fields {
+		shaped[i] = a.shapePropertyFieldForCaller(rctx, session, field, serveV3, templates, roles)
+	}
+	return shaped
+}
+
+func (a *App) shapePropertyFieldForCaller(rctx request.CTX, session model.Session, field *model.PropertyField, serveV3 bool, templates map[string]*model.PropertyField, roles func() []string) *model.PropertyField {
+	if field == nil || field.Permissions == nil {
+		return field
+	}
+
+	if !serveV3 {
+		projected := a.projectLegacyPermissions(rctx, field, templates)
+		projected.Permissions = nil
+		return projected
+	}
+
+	copied := *field
+
+	isLinked := field.LinkedFieldID != nil && *field.LinkedFieldID != ""
+	// A system admin reads the policy in full even without field.write, so
+	// they can tell which integration manages a field whose field.write is
+	// none. It is a read view only: editing still goes through the edit
+	// basis alone.
+	seesAll := a.SessionPropertyFieldEditBasis(rctx, session, field).Allowed ||
+		a.SessionHasPermissionTo(session, model.PermissionManageSystem)
+
+	permissions := *field.Permissions
+	filtered := false
+
+	// A caller who sees all of an unlinked field sees masking in full; every
+	// other arm gets presence only. A linked field's masking is never
+	// editable, so even they only see whether it is masked, never
+	// mask_by_field_id or except -- those belong to the template's
+	// administrator. For them the withheld details are not marked
+	// filtered: nobody can change them on this field, and the patch handler
+	// reads the masking: {} they are served back as unchanged, so the
+	// object round-trips as is.
+	if !seesAll || isLinked {
+		if isLinked {
+			var maskingFiltered bool
+			permissions.Masking, maskingFiltered = a.linkedFieldMaskingPresence(rctx, field, templates)
+			filtered = maskingFiltered && !seesAll
+		} else {
+			permissions.Masking, filtered = maskingPresence(permissions.Masking)
+		}
+	}
+
+	if !seesAll {
+		grants := make([]model.Grant, 0, len(permissions.Grants))
+		for _, grant := range permissions.Grants {
+			switch grant.Type {
+			case model.PropertyOwnerTypeUser:
+				if grant.ID == session.UserId {
+					grants = append(grants, grant)
+					continue
+				}
+			case model.PropertyOwnerTypeRole:
+				if slices.Contains(roles(), grant.ID) {
+					grants = append(grants, grant)
+					continue
+				}
+			}
+			filtered = true
+		}
+		permissions.Grants = grants
+	}
+
+	// A shorter grants array is fine; a different shape per caller is not --
+	// nil for an editor and [] for everyone else is exactly the branch a
+	// client checking permissions.grants.length would have to take.
+	if permissions.Grants == nil {
+		permissions.Grants = []model.Grant{}
+	}
+	permissions.Filtered = filtered
+	copied.Permissions = &permissions
+	return &copied
+}
+
+// maskingPresence returns the presence-only form of a field's own masking --
+// an empty *model.Masking when masked, nil when not -- and whether its
+// mask_by_field_id or except carried anything worth calling out as filtered.
+func maskingPresence(masking *model.Masking) (*model.Masking, bool) {
+	if masking == nil {
+		return nil, false
+	}
+	filtered := masking.MaskByFieldID != "" || len(masking.Except) > 0
+	return &model.Masking{}, filtered
+}
+
+// linkedFieldMaskingPresence resolves the presence-only masking a linked
+// field reports, which is its template's -- a linked field may not declare
+// masking of its own. A template read that fails is reported as masked with
+// contents withheld rather than as unmasked: the wrong direction here is
+// telling a caller a masked field is not.
+func (a *App) linkedFieldMaskingPresence(rctx request.CTX, field *model.PropertyField, templates map[string]*model.PropertyField) (*model.Masking, bool) {
+	template, err := a.linkedFieldTemplate(rctx, field, templates)
+	if err != nil {
+		rctx.Logger().Error("Failed to resolve linked field's masking template", mlog.String("field_id", field.ID), mlog.Err(err))
+		return &model.Masking{}, true
+	}
+	if template.Permissions == nil {
+		return nil, false
+	}
+	return maskingPresence(template.Permissions.Masking)
+}
+
+// projectLegacyPermissions is model.ProjectLegacyPermissionsWithTemplate,
+// reading a linked field's template through linkedFieldTemplate. A linked
+// field never carries masking of its own, so when that read fails its own mode
+// would say public; it is reported shared_only instead, as
+// linkedFieldMaskingPresence reports it masked. A field whose own tiers
+// already say source_only keeps that, which is stricter still.
+func (a *App) projectLegacyPermissions(rctx request.CTX, field *model.PropertyField, templates map[string]*model.PropertyField) *model.PropertyField {
+	var template *model.PropertyField
+	templateUnreadable := false
+	if field.Permissions != nil && field.LinkSourceID() != "" {
+		t, err := a.linkedFieldTemplate(rctx, field, templates)
+		if err != nil {
+			rctx.Logger().Error("Failed to resolve linked field's access mode template", mlog.String("field_id", field.ID), mlog.Err(err))
+			templateUnreadable = true
+		}
+		template = t
+	}
+	projected := model.ProjectLegacyPermissionsWithTemplate(field, template)
+	// An absent key means public. projected carries its own copy of Attrs,
+	// so this never touches field's.
+	if _, set := projected.Attrs[model.PropertyAttrsAccessMode]; templateUnreadable && !set {
+		projected.Attrs[model.PropertyAttrsAccessMode] = model.PropertyAccessModeSharedOnly
+	}
+	return projected
+}
+
+// linkedFieldTemplate returns field's linked template, reading it once per
+// template ID for the lifetime of templates rather than once per field.
+func (a *App) linkedFieldTemplate(rctx request.CTX, field *model.PropertyField, templates map[string]*model.PropertyField) (*model.PropertyField, error) {
+	templateID := *field.LinkedFieldID
+	if template, ok := templates[templateID]; ok {
+		return template, nil
+	}
+	template, appErr := a.GetPropertyField(rctx, field.GroupID, templateID)
+	if appErr != nil {
+		return nil, appErr
+	}
+	templates[templateID] = template
+	return template, nil
+}

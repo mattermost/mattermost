@@ -36,7 +36,7 @@ var complianceNoDir = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityStable,
 	Subject:    "ComplianceSettings.Directory",
-	Eval:       requireFeature(func(f *model.Features) *bool { return f.Compliance }, evalComplianceNoDir),
+	Eval:       healthcheck.Licensed(healthcheck.FeatureCompliance, healthcheck.Single(evalComplianceNoDir)),
 }
 
 var retentionTightBatches = healthcheck.Rule{
@@ -51,7 +51,7 @@ var retentionTightBatches = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityStable,
 	Subject:    "DataRetentionSettings.TimeBetweenBatchesMilliseconds",
-	Eval:       requireFeature(func(f *model.Features) *bool { return f.DataRetention }, evalRetentionTightBatches),
+	Eval:       healthcheck.Licensed(healthcheck.FeatureDataRetention, healthcheck.Single(evalRetentionTightBatches)),
 }
 
 var exportGRTimeoutLow = healthcheck.Rule{
@@ -67,40 +67,26 @@ var exportGRTimeoutLow = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityStable,
 	Subject:    "MessageExportSettings.GlobalRelaySettings.SMTPServerTimeout",
-	Eval:       requireFeature(func(f *model.Features) *bool { return f.MessageExport }, evalExportGRTimeoutLow),
+	Eval:       healthcheck.Licensed(healthcheck.FeatureMessageExport, healthcheck.Single(evalExportGRTimeoutLow)),
 }
 
-// requireFeature resolves when the license lacks the feature the rule's runtime needs, so stale settings on an unlicensed server don't fire.
-func requireFeature(feature func(*model.Features) *bool, eval func(*healthcheck.Snapshot) []healthcheck.Result) func(*healthcheck.Snapshot) []healthcheck.Result {
-	return func(s *healthcheck.Snapshot) []healthcheck.Result {
-		granted, ok := s.LicenseFeature(feature)
-		if !ok {
-			return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonLicenseUnavailable)}
-		}
-		if !granted {
-			return []healthcheck.Result{healthcheck.Resolved()}
-		}
-		return eval(s)
-	}
-}
-
-func evalComplianceNoDir(s *healthcheck.Snapshot) []healthcheck.Result {
+func evalComplianceNoDir(s *healthcheck.Snapshot) healthcheck.Result {
 	enabled, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.ComplianceSettings.Enable })
 	if !ok {
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
+		return healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)
 	}
 	if !enabled {
-		return []healthcheck.Result{healthcheck.Resolved()}
+		return healthcheck.Resolved()
 	}
 
 	dir, ok := s.ConfigString(func(cfg *model.Config) *string { return cfg.ComplianceSettings.Directory })
 	switch {
 	case !ok:
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
+		return healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)
 	case dir == "":
-		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.compliance_no_dir.message"))}
+		return healthcheck.Firing(healthcheck.TranslationId("health.rule.compliance_no_dir.message"))
 	default:
-		return []healthcheck.Result{healthcheck.Resolved()}
+		return healthcheck.Resolved()
 	}
 }
 
@@ -134,23 +120,23 @@ func retentionRuns(s *healthcheck.Snapshot) (runs bool, unknownReason string) {
 	return false, ""
 }
 
-func evalRetentionTightBatches(s *healthcheck.Snapshot) []healthcheck.Result {
+func evalRetentionTightBatches(s *healthcheck.Snapshot) healthcheck.Result {
 	runs, reason := retentionRuns(s)
 	if reason != "" {
-		return []healthcheck.Result{healthcheck.Unknown(reason)}
+		return healthcheck.Unknown(reason)
 	}
 	if !runs {
-		return []healthcheck.Result{healthcheck.Resolved()}
+		return healthcheck.Resolved()
 	}
 
 	pause, ok := s.ConfigInt(func(cfg *model.Config) *int { return cfg.DataRetentionSettings.TimeBetweenBatchesMilliseconds })
 	switch {
 	case !ok:
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
+		return healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)
 	case pause < minTimeBetweenBatchesMilliseconds:
-		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.retention_tight_batches.message")).WithDetail("value", strconv.Itoa(pause))}
+		return healthcheck.Firing(healthcheck.TranslationId("health.rule.retention_tight_batches.message")).WithDetail("value", strconv.Itoa(pause))
 	default:
-		return []healthcheck.Result{healthcheck.Resolved()}
+		return healthcheck.Resolved()
 	}
 }
 
@@ -165,13 +151,13 @@ func globalRelayEnabled(s *healthcheck.Snapshot) (enabled, ok bool) {
 	return format == model.ComplianceExportTypeGlobalrelay, ok
 }
 
-func evalExportGRTimeoutLow(s *healthcheck.Snapshot) []healthcheck.Result {
+func evalExportGRTimeoutLow(s *healthcheck.Snapshot) healthcheck.Result {
 	enabled, ok := globalRelayEnabled(s)
 	if !ok {
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
+		return healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)
 	}
 	if !enabled {
-		return []healthcheck.Result{healthcheck.Resolved()}
+		return healthcheck.Resolved()
 	}
 
 	timeout, ok := s.ConfigInt(func(cfg *model.Config) *int {
@@ -182,10 +168,10 @@ func evalExportGRTimeoutLow(s *healthcheck.Snapshot) []healthcheck.Result {
 	})
 	switch {
 	case !ok:
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
+		return healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)
 	case timeout < minGlobalRelaySMTPTimeoutSeconds:
-		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.export_gr_timeout_low.message")).WithDetail("value", strconv.Itoa(timeout))}
+		return healthcheck.Firing(healthcheck.TranslationId("health.rule.export_gr_timeout_low.message")).WithDetail("value", strconv.Itoa(timeout))
 	default:
-		return []healthcheck.Result{healthcheck.Resolved()}
+		return healthcheck.Resolved()
 	}
 }

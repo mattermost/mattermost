@@ -4,7 +4,6 @@
 package config
 
 import (
-	"encoding/json"
 	"fmt"
 	"testing"
 
@@ -735,52 +734,14 @@ func TestGetClientConfig(t *testing.T) {
 			[]string{"MobileEphemeralModeEnabled", "MobileEphemeralModeDisconnectionTimeoutSeconds", "MobileEphemeralModeOfflinePersistenceTimerHours", "MobileEphemeralModeAutoCacheCleanupDays"},
 		},
 		{
-			"audit logging - default config",
-			&model.Config{},
-			"",
-			nil,
-			map[string]string{
-				"EnableAccessControlAuditLogging": "false",
-				"AuditLoggingActive":              "false",
-			},
-			[]string{},
-		},
-		{
-			"audit logging - file audit enabled",
-			&model.Config{
-				ExperimentalAuditSettings: model.ExperimentalAuditSettings{
-					FileEnabled: new(true),
-					FileName:    new("audit.log"),
-				},
-			},
-			"",
-			nil,
-			map[string]string{
-				"EnableAccessControlAuditLogging": "false",
-				"AuditLoggingActive":              "true",
-			},
-			[]string{},
-		},
-		{
-			"audit logging - setting enabled independent of active state",
+			"audit logging - AuditLoggingActive is not derived from config",
 			&model.Config{
 				AccessControlSettings: model.AccessControlSettings{
 					EnableAccessControlAuditLogging: new(true),
 				},
-			},
-			"",
-			nil,
-			map[string]string{
-				"EnableAccessControlAuditLogging": "true",
-				"AuditLoggingActive":              "false",
-			},
-			[]string{},
-		},
-		{
-			"audit logging - advanced target with license",
-			&model.Config{
 				ExperimentalAuditSettings: model.ExperimentalAuditSettings{
-					AdvancedLoggingJSON: json.RawMessage(`{"my-audit":{"type":"file","levels":[{"id":100,"name":"audit-api"}],"options":{"filename":"audit.log"}}}`),
+					FileEnabled: new(true),
+					FileName:    new("audit.log"),
 				},
 			},
 			"",
@@ -791,23 +752,9 @@ func TestGetClientConfig(t *testing.T) {
 				SkuShortName: model.LicenseShortSkuEnterprise,
 			},
 			map[string]string{
-				"AuditLoggingActive": "true",
+				"EnableAccessControlAuditLogging": "true",
 			},
-			[]string{},
-		},
-		{
-			"audit logging - advanced target without license",
-			&model.Config{
-				ExperimentalAuditSettings: model.ExperimentalAuditSettings{
-					AdvancedLoggingJSON: json.RawMessage(`{"my-audit":{"type":"file","levels":[{"id":100,"name":"audit-api"}],"options":{"filename":"audit.log"}}}`),
-				},
-			},
-			"",
-			nil,
-			map[string]string{
-				"AuditLoggingActive": "false",
-			},
-			[]string{},
+			[]string{"AuditLoggingActive"},
 		},
 		{
 			"notification metrics enabled follows the metrics setting",

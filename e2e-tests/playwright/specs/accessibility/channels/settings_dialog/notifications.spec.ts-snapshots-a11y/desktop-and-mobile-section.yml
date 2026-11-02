@@ -3,7 +3,7 @@
 - text: You're missing important message and call notifications from Mattermost. To start receiving notifications, please enable notifications for Mattermost in your browser settings.
 - button "How to enable notifications"
 - group "Send notifications for:":
-  - text: ""
+  - text: "Send notifications for:"
   - radio "All new messages"
   - text: All new messages
   - radio "Mentions, direct messages, and group messages" [checked]

@@ -42,12 +42,10 @@ func (rcs *Service) AcceptInvitation(invite *model.RemoteClusterInvite, name str
 
 	rcSaved, err := rcs.server.GetStore().RemoteCluster().Save(rc)
 	if err != nil {
-		var appErr *model.AppError
-		if errors.As(err, &appErr) {
+		if appErr, ok := errors.AsType[*model.AppError](err); ok {
 			return nil, appErr
 		}
-		var conflictErr *store.ErrConflict
-		if errors.As(err, &conflictErr) {
+		if _, ok := errors.AsType[*store.ErrConflict](err); ok {
 			return nil, model.NewAppError("AcceptInvitation", "api.remote_cluster.save_not_unique.app_error", nil, "", http.StatusConflict).Wrap(err)
 		}
 		return nil, model.NewAppError("AcceptInvitation", "api.remote_cluster.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -109,6 +107,9 @@ func (rcs *Service) confirmInviteSendError(remoteId string, url string, resp []b
 	}
 	if errors.Is(err, errInvalidRemoteURL) {
 		return model.NewAppError("AcceptInvitation", "api.remote_cluster.accept_invitation.invalid_url.app_error", map[string]any{"URL": markdownSafeURL(url)}, "", http.StatusBadRequest).Wrap(err)
+	}
+	if errors.Is(err, errRemoteResponseTooLarge) {
+		return model.NewAppError("AcceptInvitation", "api.remote_cluster.accept_invitation.invalid_response.app_error", nil, "", http.StatusBadGateway).Wrap(err)
 	}
 	if resp == nil {
 		return model.NewAppError("AcceptInvitation", "api.remote_cluster.accept_invitation_error", nil, "", http.StatusInternalServerError).Wrap(err)

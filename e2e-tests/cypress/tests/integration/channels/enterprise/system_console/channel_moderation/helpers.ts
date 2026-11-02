@@ -21,38 +21,47 @@ export const visitChannelConfigPage = (channel: Channel) => {
     cy.wait(TIMEOUTS.ONE_SEC);
 };
 
-// Permission widgets come in two flavors: channel moderation renders a real
-// `<input type="checkbox">`, while the (team/system) scheme permission grid
-// still renders a plain `<div>` toggled via a "checked"/"intermediate" class.
-// These helpers read the right signal for whichever one is passed in.
-const isPermissionChecked = (el: JQuery<HTMLElement>): boolean => {
-    const node = el[0];
-    if (node.tagName === 'INPUT') {
-        return (node as HTMLInputElement).checked;
+const isNativeCheckbox = ($el: JQuery<HTMLElement>) => $el.is('input[type="checkbox"]');
+
+const isPermissionChecked = ($el: JQuery<HTMLElement>) => {
+    if (isNativeCheckbox($el)) {
+        return Boolean($el.prop('checked') || $el.prop('indeterminate'));
     }
-    return node.classList.contains('checked');
+
+    // System / team scheme permission widgets still use Bootstrap checkbox classes.
+    const classAttribute = $el.attr('class') ?? '';
+    return classAttribute.includes('checked') || classAttribute.includes('intermediate');
 };
 
-const isPermissionIndeterminate = (el: JQuery<HTMLElement>): boolean => {
-    const node = el[0];
-    if (node.tagName === 'INPUT') {
-        return (node as HTMLInputElement).indeterminate;
-    }
-    return node.classList.contains('intermediate');
+const assertPermissionUnchecked = (permission: string) => {
+    cy.findByTestId(permission).then(($el) => {
+        if (isNativeCheckbox($el)) {
+            cy.wrap($el).should('not.be.checked');
+            return;
+        }
+        cy.wrap($el).should('not.have.class', 'checked');
+    });
+};
+
+const assertPermissionChecked = (permission: string) => {
+    cy.findByTestId(permission).then(($el) => {
+        if (isNativeCheckbox($el)) {
+            cy.wrap($el).should('be.checked');
+            return;
+        }
+        cy.wrap($el).should('have.class', 'checked');
+    });
 };
 
 // # Disable a permission
+// Supports Compass Checkbox (opacity: 0 native input) and Bootstrap scheme widgets.
 export const disablePermission = (permission: string) => {
-    cy.waitUntil(() => cy.findByTestId(permission).scrollIntoView().then((el) => {
-        if (isPermissionChecked(el) || isPermissionIndeterminate(el)) {
-            el[0].click();
-            return false;
+    cy.findByTestId(permission).scrollIntoView().should('exist').then(($el) => {
+        if (isPermissionChecked($el)) {
+            cy.wrap($el).click({force: true});
         }
-        return true;
-    }));
-    cy.findByTestId(permission).should((el) => {
-        expect(isPermissionChecked(el)).to.equal(false);
     });
+    assertPermissionUnchecked(permission);
 };
 
 // # Saves channel config and navigates back to the channel config page if specified
@@ -127,17 +136,14 @@ export const postChannelMentionsAndVerifySystemMessageExist = (channelName: stri
 };
 
 // # Enable a permission
+// Supports Compass Checkbox (opacity: 0 native input) and Bootstrap scheme widgets.
 export const enablePermission = (permission: string) => {
-    cy.waitUntil(() => cy.findByTestId(permission).scrollIntoView().then((el) => {
-        if (!isPermissionChecked(el)) {
-            el[0].click();
-            return false;
+    cy.findByTestId(permission).scrollIntoView().should('exist').then(($el) => {
+        if (!isPermissionChecked($el)) {
+            cy.wrap($el).click({force: true});
         }
-        return true;
-    }));
-    cy.findByTestId(permission).should((el) => {
-        expect(isPermissionChecked(el)).to.equal(true);
     });
+    assertPermissionChecked(permission);
 };
 
 // # Checks to see if we did not get a system message warning after using @all/@here/@channel
@@ -316,12 +322,9 @@ export const promoteToChannelOrTeamAdmin = (userId: string, id: string, channels
 // # Disable (uncheck) all the permissions in the channel moderation widget
 export const disableAllChannelModeratedPermissions = () => {
     checkBoxes.forEach((buttonId) => {
-        cy.findByTestId(buttonId).then((btn) => {
-            if (btn.prop('checked')) {
-                // Use the native click, not jQuery's synthetic trigger: the
-                // checkbox is a native <input>, and React's listener does not
-                // reliably observe jQuery's btn.click() on it.
-                btn[0].click();
+        cy.findByTestId(buttonId).then(($btn) => {
+            if ($btn.prop('checked')) {
+                cy.wrap($btn).click({force: true});
             }
         });
     });
@@ -330,10 +333,9 @@ export const disableAllChannelModeratedPermissions = () => {
 // # Enable (check) all the permissions in the channel moderation widget
 export const enableAllChannelModeratedPermissions = () => {
     checkBoxes.forEach((buttonId) => {
-        cy.findByTestId(buttonId).then((btn) => {
-            if (!btn.prop('checked')) {
-                // See comment in disableAllChannelModeratedPermissions above.
-                btn[0].click();
+        cy.findByTestId(buttonId).then(($btn) => {
+            if (!$btn.prop('checked')) {
+                cy.wrap($btn).click({force: true});
             }
         });
     });

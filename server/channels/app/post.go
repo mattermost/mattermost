@@ -2410,7 +2410,12 @@ func (a *App) convertChannelNamesToChannelIds(rctx request.CTX, channels []strin
 	for idx, channelName := range channels {
 		channel, err := a.parseAndFetchChannelIdByNameFromInFilter(rctx, channelName, userID, teamID, includeDeletedChannels)
 		if err != nil {
-			rctx.Logger().Warn("error getting channel id by name from in filter", mlog.Err(err))
+			// A client can send a channel id in place of a name, which is the only way to name a
+			// channel unambiguously when the search isn't scoped to one team. Such a value is passed
+			// through as it is, and only matches channels the user is a member of.
+			if !model.IsValidId(channelName) {
+				rctx.Logger().Warn("error getting channel id by name from in filter", mlog.Err(err))
+			}
 			continue
 		}
 		channels[idx] = channel.Id
@@ -2489,8 +2494,7 @@ func (a *App) ComputeLastAccessiblePostTime() error {
 
 	createdAt, err := a.Srv().GetStore().Post().GetNthRecentPostTime(limit)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		if !errors.As(err, &nfErr) {
+		if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
 			return model.NewAppError("ComputeLastAccessiblePostTime", "app.last_accessible_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
@@ -2532,10 +2536,9 @@ func (a *App) SearchPostsForUser(rctx request.CTX, terms string, userID string, 
 		params.IncludeDeletedChannels = includeDeletedChannels
 		// Don't allow users to search for "*"
 		if params.Terms != "*" {
-			// TODO: we have to send channel ids
-			// from the front-end. Otherwise it's not possible to distinguish
-			// from just the channel name at a cross-team level.
-			// Convert channel names to channel IDs
+			// Convert channel names to channel IDs. A name only identifies a channel within one
+			// team, so a client filtering across teams sends ids instead, which pass through here
+			// untouched.
 			params.InChannels = a.convertChannelNamesToChannelIds(rctx, params.InChannels, userID, teamID, includeDeletedChannels)
 			params.ExcludedChannels = a.convertChannelNamesToChannelIds(rctx, params.ExcludedChannels, userID, teamID, includeDeletedChannels)
 
@@ -2654,12 +2657,12 @@ func (a *App) GetFileInfosForPostWithMigration(rctx request.CTX, postID string, 
 		}
 	}
 
-	infos, firstInaccessibleFileTime, appErr := a.GetFileInfosForPost(rctx, post, false, includeDeleted)
+	infos, appErr := a.GetFileInfosForPost(rctx, post, false, includeDeleted)
 	if appErr != nil {
 		return nil, appErr
 	}
 
-	if len(infos) == 0 && firstInaccessibleFileTime == 0 && len(post.Filenames) > 0 {
+	if len(infos) == 0 && len(post.Filenames) > 0 {
 		a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, false)
 		a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, true)
 		// The post has Filenames that need to be replaced with FileInfos
@@ -2669,20 +2672,19 @@ func (a *App) GetFileInfosForPostWithMigration(rctx request.CTX, postID string, 
 	return infos, nil
 }
 
-// GetFileInfosForPost also returns firstInaccessibleFileTime based on cloud plan's limit.
-func (a *App) GetFileInfosForPost(rctx request.CTX, post *model.Post, fromMaster bool, includeDeleted bool) ([]*model.FileInfo, int64, *model.AppError) {
+func (a *App) GetFileInfosForPost(rctx request.CTX, post *model.Post, fromMaster bool, includeDeleted bool) ([]*model.FileInfo, *model.AppError) {
 	fileIDs := post.FileIds
 	if fromMaster {
 		masterPost, err := a.Srv().Store().Post().GetSingle(sqlstore.RequestContextWithMaster(rctx), post.Id, includeDeleted)
 		if err != nil {
-			return nil, 0, model.NewAppError("GetFileInfosForPost", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return nil, model.NewAppError("GetFileInfosForPost", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 		fileIDs = masterPost.FileIds
 	}
 
 	fileInfos, err := a.Srv().Store().FileInfo().GetByIds(fileIDs, includeDeleted, true, fromMaster)
 	if err != nil {
-		return nil, 0, model.NewAppError("GetFileInfosForPost", "app.file_info.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("GetFileInfosForPost", "app.file_info.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	// GetByIds does not preserve the order of post.FileIds (the SQL store sorts
@@ -2690,14 +2692,9 @@ func (a *App) GetFileInfosForPost(rctx request.CTX, post *model.Post, fromMaster
 	// reorder to match the post's stored attachment order.
 	fileInfos = orderFileInfosByID(post.FileIds, fileInfos)
 
-	firstInaccessibleFileTime, appErr := a.removeInaccessibleContentFromFilesSlice(fileInfos)
-	if appErr != nil {
-		return nil, 0, appErr
-	}
-
 	a.generateMiniPreviewForInfos(rctx, fileInfos)
 
-	return fileInfos, firstInaccessibleFileTime, nil
+	return fileInfos, nil
 }
 
 func orderFileInfosByID(ids []string, infos []*model.FileInfo) []*model.FileInfo {
@@ -3561,6 +3558,12 @@ func (a *App) MoveThread(rctx request.CTX, postID string, sourceChannelID, chann
 	err := a.ValidateMoveOrCopy(rctx, wpl, originalChannel, targetChannel, user)
 	if err != nil {
 		return model.NewAppError("validateMoveOrCopy", "app.post.move_thread_command.error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	// Moving copies the thread's files into the target channel, so it needs the
+	// same upload_file_attachment permission as attaching them there directly.
+	if wpl.ContainsFileAttachments() && !a.HasPermissionToChannelAction(rctx, user.Id, user.Roles, targetChannel.Id, model.AccessControlPolicyActionUploadFileAttachment) {
+		return model.NewAppError("MoveThread", "api.file.upload_file.abac_denied.app_error", nil, "", http.StatusForbidden)
 	}
 
 	var targetTeam *model.Team

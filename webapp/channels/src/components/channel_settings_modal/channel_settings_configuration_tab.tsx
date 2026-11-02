@@ -5,6 +5,10 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {InformationOutlineIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
+import {Switch} from '@mattermost/compass-ui/components/switch';
 import type {Channel, ChannelBanner} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 
@@ -35,8 +39,6 @@ import useResolvedChannelAttributes from 'components/common/hooks/useResolvedCha
 import ConfirmModal from 'components/confirm_modal';
 import DropdownInput from 'components/dropdown_input';
 import type {ValueType} from 'components/dropdown_input';
-import SectionNotice from 'components/section_notice';
-import Toggle from 'components/toggle';
 import AdvancedTextbox from 'components/widgets/advanced_textbox/advanced_textbox';
 import type {SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
 import SaveChangesPanel from 'components/widgets/modals/components/save_changes_panel';
@@ -894,54 +896,37 @@ function ChannelSettingsConfigurationTab({
 
             {canManageClassification && (
                 <>
-                    <div className='channel_banner_header'>
-                        <div className='channel_banner_header__text'>
-                            <label
-                                className='Input_legend'
-                                htmlFor='channelClassificationToggle'
-                            >
-                                <FormattedMessage
-                                    id='channel_settings.classification.title'
-                                    defaultMessage='Classification'
-                                />
-                            </label>
-                            <label
-                                className='Input_subheading'
-                                htmlFor='channelClassificationToggle'
-                            >
-                                <FormattedMessage
-                                    id='channel_settings.classification.description'
-                                    defaultMessage='When enabled, a classification level can be set for the channel with configurable indicators.'
-                                />
-                            </label>
-                        </div>
-
-                        <div className='channel_banner_header__toggle'>
-                            <Toggle
-                                id='channelClassificationToggle'
-                                ariaLabel={formatMessage({id: 'channel_settings.classification.title', defaultMessage: 'Classification'})}
-                                size='btn-md'
-                                disabled={false}
-                                onToggle={handleClassificationToggle}
-                                toggled={classificationEnabled}
-                                tabIndex={0}
-                                toggleClassName='btn-toggle-primary'
-                            />
-                        </div>
-                    </div>
+                    <Switch
+                        id='channelClassificationToggle'
+                        size='medium'
+                        checked={classificationEnabled}
+                        onChange={handleClassificationToggle}
+                        data-testid='channelClassificationToggle-button'
+                        tabIndex={0}
+                        semiBold={true}
+                        secondaryLabel={formatMessage({
+                            id: 'channel_settings.classification.description',
+                            defaultMessage: 'When enabled, a classification level can be set for the channel with configurable indicators.',
+                        })}
+                    >
+                        <FormattedMessage
+                            id='channel_settings.classification.title'
+                            defaultMessage='Classification'
+                        />
+                    </Switch>
 
                     {classificationEnabled && (
                         <div className='channel_banner_section_body'>
                             <SectionNotice
                                 type='warning'
-                                iconOverride='icon-information-outline'
+                                icon={<Icon glyph={<InformationOutlineIcon/>}/>}
                                 title={
                                     <FormattedMessage
                                         id='admin.classification_markings.notice.title'
                                         defaultMessage='Classification markings are informational only'
                                     />
                                 }
-                                text={formatMessage({id: 'admin.classification_markings.notice.body', defaultMessage: 'Markings are not tied to access control decisions at this time and are for display purposes only.'})}
+                                description={formatMessage({id: 'admin.classification_markings.notice.body', defaultMessage: 'Markings are not tied to access control decisions at this time and are for display purposes only.'})}
                             />
 
                             <div className='setting_section'>
@@ -977,35 +962,19 @@ function ChannelSettingsConfigurationTab({
 
             {canManageBanner && (
                 <>
-                    <div className='channel_banner_header'>
-                        <div className='channel_banner_header__text'>
-                            <label
-                                className='Input_legend'
-                                aria-label={bannerHeading}
-                            >
-                                {bannerHeading}
-                            </label>
-                            <label
-                                className='Input_subheading'
-                                aria-label={bannerHeading}
-                            >
-                                {bannerSubHeading}
-                            </label>
-                        </div>
-
-                        <div className='channel_banner_header__toggle'>
-                            <Toggle
-                                id='channelBannerToggle'
-                                ariaLabel={bannerHeading}
-                                size='btn-md'
-                                disabled={bannerLockedByClassification || bannerRequiredByAttribute}
-                                onToggle={handleBannerToggle}
-                                toggled={bannerSectionOn}
-                                tabIndex={0}
-                                toggleClassName='btn-toggle-primary'
-                            />
-                        </div>
-                    </div>
+                    <Switch
+                        id='channelBannerToggle'
+                        size='medium'
+                        checked={bannerSectionOn}
+                        disabled={bannerLockedByClassification || bannerRequiredByAttribute}
+                        onChange={handleBannerToggle}
+                        data-testid='channelBannerToggle-button'
+                        tabIndex={0}
+                        semiBold={true}
+                        secondaryLabel={bannerSubHeading}
+                    >
+                        {bannerHeading}
+                    </Switch>
 
                     {
                         bannerSectionOn &&
@@ -1107,35 +1076,18 @@ function ChannelSettingsConfigurationTab({
             )}
 
             {canManageJoinLeaveMessages && (
-                <div className='channel_join_leave_messages_header'>
-                    <div className='channel_join_leave_messages_header__text'>
-                        <label
-                            className='Input_legend'
-                            aria-label={joinLeaveMessagesHeading}
-                        >
-                            {joinLeaveMessagesHeading}
-                        </label>
-                        <label
-                            className='Input_subheading'
-                            aria-label={joinLeaveMessagesSubHeading}
-                        >
-                            {joinLeaveMessagesSubHeading}
-                        </label>
-                    </div>
-
-                    <div className='channel_join_leave_messages_header__toggle'>
-                        <Toggle
-                            id='channelJoinLeaveMessagesToggle'
-                            ariaLabel={joinLeaveMessagesHeading}
-                            size='btn-md'
-                            disabled={false}
-                            onToggle={handleJoinLeaveMessagesToggle}
-                            toggled={!disableJoinLeaveMessages}
-                            tabIndex={0}
-                            toggleClassName='btn-toggle-primary'
-                        />
-                    </div>
-                </div>
+                <Switch
+                    id='channelJoinLeaveMessagesToggle'
+                    size='medium'
+                    checked={!disableJoinLeaveMessages}
+                    onChange={handleJoinLeaveMessagesToggle}
+                    data-testid='channelJoinLeaveMessagesToggle-button'
+                    tabIndex={0}
+                    semiBold={true}
+                    secondaryLabel={joinLeaveMessagesSubHeading}
+                >
+                    {joinLeaveMessagesHeading}
+                </Switch>
             )}
 
             {(canManageSharedChannels || canManageClassification || canManageBanner || canManageJoinLeaveMessages) && canManageChannelTranslation && (
@@ -1143,35 +1095,18 @@ function ChannelSettingsConfigurationTab({
             )}
 
             {canManageChannelTranslation && (
-                <div className='channel_translation_header'>
-                    <div className='channel_translation_header__text'>
-                        <label
-                            className='Input_legend'
-                            aria-label={autoTranslationHeading}
-                        >
-                            {autoTranslationHeading}
-                        </label>
-                        <label
-                            className='Input_subheading'
-                            aria-label={autoTranslationSubHeading}
-                        >
-                            {autoTranslationSubHeading}
-                        </label>
-                    </div>
-
-                    <div className='channel_translation_header__toggle'>
-                        <Toggle
-                            id='channelTranslationToggle'
-                            ariaLabel={autoTranslationHeading}
-                            size='btn-md'
-                            disabled={false}
-                            onToggle={handleAutoTranslationToggle}
-                            toggled={isChannelAutotranslated}
-                            tabIndex={0}
-                            toggleClassName='btn-toggle-primary'
-                        />
-                    </div>
-                </div>
+                <Switch
+                    id='channelTranslationToggle'
+                    size='medium'
+                    checked={isChannelAutotranslated}
+                    onChange={handleAutoTranslationToggle}
+                    data-testid='channelTranslationToggle-button'
+                    tabIndex={0}
+                    semiBold={true}
+                    secondaryLabel={autoTranslationSubHeading}
+                >
+                    {autoTranslationHeading}
+                </Switch>
             )}
 
             {showSaveChangesPanel && (

@@ -7,16 +7,64 @@ import (
 	"encoding/json"
 	"maps"
 	"sync"
+	"sync/atomic"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/v8/channels/app/properties"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestDoSetupManagedCategoryProperties(t *testing.T) {
+	// The properties API only serves a group that is exactly at
+	// PropertyGroupVersionV2 (see PropertyGroup.IsPSAv2 and getV2Group in api4),
+	// and the webapp loads the managed category field before it asks for the
+	// channel mappings. So every case below asserts the absolute version rather
+	// than a delta: any other version takes the sidebar's managed categories down.
+	assertGroupServableAtV2 := func(t *testing.T, th *TestHelper) {
+		t.Helper()
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.ManagedCategoryPropertyGroupName)
+		require.Nil(t, appErr)
+		require.Equal(t, model.PropertyGroupVersionV2, group.Version)
+
+		// Field writes are version-checked against the property service's cached
+		// copy of the group, not the row above.
+		cached, err := th.Server.propertyService.GroupByID(group.ID)
+		require.NoError(t, err)
+		require.Equal(t, model.PropertyGroupVersionV2, cached.Version)
+
+		propertyFields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		require.Len(t, propertyFields, 1)
+		require.Equal(t, model.ManagedCategoryPropertyFieldName, propertyFields[0].Name)
+
+		// Reading and writing a channel's managed category goes through these
+		// cached IDs, so a startup that leaves them empty breaks the feature too.
+		require.Equal(t, group.ID, th.Server.Channels().managedCategoryGroupID)
+		require.Equal(t, propertyFields[0].ID, th.Server.Channels().managedCategoryFieldID)
+	}
+
+	assertSetupFlagAtCurrentVersion := func(t *testing.T, th *TestHelper) {
+		t.Helper()
+
+		data, sysErr := th.Store.System().GetByName(managedCategorySetupDoneKey)
+		require.NoError(t, sysErr)
+		require.Equal(t, managedCategoryMigrationVersion, data.Value)
+	}
+
+	// Setup(t) has already cached the IDs, so clear them to make the assertion
+	// above answer whether the run under test repopulated them.
+	runSetup := func(t *testing.T, th *TestHelper) {
+		t.Helper()
+
+		th.Server.Channels().managedCategoryGroupID = ""
+		th.Server.Channels().managedCategoryFieldID = ""
+
+		require.NoError(t, th.Server.doSetupManagedCategoryProperties())
+	}
+
 	t.Run("should register the property group and field on fresh install", func(t *testing.T) {
 		th := Setup(t)
 
@@ -25,60 +73,303 @@ func TestDoSetupManagedCategoryProperties(t *testing.T) {
 		require.NotNil(t, group)
 		require.Equal(t, model.ManagedCategoryPropertyGroupName, group.Name)
 
-		propertyFields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
-		require.Nil(t, appErr)
-		require.Len(t, propertyFields, 1)
-		require.Equal(t, model.ManagedCategoryPropertyFieldName, propertyFields[0].Name)
-
-		data, sysErr := th.Store.System().GetByName(managedCategorySetupDoneKey)
-		require.NoError(t, sysErr)
-		require.NotEmpty(t, data.Value)
+		assertGroupServableAtV2(t, th)
+		assertSetupFlagAtCurrentVersion(t, th)
 	})
 
-	t.Run("should upgrade from a pre-v2 setup by incrementing the group version and updating the system key", func(t *testing.T) {
+	t.Run("should leave a fresh install at v2 across later startups without rewriting the version", func(t *testing.T) {
+		th := Setup(t)
+		spy := installSetVersionSpy(t, th)
+
+		// Setup(t) has already run the fresh-install path, so this stands in for
+		// the restarts that follow a new deployment.
+		for range 2 {
+			runSetup(t, th)
+
+			assertGroupServableAtV2(t, th)
+			assertSetupFlagAtCurrentVersion(t, th)
+			require.Zero(t, spy.calls.Load())
+		}
+	})
+
+	t.Run("should upgrade a pre-v2 install to v2 and update the system key", func(t *testing.T) {
 		th := Setup(t)
 
-		group, appErr := th.App.GetPropertyGroup(th.Context, model.ManagedCategoryPropertyGroupName)
-		require.Nil(t, appErr)
-
-		// Simulate the pre-v2 state where the migration has run with the legacy "true" marker.
+		// Simulate the original v1 setup: the legacy "true" marker over a v1 group.
 		sysErr := th.Store.System().SaveOrUpdate(&model.System{Name: managedCategorySetupDoneKey, Value: "true"})
 		require.NoError(t, sysErr)
-		initialVersion := group.Version
+		require.NoError(t, th.Store.PropertyGroup().SetVersion(model.ManagedCategoryPropertyGroupName, model.PropertyGroupVersionV1))
 
-		err := th.Server.doSetupManagedCategoryProperties()
-		require.NoError(t, err)
+		runSetup(t, th)
 
-		group, appErr = th.App.GetPropertyGroup(th.Context, model.ManagedCategoryPropertyGroupName)
-		require.Nil(t, appErr)
-		require.Equal(t, initialVersion+1, group.Version)
-
-		data, sysErr := th.Store.System().GetByName(managedCategorySetupDoneKey)
-		require.NoError(t, sysErr)
-		require.Equal(t, managedCategoryMigrationVersion, data.Value)
+		assertGroupServableAtV2(t, th)
+		assertSetupFlagAtCurrentVersion(t, th)
 	})
 
-	t.Run("should be idempotent when the system key is already at v2", func(t *testing.T) {
+	t.Run("should upgrade a pre-v2 group even when the system key already reads v2", func(t *testing.T) {
 		th := Setup(t)
 
+		// The group's own version decides whether it needs work; the marker only
+		// says the migration has run before.
 		sysErr := th.Store.System().SaveOrUpdate(&model.System{Name: managedCategorySetupDoneKey, Value: managedCategoryMigrationVersion})
 		require.NoError(t, sysErr)
+		require.NoError(t, th.Store.PropertyGroup().SetVersion(model.ManagedCategoryPropertyGroupName, model.PropertyGroupVersionV1))
+
+		runSetup(t, th)
+
+		assertGroupServableAtV2(t, th)
+		assertSetupFlagAtCurrentVersion(t, th)
+	})
+
+	t.Run("should repair an install whose group was pushed past v2", func(t *testing.T) {
+		th := Setup(t)
+
+		// Simulate the state a new deployment ends up in after one restart: the
+		// legacy "true" marker sent an already-v2 group through an unconditional
+		// increment, leaving version 3 behind the "v2" marker.
+		sysErr := th.Store.System().SaveOrUpdate(&model.System{Name: managedCategorySetupDoneKey, Value: managedCategoryMigrationVersion})
+		require.NoError(t, sysErr)
+		require.NoError(t, th.Store.PropertyGroup().SetVersion(model.ManagedCategoryPropertyGroupName, model.PropertyGroupVersionV2+1))
+
+		spy := installSetVersionSpy(t, th)
+		runSetup(t, th)
+
+		assertGroupServableAtV2(t, th)
+		assertSetupFlagAtCurrentVersion(t, th)
+		require.Equal(t, int64(1), spy.calls.Load())
+
+		// The repair must hold on the startup after it, and must not repeat.
+		runSetup(t, th)
+
+		assertGroupServableAtV2(t, th)
+		require.Equal(t, int64(1), spy.calls.Load())
+	})
+
+	t.Run("should pin a drifted group when the setup flag is missing", func(t *testing.T) {
+		th := Setup(t)
+
+		// Deleting the setup flag to force the migration to run again is the usual
+		// way to remediate one of these, and registering an existing group hands
+		// back its row without touching the version, so this arm has to pin it too.
+		_, sysErr := th.Store.System().PermanentDeleteByName(managedCategorySetupDoneKey)
+		require.NoError(t, sysErr)
+		require.NoError(t, th.Store.PropertyGroup().SetVersion(model.ManagedCategoryPropertyGroupName, model.PropertyGroupVersionV2+1))
+
+		runSetup(t, th)
+
+		assertGroupServableAtV2(t, th)
+		assertSetupFlagAtCurrentVersion(t, th)
+	})
+
+	t.Run("should create the field over a drifted group when the setup flag is missing", func(t *testing.T) {
+		th := Setup(t)
+
+		_, sysErr := th.Store.System().PermanentDeleteByName(managedCategorySetupDoneKey)
+		require.NoError(t, sysErr)
+		require.NoError(t, th.Store.PropertyGroup().SetVersion(model.ManagedCategoryPropertyGroupName, model.PropertyGroupVersionV2+1))
+		require.NoError(t, th.Store.PropertyField().Delete(th.Server.Channels().managedCategoryGroupID, th.Server.Channels().managedCategoryFieldID))
+
+		runSetup(t, th)
+
+		assertGroupServableAtV2(t, th)
+		assertSetupFlagAtCurrentVersion(t, th)
+	})
+
+	t.Run("upgrading a field written before the permissions object existed", func(t *testing.T) {
+		th := Setup(t)
 
 		group, appErr := th.App.GetPropertyGroup(th.Context, model.ManagedCategoryPropertyGroupName)
 		require.Nil(t, appErr)
-		versionBefore := group.Version
 
-		err := th.Server.doSetupManagedCategoryProperties()
+		fields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		require.Len(t, fields, 1)
+
+		// Roll the field back to the shape a pre-effort install's row is in:
+		// legacy columns only, no permissions object at all. The hook refuses
+		// that outright regardless of caller, so doSetupManagedCategoryProperties'
+		// own subsequent read would fail here without ConvertSystemOwnedFields
+		// running ahead of it.
+		expectedUpdateAts := make(map[string]int64, len(fields))
+		for _, f := range fields {
+			expectedUpdateAts[f.ID] = f.UpdateAt
+			f.Permissions = nil
+		}
+		_, err := th.Store.PropertyField().Update(group.ID, fields, expectedUpdateAts)
 		require.NoError(t, err)
 
-		group, appErr = th.App.GetPropertyGroup(th.Context, model.ManagedCategoryPropertyGroupName)
+		require.NoError(t, th.Server.doSetupManagedCategoryProperties())
+
+		after, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
 		require.Nil(t, appErr)
-		require.Equal(t, versionBefore, group.Version)
+		require.Len(t, after, 1)
+		for _, f := range after {
+			require.NotNil(t, f.Permissions, "field %q must be converted", f.Name)
+			require.NotNil(t,
+				f.Permissions.MatchingGrant(model.PropertyOwnerTypeService, model.ManagedCategoryPropertyGroupName, "", model.PropertyActionFieldWrite),
+				"field %q must carry the managed_category service grant", f.Name)
+		}
+	})
+
+	t.Run("upgrading from a pre-v2 setup whose field predates the permissions object", func(t *testing.T) {
+		th := Setup(t)
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.ManagedCategoryPropertyGroupName)
+		require.Nil(t, appErr)
+
+		fields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		require.Len(t, fields, 1)
+
+		// Roll back to the state an older install leaves behind: the group at
+		// version 1, its field with no permissions object, and the legacy
+		// "true" marker. Converting the field is only valid once the group has
+		// been pinned to version 2.
+		expectedUpdateAts := map[string]int64{fields[0].ID: fields[0].UpdateAt}
+		fields[0].Permissions = nil
+		_, err := th.Store.PropertyField().Update(group.ID, fields, expectedUpdateAts)
+		require.NoError(t, err)
+
+		_, err = th.SQLStore.GetMaster().Exec("UPDATE PropertyGroups SET Version = 1 WHERE Name = ?", model.ManagedCategoryPropertyGroupName)
+		require.NoError(t, err)
+
+		sysErr := th.Store.System().SaveOrUpdate(&model.System{Name: managedCategorySetupDoneKey, Value: "true"})
+		require.NoError(t, sysErr)
+
+		require.NoError(t, th.Server.doSetupManagedCategoryProperties())
+
+		stored, appErr := th.App.GetPropertyGroup(th.Context, model.ManagedCategoryPropertyGroupName)
+		require.Nil(t, appErr)
+		require.Equal(t, model.PropertyGroupVersionV2, stored.Version)
+
+		cached, err := th.Server.propertyService.Group(model.ManagedCategoryPropertyGroupName)
+		require.NoError(t, err)
+		require.Equal(t, model.PropertyGroupVersionV2, cached.Version, "the service must not keep serving the version 1 group")
+
+		after, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		require.Len(t, after, 1)
+		require.NotNil(t, after[0].Permissions, "field must be converted")
+		require.NotNil(t,
+			after[0].Permissions.MatchingGrant(model.PropertyOwnerTypeService, model.ManagedCategoryPropertyGroupName, "", model.PropertyActionFieldWrite),
+			"field must carry the managed_category service grant")
 
 		data, sysErr := th.Store.System().GetByName(managedCategorySetupDoneKey)
 		require.NoError(t, sysErr)
 		require.Equal(t, managedCategoryMigrationVersion, data.Value)
 	})
+
+	t.Run("recovering from a crash between creating the field and saving the flag at version 1", func(t *testing.T) {
+		th := Setup(t)
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.ManagedCategoryPropertyGroupName)
+		require.Nil(t, appErr)
+
+		fields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		require.Len(t, fields, 1)
+
+		// Roll back to what an older install leaves behind when it stops after
+		// creating the field but before saving the flag: the group at version
+		// 1, its field with no permissions object, and no flag at all.
+		expectedUpdateAts := map[string]int64{fields[0].ID: fields[0].UpdateAt}
+		fields[0].Permissions = nil
+		_, err := th.Store.PropertyField().Update(group.ID, fields, expectedUpdateAts)
+		require.NoError(t, err)
+
+		_, err = th.SQLStore.GetMaster().Exec("UPDATE PropertyGroups SET Version = 1 WHERE Name = ?", model.ManagedCategoryPropertyGroupName)
+		require.NoError(t, err)
+
+		_, err = th.Store.System().PermanentDeleteByName(managedCategorySetupDoneKey)
+		require.NoError(t, err)
+
+		// The same boot pins the group at version 2, converts the field and
+		// saves the current flag, and the boot after it has nothing left to do.
+		for range 2 {
+			require.NoError(t, th.Server.doSetupManagedCategoryProperties())
+
+			stored, appErr := th.App.GetPropertyGroup(th.Context, model.ManagedCategoryPropertyGroupName)
+			require.Nil(t, appErr)
+			require.Equal(t, model.PropertyGroupVersionV2, stored.Version)
+
+			after, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+			require.Nil(t, appErr)
+			require.Len(t, after, 1)
+			require.NotNil(t, after[0].Permissions, "field must be converted")
+			require.NotNil(t,
+				after[0].Permissions.MatchingGrant(model.PropertyOwnerTypeService, model.ManagedCategoryPropertyGroupName, "", model.PropertyActionFieldWrite),
+				"field must carry the managed_category service grant")
+
+			data, sysErr := th.Store.System().GetByName(managedCategorySetupDoneKey)
+			require.NoError(t, sysErr)
+			require.Equal(t, managedCategoryMigrationVersion, data.Value)
+		}
+	})
+
+	t.Run("subsequent boot after admin revokes service grant does not put it back", func(t *testing.T) {
+		th := Setup(t)
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.ManagedCategoryPropertyGroupName)
+		require.Nil(t, appErr)
+
+		fields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		require.Len(t, fields, 1)
+
+		field := fields[0]
+		revoked := *field.Permissions
+		revoked.Grants = nil
+		field.Permissions = &revoked
+		expectedUpdateAts := map[string]int64{field.ID: field.UpdateAt}
+		_, err := th.Store.PropertyField().Update(group.ID, []*model.PropertyField{field}, expectedUpdateAts)
+		require.NoError(t, err)
+
+		require.NoError(t, th.Server.doSetupManagedCategoryProperties())
+
+		after, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		require.Len(t, after, 1)
+		require.Nil(t,
+			after[0].Permissions.MatchingGrant(model.PropertyOwnerTypeService, model.ManagedCategoryPropertyGroupName, "", model.PropertyActionFieldWrite),
+			"subsequent boot must not re-add a revoked service grant")
+	})
+}
+
+// setVersionSpyGroupStore counts the property group version writes a migration
+// makes. Pinning v2 onto a group that is already there leaves the same row
+// behind, so the write count is the only way to tell a repair from a redundant
+// write on every startup. It only sees writes routed through Server.Store(); a
+// future version write made through the property service would go uncounted.
+type setVersionSpyGroupStore struct {
+	store.PropertyGroupStore
+
+	calls atomic.Int64
+}
+
+func (s *setVersionSpyGroupStore) SetVersion(name string, version int) error {
+	s.calls.Add(1)
+	return s.PropertyGroupStore.SetVersion(name, version)
+}
+
+type setVersionSpyStore struct {
+	store.Store
+
+	groups *setVersionSpyGroupStore
+}
+
+func (s *setVersionSpyStore) PropertyGroup() store.PropertyGroupStore {
+	return s.groups
+}
+
+func installSetVersionSpy(t *testing.T, th *TestHelper) *setVersionSpyGroupStore {
+	t.Helper()
+
+	original := th.Server.Store()
+	spy := &setVersionSpyGroupStore{PropertyGroupStore: original.PropertyGroup()}
+	th.Server.SetStore(&setVersionSpyStore{Store: original, groups: spy})
+	t.Cleanup(func() { th.Server.SetStore(original) })
+
+	return spy
 }
 
 func TestDoSetupContentFlaggingProperties(t *testing.T) {
@@ -538,6 +829,125 @@ func TestCPAToGlobalAttributesMigration_RerunClearsAlreadyLinkedFieldDuplicatedO
 	assert.Len(t, pageAgain.Options, 2)
 }
 
+func TestPropertyPermissionsBackfill_NoExistingFields(t *testing.T) {
+	th := Setup(t)
+
+	err := th.Server.doSetupPropertyPermissionsBackfill(th.Context)
+	require.NoError(t, err)
+}
+
+func TestPropertyPermissionsBackfill_Idempotent(t *testing.T) {
+	th := Setup(t)
+	// LicenseCheckHook gates writes to the access_control group on an
+	// Enterprise license; the seed CreatePropertyField call below would
+	// otherwise be rejected with app.property.license_error.
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+		GroupID:    group.ID,
+		Name:       "department",
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+	}, false, "")
+	require.Nil(t, appErr)
+
+	// Create defaults a permissions object onto the row (including the
+	// ambient plugin * grant). Strip it so this test is actually exercising
+	// the backfill rather than the create path.
+	stored, storeErr := th.Store.PropertyField().Get(th.Context, group.ID, field.ID)
+	require.NoError(t, storeErr)
+	stored.Permissions = nil
+	_, storeErr = th.Store.PropertyField().Update(group.ID, []*model.PropertyField{stored}, nil)
+	require.NoError(t, storeErr)
+	stripped, storeErr := th.Store.PropertyField().Get(th.Context, group.ID, field.ID)
+	require.NoError(t, storeErr)
+	require.Nil(t, stripped.Permissions, "seed invariant: field must start the backfill with no permissions object")
+
+	err := th.Server.doSetupPropertyPermissionsBackfill(th.Context)
+	require.NoError(t, err)
+
+	converted, appErr := th.App.GetPropertyField(th.Context, group.ID, field.ID)
+	require.Nil(t, appErr)
+	require.NotNil(t, converted.Permissions, "field must carry a permissions object after the backfill runs")
+	firstUpdateAt := converted.UpdateAt
+
+	// Second run: the field already carries an object, so the run must neither
+	// change it nor rewrite the row.
+	err = th.Server.doSetupPropertyPermissionsBackfill(th.Context)
+	require.NoError(t, err)
+
+	unchanged, appErr := th.App.GetPropertyField(th.Context, group.ID, field.ID)
+	require.Nil(t, appErr)
+	require.Equal(t, converted.Permissions, unchanged.Permissions, "second run must not alter the converted permissions object")
+	require.Equal(t, firstUpdateAt, unchanged.UpdateAt, "second run must not re-write the field row")
+}
+
+func TestPropertyPermissionsBackfillStoredColumns(t *testing.T) {
+	th := Setup(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	// Seed with raw SQL because no Go write path stores these columns independently of permissions,
+	// so a fixture that routes through the store cannot produce a faithful pre-upgrade row.
+	fieldID := model.NewId()
+	now := model.GetMillis()
+	_, err := th.Store.GetInternalMasterDB().Exec(
+		`INSERT INTO PropertyFields
+		(ID, GroupID, Name, Type, Attrs, TargetID, TargetType, ObjectType, CreateAt, UpdateAt, DeleteAt, PermissionField, PermissionValues, PermissionOptions)
+		VALUES ($1, $2, $3, 'text', '{}'::jsonb, '', 'system', 'user', $4, $5, 0, $6, $7, $8)`,
+		fieldID, group.ID, "legacy-columns-field", now, now, "admin", "member", "member",
+	)
+	require.NoError(t, err)
+
+	require.NoError(t, th.Server.doSetupPropertyPermissionsBackfill(th.Context))
+
+	got, err := th.Store.PropertyField().Get(th.Context, group.ID, fieldID)
+	require.NoError(t, err)
+	require.NotNil(t, got.Permissions)
+	require.NotNil(t, got.Permissions.Restrictions)
+	require.Equal(t, model.PermissionLevelAdmin, got.Permissions.Restrictions.Field.Write)
+	require.Equal(t, model.PermissionLevelMember, got.Permissions.Restrictions.Value.Write)
+	require.Equal(t, model.PermissionLevelMember, got.Permissions.Restrictions.Option.Write)
+	require.Equal(t, model.PermissionLevelEveryone, got.Permissions.Restrictions.Value.Read)
+	require.Equal(t, model.PermissionLevelEveryone, got.Permissions.Restrictions.Option.Read)
+}
+
+func TestPropertyPermissionsBackfillConvertsFieldsWrittenAfterAnEarlierRun(t *testing.T) {
+	th := Setup(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	// Setup(t) has already run the backfill once.
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	// A release that predates the permissions object writes a field without
+	// one, as an old node does during a rolling upgrade or while rolled back.
+	// Seeded with raw SQL for the same reason as in
+	// TestPropertyPermissionsBackfillStoredColumns.
+	fieldID := model.NewId()
+	now := model.GetMillis()
+	_, err := th.Store.GetInternalMasterDB().Exec(
+		`INSERT INTO PropertyFields
+		(ID, GroupID, Name, Type, Attrs, TargetID, TargetType, ObjectType, CreateAt, UpdateAt, DeleteAt, PermissionField, PermissionValues, PermissionOptions)
+		VALUES ($1, $2, $3, 'text', '{}'::jsonb, '', 'system', 'user', $4, $5, 0, $6, $7, $8)`,
+		fieldID, group.ID, "written-by-an-older-release", now, now, "sysadmin", "member", "sysadmin",
+	)
+	require.NoError(t, err)
+
+	require.NoError(t, th.Server.doSetupPropertyPermissionsBackfill(th.Context))
+
+	got, err := th.Store.PropertyField().Get(th.Context, group.ID, fieldID)
+	require.NoError(t, err)
+	require.NotNil(t, got.Permissions, "a later startup must convert a field written without a permissions object")
+	assert.Equal(t, model.PermissionLevelMember, got.Permissions.Restrictions.Value.Write)
+}
+
 var expectedOSPlatformOptions = []string{"macos", "windows", "linux", "ios", "android"}
 
 func sessionAttributeFieldByName(t *testing.T, th *TestHelper, groupID, name string) *model.PropertyField {
@@ -675,7 +1085,7 @@ func TestDoSetupSessionAttributesProperties(t *testing.T) {
 		field := sessionAttributeFieldByName(t, th, group.ID, model.SessionAttributesPropertyFieldOSPlatform)
 		field.Type = model.PropertyFieldTypeText
 		delete(field.Attrs, model.PropertyFieldAttributeOptions)
-		_, _, _, err := th.Server.propertyService.UpdatePropertyFields(properties.SystemCallerContext(th.Context), group.ID, []*model.PropertyField{field})
+		_, _, _, err := th.Server.propertyService.UpdatePropertyFields(RequestContextWithCallerID(th.Context, model.CallerIDSessionAttributesSystem), group.ID, []*model.PropertyField{field})
 		require.NoError(t, err)
 
 		require.NoError(t, th.Server.doSetupSessionAttributesProperties())
@@ -723,7 +1133,7 @@ func TestDoSetupSessionAttributesProperties(t *testing.T) {
 		// System-caller context, same as the seed and the sibling upgrade
 		// subtests: SessionAttributesHook otherwise reads the existing field
 		// through RequestContextWithMaster, which panics on a nil rctx.
-		_, _, _, err := th.Server.propertyService.UpdatePropertyFields(properties.SystemCallerContext(th.Context), group.ID, []*model.PropertyField{field})
+		_, _, _, err := th.Server.propertyService.UpdatePropertyFields(RequestContextWithCallerID(th.Context, model.CallerIDSessionAttributesSystem), group.ID, []*model.PropertyField{field})
 		require.NoError(t, err)
 
 		before := sessionAttributeOptionIDsByName(t, sessionAttributeFieldByName(t, th, group.ID, model.SessionAttributesPropertyFieldUserAgentPlatform))
@@ -771,7 +1181,7 @@ func TestDoSetupSessionAttributesProperties(t *testing.T) {
 
 		field := sessionAttributeFieldByName(t, th, group.ID, model.SessionAttributesPropertyFieldIPAddress)
 		delete(field.Attrs, model.NativeAttributeAttrOperators)
-		_, _, _, err := th.Server.propertyService.UpdatePropertyFields(properties.SystemCallerContext(th.Context), group.ID, []*model.PropertyField{field})
+		_, _, _, err := th.Server.propertyService.UpdatePropertyFields(RequestContextWithCallerID(th.Context, model.CallerIDSessionAttributesSystem), group.ID, []*model.PropertyField{field})
 		require.NoError(t, err)
 
 		require.NoError(t, th.Server.doSetupSessionAttributesProperties())
@@ -807,6 +1217,42 @@ func TestDoSetupSessionAttributesProperties(t *testing.T) {
 		fields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
 		require.Nil(t, appErr)
 		require.Len(t, fields, expectedFieldCount)
+	})
+
+	t.Run("upgrading a field written before the permissions object existed", func(t *testing.T) {
+		th := Setup(t)
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.SessionAttributesPropertyGroupName)
+		require.Nil(t, appErr)
+
+		fields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		require.Len(t, fields, expectedFieldCount)
+
+		// Roll every field back to the shape a pre-effort install's row is in:
+		// legacy columns only, no permissions object at all. The hook refuses
+		// that outright regardless of caller, so seedSessionAttributeFields'
+		// own subsequent search and update would fail here without
+		// ConvertSystemOwnedFields running ahead of them.
+		expectedUpdateAts := make(map[string]int64, len(fields))
+		for _, f := range fields {
+			expectedUpdateAts[f.ID] = f.UpdateAt
+			f.Permissions = nil
+		}
+		_, err := th.Store.PropertyField().Update(group.ID, fields, expectedUpdateAts)
+		require.NoError(t, err)
+
+		require.NoError(t, th.Server.doSetupSessionAttributesProperties())
+
+		after, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		require.Len(t, after, expectedFieldCount)
+		for _, f := range after {
+			require.NotNil(t, f.Permissions, "field %q must be converted", f.Name)
+			require.NotNil(t,
+				f.Permissions.MatchingGrant(model.PropertyOwnerTypeService, model.SessionAttributesPropertyGroupName, "", model.PropertyActionFieldWrite),
+				"field %q must carry the session_attributes service grant", f.Name)
+		}
 	})
 }
 
@@ -936,6 +1382,45 @@ func TestDoSetupBoardsProperties(t *testing.T) {
 
 		idsAfter := optionIDsByName(t, statusAfter.Attrs)
 		require.Equal(t, idsBefore, idsAfter, "v2 upgrade must preserve every existing option ID")
+	})
+
+	t.Run("upgrading a field written before the permissions object existed", func(t *testing.T) {
+		th := Setup(t)
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.BoardsPropertyGroupName)
+		require.Nil(t, appErr)
+
+		fields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		require.Len(t, fields, 2)
+
+		// Roll every field back to the shape a pre-effort install's row is in:
+		// legacy columns only, no permissions object at all. The hook refuses
+		// that outright regardless of caller, so doSetupBoardsProperties' own
+		// subsequent search and update would fail here without
+		// ConvertSystemOwnedFields running ahead of them.
+		expectedUpdateAts := make(map[string]int64, len(fields))
+		for _, f := range fields {
+			expectedUpdateAts[f.ID] = f.UpdateAt
+			f.Permissions = nil
+		}
+		_, err := th.Store.PropertyField().Update(group.ID, fields, expectedUpdateAts)
+		require.NoError(t, err)
+
+		sysErr := th.Store.System().SaveOrUpdate(&model.System{Name: boardsPropertySetupDoneKey, Value: "v1"})
+		require.NoError(t, sysErr)
+
+		require.NoError(t, th.Server.doSetupBoardsProperties())
+
+		after, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		require.Len(t, after, 2)
+		for _, f := range after {
+			require.NotNil(t, f.Permissions, "field %q must be converted", f.Name)
+			require.NotNil(t,
+				f.Permissions.MatchingGrant(model.PropertyOwnerTypeService, model.BoardsPropertyGroupName, "", model.PropertyActionFieldWrite),
+				"field %q must carry the boards service grant", f.Name)
+		}
 	})
 }
 

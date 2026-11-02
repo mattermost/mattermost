@@ -662,9 +662,9 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
 
         /**
          * @objective Ensure both AD/LDAP and SAML can be linked on the same attribute, that an
-         * already-linked source is excluded from the "add" menu (leaving only the permanently
-         * disabled OpenID Connect entry once both are linked), and that each chip shows the
-         * actual linked value, not just the source name.
+         * already-linked source is excluded from the "add" menu (once both are linked, only
+         * OpenID Connect is left, disabled because it can't be combined with them), and that
+         * each chip shows the actual linked value, not just the source name.
          */
         test('links both AD/LDAP and SAML, excludes an already-linked source from the menu, and shows the linked value in each chip', async ({
             pw,
@@ -709,23 +709,20 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 await systemConsolePage.page.getByPlaceholder('department').fill('position');
                 await systemConsolePage.page.getByRole('button', {name: 'Save'}).click();
 
-                // * Both chips are shown with their own values. The trigger itself stays --
-                // OpenID Connect is a third source that's always listed, just permanently
-                // disabled once AD/LDAP or SAML is linked -- but its only menu item is that
-                // disabled entry, not another usable source.
+                // * Both chips are shown with their own values
                 await expect(systemConsolePage.page.getByTestId('attributeExternalSourceChip-ldap')).toHaveText(
                     'AD/LDAP: employeeID',
                 );
                 await expect(systemConsolePage.page.getByTestId('attributeExternalSourceChip-saml')).toHaveText(
                     'SAML: position',
                 );
+
+                // * Only OpenID Connect is left, disabled because it can't be combined with them
                 await systemConsolePage.page.getByTestId('attributeExternalSourceTrigger').click();
-                await expect(systemConsolePage.page.getByRole('menuitem', {name: /^OpenID Connect/})).toHaveAttribute(
-                    'aria-disabled',
-                    'true',
-                );
-                await expect(systemConsolePage.page.getByRole('menuitem', {name: /^AD\/LDAP/})).not.toBeVisible();
-                await expect(systemConsolePage.page.getByRole('menuitem', {name: /^SAML/})).not.toBeVisible();
+                await expect(systemConsolePage.page.getByRole('menuitem')).toHaveCount(1);
+                const openIdItem = systemConsolePage.page.getByRole('menuitem', {name: /^OpenID Connect/});
+                await expect(openIdItem).toBeDisabled();
+                await expect(openIdItem).toContainText("Can't be combined with AD/LDAP and SAML");
                 await systemConsolePage.page.keyboard.press('Escape');
 
                 await systemConsolePage.page.getByTestId('saveSetting').click();

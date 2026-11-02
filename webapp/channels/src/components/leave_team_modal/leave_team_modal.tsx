@@ -5,7 +5,7 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {UserProfile} from '@mattermost/types/users';
 
 import * as UserUtils from 'mattermost-redux/utils/user_utils';
@@ -190,9 +190,9 @@ export default class LeaveTeamModal extends React.PureComponent<Props, State> {
                     </Button>
                     <Button
                         type='button'
-                        variant='destructive'
                         onClick={this.handleSubmit}
                         id='leaveTeamYes'
+                        destructive={true}
                     >
                         <FormattedMessage
                             id='leave_team_modal.yes'

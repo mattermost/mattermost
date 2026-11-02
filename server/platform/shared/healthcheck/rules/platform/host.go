@@ -28,7 +28,7 @@ var envUnsupportedOS = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityStable,
 	Subject:    "Server.OS",
-	Eval:       evalEnvUnsupportedOS,
+	Eval:       healthcheck.Single(evalEnvUnsupportedOS),
 }
 
 var bindPrivilegedPort = healthcheck.Rule{
@@ -43,7 +43,7 @@ var bindPrivilegedPort = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityStable,
 	Subject:    "ServiceSettings.ListenAddress",
-	Eval:       evalBindPrivilegedPort,
+	Eval:       healthcheck.Single(evalBindPrivilegedPort),
 }
 
 var nodeFDExhaustion = healthcheck.Rule{
@@ -57,7 +57,7 @@ var nodeFDExhaustion = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityThreshold,
 	Subject:    "Server.FileDescriptors",
-	EvalNode:   evalNodeFDExhaustion,
+	EvalNode:   healthcheck.SingleNode(evalNodeFDExhaustion),
 }
 
 // The OS is always collected, so a server_host error recorded for another value does not hide it.
@@ -78,15 +78,15 @@ func leaderOS(s *healthcheck.Snapshot) (string, bool) {
 	return diag.Server.OS, true
 }
 
-func evalEnvUnsupportedOS(s *healthcheck.Snapshot) []healthcheck.Result {
+func evalEnvUnsupportedOS(s *healthcheck.Snapshot) healthcheck.Result {
 	hostOS, ok := leaderOS(s)
 	switch {
 	case !ok:
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)}
+		return healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)
 	case hostOS != "linux":
-		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.env_unsupported_os.message")).WithDetail("os", hostOS)}
+		return healthcheck.Firing(healthcheck.TranslationId("health.rule.env_unsupported_os.message")).WithDetail("os", hostOS)
 	default:
-		return []healthcheck.Result{healthcheck.Resolved()}
+		return healthcheck.Resolved()
 	}
 }
 
@@ -117,40 +117,40 @@ func listenPort(s *healthcheck.Snapshot) (int, bool) {
 }
 
 // Only Linux needs a capability to bind a low port, so an unknown OS counts as Linux; port 0 is ephemeral.
-func evalBindPrivilegedPort(s *healthcheck.Snapshot) []healthcheck.Result {
+func evalBindPrivilegedPort(s *healthcheck.Snapshot) healthcheck.Result {
 	port, ok := listenPort(s)
 	if !ok {
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
+		return healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)
 	}
 
 	if hostOS, known := leaderOS(s); known && hostOS != "linux" {
-		return []healthcheck.Result{healthcheck.Resolved()}
+		return healthcheck.Resolved()
 	}
 
 	if port > 0 && port < 1024 {
-		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.bind_privileged_port.message")).WithDetail("port", strconv.Itoa(port))}
+		return healthcheck.Firing(healthcheck.TranslationId("health.rule.bind_privileged_port.message")).WithDetail("port", strconv.Itoa(port))
 	}
-	return []healthcheck.Result{healthcheck.Resolved()}
+	return healthcheck.Resolved()
 }
 
 // A negative count means the OS does not report file descriptors.
-func evalNodeFDExhaustion(_ *healthcheck.Snapshot, n *healthcheck.NodeSnapshot) []healthcheck.Result {
+func evalNodeFDExhaustion(_ *healthcheck.Snapshot, n *healthcheck.NodeSnapshot) healthcheck.Result {
 	diag, ok := n.Diag()
 	if !ok || !n.Has(model.SectionServerFDs) {
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)}
+		return healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)
 	}
 
 	open, limit := diag.Server.OpenFileDescriptors, diag.Server.MaxFileDescriptors
 	if open == nil || limit == nil || *open < 0 || *limit <= 0 {
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)}
+		return healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)
 	}
 
 	ratio := float64(*open) / float64(*limit)
 	if ratio >= fdExhaustionRatio {
-		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.node_fd_exhaustion.message")).
+		return healthcheck.Firing(healthcheck.TranslationId("health.rule.node_fd_exhaustion.message")).
 			WithDetail("open", strconv.FormatInt(*open, 10)).
 			WithDetail("max", strconv.FormatInt(*limit, 10)).
-			WithValue(ratio)}
+			WithValue(ratio)
 	}
-	return []healthcheck.Result{healthcheck.Resolved().WithValue(ratio)}
+	return healthcheck.Resolved().WithValue(ratio)
 }

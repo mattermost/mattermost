@@ -107,10 +107,10 @@ func (ps *PlatformService) SaveConfig(newCfg *model.Config, sendConfigChangeClus
 		}
 	}
 
-	if err := config.ValidateLogPaths(newCfg, ps.getLogRootPath()); err != nil {
+	if err := config.ValidateLogPaths(newCfg, ps.recordActiveManagedDirs(ps.Config()), ps.getLogRootPath()); err != nil {
 		// mlog rather than ps.logger: after startup the global logger *is* ps.logger, and
 		// SaveConfig is reachable from paths that do not guarantee a configured logger.
-		mlog.Error(config.LogPathOutsideRootWarning, mlog.Err(err))
+		mlog.Error(config.LogPathInvalidWarning, mlog.Err(err))
 
 		// The flag is read from the *active* config, not newCfg, so a single patch cannot both
 		// disable enforcement and introduce an out-of-root path.
@@ -226,6 +226,13 @@ func (ps *PlatformService) ClientConfigHash() string {
 	return ps.clientConfigHash.Load().(string)
 }
 
+// SetAuditLoggingActiveFunc sets the function the client config uses to report whether the
+// audit logger is writing records, and regenerates the client config.
+func (ps *PlatformService) SetAuditLoggingActiveFunc(isActive func() bool) {
+	ps.auditLoggingActive.Store(&isActive)
+	ps.regenerateClientConfig()
+}
+
 func (ps *PlatformService) regenerateClientConfig() {
 	clientConfig := config.GenerateClientConfig(ps.Config(), ps.telemetryId, ps.License())
 	limitedClientConfig := config.GenerateLimitedClientConfig(ps.Config(), ps.telemetryId, ps.License())
@@ -247,6 +254,15 @@ func (ps *PlatformService) regenerateClientConfig() {
 	}
 
 	clientConfigJSON, _ := json.Marshal(clientConfig)
+
+	// AuditLoggingActive reflects this node's audit logger, so it is left out of the hash that
+	// cluster nodes compare to detect config drift.
+	auditLoggingActive := false
+	if isActive := ps.auditLoggingActive.Load(); isActive != nil {
+		auditLoggingActive = (*isActive)()
+	}
+	clientConfig["AuditLoggingActive"] = strconv.FormatBool(auditLoggingActive)
+
 	ps.clientConfig.Store(clientConfig)
 	ps.limitedClientConfig.Store(limitedClientConfig)
 	ps.clientConfigHash.Store(fmt.Sprintf("%x", sha256.Sum256(clientConfigJSON)))

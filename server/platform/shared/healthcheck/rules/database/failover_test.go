@@ -26,7 +26,7 @@ func clusterConfig(maxOpen int, dsn string, replicas ...string) *model.Config {
 func clusterDiag(nodes *int) *model.SupportPacketDiagnostics {
 	diag := &model.SupportPacketDiagnostics{}
 	diag.Cluster.NumberOfNodes = nodes
-	return diag
+	return onClusterLicense(diag)
 }
 
 func TestDBHAFailoverStormRisk(t *testing.T) {
@@ -48,8 +48,14 @@ func TestDBHAFailoverStormRisk(t *testing.T) {
 		{"config absent", newSnapshot(nil, nil, clusterDiag(new(3))), unknownConfigWant},
 		{"cluster unset", newSnapshot(clusterUnset, nil, clusterDiag(new(3))), unknownConfigWant},
 		{"cluster off", newSnapshot(clusterOff, nil, clusterDiag(new(3))), resolvedWant},
-		{"cluster off without diagnostics", newSnapshot(clusterOff, nil, nil), resolvedWant},
-		{"leader diagnostics absent", newSnapshot(clusterConfig(200, primaryDSN), nil, nil), unknownDiagWant},
+		{"cluster off without cluster diagnostics", newSnapshot(clusterOff, nil, onClusterLicense(&model.SupportPacketDiagnostics{})), resolvedWant},
+		{"leader diagnostics absent", newSnapshot(clusterConfig(200, primaryDSN), nil, nil), unknownLicenseWant},
+		{"unlicensed", newSnapshot(clusterConfig(200, primaryDSN), nil, withLicense(clusterDiag(new(3)), model.SupportPacketLicense{})), resolvedWant},
+		{"cluster feature off", newSnapshot(clusterConfig(200, primaryDSN), nil, withLicense(clusterDiag(new(3)), model.SupportPacketLicense{
+			SkuShortName: model.LicenseShortSkuProfessional,
+			Features:     &model.Features{Cluster: new(false)},
+		})), resolvedWant},
+		{"license section failed", failSection(newSnapshot(clusterConfig(200, primaryDSN), nil, clusterDiag(new(3))), model.SectionLicense), unknownLicenseWant},
 		{"node count not collected", newSnapshot(clusterConfig(200, primaryDSN), nil, clusterDiag(nil)), unknownDiagWant},
 		{"cluster section failed", failSection(newSnapshot(clusterConfig(200, primaryDSN), nil, clusterDiag(new(2))), model.SectionCluster), unknownDiagWant},
 		{"single node", newSnapshot(clusterConfig(1000, primaryDSN), nil, clusterDiag(new(1))), resolvedWant},
@@ -83,7 +89,7 @@ func TestDBHAFailoverStormRisk(t *testing.T) {
 func TestDBHAFailoverStormRiskDetails(t *testing.T) {
 	t.Parallel()
 
-	results := evalDBHAFailoverStormRisk(newSnapshot(clusterConfig(300, primaryDSN, replicaDSN), nil, clusterDiag(new(2))))
+	results := dbHAFailoverStormRisk.Eval(newSnapshot(clusterConfig(300, primaryDSN, replicaDSN), nil, clusterDiag(new(2))))
 	require.Len(t, results, 1)
 	assert.Equal(t, map[string]string{"nodes": "2", "max_open": "300", "burst": "600"}, results[0].Details)
 }

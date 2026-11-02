@@ -30,7 +30,7 @@ var pluginsOff = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceInternal,
 	Volatility: healthcheck.VolatilityStable,
 	Subject:    "PluginSettings.Enable",
-	Eval:       evalPluginsOff,
+	Eval:       healthcheck.Single(evalPluginsOff),
 }
 
 var pluginHealthOff = healthcheck.Rule{
@@ -44,7 +44,7 @@ var pluginHealthOff = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityStable,
 	Subject:    "PluginSettings.EnableHealthCheck",
-	Eval:       evalPluginHealthOff,
+	Eval:       healthcheck.Gate(pluginsEnabled, healthcheck.ReasonConfigUnavailable, evalPluginHealthOff),
 }
 
 var pluginNotRunning = healthcheck.Rule{
@@ -60,56 +60,41 @@ var pluginNotRunning = healthcheck.Rule{
 	Volatility:     healthcheck.VolatilityProbe,
 	AppliesToCloud: true,
 	Subject:        "PluginSettings.PluginStates",
-	Eval:           evalPluginNotRunning,
+	Eval:           healthcheck.Gate(pluginsEnabled, healthcheck.ReasonConfigUnavailable, evalPluginNotRunning),
 }
 
 func pluginsEnabled(s *healthcheck.Snapshot) (bool, bool) {
 	return s.ConfigBool(func(cfg *model.Config) *bool { return cfg.PluginSettings.Enable })
 }
 
-func evalPluginsOff(s *healthcheck.Snapshot) []healthcheck.Result {
+func evalPluginsOff(s *healthcheck.Snapshot) healthcheck.Result {
 	enabled, ok := pluginsEnabled(s)
 	switch {
 	case !ok:
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
+		return healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)
 	case !enabled:
-		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.plugins_off.message"))}
+		return healthcheck.Firing(healthcheck.TranslationId("health.rule.plugins_off.message"))
 	default:
-		return []healthcheck.Result{healthcheck.Resolved()}
+		return healthcheck.Resolved()
 	}
 }
 
-func evalPluginHealthOff(s *healthcheck.Snapshot) []healthcheck.Result {
-	enabled, ok := pluginsEnabled(s)
-	if !ok {
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
-	}
-	if !enabled {
-		return []healthcheck.Result{healthcheck.Resolved()}
-	}
-
+func evalPluginHealthOff(s *healthcheck.Snapshot) healthcheck.Result {
 	healthCheck, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.PluginSettings.EnableHealthCheck })
 	switch {
 	case !ok:
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
+		return healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)
 	case !healthCheck:
-		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.plugin_health_off.message"))}
+		return healthcheck.Firing(healthcheck.TranslationId("health.rule.plugin_health_off.message"))
 	default:
-		return []healthcheck.Result{healthcheck.Resolved()}
+		return healthcheck.Resolved()
 	}
 }
 
 // The plugin list marks a plugin enabled only while it runs, so enabled-but-listed-disabled means it stopped.
-func evalPluginNotRunning(s *healthcheck.Snapshot) []healthcheck.Result {
-	enabled, ok := pluginsEnabled(s)
-	if !ok {
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
-	}
-	if !enabled {
-		return []healthcheck.Result{healthcheck.Resolved()}
-	}
+func evalPluginNotRunning(s *healthcheck.Snapshot) healthcheck.Result {
 	if !s.Has(model.SectionPlugins) {
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonPluginsUnavailable)}
+		return healthcheck.Unknown(healthcheck.ReasonPluginsUnavailable)
 	}
 
 	states := s.Config.Config.PluginSettings.PluginStates
@@ -125,7 +110,7 @@ func evalPluginNotRunning(s *healthcheck.Snapshot) []healthcheck.Result {
 	}
 
 	if len(notRunning) == 0 {
-		return []healthcheck.Result{healthcheck.Resolved()}
+		return healthcheck.Resolved()
 	}
-	return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.plugin_not_running.message")).WithDetail("plugins", strings.Join(notRunning, ", "))}
+	return healthcheck.Firing(healthcheck.TranslationId("health.rule.plugin_not_running.message")).WithDetail("plugins", strings.Join(notRunning, ", "))
 }

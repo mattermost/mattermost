@@ -70,8 +70,7 @@ func (a *App) CreateRecap(rctx request.CTX, title string, channelIDs []string, a
 
 		savedRecap, storeErr = a.Srv().Store().Recap().SaveRecapIfUnderDailyLimit(recap, startOfDayMillis, limits.MaxRecapsPerDay)
 		if storeErr != nil {
-			var limitErr *store.ErrLimitExceeded
-			if errors.As(storeErr, &limitErr) {
+			if _, ok := errors.AsType[*store.ErrLimitExceeded](storeErr); ok {
 				return nil, recapMaxRecapsReachedError("CreateRecap", limits.MaxRecapsPerDay)
 			}
 			return nil, model.NewAppError("CreateRecap", "app.recap.save.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)

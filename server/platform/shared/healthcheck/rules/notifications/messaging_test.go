@@ -120,8 +120,8 @@ func TestPushIDOnlyAndPushServerCodesFireTogether(t *testing.T) {
 		cfg.EmailSettings.PushNotificationContents = new(model.FullNotification)
 	}), &model.Features{IDLoadedPushNotifications: new(true)})
 
-	assert.Equal(t, healthcheck.StateFiring, evalPushIDOnly(snapshot)[0].State)
-	assert.Equal(t, healthcheck.StateFiring, evalPushTestProxy(snapshot)[0].State)
+	assert.Equal(t, healthcheck.StateFiring, pushIDOnly.Eval(snapshot)[0].State)
+	assert.Equal(t, healthcheck.StateFiring, pushTestProxy.Eval(snapshot)[0].State)
 	assert.NotEqual(t, pushIDOnly.Subject, pushTestProxy.Subject)
 }
 

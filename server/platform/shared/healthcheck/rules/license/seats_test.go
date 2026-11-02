@@ -179,7 +179,7 @@ func TestSeatUtilizationRules(t *testing.T) {
 	t.Run("firing results carry the counts", func(t *testing.T) {
 		t.Parallel()
 
-		result := evalSeatsNearCapacity(seated(520, 30))[0]
+		result := evalSeatsNearCapacity(seated(520, 30))
 		assert.Equal(t, "health.rule.seats_near_capacity.message", result.MessageID)
 		assert.Equal(t, map[string]string{"used": "490", "seats": "500", "percent": "98.0"}, result.Details)
 	})
@@ -265,7 +265,7 @@ func TestSeatsLimitReached(t *testing.T) {
 	t.Run("firing results carry the limit", func(t *testing.T) {
 		t.Parallel()
 
-		result := evalSeatsLimitReached(enforced(505, new(5)))[0]
+		result := evalSeatsLimitReached(enforced(505, new(5)))
 		assert.Equal(t, "health.rule.seats_limit_reached.message", result.MessageID)
 		assert.Equal(t, map[string]string{"used": "505", "limit": "505"}, result.Details)
 	})

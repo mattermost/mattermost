@@ -6,7 +6,7 @@ import type {ChangeEvent, JSX, ReactNode} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 
 import LoadingScreen from 'components/loading_screen';
 import NextIcon from 'components/widgets/icons/fa_next_icon';
@@ -114,22 +114,20 @@ const BackstageList = (remainingProps: Props) => {
 
     let addLink = null;
 
-    if (remainingProps.addLink && remainingProps.addText) {
+    const addLinkPath = remainingProps.addLink;
+    if (addLinkPath && remainingProps.addText) {
         addLink = (
-            <Link
-                className='add-link'
-                to={remainingProps.addLink}
+            <Button
+                asChild={true}
+                emphasis='primary'
+                id={remainingProps.addButtonId}
             >
-                <Button
-                    type='button'
-                    emphasis='primary'
-                    id={remainingProps.addButtonId}
-                >
+                <Link to={addLinkPath}>
                     <span>
                         {remainingProps.addText}
                     </span>
-                </Button>
-            </Link>
+                </Link>
+            </Button>
         );
     }
 

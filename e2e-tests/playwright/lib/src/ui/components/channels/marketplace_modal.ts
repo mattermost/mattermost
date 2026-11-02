@@ -56,9 +56,6 @@ export default class MarketplaceModal {
         }
 
         await installButton.click();
-        // "Configure" renders as a <button> nested inside a router <Link>; that
-        // nesting is invalid HTML, so the browser's accessibility tree exposes
-        // only the outer element's role (link), not the inner button's.
         await expect(this.pluginRow(pluginId).getByRole('link', {name: 'Configure'})).toBeVisible({
             timeout: duration.one_min,
         });

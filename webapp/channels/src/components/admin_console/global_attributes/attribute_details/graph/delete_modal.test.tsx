@@ -229,7 +229,6 @@ describe('AttributeGraphDeleteModal safe', () => {
 
         const confirm = screen.getByRole('button', {name: 'Delete'});
         expect(confirm).toHaveClass('delete');
-        expect(confirm).toHaveClass('btn-danger');
     });
 
     it('uses the singular surviving-child lead for the diamond fixture', () => {

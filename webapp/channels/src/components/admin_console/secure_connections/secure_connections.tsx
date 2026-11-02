@@ -2,16 +2,18 @@
 // See LICENSE.txt for license information.
 
 import type {ReactNode} from 'react';
-import React from 'react';
+import React, {forwardRef} from 'react';
 import {useIntl, FormattedMessage, defineMessages} from 'react-intl';
 import {useHistory} from 'react-router-dom';
 
-import type {ButtonEmphasis} from '@mattermost/shared/components/button';
-import {buttonClassNames} from '@mattermost/shared/components/button';
+import {ChevronDownIcon} from '@mattermost/compass-icons/components';
+import {Button, type ButtonEmphasis} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
 
 import LoadingScreen from 'components/loading_screen';
 import * as Menu from 'components/menu';
-import SectionNotice from 'components/section_notice';
+import type {MenuButtonComponentProps} from 'components/menu';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import BuildingSvg from './building.svg';
@@ -115,6 +117,28 @@ const Placeholder = ({disabled, serviceNotRunning}: {disabled: boolean; serviceN
 
 const menuId = 'secure_connections_add_menu';
 
+const makeAddConnectionMenuTrigger = (emphasis: ButtonEmphasis) => {
+    const Trigger = forwardRef<HTMLButtonElement, MenuButtonComponentProps>((props, ref) => {
+        const {children, disabled, ...rest} = props;
+        return (
+            <Button
+                {...rest}
+                ref={ref}
+                disabled={disabled}
+                emphasis={emphasis}
+                trailingIcon={disabled ? undefined : <Icon glyph={<ChevronDownIcon/>}/>}
+            >
+                {children}
+            </Button>
+        );
+    });
+    Trigger.displayName = 'AddConnectionMenuTrigger';
+    return Trigger;
+};
+
+const AddConnectionPrimaryMenuTrigger = makeAddConnectionMenuTrigger('primary');
+const AddConnectionTertiaryMenuTrigger = makeAddConnectionMenuTrigger('tertiary');
+
 const AddMenu = ({buttonEmphasis = 'primary', disabled}: {buttonEmphasis?: ButtonEmphasis; disabled: boolean}) => {
     const {formatMessage} = useIntl();
     const history = useHistory();
@@ -135,19 +159,9 @@ const AddMenu = ({buttonEmphasis = 'primary', disabled}: {buttonEmphasis?: Butto
         <Menu.Container
             menuButton={{
                 id: `${menuId}-button`,
-                class: buttonClassNames({emphasis: buttonEmphasis}, {disabled}),
+                as: buttonEmphasis === 'tertiary' ? AddConnectionTertiaryMenuTrigger : AddConnectionPrimaryMenuTrigger,
                 disabled,
-                children: (
-                    <>
-                        <FormattedMessage {...msg.addConnection}/>
-                        {!disabled && (
-                            <i
-                                aria-hidden='true'
-                                className='icon icon-chevron-down'
-                            />
-                        )}
-                    </>
-                ),
+                children: <FormattedMessage {...msg.addConnection}/>,
             }}
             menu={{
                 id: menuId,

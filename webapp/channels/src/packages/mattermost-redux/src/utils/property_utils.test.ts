@@ -8,6 +8,9 @@ import {
     getOptionRank,
     getPropertyFieldChangePolicy,
     getPropertyFieldLabel,
+    getPropertyFieldSyncSources,
+    isPropertyFieldSynced,
+    isPropertyFieldSyncedForAuthService,
     isPropertyFieldEditable,
     isPropertyFieldRequired,
     isPropertyFieldSourceManaged,
@@ -116,6 +119,7 @@ describe('isPropertyFieldSourceManaged', () => {
     test('reads a synced field as source-managed', () => {
         expect(isPropertyFieldSourceManaged(makeField({attrs: {ldap: 'department'}}))).toBe(true);
         expect(isPropertyFieldSourceManaged(makeField({attrs: {saml: 'Department'}}))).toBe(true);
+        expect(isPropertyFieldSourceManaged(makeField({attrs: {openid: 'address.country'}}))).toBe(true);
     });
 
     test('leaves an ordinary admin-authored field alone', () => {
@@ -155,6 +159,29 @@ describe('isPropertyFieldSourceManaged', () => {
                 attrs: {protected: true, source_plugin_id: 'com.example.markings'},
             }))).toBe(true);
         }
+    });
+});
+
+describe('sync sources', () => {
+    test('lists the linked sources in the order the server resolves them', () => {
+        expect(getPropertyFieldSyncSources(makeField({attrs: {openid: 'groups', saml: 'Groups', ldap: 'memberOf'}}))).toEqual(['ldap', 'saml', 'openid']);
+        expect(getPropertyFieldSyncSources(makeField({attrs: {openid: 'groups'}}))).toEqual(['openid']);
+        expect(getPropertyFieldSyncSources(makeField({attrs: {ldap: '', openid: 7}}))).toEqual([]);
+        expect(getPropertyFieldSyncSources(makeField())).toEqual([]);
+    });
+
+    test('reads a field as synced when any source names an attribute', () => {
+        expect(isPropertyFieldSynced(makeField({attrs: {openid: 'department'}}))).toBe(true);
+        expect(isPropertyFieldSynced(makeField({attrs: {}}))).toBe(false);
+    });
+
+    test('matches the source to the auth service the user signs in with', () => {
+        const field = makeField({attrs: {openid: 'department'}});
+        expect(isPropertyFieldSyncedForAuthService(field, 'openid')).toBe(true);
+        expect(isPropertyFieldSyncedForAuthService(field, 'saml')).toBe(false);
+        expect(isPropertyFieldSyncedForAuthService(field, '')).toBe(false);
+        expect(isPropertyFieldSyncedForAuthService(field, undefined)).toBe(false);
+        expect(isPropertyFieldSyncedForAuthService(makeField({attrs: {ldap: 'department', saml: 'Department'}}), 'saml')).toBe(true);
     });
 });
 

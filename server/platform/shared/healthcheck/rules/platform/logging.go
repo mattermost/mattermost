@@ -28,7 +28,7 @@ var logDebugProd = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceInternal,
 	Volatility: healthcheck.VolatilityStable,
 	Subject:    "LogSettings.FileLevel",
-	Eval:       evalLogDebugProd,
+	Eval:       healthcheck.Gate(fileLogging, healthcheck.ReasonConfigUnavailable, evalLogDebugProd),
 }
 
 var logFileOff = healthcheck.Rule{
@@ -43,7 +43,7 @@ var logFileOff = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityStable,
 	Subject:    "LogSettings.EnableFile",
-	Eval:       evalLogFileOff,
+	Eval:       healthcheck.Single(evalLogFileOff),
 }
 
 var metricsOff = healthcheck.Rule{
@@ -58,61 +58,45 @@ var metricsOff = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityStable,
 	Subject:    "MetricsSettings.Enable",
-	Eval:       evalMetricsOff,
+	Eval:       healthcheck.Licensed(healthcheck.FeatureMetrics, healthcheck.Single(evalMetricsOff)),
 }
 
 func fileLogging(s *healthcheck.Snapshot) (bool, bool) {
 	return s.ConfigBool(func(cfg *model.Config) *bool { return cfg.LogSettings.EnableFile })
 }
 
-func evalLogDebugProd(s *healthcheck.Snapshot) []healthcheck.Result {
-	enabled, ok := fileLogging(s)
-	if !ok {
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
-	}
-	if !enabled {
-		return []healthcheck.Result{healthcheck.Resolved()}
-	}
-
+func evalLogDebugProd(s *healthcheck.Snapshot) healthcheck.Result {
 	level, ok := s.ConfigString(func(cfg *model.Config) *string { return cfg.LogSettings.FileLevel })
 	switch {
 	case !ok:
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
+		return healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)
 	case strings.EqualFold(level, "debug"), strings.EqualFold(level, "trace"):
-		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.log_debug_prod.message")).WithDetail("level", level)}
+		return healthcheck.Firing(healthcheck.TranslationId("health.rule.log_debug_prod.message")).WithDetail("level", level)
 	default:
-		return []healthcheck.Result{healthcheck.Resolved()}
+		return healthcheck.Resolved()
 	}
 }
 
-func evalLogFileOff(s *healthcheck.Snapshot) []healthcheck.Result {
+func evalLogFileOff(s *healthcheck.Snapshot) healthcheck.Result {
 	enabled, ok := fileLogging(s)
 	switch {
 	case !ok:
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
+		return healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)
 	case !enabled:
-		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.log_file_off.message"))}
+		return healthcheck.Firing(healthcheck.TranslationId("health.rule.log_file_off.message"))
 	default:
-		return []healthcheck.Result{healthcheck.Resolved()}
+		return healthcheck.Resolved()
 	}
 }
 
-func evalMetricsOff(s *healthcheck.Snapshot) []healthcheck.Result {
-	licensed, ok := s.LicenseFeature(func(f *model.Features) *bool { return f.Metrics })
-	if !ok {
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonLicenseUnavailable)}
-	}
-	if !licensed {
-		return []healthcheck.Result{healthcheck.Resolved()}
-	}
-
+func evalMetricsOff(s *healthcheck.Snapshot) healthcheck.Result {
 	enabled, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.MetricsSettings.Enable })
 	switch {
 	case !ok:
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
+		return healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)
 	case !enabled:
-		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.metrics_off.message"))}
+		return healthcheck.Firing(healthcheck.TranslationId("health.rule.metrics_off.message"))
 	default:
-		return []healthcheck.Result{healthcheck.Resolved()}
+		return healthcheck.Resolved()
 	}
 }

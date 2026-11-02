@@ -465,3 +465,15 @@ channels/db/migrations/postgres/000234_recreate_posts_message_txt_index.down.sql
 channels/db/migrations/postgres/000234_recreate_posts_message_txt_index.up.sql
 channels/db/migrations/postgres/000235_create_property_values_groupid_fieldid_index.down.sql
 channels/db/migrations/postgres/000235_create_property_values_groupid_fieldid_index.up.sql
+channels/db/migrations/postgres/000236_add_permissions_column_and_grants_table.down.sql
+channels/db/migrations/postgres/000236_add_permissions_column_and_grants_table.up.sql
+channels/db/migrations/postgres/000237_create_property_field_grants_type_id_index.down.sql
+channels/db/migrations/postgres/000237_create_property_field_grants_type_id_index.up.sql
+channels/db/migrations/postgres/000238_add_number_to_property_field_type.down.sql
+channels/db/migrations/postgres/000238_add_number_to_property_field_type.up.sql
+channels/db/migrations/postgres/000239_add_checkbox_to_property_field_type.down.sql
+channels/db/migrations/postgres/000239_add_checkbox_to_property_field_type.up.sql
+channels/db/migrations/postgres/000240_add_everyone_to_permission_level.down.sql
+channels/db/migrations/postgres/000240_add_everyone_to_permission_level.up.sql
+channels/db/migrations/postgres/000241_move_access_control_group_to_v3.down.sql
+channels/db/migrations/postgres/000241_move_access_control_group_to_v3.up.sql

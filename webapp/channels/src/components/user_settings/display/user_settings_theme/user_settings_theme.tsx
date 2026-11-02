@@ -5,6 +5,7 @@ import React from 'react';
 import type {RefObject} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 import {Radio} from '@mattermost/compass-ui/components/radio';
 
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
@@ -241,19 +242,17 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
             let allTeamsCheckbox = null;
             if (this.state.showAllTeamsCheckbox) {
                 allTeamsCheckbox = (
-                    <div className='checkbox user-settings__submit-checkbox'>
-                        <label>
-                            <input
-                                id='applyThemeToAllTeams'
-                                type='checkbox'
-                                checked={this.state.applyToAllTeams}
-                                onChange={(e) => this.setState({applyToAllTeams: e.target.checked})}
-                            />
+                    <div className='checkbox no-padding user-settings__submit-checkbox'>
+                        <Checkbox
+                            id='applyThemeToAllTeams'
+                            checked={this.state.applyToAllTeams}
+                            onChange={(e) => this.setState({applyToAllTeams: e.target.checked})}
+                        >
                             <FormattedMessage
                                 id='user.settings.display.theme.applyToAllTeams'
                                 defaultMessage='Apply new theme to all my teams'
                             />
-                        </label>
+                        </Checkbox>
                     </div>
                 );
             }

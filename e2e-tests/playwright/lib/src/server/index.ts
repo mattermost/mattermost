@@ -16,6 +16,7 @@ export {createNewTeam, createRandomTeam} from './team';
 export {
     createNewUserProfile,
     createRandomUser,
+    ensureChannelIntroActions,
     getDefaultAdminUser,
     isOutsideRemoteUserHour,
     setDefaultOnboardingPreferences,
@@ -70,6 +71,7 @@ export {
     generateKeycloakUser,
     createKeycloakUser,
     deleteKeycloakUser,
+    setKeycloakUserAttributes,
     suspendKeycloakUser,
     samlServerConfig,
     keycloakSamlDescriptorUrl,

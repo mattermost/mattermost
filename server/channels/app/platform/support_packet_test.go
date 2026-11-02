@@ -315,6 +315,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 
 		/* Config */
 		assert.Equal(t, "memory://", d.Config.Source)
+		assert.Equal(t, new(false), d.Config.AuditLoggingConfigured)
 
 		/* DB */
 		require.NotNil(t, d.Database.Type)
@@ -496,6 +497,51 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Contains(t, body, "    ldap: true\n")
 	})
 
+	t.Run("audit_logging_configured records this server's audit targets", func(t *testing.T) {
+		setAudit := func(t *testing.T, fileEnabled bool, advanced string) {
+			t.Helper()
+			prior := th.Service.Config().Clone().ExperimentalAuditSettings
+			th.Service.UpdateConfig(func(cfg *model.Config) {
+				cfg.ExperimentalAuditSettings.FileEnabled = new(fileEnabled)
+				cfg.ExperimentalAuditSettings.FileName = new("audit.log")
+				cfg.ExperimentalAuditSettings.AdvancedLoggingJSON = json.RawMessage(advanced)
+			})
+			t.Cleanup(func() {
+				th.Service.UpdateConfig(func(cfg *model.Config) {
+					cfg.ExperimentalAuditSettings = prior
+				})
+			})
+		}
+		auditTarget := `{"audit": {"type": "file", "format": "json", "levels": [{"id": 100, "name": "audit-api"}], "options": {"filename": "audit.log"}}}`
+
+		t.Run("file enabled", func(t *testing.T) {
+			setAudit(t, true, "{}")
+			d := getDiagnostics(t)
+			assert.Equal(t, new(true), d.Config.AuditLoggingConfigured)
+
+			fileData, err := supportPacketDiagnosticsFile(d, nil)
+			require.NoError(t, err)
+			assert.Contains(t, string(fileData.Body), "  audit_logging_configured: true #")
+		})
+
+		t.Run("advanced target with advanced logging licensed", func(t *testing.T) {
+			setAudit(t, false, auditTarget)
+			assert.Equal(t, new(true), getDiagnostics(t).Config.AuditLoggingConfigured)
+		})
+
+		t.Run("advanced target without advanced logging license", func(t *testing.T) {
+			setAudit(t, false, auditTarget)
+			unlicensed := model.NewTestLicense("ldap")
+			unlicensed.Features.AdvancedLogging = new(false)
+			require.True(t, th.Service.SetLicense(unlicensed))
+			t.Cleanup(func() {
+				require.True(t, th.Service.SetLicense(license))
+			})
+
+			assert.Equal(t, new(false), getDiagnostics(t).Config.AuditLoggingConfigured)
+		})
+	})
+
 	t.Run("filestore fails", func(t *testing.T) {
 		fb := &fmocks.FileBackend{}
 		err := SetFileStore(fb)(th.Service)
@@ -635,7 +681,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Empty(t, packet.SAML.Error)
 	})
 
-	t.Run("SAML enabled with reachable metadata URL", func(t *testing.T) {
+	t.Run("SAML enabled with passing diagnostic", func(t *testing.T) {
 		diagMock := &emocks.SamlDiagnosticInterface{}
 		diagMock.On(
 			"RunSupportPacketTest",
@@ -651,7 +697,6 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 			cfg.SamlSettings.Verify = model.NewPointer(false)
 			cfg.SamlSettings.Encrypt = model.NewPointer(false)
 			cfg.SamlSettings.IdpURL = model.NewPointer("http://localhost:8484/realms/mattermost/protocol/saml")
-			cfg.SamlSettings.IdpMetadataURL = model.NewPointer("http://localhost:8484/metadata")
 			cfg.SamlSettings.IdpDescriptorURL = model.NewPointer("http://localhost:8484/realms/mattermost")
 			cfg.SamlSettings.ServiceProviderIdentifier = model.NewPointer("mattermost")
 			cfg.SamlSettings.IdpCertificateFile = model.NewPointer("saml-idp.crt")
@@ -664,66 +709,6 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Equal(t, model.StatusOk, packet.SAML.Status)
 		assert.Empty(t, packet.SAML.Error)
 		assert.Equal(t, "Keycloak", packet.SAML.ProviderType)
-	})
-
-	t.Run("SAML enabled with missing metadata URL", func(t *testing.T) {
-		diagMock := &emocks.SamlDiagnosticInterface{}
-		diagMock.On(
-			"RunSupportPacketTest",
-			mock.AnythingOfType("*request.Context"),
-			mock.AnythingOfType("model.SamlSettings"),
-		).Return(errors.New("SAML metadata URL is not configured"))
-		originalSAMLDiag := th.Service.samlDiagnostic
-		t.Cleanup(func() { th.Service.samlDiagnostic = originalSAMLDiag })
-		th.Service.samlDiagnostic = diagMock
-
-		th.Service.UpdateConfig(func(cfg *model.Config) {
-			cfg.SamlSettings.Enable = model.NewPointer(true)
-			cfg.SamlSettings.Verify = model.NewPointer(false)
-			cfg.SamlSettings.Encrypt = model.NewPointer(false)
-			cfg.SamlSettings.IdpURL = model.NewPointer("http://localhost:8484/realms/mattermost/protocol/saml")
-			cfg.SamlSettings.IdpDescriptorURL = model.NewPointer("http://localhost:8484/realms/mattermost")
-			cfg.SamlSettings.ServiceProviderIdentifier = model.NewPointer("mattermost")
-			cfg.SamlSettings.IdpCertificateFile = model.NewPointer("saml-idp.crt")
-			cfg.SamlSettings.EmailAttribute = model.NewPointer("email")
-			cfg.SamlSettings.UsernameAttribute = model.NewPointer("username")
-			cfg.SamlSettings.IdpMetadataURL = model.NewPointer("")
-		})
-
-		packet := getDiagnostics(t)
-
-		assert.Equal(t, model.StatusFail, packet.SAML.Status)
-		assert.Equal(t, "SAML metadata URL is not configured", packet.SAML.Error)
-	})
-
-	t.Run("SAML enabled with metadata URL returning non-200", func(t *testing.T) {
-		diagMock := &emocks.SamlDiagnosticInterface{}
-		diagMock.On(
-			"RunSupportPacketTest",
-			mock.AnythingOfType("*request.Context"),
-			mock.AnythingOfType("model.SamlSettings"),
-		).Return(errors.New("SAML metadata URL returned unexpected status 503"))
-		originalSAMLDiag := th.Service.samlDiagnostic
-		t.Cleanup(func() { th.Service.samlDiagnostic = originalSAMLDiag })
-		th.Service.samlDiagnostic = diagMock
-
-		th.Service.UpdateConfig(func(cfg *model.Config) {
-			cfg.SamlSettings.Enable = model.NewPointer(true)
-			cfg.SamlSettings.Verify = model.NewPointer(false)
-			cfg.SamlSettings.Encrypt = model.NewPointer(false)
-			cfg.SamlSettings.IdpURL = model.NewPointer("http://localhost:8484/realms/mattermost/protocol/saml")
-			cfg.SamlSettings.IdpMetadataURL = model.NewPointer("http://localhost:8484/metadata")
-			cfg.SamlSettings.IdpDescriptorURL = model.NewPointer("http://localhost:8484/realms/mattermost")
-			cfg.SamlSettings.ServiceProviderIdentifier = model.NewPointer("mattermost")
-			cfg.SamlSettings.IdpCertificateFile = model.NewPointer("saml-idp.crt")
-			cfg.SamlSettings.EmailAttribute = model.NewPointer("email")
-			cfg.SamlSettings.UsernameAttribute = model.NewPointer("username")
-		})
-
-		packet := getDiagnostics(t)
-
-		assert.Equal(t, model.StatusFail, packet.SAML.Status)
-		assert.Equal(t, "SAML metadata URL returned unexpected status 503", packet.SAML.Error)
 	})
 
 	t.Run("SAML diagnostics enterprise interface override", func(t *testing.T) {
@@ -744,7 +729,6 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 			cfg.SamlSettings.Verify = model.NewPointer(false)
 			cfg.SamlSettings.Encrypt = model.NewPointer(false)
 			cfg.SamlSettings.IdpURL = model.NewPointer("http://localhost:8484/realms/mattermost/protocol/saml")
-			cfg.SamlSettings.IdpMetadataURL = model.NewPointer("http://localhost:8484/metadata")
 			cfg.SamlSettings.IdpDescriptorURL = model.NewPointer("http://localhost:8484/realms/mattermost")
 			cfg.SamlSettings.ServiceProviderIdentifier = model.NewPointer("mattermost")
 			cfg.SamlSettings.IdpCertificateFile = model.NewPointer("saml-idp.crt")
@@ -1690,6 +1674,7 @@ func TestSupportPacketMarshalGolden(t *testing.T) {
 	diagnostics.Server.BuildHash = "abc123"
 	diagnostics.Server.GoVersion = "go1.26"
 	diagnostics.Config.Source = "memory://"
+	diagnostics.Config.AuditLoggingConfigured = new(true)
 	diagnostics.Database.Type = new("postgres")
 	diagnostics.Database.Version = new("16.4")
 	diagnostics.Database.SchemaVersion = new("123")
