@@ -1,13 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Channel} from '@mattermost/types/channels';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import type {GlobalState} from 'types/store';
-import type {ChannelHeaderAction, ChannelSettingsTabComponent, MobileChannelHeaderButtonAction} from 'types/store/plugins';
+import type {ChannelHeaderAction, ChannelInfoMenuAction, ChannelSettingsTabComponent, MobileChannelHeaderButtonAction} from 'types/store/plugins';
 
 import {
     getChannelHeaderMenuPluginComponents,
+    getChannelInfoMenuPluginComponents,
     getChannelMobileHeaderPluginButtons,
     getChannelSettingsTabs,
     getPluginUserSettings,
@@ -259,6 +261,38 @@ describe('Selectors.Plugins', () => {
             const state = makeState([firstRegistration, secondRegistration, thirdRegistration]);
 
             expect(getChannelSettingsTabs(state)).toEqual([firstRegistration, secondRegistration, thirdRegistration]);
+        });
+    });
+
+    describe('getChannelInfoMenuPluginComponents', () => {
+        const channel = {id: 'channel1'} as Channel;
+
+        function makeState(items: ChannelInfoMenuAction[]): GlobalState {
+            const state: DeepPartial<GlobalState> = {
+                plugins: {
+                    components: {
+                        ChannelInfoMenu: items,
+                    },
+                },
+            };
+            return state as GlobalState;
+        }
+
+        test('filters by shouldRender(state, channel)', () => {
+            const shown = {
+                id: 'shown',
+                shouldRender: (_state: GlobalState, ch: Channel) => ch.id === 'channel1',
+            } as ChannelInfoMenuAction;
+            const hidden = {
+                id: 'hidden',
+                shouldRender: () => false,
+            } as unknown as ChannelInfoMenuAction;
+            const noPredicate = {id: 'always'} as ChannelInfoMenuAction;
+
+            expect(getChannelInfoMenuPluginComponents(makeState([shown, hidden, noPredicate]), channel)).toEqual([
+                shown,
+                noPredicate,
+            ]);
         });
     });
 });
