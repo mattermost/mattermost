@@ -1,0 +1,1464 @@
+{
+ "commit 0406bd6c44202fc341b25f433272d0f0cea93b8d": {
+  "date": "2026-10-19T09:42:03Z",
+  "files": [
+   "server/public/model/version.go",
+   "webapp/channels/package.json",
+   "webapp/package-lock.json",
+   "webapp/platform/client/package.json",
+   "webapp/platform/components/package.json",
+   "webapp/platform/mattermost-redux/package.json",
+   "webapp/platform/shared/package.json",
+   "webapp/platform/types/package.json"
+  ],
+  "message": "Update latest patch version to 11.10.4 (#39246)\n\nCo-authored-by: unified-ci-app[bot] <121569378+unified-ci-app[bot]@users.noreply.github.com>",
+  "parents": [
+   "b23901cac412ab187f59a9cf64eeece434653b59"
+  ],
+  "sha": "0406bd6c44202fc341b25f433272d0f0cea93b8d"
+ },
+ "commit 068b1879df91b3f4143f97162684d3c4fb0d6856": {
+  "date": "2026-10-21T21:13:37Z",
+  "files": [
+   ".cursor/Dockerfile",
+   ".cursor/README.md",
+   "api/server/go.mod",
+   "server/.go-version",
+   "server/build/Dockerfile.buildenv",
+   "server/build/Dockerfile.buildenv-fips",
+   "server/build/Dockerfile.fips",
+   "server/go.mod",
+   "server/public/go.mod",
+   "tools/mattermost-govet/go.mod",
+   "tools/mmgotool/go.mod",
+   "tools/sharedchannel-test/go.mod"
+  ],
+  "message": "Bump Go version to v1.26.10 (#39328) (#39338)",
+  "parents": [
+   "e1a60b5adafa52c262ec93168b02da3e2ddbeb36"
+  ],
+  "sha": "068b1879df91b3f4143f97162684d3c4fb0d6856"
+ },
+ "commit 084f2f43b2451400e1b502a5f4bb279ce279f69b": {
+  "date": "2026-10-19T10:01:55Z",
+  "files": [
+   "docs/main/administration-guide/configure/environment-configuration-settings.mdx",
+   "docs/main/deployment-guide/server/troubleshooting.mdx",
+   "server/channels/app/platform/config.go",
+   "server/channels/app/platform/config_test.go",
+   "server/channels/app/platform/log.go",
+   "server/channels/app/platform/log_test.go",
+   "server/config/logger.go",
+   "server/config/logger_test.go",
+   "server/i18n/en.json",
+   "server/public/model/feature_flags.go",
+   "server/public/model/feature_flags_test.go"
+  ],
+  "message": "Automated cherry pick of #38634 (#39194)\n\nAutomatic Merge",
+  "parents": [
+   "0406bd6c44202fc341b25f433272d0f0cea93b8d"
+  ],
+  "sha": "084f2f43b2451400e1b502a5f4bb279ce279f69b"
+ },
+ "commit 0fa50b5adc978e0a1a489a65fb732bf19d923e7a": {
+  "date": "2026-10-21T21:14:29Z",
+  "files": [
+   ".cursor/Dockerfile",
+   ".cursor/README.md",
+   "api/server/go.mod",
+   "server/.go-version",
+   "server/build/Dockerfile.buildenv",
+   "server/build/Dockerfile.buildenv-fips",
+   "server/build/Dockerfile.fips",
+   "server/go.mod",
+   "server/public/go.mod",
+   "tools/mattermost-govet/go.mod",
+   "tools/mmgotool/go.mod",
+   "tools/sharedchannel-test/go.mod"
+  ],
+  "message": "Bump Go version to v1.26.10 (#39328) (#39340)",
+  "parents": [
+   "f851a9fb4a18d8097881fbf024c778b2954c9f3e"
+  ],
+  "sha": "0fa50b5adc978e0a1a489a65fb732bf19d923e7a"
+ },
+ "commit 1a2a36623b85b49a6141a9fe40397b7bb7112911": {
+  "date": "2026-10-20T11:31:50Z",
+  "files": [
+   "server/Makefile"
+  ],
+  "message": "Bumping prepackaged Dataminr plugin version to v3.0.0 (#39291) (#39294)\n\nAutomatic Merge",
+  "parents": [
+   "311c5e47139cd00a968d1bff7e7a5d48730a0bf0"
+  ],
+  "sha": "1a2a36623b85b49a6141a9fe40397b7bb7112911"
+ },
+ "commit 255334db6438d995bdae4f22d8f4475ae7be9d75": {
+  "date": "2026-10-19T10:01:48Z",
+  "files": [
+   "docs/main/administration-guide/configure/environment-configuration-settings.mdx",
+   "docs/main/deployment-guide/server/troubleshooting.mdx",
+   "server/channels/app/platform/config.go",
+   "server/channels/app/platform/config_test.go",
+   "server/channels/app/platform/log.go",
+   "server/channels/app/platform/log_test.go",
+   "server/config/logger.go",
+   "server/config/logger_test.go",
+   "server/i18n/en.json",
+   "server/public/model/feature_flags.go",
+   "server/public/model/feature_flags_test.go"
+  ],
+  "message": "Automated cherry pick of #38634 (#39193)\n\nAutomatic Merge",
+  "parents": [
+   "aee40c775a16cc933ea36f9f430f355857a4c39f"
+  ],
+  "sha": "255334db6438d995bdae4f22d8f4475ae7be9d75"
+ },
+ "commit 311c5e47139cd00a968d1bff7e7a5d48730a0bf0": {
+  "date": "2026-10-16T16:01:45Z",
+  "files": [
+   "e2e-tests/playwright/lib/src/containers/mattermost_container.ts",
+   "e2e-tests/playwright/lib/src/containers/stack.ts",
+   "e2e-tests/playwright/lib/src/index.ts",
+   "e2e-tests/playwright/lib/src/test_config.ts",
+   "e2e-tests/playwright/lib/src/upgrade_env.ts",
+   "e2e-tests/playwright/playwright.config.ts"
+  ],
+  "message": "E2E/Playwright: fix upgrade-to swap resolving the wrong image in workers (#39181)\n\nAutomatic Merge",
+  "parents": [
+   "c16c8db24f73cd3f5ade8c2ce01bdf3aa1660aea"
+  ],
+  "sha": "311c5e47139cd00a968d1bff7e7a5d48730a0bf0"
+ },
+ "commit 320d9bea70f43e0a605a1986cacade384036556f": {
+  "date": "2026-09-16T12:11:58Z",
+  "files": [
+   "server/public/model/version.go"
+  ],
+  "message": "Update latest patch version to 10.11.25 (#38564)\n\nAutomatic Merge",
+  "parents": [
+   "498e8d148daefb66951d178163c7393daf379ab8"
+  ],
+  "sha": "320d9bea70f43e0a605a1986cacade384036556f"
+ },
+ "commit 3526c8ae5363e109709feb654669db6f3f97e7f8": {
+  "date": "2026-10-20T08:31:49Z",
+  "files": [
+   "e2e-tests/playwright/lib/src/server/default_feature_flags.ts",
+   "server/Makefile"
+  ],
+  "message": "Prepackage mattermost-plugin-agents v2.6.2 (#39268)\n\nAutomatic Merge",
+  "parents": [
+   "8dcce45957c9594cb9c0bb2786d95b74230783fd"
+  ],
+  "sha": "3526c8ae5363e109709feb654669db6f3f97e7f8"
+ },
+ "commit 3abf50a065cd7de42741a1669ac5af03449fdc43": {
+  "date": "2026-10-19T12:31:48Z",
+  "files": [
+   "e2e-tests/playwright/lib/src/server/default_feature_flags.ts",
+   "server/Makefile"
+  ],
+  "message": "Bumping prepackaged mscalendar version to v1.6.3 (#39250)\n\nAutomatic Merge",
+  "parents": [
+   "7221f434012bc47e3983e980dfb0f807d011294a"
+  ],
+  "sha": "3abf50a065cd7de42741a1669ac5af03449fdc43"
+ },
+ "commit 4a29ac3c43d280f776ecd6790d357518fb2fb623": {
+  "date": "2026-10-15T07:28:42Z",
+  "files": [
+   "e2e-tests/playwright/.gitignore",
+   "e2e-tests/playwright/.prettierignore",
+   "e2e-tests/playwright/AGENTS.md",
+   "e2e-tests/playwright/global_setup.ts",
+   "e2e-tests/playwright/lib/README.md",
+   "e2e-tests/playwright/lib/package.json",
+   "e2e-tests/playwright/lib/rollup.config.js",
+   "e2e-tests/playwright/lib/src/autotranslation_helpers.ts",
+   "e2e-tests/playwright/lib/src/containers/index.ts",
+   "e2e-tests/playwright/lib/src/containers/lock.ts",
+   "e2e-tests/playwright/lib/src/containers/mattermost_container.ts",
+   "e2e-tests/playwright/lib/src/containers/orphans.ts",
+   "e2e-tests/playwright/lib/src/containers/port.ts",
+   "e2e-tests/playwright/lib/src/containers/retry.ts",
+   "e2e-tests/playwright/lib/src/containers/stack.ts",
+   "e2e-tests/playwright/lib/src/global_setup.ts",
+   "e2e-tests/playwright/lib/src/global_setup_failure.ts",
+   "e2e-tests/playwright/lib/src/index.ts",
+   "e2e-tests/playwright/lib/src/server/admin_lockout.ts",
+   "e2e-tests/playwright/lib/src/server/default_config.ts",
+   "e2e-tests/playwright/lib/src/server/default_feature_flags.ts",
+   "e2e-tests/playwright/lib/src/server/default_roles_permissions.ts",
+   "e2e-tests/playwright/lib/src/server/default_server_env.ts",
+   "e2e-tests/playwright/lib/src/server/feature_flags.ts",
+   "e2e-tests/playwright/lib/src/server/index.ts",
+   "e2e-tests/playwright/lib/src/server/init.ts",
+   "e2e-tests/playwright/lib/src/server/lockout.ts",
+   "e2e-tests/playwright/lib/src/server/migrations.ts",
+   "e2e-tests/playwright/lib/src/server/opensearch.ts",
+   "e2e-tests/playwright/lib/src/server/patch_config.ts",
+   "e2e-tests/playwright/lib/src/server/playwright_client.ts",
+   "e2e-tests/playwright/lib/src/server/reset_config.ts",
+   "e2e-tests/playwright/lib/src/server/reset_config_with.ts",
+   "e2e-tests/playwright/lib/src/server/roles.ts",
+   "e2e-tests/playwright/lib/src/server/server_env.ts",
+   "e2e-tests/playwright/lib/src/test_config.ts",
+   "e2e-tests/playwright/lib/src/test_fixture.ts",
+   "e2e-tests/playwright/lib/src/ui/components/system_console/sections/system_attributes/global_attributes.ts",
+   "e2e-tests/playwright/package-lock.json",
+   "e2e-tests/playwright/package.json",
+   "e2e-tests/playwright/specs/accessibility/common/login.spec.ts",
+   "e2e-tests/playwright/specs/functional/channels/anonymous_urls/anonymous_urls.spec.ts",
+   "e2e-tests/playwright/specs/functional/channels/autotranslation/autotranslation.spec.ts",
+   "e2e-tests/playwright/specs/functional/channels/bot_accounts/bot_pat_expiry.spec.ts",
+   "e2e-tests/playwright/specs/functional/channels/channel_bookmarks/bookmark_edit_permissions.spec.ts",
+   "e2e-tests/playwright/specs/functional/channels/channel_classification/channel_classification.spec.ts",
+   "e2e-tests/playwright/specs/functional/channels/channel_classification/helpers.ts",
+   "e2e-tests/playwright/specs/functional/channels/shared_channel_configuration/shared_channel_configuration.spec.ts",
+   "e2e-tests/playwright/specs/functional/channels/team_settings/team_settings_membership_policies.spec.ts",
+   "e2e-tests/playwright/specs/functional/plugins/demo_plugin/helpers.ts",
+   "e2e-tests/playwright/specs/functional/system_console/abac/policy_management/edit_policies_rules.spec.ts",
+   "e2e-tests/playwright/specs/functional/system_console/global_attributes/classification_attribute.spec.ts",
+   "e2e-tests/playwright/specs/functional/system_console/global_attributes/global_attributes_listing_classification_markings.spec.ts",
+   "e2e-tests/playwright/specs/functional/system_console/max_login_attempts.spec.ts",
+   "e2e-tests/playwright/specs/functional/system_console/site_configuration/classification_markings.spec.ts",
+   "e2e-tests/playwright/specs/functional/system_console/site_configuration/classification_markings_flag_off.spec.ts",
+   "e2e-tests/playwright/specs/functional/system_console/site_configuration/classification_markings_helpers.ts",
+   "e2e-tests/playwright/specs/functional/system_console/site_configuration/global_classification_banner.spec.ts",
+   "e2e-tests/playwright/specs/functional/system_console/site_configuration/global_classification_banner_flag_off.spec.ts",
+   "server/Makefile",
+   "server/scripts/default_feature_flags_generator/main.go",
+   "server/scripts/default_permissions_generator/main.go"
+  ],
+  "message": "Cherry pick #39091 to release-12.0 (#39172)",
+  "parents": [
+   "7e5a41ef85e890fc46e9750b7a609bf30f3aa216"
+  ],
+  "sha": "4a29ac3c43d280f776ecd6790d357518fb2fb623"
+ },
+ "commit 4e277d8416096d1eeb676d7b9bb9eeeba1e576f1": {
+  "date": "2026-10-20T09:31:49Z",
+  "files": [
+   "server/Makefile"
+  ],
+  "message": "Prepackage mattermost-plugin-agents v2.0.10 (#39271)\n\nAutomatic Merge",
+  "parents": [
+   "54d30d4b795727d2b1028df5be27d1e9e0345afc"
+  ],
+  "sha": "4e277d8416096d1eeb676d7b9bb9eeeba1e576f1"
+ },
+ "commit 54d30d4b795727d2b1028df5be27d1e9e0345afc": {
+  "date": "2026-10-20T08:15:56Z",
+  "files": [
+   "e2e-tests/playwright/lib/src/ui/pages/drafts.ts",
+   "e2e-tests/playwright/specs/functional/channels/drafts/draft_send_from_panel.spec.ts",
+   "webapp/channels/src/components/drafts/__snapshots__/draft_row.test.tsx.snap",
+   "webapp/channels/src/components/drafts/draft_row.test.tsx",
+   "webapp/channels/src/components/drafts/draft_row.tsx"
+  ],
+  "message": "Cherry pick #38861 to release-11.7 (#39258)\n\n* [MM-69775] Delete the server-side draft when sending from the Drafts panel (#38861)\n\n* MM-69775: Delete the server draft when sending from the Drafts panel\n\nSending a draft from the Drafts panel only cleared the locally stored\ncopy: createPost dispatches storeDraft(null), which is a setGlobalItem\nand never reaches Client4.deleteDraft. The server draft survived and\ngetDrafts restored it on the next team switch or reload.\n\nThe channel composer is unaffected because its handleDraftChange sees\nthe emptied draft after submit and dispatches removeDraft, which does\ndelete the server copy.\n\nafterSubmit now calls handleOnDelete for a plain send as well as for a\nscheduled one, leaving the scheduled-post send path untouched.\n\nCo-authored-by: mattermost-code <matty-code@mattermost.com>\n\n* MM-69775: Cover the Drafts panel send path with real submit wiring\n\ndraft_row.test.tsx mocked useSubmit outright, so nothing exercised what\nDraftRow does after a post is created. The mock is gone and the action\nrows are now interactive fakes that invoke the real callbacks, so the\ntests run through useSubmit, onSubmit, createPost and afterSubmit and\nassert on the requests Client4 actually receives.\n\nCovers a plain channel send, a thread send, scheduling, sending a\nscheduled post, and both failure paths.\n\nCo-authored-by: mattermost-code <matty-code@mattermost.com>\n\n* MM-69775: Add E2E coverage for sending a draft from the Drafts panel\n\nBoth specs assert the server draft list is empty after the send, which\nis the invariant the bug broke; the UI assertions alone could not see it\nfor the thread case. Reverting the draft_row fix fails both specs on\nthat assertion.\n\nDraftsPage gains the Send message now modal and a sendDraft helper,\nmirroring ScheduledPostsPage.\n\nCo-authored-by: mattermost-code <matty-code@mattermost.com>\n\n* MM-69775: Drop the now-dead isBeingScheduled ref and sharpen the tests\n\nafterSubmit no longer branches on isBeingScheduled, which left the ref\nwritten in two places and read in none, so it is gone.\n\nTest changes come from a review pass that found three assertions which\npassed with the fix reverted:\n- the drafts-list assertion is now driven by a fake server draft table\n  that deleteDraft mutates and getUserDrafts serves back, with a real\n  getDrafts refetch, so it reproduces the reported symptom\n- the create-failure test became a pending-promise test, since a\n  rejected createPost never reaches afterSubmit; it now pins that the\n  delete waits for the created post instead of firing on click\n- the scheduled-post test also asserts the live channel draft survives,\n  which kills a keepDraft flip, and sends twice\n- the Playwright thread test dropped its post-reload assertions, which\n  could not fail for this bug, and says what it actually proves\n\nCo-authored-by: mattermost-code <matty-code@mattermost.com>\n\n* MM-69775: Assert the scheduled draft leaves the panel, not just the server\n\nScheduling returns before createPost, so handleOnDelete is the only\nthing that clears the local copy on that path. Asserting only on\ndeleteDraft's arguments let a wrong storage key survive: the server\ndelete still looked right while the row stayed in the Drafts panel.\n\nAlso assert the fake server draft table itself shrank after a plain\nsend, so a degraded fixture cannot quietly weaken that test.\n\nCo-authored-by: mattermost-code <matty-code@mattermost.com>\n\n* MM-69775: Tighten comments across the change\n\nDrops comments that restated the assertion on the following line, keeps\nthe ones carrying facts the code cannot show, and matches the comment\nstyle of each surrounding file.\n\nCo-authored-by: mattermost-code <matty-code@mattermost.com>\n\n---------\n\nCo-authored-by: Cursor Agent <cursoragent@cursor.com>\nCo-authored-by: mattermost-code <matty-code@mattermost.com>\n\n* MM-69775: Seed scheduledPosts state in DraftRow tests for 11.7\n\n11.7's SINGLE_SCHEDULED_POST_RECEIVED reducer calls findIndex without a\nmissing-key guard. Seed byTeamId so the scheduling unit test matches\nwhat DraftsLink already loads in production.\n\n---------\n\nCo-authored-by: cursor[bot] <206951365+cursor[bot]@users.noreply.github.com>\nCo-authored-by: Cursor Agent <cursoragent@cursor.com>",
+  "parents": [
+   "3abf50a065cd7de42741a1669ac5af03449fdc43"
+  ],
+  "sha": "54d30d4b795727d2b1028df5be27d1e9e0345afc"
+ },
+ "commit 60ecc27b9c0bf4a2bc008adbb67da7a6a7e582e4": {
+  "date": "2026-09-16T12:48:56Z",
+  "files": [
+   "e2e-tests/cypress/tests/fixtures/markdown/markdown_inline_images_1.md",
+   "e2e-tests/cypress/tests/integration/channels/files_and_attachments/image_link_preview_spec.js",
+   "e2e-tests/cypress/tests/integration/channels/markdown/markdown_image_spec.js",
+   "e2e-tests/cypress/tests/integration/channels/messaging/inline_markdown_image_link_open_link_spec.js"
+  ],
+  "message": "fix(e2e): repoint markdown image tests off the deleted docs.mattermost.com asset (#38330) (#38567)\n\ndocs.mattermost.com migrated from Sphinx to Docusaurus, which removed the\n/_images/ static path. https://docs.mattermost.com/_images/icon-76x76.png now\nreturns 404, so the image proxy fails and the webapp renders the broken-image\nplaceholder instead. That breaks four specs on every run, independent of the\nchange under test:\n\n  - markdown/markdown_image_spec.js \"with in-line images 1\"\n  - messaging/inline_markdown_image_link_open_link_spec.js MM-T188\n  - files_and_attachments/image_link_preview_spec.js MM-T2389\n  - fixtures/markdown/markdown_inline_images_1.md\n\nThe icon is gone from the docs site entirely (no /img/, /static/img/,\n/img/brand/ or /assets/images/ equivalent), so point these at an image we\nactually own: the in-repo fixture mattermost-icon_128x128.png, served over\nraw.githubusercontent.com. That is the convention several sibling specs\nalready use, and it removes the dependency on the docs site's asset layout.\n\nSize assertions move from 76px to 128px to match the new fixture. 128px stays\nunder the 350px max-height cap on .markdown-inline-img, so the image still\nrenders at its natural size. The height tolerance tightens from closeTo(76, 76)\n- which accepted anything from 0 to 152 and would have passed on a\nzero-height broken image - to closeTo(128, 2).\n\n(cherry picked from commit 86088592790eb63047bee73cd82390aae0c3e27b)\n\nCo-authored-by: Angelos Kyratzakos <angelos.kyratzakos@mattermost.com>",
+  "parents": [
+   "320d9bea70f43e0a605a1986cacade384036556f"
+  ],
+  "sha": "60ecc27b9c0bf4a2bc008adbb67da7a6a7e582e4"
+ },
+ "commit 69c055d13223b59825d91fc687b5174524156137": {
+  "date": "2026-10-22T11:51:01Z",
+  "files": [
+   "e2e-tests/cypress/tests/integration/channels/integrations/incoming_webhook/disallow_username_profile_override_spec.js",
+   "e2e-tests/cypress/tests/integration/channels/integrations/incoming_webhook/helpers.js"
+  ],
+  "message": "fix(e2e): repoint MM-T622 off the deleted mattermost.com icon asset (#39353)\n\nThe MM-T622 webhook icon pointed at mattermost.com/wp-content/.../icon_WS.png,\nwhich now returns 404. The avatar falls back to the default bot icon and the\nsrc assertion fails. Cypress retries then fail on the Save button because the\nfirst attempt already saved the override flags.\n\nBackports the MM-T622 spec and helper changes from release-11.9 (8f204bed20,\n#38795): use the repo fixture icon, store it on the hook, and set the override\nflags through the config patch API instead of the System Console.",
+  "parents": [
+   "60ecc27b9c0bf4a2bc008adbb67da7a6a7e582e4"
+  ],
+  "sha": "69c055d13223b59825d91fc687b5174524156137"
+ },
+ "commit 6d26788d01230bef45b2cbb7931ab6677958ab9f": {
+  "date": "2026-10-21T06:42:33Z",
+  "files": [
+   ".github/workflows/e2e-tests-ci.yml",
+   ".github/workflows/e2e-tests-on-merge.yml",
+   ".github/workflows/e2e-tests-on-release.yml",
+   ".github/workflows/e2e-tests-playwright-template.yml",
+   ".github/workflows/e2e-tests-playwright.yml",
+   "e2e-tests/cypress/README-Subpath.md",
+   "e2e-tests/cypress/cypress.config.ts",
+   "e2e-tests/cypress/tests/integration/channels/subpath/subpath_channel_routing_spec.js",
+   "e2e-tests/cypress/tests/integration/channels/subpath/subpath_dm_search_spec.js",
+   "e2e-tests/cypress/tests/integration/channels/subpath/subpath_login_spec.js",
+   "e2e-tests/cypress/tests/support/api/system.d.ts",
+   "e2e-tests/cypress/tests/support/api/system.js",
+   "e2e-tests/playwright/README.md",
+   "e2e-tests/playwright/eslint.config.mjs",
+   "e2e-tests/playwright/lib/README.md",
+   "e2e-tests/playwright/lib/package.json",
+   "e2e-tests/playwright/lib/rollup.config.js",
+   "e2e-tests/playwright/lib/src/browser_context.ts",
+   "e2e-tests/playwright/lib/src/containers/constants.ts",
+   "e2e-tests/playwright/lib/src/containers/default_images.ts",
+   "e2e-tests/playwright/lib/src/containers/mattermost_container.ts",
+   "e2e-tests/playwright/lib/src/containers/mmctl_container.ts",
+   "e2e-tests/playwright/lib/src/containers/nginx_container.ts",
+   "e2e-tests/playwright/lib/src/containers/requirements.ts",
+   "e2e-tests/playwright/lib/src/containers/stack.ts",
+   "e2e-tests/playwright/lib/src/expect.ts",
+   "e2e-tests/playwright/lib/src/flag.ts",
+   "e2e-tests/playwright/lib/src/index.ts",
+   "e2e-tests/playwright/lib/src/server/index.ts",
+   "e2e-tests/playwright/lib/src/server/server_env.ts",
+   "e2e-tests/playwright/lib/src/test_config.ts",
+   "e2e-tests/playwright/lib/src/test_fixture.ts",
+   "e2e-tests/playwright/lib/src/ui/pages/channels.ts",
+   "e2e-tests/playwright/lib/src/ui/pages/signup.ts",
+   "e2e-tests/playwright/lib/src/ui/pages/system_console.ts",
+   "e2e-tests/playwright/lib/src/util.ts",
+   "e2e-tests/playwright/package-lock.json",
+   "e2e-tests/playwright/playwright.config.ts",
+   "e2e-tests/playwright/specs/functional/channels/anonymous_urls/anonymous_urls.spec.ts",
+   "e2e-tests/playwright/specs/functional/channels/autotranslation/autotranslation_permissions.spec.ts",
+   "e2e-tests/playwright/specs/functional/channels/channel_bookmarks/bookmark_display_navigation.spec.ts",
+   "e2e-tests/playwright/specs/functional/channels/messaging/date_separator_day_rollover.spec.ts",
+   "e2e-tests/playwright/specs/functional/channels/messaging/message_delivery_and_links.spec.ts",
+   "e2e-tests/playwright/specs/functional/channels/messaging/permalinks.spec.ts",
+   "e2e-tests/playwright/specs/functional/channels/post_list/initial_scroll_read.spec.ts",
+   "e2e-tests/playwright/specs/functional/channels/post_list/permalink_scroll.spec.ts",
+   "e2e-tests/playwright/specs/functional/channels/post_list/post_height.spec.ts",
+   "e2e-tests/playwright/specs/functional/channels/scheduled_messages/scheduled_messages.spec.ts",
+   "e2e-tests/playwright/specs/functional/subpath/subpath_channel_routing.spec.ts",
+   "e2e-tests/playwright/specs/functional/subpath/subpath_file_upload.spec.ts",
+   "e2e-tests/playwright/specs/functional/subpath/subpath_login_cookie.spec.ts",
+   "e2e-tests/playwright/specs/functional/subpath/subpath_search.spec.ts",
+   "e2e-tests/playwright/specs/functional/subpath/subpath_static_assets.spec.ts",
+   "e2e-tests/playwright/specs/functional/subpath/subpath_system_console.spec.ts",
+   "e2e-tests/playwright/specs/functional/subpath/subpath_websocket_realtime.spec.ts",
+   "e2e-tests/playwright/specs/functional/system_console/abac/file_access/file_permissions_download.spec.ts",
+   "e2e-tests/playwright/specs/functional/system_console/desktop_app_update_required.spec.ts",
+   "e2e-tests/playwright/specs/functional/system_console/site_configuration/autotranslation_system_console.spec.ts",
+   "e2e-tests/playwright/specs/functional/system_console/team_configuration/team_profile_edit.spec.ts"
+  ],
+  "message": "Cherry pick #38833 to release-11.11 (#39309)\n\n* SEC-11251 Add Playwright subpath deployment E2E testing (#38833)\n\n* Add Playwright subpath deployment E2E testing\n\n* Address CodeRabbit findings: subpath CI trigger gap, container cleanup scope, internal webhook URL\n\n* Widen subpath CI trigger to cover the full deployment configuration\n\n* Also trigger subpath E2E tests on reusable Playwright workflow changes\n\n* Also trigger subpath E2E tests when the goto/baseURL fixture chokepoints change\n\n* Fix defaultBootEnv() dropping subpath SiteURL on per-spec-file reset\n\nensureDefaultServerEnv() restarts the server with defaultBootEnv()\nbefore each spec file's first test. defaultBootEnv() didn't know about\nsubpath mode, so it reset SiteURL back to the plain default and broke\nevery subpath spec after the first server restart.\n\nCo-authored-by: saturnino <saturnino@mattermost.com>\n\n* Fix baseURL on mid-test restart in subpath mode; widen CI path filter\n\nrestartMattermostContainerLocked() always reset baseURL to the direct\nserver URL, dropping the subpath prefix after any mid-suite restart\n(e.g. via ensureFeatureFlag()). Keep it pointed through nginx when\nsubpathMode is set.\n\nAlso widen the SHOULD_RUN_SUBPATH file filter to cover util.ts and the\nchannels/system_console page objects, which subpath specs depend on.\n\nCo-authored-by: saturnino <saturnino@mattermost.com>\n\n* fix specs that broke when the server runs behind nginx at /subpath:\n\n- Add toHavePath/toHaveHrefPath matchers that prepend the subpath, and lint against toHaveURL('/path'), which Playwright resolves against baseURL and so drops the subpath\n- Route unprefixed API calls onto the subpath, point mmctl at the subpath-aware URL, and build permalinks from the site URL\n- Auto-start nginx whenever PW_SERVER_DEPLOY=subpath\n- Skip the OIDC/SAML error-page cases (signature mismatch under a subpath) and the MM-69979 post_height cases for the subpath project\n- Wait for the phase2 permissions migration before the autotranslation scheme tests\n- Fix the mobile schedule menu dimmed-area click when the dialog starts above the viewport, and pin the date separator rollover test to UTC\n\n* keep the subpath SiteURL reachable from the server\n\n---------\n\nCo-authored-by: Cursor Agent <cursoragent@cursor.com>\nCo-authored-by: saturnino <saturnino@mattermost.com>\nCo-authored-by: Mattermost Build <build@mattermost.com>\n\n* Fix subpath E2E failure from cherry-pick #38833\n\nfile_permissions_download.spec.ts (MM-T5828): build the permalink URL\nfrom testConfig.siteURL instead of testConfig.internalBaseURL so the\nserver recognizes it as its own SiteURL under subpath mode. Master\nalready uses this pattern in the renamed sibling\nfile_permissions_edge_cases.spec.ts.\n\nrecaps.spec.ts needs no change here: the prepackaged\nmattermost-plugin-agents v2.6.2 on release-11.11 doesn't exhibit the\nSiteURL-trust bug that breaks AI recap rendering under subpath mode on\nrelease-11.7/release-11.10 (plugin v2.0.10/v2.5.4), so those tests\nalready pass under --project=subpath.\n\nCo-authored-by: saturnino <saturnino@mattermost.com>\n\n---------\n\nCo-authored-by: Cursor Agent <cursoragent@cursor.com>\nCo-authored-by: saturnino <saturnino@mattermost.com>\nCo-authored-by: Mattermost Build <build@mattermost.com>",
+  "parents": [
+   "3526c8ae5363e109709feb654669db6f3f97e7f8"
+  ],
+  "sha": "6d26788d01230bef45b2cbb7931ab6677958ab9f"
+ },
+ "commit 7221f434012bc47e3983e980dfb0f807d011294a": {
+  "date": "2026-10-19T10:32:03Z",
+  "files": [
+   "server/public/model/version.go",
+   "webapp/channels/package.json",
+   "webapp/package-lock.json",
+   "webapp/platform/client/package.json",
+   "webapp/platform/mattermost-redux/package.json",
+   "webapp/platform/shared/package.json",
+   "webapp/platform/types/package.json"
+  ],
+  "message": "Update latest patch version to 11.7.14 (#39248)\n\nAutomatic Merge",
+  "parents": [
+   "88d33f4bda7f511c5d1c7cc36c677f8a3bba8aca"
+  ],
+  "sha": "7221f434012bc47e3983e980dfb0f807d011294a"
+ },
+ "commit 7e5a41ef85e890fc46e9750b7a609bf30f3aa216": {
+  "date": "2026-10-14T11:02:03Z",
+  "files": [
+   "server/public/model/version.go",
+   "webapp/channels/package.json",
+   "webapp/package-lock.json",
+   "webapp/platform/client/package.json",
+   "webapp/platform/components/package.json",
+   "webapp/platform/mattermost-redux/package.json",
+   "webapp/platform/shared/package.json",
+   "webapp/platform/types/package.json"
+  ],
+  "message": "Update latest patch version to 12.0.1 (#39136)\n\nCo-authored-by: unified-ci-app[bot] <121569378+unified-ci-app[bot]@users.noreply.github.com>",
+  "parents": [
+   "1f5e0e9ba40da7ba0741659346e0a385a623d6a4"
+  ],
+  "sha": "7e5a41ef85e890fc46e9750b7a609bf30f3aa216"
+ },
+ "commit 88d33f4bda7f511c5d1c7cc36c677f8a3bba8aca": {
+  "date": "2026-10-19T10:02:01Z",
+  "files": [
+   "server/channels/app/platform/config.go",
+   "server/channels/app/platform/config_test.go",
+   "server/channels/app/platform/log.go",
+   "server/channels/app/platform/log_test.go",
+   "server/config/logger.go",
+   "server/config/logger_test.go",
+   "server/i18n/en.json",
+   "server/public/model/feature_flags.go",
+   "server/public/model/feature_flags_test.go"
+  ],
+  "message": "Automated cherry pick of #38634 (#39196)\n\nAutomatic Merge",
+  "parents": [
+   "b76346a186a40770840bd815f40f2fd22ba75298"
+  ],
+  "sha": "88d33f4bda7f511c5d1c7cc36c677f8a3bba8aca"
+ },
+ "commit 8dcce45957c9594cb9c0bb2786d95b74230783fd": {
+  "date": "2026-10-19T10:31:52Z",
+  "files": [
+   "server/public/model/version.go",
+   "webapp/channels/package.json",
+   "webapp/package-lock.json",
+   "webapp/platform/client/package.json",
+   "webapp/platform/components/package.json",
+   "webapp/platform/mattermost-redux/package.json",
+   "webapp/platform/shared/package.json",
+   "webapp/platform/types/package.json"
+  ],
+  "message": "Update latest patch version to 11.11.3 (#39247)\n\nAutomatic Merge",
+  "parents": [
+   "255334db6438d995bdae4f22d8f4475ae7be9d75"
+  ],
+  "sha": "8dcce45957c9594cb9c0bb2786d95b74230783fd"
+ },
+ "commit 987e57120dca630dadbcd2638064ab66a02bb81e": {
+  "date": "2026-10-22T07:46:41Z",
+  "files": [
+   "server/cmd/mattermost/commands/db.go",
+   "server/cmd/mattermost/commands/init.go",
+   "server/config/utils.go",
+   "server/config/utils_test.go"
+  ],
+  "message": "Fix up unusable email settings and translate db command config errors (#39302) (#39350)\n\n* Fix up unusable email settings instead of failing to start\n\nv12 validates SupportEmail, FeedbackEmail and ReplyToAddress as a single\nplain address. #39003 stripped display names, but values that did not\nparse as one address, such as a list or a bare name, still stopped the\nserver. Keep the first valid address of a list, clear values with none,\nand log the old value.\n\n* Load translations before config in mattermost db commands\n\nThe db subcommands loaded the config store without loading translations,\nso a config validation error printed its raw message id instead of a\nmessage naming the invalid setting, and the locale check warned that the\ndefault \"en\" locale was unsupported.\n\n(cherry picked from commit 8e9d552aaeff187fb91b024f9d444ceccd643a75)\n\nCo-authored-by: Jesse Hallam <jesse.hallam@gmail.com>",
+  "parents": [
+   "068b1879df91b3f4143f97162684d3c4fb0d6856"
+  ],
+  "sha": "987e57120dca630dadbcd2638064ab66a02bb81e"
+ },
+ "commit aee40c775a16cc933ea36f9f430f355857a4c39f": {
+  "date": "2026-10-19T06:55:45Z",
+  "files": [
+   "e2e-tests/playwright/lib/src/containers/mattermost_container.ts",
+   "e2e-tests/playwright/lib/src/containers/stack.ts",
+   "e2e-tests/playwright/lib/src/index.ts",
+   "e2e-tests/playwright/lib/src/test_config.ts",
+   "e2e-tests/playwright/lib/src/upgrade_env.ts",
+   "e2e-tests/playwright/playwright.config.ts"
+  ],
+  "message": "E2E/Playwright: fix upgrade-to swap resolving the wrong image in workers (release-11.11) (#39180)\n\n* E2E/Playwright: fix upgrade-to swap resolving the wrong image in workers\n\nTestConfig recomputed serverImage via reloadTestConfig() during the\nupgrade swap, but isUpgradeToPhaseProjectSelected() only checked argv,\nwhich workers never inherit. The swap worker fell back to the\npersisted from-image instead of SERVER_IMAGE, so the swap left the\nfrom-image running and failed assertRunningContainerImage(). The same\nargv-only gap also made mattermostWaitStrategy() skip the migration\nlog wait for the swap's restart.\n\nAdd isUpgradeFromProjectActive()/isUpgradeToPhaseProjectActive(),\nworker-safe (env-var-aware) versions used by test_config.ts,\nmattermost_container.ts, and stack.ts. Keep the argv-only originals\nfor playwright.config.ts's one-time preflight checks, which must not\nre-trigger inside a dependency project's worker (e.g. upgrade-from's\nsetup dependency).\n\nCo-authored-by: saturnino <saturnino@mattermost.com>\n\n* E2E/Playwright: make isUpgradePathProjectSelected() worker-safe\n\nThis branch's upgrade_env.ts predates master's worker-safe\nisUpgradePathProjectSelected() (it still only checked argv), so\nresetConfigAndRoles' 'skip resetRoles() during an upgrade-path project'\nguard in test_fixture.ts silently failed open in worker processes\n(workers don't inherit --project). Mirror master: UPGRADE_PATH_PROJECT_ENV\nenv var, isUpgradePathProjectSelected() also checks it, and the export\nfunction (renamed exportUpgradePathProjectSelection() to match) sets it\nalongside the existing from/to-phase env vars.\n\nVerified locally with testcontainers: upgrade-from (release-11.10) ->\nupgrade-to (release-11.11), 3 full cycles, 10/10 tests passing each run.\n\nCo-authored-by: saturnino <saturnino@mattermost.com>\n\n---------\n\nCo-authored-by: Cursor Agent <cursoragent@cursor.com>\nCo-authored-by: saturnino <saturnino@mattermost.com>",
+  "parents": [
+   "72dcf7020ed53b4eb4e26dcc1ff85779ec7e7413"
+  ],
+  "sha": "aee40c775a16cc933ea36f9f430f355857a4c39f"
+ },
+ "commit b1650f7d2eeec3977a63c83952e189b7922cc967": {
+  "date": "2026-10-20T08:31:55Z",
+  "files": [
+   "e2e-tests/playwright/lib/src/server/default_feature_flags.ts",
+   "server/Makefile"
+  ],
+  "message": "Prepackage mattermost-plugin-agents v2.5.4 (#39269)\n\nAutomatic Merge",
+  "parents": [
+   "084f2f43b2451400e1b502a5f4bb279ce279f69b"
+  ],
+  "sha": "b1650f7d2eeec3977a63c83952e189b7922cc967"
+ },
+ "commit b23901cac412ab187f59a9cf64eeece434653b59": {
+  "date": "2026-10-19T06:56:02Z",
+  "files": [
+   "e2e-tests/playwright/lib/src/containers/mattermost_container.ts",
+   "e2e-tests/playwright/lib/src/containers/stack.ts",
+   "e2e-tests/playwright/lib/src/index.ts",
+   "e2e-tests/playwright/lib/src/test_config.ts",
+   "e2e-tests/playwright/lib/src/upgrade_env.ts",
+   "e2e-tests/playwright/playwright.config.ts"
+  ],
+  "message": "E2E/Playwright: fix upgrade-to swap resolving the wrong image in workers (#39182)\n\nTestConfig recomputed serverImage via reloadTestConfig() during the\nupgrade swap, but isUpgradeToPhaseProjectSelected() only checked argv,\nwhich workers never inherit. The swap worker fell back to the\npersisted from-image instead of SERVER_IMAGE, so the swap left the\nfrom-image running and failed assertRunningContainerImage(). The same\nargv-only gap also made mattermostWaitStrategy() skip the migration\nlog wait for the swap's restart.\n\nAdd isUpgradeFromProjectActive()/isUpgradeToPhaseProjectActive(),\nworker-safe (env-var-aware) versions used by test_config.ts,\nmattermost_container.ts, and stack.ts. Keep the argv-only originals\nfor playwright.config.ts's one-time preflight checks, which must not\nre-trigger inside a dependency project's worker (e.g. upgrade-from's\nsetup dependency).\n\nCo-authored-by: Cursor Agent <cursoragent@cursor.com>\nCo-authored-by: saturnino <saturnino@mattermost.com>\nCo-authored-by: sabril <saturninoabril@users.noreply.github.com>",
+  "parents": [
+   "c7f8f70eada6dfe18c59c18bd1daf767e173baca"
+  ],
+  "sha": "b23901cac412ab187f59a9cf64eeece434653b59"
+ },
+ "commit b350edef791c93725ebb5b854867ac12469ce07d": {
+  "date": "2026-10-21T21:14:02Z",
+  "files": [
+   ".cursor/Dockerfile",
+   ".cursor/README.md",
+   "api/server/go.mod",
+   "server/.go-version",
+   "server/build/Dockerfile.buildenv",
+   "server/build/Dockerfile.buildenv-fips",
+   "server/build/Dockerfile.fips",
+   "server/go.mod",
+   "server/public/go.mod",
+   "tools/mattermost-govet/go.mod",
+   "tools/mmgotool/go.mod",
+   "tools/sharedchannel-test/go.mod"
+  ],
+  "message": "Bump Go version to v1.26.10 (#39328) (#39339)",
+  "parents": [
+   "6d26788d01230bef45b2cbb7931ab6677958ab9f"
+  ],
+  "sha": "b350edef791c93725ebb5b854867ac12469ce07d"
+ },
+ "commit c16c8db24f73cd3f5ade8c2ce01bdf3aa1660aea": {
+  "date": "2026-10-15T13:30:36Z",
+  "files": [
+   "docs/main/administration-guide/configure/environment-configuration-settings.mdx",
+   "docs/main/deployment-guide/server/troubleshooting.mdx",
+   "e2e-tests/playwright/lib/src/server/default_feature_flags.ts",
+   "server/channels/app/platform/config.go",
+   "server/channels/app/platform/config_test.go",
+   "server/channels/app/platform/log.go",
+   "server/channels/app/platform/log_test.go",
+   "server/config/logger.go",
+   "server/config/logger_test.go",
+   "server/i18n/en.json",
+   "server/public/model/feature_flags.go",
+   "server/public/model/feature_flags_test.go"
+  ],
+  "message": "MM-70595: Enforce log path root behind a feature flag (#38634) (#39192)\n\n* MM-70595: Enforce log path root behind a feature flag\n\nLog and audit file paths resolving outside the logging root (MM_LOG_PATH,\nor the default logs directory) were only logged as an error on config save,\nand were never checked at startup at all. Two of the four relevant fields\nwere not checked even once.\n\nAdd the EnforceLogPathRoot feature flag, disabled by default:\n\n  - disabled: the path is logged as an error, as before\n  - enabled:  the server refuses to start, and a config save that introduces\n              such a path is rejected with HTTP 400\n\nEnforcement is a breaking change for deployments with log paths outside the\nroot and no MM_LOG_PATH set, and was never announced, so it stays opt-in.\nThe default flips once every supported release carries the flag.\n\nWarnIfLogPathsOutsideRoot is replaced by config.ValidateLogPaths, which\nreturns an error for the first offending path and knows nothing about the\nflag; each caller decides what to do with it. Coverage now spans all four\nfields: LogSettings.FileLocation, LogSettings.AdvancedLoggingJSON,\nExperimentalAuditSettings.FileName and\nExperimentalAuditSettings.AdvancedLoggingJSON.\n\nThe gate lives in initLogging, before ConfigureLogger opens any target, so\nit also covers config reload (which bypasses SaveConfig) and the audit\nlogger (configured later in the boot sequence). On reload the previously\nconfigured targets are left in place.\n\nAlso fix ValidateLogFilePath, which resolved symlinks on the file path but\nnot on the root. A root containing a symlinked component (/var on macOS, a\nsymlinked mount) therefore rejected every path inside it, which would block\nstartup once enforcement is on. Both sides now resolve the deepest existing\nancestor, which additionally catches a symlinked parent directory pointing\nout of the root for a not-yet-created file.\n\n* Prevent log path disclosure in config save errors\n\nLog validation details server-side, keep API errors generic, update regression assertions, and clarify that enforcement applies to all System Console config saves.\n\n* Fix check-style and the empty log path save error\n\nmattermost-govet's errorAssertions analyzer rejects assert.Nil on an error,\nand AppError.Unwrap returns one:\n\n  config_test.go:248:3: calling assert.Nil on error, please use assert.NoError instead\n\nSwitch to assert.NoError.\n\nThe same change made the AppError generic by dropping its i18n params, but\nthe translation still interpolated {{.Error}}, so an admin saw the literal\n\"Invalid logging configuration: <no value>\". Replace it with a static\nmessage that keeps the path out of the API response and points at the\nserver log, where the offending path is now recorded.\n\n* Mention audit paths in the log path save error\n\nValidateLogPaths checks ExperimentalAuditSettings.FileName and\nExperimentalAuditSettings.AdvancedLoggingJSON alongside the LogSettings\nfields, so the save error can be triggered by an audit path alone. Say\n\"log or audit file path\" rather than \"log file path\".\n\n* Treat advanced logging file target types case-insensitively\n\nlogr lowercases target types before building them, so EqualFold is needed\nto keep EnforceLogPathRoot from being bypassed with mixed-case \"file\".\n\n* Rename resolveSymlinkPath to make its missing-path behavior explicit\n\n* Add EnforceLogPathRoot to generated files, support packet golden and i18n description\n\n---------\n\nCo-authored-by: Felipe Martin <812088+fmartingr@users.noreply.github.com>\nCo-authored-by: coderabbitai[bot] <136622811+coderabbitai[bot]@users.noreply.github.com>",
+  "parents": [
+   "4a29ac3c43d280f776ecd6790d357518fb2fb623"
+  ],
+  "sha": "c16c8db24f73cd3f5ade8c2ce01bdf3aa1660aea"
+ },
+ "commit c55d022be4b9f5d267bbbef804fd8d182777be51": {
+  "date": "2026-10-21T06:13:42Z",
+  "files": [
+   ".github/workflows/e2e-tests-ci.yml",
+   ".github/workflows/e2e-tests-on-merge.yml",
+   ".github/workflows/e2e-tests-on-release.yml",
+   ".github/workflows/e2e-tests-playwright-template.yml",
+   ".github/workflows/e2e-tests-playwright.yml",
+   "e2e-tests/cypress/README-Subpath.md",
+   "e2e-tests/cypress/cypress.config.ts",
+   "e2e-tests/cypress/tests/integration/channels/subpath/subpath_channel_routing_spec.js",
+   "e2e-tests/cypress/tests/integration/channels/subpath/subpath_dm_search_spec.js",
+   "e2e-tests/cypress/tests/integration/channels/subpath/subpath_login_spec.js",
+   "e2e-tests/cypress/tests/support/api/system.d.ts",
+   "e2e-tests/cypress/tests/support/api/system.js",
+   "e2e-tests/playwright/README.md",
+   "e2e-tests/playwright/eslint.config.mjs",
+   "e2e-tests/playwright/lib/README.md",
+   "e2e-tests/playwright/lib/package.json",
+   "e2e-tests/playwright/lib/rollup.config.js",
+   "e2e-tests/playwright/lib/src/browser_context.ts",
+   "e2e-tests/playwright/lib/src/containers/constants.ts",
+   "e2e-tests/playwright/lib/src/containers/default_images.ts",
+   "e2e-tests/playwright/lib/src/containers/mattermost_container.ts",
+   "e2e-tests/playwright/lib/src/containers/mmctl_container.ts",
+   "e2e-tests/playwright/lib/src/containers/nginx_container.ts",
+   "e2e-tests/playwright/lib/src/containers/requirements.ts",
+   "e2e-tests/playwright/lib/src/containers/stack.ts",
+   "e2e-tests/playwright/lib/src/expect.ts",
+   "e2e-tests/playwright/lib/src/flag.ts",
+   "e2e-tests/playwright/lib/src/index.ts",
+   "e2e-tests/playwright/lib/src/server/index.ts",
+   "e2e-tests/playwright/lib/src/server/server_env.ts",
+   "e2e-tests/playwright/lib/src/test_config.ts",
+   "e2e-tests/playwright/lib/src/test_fixture.ts",
+   "e2e-tests/playwright/lib/src/ui/pages/channels.ts",
+   "e2e-tests/playwright/lib/src/ui/pages/system_console.ts",
+   "e2e-tests/playwright/lib/src/util.ts",
+   "e2e-tests/playwright/package-lock.json",
+   "e2e-tests/playwright/playwright.config.ts",
+   "e2e-tests/playwright/specs/functional/channels/ai/recaps.spec.ts",
+   "e2e-tests/playwright/specs/functional/channels/anonymous_urls/anonymous_urls.spec.ts",
+   "e2e-tests/playwright/specs/functional/channels/autotranslation/autotranslation_permissions.spec.ts",
+   "e2e-tests/playwright/specs/functional/channels/messaging/date_separator_day_rollover.spec.ts",
+   "e2e-tests/playwright/specs/functional/channels/messaging/messaging.spec.ts",
+   "e2e-tests/playwright/specs/functional/channels/post_list/post_height.spec.ts",
+   "e2e-tests/playwright/specs/functional/channels/scheduled_messages/scheduled_messages.spec.ts",
+   "e2e-tests/playwright/specs/functional/subpath/subpath_channel_routing.spec.ts",
+   "e2e-tests/playwright/specs/functional/subpath/subpath_file_upload.spec.ts",
+   "e2e-tests/playwright/specs/functional/subpath/subpath_login_cookie.spec.ts",
+   "e2e-tests/playwright/specs/functional/subpath/subpath_search.spec.ts",
+   "e2e-tests/playwright/specs/functional/subpath/subpath_static_assets.spec.ts",
+   "e2e-tests/playwright/specs/functional/subpath/subpath_system_console.spec.ts",
+   "e2e-tests/playwright/specs/functional/subpath/subpath_websocket_realtime.spec.ts",
+   "e2e-tests/playwright/specs/functional/system_console/abac/file_access/file_permissions.spec.ts",
+   "e2e-tests/playwright/specs/functional/system_console/desktop_app_update_required.spec.ts",
+   "e2e-tests/playwright/specs/functional/system_console/site_configuration/autotranslation_system_console.spec.ts"
+  ],
+  "message": "Cherry pick #38833 to release-11.7 (#39311)\n\n* SEC-11251 Add Playwright subpath deployment E2E testing (#38833)\n\n* Add Playwright subpath deployment E2E testing\n\n* Address CodeRabbit findings: subpath CI trigger gap, container cleanup scope, internal webhook URL\n\n* Widen subpath CI trigger to cover the full deployment configuration\n\n* Also trigger subpath E2E tests on reusable Playwright workflow changes\n\n* Also trigger subpath E2E tests when the goto/baseURL fixture chokepoints change\n\n* Fix defaultBootEnv() dropping subpath SiteURL on per-spec-file reset\n\nensureDefaultServerEnv() restarts the server with defaultBootEnv()\nbefore each spec file's first test. defaultBootEnv() didn't know about\nsubpath mode, so it reset SiteURL back to the plain default and broke\nevery subpath spec after the first server restart.\n\nCo-authored-by: saturnino <saturnino@mattermost.com>\n\n* Fix baseURL on mid-test restart in subpath mode; widen CI path filter\n\nrestartMattermostContainerLocked() always reset baseURL to the direct\nserver URL, dropping the subpath prefix after any mid-suite restart\n(e.g. via ensureFeatureFlag()). Keep it pointed through nginx when\nsubpathMode is set.\n\nAlso widen the SHOULD_RUN_SUBPATH file filter to cover util.ts and the\nchannels/system_console page objects, which subpath specs depend on.\n\nCo-authored-by: saturnino <saturnino@mattermost.com>\n\n* fix specs that broke when the server runs behind nginx at /subpath:\n\n- Add toHavePath/toHaveHrefPath matchers that prepend the subpath, and lint against toHaveURL('/path'), which Playwright resolves against baseURL and so drops the subpath\n- Route unprefixed API calls onto the subpath, point mmctl at the subpath-aware URL, and build permalinks from the site URL\n- Auto-start nginx whenever PW_SERVER_DEPLOY=subpath\n- Skip the OIDC/SAML error-page cases (signature mismatch under a subpath) and the MM-69979 post_height cases for the subpath project\n- Wait for the phase2 permissions migration before the autotranslation scheme tests\n- Fix the mobile schedule menu dimmed-area click when the dialog starts above the viewport, and pin the date separator rollover test to UTC\n\n* keep the subpath SiteURL reachable from the server\n\n---------\n\nCo-authored-by: Cursor Agent <cursoragent@cursor.com>\nCo-authored-by: saturnino <saturnino@mattermost.com>\nCo-authored-by: Mattermost Build <build@mattermost.com>\n\n* Fix subpath E2E failures from cherry-pick #38833\n\n- file_permissions.spec.ts (MM-T5828): build the permalink URL from\n  testConfig.siteURL instead of testConfig.internalBaseURL so the\n  server recognizes it as its own SiteURL under subpath mode. Master\n  already uses this pattern in the renamed sibling\n  file_permissions_edge_cases.spec.ts.\n- recaps.spec.ts: skip the two AI recap tests under the subpath\n  project. The bundled mattermost-plugin-agents (v2.0.10 prepackaged\n  on release-11.7) webapp trusts config.SiteURL verbatim for its own\n  Client4 instance instead of falling back to window.location.origin,\n  so its API calls fail in the browser when SiteURL is set to the\n  internal nginx alias (subpath mode's intentional, documented\n  configuration). This is an upstream plugin bug, not a subpath\n  support regression.\n\nCo-authored-by: saturnino <saturnino@mattermost.com>\n\n---------\n\nCo-authored-by: Cursor Agent <cursoragent@cursor.com>\nCo-authored-by: saturnino <saturnino@mattermost.com>\nCo-authored-by: Mattermost Build <build@mattermost.com>",
+  "parents": [
+   "4e277d8416096d1eeb676d7b9bb9eeeba1e576f1"
+  ],
+  "sha": "c55d022be4b9f5d267bbbef804fd8d182777be51"
+ },
+ "commit c62c878b85343db8675bd773665c423196c1f2d9": {
+  "date": "2026-10-21T17:39:48Z",
+  "files": [
+   "server/channels/app/notification.go",
+   "server/channels/app/notification_test.go"
+  ],
+  "message": "MM-71295: Fix endless DB query loop in RemoveNotifications with multiple groups (#39323) (#39334)\n\n* Add a failing test for MM-71295\n\n* MM-71295: Add multi-page multi-group regression test for RemoveNotifications\n\nGroups of 50 and 150 members: counting users across groups stops the\nlarger group's paging after its first page and skips the remaining 50\nmembers' unread mention cleanup.\n\n* MM-71295: Fix endless DB query loop in RemoveNotifications with multiple groups\n\nCount each group's users separately when paging through group members,\ninstead of comparing the shared userIDs length against a single group's\nmember count. Also stop on an empty page in case the group's membership\nchanges while paging.\n\n* MM-71295: Stop group member paging on a short page\n\nDrop the per-group counter and stop once a page comes back with fewer\nthan the requested number of members.\n\n(cherry picked from commit bf26bf10fe6e6e7de9bb4f0700a1b8fa7b742e75)\n\nCo-authored-by: Alejandro Garc\u00eda Montoro <alejandro.garciamontoro@gmail.com>",
+  "parents": [
+   "c55d022be4b9f5d267bbbef804fd8d182777be51"
+  ],
+  "sha": "c62c878b85343db8675bd773665c423196c1f2d9"
+ },
+ "commit cd612db220fb7c1dddfc40c6dde6ab62a5b8337e": {
+  "date": "2026-10-21T22:56:34Z",
+  "files": [
+   "server/.go-version",
+   "server/build/Dockerfile.buildenv",
+   "server/build/Dockerfile.buildenv-fips",
+   "server/build/Dockerfile.fips",
+   "server/go.mod",
+   "server/public/go.mod",
+   "tools/mattermost-govet/go.mod",
+   "tools/sharedchannel-test/go.mod"
+  ],
+  "message": "Bump Go version to v1.26.10 (#39328) (#39341)\n\n* Bump Go version to v1.26.10\n\n* Bump go-msft-fips to 1.26.10.1\n\n---------\n\n\n(cherry picked from commit 9c92a61a566a9647e2bd2ebb3277071072fa5510)\n\nCo-authored-by: Alejandro Garc\u00eda Montoro <alejandro.garciamontoro@gmail.com>",
+  "parents": [
+   "c62c878b85343db8675bd773665c423196c1f2d9"
+  ],
+  "sha": "cd612db220fb7c1dddfc40c6dde6ab62a5b8337e"
+ },
+ "commit ce9a13ab94811d0d0d55b515ddb97bab4d4d56d4": {
+  "date": "2026-10-22T13:06:24Z",
+  "files": [
+   "server/.go-version",
+   "server/Makefile",
+   "server/build/Dockerfile.buildenv",
+   "server/channels/app/email/mocks/ServiceInterface.go",
+   "server/channels/store/storetest/mocks/ChannelStore.go",
+   "server/channels/store/storetest/mocks/PostStore.go",
+   "server/channels/store/storetest/mocks/Store.go",
+   "server/channels/store/storetest/mocks/UserStore.go",
+   "server/einterfaces/mocks/AccessControlSyncJobInterface.go",
+   "server/einterfaces/mocks/CloudJobInterface.go",
+   "server/einterfaces/mocks/ClusterInterface.go",
+   "server/einterfaces/mocks/DataRetentionJobInterface.go",
+   "server/einterfaces/mocks/ElasticsearchAggregatorInterface.go",
+   "server/einterfaces/mocks/LdapSyncInterface.go",
+   "server/einterfaces/mocks/MessageExportJobInterface.go",
+   "server/einterfaces/mocks/MetricsInterface.go",
+   "server/einterfaces/mocks/OAuthProvider.go",
+   "server/einterfaces/mocks/SamlInterface.go",
+   "server/einterfaces/mocks/Scheduler.go",
+   "server/go.mod",
+   "server/platform/services/cache/mocks/Provider.go",
+   "server/platform/services/sharedchannel/mock_AppIface_test.go",
+   "server/platform/services/sharedchannel/mock_ServerIface_test.go",
+   "server/platform/services/telemetry/mocks/ServerIface.go",
+   "server/platform/shared/filestore/mocks/FileBackend.go",
+   "server/public/go.mod",
+   "server/public/plugin/plugintest/api.go",
+   "server/public/plugin/plugintest/driver.go",
+   "server/public/plugin/plugintest/hooks.go",
+   "server/public/pluginapi/experimental/bot/logger/admincclogger/admincc_logger.go",
+   "server/public/pluginapi/experimental/oauther/oauth2_complete.go",
+   "server/public/pluginapi/experimental/panel/panel.go",
+   "server/tests/orientation_test_1_expected_preview.jpeg",
+   "server/tests/orientation_test_1_expected_thumb.jpeg",
+   "server/tests/orientation_test_2_expected_preview.jpeg",
+   "server/tests/orientation_test_2_expected_thumb.jpeg",
+   "server/tests/orientation_test_3_expected_preview.jpeg",
+   "server/tests/orientation_test_3_expected_thumb.jpeg",
+   "server/tests/orientation_test_4_expected_preview.jpeg",
+   "server/tests/orientation_test_4_expected_thumb.jpeg",
+   "server/tests/orientation_test_5_expected_preview.jpeg",
+   "server/tests/orientation_test_5_expected_thumb.jpeg",
+   "server/tests/orientation_test_6_expected_preview.jpeg",
+   "server/tests/orientation_test_6_expected_thumb.jpeg",
+   "server/tests/orientation_test_7_expected_preview.jpeg",
+   "server/tests/orientation_test_7_expected_thumb.jpeg",
+   "server/tests/orientation_test_8_expected_preview.jpeg",
+   "server/tests/orientation_test_8_expected_thumb.jpeg",
+   "server/tests/orientation_test_9_expected_preview.jpeg",
+   "server/tests/orientation_test_9_expected_thumb.jpeg",
+   "server/tests/test_expected_tiff_preview.jpeg",
+   "server/tests/test_expected_tiff_thumb.jpeg",
+   "server/tests/testgif_expected_preview.jpg",
+   "server/tests/testgif_expected_thumbnail.jpg"
+  ],
+  "message": "Bump Go to 1.26.10 on release-10.11 (#39333)\n\n* Bump Go to 1.26.9 on release-10.11\n\nUpdate .go-version, server and public go.mod, and the buildenv image\n(mattermost/golang-bullseye:1.26.9). Fix printf misuse in pluginapi\nexperimental packages flagged by the Go 1.26 vet.\n\n* Retrigger CI\n\n* Use Go 1.26.7 on release-10.11\n\n* Update expected JPEG thumbnails/previews for Go 1.26 image/jpeg output\n\nTake the regenerated fixtures from the Go 1.26.2 upgrade on master\n(e3fbf8711f) and regenerate the five that still differ on this branch with\nGo 1.26.9.\n\n* Run make generated\n\nRegenerating mocks with the new toolchain only reorders imports.\n\n* Use Go 1.26.10 on release-10.11\n\n* Retrigger CI\n\n* Bump mattermost-govet to latest master\n\nmattermost-govet is now deprecated, and this is the latest commit in the\nrepo, good enough for this 10.11 branch\n\n* Fix flaky TestPostAcknowledgementsStore/postgres/BatchDelete/batch_delete_should_update_post's_update_at (#38622)\n\nAutomatic Merge\n\n* Revert \"Fix flaky TestPostAcknowledgementsStore/postgres/BatchDelete/batch_delete_should_update_post's_update_at (#38622)\"\n\nThis reverts commit 6dd787ce0f7ecca3d1c6ad48ef26857af8d3a70d.\n\n---------\n\nCo-authored-by: Jesse Hallam <jesse@mattermost.com>\nCo-authored-by: cursor[bot] <206951365+cursor[bot]@users.noreply.github.com>",
+  "parents": [
+   "69c055d13223b59825d91fc687b5174524156137"
+  ],
+  "sha": "ce9a13ab94811d0d0d55b515ddb97bab4d4d56d4"
+ },
+ "commit e1a60b5adafa52c262ec93168b02da3e2ddbeb36": {
+  "date": "2026-10-21T06:12:52Z",
+  "files": [
+   ".github/workflows/e2e-tests-ci.yml",
+   ".github/workflows/e2e-tests-on-merge.yml",
+   ".github/workflows/e2e-tests-on-release.yml",
+   ".github/workflows/e2e-tests-playwright-template.yml",
+   ".github/workflows/e2e-tests-playwright.yml",
+   "e2e-tests/cypress/README-Subpath.md",
+   "e2e-tests/cypress/cypress.config.ts",
+   "e2e-tests/cypress/tests/integration/channels/subpath/subpath_channel_routing_spec.js",
+   "e2e-tests/cypress/tests/integration/channels/subpath/subpath_dm_search_spec.js",
+   "e2e-tests/cypress/tests/integration/channels/subpath/subpath_login_spec.js",
+   "e2e-tests/cypress/tests/support/api/system.d.ts",
+   "e2e-tests/cypress/tests/support/api/system.js",
+   "e2e-tests/playwright/README.md",
+   "e2e-tests/playwright/eslint.config.mjs",
+   "e2e-tests/playwright/lib/README.md",
+   "e2e-tests/playwright/lib/package.json",
+   "e2e-tests/playwright/lib/rollup.config.js",
+   "e2e-tests/playwright/lib/src/browser_context.ts",
+   "e2e-tests/playwright/lib/src/containers/constants.ts",
+   "e2e-tests/playwright/lib/src/containers/default_images.ts",
+   "e2e-tests/playwright/lib/src/containers/mattermost_container.ts",
+   "e2e-tests/playwright/lib/src/containers/mmctl_container.ts",
+   "e2e-tests/playwright/lib/src/containers/nginx_container.ts",
+   "e2e-tests/playwright/lib/src/containers/requirements.ts",
+   "e2e-tests/playwright/lib/src/containers/stack.ts",
+   "e2e-tests/playwright/lib/src/expect.ts",
+   "e2e-tests/playwright/lib/src/flag.ts",
+   "e2e-tests/playwright/lib/src/index.ts",
+   "e2e-tests/playwright/lib/src/server/index.ts",
+   "e2e-tests/playwright/lib/src/server/server_env.ts",
+   "e2e-tests/playwright/lib/src/test_config.ts",
+   "e2e-tests/playwright/lib/src/test_fixture.ts",
+   "e2e-tests/playwright/lib/src/ui/components/channels/schedule_message_menu.ts",
+   "e2e-tests/playwright/lib/src/ui/pages/channels.ts",
+   "e2e-tests/playwright/lib/src/ui/pages/signup.ts",
+   "e2e-tests/playwright/lib/src/ui/pages/system_console.ts",
+   "e2e-tests/playwright/lib/src/util.ts",
+   "e2e-tests/playwright/package-lock.json",
+   "e2e-tests/playwright/playwright.config.ts",
+   "e2e-tests/playwright/specs/functional/channels/anonymous_urls/anonymous_urls.spec.ts",
+   "e2e-tests/playwright/specs/functional/channels/autotranslation/autotranslation_permissions.spec.ts",
+   "e2e-tests/playwright/specs/functional/channels/channel_bookmarks/bookmark_display_navigation.spec.ts",
+   "e2e-tests/playwright/specs/functional/channels/direct_messages_modal/remove_last_post.spec.ts",
+   "e2e-tests/playwright/specs/functional/channels/messaging/date_separator_day_rollover.spec.ts",
+   "e2e-tests/playwright/specs/functional/channels/messaging/message_delivery_and_links.spec.ts",
+   "e2e-tests/playwright/specs/functional/channels/messaging/permalinks.spec.ts",
+   "e2e-tests/playwright/specs/functional/channels/post_list/initial_scroll_read.spec.ts",
+   "e2e-tests/playwright/specs/functional/channels/post_list/permalink_scroll.spec.ts",
+   "e2e-tests/playwright/specs/functional/channels/post_list/post_height.spec.ts",
+   "e2e-tests/playwright/specs/functional/channels/scheduled_messages/scheduled_messages.spec.ts",
+   "e2e-tests/playwright/specs/functional/subpath/subpath_channel_routing.spec.ts",
+   "e2e-tests/playwright/specs/functional/subpath/subpath_file_upload.spec.ts",
+   "e2e-tests/playwright/specs/functional/subpath/subpath_login_cookie.spec.ts",
+   "e2e-tests/playwright/specs/functional/subpath/subpath_search.spec.ts",
+   "e2e-tests/playwright/specs/functional/subpath/subpath_static_assets.spec.ts",
+   "e2e-tests/playwright/specs/functional/subpath/subpath_system_console.spec.ts",
+   "e2e-tests/playwright/specs/functional/subpath/subpath_websocket_realtime.spec.ts",
+   "e2e-tests/playwright/specs/functional/system_console/abac/file_access/file_permissions_edge_cases.spec.ts",
+   "e2e-tests/playwright/specs/functional/system_console/desktop_app_update_required.spec.ts",
+   "e2e-tests/playwright/specs/functional/system_console/global_attributes/classification_attribute.spec.ts",
+   "e2e-tests/playwright/specs/functional/system_console/global_attributes/global_attributes_listing_classification_markings.spec.ts",
+   "e2e-tests/playwright/specs/functional/system_console/site_configuration/autotranslation_system_console.spec.ts",
+   "e2e-tests/playwright/specs/functional/system_console/team_configuration/team_profile_edit.spec.ts"
+  ],
+  "message": "SEC-11251 Add Playwright subpath deployment E2E testing (#38833) (#39308)\n\n* Add Playwright subpath deployment E2E testing\n\n* Address CodeRabbit findings: subpath CI trigger gap, container cleanup scope, internal webhook URL\n\n* Widen subpath CI trigger to cover the full deployment configuration\n\n* Also trigger subpath E2E tests on reusable Playwright workflow changes\n\n* Also trigger subpath E2E tests when the goto/baseURL fixture chokepoints change\n\n* Fix defaultBootEnv() dropping subpath SiteURL on per-spec-file reset\n\nensureDefaultServerEnv() restarts the server with defaultBootEnv()\nbefore each spec file's first test. defaultBootEnv() didn't know about\nsubpath mode, so it reset SiteURL back to the plain default and broke\nevery subpath spec after the first server restart.\n\n\n\n* Fix baseURL on mid-test restart in subpath mode; widen CI path filter\n\nrestartMattermostContainerLocked() always reset baseURL to the direct\nserver URL, dropping the subpath prefix after any mid-suite restart\n(e.g. via ensureFeatureFlag()). Keep it pointed through nginx when\nsubpathMode is set.\n\nAlso widen the SHOULD_RUN_SUBPATH file filter to cover util.ts and the\nchannels/system_console page objects, which subpath specs depend on.\n\n\n\n* fix specs that broke when the server runs behind nginx at /subpath:\n\n- Add toHavePath/toHaveHrefPath matchers that prepend the subpath, and lint against toHaveURL('/path'), which Playwright resolves against baseURL and so drops the subpath\n- Route unprefixed API calls onto the subpath, point mmctl at the subpath-aware URL, and build permalinks from the site URL\n- Auto-start nginx whenever PW_SERVER_DEPLOY=subpath\n- Skip the OIDC/SAML error-page cases (signature mismatch under a subpath) and the MM-69979 post_height cases for the subpath project\n- Wait for the phase2 permissions migration before the autotranslation scheme tests\n- Fix the mobile schedule menu dimmed-area click when the dialog starts above the viewport, and pin the date separator rollover test to UTC\n\n* keep the subpath SiteURL reachable from the server\n\n---------\n\nCo-authored-by: Cursor Agent <cursoragent@cursor.com>\nCo-authored-by: saturnino <saturnino@mattermost.com>\nCo-authored-by: Mattermost Build <build@mattermost.com>",
+  "parents": [
+   "1a2a36623b85b49a6141a9fe40397b7bb7112911"
+  ],
+  "sha": "e1a60b5adafa52c262ec93168b02da3e2ddbeb36"
+ },
+ "commit f851a9fb4a18d8097881fbf024c778b2954c9f3e": {
+  "date": "2026-10-21T06:24:55Z",
+  "files": [
+   ".github/workflows/e2e-tests-ci.yml",
+   ".github/workflows/e2e-tests-on-merge.yml",
+   ".github/workflows/e2e-tests-on-release.yml",
+   ".github/workflows/e2e-tests-playwright-template.yml",
+   ".github/workflows/e2e-tests-playwright.yml",
+   "e2e-tests/cypress/README-Subpath.md",
+   "e2e-tests/cypress/cypress.config.ts",
+   "e2e-tests/cypress/tests/integration/channels/subpath/subpath_channel_routing_spec.js",
+   "e2e-tests/cypress/tests/integration/channels/subpath/subpath_dm_search_spec.js",
+   "e2e-tests/cypress/tests/integration/channels/subpath/subpath_login_spec.js",
+   "e2e-tests/cypress/tests/support/api/system.d.ts",
+   "e2e-tests/cypress/tests/support/api/system.js",
+   "e2e-tests/playwright/README.md",
+   "e2e-tests/playwright/eslint.config.mjs",
+   "e2e-tests/playwright/lib/README.md",
+   "e2e-tests/playwright/lib/package.json",
+   "e2e-tests/playwright/lib/rollup.config.js",
+   "e2e-tests/playwright/lib/src/browser_context.ts",
+   "e2e-tests/playwright/lib/src/containers/constants.ts",
+   "e2e-tests/playwright/lib/src/containers/default_images.ts",
+   "e2e-tests/playwright/lib/src/containers/mattermost_container.ts",
+   "e2e-tests/playwright/lib/src/containers/mmctl_container.ts",
+   "e2e-tests/playwright/lib/src/containers/nginx_container.ts",
+   "e2e-tests/playwright/lib/src/containers/requirements.ts",
+   "e2e-tests/playwright/lib/src/containers/stack.ts",
+   "e2e-tests/playwright/lib/src/expect.ts",
+   "e2e-tests/playwright/lib/src/flag.ts",
+   "e2e-tests/playwright/lib/src/index.ts",
+   "e2e-tests/playwright/lib/src/server/index.ts",
+   "e2e-tests/playwright/lib/src/server/server_env.ts",
+   "e2e-tests/playwright/lib/src/test_config.ts",
+   "e2e-tests/playwright/lib/src/test_fixture.ts",
+   "e2e-tests/playwright/lib/src/ui/pages/channels.ts",
+   "e2e-tests/playwright/lib/src/ui/pages/signup.ts",
+   "e2e-tests/playwright/lib/src/ui/pages/system_console.ts",
+   "e2e-tests/playwright/lib/src/util.ts",
+   "e2e-tests/playwright/package-lock.json",
+   "e2e-tests/playwright/playwright.config.ts",
+   "e2e-tests/playwright/specs/functional/channels/ai/recaps.spec.ts",
+   "e2e-tests/playwright/specs/functional/channels/anonymous_urls/anonymous_urls.spec.ts",
+   "e2e-tests/playwright/specs/functional/channels/autotranslation/autotranslation_permissions.spec.ts",
+   "e2e-tests/playwright/specs/functional/channels/channel_bookmarks/bookmark_display_navigation.spec.ts",
+   "e2e-tests/playwright/specs/functional/channels/messaging/date_separator_day_rollover.spec.ts",
+   "e2e-tests/playwright/specs/functional/channels/messaging/message_delivery_and_links.spec.ts",
+   "e2e-tests/playwright/specs/functional/channels/messaging/permalinks.spec.ts",
+   "e2e-tests/playwright/specs/functional/channels/post_list/post_height.spec.ts",
+   "e2e-tests/playwright/specs/functional/channels/scheduled_messages/scheduled_messages.spec.ts",
+   "e2e-tests/playwright/specs/functional/subpath/subpath_channel_routing.spec.ts",
+   "e2e-tests/playwright/specs/functional/subpath/subpath_file_upload.spec.ts",
+   "e2e-tests/playwright/specs/functional/subpath/subpath_login_cookie.spec.ts",
+   "e2e-tests/playwright/specs/functional/subpath/subpath_search.spec.ts",
+   "e2e-tests/playwright/specs/functional/subpath/subpath_static_assets.spec.ts",
+   "e2e-tests/playwright/specs/functional/subpath/subpath_system_console.spec.ts",
+   "e2e-tests/playwright/specs/functional/subpath/subpath_websocket_realtime.spec.ts",
+   "e2e-tests/playwright/specs/functional/system_console/abac/file_access/file_permissions_download.spec.ts",
+   "e2e-tests/playwright/specs/functional/system_console/desktop_app_update_required.spec.ts",
+   "e2e-tests/playwright/specs/functional/system_console/site_configuration/autotranslation_system_console.spec.ts",
+   "e2e-tests/playwright/specs/functional/system_console/team_configuration/team_profile_edit.spec.ts"
+  ],
+  "message": "Cherry pick #38833 to release-11.10 (#39310)\n\n* SEC-11251 Add Playwright subpath deployment E2E testing (#38833)\n\n* Add Playwright subpath deployment E2E testing\n\n* Address CodeRabbit findings: subpath CI trigger gap, container cleanup scope, internal webhook URL\n\n* Widen subpath CI trigger to cover the full deployment configuration\n\n* Also trigger subpath E2E tests on reusable Playwright workflow changes\n\n* Also trigger subpath E2E tests when the goto/baseURL fixture chokepoints change\n\n* Fix defaultBootEnv() dropping subpath SiteURL on per-spec-file reset\n\nensureDefaultServerEnv() restarts the server with defaultBootEnv()\nbefore each spec file's first test. defaultBootEnv() didn't know about\nsubpath mode, so it reset SiteURL back to the plain default and broke\nevery subpath spec after the first server restart.\n\nCo-authored-by: saturnino <saturnino@mattermost.com>\n\n* Fix baseURL on mid-test restart in subpath mode; widen CI path filter\n\nrestartMattermostContainerLocked() always reset baseURL to the direct\nserver URL, dropping the subpath prefix after any mid-suite restart\n(e.g. via ensureFeatureFlag()). Keep it pointed through nginx when\nsubpathMode is set.\n\nAlso widen the SHOULD_RUN_SUBPATH file filter to cover util.ts and the\nchannels/system_console page objects, which subpath specs depend on.\n\nCo-authored-by: saturnino <saturnino@mattermost.com>\n\n* fix specs that broke when the server runs behind nginx at /subpath:\n\n- Add toHavePath/toHaveHrefPath matchers that prepend the subpath, and lint against toHaveURL('/path'), which Playwright resolves against baseURL and so drops the subpath\n- Route unprefixed API calls onto the subpath, point mmctl at the subpath-aware URL, and build permalinks from the site URL\n- Auto-start nginx whenever PW_SERVER_DEPLOY=subpath\n- Skip the OIDC/SAML error-page cases (signature mismatch under a subpath) and the MM-69979 post_height cases for the subpath project\n- Wait for the phase2 permissions migration before the autotranslation scheme tests\n- Fix the mobile schedule menu dimmed-area click when the dialog starts above the viewport, and pin the date separator rollover test to UTC\n\n* keep the subpath SiteURL reachable from the server\n\n---------\n\nCo-authored-by: Cursor Agent <cursoragent@cursor.com>\nCo-authored-by: saturnino <saturnino@mattermost.com>\nCo-authored-by: Mattermost Build <build@mattermost.com>\n\n* Fix subpath E2E failures from cherry-pick #38833\n\n- file_permissions_download.spec.ts (MM-T5828): build the permalink URL\n  from testConfig.siteURL instead of testConfig.internalBaseURL so the\n  server recognizes it as its own SiteURL under subpath mode. Master\n  already uses this pattern in the renamed sibling\n  file_permissions_edge_cases.spec.ts.\n- recaps.spec.ts: skip the two AI recap tests under the subpath\n  project. The bundled mattermost-plugin-agents (v2.5.4 prepackaged\n  on release-11.10) webapp trusts config.SiteURL verbatim for its own\n  Client4 instance instead of falling back to window.location.origin,\n  so its API calls fail in the browser when SiteURL is set to the\n  internal nginx alias (subpath mode's intentional, documented\n  configuration). This is an upstream plugin bug, not a subpath\n  support regression.\n\nCo-authored-by: saturnino <saturnino@mattermost.com>\n\n---------\n\nCo-authored-by: Cursor Agent <cursoragent@cursor.com>\nCo-authored-by: saturnino <saturnino@mattermost.com>\nCo-authored-by: Mattermost Build <build@mattermost.com>",
+  "parents": [
+   "b1650f7d2eeec3977a63c83952e189b7922cc967"
+  ],
+  "sha": "f851a9fb4a18d8097881fbf024c778b2954c9f3e"
+ },
+ "commit v10.11.25": {
+  "date": "2026-10-22T13:06:24Z",
+  "files": [
+   "server/.go-version",
+   "server/Makefile",
+   "server/build/Dockerfile.buildenv",
+   "server/channels/app/email/mocks/ServiceInterface.go",
+   "server/channels/store/storetest/mocks/ChannelStore.go",
+   "server/channels/store/storetest/mocks/PostStore.go",
+   "server/channels/store/storetest/mocks/Store.go",
+   "server/channels/store/storetest/mocks/UserStore.go",
+   "server/einterfaces/mocks/AccessControlSyncJobInterface.go",
+   "server/einterfaces/mocks/CloudJobInterface.go",
+   "server/einterfaces/mocks/ClusterInterface.go",
+   "server/einterfaces/mocks/DataRetentionJobInterface.go",
+   "server/einterfaces/mocks/ElasticsearchAggregatorInterface.go",
+   "server/einterfaces/mocks/LdapSyncInterface.go",
+   "server/einterfaces/mocks/MessageExportJobInterface.go",
+   "server/einterfaces/mocks/MetricsInterface.go",
+   "server/einterfaces/mocks/OAuthProvider.go",
+   "server/einterfaces/mocks/SamlInterface.go",
+   "server/einterfaces/mocks/Scheduler.go",
+   "server/go.mod",
+   "server/platform/services/cache/mocks/Provider.go",
+   "server/platform/services/sharedchannel/mock_AppIface_test.go",
+   "server/platform/services/sharedchannel/mock_ServerIface_test.go",
+   "server/platform/services/telemetry/mocks/ServerIface.go",
+   "server/platform/shared/filestore/mocks/FileBackend.go",
+   "server/public/go.mod",
+   "server/public/plugin/plugintest/api.go",
+   "server/public/plugin/plugintest/driver.go",
+   "server/public/plugin/plugintest/hooks.go",
+   "server/public/pluginapi/experimental/bot/logger/admincclogger/admincc_logger.go",
+   "server/public/pluginapi/experimental/oauther/oauth2_complete.go",
+   "server/public/pluginapi/experimental/panel/panel.go",
+   "server/tests/orientation_test_1_expected_preview.jpeg",
+   "server/tests/orientation_test_1_expected_thumb.jpeg",
+   "server/tests/orientation_test_2_expected_preview.jpeg",
+   "server/tests/orientation_test_2_expected_thumb.jpeg",
+   "server/tests/orientation_test_3_expected_preview.jpeg",
+   "server/tests/orientation_test_3_expected_thumb.jpeg",
+   "server/tests/orientation_test_4_expected_preview.jpeg",
+   "server/tests/orientation_test_4_expected_thumb.jpeg",
+   "server/tests/orientation_test_5_expected_preview.jpeg",
+   "server/tests/orientation_test_5_expected_thumb.jpeg",
+   "server/tests/orientation_test_6_expected_preview.jpeg",
+   "server/tests/orientation_test_6_expected_thumb.jpeg",
+   "server/tests/orientation_test_7_expected_preview.jpeg",
+   "server/tests/orientation_test_7_expected_thumb.jpeg",
+   "server/tests/orientation_test_8_expected_preview.jpeg",
+   "server/tests/orientation_test_8_expected_thumb.jpeg",
+   "server/tests/orientation_test_9_expected_preview.jpeg",
+   "server/tests/orientation_test_9_expected_thumb.jpeg",
+   "server/tests/test_expected_tiff_preview.jpeg",
+   "server/tests/test_expected_tiff_thumb.jpeg",
+   "server/tests/testgif_expected_preview.jpg",
+   "server/tests/testgif_expected_thumbnail.jpg"
+  ],
+  "message": "Bump Go to 1.26.10 on release-10.11 (#39333)\n\n* Bump Go to 1.26.9 on release-10.11\n\nUpdate .go-version, server and public go.mod, and the buildenv image\n(mattermost/golang-bullseye:1.26.9). Fix printf misuse in pluginapi\nexperimental packages flagged by the Go 1.26 vet.\n\n* Retrigger CI\n\n* Use Go 1.26.7 on release-10.11\n\n* Update expected JPEG thumbnails/previews for Go 1.26 image/jpeg output\n\nTake the regenerated fixtures from the Go 1.26.2 upgrade on master\n(e3fbf8711f) and regenerate the five that still differ on this branch with\nGo 1.26.9.\n\n* Run make generated\n\nRegenerating mocks with the new toolchain only reorders imports.\n\n* Use Go 1.26.10 on release-10.11\n\n* Retrigger CI\n\n* Bump mattermost-govet to latest master\n\nmattermost-govet is now deprecated, and this is the latest commit in the\nrepo, good enough for this 10.11 branch\n\n* Fix flaky TestPostAcknowledgementsStore/postgres/BatchDelete/batch_delete_should_update_post's_update_at (#38622)\n\nAutomatic Merge\n\n* Revert \"Fix flaky TestPostAcknowledgementsStore/postgres/BatchDelete/batch_delete_should_update_post's_update_at (#38622)\"\n\nThis reverts commit 6dd787ce0f7ecca3d1c6ad48ef26857af8d3a70d.\n\n---------\n\nCo-authored-by: Jesse Hallam <jesse@mattermost.com>\nCo-authored-by: cursor[bot] <206951365+cursor[bot]@users.noreply.github.com>",
+  "parents": [
+   "69c055d13223b59825d91fc687b5174524156137"
+  ],
+  "sha": "ce9a13ab94811d0d0d55b515ddb97bab4d4d56d4"
+ },
+ "commit v11.10.4": {
+  "date": "2026-10-21T21:14:29Z",
+  "files": [
+   ".cursor/Dockerfile",
+   ".cursor/README.md",
+   "api/server/go.mod",
+   "server/.go-version",
+   "server/build/Dockerfile.buildenv",
+   "server/build/Dockerfile.buildenv-fips",
+   "server/build/Dockerfile.fips",
+   "server/go.mod",
+   "server/public/go.mod",
+   "tools/mattermost-govet/go.mod",
+   "tools/mmgotool/go.mod",
+   "tools/sharedchannel-test/go.mod"
+  ],
+  "message": "Bump Go version to v1.26.10 (#39328) (#39340)",
+  "parents": [
+   "f851a9fb4a18d8097881fbf024c778b2954c9f3e"
+  ],
+  "sha": "0fa50b5adc978e0a1a489a65fb732bf19d923e7a"
+ },
+ "commit v11.11.3": {
+  "date": "2026-10-21T21:14:02Z",
+  "files": [
+   ".cursor/Dockerfile",
+   ".cursor/README.md",
+   "api/server/go.mod",
+   "server/.go-version",
+   "server/build/Dockerfile.buildenv",
+   "server/build/Dockerfile.buildenv-fips",
+   "server/build/Dockerfile.fips",
+   "server/go.mod",
+   "server/public/go.mod",
+   "tools/mattermost-govet/go.mod",
+   "tools/mmgotool/go.mod",
+   "tools/sharedchannel-test/go.mod"
+  ],
+  "message": "Bump Go version to v1.26.10 (#39328) (#39339)",
+  "parents": [
+   "6d26788d01230bef45b2cbb7931ab6677958ab9f"
+  ],
+  "sha": "b350edef791c93725ebb5b854867ac12469ce07d"
+ },
+ "commit v11.7.14": {
+  "date": "2026-10-21T22:56:34Z",
+  "files": [
+   "server/.go-version",
+   "server/build/Dockerfile.buildenv",
+   "server/build/Dockerfile.buildenv-fips",
+   "server/build/Dockerfile.fips",
+   "server/go.mod",
+   "server/public/go.mod",
+   "tools/mattermost-govet/go.mod",
+   "tools/sharedchannel-test/go.mod"
+  ],
+  "message": "Bump Go version to v1.26.10 (#39328) (#39341)\n\n* Bump Go version to v1.26.10\n\n* Bump go-msft-fips to 1.26.10.1\n\n---------\n\n\n(cherry picked from commit 9c92a61a566a9647e2bd2ebb3277071072fa5510)\n\nCo-authored-by: Alejandro Garc\u00eda Montoro <alejandro.garciamontoro@gmail.com>",
+  "parents": [
+   "c62c878b85343db8675bd773665c423196c1f2d9"
+  ],
+  "sha": "cd612db220fb7c1dddfc40c6dde6ab62a5b8337e"
+ },
+ "commit v12.0.1": {
+  "date": "2026-10-22T07:46:41Z",
+  "files": [
+   "server/cmd/mattermost/commands/db.go",
+   "server/cmd/mattermost/commands/init.go",
+   "server/config/utils.go",
+   "server/config/utils_test.go"
+  ],
+  "message": "Fix up unusable email settings and translate db command config errors (#39302) (#39350)\n\n* Fix up unusable email settings instead of failing to start\n\nv12 validates SupportEmail, FeedbackEmail and ReplyToAddress as a single\nplain address. #39003 stripped display names, but values that did not\nparse as one address, such as a list or a bare name, still stopped the\nserver. Keep the first valid address of a list, clear values with none,\nand log the old value.\n\n* Load translations before config in mattermost db commands\n\nThe db subcommands loaded the config store without loading translations,\nso a config validation error printed its raw message id instead of a\nmessage naming the invalid setting, and the locale check warned that the\ndefault \"en\" locale was unsupported.\n\n(cherry picked from commit 8e9d552aaeff187fb91b024f9d444ceccd643a75)\n\nCo-authored-by: Jesse Hallam <jesse.hallam@gmail.com>",
+  "parents": [
+   "068b1879df91b3f4143f97162684d3c4fb0d6856"
+  ],
+  "sha": "987e57120dca630dadbcd2638064ab66a02bb81e"
+ },
+ "commits_between v10.11.24 v10.11.25": [
+  {
+   "sha": "320d9bea70f43e0a605a1986cacade384036556f"
+  },
+  {
+   "sha": "60ecc27b9c0bf4a2bc008adbb67da7a6a7e582e4"
+  },
+  {
+   "sha": "69c055d13223b59825d91fc687b5174524156137"
+  },
+  {
+   "sha": "ce9a13ab94811d0d0d55b515ddb97bab4d4d56d4"
+  }
+ ],
+ "commits_between v11.10.3 v11.10.4": [
+  {
+   "sha": "b23901cac412ab187f59a9cf64eeece434653b59"
+  },
+  {
+   "sha": "0406bd6c44202fc341b25f433272d0f0cea93b8d"
+  },
+  {
+   "sha": "084f2f43b2451400e1b502a5f4bb279ce279f69b"
+  },
+  {
+   "sha": "b1650f7d2eeec3977a63c83952e189b7922cc967"
+  },
+  {
+   "sha": "f851a9fb4a18d8097881fbf024c778b2954c9f3e"
+  },
+  {
+   "sha": "0fa50b5adc978e0a1a489a65fb732bf19d923e7a"
+  }
+ ],
+ "commits_between v11.11.2 v11.11.3": [
+  {
+   "sha": "aee40c775a16cc933ea36f9f430f355857a4c39f"
+  },
+  {
+   "sha": "255334db6438d995bdae4f22d8f4475ae7be9d75"
+  },
+  {
+   "sha": "8dcce45957c9594cb9c0bb2786d95b74230783fd"
+  },
+  {
+   "sha": "3526c8ae5363e109709feb654669db6f3f97e7f8"
+  },
+  {
+   "sha": "6d26788d01230bef45b2cbb7931ab6677958ab9f"
+  },
+  {
+   "sha": "b350edef791c93725ebb5b854867ac12469ce07d"
+  }
+ ],
+ "commits_between v11.7.13 v11.7.14": [
+  {
+   "sha": "88d33f4bda7f511c5d1c7cc36c677f8a3bba8aca"
+  },
+  {
+   "sha": "7221f434012bc47e3983e980dfb0f807d011294a"
+  },
+  {
+   "sha": "3abf50a065cd7de42741a1669ac5af03449fdc43"
+  },
+  {
+   "sha": "54d30d4b795727d2b1028df5be27d1e9e0345afc"
+  },
+  {
+   "sha": "4e277d8416096d1eeb676d7b9bb9eeeba1e576f1"
+  },
+  {
+   "sha": "c55d022be4b9f5d267bbbef804fd8d182777be51"
+  },
+  {
+   "sha": "c62c878b85343db8675bd773665c423196c1f2d9"
+  },
+  {
+   "sha": "cd612db220fb7c1dddfc40c6dde6ab62a5b8337e"
+  }
+ ],
+ "commits_between v12.0.0 v12.0.1": [
+  {
+   "sha": "7e5a41ef85e890fc46e9750b7a609bf30f3aa216"
+  },
+  {
+   "sha": "4a29ac3c43d280f776ecd6790d357518fb2fb623"
+  },
+  {
+   "sha": "c16c8db24f73cd3f5ade8c2ce01bdf3aa1660aea"
+  },
+  {
+   "sha": "311c5e47139cd00a968d1bff7e7a5d48730a0bf0"
+  },
+  {
+   "sha": "1a2a36623b85b49a6141a9fe40397b7bb7112911"
+  },
+  {
+   "sha": "e1a60b5adafa52c262ec93168b02da3e2ddbeb36"
+  },
+  {
+   "sha": "068b1879df91b3f4143f97162684d3c4fb0d6856"
+  },
+  {
+   "sha": "987e57120dca630dadbcd2638064ab66a02bb81e"
+  }
+ ],
+ "fetch GET https://releases.mattermost.com/10.11.25/mattermost-10.11.25-linux-amd64.tar.gz.sha256": [
+  200,
+  "161f6d37f084d9c102266be66abc8a1a051645d44d0b84a01e7dcea39b7219bd  mattermost-10.11.25-linux-amd64.tar.gz\n"
+ ],
+ "fetch GET https://releases.mattermost.com/10.11.25/mattermost-team-10.11.25-linux-amd64.tar.gz.sha256": [
+  200,
+  "9ddd044a68c45dad8b18e21185c081f62f4a61b0fc2c9131c49f784c63420f8a  mattermost-team-10.11.25-linux-amd64.tar.gz\n"
+ ],
+ "fetch GET https://releases.mattermost.com/11.10.4/mattermost-11.10.4-linux-amd64.tar.gz.sha256": [
+  200,
+  "d0e312ed2437b5e9e43ceefda1f934095a6a24230a3c33e1475240b963e091df  mattermost-11.10.4-linux-amd64.tar.gz\n"
+ ],
+ "fetch GET https://releases.mattermost.com/11.10.4/mattermost-team-11.10.4-linux-amd64.tar.gz.sha256": [
+  200,
+  "646719f05d67e049b3ce0519f632be3c6132cf0172209fb61fa8f01fe46140ba  mattermost-team-11.10.4-linux-amd64.tar.gz\n"
+ ],
+ "fetch GET https://releases.mattermost.com/11.11.3/mattermost-11.11.3-linux-amd64.tar.gz.sha256": [
+  200,
+  "8ceda333b2d83b5400881dfa12d15243b661e97cc1a6063e033eed6d95ddbb6a  mattermost-11.11.3-linux-amd64.tar.gz\n"
+ ],
+ "fetch GET https://releases.mattermost.com/11.11.3/mattermost-team-11.11.3-linux-amd64.tar.gz.sha256": [
+  200,
+  "7f207ba6dcbae956d748bf3bddb6acf65f9ab148ae559cc51bc9b27307a899d4  mattermost-team-11.11.3-linux-amd64.tar.gz\n"
+ ],
+ "fetch GET https://releases.mattermost.com/11.7.14/mattermost-11.7.14-linux-amd64.tar.gz.sha256": [
+  200,
+  "31f5b0774cdd08eea8badaf030025c7fd55e9ab63a08a446c533c5fca13692d1  mattermost-11.7.14-linux-amd64.tar.gz\n"
+ ],
+ "fetch GET https://releases.mattermost.com/11.7.14/mattermost-team-11.7.14-linux-amd64.tar.gz.sha256": [
+  200,
+  "8a24f6b1cebe65ad8a85a0b31460dc3486880a6c8fc3fed66d10cd8b572c4e68  mattermost-team-11.7.14-linux-amd64.tar.gz\n"
+ ],
+ "fetch GET https://releases.mattermost.com/12.0.1/mattermost-12.0.1-linux-amd64.tar.gz.sha256": [
+  200,
+  "f74b26f3a245b336b5dc7978a71ac7cd17ba22601de2c68b223dd0114cb2676c  mattermost-12.0.1-linux-amd64.tar.gz\n"
+ ],
+ "fetch GET https://releases.mattermost.com/12.0.1/mattermost-team-12.0.1-linux-amd64.tar.gz.sha256": [
+  200,
+  "1e7512f4782d4df552543f60ca17cc572a9ddc8faaebc3942dcc40b4f6a979d9  mattermost-team-12.0.1-linux-amd64.tar.gz\n"
+ ],
+ "fetch HEAD https://github.com/mattermost/mattermost-plugin-agents/releases/tag/v2.0.10": [
+  200,
+  ""
+ ],
+ "fetch HEAD https://github.com/mattermost/mattermost-plugin-agents/releases/tag/v2.5.4": [
+  200,
+  ""
+ ],
+ "fetch HEAD https://github.com/mattermost/mattermost-plugin-agents/releases/tag/v2.6.2": [
+  200,
+  ""
+ ],
+ "fetch HEAD https://github.com/mattermost/mattermost-plugin-dataminr/releases/tag/v3.0.0": [
+  404,
+  ""
+ ],
+ "fetch HEAD https://github.com/mattermost/mattermost-plugin-mscalendar/releases/tag/v1.6.3": [
+  200,
+  ""
+ ],
+ "file server/.go-version v10.11.24": "1.25.8\n",
+ "file server/.go-version v10.11.25": "1.26.10\n",
+ "file server/.go-version v11.10.3": "1.26.7\n",
+ "file server/.go-version v11.10.4": "1.26.10\n",
+ "file server/.go-version v11.11.2": "1.26.7\n",
+ "file server/.go-version v11.11.3": "1.26.10\n",
+ "file server/.go-version v11.7.13": "1.26.7\n",
+ "file server/.go-version v11.7.14": "1.26.10\n",
+ "file server/.go-version v12.0.0": "1.26.7\n",
+ "file server/.go-version v12.0.1": "1.26.10\n",
+ "file server/Makefile v10.11.24": "PLUGIN_PACKAGES += mattermost-plugin-calls-v1.11.6\nPLUGIN_PACKAGES += mattermost-plugin-github-v2.7.0\nPLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.12.3\nPLUGIN_PACKAGES += mattermost-plugin-jira-v4.7.1\nPLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.41.1\nPLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.4.8\nPLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.3.4\nPLUGIN_PACKAGES += mattermost-plugin-zoom-v1.13.0\nPLUGIN_PACKAGES += mattermost-plugin-agents-v1.14.2\nPLUGIN_PACKAGES += mattermost-plugin-boards-v9.2.7\nPLUGIN_PACKAGES += mattermost-plugin-msteams-v2.2.2\nPLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1\nPLUGIN_PACKAGES += mattermost-plugin-mscalendar-v1.6.2\nPLUGIN_PACKAGES += mattermost-plugin-msteams-meetings-v2.4.1\nPLUGIN_PACKAGES += mattermost-plugin-metrics-v0.7.0\nPLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.2.1\n",
+ "file server/Makefile v10.11.25": "PLUGIN_PACKAGES += mattermost-plugin-calls-v1.11.6\nPLUGIN_PACKAGES += mattermost-plugin-github-v2.7.0\nPLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.12.3\nPLUGIN_PACKAGES += mattermost-plugin-jira-v4.7.1\nPLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.41.1\nPLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.4.8\nPLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.3.4\nPLUGIN_PACKAGES += mattermost-plugin-zoom-v1.13.0\nPLUGIN_PACKAGES += mattermost-plugin-agents-v1.14.2\nPLUGIN_PACKAGES += mattermost-plugin-boards-v9.2.7\nPLUGIN_PACKAGES += mattermost-plugin-msteams-v2.2.2\nPLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1\nPLUGIN_PACKAGES += mattermost-plugin-mscalendar-v1.6.2\nPLUGIN_PACKAGES += mattermost-plugin-msteams-meetings-v2.4.1\nPLUGIN_PACKAGES += mattermost-plugin-metrics-v0.7.0\nPLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.2.1\n",
+ "file server/Makefile v11.10.3": "PLUGIN_PACKAGES += mattermost-plugin-calls-v1.12.2\nPLUGIN_PACKAGES += mattermost-plugin-github-v2.7.1\nPLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.13.1\nPLUGIN_PACKAGES += mattermost-plugin-jira-v4.7.1\nPLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.11.4\nPLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.4.0\nPLUGIN_PACKAGES += mattermost-plugin-zoom-v1.13.1\nPLUGIN_PACKAGES += mattermost-plugin-agents-v2.5.3\nPLUGIN_PACKAGES += mattermost-plugin-boards-v9.3.2\nPLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1\nPLUGIN_PACKAGES += mattermost-plugin-mscalendar-v1.7.0\nPLUGIN_PACKAGES += mattermost-plugin-msteams-meetings-v2.4.1\nPLUGIN_PACKAGES += mattermost-plugin-metrics-v0.7.0\nPLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.3.0\n",
+ "file server/Makefile v11.10.4": "PLUGIN_PACKAGES += mattermost-plugin-calls-v1.12.2\nPLUGIN_PACKAGES += mattermost-plugin-github-v2.7.1\nPLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.13.1\nPLUGIN_PACKAGES += mattermost-plugin-jira-v4.7.1\nPLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.11.4\nPLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.4.0\nPLUGIN_PACKAGES += mattermost-plugin-zoom-v1.13.1\nPLUGIN_PACKAGES += mattermost-plugin-agents-v2.5.4\nPLUGIN_PACKAGES += mattermost-plugin-boards-v9.3.2\nPLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1\nPLUGIN_PACKAGES += mattermost-plugin-mscalendar-v1.7.0\nPLUGIN_PACKAGES += mattermost-plugin-msteams-meetings-v2.4.1\nPLUGIN_PACKAGES += mattermost-plugin-metrics-v0.7.0\nPLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.3.0\n",
+ "file server/Makefile v11.11.2": "PLUGIN_PACKAGES += mattermost-plugin-calls-v1.12.3\nPLUGIN_PACKAGES += mattermost-plugin-github-v2.8.0\nPLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.13.1\nPLUGIN_PACKAGES += mattermost-plugin-jira-v4.8.2\nPLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.11.4\nPLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.4.0\nPLUGIN_PACKAGES += mattermost-plugin-zoom-v1.13.1\nPLUGIN_PACKAGES += mattermost-plugin-agents-v2.6.1\nPLUGIN_PACKAGES += mattermost-plugin-boards-v9.4.0\nPLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1\nPLUGIN_PACKAGES += mattermost-plugin-mscalendar-v1.7.0\nPLUGIN_PACKAGES += mattermost-plugin-msteams-meetings-v2.4.1\nPLUGIN_PACKAGES += mattermost-plugin-metrics-v0.7.0\nPLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.3.0\n",
+ "file server/Makefile v11.11.3": "PLUGIN_PACKAGES += mattermost-plugin-calls-v1.12.3\nPLUGIN_PACKAGES += mattermost-plugin-github-v2.8.0\nPLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.13.1\nPLUGIN_PACKAGES += mattermost-plugin-jira-v4.8.2\nPLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.11.4\nPLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.4.0\nPLUGIN_PACKAGES += mattermost-plugin-zoom-v1.13.1\nPLUGIN_PACKAGES += mattermost-plugin-agents-v2.6.2\nPLUGIN_PACKAGES += mattermost-plugin-boards-v9.4.0\nPLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1\nPLUGIN_PACKAGES += mattermost-plugin-mscalendar-v1.7.0\nPLUGIN_PACKAGES += mattermost-plugin-msteams-meetings-v2.4.1\nPLUGIN_PACKAGES += mattermost-plugin-metrics-v0.7.0\nPLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.3.0\n",
+ "file server/Makefile v11.7.13": "PLUGIN_PACKAGES += mattermost-plugin-calls-v1.11.6\nPLUGIN_PACKAGES += mattermost-plugin-github-v2.7.0\nPLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.12.4\nPLUGIN_PACKAGES += mattermost-plugin-jira-v4.7.4\nPLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.9.6\nPLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.4.0\nPLUGIN_PACKAGES += mattermost-plugin-zoom-v1.13.1\nPLUGIN_PACKAGES += mattermost-plugin-agents-v2.0.9\nPLUGIN_PACKAGES += mattermost-plugin-boards-v9.2.8\nPLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1\nPLUGIN_PACKAGES += mattermost-plugin-mscalendar-v1.6.2\nPLUGIN_PACKAGES += mattermost-plugin-msteams-meetings-v2.4.1\nPLUGIN_PACKAGES += mattermost-plugin-metrics-v0.7.0\nPLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.3.0\n",
+ "file server/Makefile v11.7.14": "PLUGIN_PACKAGES += mattermost-plugin-calls-v1.11.6\nPLUGIN_PACKAGES += mattermost-plugin-github-v2.7.0\nPLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.12.4\nPLUGIN_PACKAGES += mattermost-plugin-jira-v4.7.4\nPLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.9.6\nPLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.4.0\nPLUGIN_PACKAGES += mattermost-plugin-zoom-v1.13.1\nPLUGIN_PACKAGES += mattermost-plugin-agents-v2.0.10\nPLUGIN_PACKAGES += mattermost-plugin-boards-v9.2.8\nPLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1\nPLUGIN_PACKAGES += mattermost-plugin-mscalendar-v1.6.3\nPLUGIN_PACKAGES += mattermost-plugin-msteams-meetings-v2.4.1\nPLUGIN_PACKAGES += mattermost-plugin-metrics-v0.7.0\nPLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.3.0\n",
+ "file server/Makefile v12.0.0": "PLUGIN_PACKAGES += mattermost-plugin-calls-v1.12.5\nPLUGIN_PACKAGES += mattermost-plugin-github-v3.0.0\nPLUGIN_PACKAGES += mattermost-plugin-gitlab-v2.0.0\nPLUGIN_PACKAGES += mattermost-plugin-jira-v5.0.0\nPLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.12.1\nPLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.4.0\nPLUGIN_PACKAGES += mattermost-plugin-zoom-v2.0.0\nPLUGIN_PACKAGES += mattermost-plugin-agents-v2.9.0\nPLUGIN_PACKAGES += mattermost-plugin-boards-v10.0.0\nPLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1\nPLUGIN_PACKAGES += mattermost-plugin-mscalendar-v2.0.0\nPLUGIN_PACKAGES += mattermost-plugin-msteams-meetings-v3.0.0\nPLUGIN_PACKAGES += mattermost-plugin-metrics-v0.7.0\nPLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.3.0\nPLUGIN_PACKAGES += mattermost-plugin-dataminr-v2.0.0\nPLUGIN_PACKAGES += mattermost-plugin-legal-hold-v1.1.6\n",
+ "file server/Makefile v12.0.1": "PLUGIN_PACKAGES += mattermost-plugin-calls-v1.12.5\nPLUGIN_PACKAGES += mattermost-plugin-github-v3.0.0\nPLUGIN_PACKAGES += mattermost-plugin-gitlab-v2.0.0\nPLUGIN_PACKAGES += mattermost-plugin-jira-v5.0.0\nPLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.12.1\nPLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.4.0\nPLUGIN_PACKAGES += mattermost-plugin-zoom-v2.0.0\nPLUGIN_PACKAGES += mattermost-plugin-agents-v2.9.0\nPLUGIN_PACKAGES += mattermost-plugin-boards-v10.0.0\nPLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1\nPLUGIN_PACKAGES += mattermost-plugin-mscalendar-v2.0.0\nPLUGIN_PACKAGES += mattermost-plugin-msteams-meetings-v3.0.0\nPLUGIN_PACKAGES += mattermost-plugin-metrics-v0.7.0\nPLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.3.0\nPLUGIN_PACKAGES += mattermost-plugin-dataminr-v3.0.0\nPLUGIN_PACKAGES += mattermost-plugin-legal-hold-v1.1.6\n",
+ "file server/build/Dockerfile.buildenv v10.11.24": "FROM golang:1.24.5-bullseye@sha256:62ba6b19de03e891f7fa1001326bd48411f2626ff35e7ba5b9d890711ce581d9\n",
+ "file server/build/Dockerfile.buildenv v10.11.25": "FROM mattermost/golang-bullseye:1.26.10@sha256:dbf00cba5219d41f892ce9feb1eb098f9b9086b1ae8530a369b0bb096c0ac24d\n",
+ "file server/build/Dockerfile.buildenv v11.10.3": "FROM mattermost/golang-bullseye:1.26.7@sha256:725955a628618d9cc27633f9cd6b2dd2619b6982acfe4a7da307216c3efae461\n",
+ "file server/build/Dockerfile.buildenv v11.10.4": "FROM mattermost/golang-bullseye:1.26.10@sha256:dbf00cba5219d41f892ce9feb1eb098f9b9086b1ae8530a369b0bb096c0ac24d\n",
+ "file server/build/Dockerfile.buildenv v11.11.2": "FROM mattermost/golang-bullseye:1.26.7@sha256:725955a628618d9cc27633f9cd6b2dd2619b6982acfe4a7da307216c3efae461\n",
+ "file server/build/Dockerfile.buildenv v11.11.3": "FROM mattermost/golang-bullseye:1.26.10@sha256:dbf00cba5219d41f892ce9feb1eb098f9b9086b1ae8530a369b0bb096c0ac24d\n",
+ "file server/build/Dockerfile.buildenv v11.7.13": "FROM mattermost/golang-bullseye:1.26.7@sha256:725955a628618d9cc27633f9cd6b2dd2619b6982acfe4a7da307216c3efae461\n",
+ "file server/build/Dockerfile.buildenv v11.7.14": "FROM mattermost/golang-bullseye:1.26.10@sha256:dbf00cba5219d41f892ce9feb1eb098f9b9086b1ae8530a369b0bb096c0ac24d\n",
+ "file server/build/Dockerfile.buildenv v12.0.0": "FROM golang:1.26.7-bookworm@sha256:6ef6e30f0ea5c384f6d111cf856e024e3086bbdcb1779da3f3b3fbba0aea53d2\n",
+ "file server/build/Dockerfile.buildenv v12.0.1": "FROM golang:1.26.10-bookworm@sha256:fe3da92a5cb2881e4aa75e625cb0b7c50571632fb4cf340cbe53e6ccdcffdd51\n",
+ "pull 38634": {
+  "body": "#### Summary\n\nLog and audit file paths that resolve outside the logging root (`MM_LOG_PATH`, or the default `logs` directory) were only logged as an error on config save, and were never validated at startup at all. Two of the four relevant fields were not validated even once.\n\nThis adds the **`EnforceLogPathRoot` feature flag, disabled by default**:\n\n| Flag | Behavior |\n|---|---|\n| **off** (default) | the offending path is logged as an error, as today |\n| **on** | the server refuses to start, and a config save that introduces such a path is rejected with HTTP 400 |\n\nEnforcement is a breaking change for deployments that have log paths outside the root and no `MM_LOG_PATH` set, and it was never announced \u2014 the old \"will fail to start in a future version\" wording lived only in a code comment and one log line. So it stays opt-in for now. The default flips once every supported release carries the flag.\n\n**Validation is now centralized.** `WarnIfLogPathsOutsideRoot` is replaced by `config.ValidateLogPaths`, which returns an error for the first offending path and knows nothing about the flag \u2014 each caller decides what to do with it. Coverage now spans all four fields:\n\n- `LogSettings.FileLocation` *(previously validated on the read path only)*\n- `LogSettings.AdvancedLoggingJSON`\n- `ExperimentalAuditSettings.FileName` *(previously not validated at all)*\n- `ExperimentalAuditSettings.AdvancedLoggingJSON`\n\n**The gate lives in `initLogging`, before `ConfigureLogger` opens any target.** T\n\n```release-note\nAdded the EnforceLogPathRoot feature flag, disabled by default. When enabled, a log or audit file path that resolves outside the logging root (MM_LOG_PATH, or the default logs directory) causes the server to refuse to start and is rejected on configuration save, instead of only being logged as an error. Validation now also covers LogSettings.FileLocation and ExperimentalAuditSettings.FileName.\n```",
+  "head": {
+   "ref": "t3code/enforce-log-path"
+  },
+  "html_url": "https://github.com/mattermost/mattermost/pull/38634",
+  "labels": [
+   {
+    "name": "4: Reviews Complete"
+   },
+   {
+    "name": "Docs/Done"
+   },
+   {
+    "name": "Changelog/Done"
+   },
+   {
+    "name": "release-note"
+   }
+  ],
+  "number": 38634,
+  "title": "MM-70595: Enforce log path root behind a feature flag",
+  "user": {
+   "login": "fmartingr"
+  }
+ },
+ "pull 38861": {
+  "body": "#### Summary\n\nSending a synced draft from the Drafts panel left the server copy alive, so the draft came back on the next team switch or reload.\n\n`DraftRow`'s `afterSubmit` only called `handleOnDelete()` when the draft was being **scheduled**. For a plain send the only clearing was `storeDraft(post.channel_id, null)` inside `createPost` (`actions/post_actions.ts`), which is a local `setGlobalItem` and never reaches `Client4.deleteDraft`. The server draft survived and `getDrafts` restored it on the next fetch.\n\nThe channel composer is unaffected because its real `handleDraftChange` sees the emptied draft after submit and dispatches `removeDraft`, which does delete the server copy. `DraftRow` passes `noop` for `handleDraftChange`, so nothing covered it there.\n\n`afterSubmit` now returns early unless the post was created, handles the scheduled-post send first, and otherwise calls `handleOnDelete()` for both a plain send and a scheduled one. That made `isBeingScheduled` write-only, so the ref is removed.\n\nThe fix is 16 lines in one file; the rest of the diff is tests.\n\n**Deliberately not changed:** `isScheduledPostBeingSent` could be replaced by the derived `isScheduledPost`, and the local clear still races between `removeDraft`'s empty draft and `createPost`'s `null` (both are filtered identically by `makeGetDraftsByPrefix`, so it is not user visible). Neither is caused by this fix, so both are left alone.\n\n**Follow-up worth filing:** the Retry link on a failed post (`components/\n\n```release-note\nFixed an issue where a draft sent from the Drafts panel could reappear after switching teams or reloading.\n```",
+  "head": {
+   "ref": "cursor/jira-bug-fix-agent-workflow-acb8"
+  },
+  "html_url": "https://github.com/mattermost/mattermost/pull/38861",
+  "labels": [
+   {
+    "name": "2: Dev Review"
+   },
+   {
+    "name": "Changelog/Done"
+   },
+   {
+    "name": "CherryPick/Done"
+   },
+   {
+    "name": "release-note"
+   },
+   {
+    "name": "Contributor"
+   },
+   {
+    "name": "AI/babysit"
+   }
+  ],
+  "number": 38861,
+  "title": "[MM-69775] Delete the server-side draft when sending from the Drafts panel",
+  "user": {
+   "login": "cursor[bot]"
+  }
+ },
+ "pull 39192": {
+  "body": "#### Summary\nCherry pick of #38634 on release-12.0.\n\n#### Conflict Resolution Changes\n- `server/public/model/feature_flags.go` and `e2e-tests/playwright/lib/src/server/default_feature_flags.ts`: added only the `EnforceLogPathRoot` flag (declaration, default and e2e default); the `HealthDashboard` flag from the original commit does not exist on this branch and was not added.\n- `server/channels/app/platform/testdata/support_packet/sanitized_config.json`: not carried over, the file does not exist on this branch.\n- `server/config/logger.go`: the original change relies on `ValidateLogFilePath` resolving symlinks on both the file path and the logging root (from #38513, not on this branch). Ported that `evalSymlinksLenient` helper and its two call sites so the included `TestValidateLogFilePathSymlinkResolution` tests pass.\n\n#### Release Note\n\n```release-note\nNONE\n```",
+  "head": {
+   "ref": "automated-cherry-pick-of-t3code/enforce-log-path-release-12.0"
+  },
+  "html_url": "https://github.com/mattermost/mattermost/pull/39192",
+  "labels": [
+   {
+    "name": "2: Dev Review"
+   },
+   {
+    "name": "Changelog/Not Needed"
+   },
+   {
+    "name": "Docs/Not Needed"
+   },
+   {
+    "name": "release-note-none"
+   },
+   {
+    "name": "AI/babysit"
+   }
+  ],
+  "number": 39192,
+  "title": "Automated cherry pick of #38634",
+  "user": {
+   "login": "mattermost-code"
+  }
+ },
+ "pull 39193": {
+  "body": "#### Summary\nCherry pick of #38634 on release-11.11.\n\n#### Conflict Resolution Changes\n- `server/public/model/feature_flags.go`: added only the `EnforceLogPathRoot` flag (declaration and default); the `PostDeliveryTracking` and `HealthDashboard` flags and the `isValid` helper from the neighbouring master code do not exist on this branch and were not added.\n- `server/config/logger_test.go`: kept only the new `TestIsLogPathEnforcementEnabled`, `TestValidateLogPaths` and `TestValidateLogFilePathSymlinkResolution` tests; `TestIsAuditLevelActive` (and the `IsAuditLevelActive` helper it covers) is not on this branch and was not added.\n- `server/config/logger.go`: added the `slices` import used by the new validation code. The original change also relies on `ValidateLogFilePath` resolving symlinks on both the file path and the logging root (from #38513, not on this branch), so ported that `evalSymlinksLenient` helper and its two call sites so the included symlink tests pass.\n- `e2e-tests/playwright/lib/src/server/default_feature_flags.ts` and `server/channels/app/platform/testdata/support_packet/sanitized_config.json`: not carried over, the files do not exist on this branch.\n\n#### Release Note\n\n```release-note\nNONE\n```",
+  "head": {
+   "ref": "automated-cherry-pick-of-t3code/enforce-log-path-release-11.11"
+  },
+  "html_url": "https://github.com/mattermost/mattermost/pull/39193",
+  "labels": [
+   {
+    "name": "Changelog/Not Needed"
+   },
+   {
+    "name": "Docs/Not Needed"
+   },
+   {
+    "name": "release-note-none"
+   },
+   {
+    "name": "AI/babysit"
+   }
+  ],
+  "number": 39193,
+  "title": "Automated cherry pick of #38634",
+  "user": {
+   "login": "mattermost-code"
+  }
+ },
+ "pull 39194": {
+  "body": "#### Summary\nCherry pick of #38634 on release-11.10.\n\n#### Conflict Resolution Changes\n- `server/public/model/feature_flags.go`: added only the `EnforceLogPathRoot` flag (declaration and default); the `PostDeliveryTracking` and `HealthDashboard` flags and the `isValid` helper from the neighbouring master code do not exist on this branch and were not added.\n- `server/config/logger.go`: added the `slices` import used by the new validation code. The original change also relies on `ValidateLogFilePath` resolving symlinks on both the file path and the logging root (from #38513, not on this branch), so ported that `evalSymlinksLenient` helper and its two call sites so the included symlink tests pass.\n- `e2e-tests/playwright/lib/src/server/default_feature_flags.ts` and `server/channels/app/platform/testdata/support_packet/sanitized_config.json`: not carried over, the files do not exist on this branch.\n\n#### Release Note\n\n```release-note\nNONE\n```",
+  "head": {
+   "ref": "automated-cherry-pick-of-t3code/enforce-log-path-release-11.10"
+  },
+  "html_url": "https://github.com/mattermost/mattermost/pull/39194",
+  "labels": [
+   {
+    "name": "Changelog/Not Needed"
+   },
+   {
+    "name": "Docs/Not Needed"
+   },
+   {
+    "name": "release-note-none"
+   },
+   {
+    "name": "AI/babysit"
+   }
+  ],
+  "number": 39194,
+  "title": "Automated cherry pick of #38634",
+  "user": {
+   "login": "mattermost-code"
+  }
+ },
+ "pull 39196": {
+  "body": "#### Summary\nCherry pick of #38634 on release-11.7.\n\n#### Conflict Resolution Changes\n- `server/public/model/feature_flags.go`: added only the `EnforceLogPathRoot` flag (declaration and default); the `PostDeliveryTracking` and `HealthDashboard` flags and the `isValid` helper from the neighbouring master code do not exist on this branch and were not added.\n- `server/config/logger.go`: added the `slices` import used by the new validation code. The original change also relies on `ValidateLogFilePath` resolving symlinks on both the file path and the logging root (from #38513, not on this branch), so ported that `evalSymlinksLenient` helper and its two call sites so the included symlink tests pass.\n- `docs/main/administration-guide/configure/environment-configuration-settings.mdx`, `docs/main/deployment-guide/server/troubleshooting.mdx`, `e2e-tests/playwright/lib/src/server/default_feature_flags.ts` and `server/channels/app/platform/testdata/support_packet/sanitized_config.json`: not carried over, the files do not exist on this branch.\n\n#### Release Note\n\n```release-note\nNONE\n```",
+  "head": {
+   "ref": "automated-cherry-pick-of-t3code/enforce-log-path-release-11.7"
+  },
+  "html_url": "https://github.com/mattermost/mattermost/pull/39196",
+  "labels": [
+   {
+    "name": "Changelog/Not Needed"
+   },
+   {
+    "name": "Docs/Not Needed"
+   },
+   {
+    "name": "release-note-none"
+   },
+   {
+    "name": "AI/babysit"
+   }
+  ],
+  "number": 39196,
+  "title": "Automated cherry pick of #38634",
+  "user": {
+   "login": "mattermost-code"
+  }
+ },
+ "pull 39258": {
+  "body": "<h4>Summary</h4>Cherry-pick of https://github.com/mattermost/mattermost/pull/38861 onto release-11.7. See: https://github.com/mattermost/mattermost/pull/38861 <br><br>The squash applied with conflicts because 11.7 and master have diverged in Drafts panel code:<br>- Production fix is the same: afterSubmit now calls handleOnDelete for a plain send, and the dead isBeingScheduled ref is removed.<br>- onScheduleDraft still takes scheduledAt as a number (11.7 DraftActions), not master's SchedulingInfo type.<br>- Burn-on-read DraftRow tests from the squash were dropped; they depend on useCreateBurnOnReadAccess, which is not on 11.7.<br>- Playwright spec uses local drafts-link / team-switch helpers because master's goToDrafts, getDraftsBadgeCount, draftsLink, draftIcon, and switchToTeam are not on 11.7.<br>- Unit tests seed scheduledPosts.byTeamId because 11.7's SINGLE_SCHEDULED_POST_RECEIVED reducer calls findIndex with no missing-key guard (DraftsLink loads this in production).<br><h4>Ticket Link</h4>Fixes: https://mattermost.atlassian.net/browse/MM-69775 <h4>Release Note</h4> ```release-note Fixed an issue where a draft sent from the Drafts panel could reappear after switching teams or reloading. ```",
+  "head": {
+   "ref": "cherry-pick-38861-release-11.7"
+  },
+  "html_url": "https://github.com/mattermost/mattermost/pull/39258",
+  "labels": [
+   {
+    "name": "Changelog/Not Needed"
+   },
+   {
+    "name": "release-note"
+   }
+  ],
+  "number": 39258,
+  "title": "Cherry pick #38861 to release-11.7",
+  "user": {
+   "login": "mattermost-code"
+  }
+ },
+ "pull 39302": {
+  "body": "#### Summary\nFollow-up to #39003, which fixed up config values that started fine before v12 but fail v12's stricter validation.\n\n**Unusable email settings no longer stop the server.** #39003 removed display names from `SupportSettings.SupportEmail`, `EmailSettings.FeedbackEmail` and `EmailSettings.ReplyToAddress`. A value that didn't parse as one address, like a list or a bare name, still failed startup with `model.config.is_valid.email_address.app_error`. Now:\n- A comma-separated address list is reduced to its first address, if that address is valid.\n- Anything else is cleared, since email sent with it before v12 was already broken.\n\nIn both cases a warning logs the setting and its old value.\n\n**`mattermost db` subcommands now load translations before the config.** `db migrate`, `db init`, `db downgrade`, `db reset` and `db version` loaded the config before loading translations. As a result:\n- A validation error printed its raw message ID, without naming the setting.\n- The locale check warned that `en` wasn't a supported locale.\n\nThey now load translations first, like `mattermost server` does.\n\nBefore:\n```\n{\"level\":\"warn\",\"msg\":\"DefaultServerLocale must be one of the supported locales. Setting DefaultServerLocale to en as default value.\",\"fields\":{\"locale\":\"en\"}}\nError: failed to load configuration: failed to create store: unable to load on store creation: invalid config: Config.IsValid: model.config.is_valid.file_driver.app_error\n```\nAfter:\n```\nError: failed to load configu\n\n```release-note\nFixed v12 servers failing to start when SupportEmail, FeedbackEmail or ReplyToAddress held a list of addresses or a value that wasn't an email address. Such values are now reduced to their first valid address or cleared, and a warning is logged. Also fixed `mattermost db` commands reporting config validation errors as untranslated message IDs.\n```",
+  "head": {
+   "ref": "fix-unparseable-email-settings"
+  },
+  "html_url": "https://github.com/mattermost/mattermost/pull/39302",
+  "labels": [
+   {
+    "name": "Changelog/Done"
+   },
+   {
+    "name": "CherryPick/Done"
+   },
+   {
+    "name": "release-note"
+   }
+  ],
+  "number": 39302,
+  "title": "Fix up unusable email settings and translate db command config errors",
+  "user": {
+   "login": "lieut-data"
+  }
+ },
+ "pull 39323": {
+  "body": "#### Summary\nFixes an endless DB query loop in `RemoveNotifications` when a deleted thread reply mentions two or more groups.\n\nThe paging loop for each group's members stopped when `len(userIDs) == count`. `userIDs` is shared across all mentioned groups, but `count` is a single group's member count. Once an earlier group had added users, a later group could never reach that condition and kept requesting empty pages in a tight loop, so each such delete left a stuck goroutine querying the DB until restart. A later group could also stop early at a page boundary and skip members' unread-mention cleanup.\n\nEach group's loop now counts its own users and stops once it reaches that group's `count`, or on an empty page in case membership changes while paging.\n\nTwo regression tests were added to `TestRemoveNotifications`:\n- Two groups with members in the channel. Before the fix, `RemoveNotifications` never returned.\n- Groups of 50 and 150 members, which hit the page boundary. Before the fix, 50 members kept their unread mention.\n\n#### Ticket Link\nFixes: https://mattermost.atlassian.net/browse/MM-71295\n\n#### Release Note\n\n\n\n\n\n\n## Change Impact: Medium \ud83d\udfe1\n\n**Changes Breakdown:**\n\n+4 -5 Production Changes (5.7%)  \n+149 -0 Test Changes (94.3%)\n\n**Regression Risk:** The change affects notification cleanup and database paging logic. Regression risk is limited by tests for multiple groups and group memberships that span pages.\n\n*Generated by CodeRabbitAI*\n\n```release-note\nFixed an issue where deleting a thread reply that mentioned multiple groups could leave a background process repeatedly querying the database until the server was restarted.\n```",
+  "head": {
+   "ref": "MM-71295.fix.db.query.loop"
+  },
+  "html_url": "https://github.com/mattermost/mattermost/pull/39323",
+  "labels": [
+   {
+    "name": "4: Reviews Complete"
+   },
+   {
+    "name": "Changelog/Done"
+   },
+   {
+    "name": "CherryPick/Done"
+   },
+   {
+    "name": "release-note"
+   }
+  ],
+  "number": 39323,
+  "title": "MM-71295: Fix endless DB query loop in RemoveNotifications with multiple groups",
+  "user": {
+   "login": "agarciamontoro"
+  }
+ },
+ "pull 39334": {
+  "body": "Cherry pick of #39323 on release-11.7.\n\n/cc  @agarciamontoro\n\n```release-note\nNONE\n```",
+  "head": {
+   "ref": "automated-cherry-pick-of-MM-71295.fix.db.query.loop-release-11.7"
+  },
+  "html_url": "https://github.com/mattermost/mattermost/pull/39334",
+  "labels": [
+   {
+    "name": "Changelog/Not Needed"
+   },
+   {
+    "name": "Docs/Not Needed"
+   },
+   {
+    "name": "AutomatedCherryPick"
+   },
+   {
+    "name": "release-note-none"
+   }
+  ],
+  "number": 39334,
+  "title": "Automated cherry pick of #39323",
+  "user": {
+   "login": "mattermost-build"
+  }
+ },
+ "pull 39350": {
+  "body": "Cherry pick of #39302 on release-12.0.\n\n/cc  @lieut-data\n\n```release-note\nNONE\n```",
+  "head": {
+   "ref": "automated-cherry-pick-of-fix-unparseable-email-settings-release-12.0"
+  },
+  "html_url": "https://github.com/mattermost/mattermost/pull/39350",
+  "labels": [
+   {
+    "name": "Changelog/Not Needed"
+   },
+   {
+    "name": "Docs/Not Needed"
+   },
+   {
+    "name": "AutomatedCherryPick"
+   },
+   {
+    "name": "release-note-none"
+   },
+   {
+    "name": "E2E/Overridden"
+   }
+  ],
+  "number": 39350,
+  "title": "Automated cherry pick of #39302",
+  "user": {
+   "login": "mattermost-build"
+  }
+ },
+ "tag_sha v10.11.25": "ce9a13ab94811d0d0d55b515ddb97bab4d4d56d4",
+ "tag_sha v11.10.4": "0fa50b5adc978e0a1a489a65fb732bf19d923e7a",
+ "tag_sha v11.11.3": "b350edef791c93725ebb5b854867ac12469ce07d",
+ "tag_sha v11.7.14": "cd612db220fb7c1dddfc40c6dde6ab62a5b8337e",
+ "tag_sha v12.0.1": "987e57120dca630dadbcd2638064ab66a02bb81e"
+}

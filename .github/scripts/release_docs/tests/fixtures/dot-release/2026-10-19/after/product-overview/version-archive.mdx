@@ -1,0 +1,73 @@
+---
+title: "Version Archive"
+---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+import Inc0_common_esr_support_rst from './common-esr-support-rst.mdx';
+
+<Inc0_common_esr_support_rst />
+
+If you want to check that the version of Mattermost you are installing is the official, unmodified version, compare the SHA-256 checksum or the file's GPG signature with the one published in this version archive. To verify the GPG signature of a Mattermost release, use the public key stored at the following URL: [https://deb.packages.mattermost.com/pubkey.gpg](https://deb.packages.mattermost.com/pubkey.gpg).
+
+<Note>
+
+Our package signing key has been moved away from Keybase. If you still reference Keybase in your deployment steps for retrieving the key, update them to the new key location: [https://deb.packages.mattermost.com/pubkey.gpg](https://deb.packages.mattermost.com/pubkey.gpg).
+
+</Note>
+
+<Tabs>
+<TabItem value="mattermost-enterprise" label="Mattermost Enterprise">
+
+Mattermost Enterprise Edition v11.11.2 - [View Changelog](https://docs.mattermost.com/product-overview/mattermost-v11-changelog.html#release-v11-11-feature-release) - [Download](https://releases.mattermost.com/11.11.2/mattermost-11.11.2-linux-amd64.tar.gz?src=arc)
+
+- `https://releases.mattermost.com/11.11.2/mattermost-11.11.2-linux-amd64.tar.gz`
+- SHA-256 Checksum: `7be64a208ab819f8b729956e0859ebb208a30470eb6d55ff51dbd4fdf840465a`
+- GPG Signature: [https://releases.mattermost.com/11.11.2/mattermost-11.11.2-linux-amd64.tar.gz.sig](https://releases.mattermost.com/11.11.2/mattermost-11.11.2-linux-amd64.tar.gz.sig)
+- SBOM Download Link: [https://releases.mattermost.com/11.11.2/sbom-enterprise-v11.11.2.json](https://releases.mattermost.com/11.11.2/sbom-enterprise-v11.11.2.json)
+
+Mattermost Enterprise Edition v11.10.3 - [View Changelog](https://docs.mattermost.com/product-overview/mattermost-v11-changelog.html#release-v11-10-feature-release) - [Download](https://releases.mattermost.com/11.10.3/mattermost-11.10.3-linux-amd64.tar.gz?src=arc)
+
+- `https://releases.mattermost.com/11.10.3/mattermost-11.10.3-linux-amd64.tar.gz`
+- SHA-256 Checksum: `85d0042a0ec433330ca05a7790771fe79662650985ccb2c2329398fe28b24f6d`
+- GPG Signature: [https://releases.mattermost.com/11.10.3/mattermost-11.10.3-linux-amd64.tar.gz.sig](https://releases.mattermost.com/11.10.3/mattermost-11.10.3-linux-amd64.tar.gz.sig)
+- SBOM Download Link: [https://releases.mattermost.com/11.10.3/sbom-enterprise-v11.10.3.json](https://releases.mattermost.com/11.10.3/sbom-enterprise-v11.10.3.json)
+
+Mattermost Enterprise Edition v11.7.13 *Extended Support Release (ESR)* - [View Changelog](https://docs.mattermost.com/product-overview/mattermost-v11-changelog.html#release-v11-7-extended-support-release) - [Download](https://releases.mattermost.com/11.7.13/mattermost-11.7.13-linux-amd64.tar.gz?src=arc)
+
+- `https://releases.mattermost.com/11.7.13/mattermost-11.7.13-linux-amd64.tar.gz`
+- SHA-256 Checksum: `7e944f870c74d811118ac0b7d655ab0f947af6a4d33ae413b35ee4f59289ea98`
+- GPG Signature: [https://releases.mattermost.com/11.7.13/mattermost-11.7.13-linux-amd64.tar.gz.sig](https://releases.mattermost.com/11.7.13/mattermost-11.7.13-linux-amd64.tar.gz.sig)
+- SBOM Download Link: [https://releases.mattermost.com/11.7.13/sbom-enterprise-v11.7.13.json](https://releases.mattermost.com/11.7.13/sbom-enterprise-v11.7.13.json)
+
+</TabItem>
+<TabItem value="mattermost-team-edition" label="Mattermost Team Edition">
+
+The open source Mattermost Team Edition is functionally identical to the commercial Mattermost Enterprise Edition in its free “team mode”, but there is no ability to unlock enterprise features. It deploys as single Linux binary with PostgreSQL or MySQL under an MIT license.
+
+We generally recommend installing Enterprise Edition, even if you don't currently need a license. This provides the flexibility to seamlessly unlock Enterprise features should you need them. However, if you only want to install software with a fully open source code base, then Team Edition is the best choice for you.
+
+Mattermost Team Edition v11.11.2 - [View Changelog](https://docs.mattermost.com/product-overview/mattermost-v11-changelog.html#release-v11-11-feature-release) - [Download](https://releases.mattermost.com/11.11.2/mattermost-team-11.11.2-linux-amd64.tar.gz?src=arc)
+
+- `https://releases.mattermost.com/11.11.2/mattermost-team-11.11.2-linux-amd64.tar.gz`
+- SHA-256 Checksum: `2b5018aceb46763982d34d4c44fe5215f8d463a26255efbd3c59b61b7dda86c9`
+- GPG Signature: [https://releases.mattermost.com/11.11.2/mattermost-team-11.11.2-linux-amd64.tar.gz.sig](https://releases.mattermost.com/11.11.2/mattermost-team-11.11.2-linux-amd64.tar.gz.sig)
+- SBOM Download Link: [https://github.com/mattermost/mattermost/releases/download/v11.11.2/sbom-mattermost-v11.11.2.json](https://github.com/mattermost/mattermost/releases/download/v11.11.2/sbom-mattermost-v11.11.2.json)
+
+Mattermost Team Edition v11.10.3 - [View Changelog](https://docs.mattermost.com/product-overview/mattermost-v11-changelog.html#release-v11-10-feature-release) - [Download](https://releases.mattermost.com/11.10.3/mattermost-team-11.10.3-linux-amd64.tar.gz?src=arc)
+
+- `https://releases.mattermost.com/11.10.3/mattermost-team-11.10.3-linux-amd64.tar.gz`
+- SHA-256 Checksum: `5d03340b964e043b65461e91ce2aeb4e2b0c2880c2ece51580472d028c7a1f06`
+- GPG Signature: [https://releases.mattermost.com/11.10.3/mattermost-team-11.10.3-linux-amd64.tar.gz.sig](https://releases.mattermost.com/11.10.3/mattermost-team-11.10.3-linux-amd64.tar.gz.sig)
+- SBOM Download Link: [https://github.com/mattermost/mattermost/releases/download/v11.10.3/sbom-mattermost-v11.10.3.json](https://github.com/mattermost/mattermost/releases/download/v11.10.3/sbom-mattermost-v11.10.3.json)
+
+Mattermost Team Edition v11.7.13 *Extended Support Release (ESR)* - [View Changelog](https://docs.mattermost.com/product-overview/mattermost-v11-changelog.html#release-v11-7-extended-support-release) - [Download](https://releases.mattermost.com/11.7.13/mattermost-team-11.7.13-linux-amd64.tar.gz?src=arc)
+
+- `https://releases.mattermost.com/11.7.13/mattermost-team-11.7.13-linux-amd64.tar.gz`
+- SHA-256 Checksum: `7384073008077dd1ea9ed3d0cf997c79529084f67d6bcfb14de531813de50d1b`
+- GPG Signature: [https://releases.mattermost.com/11.7.13/mattermost-team-11.7.13-linux-amd64.tar.gz.sig](https://releases.mattermost.com/11.7.13/mattermost-team-11.7.13-linux-amd64.tar.gz.sig)
+- SBOM Download Link: [https://github.com/mattermost/mattermost/releases/download/v11.7.13/sbom-mattermost-v11.7.13.json](https://github.com/mattermost/mattermost/releases/download/v11.7.13/sbom-mattermost-v11.7.13.json)
+
+</TabItem>
+</Tabs>
+
