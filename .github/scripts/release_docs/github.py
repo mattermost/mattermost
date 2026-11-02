@@ -63,6 +63,50 @@ class GitHub:
         compare = self.request("GET", f"/repos/{repo}/compare/{urllib.parse.quote(base)}...{urllib.parse.quote(head)}")
         return compare.get("commits", [])
 
+    def tag_sha(self, repo: str, tag: str) -> str | None:
+        """The commit a tag points at, or None if there is no such tag."""
+        ref = self.request("GET", f"/repos/{repo}/git/ref/tags/{urllib.parse.quote(tag)}", missing_ok=True)
+        if not ref:
+            return None
+        target = ref["object"]
+        while target["type"] == "tag":
+            target = self.request("GET", target["url"])["object"]
+        return target["sha"]
+
+    def commit(self, repo: str, sha: str) -> dict:
+        """One commit with its message, committer date and changed file names (``files``)."""
+        found = self.request("GET", f"/repos/{repo}/commits/{urllib.parse.quote(sha)}")
+        files, page = list(found.get("files") or []), 2
+        while len(found.get("files") or []) == 300:  # the API pages a commit's files 300 at a time
+            found = self.request("GET", f"/repos/{repo}/commits/{urllib.parse.quote(sha)}?page={page}")
+            files += found.get("files") or []
+            page += 1
+        return {"sha": found["sha"], "message": found["commit"]["message"],
+                "date": found["commit"]["committer"]["date"], "parents": [p["sha"] for p in found.get("parents", [])],
+                "files": [f["filename"] for f in files]}
+
+    def commits_between(self, repo: str, base: str, head: str) -> list[dict]:
+        """The commits reachable from ``head`` but not ``base``, oldest first."""
+        commits, page = [], 1
+        while True:
+            found = self.request("GET", f"/repos/{repo}/compare/{urllib.parse.quote(base)}...{urllib.parse.quote(head)}"
+                                        f"?per_page=100&page={page}")
+            batch = found.get("commits", [])
+            commits += batch
+            if len(batch) < 100:
+                return commits
+            page += 1
+
+    def pull(self, repo: str, number: int) -> dict | None:
+        return self.request("GET", f"/repos/{repo}/pulls/{number}", missing_ok=True)
+
+    def commit_pulls(self, repo: str, sha: str) -> list[dict]:
+        return self.request("GET", f"/repos/{repo}/commits/{sha}/pulls") or []
+
+    def branches_with_prefix(self, repo: str, prefix: str) -> list[str]:
+        refs = self.request("GET", f"/repos/{repo}/git/matching-refs/heads/{urllib.parse.quote(prefix)}") or []
+        return [ref["ref"].removeprefix("refs/heads/") for ref in refs]
+
     def create_branch(self, repo: str, branch: str, sha: str) -> None:
         self.request("POST", f"/repos/{repo}/git/refs", {"ref": f"refs/heads/{branch}", "sha": sha})
 
@@ -96,6 +140,9 @@ class GitHub:
     def add_labels(self, repo: str, number: int, labels: list[str]) -> None:
         self.request("POST", f"/repos/{repo}/issues/{number}/labels", {"labels": labels})
 
+    def remove_label(self, repo: str, number: int, label: str) -> None:
+        self.request("DELETE", f"/repos/{repo}/issues/{number}/labels/{urllib.parse.quote(label)}", missing_ok=True)
+
     def search_issues(self, query: str, limit: int = 1000) -> list[dict]:
         items, page = [], 1
         while len(items) < limit:
@@ -115,6 +162,10 @@ class GitHub:
 
     def latest_release(self, repo: str) -> dict | None:
         return self.request("GET", f"/repos/{repo}/releases/latest", missing_ok=True)
+
+    def recent_releases(self, repo: str, count: int = 30) -> list[dict]:
+        """The newest releases, including pre-releases, newest first."""
+        return self.request("GET", f"/repos/{repo}/releases?per_page={count}") or []
 
     def update_release_body(self, repo: str, release_id: int, body: str) -> None:
         self.request("PATCH", f"/repos/{repo}/releases/{release_id}", {"body": body})

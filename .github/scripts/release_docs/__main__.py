@@ -19,6 +19,7 @@ from . import (
     calendar,
     changelog,
     docker_env,
+    dot_release,
     drafts,
     github_release,
     http,
@@ -37,9 +38,13 @@ from .versions import Version
 
 MODES = ("dry_run", "live")
 PR_TASKS = ("version-archive", "docker-env", "upgrade-notice", "release-docs")
-TASKS = PR_TASKS + ("github-release", "posts", "breaking-changes", "drafts", highlights_slide.TASK)
+TASKS = PR_TASKS + (dot_release.TASK, "github-release", "posts", "breaking-changes", "drafts", highlights_slide.TASK)
 SERVER_REPO = "mattermost/mattermost"
 FINAL_TAG = re.compile(r"v\d+\.\d+\.\d+")
+DOT_RELEASE_HANDLED = "handled by the dot release docs PR"
+# Dot releases for several minors ship together; a release event also picks up the others
+# published this recently, in case their own runs were cancelled while waiting their turn.
+SWEEP_DAYS = 3
 RELEASE_BRANCH = re.compile(r"release-(\d+)\.(\d+)")
 
 
@@ -56,11 +61,21 @@ def resolve(task: str, env: dict, event: dict) -> dict:
             if not raw:
                 raise ValueError("the milestone input is required")
             return {"run": "true", "version": raw, "mode": mode, "reason": "dispatched"}
+        if task == dot_release.TASK:
+            versions = parse_versions(raw)
+            if not versions:
+                raise ValueError("the versions input is required, e.g. v12.1.1, v11.7.15")
+            return {"run": "true", "version": ",".join(v.tag for v in versions), "mode": mode, "reason": "dispatched"}
         return {"run": "true", "version": Version.parse(raw).tag, "mode": mode, "reason": "dispatched"}
     if name == "release":
         tag = event.get("release", {}).get("tag_name", "")
         if not FINAL_TAG.fullmatch(tag):
             return {"run": "false", "reason": f"{tag} is not a final release tag (vX.Y.Z)"}
+        dot = Version.parse(tag).is_dot
+        if task == "version-archive" and dot:
+            return {"run": "false", "reason": f"{tag} is a dot release: {DOT_RELEASE_HANDLED}"}
+        if task == dot_release.TASK and not dot:
+            return {"run": "false", "reason": f"{tag} is a feature release: the version archive task handles it"}
         return {"run": "true", "version": tag, "mode": mode, "reason": f"release {event.get('action')}"}
     if name == "push":
         ref = event.get("ref", "").removeprefix("refs/heads/")
@@ -72,6 +87,46 @@ def resolve(task: str, env: dict, event: dict) -> dict:
 
 
 # ── Shared inputs ───────────────────────────────────────────────────────────────────
+
+def parse_versions(raw: str) -> list[Version]:
+    """``v12.1.1, v11.7.15`` (commas or spaces), in the order given, without repeats."""
+    versions = []
+    for part in re.split(r"[\s,]+", raw or ""):
+        if part.strip():
+            version = Version.parse(part)
+            if version not in versions:
+                versions.append(version)
+    return versions
+
+
+def released_together(gh, trigger: Version, now: datetime) -> list[Version]:
+    """The dot releases published on GitHub in the last few days, besides ``trigger``."""
+    found = []
+    for release in gh.recent_releases(SERVER_REPO):
+        tag, created = release.get("tag_name", ""), release.get("created_at") or ""
+        if release.get("draft") or not FINAL_TAG.fullmatch(tag) or not created:
+            continue
+        version = Version.parse(tag)
+        age = now - datetime.fromisoformat(created.replace("Z", "+00:00"))
+        if version.is_dot and version != trigger and age.days < SWEEP_DAYS:
+            found.append(version)
+    return sorted(set(found), reverse=True)
+
+
+def jira_labels_reader(env: dict, problems: list):
+    """A function from Jira keys to their labels, or None without Jira credentials."""
+    if not (env.get("JIRA_EMAIL") and env.get("JIRA_TOKEN")):
+        return None
+    client = jira.Jira(env.get("JIRA_URL") or jira.DEFAULT_URL, env["JIRA_EMAIL"], env["JIRA_TOKEN"])
+
+    def labels(keys: set) -> set:
+        try:
+            issues = client.search(f"key in ({', '.join(sorted(keys))})", ["labels"])
+        except Exception as err:  # noqa: BLE001 - reported, and the PR lists every bullet for review
+            problems.append(f"Jira labels for {', '.join(sorted(keys))} could not be read: {err}")
+            return set()
+        return {label for issue in issues for label in issue.get("fields", {}).get("labels", [])}
+    return labels
 
 def load_events(env: dict, fetch) -> tuple[list | None, str | None]:
     url = env.get("CALENDAR_ICS_URL", "").strip()
@@ -143,8 +198,30 @@ def run_task(task: str, raw_version: str, env: dict, gh, read_gh, claude, fetch=
         prs = drafts.milestone_prs(read_gh, repos, raw_version, drafts.BREAKING_LABEL)
         return Run(drafts.breaking_notices(raw_version, prs, claude), "Nothing published: drafts only.")
 
+    if task == dot_release.TASK:
+        versions = parse_versions(raw_version)
+        result_notes = []
+        if env.get("EVENT_NAME") == "release" and versions:
+            others = released_together(gh, versions[0], datetime.now(timezone.utc))
+            versions += [v for v in others if v not in versions]
+            if others:
+                result_notes.append(f"Also checked the dot releases published in the last {SWEEP_DAYS} days: "
+                                    f"{', '.join(v.tag for v in others)}.")
+        jira_problems = []
+        result, outcome, base_files = dot_release.run(gh, versions, env, claude, fetch, live,
+                                                      jira_labels_reader(env, jira_problems), sleep)
+        if not (env.get("JIRA_EMAIL") and env.get("JIRA_TOKEN")):
+            result_notes.append("Jira was not read (no RELEASE_AGENT_JIRA_* settings): security fixes were found "
+                                "from GitHub labels only.")
+        result.notes = result_notes + result.notes + jira_problems
+        return Run(result, outcome, base_files=base_files)
+
     version = Version.parse(raw_version)
     released_event = env.get("EVENT_NAME") == "release"
+
+    if task == "version-archive" and version.is_dot:
+        return Run(Result(task, version.tag, skipped=f"{version} is a dot release: {DOT_RELEASE_HANDLED}"),
+                   f"Skipped: {version} is a dot release, {DOT_RELEASE_HANDLED}.")
 
     if task in PR_TASKS:
         repo = {"docker-env": docker_env.REPO, "upgrade-notice": notice.REPO}.get(task, SERVER_REPO)
@@ -280,6 +357,8 @@ def summary(result: Result, outcome: str, mode: str, base_files: dict, highlight
     if highlights:
         lines += ["### Highlights and the changelog bullets they came from", ""]
         lines += [f"- **{h.name}**{f' ({h.url})' if h.url else ''}: {h.source}" for h in highlights] + [""]
+    if result.task == dot_release.TASK and result.body:
+        lines += ["### PR description", "", result.body.rstrip(), ""]
     if result.files:
         lines += ["### Changes", "", "````diff", diff(result, base_files).rstrip(), "````", ""]
     if result.text:
@@ -313,12 +392,48 @@ def write_outputs(out_dir: str, result: Result, text: str, base_files: dict) -> 
                    "todos": result.todos, "notes": result.notes, "skipped": result.skipped}, f, indent=2)
 
 
+def check_dot_release_pr(env: dict) -> int:
+    """The dot release docs PR's check, run in its checkout: the files on disk against ``BASE_REF``."""
+    import subprocess
+
+    def at_base(path: str) -> str:
+        shown = subprocess.run(["git", "show", f"{env.get('BASE_REF', 'HEAD^1')}:{path}"], capture_output=True, text=True)
+        return shown.stdout if shown.returncode == 0 else ""
+
+    root = env.get("REPO_ROOT") or subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True,
+                                                  text=True).stdout.strip()
+    title = env.get("PR_TITLE", "")
+    paths = {dot_release.SERVER_RELEASES, dot_release.ARCHIVE, *dot_release.DEPLOY_PAGES}
+    paths |= {dot_release.changelog_path(Version.parse(t)) for t in dot_release.versions_in_title(title)}
+    files, base = {}, {}
+    for path in sorted(paths):
+        with open(os.path.join(root, path), encoding="utf-8") as f:
+            files[path] = f.read()
+        base[path] = at_base(path)
+    problems = dot_release.check_pr(title, files, base)
+    lines = [f"## Dot release docs check: {title}", ""]
+    lines += [f"- {p}" for p in problems] or ["No `<SEVERITY>`, TBD checksum, TODO marker or consistency problem left."]
+    text = "\n".join(lines) + "\n"
+    print(text)
+    if env.get("GITHUB_STEP_SUMMARY"):
+        with open(env["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as f:
+            f.write(text)
+    for problem in problems:
+        print(f"::error title=Dot release docs::{problem}")
+    return 1 if problems else 0
+
+
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(prog="release_docs")
-    parser.add_argument("command", choices=("resolve", "run"))
+    parser.add_argument("command", choices=("resolve", "run", "check"))
     parser.add_argument("task", choices=TASKS)
     args = parser.parse_args(argv)
     env = dict(os.environ)
+
+    if args.command == "check":
+        if args.task != dot_release.TASK:
+            parser.error(f"check is only for {dot_release.TASK}")
+        return check_dot_release_pr(env)
 
     if args.command == "resolve":
         event = {}

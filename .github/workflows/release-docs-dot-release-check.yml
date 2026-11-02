@@ -1,0 +1,47 @@
+name: Dot Release Docs Check
+
+# Fails the dot release docs PR (branch release-agent/dot-release-docs/<version>) while the
+# changelog still says <SEVERITY>, a version archive SHA-256 is TBD, a TODO(release-agent)
+# marker is left, or the five files disagree or break MDX. Rerun by any push to the PR.
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, edited]
+    paths:
+      - "docs/main/product-overview/mattermost-v*-changelog.mdx"
+      - "docs/main/product-overview/mattermost-server-releases.mdx"
+      - "docs/main/product-overview/version-archive.mdx"
+      - "docs/main/deployment-guide/server/linux/deploy-rhel.mdx"
+      - "docs/main/deployment-guide/server/linux/deploy-tar.mdx"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dot-release-docs-check-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Check dot release docs
+    if: startsWith(github.head_ref, 'release-agent/dot-release-docs/')
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+          # The merge commit and its first parent, the branch the PR merges into.
+          fetch-depth: 2
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: '3.11'
+
+      - name: Check
+        working-directory: .github/scripts
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          BASE_REF: HEAD^1
+        run: python3 -m release_docs check dot-release-docs
