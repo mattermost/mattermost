@@ -484,7 +484,7 @@ const ADMIN_CONFIGURE_GROUPS = {
         {id: 'agents/docs/observability', label: 'Monitor Agents'},
         {id: 'agents/docs/backup_and_automation', label: 'Back up and automate'},
         {id: 'agents/docs/troubleshooting', label: 'Troubleshoot Agents'},
-        {id: 'end-user-guide/collaborate/agents-context-management', label: 'Data handling'},
+        {id: 'agents/docs/data_handling', label: 'Data handling'},
         {id: 'agents/docs/sovereign_ai', label: 'Sovereign AI deployments'},
         {id: 'agents/docs/upgrading_to_2.0', label: 'Upgrade from Agents 1.x'},
       ]),
@@ -987,10 +987,10 @@ const ADMIN_ROOT_ORDER = [
   'Migrate',
 ];
 
-// AI Agents above Project Management: Boards is in maintenance mode (see
+// Use Mattermost Agents above Project Management: Boards is in maintenance mode (see
 // administration-guide/configure/install-boards), Agents is not.
 const ENDUSER_ROOT_ORDER = [
-  'Access your workspace', 'Collaborate', 'Workflow Automation', 'AI Agents',
+  'Access your workspace', 'Collaborate', 'Workflow Automation', 'Use Mattermost Agents',
   'Project Management', 'Preferences',
 ];
 
@@ -2122,7 +2122,6 @@ function buildEndUserGuideSidebar(autoCat) {
       {id: 'agents/docs/summaries_and_search', label: 'Summaries and AI search'},
       {id: 'agents/docs/meeting_summaries', label: 'Meeting summaries'},
       {id: 'agents/docs/custom_prompts', label: 'Custom prompts'},
-      {id: 'agents/docs/managing_agents', label: 'Create and manage agents'},
       {id: 'agents/docs/mcp_server', label: 'Use Mattermost from Claude, Cursor, or VS Code'},
     ]),
     'end-user-guide/collaborate/agents-context-management',

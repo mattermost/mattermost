@@ -13,7 +13,7 @@
 // rules on its own full-repo submodule checkout.
 //
 // Navigation: no top-level Agents nav section. admin_guide.md, user_guide.md
-// and data_handling.md are inlined into the three curated pages (as Sphinx's
+// and what_agents_see.md are inlined into the three curated pages (as Sphinx's
 // `.. include::` did). Every other page is either a listed child or unlisted:
 //   - INLINE_PARTIALS: staged as an unlisted doc (direct-link parity) AND
 //     as a Markdown partial (leading underscore) the curated pages
@@ -52,14 +52,14 @@ const DEST_IMAGES = join(SITE_ROOT, 'static', 'images', 'agents');
 
 // Files whose body is inlined into a curated page via a Markdown partial
 // import, in addition to being staged as their own unlisted page.
-const INLINE_PARTIALS = new Set(['admin_guide', 'user_guide', 'data_handling']);
+const INLINE_PARTIALS = new Set(['admin_guide', 'user_guide', 'what_agents_see']);
 
 // Where each inlined page is really published. Links to these pages from
 // other staged pages point here instead of at the unlisted staged copy.
 const INLINE_CANONICAL_URLS = {
   admin_guide: '/administration-guide/configure/agents-admin-guide',
   user_guide: '/end-user-guide/agents',
-  data_handling: '/end-user-guide/collaborate/agents-context-management',
+  what_agents_see: '/end-user-guide/collaborate/agents-context-management',
 };
 
 // Files that get their own listed page, nested under a curated page by
@@ -82,6 +82,7 @@ const NAV_CHILDREN = new Set([
   'observability',
   'backup_and_automation',
   'troubleshooting',
+  'data_handling',
   'sovereign_ai',
   'upgrading_to_2.0',
   // Developers and integrators
