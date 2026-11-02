@@ -4,6 +4,9 @@
 package app
 
 import (
+	"crypto/ecdsa"
+	"crypto/ed25519"
+	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
 	"encoding/xml"
@@ -100,12 +103,7 @@ func (a *App) saveSamlCertificateConfig(rctx request.CTX, filename string, field
 	return appErr
 }
 
-func (a *App) addSamlCertificate(rctx request.CTX, filename string, fileData *multipart.FileHeader, field func(*model.SamlSettings) *string) *model.AppError {
-	data, appErr := readSamlFile(fileData)
-	if appErr != nil {
-		return appErr
-	}
-
+func (a *App) addSamlCertificate(rctx request.CTX, filename string, data []byte, field func(*model.SamlSettings) *string) *model.AppError {
 	if err := a.Srv().platform.SetConfigFile(filename, data); err != nil {
 		return model.NewAppError("AddSamlCertificate", "api.admin.add_certificate.saving.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -114,11 +112,84 @@ func (a *App) addSamlCertificate(rctx request.CTX, filename string, fileData *mu
 }
 
 func (a *App) AddSamlPublicCertificate(rctx request.CTX, fileData *multipart.FileHeader) *model.AppError {
-	return a.addSamlCertificate(rctx, SamlPublicCertificateName, fileData, func(s *model.SamlSettings) *string { return s.PublicCertificateFile })
+	data, appErr := readSamlFile(fileData)
+	if appErr != nil {
+		return appErr
+	}
+
+	if err := validateSamlSpCertificate(data); err != nil {
+		return model.NewAppError("AddSamlPublicCertificate", "api.admin.saml.invalid_public_certificate_file.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	return a.addSamlCertificate(rctx, SamlPublicCertificateName, data, func(s *model.SamlSettings) *string { return s.PublicCertificateFile })
 }
 
 func (a *App) AddSamlPrivateCertificate(rctx request.CTX, fileData *multipart.FileHeader) *model.AppError {
-	return a.addSamlCertificate(rctx, SamlPrivateKeyName, fileData, func(s *model.SamlSettings) *string { return s.PrivateKeyFile })
+	data, appErr := readSamlFile(fileData)
+	if appErr != nil {
+		return appErr
+	}
+
+	if err := validateSamlSpPrivateKey(data); err != nil {
+		return model.NewAppError("AddSamlPrivateCertificate", "api.admin.saml.invalid_private_key_file.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	return a.addSamlCertificate(rctx, SamlPrivateKeyName, data, func(s *model.SamlSettings) *string { return s.PrivateKeyFile })
+}
+
+// validateSamlSpCertificate accepts PEM data whose first CERTIFICATE block parses as X.509.
+//
+// The SP certificate and key are validated the way tls.X509KeyPair parses them when the SAML
+// implementation loads the key pair, so anything rejected here would also fail to load. Invalid
+// data must be rejected, since the SP would otherwise keep using the previous key pair until a
+// restart. They aren't checked against each other: during a rotation they're uploaded one at a
+// time, so the first upload always mismatches the file still on disk.
+func validateSamlSpCertificate(pemData []byte) error {
+	for {
+		var block *pem.Block
+		block, pemData = pem.Decode(pemData)
+		if block == nil {
+			return errors.New("no PEM-encoded certificate found")
+		}
+		if block.Type == "CERTIFICATE" {
+			_, err := x509.ParseCertificate(block.Bytes)
+			return err
+		}
+	}
+}
+
+// validateSamlSpPrivateKey accepts PEM data whose first private key block holds a PKCS #1,
+// PKCS #8 or SEC 1 key of a type TLS supports. See validateSamlSpCertificate.
+func validateSamlSpPrivateKey(pemData []byte) error {
+	for {
+		var block *pem.Block
+		block, pemData = pem.Decode(pemData)
+		if block == nil {
+			return errors.New("no PEM-encoded private key found")
+		}
+		if block.Type == "PRIVATE KEY" || strings.HasSuffix(block.Type, " PRIVATE KEY") {
+			return parseSamlSpPrivateKey(block.Bytes)
+		}
+	}
+}
+
+func parseSamlSpPrivateKey(der []byte) error {
+	if _, err := x509.ParsePKCS1PrivateKey(der); err == nil {
+		return nil
+	}
+	if key, err := x509.ParsePKCS8PrivateKey(der); err == nil {
+		switch key.(type) {
+		case *rsa.PrivateKey, *ecdsa.PrivateKey, ed25519.PrivateKey:
+			return nil
+		default:
+			return fmt.Errorf("unsupported private key type %T", key)
+		}
+	}
+	if _, err := x509.ParseECPrivateKey(der); err == nil {
+		return nil
+	}
+
+	return errors.New("failed to parse private key")
 }
 
 func (a *App) AddSamlIdpCertificate(rctx request.CTX, fileData *multipart.FileHeader) *model.AppError {

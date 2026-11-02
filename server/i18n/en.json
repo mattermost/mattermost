@@ -210,6 +210,16 @@
     "description": "Admin console error when an uploaded SAML Identity Provider certificate file cannot be parsed; 'PEM' and 'X.509' are certificate format names."
   },
   {
+    "id": "api.admin.saml.invalid_private_key_file.app_error",
+    "translation": "The uploaded Service Provider private key is not a valid PEM-encoded private key.",
+    "description": "Admin console error when an uploaded SAML Service Provider private key file cannot be parsed; 'PEM' is a key format name."
+  },
+  {
+    "id": "api.admin.saml.invalid_public_certificate_file.app_error",
+    "translation": "The uploaded Service Provider public certificate is not a valid PEM-encoded X.509 certificate.",
+    "description": "Admin console error when an uploaded SAML Service Provider public certificate file cannot be parsed; 'PEM' and 'X.509' are certificate format names."
+  },
+  {
     "id": "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error",
     "translation": "Missing Identity Provider SSO Descriptors node in the XML.",
     "description": "Admin console error when SAML Identity Provider metadata XML lacks the IDPSSODescriptor element; technical XML node name."

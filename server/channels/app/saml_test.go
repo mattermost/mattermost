@@ -5,9 +5,14 @@ package app
 
 import (
 	"bytes"
+	"crypto"
+	"crypto/ecdh"
 	"crypto/ecdsa"
+	"crypto/ed25519"
 	"crypto/elliptic"
 	"crypto/rand"
+	"crypto/rsa"
+	"crypto/tls"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/pem"
@@ -161,7 +166,11 @@ func setupSamlReload(t *testing.T, cluster samlTestCluster, configureErr error) 
 	saml := registerMockSaml(t, configureErr)
 	th := SetupWithClusterMock(t, cluster)
 	// A rotation keeps the filename, so the config listener doesn't reconfigure the SP.
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.SamlSettings.IdpCertificateFile = SamlIdpCertificateName })
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.SamlSettings.IdpCertificateFile = SamlIdpCertificateName
+		*cfg.SamlSettings.PublicCertificateFile = SamlPublicCertificateName
+		*cfg.SamlSettings.PrivateKeyFile = SamlPrivateKeyName
+	})
 
 	// Discard the ConfigureSP calls and cluster messages from startup.
 	saml.Calls = nil
@@ -290,6 +299,124 @@ func TestAddSamlIdpCertificate(t *testing.T) {
 	})
 }
 
+func TestAddSamlSpCertificates(t *testing.T) {
+	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	require.NoError(t, err)
+
+	for name, tc := range map[string]struct {
+		upload       func(*App, request.CTX, *multipart.FileHeader) *model.AppError
+		filename     string
+		data         []byte
+		invalidErrID string
+	}{
+		"public certificate": {
+			upload:       (*App).AddSamlPublicCertificate,
+			filename:     SamlPublicCertificateName,
+			data:         pemEncode("CERTIFICATE", testCertificateDERForKey(t, key)),
+			invalidErrID: "api.admin.saml.invalid_public_certificate_file.app_error",
+		},
+		"private key": {
+			upload:       (*App).AddSamlPrivateCertificate,
+			filename:     SamlPrivateKeyName,
+			data:         pkcs8PEM(t, key),
+			invalidErrID: "api.admin.saml.invalid_private_key_file.app_error",
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			t.Run("rejects invalid data", func(t *testing.T) {
+				a := &App{}
+				appErr := tc.upload(a, request.TestContext(t), samlFileHeader(t, []byte("not a certificate")))
+				require.NotNil(t, appErr)
+				assert.Equal(t, tc.invalidErrID, appErr.Id)
+				assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+			})
+
+			t.Run("stores the file, reloads the SP and broadcasts to the cluster", func(t *testing.T) {
+				cluster := &testlib.FakeClusterInterface{}
+				th, saml := setupSamlReload(t, cluster, nil)
+
+				appErr := tc.upload(th.App, request.TestContext(t), samlFileHeader(t, tc.data))
+				require.Nil(t, appErr)
+
+				stored, err := th.App.GetConfigFile(tc.filename)
+				require.NoError(t, err)
+				assert.Equal(t, tc.data, stored)
+				assertSamlReloaded(t, saml, cluster)
+			})
+		})
+	}
+}
+
+// The SAML implementation loads the SP key pair with tls.X509KeyPair, so each case is checked
+// against it too: the validators must accept exactly what it accepts.
+func TestValidateSamlSpKeyPair(t *testing.T) {
+	rsaKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	require.NoError(t, err)
+	ecKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	require.NoError(t, err)
+	_, edKey, err := ed25519.GenerateKey(rand.Reader)
+	require.NoError(t, err)
+	x25519Key, err := ecdh.X25519().GenerateKey(rand.Reader)
+	require.NoError(t, err)
+
+	rsaCert := pemEncode("CERTIFICATE", testCertificateDERForKey(t, rsaKey))
+	ecCert := pemEncode("CERTIFICATE", testCertificateDERForKey(t, ecKey))
+	edCert := pemEncode("CERTIFICATE", testCertificateDERForKey(t, edKey))
+	ecSEC1, err := x509.MarshalECPrivateKey(ecKey)
+	require.NoError(t, err)
+	ecKeyPEM := pkcs8PEM(t, ecKey)
+
+	t.Run("private key", func(t *testing.T) {
+		for name, tc := range map[string]struct {
+			cert, key []byte
+			valid     bool
+		}{
+			"PKCS #1 RSA key":            {rsaCert, pemEncode("RSA PRIVATE KEY", x509.MarshalPKCS1PrivateKey(rsaKey)), true},
+			"PKCS #8 RSA key":            {rsaCert, pkcs8PEM(t, rsaKey), true},
+			"PKCS #8 ECDSA key":          {ecCert, ecKeyPEM, true},
+			"PKCS #8 Ed25519 key":        {edCert, pkcs8PEM(t, edKey), true},
+			"SEC 1 EC key":               {ecCert, pemEncode("EC PRIVATE KEY", ecSEC1), true},
+			"key after other PEM blocks": {ecCert, append(pemEncode("EC PARAMETERS", []byte("parameters")), pemEncode("EC PRIVATE KEY", ecSEC1)...), true},
+			"PKCS #8 X25519 key":         {ecCert, pkcs8PEM(t, x25519Key), false},
+			"DER key":                    {rsaCert, x509.MarshalPKCS1PrivateKey(rsaKey), false},
+			"not PEM":                    {rsaCert, []byte("not a key"), false},
+			"garbage private key block":  {rsaCert, pemEncode("PRIVATE KEY", []byte("garbage")), false},
+			"certificate instead of key": {rsaCert, rsaCert, false},
+		} {
+			t.Run(name, func(t *testing.T) {
+				_, tlsErr := tls.X509KeyPair(tc.cert, tc.key)
+				require.Equal(t, tc.valid, tlsErr == nil, "tls.X509KeyPair: %v", tlsErr)
+
+				err := validateSamlSpPrivateKey(tc.key)
+				assert.Equal(t, tc.valid, err == nil, "validateSamlSpPrivateKey: %v", err)
+			})
+		}
+	})
+
+	t.Run("certificate", func(t *testing.T) {
+		for name, tc := range map[string]struct {
+			cert  []byte
+			valid bool
+		}{
+			"certificate":                        {ecCert, true},
+			"certificate chain":                  {append(append([]byte{}, ecCert...), rsaCert...), true},
+			"certificate after other PEM blocks": {append(pemEncode("EC PARAMETERS", []byte("parameters")), ecCert...), true},
+			"DER certificate":                    {testCertificateDERForKey(t, ecKey), false},
+			"not PEM":                            {[]byte("not a certificate"), false},
+			"garbage certificate block":          {pemEncode("CERTIFICATE", []byte("garbage")), false},
+			"key instead of certificate":         {ecKeyPEM, false},
+		} {
+			t.Run(name, func(t *testing.T) {
+				_, tlsErr := tls.X509KeyPair(tc.cert, ecKeyPEM)
+				require.Equal(t, tc.valid, tlsErr == nil, "tls.X509KeyPair: %v", tlsErr)
+
+				err := validateSamlSpCertificate(tc.cert)
+				assert.Equal(t, tc.valid, err == nil, "validateSamlSpCertificate: %v", err)
+			})
+		}
+	})
+}
+
 func TestRemoveSamlIdpCertificate(t *testing.T) {
 	cluster := &configChangeCapturingCluster{}
 	th := SetupWithClusterMock(t, cluster)
@@ -319,18 +446,34 @@ func testCertificateDER(t *testing.T) []byte {
 	t.Helper()
 	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	require.NoError(t, err)
+	return testCertificateDERForKey(t, key)
+}
+
+func testCertificateDERForKey(t *testing.T, key crypto.Signer) []byte {
+	t.Helper()
 	template := &x509.Certificate{
 		SerialNumber: big.NewInt(1),
 		NotBefore:    time.Now(),
 		NotAfter:     time.Now().Add(time.Hour),
 	}
-	certDER, err := x509.CreateCertificate(rand.Reader, template, template, &key.PublicKey, key)
+	certDER, err := x509.CreateCertificate(rand.Reader, template, template, key.Public(), key)
 	require.NoError(t, err)
 	return certDER
 }
 
 func testCertificatePEM(t *testing.T) []byte {
-	return pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: testCertificateDER(t)})
+	return pemEncode("CERTIFICATE", testCertificateDER(t))
+}
+
+func pemEncode(blockType string, der []byte) []byte {
+	return pem.EncodeToMemory(&pem.Block{Type: blockType, Bytes: der})
+}
+
+func pkcs8PEM(t *testing.T, key any) []byte {
+	t.Helper()
+	der, err := x509.MarshalPKCS8PrivateKey(key)
+	require.NoError(t, err)
+	return pemEncode("PRIVATE KEY", der)
 }
 
 func samlFileHeader(t *testing.T, data []byte) *multipart.FileHeader {

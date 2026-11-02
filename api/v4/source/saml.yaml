@@ -121,7 +121,9 @@
       description: >
         Upload the public certificate to be used for encryption with your SAML
         configuration. The server will pick a hard-coded filename for the
-        PublicCertificateFile setting in your `config.json`.
+        PublicCertificateFile setting in your `config.json`. The file must
+        contain a PEM-encoded X.509 certificate; anything else is rejected with
+        a 400 status.
 
         ##### Permissions
 
@@ -188,7 +190,9 @@
       description: >
         Upload the private key to be used for encryption with your SAML
         configuration. The server will pick a hard-coded filename for the
-        PrivateKeyFile setting in your `config.json`.
+        PrivateKeyFile setting in your `config.json`. The file must contain a
+        PEM-encoded RSA, ECDSA or Ed25519 private key in PKCS #1, PKCS #8 or
+        SEC 1 format; anything else is rejected with a 400 status.
 
         ##### Permissions
 
