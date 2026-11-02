@@ -172,7 +172,7 @@ class WorkflowTest(unittest.TestCase):
         gh.tags[SERVER].append("v12.2.0")
         self.assertEqual(cli.resolve("breaking-changes", env, {}, gh)["run"], "false")
         with self.assertRaises(ValueError):
-            cli.resolve("release-docs", env, {}, gh)
+            cli.resolve("version-archive", env, {}, gh)
 
     def test_run_task(self):
         gh = milestone_github()
