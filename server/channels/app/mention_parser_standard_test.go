@@ -723,13 +723,13 @@ const (
 	trailingRunLongerLength = 6000
 	trailingRunGoroutines   = 20
 	cappedTrailingRunFactor = 4
-	// Repeats keep the concurrent length comparison above allocator noise.
+	// Repeats keep the allocation comparisons above allocator noise.
 	// One call allocates only a few dozen bytes, which is smaller than the
 	// variation between runs of the same input.
-	cappedTrailingRunRepeats = 200
+	trailingRunRepeats = 200
 )
 
-// processTextAllocBytes reports bytes allocated by one ProcessText call.
+// processTextAllocBytes reports bytes allocated by repeated ProcessText calls.
 // A warmup call runs first so one-time setup is not part of the total.
 func processTextAllocBytes(text string, keywords map[string][]string) uint64 {
 	parser := makeStandardMentionParser(mapsToMentionKeywords(keywords, nil))
@@ -738,18 +738,16 @@ func processTextAllocBytes(text string, keywords map[string][]string) uint64 {
 	runtime.GC()
 	var before, after runtime.MemStats
 	runtime.ReadMemStats(&before)
-	parser.ProcessText(text)
+	for range trailingRunRepeats {
+		parser.ProcessText(text)
+	}
 	runtime.ReadMemStats(&after)
 	return after.TotalAlloc - before.TotalAlloc
 }
 
 // concurrentProcessTextAllocBytes reports bytes allocated by concurrent
 // ProcessText calls on the same text.
-func concurrentProcessTextAllocBytes(text string, keywords map[string][]string, goroutines int) uint64 {
-	return concurrentProcessTextAllocBytesRepeated(text, keywords, goroutines, 1)
-}
-
-func concurrentProcessTextAllocBytesRepeated(text string, keywords map[string][]string, goroutines int, repeats int) uint64 {
+func concurrentProcessTextAllocBytes(text string, keywords map[string][]string, goroutines int, repeats int) uint64 {
 	parsed := mapsToMentionKeywords(keywords, nil)
 	parsers := make([]*StandardMentionParser, goroutines)
 	for i := range parsers {
@@ -857,8 +855,8 @@ func TestProcessTextTrailingRunCost(t *testing.T) {
 				}
 				shortText := tc.prefix + strings.Repeat(".", trailingRunLength)
 				longText := tc.prefix + strings.Repeat(".", trailingRunLength*2)
-				shortCost := concurrentProcessTextAllocBytes(shortText, keywords, trailingRunGoroutines)
-				longCost := concurrentProcessTextAllocBytes(longText, keywords, trailingRunGoroutines)
+				shortCost := concurrentProcessTextAllocBytes(shortText, keywords, trailingRunGoroutines, trailingRunRepeats)
+				longCost := concurrentProcessTextAllocBytes(longText, keywords, trailingRunGoroutines, trailingRunRepeats)
 				assertTrailingRunCost(t, shortCost, longCost)
 			})
 		}
@@ -879,8 +877,8 @@ func TestProcessTextTrailingRunCost(t *testing.T) {
 		keywords := map[string][]string{strings.ToLower(prefix): {userID}}
 		shortText := prefix + strings.Repeat(".", model.MentionKeysMaxLength)
 		longText := prefix + strings.Repeat(".", model.MentionKeysMaxLength*cappedTrailingRunFactor)
-		shortCost := concurrentProcessTextAllocBytesRepeated(shortText, keywords, trailingRunGoroutines, cappedTrailingRunRepeats)
-		longCost := concurrentProcessTextAllocBytesRepeated(longText, keywords, trailingRunGoroutines, cappedTrailingRunRepeats)
+		shortCost := concurrentProcessTextAllocBytes(shortText, keywords, trailingRunGoroutines, trailingRunRepeats)
+		longCost := concurrentProcessTextAllocBytes(longText, keywords, trailingRunGoroutines, trailingRunRepeats)
 		assertCappedTrailingRunCost(t, shortCost, longCost)
 	})
 }
