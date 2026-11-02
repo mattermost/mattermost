@@ -34,6 +34,7 @@ export default class ServerLogs {
     readonly list: Locator;
     readonly rows: Locator;
     readonly reloadButton: Locator;
+    readonly newEntriesButton: Locator;
 
     // Plain text viewer
     readonly lineNumbersButton: Locator;
@@ -54,6 +55,7 @@ export default class ServerLogs {
         this.list = container.getByRole('list', {name: 'Server log entries'});
         this.rows = this.list.getByRole('listitem');
         this.reloadButton = container.getByRole('button', {name: 'Reload'});
+        this.newEntriesButton = container.getByRole('button', {name: /new entr(y|ies)$/});
 
         this.lineNumbersButton = container.getByRole('button', {name: 'Lines'});
     }

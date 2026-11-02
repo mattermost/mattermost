@@ -3,7 +3,7 @@
 
 import {batchActions} from 'redux-batched-actions';
 
-import type {LogFilter} from '@mattermost/types/admin';
+import type {LogFilter, LogFilterQuery} from '@mattermost/types/admin';
 import type {
     Channel,
     ChannelSearchOpts,
@@ -35,18 +35,32 @@ import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
 
 import {General} from '../constants';
 
-export function getLogs({serverNames = [], logLevels = [], dateFrom, dateTo}: LogFilter) {
-    const logFilter = {
+function toLogFilterQuery({serverNames = [], logLevels = [], dateFrom, dateTo}: LogFilter): LogFilterQuery {
+    return {
         server_names: serverNames,
         log_levels: logLevels,
         date_from: dateFrom,
         date_to: dateTo,
     };
+}
+
+export function getLogs(logFilter: LogFilter) {
     return bindClientFunc({
         clientFunc: Client4.getLogs,
         onSuccess: [AdminTypes.RECEIVED_LOGS],
         params: [
-            logFilter,
+            toLogFilterQuery(logFilter),
+        ],
+    });
+}
+
+// Merges the response into the loaded entries instead of replacing them
+export function getNewLogs(logFilter: LogFilter) {
+    return bindClientFunc({
+        clientFunc: Client4.getLogs,
+        onSuccess: [AdminTypes.RECEIVED_NEW_LOGS],
+        params: [
+            toLogFilterQuery(logFilter),
         ],
     });
 }

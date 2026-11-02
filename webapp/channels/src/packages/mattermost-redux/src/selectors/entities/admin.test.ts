@@ -38,7 +38,7 @@ describe('selectors.entities.admin', () => {
     });
 
     test('getAllLogsWithNode returns no entries before the first fetch', () => {
-        expect(getAllLogsWithNode(stateWith([]))).toEqual([]);
+        expect(getAllLogsWithNode(stateWith({}))).toEqual([]);
     });
 
     test('getAllLogsWithNode returns no entries for a node with none', () => {
