@@ -43,7 +43,7 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
         };
     });
 
-    const takenBotToken = useRef<{id: string; token?: string}>(undefined);
+    const takenBotToken = useRef<{id: string; token?: string} | undefined>(undefined);
     const [takenToken, setTakenToken] = useState<{id: string; token?: string}>();
     const botToken = takenToken?.id === id ? takenToken : undefined;
 
