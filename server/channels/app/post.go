@@ -4355,6 +4355,15 @@ func (a *App) publishPostRevealedEventToAuthor(rctx request.CTX, post *model.Pos
 					continue
 				}
 				embedCopy := *embed
+				if previewPost, ok := embed.Data.(*model.PreviewPost); ok && previewPost != nil && previewPost.Post != nil {
+					previewPostCopy := *previewPost
+					previewPostCopy.Post = previewPost.Post.Clone()
+					if previewPost.Post.Metadata != nil {
+						previewMetadataCopy := *previewPost.Post.Metadata
+						previewPostCopy.Post.Metadata = &previewMetadataCopy
+					}
+					embedCopy.Data = &previewPostCopy
+				}
 				embeds[i] = &embedCopy
 			}
 			metadataCopy.Embeds = embeds

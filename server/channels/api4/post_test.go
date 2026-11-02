@@ -8216,15 +8216,13 @@ func TestRevealPost(t *testing.T) {
 				require.NotNil(t, revealedPost)
 				require.Equal(t, burnMessage, revealedPost.Message)
 
-				if tc.previewChannelKind == "direct" || tc.previewChannelKind == "group" {
-					// The revealer belongs to the channel, so the response still carries the preview.
-					revealedJSON, mErr := json.Marshal(revealedPost)
-					require.NoError(t, mErr)
-					require.Contains(t, string(revealedJSON), previewedText, "reveal response should include previewed post text")
-				}
+				// The revealer belongs to the previewed channel, so the response always carries the preview.
+				revealedJSON, mErr := json.Marshal(revealedPost)
+				require.NoError(t, mErr)
+				require.Contains(t, string(revealedJSON), previewedText, "reveal response should include previewed post text")
 
 				if tc.assertAuthorEvent {
-					var eventPost model.Post
+					var eventPost *model.Post
 					var eventPostJSON string
 					var recipients any
 					require.Eventually(t, func() bool {
@@ -8237,8 +8235,8 @@ func TestRevealPost(t *testing.T) {
 							if !ok {
 								return false
 							}
-							var parsed model.Post
-							if json.Unmarshal([]byte(raw), &parsed) != nil {
+							parsed := &model.Post{}
+							if json.Unmarshal([]byte(raw), parsed) != nil {
 								return false
 							}
 							if parsed.Id != createdBurnOnRead.Id {
@@ -8265,12 +8263,7 @@ func TestRevealPost(t *testing.T) {
 					if secondPreviewedText != "" {
 						require.NotContains(t, eventPostJSON, secondPreviewedText, "author post_revealed payload should omit the other permalink post text")
 					}
-					return
 				}
-
-				revealedJSON, err := json.Marshal(revealedPost)
-				require.NoError(t, err)
-				require.Contains(t, string(revealedJSON), previewedText, "reveal response should include previewed post text")
 			})
 		}
 	})
