@@ -269,11 +269,36 @@ class ResolveTest(unittest.TestCase):
         self.assertEqual(resolve("version-archive", {"EVENT_NAME": "release"}, {"action": "published", "release": {"tag_name": "v12.1.0"}}),
                          {"run": "true", "version": "v12.1.0", "mode": "dry_run", "reason": "release published"})
         self.assertEqual(resolve("version-archive", {"EVENT_NAME": "release"}, {"release": {"tag_name": "v12.1.0-rc1"}})["run"], "false")
-        self.assertEqual(resolve("release-docs", {"EVENT_NAME": "push", "PHASE3_MODE": "live"},
+        self.assertEqual(resolve("breaking-changes", {"EVENT_NAME": "push", "PHASE3_MODE": "live"},
                                  {"ref": "refs/heads/release-12.2", "created": True}),
                          {"run": "true", "version": "v12.2.0", "mode": "live", "reason": "branch cut"})
-        self.assertEqual(resolve("release-docs", {"EVENT_NAME": "push"}, {"ref": "refs/heads/release-12.2", "created": False})["run"], "false")
-        self.assertEqual(resolve("release-docs", {"EVENT_NAME": "push"}, {"ref": "refs/heads/release-12.2-fix", "created": True})["run"], "false")
+        self.assertEqual(resolve("breaking-changes", {"EVENT_NAME": "push"}, {"ref": "refs/heads/release-12.2", "created": False})["run"], "false")
+        self.assertEqual(resolve("breaking-changes", {"EVENT_NAME": "push"}, {"ref": "refs/heads/release-12.2-fix", "created": True})["run"], "false")
+
+    def test_release_docs_pr_opens_when_rc1_is_tagged_on_the_release_branch(self):
+        class TaggedGitHub(FakeGitHub):
+            tag_commits = {}
+
+            def tag_sha(self, repo, tag):
+                return self.tag_commits.get((repo, tag))
+
+        gh = TaggedGitHub()
+        gh.add_repo("mattermost/mattermost", {})
+        branches = gh.repos["mattermost/mattermost"]["branches"]
+        branches["release-12.2"] = list(branches["master"])
+        gh.push("mattermost/mattermost", "release-12.2", {"a": "b"})
+        gh.tag_commits[("mattermost/mattermost", "v12.2.0-rc1")] = branches["release-12.2"][-1]["sha"]
+        env = {"EVENT_NAME": "push", "PHASE3_MODE": "live"}
+        tag = {"ref": "refs/tags/v12.2.0-rc1", "created": True}
+        self.assertEqual(cli.resolve("release-docs", env, tag, gh),
+                         {"run": "true", "version": "v12.2.0", "mode": "live", "reason": "v12.2.0-rc1 tagged"})
+        # Not at the branch cut any more, not for later RCs, and not for a tag that isn't on release-X.Y.
+        self.assertEqual(cli.resolve("release-docs", env, {"ref": "refs/heads/release-12.2", "created": True}, gh)["run"], "false")
+        self.assertEqual(cli.resolve("release-docs", env, {"ref": "refs/tags/v12.2.0-rc2", "created": True}, gh)["run"], "false")
+        gh.push("mattermost/mattermost", "master", {"c": "d"})
+        gh.tag_commits[("mattermost/mattermost", "v12.2.0-rc1")] = branches["master"][-1]["sha"]
+        self.assertEqual(cli.resolve("release-docs", env, tag, gh),
+                         {"run": "false", "reason": "v12.2.0-rc1 is not on release-12.2"})
 
     def test_mode_input_overrides_the_variable(self):
         env = {"EVENT_NAME": "workflow_dispatch", "INPUT_VERSION": "12.2.0", "PHASE3_MODE": "live", "INPUT_MODE": "dry_run"}
