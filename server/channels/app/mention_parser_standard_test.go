@@ -13,6 +13,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // withFillerKeywords returns the given keywords along with count additional single-byte keywords
@@ -777,9 +778,7 @@ func concurrentProcessTextAllocBytes(text string, keywords map[string][]string, 
 
 func assertTrailingRunCost(t *testing.T, smallCost, largeCost uint64) {
 	t.Helper()
-	if smallCost == 0 {
-		t.Fatal("shorter run allocated nothing")
-	}
+	require.NotZero(t, smallCost, "shorter run allocated nothing")
 	ratio := float64(largeCost) / float64(smallCost)
 	t.Logf("trailing run cost ratio %.2f (shorter=%d longer=%d)", ratio, smallCost, largeCost)
 	assert.LessOrEqualf(t, ratio, maxTrailingRunDoublingRatio,
@@ -789,9 +788,7 @@ func assertTrailingRunCost(t *testing.T, smallCost, largeCost uint64) {
 
 func assertCappedTrailingRunCost(t *testing.T, smallCost, largeCost uint64) {
 	t.Helper()
-	if smallCost == 0 {
-		t.Fatal("shorter run allocated nothing")
-	}
+	require.NotZero(t, smallCost, "shorter run allocated nothing")
 	ratio := float64(largeCost) / float64(smallCost)
 	t.Logf("capped trailing run cost ratio %.2f (shorter=%d longer=%d)", ratio, smallCost, largeCost)
 	assert.LessOrEqualf(t, ratio, maxCappedTrailingRunRatio,
