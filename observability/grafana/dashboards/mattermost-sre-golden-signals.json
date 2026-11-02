@@ -79,14 +79,16 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "expr": "job:mattermost_error_budget_remaining:percent",
-          "legendFormat": "Saldo (%)",
-          "refId": "A"
+          "legendFormat": "Saldo Restante (%)",
+          "refId": "A",
+          "instant": true
         }
       ],
       "options": {
         "reduceOptions": { "calcs": ["lastNotNull"], "values": false },
         "showThresholdLabels": false,
-        "showThresholdMarkers": true
+        "showThresholdMarkers": true,
+        "orientation": "auto"
       },
       "fieldConfig": {
         "defaults": {
@@ -507,5 +509,5 @@
   "timezone": "browser",
   "title": "Mattermost SRE — Golden Signals & SLOs",
   "uid": "mattermost-sre-overview",
-  "version": 5
+  "version": 6
 }
