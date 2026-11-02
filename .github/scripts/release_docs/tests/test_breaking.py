@@ -203,6 +203,13 @@ class WorkflowTest(unittest.TestCase):
             template = f.read()
         self.assertNotIn("Breaking change", template)
 
+    def test_only_the_push_that_creates_a_release_branch_starts_a_run(self):
+        path = os.path.join(REPO_ROOT, ".github", "workflows", "release-docs-breaking-changes.yml")
+        with open(path, encoding="utf-8") as f:
+            workflow = f.read()
+        self.assertIn("    if: github.event_name != 'push' || github.event.created\n", workflow)
+        self.assertIn("  schedule:\n", workflow)
+
 
 if __name__ == "__main__":
     unittest.main()
