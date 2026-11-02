@@ -17,12 +17,9 @@ import type {RelationOneToOne, IDMappedObjects} from '@mattermost/types/utilitie
 
 import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {AdminTypes, UserTypes} from 'mattermost-redux/action_types';
-import {Stats} from 'mattermost-redux/constants';
+import {General, Stats} from 'mattermost-redux/constants';
 import PluginState from 'mattermost-redux/constants/plugins';
 import {logEntryKey, logEntryTime} from 'mattermost-redux/utils/log_utils';
-
-// The most entries the server returns for a node in one query
-const MAX_LOGS_PER_NODE = 10000;
 
 // New entries are fetched from the newest loaded timestamp onwards, so they repeat the entries
 // from that millisecond, and older nodes that ignore the date filter repeat everything
@@ -58,7 +55,9 @@ function mergeLogEntries(existing: LogObject[], incoming: LogObject[]): LogObjec
     }
 
     const merged = kept.concat(added);
-    return merged.length > MAX_LOGS_PER_NODE ? merged.slice(merged.length - MAX_LOGS_PER_NODE) : merged;
+
+    // Capped at what one query returns for a node, so a node at the cap is flagged as truncated
+    return merged.length > General.LOGS_PAGE_SIZE_DEFAULT ? merged.slice(merged.length - General.LOGS_PAGE_SIZE_DEFAULT) : merged;
 }
 
 function logs(state: LogsByNode = {}, action: MMReduxAction): LogsByNode {
