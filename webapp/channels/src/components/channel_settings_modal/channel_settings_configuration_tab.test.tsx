@@ -1322,6 +1322,23 @@ describe('ChannelSettingsConfigurationTab', () => {
                 expect(screen.getByText(NOTICE_TITLE)).toBeInTheDocument();
             });
 
+            it('is not shown while the user field lookup is still pending', async () => {
+                Client4.getPropertyFields.mockReturnValue(new Promise(() => {}));
+                enableClassification();
+
+                renderWithContext(
+                    <ChannelSettingsConfigurationTab {...baseProps}/>,
+                    {entities: {general: {config: {EnableAttributeBasedAccessControl: 'true'}}}} as PartialState,
+                );
+
+                await userEvent.click(screen.getByTestId('channelClassificationToggle-button'));
+                expect(screen.getByTestId('channelClassificationLevel')).toBeInTheDocument();
+                await runPostRenderAct();
+
+                expect(Client4.getPropertyFields).toHaveBeenCalled();
+                expect(screen.queryByText(NOTICE_TITLE)).not.toBeInTheDocument();
+            });
+
             it('is hidden once the clearance attribute is enabled', async () => {
                 await renderAndEnableClassification({
                     abacEnabled: true,

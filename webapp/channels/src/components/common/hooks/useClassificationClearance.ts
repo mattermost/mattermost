@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useEffect, useMemo} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {GlobalState} from '@mattermost/types/store';
@@ -22,9 +22,10 @@ import {getPropertyGroupByName, makeGetPropertyFieldsForObjectTypeAndGroup} from
  * then compare a user's clearance with a channel's classification, so markings
  * are no longer informational only. Mirrors the System Console's check.
  *
- * Pass no template id to skip the lookup.
+ * `isResolving` stays true until the lookup settles so callers can avoid
+ * flashing the informational notice. Pass no template id to skip the lookup.
  */
-export default function useClassificationClearance(templateFieldId?: string): boolean {
+export default function useClassificationClearance(templateFieldId?: string): {clearanceEnabled: boolean; isResolving: boolean} {
     const dispatch = useDispatch();
     const abacEnabled = Boolean(useSelector(getAccessControlSettings)?.EnableAttributeBasedAccessControl);
     const shouldCheck = abacEnabled && Boolean(templateFieldId);
@@ -33,11 +34,32 @@ export default function useClassificationClearance(templateFieldId?: string): bo
     const groupId = useSelector((state: GlobalState) => getPropertyGroupByName(state, ACCESS_CONTROL_PROPERTY_GROUP)?.id);
     const userFields = useSelector((state: GlobalState) => (groupId ? getUserFields(state, USER_OBJECT_TYPE, groupId) : undefined));
 
+    const [lookupSettled, setLookupSettled] = useState(false);
+
     useEffect(() => {
-        if (shouldCheck) {
-            dispatch(fetchPropertyFields(ACCESS_CONTROL_PROPERTY_GROUP, USER_OBJECT_TYPE, SYSTEM_TARGET_TYPE, SYSTEM_TARGET_ID));
+        if (!shouldCheck) {
+            return undefined;
         }
+
+        let active = true;
+        const lookup = async () => {
+            try {
+                await dispatch(fetchPropertyFields(ACCESS_CONTROL_PROPERTY_GROUP, USER_OBJECT_TYPE, SYSTEM_TARGET_TYPE, SYSTEM_TARGET_ID));
+            } catch {
+                // A failed lookup is treated as no clearance attribute.
+            }
+            if (active) {
+                setLookupSettled(true);
+            }
+        };
+        lookup();
+
+        return () => {
+            active = false;
+        };
     }, [shouldCheck, dispatch]);
 
-    return shouldCheck && Boolean(userFields?.some((f) => f.linked_field_id === templateFieldId));
+    const clearanceEnabled = shouldCheck && Boolean(userFields?.some((f) => f.linked_field_id === templateFieldId));
+
+    return {clearanceEnabled, isResolving: shouldCheck && !clearanceEnabled && !lookupSettled};
 }

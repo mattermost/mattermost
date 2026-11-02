@@ -186,7 +186,7 @@ function ChannelSettingsConfigurationTab({
     // Assignment moves to Channel Info once the flag is on; two controls for one
     // value would disagree the moment either changed.
     const canManageClassification = classification.available && canManageChannelRoles && !channelAttributesEnabled;
-    const clearanceEnabled = useClassificationClearance(canManageClassification ? classification.channelField?.linked_field_id : undefined);
+    const {clearanceEnabled, isResolving: clearanceResolving} = useClassificationClearance(canManageClassification ? classification.channelField?.linked_field_id : undefined);
     const resolvedAttributes = useResolvedChannelAttributes(channel.id);
 
     // With channel attributes on the banner is authored per channel, so locking it
@@ -907,7 +907,7 @@ function ChannelSettingsConfigurationTab({
 
                     {classificationEnabled && (
                         <div className='channel_banner_section_body'>
-                            {!clearanceEnabled && (
+                            {!clearanceEnabled && !clearanceResolving && (
                                 <SectionNotice
                                     type='warning'
                                     icon={<Icon glyph={<InformationOutlineIcon/>}/>}
