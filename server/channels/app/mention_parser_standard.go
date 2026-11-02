@@ -172,8 +172,8 @@ func (p *StandardMentionParser) mentionWithoutTrailingPunctuation(word string) b
 	window := word
 	// A keyword fits in MentionKeysMaxLength, so one extra byte is enough to see
 	// a trailing character past the longest keyword.
-	if max := model.MentionKeysMaxLength + 1; len(window) > max {
-		window = window[:max]
+	if limit := model.MentionKeysMaxLength + 1; len(window) > limit {
+		window = window[:limit]
 	}
 
 	end := trailingPunctStart(window)
