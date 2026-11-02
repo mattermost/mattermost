@@ -1,9 +1,9 @@
 # Runbook Operativo de Respuesta a Incidentes SRE — Mattermost
 
-**Servicio:** Plataforma de Comunicación y Colaboración Mattermost  
-**Nivel de Criticidad:** Tier 1 (Servicio Crítico de Producción)  
-**Objetivo de Confiabilidad (SLO):** Disponibilidad $\ge 99.5\%$ | Latencia $P_{95} \le 250\text{ ms}$  
-**Monitoreo y Alertas:** Prometheus & Grafana Stack (`/observability`)  
+**Servicio:** Plataforma de Comunicación y Colaboración Mattermost
+**Nivel de Criticidad:** Tier 1 (Servicio Crítico de Producción)
+**Objetivo de Confiabilidad (SLO):** Disponibilidad $\ge 99.5\%$ | Latencia $P_{95} \le 250\text{ ms}$
+**Monitoreo y Alertas:** Prometheus & Grafana Stack (`/observability`)
 
 ---
 
@@ -34,8 +34,8 @@ Ante cualquier alerta disparada en Prometheus o notificación de incidente:
 3. **Verificar Salud de Sondeos HTTP:**
    ```bash
    # Probar respuesta directa al endpoint de salud
-   curl -I -s -m 5 http://localhost:8065/api/v4/system/ping || echo "SERVICIO NO RESPONDE"
-   
+   curl -i -s -m 5 http://localhost:8065/api/v4/system/ping || echo "SERVICIO NO RESPONDE"
+
    # Consultar sonda del blackbox
    curl -s "http://localhost:9115/probe?target=http://mattermost-app:8065/api/v4/system/ping&module=http_mattermost_ping" | grep probe_success
    ```
@@ -93,8 +93,8 @@ Ante cualquier alerta disparada en Prometheus o notificación de incidente:
 - Si hay bloqueos de transacciones (deadlocks):
   ```bash
   docker exec -it mattermost-db psql -U mmuser -d mattermost -c "
-    SELECT pg_terminate_backend(pid) 
-    FROM pg_stat_activity 
+    SELECT pg_terminate_backend(pid)
+    FROM pg_stat_activity
     WHERE state = 'idle in transaction' AND state_change < current_timestamp - INTERVAL '5' MINUTE;
   "
   ```

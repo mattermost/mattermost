@@ -1,21 +1,17 @@
 # INFORME TÉCNICO — ENTREGABLE # 3
 ## Marco Operativo de Site Reliability Engineering (SRE) y Pila de Observabilidad
 
-**Curso:** Fundamentos de DevOps y SRE  
-**Programa:** Posgrados en Ingeniería de Sistemas y Computación — Facultad de Ingeniería  
-**Institución:** Universidad Nacional de Colombia  
-**Periodo Académico:** 2026-02  
-**Plataforma FOSS:** Mattermost Collaboration Platform  
-
 ---
 
 ## 1. Datos del Equipo
 
-- **Identificador del Grupo:** Equipo [A / B / C / Asignar letra]
+- **Identificador del Grupo:** Equipo #2
+- **Plataforma FOSS:** Mattermost Collaboration Platform
+
 - **Integrantes:**
-  1. *[Nombre Completo Integrante 1]* — `[correo@unal.edu.co]`
-  2. *[Nombre Completo Integrante 2]* — `[correo@unal.edu.co]`
-  3. *[Nombre Completo Integrante 3]* — `[correo@unal.edu.co]`
+  1. *Alvaro Fabian Valderrama Fonseca* — `fabianvalderrama18@gmail.com`
+  2. *Juan Felipe Alonso Robayo* — `alonsofelipe8888@gmail.com`
+  3. *Sergio Camilo Espinosa Botero* — `sespinosab@unal.edu.co`
 
 ---
 
@@ -26,25 +22,29 @@
 Para la plataforma Mattermost, se han definido dos Indicadores de Nivel de Servicio (SLIs) cuantitativos que capturan la confiabilidad del servicio desde la perspectiva del usuario final:
 
 #### SLI 1: Disponibilidad y Tasa de Éxito HTTP (Availability SLI)
-- **Definición Conceptual:** Representa la proporción de sondeos y peticiones de salud HTTP atendidas con éxito (código de respuesta $2\text{xx}$ o $3\text{xx}$) sobre el total de intentos de conexión hacia el núcleo de la aplicación.
+- **Definición Conceptual:** Representa la proporción de sondeos y peticiones de salud HTTP atendidas con éxito (código de respuesta `2xx` o `3xx`) sobre el total de intentos de conexión hacia el núcleo de la aplicación.
 - **Formulación Matemática:**
-  $$\text{SLI}_{\text{disp}} = \frac{\sum_{t \in W} \text{Sondas Exitosas}(t)}{\sum_{t \in W} \text{Sondas Totales}(t)} \times 100$$
-  Donde $W$ es la ventana temporal de evaluación (5 minutos para evaluación reactiva; 30 días para evaluación de cumplimiento de SLO).
+
+    $$\text{SLI}_{\text{disp}} = \frac{\sum_{t \in W} \text{Sondas Exitosas}(t)}{\sum_{t \in W} \text{Sondas Totales}(t)} \times 100$$
+
+    Donde `W` es la ventana temporal de evaluación (5 minutos para evaluación reactiva; 30 días para evaluación de cumplimiento de SLO).
 - **Expresión de Consulta en PromQL:**
   ```promql
   # Evaluación en ventana móvil de 5 minutos
-  job:mattermost_availability:sli5m = 
+  job:mattermost_availability:sli5m =
     avg_over_time(probe_success{job="blackbox_http_mattermost"}[5m])
   ```
 
 #### SLI 2: Rendimiento y Latencia Percentilar P95 (Latency SLI)
-- **Definición Conceptual:** Corresponde al límite de tiempo en el cual se atiende el $95\%$ de las peticiones sintéticas hacia los endpoints de la API REST de Mattermost.
+- **Definición Conceptual:** Corresponde al límite de tiempo en el cual se atiende el `95%` de las peticiones sintéticas hacia los endpoints de la API REST de Mattermost.
 - **Formulación Matemática:**
-  $$P_{95} = \inf \left\{ t \in \mathbb{R}^+ : P(\text{Duración de Petición} \le t) \ge 0.95 \right\}$$
+
+    $$P_{95} = \inf \left\lbrace t \in \mathbb{R}^+ : P(\text{Duración de Petición} \le t) \ge 0.95 \right\rbrace$$
+
 - **Expresión de Consulta en PromQL:**
   ```promql
   # Percentil 95 de duración HTTP en ventana de 5 minutos
-  job:mattermost_latency_p95:seconds5m = 
+  job:mattermost_latency_p95:seconds5m =
     histogram_quantile(0.95, rate(probe_duration_seconds_bucket{job="blackbox_http_api"}[5m]))
     OR on() (job:mattermost_latency_avg:seconds5m * 1.25)
   ```
@@ -55,25 +55,26 @@ Para la plataforma Mattermost, se han definido dos Indicadores de Nivel de Servi
 
 | Parámetro | Objetivo (SLO) | Ventana de Evaluación | Justificación Técnica |
 |---|---|---|---|
-| **Disponibilidad** | **$\ge 99.5\%$** | 30 días móviles | Mattermost es una herramienta de comunicación sincrónica crítica para operaciones de equipo. Un SLO del $99.5\%$ ("dos nueves y medio") permite una indisponibilidad máxima de **$3.6$ horas por mes**. Este balance evita costos excesivos de redundancia activa multi-región mientras garantiza que los colaboradores experimenten interrupciones insignificantes. |
-| **Latencia P95** | **$\le 250\text{ ms}$** | 5 minutos móviles | La percepción humana de inmediatez en interfaces de usuario y chat colaborativo se degrada a partir de los $300\text{ ms}$ (estándares de usabilidad de Nielsen). Mantener el percentil $95$ por debajo de $250\text{ ms}$ asegura fluidez en el envío y sincronización de mensajes en tiempo real. |
+| **Disponibilidad** | **>= 99.5%** | 30 días móviles | Mattermost es una herramienta de comunicación sincrónica crítica para operaciones de equipo. Un SLO del `99.5%` ("dos nueves y medio") permite una indisponibilidad máxima de **3.6 horas por mes**. Este balance evita costos excesivos de redundancia activa multi-región mientras garantiza que los colaboradores experimenten interrupciones insignificantes. |
+| **Latencia P95** | **<= 250 ms** | 5 minutos móviles | La percepción humana de inmediatez en interfaces de usuario y chat colaborativo se degrada a partir de los `300 ms` (estándares de usabilidad de Nielsen). Mantener el percentil `95` por debajo de `250 ms` asegura fluidez en el envío y sincronización de mensajes en tiempo real. |
 
 ---
 
 ### 2.3 Política Documentada de Error Budget (Error Budget Policy)
 
 El Presupuesto de Error admisible para la ventana mensual de 30 días se calcula como:
+
 $$\text{Error Budget Total} = 100\% - 99.5\% = 0.5\% \quad (\approx 216\text{ minutos de degradación tolerable})$$
 
 El cálculo en tiempo real del saldo restante se rige por:
 ```promql
-job:mattermost_error_budget_remaining:percent = 
+job:mattermost_error_budget_remaining:percent =
   clamp_max(clamp_min(((job:mattermost_availability:sli30m - 0.995) / (1 - 0.995)) * 100, 0), 100)
 ```
 
 #### Acuerdos Operativos y Consecuencias entre Desarrollo y Operaciones
 
-```
+```text
 +-----------------------------------------------------------------------------------+
 |                           POLÍTICA DE ERROR BUDGET                                |
 +------------------+---------------------+------------------------------------------+
@@ -103,7 +104,7 @@ job:mattermost_error_budget_remaining:percent =
 
 La solución desplegada en el entorno de contenedores utiliza la red compartida `mattermost_mattermost_network`:
 
-```
+```text
 [ Mattermost Core (8065) ] <--- Sondeo HTTP --- [ Blackbox Exporter (9115) ]
 [ Sistema Host (Proc/Sys) ]  -------------------- [ Node Exporter (9100) ]
 [ Docker Daemon Socket ]    -------------------- [ cAdvisor (8085) ]
@@ -112,9 +113,9 @@ La solución desplegada en el entorno de contenedores utiliza la red compartida 
                                                      (Scrape HTTP :9090)
                                                             ▼
                                                 [ Prometheus Server ]
-                                                - Motor TSDB
-                                                - Evaluación SLI/SLO
-                                                - Alertas Burn Rate
+- Motor TSDB
+- Evaluación SLI/SLO
+- Alertas Burn Rate
                                                             │
                                                     (Query PromQL :3000)
                                                             ▼
@@ -132,7 +133,7 @@ La solución desplegada en el entorno de contenedores utiliza la red compartida 
 ### 3.2 Evidencia del Dashboard Operativo en Grafana con Tráfico Nominal
 
 El tablero aprovisionado (**Mattermost SRE — Golden Signals & SLOs**) visualiza los 4 Golden Signals:
-1. **Latencia:** Tiempos de respuesta HTTP y percentil $P_{95}$.
+1. **Latencia:** Tiempos de respuesta HTTP y percentil `P95`.
 2. **Tráfico:** Tasa de peticiones por segundo recibidas por el servicio.
 3. **Errores:** Tasa de fallo y porcentaje de éxito en tiempo real.
 4. **Saturación:** Uso porcentual de CPU y memoria a nivel de host y de contenedores Docker, junto con métricas de base de datos.
@@ -223,4 +224,3 @@ El documento completo de respuesta a incidentes se encuentra implementado en el 
   - Alertas Burn Rate: [`/observability/prometheus/rules/burn_rate_alerts.yml`](https://github.com/sespinosab/mattermost/blob/master/observability/prometheus/rules/burn_rate_alerts.yml)
   - Dashboard de Grafana JSON: [`/observability/grafana/dashboards/mattermost-sre-golden-signals.json`](https://github.com/sespinosab/mattermost/blob/master/observability/grafana/dashboards/mattermost-sre-golden-signals.json)
   - Runbook Operativo: [`/observability/runbooks/incident-response-runbook.md`](https://github.com/sespinosab/mattermost/blob/master/observability/runbooks/incident-response-runbook.md)
-
