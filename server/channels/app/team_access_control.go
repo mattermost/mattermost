@@ -234,14 +234,21 @@ func (a *App) requesterMatchesFirstEffectiveRule(rctx request.CTX, policy *model
 // or (false, err) when the policy cannot be loaded or the expression cannot
 // be evaluated.
 func (a *App) ValidateTeamAdminPolicySelfInclusion(rctx request.CTX, userID, policyID string, addedChannelIDs []string) (bool, *model.AppError) {
-	policies, _, appErr := a.SearchAccessControlPolicies(rctx, model.AccessControlPolicySearch{
+	acs := a.Srv().ch.AccessControl
+	if acs == nil {
+		return false, model.NewAppError("ValidateTeamAdminPolicySelfInclusion", "app.pap.search_access_control_policies.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
+	}
+
+	policies, _, err := a.Srv().Store().AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
 		IDs:             []string{policyID},
 		Type:            model.AccessControlPolicyTypeParent,
 		IncludeChildren: true,
 		Limit:           1,
 	})
-	if appErr != nil {
-		return false, appErr
+	if err != nil {
+		return false, model.NewAppError("ValidateTeamAdminPolicySelfInclusion",
+			"app.team.access_policies.ownership_check.app_error",
+			nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	if len(policies) == 0 || policies[0] == nil {
 		return false, model.NewAppError("ValidateTeamAdminPolicySelfInclusion",
@@ -249,7 +256,15 @@ func (a *App) ValidateTeamAdminPolicySelfInclusion(rctx request.CTX, userID, pol
 			nil, "policy not found", http.StatusInternalServerError)
 	}
 
-	policy := policies[0]
+	policy, appErr := acs.NormalizePolicy(rctx, policies[0])
+	if appErr != nil {
+		return false, appErr
+	}
+	if policy == nil {
+		return false, model.NewAppError("ValidateTeamAdminPolicySelfInclusion",
+			"app.team.access_policies.ownership_check.app_error",
+			nil, "policy not found", http.StatusInternalServerError)
+	}
 	addChildChannelIDs(policy, addedChannelIDs)
 
 	childIDs, propsOk := childIDsFromPolicyProps(policy)

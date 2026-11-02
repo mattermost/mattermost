@@ -871,3 +871,20 @@ func TestValidateTeamAdminPolicySelfInclusion_NormalizesStoredRules(t *testing.T
 	require.Nil(t, appErr)
 	assert.True(t, included)
 }
+
+func TestValidateTeamAdminPolicySelfInclusion_NormalizeFailureFailsClosed(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	ch := th.CreatePrivateChannel(t, th.BasicTeam)
+	parentPolicy, mockACS := createTestPolicyHierarchy(t, th, []*model.Channel{ch})
+	parentPolicy.Rules = []model.AccessControlPolicyRule{
+		{Expression: "user.attributes.department == 'x'", Actions: []string{"*"}},
+	}
+	_, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, parentPolicy)
+	require.NoError(t, err)
+
+	included, appErr := th.App.ValidateTeamAdminPolicySelfInclusion(th.Context, th.BasicUser.Id, parentPolicy.ID, nil)
+	require.NotNil(t, appErr)
+	assert.False(t, included)
+	mockACS.AssertNotCalled(t, "QueryUsersForExpression", mock.Anything, mock.Anything, mock.Anything)
+}

@@ -1662,6 +1662,10 @@ func TestSearchChannelsForAccessControlPolicy(t *testing.T) {
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
 		mockAccessControlService.On("QueryUsersForExpression", mock.Anything, mock.Anything, mock.Anything).
 			Return([]*model.User{{Id: th.TeamAdminUser.Id}}, int64(1), nil).Maybe()
+		mockAccessControlService.On("NormalizePolicy", mock.Anything, mock.Anything).
+			Return(func(rctx request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError) {
+				return policy, nil
+			}).Maybe()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
@@ -2208,6 +2212,10 @@ func setupTeamAdminABACService(t *testing.T, th *TestHelper) *mocks.AccessContro
 
 	mockACS := &mocks.AccessControlServiceInterface{}
 	th.App.Srv().Channels().AccessControl = mockACS
+	mockACS.On("NormalizePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).
+		Return(func(rctx request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError) {
+			return policy, nil
+		}).Maybe()
 
 	updateTestFeatureFlags(t, th, func(cfg *model.Config) {
 		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
