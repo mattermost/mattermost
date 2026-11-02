@@ -56,7 +56,7 @@ $$P_{95} = \inf \left\lbrace t \in \mathbb{R}^+ : P(\text{Duración de Petición
 
 | Parámetro | Objetivo (SLO) | Ventana de Evaluación | Justificación Técnica |
 |---|---|---|---|
-| **Disponibilidad** | **>= 99.5%** | 30 días móviles | Mattermost es una herramienta de comunicación sincrónica crítica para operaciones de equipo. Un SLO del `99.5%` ("dos nueves y medio") permite una indisponibilidad máxima de **3.6 horas por mes** (`216` minutos). Este balance evita costos excesivos de redundancia activa multi-región mientras garantiza que los colaboradores experimenten interrupciones insignificantes. |
+| **Disponibilidad** | **>= 99.5%** | 30 días móviles | Mattermost es una herramienta de comunicación sincrónica crítica para operaciones de equipo. Un SLO del `99.5%` permite una indisponibilidad máxima de **3.6 horas por mes** (`216` minutos). Este balance evita costos excesivos de redundancia activa multi-región mientras garantiza que los colaboradores experimenten interrupciones insignificantes. |
 | **Latencia P95** | **<= 250 ms** | 5 minutos móviles | La percepción humana de inmediatez en interfaces de usuario y chat colaborativo se degrada a partir de los `300 ms` (estándares de usabilidad de Nielsen). Mantener el percentil `95` por debajo de `250 ms` asegura fluidez en el envío y sincronización de mensajes en tiempo real. |
 
 ---
