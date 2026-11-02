@@ -3,10 +3,11 @@ name: Release Docs - Breaking Change Notices
 # Developers are asked nothing. From the release branch cut (a release-X.Y branch is created)
 # until the final release is cut (the vX.Y.0 tag exists), this lists the milestone's possible
 # breaking changes: once when the branch is created, then every weekday, so PRs cherry-picked
-# into the release are picked up. It is not tied to code freeze, which has no GitHub event.
-# Each candidate comes with its source PR and why: each with its source PR and why: breaking-change or
-# deprecation labels on the PR or its Jira ticket, removals config-change-checker.yml wrote into
-# the release note, release-note wording, removed WebSocket events and destructive migrations
+# into the release are picked up. Other pushes to a release branch (cherry-picks) start nothing:
+# the weekday run covers them. It is not tied to code freeze, which has no GitHub event.
+# Each candidate comes with its source PR and why: breaking-change or deprecation labels on
+# the PR or its Jira ticket, removals config-change-checker.yml wrote into the release note,
+# release-note wording, removed WebSocket events and destructive migrations
 # in the release diff, and a Claude review of the milestone's release notes.
 # A person keeps or removes items, then runs this by hand with `confirmed` set to the PRs kept,
 # and Claude drafts one notice per confirmed PR, citing it. Output goes to the run summary and
@@ -14,6 +15,7 @@ name: Release Docs - Breaking Change Notices
 
 on:
   push:
+    # Only the push that creates the branch runs (see the job's if); cherry-picks are skipped.
     branches:
       - 'release-*'
   schedule:
@@ -34,6 +36,9 @@ permissions: {}
 
 jobs:
   breaking-changes:
+    # A push runs only when it created the release branch (the branch cut), so the cherry-picks
+    # merged to the branch afterwards start no job and no Claude run.
+    if: github.event_name != 'push' || github.event.created
     uses: ./.github/workflows/release-docs-task.yml
     with:
       task: breaking-changes
