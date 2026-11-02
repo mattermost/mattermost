@@ -234,16 +234,14 @@ func (a *App) requesterMatchesFirstEffectiveRule(rctx request.CTX, policy *model
 // or (false, err) when the policy cannot be loaded or the expression cannot
 // be evaluated.
 func (a *App) ValidateTeamAdminPolicySelfInclusion(rctx request.CTX, userID, policyID string, addedChannelIDs []string) (bool, *model.AppError) {
-	policies, _, err := a.Srv().Store().AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
+	policies, _, appErr := a.SearchAccessControlPolicies(rctx, model.AccessControlPolicySearch{
 		IDs:             []string{policyID},
 		Type:            model.AccessControlPolicyTypeParent,
 		IncludeChildren: true,
 		Limit:           1,
 	})
-	if err != nil {
-		return false, model.NewAppError("ValidateTeamAdminPolicySelfInclusion",
-			"app.team.access_policies.ownership_check.app_error",
-			nil, "", http.StatusInternalServerError).Wrap(err)
+	if appErr != nil {
+		return false, appErr
 	}
 	if len(policies) == 0 || policies[0] == nil {
 		return false, model.NewAppError("ValidateTeamAdminPolicySelfInclusion",
