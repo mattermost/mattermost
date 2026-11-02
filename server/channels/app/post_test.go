@@ -953,6 +953,22 @@ func TestFillInPostPropsChannelMentionByID(t *testing.T) {
 		assert.Nil(t, resolve(t, &model.Post{Message: "see ~" + private.Id}))
 	})
 
+	t.Run("~channel_id of a private channel the author is a member of resolves, but is hidden from non-members on read", func(t *testing.T) {
+		memberPrivate := th.CreatePrivateChannel(t, th.BasicTeam)
+		post := &model.Post{Message: "see ~" + memberPrivate.Id}
+		require.Contains(t, resolve(t, post), memberPrivate.Id)
+
+		teamMember := th.CreateUser(t)
+		th.LinkUserToTeam(t, teamMember, th.BasicTeam)
+		assert.Nil(t, th.App.sanitizeChannelMentionsForUser(th.Context, post.Clone(), teamMember.Id).GetProp(model.PostPropsChannelMentions))
+	})
+
+	t.Run("~channel_id of an archived channel is not resolved", func(t *testing.T) {
+		archived := th.CreateChannel(t, th.BasicTeam)
+		require.Nil(t, th.App.DeleteChannel(th.Context, archived, th.BasicUser.Id))
+		assert.Nil(t, resolve(t, &model.Post{Message: "see ~" + archived.Id}))
+	})
+
 	t.Run("~channel_id of a direct channel is not resolved", func(t *testing.T) {
 		dm := th.CreateDmChannel(t, th.BasicUser2)
 		assert.Nil(t, resolve(t, &model.Post{Message: "see ~" + dm.Id}))

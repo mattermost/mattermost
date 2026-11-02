@@ -686,7 +686,7 @@ func (a *App) FillInPostProps(rctx request.CTX, post *model.Post, channel *model
 			if a.HasPermissionToResolveChannelMention(rctx, post.UserId, mentioned) {
 				team, err := a.Srv().Store().Team().Get(mentioned.TeamId)
 				if err != nil {
-					rctx.Logger().Warn("Failed to get team of the channel mention", mlog.String("team_id", channel.TeamId), mlog.String("channel_id", channel.Id), mlog.Err(err))
+					rctx.Logger().Warn("Failed to get team of the channel mention", mlog.String("team_id", mentioned.TeamId), mlog.String("channel_id", mentioned.Id), mlog.Err(err))
 					continue
 				}
 				channelMentionsProp[mentionKey] = map[string]any{
