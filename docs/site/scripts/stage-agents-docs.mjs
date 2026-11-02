@@ -169,7 +169,8 @@ function stageDocs() {
     );
   }
 
-  const mdFiles = walk(VENDOR_DOCS, ['img']).filter((f) => extname(f) === '.md');
+  // AGENTS.md and CLAUDE.md are writing instructions for contributors, not pages.
+  const mdFiles = walk(VENDOR_DOCS, ['img', 'AGENTS.md', 'CLAUDE.md']).filter((f) => extname(f) === '.md');
   let partialCount = 0;
   for (const src of mdFiles) {
     const rel = relative(VENDOR_DOCS, src); // e.g. "admin_guide.md" or "features/channel_summaries.md"
