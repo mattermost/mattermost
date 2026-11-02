@@ -8,6 +8,8 @@ import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing
 import AttributeAppliesTo from './attribute_applies_to';
 import type {ResourceObjectType} from './attribute_applies_to_constants';
 
+import {DEFAULT_CHANNEL_RESOURCE_CONFIG} from '../applies_to/channels';
+
 describe('AttributeAppliesTo', () => {
     const onAdd = jest.fn();
     const onRemove = jest.fn();
@@ -22,6 +24,8 @@ describe('AttributeAppliesTo', () => {
                 appliesTo={[]}
                 onAdd={onAdd}
                 onRemove={onRemove}
+                channelResource={DEFAULT_CHANNEL_RESOURCE_CONFIG}
+                onChannelResourceChange={jest.fn()}
                 {...props}
             />,
         );
@@ -93,5 +97,111 @@ describe('AttributeAppliesTo', () => {
         await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
         await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-remove'));
         expect(onRemove).toHaveBeenCalledWith('user');
+    });
+
+    describe('hideAddResource', () => {
+        it('hides both Add-resource triggers even when types are still available', () => {
+            renderComponent({hideAddResource: true});
+
+            expect(screen.queryByTestId('attributeAppliesToAddResourceButtonHeader')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('attributeAppliesToAddResourceButtonInline')).not.toBeInTheDocument();
+        });
+
+        it('hides the inline trigger next to already-applied rows too, not just the empty state', () => {
+            renderComponent({appliesTo: ['user'], hideAddResource: true});
+
+            expect(screen.queryByTestId('attributeAppliesToAddResourceButtonInline')).not.toBeInTheDocument();
+            expect(screen.getByTestId('attributeAppliesToRow-user')).toBeInTheDocument();
+        });
+
+        it('shows plugin-owned empty-state copy instead of the normal Add-a-resource copy', () => {
+            renderComponent({hideAddResource: true});
+
+            expect(screen.getByTestId('attributeAppliesToEmptyState')).toHaveTextContent("Resources for plugin-managed attributes can't be added here.");
+            expect(screen.getByTestId('attributeAppliesToEmptyState')).not.toHaveTextContent('Add a resource to apply this attribute');
+        });
+
+        it('preserves all existing behavior when hideAddResource is false (default)', () => {
+            renderComponent();
+
+            expect(screen.getByTestId('attributeAppliesToAddResourceButtonHeader')).toBeInTheDocument();
+            expect(screen.getByTestId('attributeAppliesToAddResourceButtonInline')).toBeInTheDocument();
+            expect(screen.getByTestId('attributeAppliesToEmptyState')).toHaveTextContent('Add a resource to apply this attribute');
+        });
+    });
+
+    describe('userWhoCanSetLockedTooltip on the Users row', () => {
+        it('locks Who can set the value once the Users row is expanded', async () => {
+            renderComponent({appliesTo: ['user'], userWhoCanSetLockedTooltip: 'Managed by SCIM'});
+            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+
+            expect(screen.getByTestId('attributeAppliesToUserWhoCanSet-lockWrap')).toBeInTheDocument();
+        });
+    });
+
+    describe('blockedTypes', () => {
+        it('offers a blocked type as a disabled option carrying its reason, and adds nothing when it is clicked', async () => {
+            renderComponent({blockedTypes: {user: 'Name already in use'}});
+
+            await userEvent.click(screen.getByTestId('attributeAppliesToAddResourceButtonHeader'));
+
+            const users = screen.getByRole('menuitem', {name: /^Users/});
+            expect(users).toHaveAttribute('aria-disabled', 'true');
+            expect(users).toHaveTextContent('Name already in use');
+
+            // pointerEventsCheck off so userEvent dispatches the click rather than
+            // refusing it over the item's pointer-events: none. The component
+            // passes onAdd to every option unconditionally and relies on MUI's
+            // `disabled` to swallow the click, so what follows is a statement
+            // about the outcome only — choosing a blocked option adds nothing —
+            // and not about any guard of this component's own.
+            await userEvent.click(users, {pointerEventsCheck: 0});
+
+            // A live Menu.Item defers its onClick until the menu has finished
+            // closing, so close the menu before concluding nothing was added.
+            await userEvent.keyboard('{Escape}');
+            await waitFor(() => expect(screen.queryByRole('menuitem')).not.toBeInTheDocument());
+            expect(onAdd).not.toHaveBeenCalled();
+        });
+
+        it('leaves a type with no entry enabled, and still adds it', async () => {
+            renderComponent({blockedTypes: {user: 'Name already in use'}});
+
+            await userEvent.click(screen.getByTestId('attributeAppliesToAddResourceButtonHeader'));
+
+            const channels = screen.getByRole('menuitem', {name: 'Channels'});
+            expect(channels).not.toHaveAttribute('aria-disabled', 'true');
+            expect(channels).not.toHaveTextContent('Name already in use');
+
+            await userEvent.click(channels);
+
+            await waitFor(() => expect(onAdd).toHaveBeenCalledWith('channel'));
+        });
+    });
+
+    describe('lockedTooltip on the Channels row', () => {
+        it('wraps the toggle in the lock tooltip when lockedTooltip is given', () => {
+            renderComponent({appliesTo: ['channel'], lockedTooltip: 'Locked'});
+
+            expect(screen.getByTestId('attributeAppliesToRow-channel-toggleLockWrap')).toBeInTheDocument();
+        });
+
+        it('renders no lock wrapper when lockedTooltip is not given', () => {
+            renderComponent({appliesTo: ['channel']});
+
+            expect(screen.queryByTestId('attributeAppliesToRow-channel-toggleLockWrap')).not.toBeInTheDocument();
+        });
+    });
+
+    describe('removeLockedTooltips', () => {
+        it('locks Remove only on the row whose type has a tooltip', async () => {
+            renderComponent({appliesTo: ['user', 'channel'], removeLockedTooltips: {user: 'Locked'}});
+
+            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+            expect(screen.getByTestId('attributeAppliesToRow-user-removeLockWrap')).toBeInTheDocument();
+
+            await userEvent.click(screen.getByTestId('attributeAppliesToRow-channel-toggle'));
+            expect(screen.getByTestId('attributeAppliesToRow-channel-remove')).toBeEnabled();
+        });
     });
 });

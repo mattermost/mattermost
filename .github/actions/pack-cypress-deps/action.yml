@@ -1,8 +1,14 @@
 name: "Pack Cypress deps artifact"
 description: >
-  Tar the Cypress node_modules and binary into a run-scoped artifact for the
-  workers in e2e-tests-cypress-template.yml. The payload must stay in sync with
-  unpack-cypress-deps.
+  The producing half of the artifact transport for the Cypress deps: tars the
+  node_modules and Cypress binary just installed by prep-deps and uploads them
+  as a run-scoped artifact for this run's workers to unpack.
+
+  This is the fallback path, reached only when restore-cypress-deps found the
+  cache key cold. It is not a cache — the artifact is scoped to one run, costs
+  the shared Actions cache nothing, and is retained for a day. It must produce
+  the payload restore-cypress-deps would otherwise have restored, since the
+  workers accept either.
 
 inputs:
   fips:

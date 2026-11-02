@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {IntlProvider} from 'react-intl';
 import {Provider} from 'react-redux';
 import {BrowserRouter as Router} from 'react-router-dom';
@@ -97,13 +97,13 @@ describe('IPFiltering', () => {
 
         await waitFor(() => {
             expect(screen.getByTestId('filterToggle-button')).toBeInTheDocument();
-            expect(screen.getByRole('button', {pressed: true})).toBeInTheDocument();
+            expect(screen.getByRole('switch', {checked: true})).toBeInTheDocument();
         });
 
         await userEvent.click(screen.getByTestId('filterToggle-button'));
 
         await waitFor(() => {
-            expect(screen.getByRole('button', {pressed: false})).toBeInTheDocument();
+            expect(screen.getByRole('switch', {checked: false})).toBeInTheDocument();
         });
     });
 
@@ -189,13 +189,13 @@ describe('IPFiltering', () => {
 
         await waitFor(() => {
             expect(screen.getByTestId('filterToggle-button')).toBeInTheDocument();
-            expect(screen.getByRole('button', {pressed: true})).toBeInTheDocument();
+            expect(screen.getByRole('switch', {checked: true})).toBeInTheDocument();
         });
 
         await userEvent.click(screen.getByTestId('filterToggle-button'));
 
         await waitFor(() => {
-            expect(screen.getByRole('button', {pressed: false})).toBeInTheDocument();
+            expect(screen.getByRole('switch', {checked: false})).toBeInTheDocument();
         });
 
         await waitFor(() => {
@@ -251,14 +251,14 @@ describe('IPFiltering', () => {
 
         await waitFor(() => {
             expect(screen.getByTestId('filterToggle-button')).toBeInTheDocument();
-            expect(screen.getByRole('button', {pressed: true})).toBeInTheDocument();
+            expect(screen.getByRole('switch', {checked: true})).toBeInTheDocument();
         });
 
         // Use fireEvent.click here because userEvent doesn't work well with fake timers
         fireEvent.click(screen.getByTestId('filterToggle-button'));
 
         await waitFor(() => {
-            expect(screen.getByRole('button', {pressed: false})).toBeInTheDocument();
+            expect(screen.getByRole('switch', {checked: false})).toBeInTheDocument();
         });
 
         await waitFor(() => {

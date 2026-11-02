@@ -5,7 +5,7 @@ package localcachelayer
 
 import (
 	"bytes"
-	"sort"
+	"slices"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -123,7 +123,7 @@ func (s LocalCacheRoleStore) PermanentDeleteAll() error {
 }
 
 func (s LocalCacheRoleStore) ChannelHigherScopedPermissions(roleNames []string) (map[string]*model.RolePermissions, error) {
-	sort.Strings(roleNames)
+	slices.Sort(roleNames)
 	cacheKey := strings.Join(roleNames, "/")
 	var rolePermissionsMap map[string]*model.RolePermissions
 	if err := s.rootStore.doStandardReadCache(s.rootStore.rolePermissionsCache, cacheKey, &rolePermissionsMap); err == nil {

@@ -7,7 +7,6 @@ import styled from 'styled-components';
 
 import type {LocalizationSettings} from '@mattermost/types/config';
 
-import BooleanSetting from 'components/admin_console/boolean_setting';
 import DropdownSetting from 'components/admin_console/dropdown_setting';
 import MultiSelectSetting from 'components/admin_console/multiselect_settings';
 import {
@@ -67,14 +66,6 @@ const messages = defineMessages({
     availableLocalesNoResults: {
         id: 'admin.general.localization.availableLocalesNoResults',
         defaultMessage: 'No results found',
-    },
-    enableExperimentalLocalesTitle: {
-        id: 'admin.general.localization.enableExperimentalLocalesTitle',
-        defaultMessage: 'Enable Experimental Locales:',
-    },
-    enableExperimentalLocalesDescription: {
-        id: 'admin.general.localization.enableExperimentalLocalesDescription',
-        defaultMessage: 'When true, it allows users to select experimental (e.g., in progress) languages.',
     },
 });
 
@@ -172,19 +163,6 @@ export default function Localization(props: SystemConsoleCustomSettingsComponent
                     noOptionsMessage={
                         <FormattedMessage {...messages.availableLocalesNoResults}/>
                     }
-                />
-                <BooleanSetting
-                    id={'EnableExperimentalLocales'}
-                    label={
-                        <FormattedMessage {...messages.enableExperimentalLocalesTitle}/>
-                    }
-                    helpText={
-                        <FormattedMessage {...messages.enableExperimentalLocalesDescription}/>
-                    }
-                    value={localizationSettings.EnableExperimentalLocales}
-                    disabled={props.disabled}
-                    setByEnv={props.setByEnv}
-                    onChange={handleChange}
                 />
             </SectionContent>
         </AdminSection>

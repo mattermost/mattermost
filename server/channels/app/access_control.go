@@ -168,6 +168,10 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 		return nil, appErr
 	}
 
+	if appErr = a.reconcileServerOwnedPolicyFields(rctx, policy); appErr != nil {
+		return nil, appErr
+	}
+
 	policy, appErr = acs.SavePolicy(rctx, policy)
 	if appErr != nil {
 		return nil, appErr
@@ -186,6 +190,109 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 	}
 
 	return policy, nil
+}
+
+// reconcileServerOwnedPolicyFields resolves the two fields on an incoming policy
+// that the client does not own.
+//
+// Active is reserved: it is always taken from the stored row (false on create) so
+// the policy PUT can never write it.
+//
+// auto_add is tri-state on the wire. An explicit mode wins; an absent metadata
+// bag means "not specified", and the stored mode carries forward. Absence has to
+// mean preserve because a client built before this field existed round-trips the
+// policy without it, and treating that as off would silently stop membership sync.
+func (a *App) reconcileServerOwnedPolicyFields(rctx request.CTX, policy *model.AccessControlPolicy) *model.AppError {
+	var storedActive bool
+	var storedAutoAdd string
+
+	stored, err := a.Srv().Store().AccessControlPolicy().Get(rctx, policy.ID)
+	switch {
+	case err == nil:
+		storedActive = stored.Active
+		storedAutoAdd = stored.AutoAddMode()
+	case errors.As(err, new(*store.ErrNotFound)):
+		// Creating: there is nothing to preserve, so both default to off.
+	default:
+		return model.NewAppError("CreateOrUpdateAccessControlPolicy", "app.pap.get_policy.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	policy.Active = storedActive
+
+	rule := policy.MembershipRule()
+	if rule == nil {
+		// The submission carries no membership rule to read a mode off, so the
+		// stored setting lives on through a carrier rule.
+		policy.SetAutoAddMode(storedAutoAdd)
+		return nil
+	}
+
+	mode := storedAutoAdd
+	if raw, specified := rule.Metadata[model.AccessControlRuleMetadataAutoAdd]; specified {
+		requested, appErr := requestedAutoAddMode(raw)
+		if appErr != nil {
+			return appErr
+		}
+		mode = requested
+	}
+
+	if mode == "" && storedAutoAdd != "" {
+		if appErr := a.guardAutoAddDisable(rctx, stored); appErr != nil {
+			return appErr
+		}
+	}
+
+	// SetAutoAddMode canonicalizes "off" into the absence of the key.
+	rule.SetAutoAddMode(mode)
+
+	policy.PruneInertMembershipRule()
+
+	return nil
+}
+
+// requestedAutoAddMode reads the auto_add value as it arrived on the wire. The
+// empty string is how a client turns auto-adding off; any other unrecognized
+// value is a client error rather than a silent downgrade to off, so a client
+// asking for a mode this server does not implement hears about it.
+func requestedAutoAddMode(raw any) (string, *model.AppError) {
+	mode, ok := raw.(string)
+	if !ok {
+		return "", model.NewAppError("CreateOrUpdateAccessControlPolicy", "model.access_policy.is_valid.rule_metadata_auto_add_type.app_error", nil, "auto_add must be a string", http.StatusBadRequest)
+	}
+
+	if mode != "" && !model.IsValidAccessControlAutoAddMode(mode) {
+		return "", model.NewAppError("CreateOrUpdateAccessControlPolicy", "model.access_policy.is_valid.rule_metadata_auto_add_mode.app_error", map[string]any{"Mode": mode}, "", http.StatusBadRequest)
+	}
+
+	return mode, nil
+}
+
+// guardAutoAddDisable rejects turning auto-add off on a policy holding values
+// the caller cannot see. Stopping the sync job from maintaining membership is
+// enforcement-equivalent to deleting the policy, so both ways of doing it — the
+// policy save and the bulk auto-add endpoint — answer to the delete-path guard.
+//
+// It is a no-op unless masking is on, and tolerates a sessionless internal
+// caller, which has nothing to be blind to.
+func (a *App) guardAutoAddDisable(rctx request.CTX, stored *model.AccessControlPolicy) *model.AppError {
+	if !a.Config().FeatureFlags.AttributeValueMasking {
+		return nil
+	}
+
+	session := rctx.Session()
+	if session == nil || session.UserId == "" {
+		return nil
+	}
+
+	hasMasked, appErr := a.policyHasMaskedValuesForCaller(rctx, stored, session.UserId)
+	if appErr != nil {
+		return appErr
+	}
+	if hasMasked {
+		return model.NewAppError("guardAutoAddDisable", "app.pap.delete_policy.masked_values", nil, "", http.StatusForbidden)
+	}
+
+	return nil
 }
 
 // policyHasMaskedValuesForCaller returns true if policy contains any attribute values
@@ -252,7 +359,7 @@ func (a *App) mergeStoredPolicyExpressions(rctx request.CTX, policy *model.Acces
 		switch {
 		case r.Name != "":
 			storedByName[r.Name] = r
-		case isMembershipRule(r):
+		case r.IsMembershipRule():
 			if storedMembership == nil {
 				storedMembership = r
 			}
@@ -272,7 +379,7 @@ func (a *App) mergeStoredPolicyExpressions(rctx request.CTX, policy *model.Acces
 			if stored != nil {
 				pairedNames[rule.Name] = true
 			}
-		case isMembershipRule(rule):
+		case rule.IsMembershipRule():
 			if !membershipPaired {
 				stored = storedMembership
 				membershipPaired = true
@@ -324,7 +431,7 @@ func (a *App) mergeStoredPolicyExpressions(rctx request.CTX, policy *model.Acces
 			if pairedNames[stored.Name] {
 				continue
 			}
-		case isMembershipRule(stored):
+		case stored.IsMembershipRule():
 			if membershipPaired {
 				continue
 			}
@@ -347,20 +454,6 @@ func (a *App) mergeStoredPolicyExpressions(rctx request.CTX, policy *model.Acces
 	}
 
 	return mergedHidden, nil
-}
-
-// isMembershipRule reports whether a rule fills the policy's
-// membership slot for the merge-time pairing logic. v0.4 membership
-// rules carry no Name and the membership action; legacy v0.1/v0.2
-// channel policies used the wildcard "*" (rejected at v0.3+ IsValid)
-// for the same role, so both anchor the same single storedMembership
-// pairing slot.
-func isMembershipRule(rule *model.AccessControlPolicyRule) bool {
-	if rule == nil || rule.Name != "" {
-		return false
-	}
-	return slices.Contains(rule.Actions, model.AccessControlPolicyActionMembership) ||
-		slices.Contains(rule.Actions, "*")
 }
 
 // expressionHasMaskedValuesForCaller reports whether storedExpr contains any value the caller cannot see.
@@ -701,8 +794,7 @@ func (a *App) ValidatePolicySimulationUsersInScope(rctx request.CTX, teamID, cha
 				return model.NewAppError("ValidatePolicySimulationUsersInScope", "api.context.invalid_param.app_error", map[string]any{"Name": "user_id"}, "", http.StatusBadRequest)
 			}
 			if _, err := a.Srv().Store().Channel().GetMember(rctx, channelID, u.UserID); err != nil {
-				var nfErr *store.ErrNotFound
-				if errors.As(err, &nfErr) {
+				if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 					return model.NewAppError("ValidatePolicySimulationUsersInScope", "api.access_control_policy.simulate.users_out_of_scope.app_error", nil, "user_id="+u.UserID, http.StatusForbidden)
 				}
 				return model.NewAppError("ValidatePolicySimulationUsersInScope", "app.channel.get_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -791,23 +883,25 @@ func (p protectedCPAAttributes) set(objectType string) map[string]struct{} {
 // caller is not a system admin.
 //
 // A field is treated as protected — and therefore redacted — when
-// any of the following applies (channel and team admins are never a
-// CPA field's source plugin, so the access_mode branches collapse
-// to "not public" for these callers):
+// any of the following applies (the redaction is one answer for every
+// channel and team admin, so anything short of "everyone may read it"
+// collapses to "inaccessible"):
 //
 //   - `visibility == "hidden"`: the field is hidden on the user
 //     profile page; the simulate UI must not be a side channel.
 //
-//   - `access_mode == "source_only"`: the CPA value is reserved for
-//     the source plugin. Channel/team admins are never plugin
-//     callers, so the value is always inaccessible to them.
+//   - a value.read tier below everyone (none, sysadmin, admin, creator
+//     or member): not every caller may read the value.
 //
-//   - `access_mode == "shared_only"`: the underlying property
-//     service computes an intersection of the caller's and target's
-//     values on read. The simulator does NOT call the property
-//     service (it reads from UserAttributeView directly), so we
-//     conservatively redact these values rather than ship them
-//     unfiltered.
+//   - for a field with options, an option.read tier below everyone:
+//     the simulator's values are option names, which the property
+//     read path hides from a caller denied option.read.
+//
+//   - masking (the template's, for a linked field): the underlying
+//     property service filters the values to what the caller holds
+//     on read. The simulator does NOT call the property service (it
+//     reads from UserAttributeView directly), so we conservatively
+//     redact these values rather than ship them unfiltered.
 //
 // System admins (passed via callerIsSystemAdmin=true) bypass the
 // filter entirely; they always see every attribute the simulator
@@ -860,9 +954,12 @@ func (a *App) RedactSimulationAttributesForCaller(rctx request.CTX, resp *model.
 // protectedCPAFieldNamesForCaller returns, per attribute root, the set of
 // CPA field names whose contents must be hidden from a non-system-admin
 // caller. The set includes both `visibility: hidden` fields and any field
-// whose `access_mode` is not public (source_only / shared_only). The
+// whose values not everyone may read: masking, or a value.read tier below
+// everyone -- or, for a field with options, an option.read tier below
+// everyone (see attributeReadActions). The
 // simulator's UserAttributeView populates its per-user map keyed by
-// `pf.Name` (see db/migrations/postgres/000216_split_attribute_view_by_object_type.up.sql),
+// `pf.Name` (see db/migrations/postgres/000223_move_property_options_to_table.up.sql,
+// which recreates the views 000216 split by object type),
 // and the evaluation-tree walker likewise records `user.attributes.<name>`
 // on each leaf — so matching by name is correct for the user set. Channel
 // fields are matched the same way, by name, against their own set: the
@@ -872,6 +969,10 @@ func (a *App) protectedCPAFieldNamesForCaller(rctx request.CTX) (protectedCPAAtt
 		user:     map[string]struct{}{},
 		resource: map[string]struct{}{},
 	}
+
+	// The fields and their templates are read as the request's caller: an
+	// untagged read has the access control hook hide every field's options.
+	rctx = rctxWithSessionCallerID(rctx)
 
 	group, appErr := a.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
 	if appErr != nil {
@@ -907,7 +1008,11 @@ func (a *App) protectedCPAFieldNamesForCaller(rctx request.CTX) (protectedCPAAtt
 			set[pf.Name] = struct{}{}
 			continue
 		}
-		if cpaFieldIsProtectedForChannelAdmin(f) {
+		// Resolved from pf, not f: NewCPAFieldFromPropertyField zeroes
+		// Permissions on the CPAField it builds, so readability has to be
+		// read off the raw field, before that happens.
+		readable := a.readableByEveryone(rctx, group.ID, pf, attributeReadActions(pf)...)
+		if cpaFieldIsProtectedForChannelAdmin(f, readable) {
 			set[f.Name] = struct{}{}
 		}
 	}
@@ -917,21 +1022,21 @@ func (a *App) protectedCPAFieldNamesForCaller(rctx request.CTX) (protectedCPAAtt
 // cpaFieldIsProtectedForChannelAdmin reports whether a CPA field's
 // value must be hidden from a non-system-admin caller. Pure helper
 // so the protected-set construction and the per-leaf tree walker can
-// share the same predicate.
-func cpaFieldIsProtectedForChannelAdmin(f *model.CPAField) bool {
+// share the same predicate. readableByEveryone is the field's resolved
+// answer from readableByEveryone for attributeReadActions rather than
+// anything on f directly, since a linked field never carries its
+// template's masking.
+func cpaFieldIsProtectedForChannelAdmin(f *model.CPAField, readableByEveryone bool) bool {
 	if f == nil {
 		return false
 	}
 	if f.Attrs.Visibility == model.CustomProfileAttributesVisibilityHidden {
 		return true
 	}
-	// access_mode "" defaults to public — only non-public values are
-	// protected. Channel/team admins are never the source plugin so
-	// both source_only and shared_only collapse to "inaccessible".
-	if f.Attrs.AccessMode != "" && f.Attrs.AccessMode != model.PropertyAccessModePublic {
-		return true
-	}
-	return false
+	// The redaction is one answer for every channel/team admin, so a
+	// value only some readers may see -- a tier below everyone, or a
+	// masked field -- collapses to "inaccessible".
+	return !readableByEveryone
 }
 
 // simulationHasRedactableAttributeData reports whether any result row
@@ -1590,6 +1695,10 @@ func (a *App) AssignAccessControlPolicyToChannels(rctx request.CTX, parentID str
 				CreateAt: model.GetMillis(),
 				Props:    map[string]any{},
 			}
+			// The parent's auto-add setting seeds a brand-new child only. An
+			// existing channel policy keeps whatever its admin chose, since
+			// auto-add is owned per resource once it exists.
+			child.SetAutoAddMode(policy.AutoAddMode())
 		}
 		child.Version = model.AccessControlPolicyVersionV0_3
 
@@ -1643,8 +1752,9 @@ func (a *App) UnassignPoliciesFromChannels(rctx request.CTX, policyID string, ch
 		child.Imports = slices.DeleteFunc(child.Imports, func(importID string) bool {
 			return importID == policyID
 		})
-		if len(child.Imports) == 0 && len(child.Rules) == 0 {
-			// If the policy has no imports and no rules, we can delete it
+		if len(child.Imports) == 0 && !child.HasEffectiveRules() {
+			// If the policy has no imports and no rules of its own, we can
+			// delete it. A lone auto-add carrier rule is not a rule of its own.
 			if err := acs.DeletePolicy(rctx, child.ID); err != nil {
 				return model.NewAppError("UnassignPoliciesFromChannels", "app.pap.unassign_access_control_policy_from_channels.app_error", nil, err.Error(), http.StatusInternalServerError)
 			}
@@ -1700,6 +1810,10 @@ func (a *App) AssignAccessControlPolicyToTeams(rctx request.CTX, parentID string
 				CreateAt: model.GetMillis(),
 				Props:    map[string]any{},
 			}
+			// The parent's auto-add setting seeds a brand-new child only. An
+			// existing team policy keeps whatever its admin chose, since
+			// auto-add is owned per resource once it exists.
+			child.SetAutoAddMode(policy.AutoAddMode())
 		}
 		child.Version = model.AccessControlPolicyVersionV0_3
 
@@ -1753,10 +1867,11 @@ func (a *App) UnassignPoliciesFromTeams(rctx request.CTX, policyID string, teamI
 		child.Imports = slices.DeleteFunc(child.Imports, func(importID string) bool {
 			return importID == policyID
 		})
-		if len(child.Imports) == 0 && len(child.Rules) == 0 {
+		if len(child.Imports) == 0 && !child.HasEffectiveRules() {
 			// No imports and no custom rules left — the child only existed to
 			// carry this parent assignment, so remove it. A child with custom
 			// rules is kept (a team admin's rules must survive an unassign).
+			// A lone auto-add carrier rule doesn't count as custom rules.
 			if err := acs.DeletePolicy(rctx, child.ID); err != nil {
 				return model.NewAppError("UnassignPoliciesFromTeams", "app.pap.unassign_access_control_policy_from_teams.app_error", nil, err.Error(), http.StatusInternalServerError)
 			}
@@ -1815,7 +1930,7 @@ func (a *App) GetAccessControlPolicyAttributes(rctx request.CTX, resourceID stri
 		return attributes, nil
 	}
 
-	// Strip source_only and shared_only fields: their values must not be
+	// Strip every field whose values not everyone may read: they must not be
 	// exposed to channel members through the invite modal / members sidebar.
 	// Fail closed: if the CPA group or a field cannot be resolved, omit that
 	// field rather than leaking its values.
@@ -1831,8 +1946,8 @@ func (a *App) GetAccessControlPolicyAttributes(rctx request.CTX, resourceID stri
 	}
 
 	for fieldName := range attributes {
-		// Read directly from the store so this security filter sees the raw
-		// access_mode, unaffected by property read hooks for the request caller.
+		// Read directly from the store so this security filter sees the stored
+		// permissions, unaffected by property read hooks for the request caller.
 		field, fieldErr := a.Srv().Store().PropertyField().GetFieldByNameForObjectType(rctx, cpaGroup.ID, "", model.PropertyFieldObjectTypeUser, fieldName)
 		if fieldErr != nil {
 			// If the error is due to not being found, we won't skip to the next field just yet
@@ -1850,10 +1965,21 @@ func (a *App) GetAccessControlPolicyAttributes(rctx request.CTX, resourceID stri
 				delete(attributes, fieldName)
 				continue
 			}
-		}
 
-		switch field.GetAccessMode() {
-		case model.PropertyAccessModeSourceOnly, model.PropertyAccessModeSharedOnly:
+			// A native attribute is a column on the user table, synthesized into a
+			// field shape for this lookup alone. It carries no permissions object
+			// and never will, so it has no read tier to judge -- and asking
+			// readableByEveryoneUsing anyway would get the answer it gives an
+			// unconverted property field, which is to strip.
+			continue
+		}
+		// Same store bypass for a linked field's template: a linked field's own
+		// Masking is always nil, so readability must follow the template to see
+		// a masked scheme (readableByEveryoneUsing).
+		readable := readableByEveryoneUsing(field, func(id string) (*model.PropertyField, error) {
+			return a.Srv().Store().PropertyField().Get(rctx, cpaGroup.ID, id)
+		}, attributeReadActions(field)...)
+		if !readable {
 			delete(attributes, fieldName)
 		}
 	}
@@ -1905,42 +2031,45 @@ func (a *App) GetAccessControlFieldsAutocomplete(rctx request.CTX, channelID str
 		fields = append(model.NativeUserAttributeFields(group.ID), fields...)
 	}
 
-	return fields, nil
+	// This endpoint feeds policy authoring, which has no use for a field's
+	// grants or masking configuration -- only the field shape itself.
+	return a.ShapePropertyFieldsForCaller(rctxWithCaller, model.Session{UserId: callerID}, fields, false), nil
 }
 
-func (a *App) UpdateAccessControlPoliciesActive(rctx request.CTX, updates []model.AccessControlPolicyActiveUpdate) ([]*model.AccessControlPolicy, *model.AppError) {
+func (a *App) UpdateAccessControlPoliciesAutoAdd(rctx request.CTX, updates []model.AccessControlPolicyAutoAddUpdate) ([]*model.AccessControlPolicy, *model.AppError) {
 	acs := a.Srv().ch.AccessControl
 	if acs == nil {
-		return nil, model.NewAppError("UpdateAccessControlPoliciesActive", "app.pap.update_access_control_policies_active.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
+		return nil, model.NewAppError("UpdateAccessControlPoliciesAutoAdd", "app.pap.update_access_control_policies_active.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
 	}
 
-	// Deactivating a policy is enforcement-equivalent to deleting it: the policy stops
-	// filtering membership. Mirror the delete-path guard so a caller blocked from
-	// deleting a policy with hidden values cannot achieve the same effect via deactivation.
+	// Reject an unknown mode up front: the store canonicalizes anything it does
+	// not recognize to off, which would turn a typo into a silent disable.
+	for _, u := range updates {
+		if u.AutoAdd != "" && !model.IsValidAccessControlAutoAddMode(u.AutoAdd) {
+			return nil, model.NewAppError("UpdateAccessControlPoliciesAutoAdd", "model.access_policy.is_valid.rule_metadata_auto_add_mode.app_error", map[string]any{"Mode": u.AutoAdd}, "", http.StatusBadRequest)
+		}
+	}
+
+	// Fetch a policy only when masking can actually block the change; the guard
+	// itself is a no-op with the flag off.
 	if a.Config().FeatureFlags.AttributeValueMasking {
-		session := rctx.Session()
-		if session != nil {
-			callerID := session.UserId
-			for _, u := range updates {
-				if u.Active {
-					continue // activation never widens access
-				}
-				policy, appErr := acs.GetPolicy(rctx, u.ID)
-				if appErr != nil {
-					return nil, appErr
-				}
-				if hasMasked, appErr := a.policyHasMaskedValuesForCaller(rctx, policy, callerID); appErr != nil {
-					return nil, appErr
-				} else if hasMasked {
-					return nil, model.NewAppError("UpdateAccessControlPoliciesActive", "app.pap.delete_policy.masked_values", nil, "", http.StatusForbidden)
-				}
+		for _, u := range updates {
+			if u.AutoAdd != "" {
+				continue // enabling auto-add never widens access
+			}
+			policy, appErr := acs.GetPolicy(rctx, u.ID)
+			if appErr != nil {
+				return nil, appErr
+			}
+			if appErr := a.guardAutoAddDisable(rctx, policy); appErr != nil {
+				return nil, appErr
 			}
 		}
 	}
 
-	policies, err := a.Srv().Store().AccessControlPolicy().SetActiveStatusMultiple(rctx, updates)
+	policies, err := a.Srv().Store().AccessControlPolicy().SetMembershipAutoAdd(rctx, updates)
 	if err != nil {
-		return nil, model.NewAppError("UpdateAccessControlPoliciesActive", "app.pap.update_access_control_policies_active.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("UpdateAccessControlPoliciesAutoAdd", "app.pap.update_access_control_policies_active.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	permissionPolicyChanged := false
@@ -2120,8 +2249,7 @@ func (a *App) HydrateChannelPolicyActions(rctx request.CTX, ch *model.Channel) *
 	}
 	actions, err := a.Srv().Store().AccessControlPolicy().GetActionsForPolicy(rctx, ch.Id)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		if errors.As(err, &nfErr) {
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			// Policy was deleted between the channel read and this lookup;
 			// the channel row's PolicyEnforced flag will be reconciled on
 			// the next write. Treat as "no actions" rather than failing.
@@ -2184,8 +2312,7 @@ func (a *App) HydrateTeamPolicyActions(rctx request.CTX, team *model.Team) *mode
 	}
 	actions, err := a.Srv().Store().AccessControlPolicy().GetActionsForPolicy(rctx, team.Id)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		if errors.As(err, &nfErr) {
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			// Policy was deleted between the team read and this lookup;
 			// treat as "no actions" rather than failing.
 			team.PolicyActions = map[string]bool{}
@@ -2628,8 +2755,7 @@ func (a *App) BuildAccessControlSubject(rctx request.CTX, userID string, roles s
 
 	subject, storeErr := a.Srv().Store().Attributes().GetSubject(rctx, userID, group.ID, model.PropertyFieldObjectTypeUser)
 	if storeErr != nil {
-		var nfErr *store.ErrNotFound
-		if errors.As(storeErr, &nfErr) {
+		if _, ok := errors.AsType[*store.ErrNotFound](storeErr); ok {
 			subject = &model.Subject{
 				ID:         userID,
 				Type:       "user",
@@ -2728,8 +2854,7 @@ func (a *App) BuildAccessControlSubjectForSession(rctx request.CTX, channelID st
 func (a *App) GetSubjectChannelRole(rctx request.CTX, userID, channelID string) (string, *model.AppError) {
 	cm, err := a.Srv().Store().Channel().GetMember(rctx, channelID, userID)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		if errors.As(err, &nfErr) {
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			// Not a member: return an empty role and let the caller
 			// decide what "no resource role" means for them. We used
 			// to fabricate a role from the user's system roles here,

@@ -83,6 +83,18 @@ func (s SqlUserTermsOfServiceStore) Save(userTermsOfService *model.UserTermsOfSe
 	return userTermsOfService, nil
 }
 
+func (s SqlUserTermsOfServiceStore) PermanentDeleteByUser(userId string) error {
+	query := s.getQueryBuilder().
+		Delete("UserTermsOfService").
+		Where(sq.Eq{"UserId": userId})
+
+	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
+		return errors.Wrapf(err, "failed to delete UserTermsOfService with userId=%s", userId)
+	}
+
+	return nil
+}
+
 func (s SqlUserTermsOfServiceStore) Delete(userId, termsOfServiceId string) error {
 	query := `
 		DELETE 

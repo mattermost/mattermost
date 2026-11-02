@@ -4,7 +4,7 @@
 import React, {useCallback} from 'react';
 import {useIntl} from 'react-intl';
 
-import SectionNotice from 'components/section_notice';
+import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
 
 export default function NotificationPermissionUnsupportedSectionNotice() {
     const intl = useIntl();
@@ -21,19 +21,16 @@ export default function NotificationPermissionUnsupportedSectionNotice() {
                     id: 'user.settings.notifications.desktopAndMobile.notificationSection.permissionUnsupported.title',
                     defaultMessage: 'Browser notifications unsupported',
                 })}
-                text={intl.formatMessage({
+                description={intl.formatMessage({
                     id: 'user.settings.notifications.desktopAndMobile.notificationSection.permissionUnsupported.message',
                     defaultMessage: 'You\'re missing important message and call notifications from Mattermost. To start receiving notifications, please update to a supported browser.',
                 })}
-                tertiaryButton={{
-                    text: intl.formatMessage({
-                        id: 'user.settings.notifications.desktopAndMobile.notificationSection.permissionUnsupported.button',
-                        defaultMessage: 'Update your browser',
-                    }),
-                    onClick: handleClick,
-                }}
+                primaryButtonLabel={intl.formatMessage({
+                    id: 'user.settings.notifications.desktopAndMobile.notificationSection.permissionUnsupported.button',
+                    defaultMessage: 'Update your browser',
+                })}
+                onPrimaryAction={handleClick}
             />
         </div>
     );
 }
-

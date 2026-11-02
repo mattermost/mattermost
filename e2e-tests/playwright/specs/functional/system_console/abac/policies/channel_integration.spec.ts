@@ -110,9 +110,8 @@ test.describe('ABAC Policies - Channel Integration', () => {
         const abacToggle = systemConsolePage.page.locator('[data-testid="policy-enforce-toggle-button"]');
         await abacToggle.waitFor({state: 'visible', timeout: 5000});
 
-        const isEnabled = await abacToggle.getAttribute('aria-pressed');
-        if (isEnabled !== 'true') {
-            await abacToggle.click();
+        if (!(await abacToggle.isChecked())) {
+            await abacToggle.check({force: true});
         }
         await systemConsolePage.page.waitForTimeout(500);
 

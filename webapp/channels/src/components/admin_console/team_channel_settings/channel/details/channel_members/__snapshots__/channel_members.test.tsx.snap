@@ -23,10 +23,15 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
         class="button"
       >
         <button
-          class="style--none btn btn-primary"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
           id="addChannelMembers"
+          type="button"
         >
-          Add Members
+          <span
+            class="_button__label_we8pe_31"
+          >
+            Add Members
+          </span>
         </button>
       </div>
     </div>
@@ -64,13 +69,40 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
           class="Filter"
         >
           <button
-            class="Filter_button"
+            aria-expanded="false"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-small_we8pe_53 Filter_button"
             type="button"
           >
-            <i
-              class="Icon icon-filter-variant"
-            />
-            Filters
+            <span
+              class="_button__icon-slot_we8pe_35"
+            >
+              <div
+                aria-hidden="true"
+                class="_icon_1i355_2 _icon--size-12_1i355_30"
+              >
+                <div
+                  class="_icon__glyph-area_1i355_9"
+                >
+                  <svg
+                    fill="currentColor"
+                    height="14"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="14"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M6,13H18V11H6M3,6V8H21V6M10,18H14V16H10V18Z"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </span>
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Filters
+            </span>
           </button>
           <div
             class="Filter_content"
@@ -102,77 +134,129 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
                   Role
                 </div>
                 <div
-                  class="FilterList_item"
+                  class="FilterList_items"
                 >
                   <div
-                    class="FilterList_checkbox"
+                    class="FilterList_item"
                   >
-                    <label>
-                      <input
-                        id="system_guest"
-                        name="system_guest"
-                        type="checkbox"
-                      />
-                      Guest
-                    </label>
+                    <div
+                      class="FilterList_checkbox"
+                    >
+                      <label
+                        class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                        for="system_guest"
+                      >
+                        <input
+                          class="_checkbox__input_18swc_25"
+                          id="system_guest"
+                          name="system_guest"
+                          type="checkbox"
+                        />
+                        <span
+                          class="_checkbox__box_18swc_44"
+                        />
+                        <span
+                          class="_checkbox__label_18swc_120"
+                        >
+                          Guest
+                        </span>
+                      </label>
+                    </div>
                   </div>
-                </div>
-                <div
-                  class="FilterList_item"
-                >
                   <div
-                    class="FilterList_checkbox"
+                    class="FilterList_item"
                   >
-                    <label>
-                      <input
-                        id="channel_user"
-                        name="channel_user"
-                        type="checkbox"
-                      />
-                      Member
-                    </label>
+                    <div
+                      class="FilterList_checkbox"
+                    >
+                      <label
+                        class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                        for="channel_user"
+                      >
+                        <input
+                          class="_checkbox__input_18swc_25"
+                          id="channel_user"
+                          name="channel_user"
+                          type="checkbox"
+                        />
+                        <span
+                          class="_checkbox__box_18swc_44"
+                        />
+                        <span
+                          class="_checkbox__label_18swc_120"
+                        >
+                          Member
+                        </span>
+                      </label>
+                    </div>
                   </div>
-                </div>
-                <div
-                  class="FilterList_item"
-                >
                   <div
-                    class="FilterList_checkbox"
+                    class="FilterList_item"
                   >
-                    <label>
-                      <input
-                        id="channel_admin"
-                        name="channel_admin"
-                        type="checkbox"
-                      />
-                      Channel Admin
-                    </label>
+                    <div
+                      class="FilterList_checkbox"
+                    >
+                      <label
+                        class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                        for="channel_admin"
+                      >
+                        <input
+                          class="_checkbox__input_18swc_25"
+                          id="channel_admin"
+                          name="channel_admin"
+                          type="checkbox"
+                        />
+                        <span
+                          class="_checkbox__box_18swc_44"
+                        />
+                        <span
+                          class="_checkbox__label_18swc_120"
+                        >
+                          Channel Admin
+                        </span>
+                      </label>
+                    </div>
                   </div>
-                </div>
-                <div
-                  class="FilterList_item"
-                >
                   <div
-                    class="FilterList_checkbox"
+                    class="FilterList_item"
                   >
-                    <label>
-                      <input
-                        id="system_admin"
-                        name="system_admin"
-                        type="checkbox"
-                      />
-                      System Admin
-                    </label>
+                    <div
+                      class="FilterList_checkbox"
+                    >
+                      <label
+                        class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                        for="system_admin"
+                      >
+                        <input
+                          class="_checkbox__input_18swc_25"
+                          id="system_admin"
+                          name="system_admin"
+                          type="checkbox"
+                        />
+                        <span
+                          class="_checkbox__box_18swc_44"
+                        />
+                        <span
+                          class="_checkbox__label_18swc_120"
+                        >
+                          System Admin
+                        </span>
+                      </label>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
             <button
-              class="btn btn-primary btn-sm Filter_apply"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-small_we8pe_53 Filter_apply"
               disabled=""
               type="button"
             >
-              Apply
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Apply
+              </span>
             </button>
           </div>
         </div>
@@ -208,8 +292,10 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
             id="loadingSpinner"
           >
             <span
-              class="fa fa-spinner fa-fw fa-pulse spinner"
-              title="Loading Icon"
+              aria-label="Loading Icon"
+              class="_spinner_3elm7_10 spinner"
+              role="status"
+              style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
             />
           </span>
           Loading
@@ -279,10 +365,15 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
         class="button"
       >
         <button
-          class="style--none btn btn-primary"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
           id="addChannelMembers"
+          type="button"
         >
-          Add Members
+          <span
+            class="_button__label_we8pe_31"
+          >
+            Add Members
+          </span>
         </button>
       </div>
     </div>
@@ -320,13 +411,40 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
           class="Filter"
         >
           <button
-            class="Filter_button"
+            aria-expanded="false"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-small_we8pe_53 Filter_button"
             type="button"
           >
-            <i
-              class="Icon icon-filter-variant"
-            />
-            Filters
+            <span
+              class="_button__icon-slot_we8pe_35"
+            >
+              <div
+                aria-hidden="true"
+                class="_icon_1i355_2 _icon--size-12_1i355_30"
+              >
+                <div
+                  class="_icon__glyph-area_1i355_9"
+                >
+                  <svg
+                    fill="currentColor"
+                    height="14"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="14"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M6,13H18V11H6M3,6V8H21V6M10,18H14V16H10V18Z"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </span>
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Filters
+            </span>
           </button>
           <div
             class="Filter_content"
@@ -358,77 +476,129 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
                   Role
                 </div>
                 <div
-                  class="FilterList_item"
+                  class="FilterList_items"
                 >
                   <div
-                    class="FilterList_checkbox"
+                    class="FilterList_item"
                   >
-                    <label>
-                      <input
-                        id="system_guest"
-                        name="system_guest"
-                        type="checkbox"
-                      />
-                      Guest
-                    </label>
+                    <div
+                      class="FilterList_checkbox"
+                    >
+                      <label
+                        class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                        for="system_guest"
+                      >
+                        <input
+                          class="_checkbox__input_18swc_25"
+                          id="system_guest"
+                          name="system_guest"
+                          type="checkbox"
+                        />
+                        <span
+                          class="_checkbox__box_18swc_44"
+                        />
+                        <span
+                          class="_checkbox__label_18swc_120"
+                        >
+                          Guest
+                        </span>
+                      </label>
+                    </div>
                   </div>
-                </div>
-                <div
-                  class="FilterList_item"
-                >
                   <div
-                    class="FilterList_checkbox"
+                    class="FilterList_item"
                   >
-                    <label>
-                      <input
-                        id="channel_user"
-                        name="channel_user"
-                        type="checkbox"
-                      />
-                      Member
-                    </label>
+                    <div
+                      class="FilterList_checkbox"
+                    >
+                      <label
+                        class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                        for="channel_user"
+                      >
+                        <input
+                          class="_checkbox__input_18swc_25"
+                          id="channel_user"
+                          name="channel_user"
+                          type="checkbox"
+                        />
+                        <span
+                          class="_checkbox__box_18swc_44"
+                        />
+                        <span
+                          class="_checkbox__label_18swc_120"
+                        >
+                          Member
+                        </span>
+                      </label>
+                    </div>
                   </div>
-                </div>
-                <div
-                  class="FilterList_item"
-                >
                   <div
-                    class="FilterList_checkbox"
+                    class="FilterList_item"
                   >
-                    <label>
-                      <input
-                        id="channel_admin"
-                        name="channel_admin"
-                        type="checkbox"
-                      />
-                      Channel Admin
-                    </label>
+                    <div
+                      class="FilterList_checkbox"
+                    >
+                      <label
+                        class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                        for="channel_admin"
+                      >
+                        <input
+                          class="_checkbox__input_18swc_25"
+                          id="channel_admin"
+                          name="channel_admin"
+                          type="checkbox"
+                        />
+                        <span
+                          class="_checkbox__box_18swc_44"
+                        />
+                        <span
+                          class="_checkbox__label_18swc_120"
+                        >
+                          Channel Admin
+                        </span>
+                      </label>
+                    </div>
                   </div>
-                </div>
-                <div
-                  class="FilterList_item"
-                >
                   <div
-                    class="FilterList_checkbox"
+                    class="FilterList_item"
                   >
-                    <label>
-                      <input
-                        id="system_admin"
-                        name="system_admin"
-                        type="checkbox"
-                      />
-                      System Admin
-                    </label>
+                    <div
+                      class="FilterList_checkbox"
+                    >
+                      <label
+                        class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                        for="system_admin"
+                      >
+                        <input
+                          class="_checkbox__input_18swc_25"
+                          id="system_admin"
+                          name="system_admin"
+                          type="checkbox"
+                        />
+                        <span
+                          class="_checkbox__box_18swc_44"
+                        />
+                        <span
+                          class="_checkbox__label_18swc_120"
+                        >
+                          System Admin
+                        </span>
+                      </label>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
             <button
-              class="btn btn-primary btn-sm Filter_apply"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-small_we8pe_53 Filter_apply"
               disabled=""
               type="button"
             >
-              Apply
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Apply
+              </span>
             </button>
           </div>
         </div>
@@ -464,8 +634,10 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
             id="loadingSpinner"
           >
             <span
-              class="fa fa-spinner fa-fw fa-pulse spinner"
-              title="Loading Icon"
+              aria-label="Loading Icon"
+              class="_spinner_3elm7_10 spinner"
+              role="status"
+              style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
             />
           </span>
           Loading

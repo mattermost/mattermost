@@ -398,3 +398,27 @@ func updatePostForReactionsOnInsert(transaction *sqlxTxWrapper, postId string) e
 
 	return err
 }
+
+func (s *SqlReactionStore) GetReactionAuthorIDsForChannel(teamName string, channelName string, includeArchivedChannels bool) ([]string, error) {
+	userIDs := []string{}
+	channelFilter := "AND Channels.DeleteAt = 0"
+	if includeArchivedChannels {
+		channelFilter = ""
+	}
+	err := s.GetReplica().Select(&userIDs,
+		`SELECT DISTINCT Reactions.UserId
+		FROM Reactions
+		INNER JOIN Posts ON Reactions.PostId = Posts.Id
+		INNER JOIN Channels ON Posts.ChannelId = Channels.Id
+		INNER JOIN Teams ON Channels.TeamId = Teams.Id
+		WHERE Teams.Name = ?
+		  AND Channels.Name = ?
+		  AND Posts.DeleteAt = 0
+		  `+channelFilter+`
+		  AND Teams.DeleteAt = 0`,
+		teamName, channelName)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get reaction author IDs for channel")
+	}
+	return userIDs, nil
+}

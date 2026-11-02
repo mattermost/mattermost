@@ -43,13 +43,39 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         class="group-list-link-unlink"
       >
         <button
-          class="btn btn-primary"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
           type="button"
         >
-          <i
-            class="icon icon-link-variant"
-          />
-          Link Selected Groups
+          <span
+            class="_button__icon-slot_we8pe_35"
+          >
+            <div
+              aria-hidden="true"
+              class="_icon_1i355_2 _icon--size-16_1i355_38"
+            >
+              <div
+                class="_icon__glyph-area_1i355_9"
+              >
+                <svg
+                  fill="currentColor"
+                  height="18"
+                  version="1.1"
+                  viewBox="0 0 24 24"
+                  width="18"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M10.59,13.41C11,13.8 11,14.44 10.59,14.83C10.2,15.22 9.56,15.22 9.17,14.83C7.22,12.88 7.22,9.71 9.17,7.76V7.76L12.71,4.22C14.66,2.27 17.83,2.27 19.78,4.22C21.73,6.17 21.73,9.34 19.78,11.29L18.29,12.78C18.3,11.96 18.17,11.14 17.89,10.36L18.36,9.88C19.54,8.71 19.54,6.81 18.36,5.64C17.19,4.46 15.29,4.46 14.12,5.64L10.59,9.17C9.41,10.34 9.41,12.24 10.59,13.41M13.41,9.17C13.8,8.78 14.44,8.78 14.83,9.17C16.78,11.12 16.78,14.29 14.83,16.24V16.24L11.29,19.78C9.34,21.73 6.17,21.73 4.22,19.78C2.27,17.83 2.27,14.66 4.22,12.71L5.71,11.22C5.7,12.04 5.83,12.86 6.11,13.65L5.64,14.12C4.46,15.29 4.46,17.19 5.64,18.36C6.81,19.54 8.71,19.54 9.88,18.36L13.41,14.83C14.59,13.66 14.59,11.76 13.41,10.59C13,10.2 13,9.56 13.41,9.17Z"
+                  />
+                </svg>
+              </div>
+            </div>
+          </span>
+          <span
+            class="_button__label_we8pe_31"
+          >
+            Link Selected Groups
+          </span>
         </button>
       </div>
     </div>
@@ -115,60 +141,139 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         <div
           class="filter-row"
         >
-          <span
-            class="filter-check "
-          />
-          <span>
-            Is Linked
-          </span>
+          <label
+            class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 filter-check"
+            for="_r_4a_"
+          >
+            <input
+              class="_checkbox__input_18swc_25"
+              id="_r_4a_"
+              type="checkbox"
+            />
+            <span
+              class="_checkbox__box_18swc_44"
+            />
+            <span
+              class="_checkbox__label_18swc_120"
+            >
+              Is Linked
+            </span>
+          </label>
         </div>
         <div
           class="filter-row"
         >
-          <span
-            class="filter-check "
-          />
-          <span>
-            Is Not Linked
-          </span>
+          <label
+            class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 filter-check"
+            for="_r_4b_"
+          >
+            <input
+              class="_checkbox__input_18swc_25"
+              id="_r_4b_"
+              type="checkbox"
+            />
+            <span
+              class="_checkbox__box_18swc_44"
+            />
+            <span
+              class="_checkbox__label_18swc_120"
+            >
+              Is Not Linked
+            </span>
+          </label>
         </div>
         <div
           class="filter-row"
         >
-          <span
-            class="filter-check "
-          />
-          <span>
-            Is Configured
-          </span>
+          <label
+            class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 filter-check"
+            for="_r_4c_"
+          >
+            <input
+              class="_checkbox__input_18swc_25"
+              id="_r_4c_"
+              type="checkbox"
+            />
+            <span
+              class="_checkbox__box_18swc_44"
+            />
+            <span
+              class="_checkbox__label_18swc_120"
+            >
+              Is Configured
+            </span>
+          </label>
         </div>
         <div
           class="filter-row"
         >
-          <span
-            class="filter-check "
-          />
-          <span>
-            Is Not Configured
-          </span>
+          <label
+            class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 filter-check"
+            for="_r_4d_"
+          >
+            <input
+              class="_checkbox__input_18swc_25"
+              id="_r_4d_"
+              type="checkbox"
+            />
+            <span
+              class="_checkbox__box_18swc_44"
+            />
+            <span
+              class="_checkbox__label_18swc_120"
+            >
+              Is Not Configured
+            </span>
+          </label>
         </div>
         <button
-          class="btn btn-primary search-groups-btn"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 search-groups-btn"
+          type="button"
         >
-          Search
+          <span
+            class="_button__label_we8pe_31"
+          >
+            Search
+          </span>
         </button>
       </div>
       <div
         class="group-list-link-unlink"
       >
         <button
-          class="btn btn-primary"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
           type="button"
         >
-          <i
-            class="icon icon-link-variant"
-          />
-          Link Selected Groups
+          <span
+            class="_button__icon-slot_we8pe_35"
+          >
+            <div
+              aria-hidden="true"
+              class="_icon_1i355_2 _icon--size-16_1i355_38"
+            >
+              <div
+                class="_icon__glyph-area_1i355_9"
+              >
+                <svg
+                  fill="currentColor"
+                  height="18"
+                  version="1.1"
+                  viewBox="0 0 24 24"
+                  width="18"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M10.59,13.41C11,13.8 11,14.44 10.59,14.83C10.2,15.22 9.56,15.22 9.17,14.83C7.22,12.88 7.22,9.71 9.17,7.76V7.76L12.71,4.22C14.66,2.27 17.83,2.27 19.78,4.22C21.73,6.17 21.73,9.34 19.78,11.29L18.29,12.78C18.3,11.96 18.17,11.14 17.89,10.36L18.36,9.88C19.54,8.71 19.54,6.81 18.36,5.64C17.19,4.46 15.29,4.46 14.12,5.64L10.59,9.17C9.41,10.34 9.41,12.24 10.59,13.41M13.41,9.17C13.8,8.78 14.44,8.78 14.83,9.17C16.78,11.12 16.78,14.29 14.83,16.24V16.24L11.29,19.78C9.34,21.73 6.17,21.73 4.22,19.78C2.27,17.83 2.27,14.66 4.22,12.71L5.71,11.22C5.7,12.04 5.83,12.86 6.11,13.65L5.64,14.12C4.46,15.29 4.46,17.19 5.64,18.36C6.81,19.54 8.71,19.54 9.88,18.36L13.41,14.83C14.59,13.66 14.59,11.76 13.41,10.59C13,10.2 13,9.56 13.41,9.17Z"
+                  />
+                </svg>
+              </div>
+            </div>
+          </span>
+          <span
+            class="_button__label_we8pe_31"
+          >
+            Link Selected Groups
+          </span>
         </button>
       </div>
     </div>
@@ -229,13 +334,39 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         class="group-list-link-unlink"
       >
         <button
-          class="btn btn-primary"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
           type="button"
         >
-          <i
-            class="icon fa fa-link"
-          />
-          Link Selected Groups
+          <span
+            class="_button__icon-slot_we8pe_35"
+          >
+            <div
+              aria-hidden="true"
+              class="_icon_1i355_2 _icon--size-16_1i355_38"
+            >
+              <div
+                class="_icon__glyph-area_1i355_9"
+              >
+                <svg
+                  fill="currentColor"
+                  height="18"
+                  version="1.1"
+                  viewBox="0 0 24 24"
+                  width="18"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M10.59,13.41C11,13.8 11,14.44 10.59,14.83C10.2,15.22 9.56,15.22 9.17,14.83C7.22,12.88 7.22,9.71 9.17,7.76V7.76L12.71,4.22C14.66,2.27 17.83,2.27 19.78,4.22C21.73,6.17 21.73,9.34 19.78,11.29L18.29,12.78C18.3,11.96 18.17,11.14 17.89,10.36L18.36,9.88C19.54,8.71 19.54,6.81 18.36,5.64C17.19,4.46 15.29,4.46 14.12,5.64L10.59,9.17C9.41,10.34 9.41,12.24 10.59,13.41M13.41,9.17C13.8,8.78 14.44,8.78 14.83,9.17C16.78,11.12 16.78,14.29 14.83,16.24V16.24L11.29,19.78C9.34,21.73 6.17,21.73 4.22,19.78C2.27,17.83 2.27,14.66 4.22,12.71L5.71,11.22C5.7,12.04 5.83,12.86 6.11,13.65L5.64,14.12C4.46,15.29 4.46,17.19 5.64,18.36C6.81,19.54 8.71,19.54 9.88,18.36L13.41,14.83C14.59,13.66 14.59,11.76 13.41,10.59C13,10.2 13,9.56 13.41,9.17Z"
+                  />
+                </svg>
+              </div>
+            </div>
+          </span>
+          <span
+            class="_button__label_we8pe_31"
+          >
+            Link Selected Groups
+          </span>
         </button>
       </div>
     </div>
@@ -274,68 +405,50 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
           <div
             class="group-name"
           >
-            <div
-              class="group-check checked"
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
+              for="_r_4_"
             >
-              <svg
-                height="18px"
-                viewBox="0 0 18 18"
-                width="18px"
+              <input
+                class="_checkbox__input_18swc_25"
+                id="_r_4_"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
               >
-                <g
-                  fill-rule="evenodd"
-                  id="Developer-Export"
-                  stroke="none"
-                  stroke-width="1"
+                <span
+                  class="_checkbox__icon_18swc_69"
                 >
-                  <g
-                    id="All-Team-Members"
-                    transform="translate(-285.000000, -933.000000)"
+                  <div
+                    aria-hidden="true"
+                    class="_icon_1i355_2 _icon--size-12_1i355_30"
                   >
-                    <g
-                      transform="translate(245.000000, 698.000000)"
+                    <div
+                      class="_icon__glyph-area_1i355_9"
                     >
-                      <g
-                        id="Channel-Administrators"
-                        transform="translate(0.000000, 106.000000)"
+                      <svg
+                        fill="currentColor"
+                        height="14"
+                        version="1.1"
+                        viewBox="0 0 24 24"
+                        width="14"
+                        xmlns="http://www.w3.org/2000/svg"
                       >
-                        <g
-                          id="data-table/column-1"
-                          transform="translate(11.000000, 86.000000)"
-                        >
-                          <g
-                            id="row-checkbox---Public-Channels"
-                            transform="translate(12.000000, 35.000000)"
-                          >
-                            <g
-                              id="Stacked-Group"
-                              transform="translate(0.000000, 5.000000)"
-                            >
-                              <g
-                                id="data-table/1st/row-checkbox-label-base"
-                              >
-                                <g
-                                  id="check-on-copy-11"
-                                  transform="translate(14.000000, 0.000000)"
-                                >
-                                  <path
-                                    d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
-                                    id="checkbox---checked"
-                                  />
-                                </g>
-                              </g>
-                            </g>
-                          </g>
-                        </g>
-                      </g>
-                    </g>
-                  </g>
-                </g>
-              </svg>
-            </div>
-            <span>
-              test1
-            </span>
+                        <path
+                          d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                </span>
+              </span>
+              <span
+                class="_checkbox__label_18swc_120"
+              >
+                test1
+              </span>
+            </label>
           </div>
           <div
             class="group-content"
@@ -369,68 +482,50 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
           <div
             class="group-name"
           >
-            <div
-              class="group-check checked"
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
+              for="_r_5_"
             >
-              <svg
-                height="18px"
-                viewBox="0 0 18 18"
-                width="18px"
+              <input
+                class="_checkbox__input_18swc_25"
+                id="_r_5_"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
               >
-                <g
-                  fill-rule="evenodd"
-                  id="Developer-Export"
-                  stroke="none"
-                  stroke-width="1"
+                <span
+                  class="_checkbox__icon_18swc_69"
                 >
-                  <g
-                    id="All-Team-Members"
-                    transform="translate(-285.000000, -933.000000)"
+                  <div
+                    aria-hidden="true"
+                    class="_icon_1i355_2 _icon--size-12_1i355_30"
                   >
-                    <g
-                      transform="translate(245.000000, 698.000000)"
+                    <div
+                      class="_icon__glyph-area_1i355_9"
                     >
-                      <g
-                        id="Channel-Administrators"
-                        transform="translate(0.000000, 106.000000)"
+                      <svg
+                        fill="currentColor"
+                        height="14"
+                        version="1.1"
+                        viewBox="0 0 24 24"
+                        width="14"
+                        xmlns="http://www.w3.org/2000/svg"
                       >
-                        <g
-                          id="data-table/column-1"
-                          transform="translate(11.000000, 86.000000)"
-                        >
-                          <g
-                            id="row-checkbox---Public-Channels"
-                            transform="translate(12.000000, 35.000000)"
-                          >
-                            <g
-                              id="Stacked-Group"
-                              transform="translate(0.000000, 5.000000)"
-                            >
-                              <g
-                                id="data-table/1st/row-checkbox-label-base"
-                              >
-                                <g
-                                  id="check-on-copy-11"
-                                  transform="translate(14.000000, 0.000000)"
-                                >
-                                  <path
-                                    d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
-                                    id="checkbox---checked"
-                                  />
-                                </g>
-                              </g>
-                            </g>
-                          </g>
-                        </g>
-                      </g>
-                    </g>
-                  </g>
-                </g>
-              </svg>
-            </div>
-            <span>
-              test2
-            </span>
+                        <path
+                          d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                </span>
+              </span>
+              <span
+                class="_checkbox__label_18swc_120"
+              >
+                test2
+              </span>
+            </label>
           </div>
           <div
             class="group-content"
@@ -471,7 +566,8 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         1 - 2 of 2
       </div>
       <button
-        class="btn btn-tertiary disabled"
+        class="btn btn-quaternary btn-sm btn-icon ml-2 prev disabled"
+        data-testid="page-link-prev"
         disabled=""
         type="button"
       >
@@ -481,7 +577,8 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         />
       </button>
       <button
-        class="btn btn-tertiary disabled"
+        class="btn btn-quaternary btn-sm btn-icon next disabled"
+        data-testid="page-link-next"
         disabled=""
         type="button"
       >
@@ -538,13 +635,39 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         class="group-list-link-unlink"
       >
         <button
-          class="btn btn-primary"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
           type="button"
         >
-          <i
-            class="icon fa fa-unlink"
-          />
-          Unlink Selected Groups
+          <span
+            class="_button__icon-slot_we8pe_35"
+          >
+            <div
+              aria-hidden="true"
+              class="_icon_1i355_2 _icon--size-16_1i355_38"
+            >
+              <div
+                class="_icon__glyph-area_1i355_9"
+              >
+                <svg
+                  fill="currentColor"
+                  height="18"
+                  version="1.1"
+                  viewBox="0 0 24 24"
+                  width="18"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M2,5.27L3.28,4L20,20.72L18.73,22L13.9,17.17L11.29,19.78C9.34,21.73 6.17,21.73 4.22,19.78C2.27,17.83 2.27,14.66 4.22,12.71L5.71,11.22C5.7,12.04 5.83,12.86 6.11,13.65L5.64,14.12C4.46,15.29 4.46,17.19 5.64,18.36C6.81,19.54 8.71,19.54 9.88,18.36L12.5,15.76L10.88,14.15C10.87,14.39 10.77,14.64 10.59,14.83C10.2,15.22 9.56,15.22 9.17,14.83C8.12,13.77 7.63,12.37 7.72,11L2,5.27M12.71,4.22C14.66,2.27 17.83,2.27 19.78,4.22C21.73,6.17 21.73,9.34 19.78,11.29L18.29,12.78C18.3,11.96 18.17,11.14 17.89,10.36L18.36,9.88C19.54,8.71 19.54,6.81 18.36,5.64C17.19,4.46 15.29,4.46 14.12,5.64L10.79,8.97L9.38,7.55L12.71,4.22M13.41,9.17C13.8,8.78 14.44,8.78 14.83,9.17C16.2,10.54 16.61,12.5 16.06,14.23L14.28,12.46C14.23,11.78 13.94,11.11 13.41,10.59C13,10.2 13,9.56 13.41,9.17Z"
+                  />
+                </svg>
+              </div>
+            </div>
+          </span>
+          <span
+            class="_button__label_we8pe_31"
+          >
+            Unlink Selected Groups
+          </span>
         </button>
       </div>
     </div>
@@ -583,12 +706,24 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
           <div
             class="group-name"
           >
-            <div
-              class="group-check "
-            />
-            <span>
-              test1
-            </span>
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
+              for="_r_0_"
+            >
+              <input
+                class="_checkbox__input_18swc_25"
+                id="_r_0_"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
+              />
+              <span
+                class="_checkbox__label_18swc_120"
+              >
+                test1
+              </span>
+            </label>
           </div>
           <div
             class="group-content"
@@ -622,68 +757,50 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
           <div
             class="group-name"
           >
-            <div
-              class="group-check checked"
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
+              for="_r_1_"
             >
-              <svg
-                height="18px"
-                viewBox="0 0 18 18"
-                width="18px"
+              <input
+                class="_checkbox__input_18swc_25"
+                id="_r_1_"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
               >
-                <g
-                  fill-rule="evenodd"
-                  id="Developer-Export"
-                  stroke="none"
-                  stroke-width="1"
+                <span
+                  class="_checkbox__icon_18swc_69"
                 >
-                  <g
-                    id="All-Team-Members"
-                    transform="translate(-285.000000, -933.000000)"
+                  <div
+                    aria-hidden="true"
+                    class="_icon_1i355_2 _icon--size-12_1i355_30"
                   >
-                    <g
-                      transform="translate(245.000000, 698.000000)"
+                    <div
+                      class="_icon__glyph-area_1i355_9"
                     >
-                      <g
-                        id="Channel-Administrators"
-                        transform="translate(0.000000, 106.000000)"
+                      <svg
+                        fill="currentColor"
+                        height="14"
+                        version="1.1"
+                        viewBox="0 0 24 24"
+                        width="14"
+                        xmlns="http://www.w3.org/2000/svg"
                       >
-                        <g
-                          id="data-table/column-1"
-                          transform="translate(11.000000, 86.000000)"
-                        >
-                          <g
-                            id="row-checkbox---Public-Channels"
-                            transform="translate(12.000000, 35.000000)"
-                          >
-                            <g
-                              id="Stacked-Group"
-                              transform="translate(0.000000, 5.000000)"
-                            >
-                              <g
-                                id="data-table/1st/row-checkbox-label-base"
-                              >
-                                <g
-                                  id="check-on-copy-11"
-                                  transform="translate(14.000000, 0.000000)"
-                                >
-                                  <path
-                                    d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
-                                    id="checkbox---checked"
-                                  />
-                                </g>
-                              </g>
-                            </g>
-                          </g>
-                        </g>
-                      </g>
-                    </g>
-                  </g>
-                </g>
-              </svg>
-            </div>
-            <span>
-              test2
-            </span>
+                        <path
+                          d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                </span>
+              </span>
+              <span
+                class="_checkbox__label_18swc_120"
+              >
+                test2
+              </span>
+            </label>
           </div>
           <div
             class="group-content"
@@ -724,7 +841,8 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         1 - 2 of 2
       </div>
       <button
-        class="btn btn-tertiary disabled"
+        class="btn btn-quaternary btn-sm btn-icon ml-2 prev disabled"
+        data-testid="page-link-prev"
         disabled=""
         type="button"
       >
@@ -734,7 +852,8 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         />
       </button>
       <button
-        class="btn btn-tertiary disabled"
+        class="btn btn-quaternary btn-sm btn-icon next disabled"
+        data-testid="page-link-next"
         disabled=""
         type="button"
       >
@@ -791,13 +910,39 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         class="group-list-link-unlink"
       >
         <button
-          class="btn btn-primary"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
           type="button"
         >
-          <i
-            class="icon fa fa-link"
-          />
-          Link Selected Groups
+          <span
+            class="_button__icon-slot_we8pe_35"
+          >
+            <div
+              aria-hidden="true"
+              class="_icon_1i355_2 _icon--size-16_1i355_38"
+            >
+              <div
+                class="_icon__glyph-area_1i355_9"
+              >
+                <svg
+                  fill="currentColor"
+                  height="18"
+                  version="1.1"
+                  viewBox="0 0 24 24"
+                  width="18"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M10.59,13.41C11,13.8 11,14.44 10.59,14.83C10.2,15.22 9.56,15.22 9.17,14.83C7.22,12.88 7.22,9.71 9.17,7.76V7.76L12.71,4.22C14.66,2.27 17.83,2.27 19.78,4.22C21.73,6.17 21.73,9.34 19.78,11.29L18.29,12.78C18.3,11.96 18.17,11.14 17.89,10.36L18.36,9.88C19.54,8.71 19.54,6.81 18.36,5.64C17.19,4.46 15.29,4.46 14.12,5.64L10.59,9.17C9.41,10.34 9.41,12.24 10.59,13.41M13.41,9.17C13.8,8.78 14.44,8.78 14.83,9.17C16.78,11.12 16.78,14.29 14.83,16.24V16.24L11.29,19.78C9.34,21.73 6.17,21.73 4.22,19.78C2.27,17.83 2.27,14.66 4.22,12.71L5.71,11.22C5.7,12.04 5.83,12.86 6.11,13.65L5.64,14.12C4.46,15.29 4.46,17.19 5.64,18.36C6.81,19.54 8.71,19.54 9.88,18.36L13.41,14.83C14.59,13.66 14.59,11.76 13.41,10.59C13,10.2 13,9.56 13.41,9.17Z"
+                  />
+                </svg>
+              </div>
+            </div>
+          </span>
+          <span
+            class="_button__label_we8pe_31"
+          >
+            Link Selected Groups
+          </span>
         </button>
       </div>
     </div>
@@ -836,68 +981,50 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
           <div
             class="group-name"
           >
-            <div
-              class="group-check checked"
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
+              for="_r_2_"
             >
-              <svg
-                height="18px"
-                viewBox="0 0 18 18"
-                width="18px"
+              <input
+                class="_checkbox__input_18swc_25"
+                id="_r_2_"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
               >
-                <g
-                  fill-rule="evenodd"
-                  id="Developer-Export"
-                  stroke="none"
-                  stroke-width="1"
+                <span
+                  class="_checkbox__icon_18swc_69"
                 >
-                  <g
-                    id="All-Team-Members"
-                    transform="translate(-285.000000, -933.000000)"
+                  <div
+                    aria-hidden="true"
+                    class="_icon_1i355_2 _icon--size-12_1i355_30"
                   >
-                    <g
-                      transform="translate(245.000000, 698.000000)"
+                    <div
+                      class="_icon__glyph-area_1i355_9"
                     >
-                      <g
-                        id="Channel-Administrators"
-                        transform="translate(0.000000, 106.000000)"
+                      <svg
+                        fill="currentColor"
+                        height="14"
+                        version="1.1"
+                        viewBox="0 0 24 24"
+                        width="14"
+                        xmlns="http://www.w3.org/2000/svg"
                       >
-                        <g
-                          id="data-table/column-1"
-                          transform="translate(11.000000, 86.000000)"
-                        >
-                          <g
-                            id="row-checkbox---Public-Channels"
-                            transform="translate(12.000000, 35.000000)"
-                          >
-                            <g
-                              id="Stacked-Group"
-                              transform="translate(0.000000, 5.000000)"
-                            >
-                              <g
-                                id="data-table/1st/row-checkbox-label-base"
-                              >
-                                <g
-                                  id="check-on-copy-11"
-                                  transform="translate(14.000000, 0.000000)"
-                                >
-                                  <path
-                                    d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
-                                    id="checkbox---checked"
-                                  />
-                                </g>
-                              </g>
-                            </g>
-                          </g>
-                        </g>
-                      </g>
-                    </g>
-                  </g>
-                </g>
-              </svg>
-            </div>
-            <span>
-              test1
-            </span>
+                        <path
+                          d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                </span>
+              </span>
+              <span
+                class="_checkbox__label_18swc_120"
+              >
+                test1
+              </span>
+            </label>
           </div>
           <div
             class="group-content"
@@ -931,12 +1058,24 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
           <div
             class="group-name"
           >
-            <div
-              class="group-check "
-            />
-            <span>
-              test2
-            </span>
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
+              for="_r_3_"
+            >
+              <input
+                class="_checkbox__input_18swc_25"
+                id="_r_3_"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
+              />
+              <span
+                class="_checkbox__label_18swc_120"
+              >
+                test2
+              </span>
+            </label>
           </div>
           <div
             class="group-content"
@@ -977,7 +1116,8 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         1 - 2 of 2
       </div>
       <button
-        class="btn btn-tertiary disabled"
+        class="btn btn-quaternary btn-sm btn-icon ml-2 prev disabled"
+        data-testid="page-link-prev"
         disabled=""
         type="button"
       >
@@ -987,7 +1127,8 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         />
       </button>
       <button
-        class="btn btn-tertiary disabled"
+        class="btn btn-quaternary btn-sm btn-icon next disabled"
+        data-testid="page-link-next"
         disabled=""
         type="button"
       >
@@ -1044,13 +1185,39 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         class="group-list-link-unlink"
       >
         <button
-          class="btn btn-primary"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
           type="button"
         >
-          <i
-            class="icon icon-link-variant"
-          />
-          Link Selected Groups
+          <span
+            class="_button__icon-slot_we8pe_35"
+          >
+            <div
+              aria-hidden="true"
+              class="_icon_1i355_2 _icon--size-16_1i355_38"
+            >
+              <div
+                class="_icon__glyph-area_1i355_9"
+              >
+                <svg
+                  fill="currentColor"
+                  height="18"
+                  version="1.1"
+                  viewBox="0 0 24 24"
+                  width="18"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M10.59,13.41C11,13.8 11,14.44 10.59,14.83C10.2,15.22 9.56,15.22 9.17,14.83C7.22,12.88 7.22,9.71 9.17,7.76V7.76L12.71,4.22C14.66,2.27 17.83,2.27 19.78,4.22C21.73,6.17 21.73,9.34 19.78,11.29L18.29,12.78C18.3,11.96 18.17,11.14 17.89,10.36L18.36,9.88C19.54,8.71 19.54,6.81 18.36,5.64C17.19,4.46 15.29,4.46 14.12,5.64L10.59,9.17C9.41,10.34 9.41,12.24 10.59,13.41M13.41,9.17C13.8,8.78 14.44,8.78 14.83,9.17C16.78,11.12 16.78,14.29 14.83,16.24V16.24L11.29,19.78C9.34,21.73 6.17,21.73 4.22,19.78C2.27,17.83 2.27,14.66 4.22,12.71L5.71,11.22C5.7,12.04 5.83,12.86 6.11,13.65L5.64,14.12C4.46,15.29 4.46,17.19 5.64,18.36C6.81,19.54 8.71,19.54 9.88,18.36L13.41,14.83C14.59,13.66 14.59,11.76 13.41,10.59C13,10.2 13,9.56 13.41,9.17Z"
+                  />
+                </svg>
+              </div>
+            </div>
+          </span>
+          <span
+            class="_button__label_we8pe_31"
+          >
+            Link Selected Groups
+          </span>
         </button>
       </div>
     </div>
@@ -1089,12 +1256,24 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
           <div
             class="group-name"
           >
-            <div
-              class="group-check "
-            />
-            <span>
-              test1
-            </span>
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
+              for="_r_g_"
+            >
+              <input
+                class="_checkbox__input_18swc_25"
+                id="_r_g_"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
+              />
+              <span
+                class="_checkbox__label_18swc_120"
+              >
+                test1
+              </span>
+            </label>
           </div>
           <div
             class="group-content"
@@ -1128,12 +1307,24 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
           <div
             class="group-name"
           >
-            <div
-              class="group-check "
-            />
-            <span>
-              test2
-            </span>
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
+              for="_r_h_"
+            >
+              <input
+                class="_checkbox__input_18swc_25"
+                id="_r_h_"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
+              />
+              <span
+                class="_checkbox__label_18swc_120"
+              >
+                test2
+              </span>
+            </label>
           </div>
           <div
             class="group-content"
@@ -1174,12 +1365,24 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
           <div
             class="group-name"
           >
-            <div
-              class="group-check "
-            />
-            <span>
-              test3
-            </span>
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
+              for="_r_i_"
+            >
+              <input
+                class="_checkbox__input_18swc_25"
+                id="_r_i_"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
+              />
+              <span
+                class="_checkbox__label_18swc_120"
+              >
+                test3
+              </span>
+            </label>
           </div>
           <div
             class="group-content"
@@ -1220,7 +1423,8 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         1 - 3 of 3
       </div>
       <button
-        class="btn btn-tertiary disabled"
+        class="btn btn-quaternary btn-sm btn-icon ml-2 prev disabled"
+        data-testid="page-link-prev"
         disabled=""
         type="button"
       >
@@ -1230,7 +1434,8 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         />
       </button>
       <button
-        class="btn btn-tertiary disabled"
+        class="btn btn-quaternary btn-sm btn-icon next disabled"
+        data-testid="page-link-next"
         disabled=""
         type="button"
       >
@@ -1287,13 +1492,39 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         class="group-list-link-unlink"
       >
         <button
-          class="btn btn-primary"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
           type="button"
         >
-          <i
-            class="icon icon-link-variant"
-          />
-          Link Selected Groups
+          <span
+            class="_button__icon-slot_we8pe_35"
+          >
+            <div
+              aria-hidden="true"
+              class="_icon_1i355_2 _icon--size-16_1i355_38"
+            >
+              <div
+                class="_icon__glyph-area_1i355_9"
+              >
+                <svg
+                  fill="currentColor"
+                  height="18"
+                  version="1.1"
+                  viewBox="0 0 24 24"
+                  width="18"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M10.59,13.41C11,13.8 11,14.44 10.59,14.83C10.2,15.22 9.56,15.22 9.17,14.83C7.22,12.88 7.22,9.71 9.17,7.76V7.76L12.71,4.22C14.66,2.27 17.83,2.27 19.78,4.22C21.73,6.17 21.73,9.34 19.78,11.29L18.29,12.78C18.3,11.96 18.17,11.14 17.89,10.36L18.36,9.88C19.54,8.71 19.54,6.81 18.36,5.64C17.19,4.46 15.29,4.46 14.12,5.64L10.59,9.17C9.41,10.34 9.41,12.24 10.59,13.41M13.41,9.17C13.8,8.78 14.44,8.78 14.83,9.17C16.78,11.12 16.78,14.29 14.83,16.24V16.24L11.29,19.78C9.34,21.73 6.17,21.73 4.22,19.78C2.27,17.83 2.27,14.66 4.22,12.71L5.71,11.22C5.7,12.04 5.83,12.86 6.11,13.65L5.64,14.12C4.46,15.29 4.46,17.19 5.64,18.36C6.81,19.54 8.71,19.54 9.88,18.36L13.41,14.83C14.59,13.66 14.59,11.76 13.41,10.59C13,10.2 13,9.56 13.41,9.17Z"
+                  />
+                </svg>
+              </div>
+            </div>
+          </span>
+          <span
+            class="_button__label_we8pe_31"
+          >
+            Link Selected Groups
+          </span>
         </button>
       </div>
     </div>
@@ -1332,12 +1563,24 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
           <div
             class="group-name"
           >
-            <div
-              class="group-check "
-            />
-            <span>
-              test1
-            </span>
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
+              for="_r_17_"
+            >
+              <input
+                class="_checkbox__input_18swc_25"
+                id="_r_17_"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
+              />
+              <span
+                class="_checkbox__label_18swc_120"
+              >
+                test1
+              </span>
+            </label>
           </div>
           <div
             class="group-content"
@@ -1371,12 +1614,24 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
           <div
             class="group-name"
           >
-            <div
-              class="group-check "
-            />
-            <span>
-              test2
-            </span>
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
+              for="_r_18_"
+            >
+              <input
+                class="_checkbox__input_18swc_25"
+                id="_r_18_"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
+              />
+              <span
+                class="_checkbox__label_18swc_120"
+              >
+                test2
+              </span>
+            </label>
           </div>
           <div
             class="group-content"
@@ -1417,12 +1672,24 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
           <div
             class="group-name"
           >
-            <div
-              class="group-check "
-            />
-            <span>
-              test3
-            </span>
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
+              for="_r_19_"
+            >
+              <input
+                class="_checkbox__input_18swc_25"
+                id="_r_19_"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
+              />
+              <span
+                class="_checkbox__label_18swc_120"
+              >
+                test3
+              </span>
+            </label>
           </div>
           <div
             class="group-content"
@@ -1463,12 +1730,24 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
           <div
             class="group-name"
           >
-            <div
-              class="group-check "
-            />
-            <span>
-              test4
-            </span>
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
+              for="_r_1a_"
+            >
+              <input
+                class="_checkbox__input_18swc_25"
+                id="_r_1a_"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
+              />
+              <span
+                class="_checkbox__label_18swc_120"
+              >
+                test4
+              </span>
+            </label>
           </div>
           <div
             class="group-content"
@@ -1502,12 +1781,24 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
           <div
             class="group-name"
           >
-            <div
-              class="group-check "
-            />
-            <span>
-              test5
-            </span>
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
+              for="_r_1b_"
+            >
+              <input
+                class="_checkbox__input_18swc_25"
+                id="_r_1b_"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
+              />
+              <span
+                class="_checkbox__label_18swc_120"
+              >
+                test5
+              </span>
+            </label>
           </div>
           <div
             class="group-content"
@@ -1541,12 +1832,24 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
           <div
             class="group-name"
           >
-            <div
-              class="group-check "
-            />
-            <span>
-              test6
-            </span>
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
+              for="_r_1c_"
+            >
+              <input
+                class="_checkbox__input_18swc_25"
+                id="_r_1c_"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
+              />
+              <span
+                class="_checkbox__label_18swc_120"
+              >
+                test6
+              </span>
+            </label>
           </div>
           <div
             class="group-content"
@@ -1580,12 +1883,24 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
           <div
             class="group-name"
           >
-            <div
-              class="group-check "
-            />
-            <span>
-              test7
-            </span>
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
+              for="_r_1d_"
+            >
+              <input
+                class="_checkbox__input_18swc_25"
+                id="_r_1d_"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
+              />
+              <span
+                class="_checkbox__label_18swc_120"
+              >
+                test7
+              </span>
+            </label>
           </div>
           <div
             class="group-content"
@@ -1619,12 +1934,24 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
           <div
             class="group-name"
           >
-            <div
-              class="group-check "
-            />
-            <span>
-              test8
-            </span>
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
+              for="_r_1e_"
+            >
+              <input
+                class="_checkbox__input_18swc_25"
+                id="_r_1e_"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
+              />
+              <span
+                class="_checkbox__label_18swc_120"
+              >
+                test8
+              </span>
+            </label>
           </div>
           <div
             class="group-content"
@@ -1658,12 +1985,24 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
           <div
             class="group-name"
           >
-            <div
-              class="group-check "
-            />
-            <span>
-              test9
-            </span>
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
+              for="_r_1f_"
+            >
+              <input
+                class="_checkbox__input_18swc_25"
+                id="_r_1f_"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
+              />
+              <span
+                class="_checkbox__label_18swc_120"
+              >
+                test9
+              </span>
+            </label>
           </div>
           <div
             class="group-content"
@@ -1697,12 +2036,24 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
           <div
             class="group-name"
           >
-            <div
-              class="group-check "
-            />
-            <span>
-              test10
-            </span>
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
+              for="_r_1g_"
+            >
+              <input
+                class="_checkbox__input_18swc_25"
+                id="_r_1g_"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
+              />
+              <span
+                class="_checkbox__label_18swc_120"
+              >
+                test10
+              </span>
+            </label>
           </div>
           <div
             class="group-content"
@@ -1736,7 +2087,8 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         1 - 200 of 401
       </div>
       <button
-        class="btn btn-tertiary disabled"
+        class="btn btn-quaternary btn-sm btn-icon ml-2 prev disabled"
+        data-testid="page-link-prev"
         disabled=""
         type="button"
       >
@@ -1746,7 +2098,8 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         />
       </button>
       <button
-        class="btn btn-tertiary"
+        class="btn btn-quaternary btn-sm btn-icon next"
+        data-testid="page-link-next"
         type="button"
       >
         <i
@@ -1802,13 +2155,39 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         class="group-list-link-unlink"
       >
         <button
-          class="btn btn-primary"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
           type="button"
         >
-          <i
-            class="icon icon-link-variant"
-          />
-          Link Selected Groups
+          <span
+            class="_button__icon-slot_we8pe_35"
+          >
+            <div
+              aria-hidden="true"
+              class="_icon_1i355_2 _icon--size-16_1i355_38"
+            >
+              <div
+                class="_icon__glyph-area_1i355_9"
+              >
+                <svg
+                  fill="currentColor"
+                  height="18"
+                  version="1.1"
+                  viewBox="0 0 24 24"
+                  width="18"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M10.59,13.41C11,13.8 11,14.44 10.59,14.83C10.2,15.22 9.56,15.22 9.17,14.83C7.22,12.88 7.22,9.71 9.17,7.76V7.76L12.71,4.22C14.66,2.27 17.83,2.27 19.78,4.22C21.73,6.17 21.73,9.34 19.78,11.29L18.29,12.78C18.3,11.96 18.17,11.14 17.89,10.36L18.36,9.88C19.54,8.71 19.54,6.81 18.36,5.64C17.19,4.46 15.29,4.46 14.12,5.64L10.59,9.17C9.41,10.34 9.41,12.24 10.59,13.41M13.41,9.17C13.8,8.78 14.44,8.78 14.83,9.17C16.78,11.12 16.78,14.29 14.83,16.24V16.24L11.29,19.78C9.34,21.73 6.17,21.73 4.22,19.78C2.27,17.83 2.27,14.66 4.22,12.71L5.71,11.22C5.7,12.04 5.83,12.86 6.11,13.65L5.64,14.12C4.46,15.29 4.46,17.19 5.64,18.36C6.81,19.54 8.71,19.54 9.88,18.36L13.41,14.83C14.59,13.66 14.59,11.76 13.41,10.59C13,10.2 13,9.56 13.41,9.17Z"
+                  />
+                </svg>
+              </div>
+            </div>
+          </span>
+          <span
+            class="_button__label_we8pe_31"
+          >
+            Link Selected Groups
+          </span>
         </button>
       </div>
     </div>
@@ -1847,12 +2226,24 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
           <div
             class="group-name"
           >
-            <div
-              class="group-check "
-            />
-            <span>
-              test1
-            </span>
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
+              for="_r_t_"
+            >
+              <input
+                class="_checkbox__input_18swc_25"
+                id="_r_t_"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
+              />
+              <span
+                class="_checkbox__label_18swc_120"
+              >
+                test1
+              </span>
+            </label>
           </div>
           <div
             class="group-content"
@@ -1886,12 +2277,24 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
           <div
             class="group-name"
           >
-            <div
-              class="group-check "
-            />
-            <span>
-              test2
-            </span>
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
+              for="_r_u_"
+            >
+              <input
+                class="_checkbox__input_18swc_25"
+                id="_r_u_"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
+              />
+              <span
+                class="_checkbox__label_18swc_120"
+              >
+                test2
+              </span>
+            </label>
           </div>
           <div
             class="group-content"
@@ -1932,12 +2335,24 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
           <div
             class="group-name"
           >
-            <div
-              class="group-check "
-            />
-            <span>
-              test3
-            </span>
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
+              for="_r_v_"
+            >
+              <input
+                class="_checkbox__input_18swc_25"
+                id="_r_v_"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
+              />
+              <span
+                class="_checkbox__label_18swc_120"
+              >
+                test3
+              </span>
+            </label>
           </div>
           <div
             class="group-content"
@@ -1978,12 +2393,24 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
           <div
             class="group-name"
           >
-            <div
-              class="group-check "
-            />
-            <span>
-              test4
-            </span>
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
+              for="_r_10_"
+            >
+              <input
+                class="_checkbox__input_18swc_25"
+                id="_r_10_"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
+              />
+              <span
+                class="_checkbox__label_18swc_120"
+              >
+                test4
+              </span>
+            </label>
           </div>
           <div
             class="group-content"
@@ -2017,12 +2444,24 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
           <div
             class="group-name"
           >
-            <div
-              class="group-check "
-            />
-            <span>
-              test5
-            </span>
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
+              for="_r_11_"
+            >
+              <input
+                class="_checkbox__input_18swc_25"
+                id="_r_11_"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
+              />
+              <span
+                class="_checkbox__label_18swc_120"
+              >
+                test5
+              </span>
+            </label>
           </div>
           <div
             class="group-content"
@@ -2056,12 +2495,24 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
           <div
             class="group-name"
           >
-            <div
-              class="group-check "
-            />
-            <span>
-              test6
-            </span>
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
+              for="_r_12_"
+            >
+              <input
+                class="_checkbox__input_18swc_25"
+                id="_r_12_"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
+              />
+              <span
+                class="_checkbox__label_18swc_120"
+              >
+                test6
+              </span>
+            </label>
           </div>
           <div
             class="group-content"
@@ -2095,12 +2546,24 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
           <div
             class="group-name"
           >
-            <div
-              class="group-check "
-            />
-            <span>
-              test7
-            </span>
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
+              for="_r_13_"
+            >
+              <input
+                class="_checkbox__input_18swc_25"
+                id="_r_13_"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
+              />
+              <span
+                class="_checkbox__label_18swc_120"
+              >
+                test7
+              </span>
+            </label>
           </div>
           <div
             class="group-content"
@@ -2134,12 +2597,24 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
           <div
             class="group-name"
           >
-            <div
-              class="group-check "
-            />
-            <span>
-              test8
-            </span>
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
+              for="_r_14_"
+            >
+              <input
+                class="_checkbox__input_18swc_25"
+                id="_r_14_"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
+              />
+              <span
+                class="_checkbox__label_18swc_120"
+              >
+                test8
+              </span>
+            </label>
           </div>
           <div
             class="group-content"
@@ -2173,12 +2648,24 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
           <div
             class="group-name"
           >
-            <div
-              class="group-check "
-            />
-            <span>
-              test9
-            </span>
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
+              for="_r_15_"
+            >
+              <input
+                class="_checkbox__input_18swc_25"
+                id="_r_15_"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
+              />
+              <span
+                class="_checkbox__label_18swc_120"
+              >
+                test9
+              </span>
+            </label>
           </div>
           <div
             class="group-content"
@@ -2212,12 +2699,24 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
           <div
             class="group-name"
           >
-            <div
-              class="group-check "
-            />
-            <span>
-              test10
-            </span>
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
+              for="_r_16_"
+            >
+              <input
+                class="_checkbox__input_18swc_25"
+                id="_r_16_"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
+              />
+              <span
+                class="_checkbox__label_18swc_120"
+              >
+                test10
+              </span>
+            </label>
           </div>
           <div
             class="group-content"
@@ -2251,7 +2750,8 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         201 - 400 of 401
       </div>
       <button
-        class="btn btn-tertiary"
+        class="btn btn-quaternary btn-sm btn-icon ml-2 prev"
+        data-testid="page-link-prev"
         type="button"
       >
         <i
@@ -2260,7 +2760,8 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         />
       </button>
       <button
-        class="btn btn-tertiary"
+        class="btn btn-quaternary btn-sm btn-icon next"
+        data-testid="page-link-next"
         type="button"
       >
         <i
@@ -2316,13 +2817,39 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         class="group-list-link-unlink"
       >
         <button
-          class="btn btn-primary"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
           type="button"
         >
-          <i
-            class="icon icon-link-variant"
-          />
-          Link Selected Groups
+          <span
+            class="_button__icon-slot_we8pe_35"
+          >
+            <div
+              aria-hidden="true"
+              class="_icon_1i355_2 _icon--size-16_1i355_38"
+            >
+              <div
+                class="_icon__glyph-area_1i355_9"
+              >
+                <svg
+                  fill="currentColor"
+                  height="18"
+                  version="1.1"
+                  viewBox="0 0 24 24"
+                  width="18"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M10.59,13.41C11,13.8 11,14.44 10.59,14.83C10.2,15.22 9.56,15.22 9.17,14.83C7.22,12.88 7.22,9.71 9.17,7.76V7.76L12.71,4.22C14.66,2.27 17.83,2.27 19.78,4.22C21.73,6.17 21.73,9.34 19.78,11.29L18.29,12.78C18.3,11.96 18.17,11.14 17.89,10.36L18.36,9.88C19.54,8.71 19.54,6.81 18.36,5.64C17.19,4.46 15.29,4.46 14.12,5.64L10.59,9.17C9.41,10.34 9.41,12.24 10.59,13.41M13.41,9.17C13.8,8.78 14.44,8.78 14.83,9.17C16.78,11.12 16.78,14.29 14.83,16.24V16.24L11.29,19.78C9.34,21.73 6.17,21.73 4.22,19.78C2.27,17.83 2.27,14.66 4.22,12.71L5.71,11.22C5.7,12.04 5.83,12.86 6.11,13.65L5.64,14.12C4.46,15.29 4.46,17.19 5.64,18.36C6.81,19.54 8.71,19.54 9.88,18.36L13.41,14.83C14.59,13.66 14.59,11.76 13.41,10.59C13,10.2 13,9.56 13.41,9.17Z"
+                  />
+                </svg>
+              </div>
+            </div>
+          </span>
+          <span
+            class="_button__label_we8pe_31"
+          >
+            Link Selected Groups
+          </span>
         </button>
       </div>
     </div>
@@ -2361,12 +2888,24 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
           <div
             class="group-name"
           >
-            <div
-              class="group-check "
-            />
-            <span>
-              test1
-            </span>
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
+              for="_r_1k_"
+            >
+              <input
+                class="_checkbox__input_18swc_25"
+                id="_r_1k_"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
+              />
+              <span
+                class="_checkbox__label_18swc_120"
+              >
+                test1
+              </span>
+            </label>
           </div>
           <div
             class="group-content"
@@ -2400,12 +2939,24 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
           <div
             class="group-name"
           >
-            <div
-              class="group-check "
-            />
-            <span>
-              test2
-            </span>
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
+              for="_r_1l_"
+            >
+              <input
+                class="_checkbox__input_18swc_25"
+                id="_r_1l_"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
+              />
+              <span
+                class="_checkbox__label_18swc_120"
+              >
+                test2
+              </span>
+            </label>
           </div>
           <div
             class="group-content"
@@ -2446,12 +2997,24 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
           <div
             class="group-name"
           >
-            <div
-              class="group-check "
-            />
-            <span>
-              test3
-            </span>
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
+              for="_r_1m_"
+            >
+              <input
+                class="_checkbox__input_18swc_25"
+                id="_r_1m_"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
+              />
+              <span
+                class="_checkbox__label_18swc_120"
+              >
+                test3
+              </span>
+            </label>
           </div>
           <div
             class="group-content"
@@ -2492,7 +3055,8 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         201 - 400 of 401
       </div>
       <button
-        class="btn btn-tertiary"
+        class="btn btn-quaternary btn-sm btn-icon ml-2 prev"
+        data-testid="page-link-prev"
         type="button"
       >
         <i
@@ -2501,7 +3065,8 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         />
       </button>
       <button
-        class="btn btn-tertiary"
+        class="btn btn-quaternary btn-sm btn-icon next"
+        data-testid="page-link-next"
         type="button"
       >
         <i
@@ -2557,13 +3122,39 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         class="group-list-link-unlink"
       >
         <button
-          class="btn btn-primary"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
           type="button"
         >
-          <i
-            class="icon icon-link-variant"
-          />
-          Link Selected Groups
+          <span
+            class="_button__icon-slot_we8pe_35"
+          >
+            <div
+              aria-hidden="true"
+              class="_icon_1i355_2 _icon--size-16_1i355_38"
+            >
+              <div
+                class="_icon__glyph-area_1i355_9"
+              >
+                <svg
+                  fill="currentColor"
+                  height="18"
+                  version="1.1"
+                  viewBox="0 0 24 24"
+                  width="18"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M10.59,13.41C11,13.8 11,14.44 10.59,14.83C10.2,15.22 9.56,15.22 9.17,14.83C7.22,12.88 7.22,9.71 9.17,7.76V7.76L12.71,4.22C14.66,2.27 17.83,2.27 19.78,4.22C21.73,6.17 21.73,9.34 19.78,11.29L18.29,12.78C18.3,11.96 18.17,11.14 17.89,10.36L18.36,9.88C19.54,8.71 19.54,6.81 18.36,5.64C17.19,4.46 15.29,4.46 14.12,5.64L10.59,9.17C9.41,10.34 9.41,12.24 10.59,13.41M13.41,9.17C13.8,8.78 14.44,8.78 14.83,9.17C16.78,11.12 16.78,14.29 14.83,16.24V16.24L11.29,19.78C9.34,21.73 6.17,21.73 4.22,19.78C2.27,17.83 2.27,14.66 4.22,12.71L5.71,11.22C5.7,12.04 5.83,12.86 6.11,13.65L5.64,14.12C4.46,15.29 4.46,17.19 5.64,18.36C6.81,19.54 8.71,19.54 9.88,18.36L13.41,14.83C14.59,13.66 14.59,11.76 13.41,10.59C13,10.2 13,9.56 13.41,9.17Z"
+                  />
+                </svg>
+              </div>
+            </div>
+          </span>
+          <span
+            class="_button__label_we8pe_31"
+          >
+            Link Selected Groups
+          </span>
         </button>
       </div>
     </div>
@@ -2624,13 +3215,39 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         class="group-list-link-unlink"
       >
         <button
-          class="btn btn-primary"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
           type="button"
         >
-          <i
-            class="icon icon-link-variant"
-          />
-          Link Selected Groups
+          <span
+            class="_button__icon-slot_we8pe_35"
+          >
+            <div
+              aria-hidden="true"
+              class="_icon_1i355_2 _icon--size-16_1i355_38"
+            >
+              <div
+                class="_icon__glyph-area_1i355_9"
+              >
+                <svg
+                  fill="currentColor"
+                  height="18"
+                  version="1.1"
+                  viewBox="0 0 24 24"
+                  width="18"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M10.59,13.41C11,13.8 11,14.44 10.59,14.83C10.2,15.22 9.56,15.22 9.17,14.83C7.22,12.88 7.22,9.71 9.17,7.76V7.76L12.71,4.22C14.66,2.27 17.83,2.27 19.78,4.22C21.73,6.17 21.73,9.34 19.78,11.29L18.29,12.78C18.3,11.96 18.17,11.14 17.89,10.36L18.36,9.88C19.54,8.71 19.54,6.81 18.36,5.64C17.19,4.46 15.29,4.46 14.12,5.64L10.59,9.17C9.41,10.34 9.41,12.24 10.59,13.41M13.41,9.17C13.8,8.78 14.44,8.78 14.83,9.17C16.78,11.12 16.78,14.29 14.83,16.24V16.24L11.29,19.78C9.34,21.73 6.17,21.73 4.22,19.78C2.27,17.83 2.27,14.66 4.22,12.71L5.71,11.22C5.7,12.04 5.83,12.86 6.11,13.65L5.64,14.12C4.46,15.29 4.46,17.19 5.64,18.36C6.81,19.54 8.71,19.54 9.88,18.36L13.41,14.83C14.59,13.66 14.59,11.76 13.41,10.59C13,10.2 13,9.56 13.41,9.17Z"
+                  />
+                </svg>
+              </div>
+            </div>
+          </span>
+          <span
+            class="_button__label_we8pe_31"
+          >
+            Link Selected Groups
+          </span>
         </button>
       </div>
     </div>
@@ -2669,12 +3286,24 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
           <div
             class="group-name"
           >
-            <div
-              class="group-check "
-            />
-            <span>
-              test1
-            </span>
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
+              for="_r_6_"
+            >
+              <input
+                class="_checkbox__input_18swc_25"
+                id="_r_6_"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
+              />
+              <span
+                class="_checkbox__label_18swc_120"
+              >
+                test1
+              </span>
+            </label>
           </div>
           <div
             class="group-content"
@@ -2708,12 +3337,24 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
           <div
             class="group-name"
           >
-            <div
-              class="group-check "
-            />
-            <span>
-              test2
-            </span>
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
+              for="_r_7_"
+            >
+              <input
+                class="_checkbox__input_18swc_25"
+                id="_r_7_"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
+              />
+              <span
+                class="_checkbox__label_18swc_120"
+              >
+                test2
+              </span>
+            </label>
           </div>
           <div
             class="group-content"
@@ -2754,7 +3395,8 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         1 - 2 of 2
       </div>
       <button
-        class="btn btn-tertiary disabled"
+        class="btn btn-quaternary btn-sm btn-icon ml-2 prev disabled"
+        data-testid="page-link-prev"
         disabled=""
         type="button"
       >
@@ -2764,7 +3406,8 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
         />
       </button>
       <button
-        class="btn btn-tertiary disabled"
+        class="btn btn-quaternary btn-sm btn-icon next disabled"
+        data-testid="page-link-next"
         disabled=""
         type="button"
       >

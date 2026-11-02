@@ -36,9 +36,8 @@ func TestMigration000185(t *testing.T) {
 	defer store.Close()
 
 	master := store.GetMaster()
-
-	upSQL := readMigrationSQL(t, "000176_migrate_cpa_to_access_control.up.sql")
-	downSQL := readMigrationSQL(t, "000176_migrate_cpa_to_access_control.down.sql")
+	cpaToAccessControlUpSQL := readMigrationSQL(t, "000176_migrate_cpa_to_access_control.up.sql")
+	cpaToAccessControlDownSQL := readMigrationSQL(t, "000176_migrate_cpa_to_access_control.down.sql")
 
 	// Insert a group simulating pre-migration CPA state.
 	groupID := model.NewId()
@@ -53,7 +52,7 @@ func TestMigration000185(t *testing.T) {
 
 	now := model.GetMillis()
 
-	// Insert active fields with old format (no ObjectType, no permissions).
+	// Insert active fields with old format (no ObjectType).
 	// fieldID1 and fieldID2 are non-managed; fieldID3 is admin-managed.
 	fieldID1 := model.NewId()
 	fieldID2 := model.NewId()
@@ -70,8 +69,8 @@ func TestMigration000185(t *testing.T) {
 	} {
 		_, err = master.Exec(
 			`INSERT INTO PropertyFields
-				(ID, GroupID, Name, Type, Attrs, TargetID, TargetType, ObjectType, CreateAt, UpdateAt, DeleteAt, Protected)
-			VALUES (?, ?, ?, ?, ?::jsonb, '', '', '', ?, ?, 0, false)`,
+				(ID, GroupID, Name, Type, Attrs, TargetID, TargetType, ObjectType, CreateAt, UpdateAt, DeleteAt)
+			VALUES (?, ?, ?, ?, ?::jsonb, '', '', '', ?, ?, 0)`,
 			f.id, groupID, f.name, f.ftype, f.attrs, now, now,
 		)
 		require.NoError(t, err, "inserting field %s", f.name)
@@ -81,8 +80,8 @@ func TestMigration000185(t *testing.T) {
 	deletedFieldID := model.NewId()
 	_, err = master.Exec(
 		`INSERT INTO PropertyFields
-			(ID, GroupID, Name, Type, Attrs, TargetID, TargetType, ObjectType, CreateAt, UpdateAt, DeleteAt, Protected)
-		VALUES (?, ?, 'Deleted Field', 'text', '{}'::jsonb, '', '', '', ?, ?, ?, false)`,
+			(ID, GroupID, Name, Type, Attrs, TargetID, TargetType, ObjectType, CreateAt, UpdateAt, DeleteAt)
+		VALUES (?, ?, 'Deleted Field', 'text', '{}'::jsonb, '', '', '', ?, ?, ?)`,
 		deletedFieldID, groupID, now, now, now,
 	)
 	require.NoError(t, err)
@@ -99,7 +98,7 @@ func TestMigration000185(t *testing.T) {
 	require.NoError(t, err)
 
 	// ---- Run UP migration ----
-	_, err = master.ExecNoTimeout(upSQL)
+	_, err = master.ExecNoTimeout(cpaToAccessControlUpSQL)
 	require.NoError(t, err, "up migration should succeed")
 
 	// Verify: group renamed.
@@ -108,12 +107,10 @@ func TestMigration000185(t *testing.T) {
 	assert.Equal(t, "access_control", groupName)
 
 	// Verify: all fields (including soft-deleted) have new metadata.
-	// Non-managed fields get PermissionValues = 'member'.
-	// Admin-managed fields get PermissionValues = 'sysadmin'.
 	for _, tc := range []struct {
-		id                       string
-		label                    string
-		expectedPermissionValues string
+		id     string
+		label  string
+		values string
 	}{
 		{fieldID1, "non-managed text field", "member"},
 		{fieldID2, "non-managed select field", "member"},
@@ -130,11 +127,8 @@ func TestMigration000185(t *testing.T) {
 		require.NoError(t, master.Get(&f, "SELECT ObjectType, TargetType, PermissionField, PermissionValues, PermissionOptions FROM PropertyFields WHERE ID = ?", tc.id))
 		assert.Equal(t, "user", f.ObjectType, "%s ObjectType", tc.label)
 		assert.Equal(t, "system", f.TargetType, "%s TargetType", tc.label)
-		assert.True(t, f.PermissionField.Valid, "%s PermissionField should be set", tc.label)
 		assert.Equal(t, "sysadmin", f.PermissionField.String, "%s PermissionField", tc.label)
-		assert.True(t, f.PermissionValues.Valid, "%s PermissionValues should be set", tc.label)
-		assert.Equal(t, tc.expectedPermissionValues, f.PermissionValues.String, "%s PermissionValues", tc.label)
-		assert.True(t, f.PermissionOptions.Valid, "%s PermissionOptions should be set", tc.label)
+		assert.Equal(t, tc.values, f.PermissionValues.String, "%s PermissionValues", tc.label)
 		assert.Equal(t, "sysadmin", f.PermissionOptions.String, "%s PermissionOptions", tc.label)
 	}
 
@@ -179,7 +173,7 @@ func TestMigration000185(t *testing.T) {
 	assert.JSONEq(t, `"hello"`, string(attrs["Text Field"]), "text field value should be materialized")
 
 	// ---- Run DOWN migration ----
-	_, err = master.ExecNoTimeout(downSQL)
+	_, err = master.ExecNoTimeout(cpaToAccessControlDownSQL)
 	require.NoError(t, err, "down migration should succeed")
 
 	// Verify: group name reverted.
@@ -198,9 +192,9 @@ func TestMigration000185(t *testing.T) {
 		require.NoError(t, master.Get(&f, "SELECT ObjectType, TargetType, PermissionField, PermissionValues, PermissionOptions FROM PropertyFields WHERE ID = ?", fid))
 		assert.Equal(t, "", f.ObjectType, "field %s ObjectType should revert", fid)
 		assert.Equal(t, "", f.TargetType, "field %s TargetType should revert", fid)
-		assert.False(t, f.PermissionField.Valid, "field %s PermissionField should be NULL", fid)
-		assert.False(t, f.PermissionValues.Valid, "field %s PermissionValues should be NULL", fid)
-		assert.False(t, f.PermissionOptions.Valid, "field %s PermissionOptions should be NULL", fid)
+		assert.False(t, f.PermissionField.Valid, "field %s PermissionField should revert to NULL", fid)
+		assert.False(t, f.PermissionValues.Valid, "field %s PermissionValues should revert to NULL", fid)
+		assert.False(t, f.PermissionOptions.Valid, "field %s PermissionOptions should revert to NULL", fid)
 	}
 
 	// Verify: value still unchanged after down migration.
@@ -221,9 +215,8 @@ func TestMigration000185DownPreservesNonUserFields(t *testing.T) {
 	defer store.Close()
 
 	master := store.GetMaster()
-
-	upSQL := readMigrationSQL(t, "000176_migrate_cpa_to_access_control.up.sql")
-	downSQL := readMigrationSQL(t, "000176_migrate_cpa_to_access_control.down.sql")
+	cpaToAccessControlUpSQL := readMigrationSQL(t, "000176_migrate_cpa_to_access_control.up.sql")
+	cpaToAccessControlDownSQL := readMigrationSQL(t, "000176_migrate_cpa_to_access_control.down.sql")
 
 	groupID := model.NewId()
 	_, err = master.Exec("INSERT INTO PropertyGroups (ID, Name) VALUES (?, ?)", groupID, "custom_profile_attributes")
@@ -240,14 +233,14 @@ func TestMigration000185DownPreservesNonUserFields(t *testing.T) {
 	userFieldID := model.NewId()
 	_, err = master.Exec(
 		`INSERT INTO PropertyFields
-			(ID, GroupID, Name, Type, Attrs, TargetID, TargetType, ObjectType, CreateAt, UpdateAt, DeleteAt, Protected)
-		VALUES (?, ?, 'Legacy User Field', 'text', '{}'::jsonb, '', '', '', ?, ?, 0, false)`,
+			(ID, GroupID, Name, Type, Attrs, TargetID, TargetType, ObjectType, CreateAt, UpdateAt, DeleteAt)
+		VALUES (?, ?, 'Legacy User Field', 'text', '{}'::jsonb, '', '', '', ?, ?, 0)`,
 		userFieldID, groupID, now, now,
 	)
 	require.NoError(t, err)
 
 	// Run UP migration — legacy user field gets ObjectType='user', TargetType='system'.
-	_, err = master.ExecNoTimeout(upSQL)
+	_, err = master.ExecNoTimeout(cpaToAccessControlUpSQL)
 	require.NoError(t, err, "up migration should succeed")
 
 	// Simulate a post-migration channel-scoped field created via the
@@ -257,48 +250,35 @@ func TestMigration000185DownPreservesNonUserFields(t *testing.T) {
 	channelTargetID := model.NewId()
 	_, err = master.Exec(
 		`INSERT INTO PropertyFields
-			(ID, GroupID, Name, Type, Attrs, TargetID, TargetType, ObjectType, PermissionField, PermissionValues, PermissionOptions, CreateAt, UpdateAt, DeleteAt, Protected)
-		VALUES (?, ?, 'Channel Classification', 'select', '{}'::jsonb, ?, 'channel', 'channel', 'sysadmin', 'member', 'sysadmin', ?, ?, 0, false)`,
+			(ID, GroupID, Name, Type, Attrs, TargetID, TargetType, ObjectType, CreateAt, UpdateAt, DeleteAt)
+		VALUES (?, ?, 'Channel Classification', 'select', '{}'::jsonb, ?, 'channel', 'channel', ?, ?, 0)`,
 		channelFieldID, groupID, channelTargetID, now, now,
 	)
 	require.NoError(t, err)
 
 	// Run DOWN migration — must revert only user/system fields, not the channel one.
-	_, err = master.ExecNoTimeout(downSQL)
+	_, err = master.ExecNoTimeout(cpaToAccessControlDownSQL)
 	require.NoError(t, err, "down migration should succeed")
 
 	// The original user field reverts to legacy metadata.
 	var userField struct {
-		ObjectType        string         `db:"objecttype"`
-		TargetType        string         `db:"targettype"`
-		PermissionField   sql.NullString `db:"permissionfield"`
-		PermissionValues  sql.NullString `db:"permissionvalues"`
-		PermissionOptions sql.NullString `db:"permissionoptions"`
+		ObjectType string `db:"objecttype"`
+		TargetType string `db:"targettype"`
 	}
-	require.NoError(t, master.Get(&userField, "SELECT ObjectType, TargetType, PermissionField, PermissionValues, PermissionOptions FROM PropertyFields WHERE ID = ?", userFieldID))
+	require.NoError(t, master.Get(&userField, "SELECT ObjectType, TargetType FROM PropertyFields WHERE ID = ?", userFieldID))
 	assert.Equal(t, "", userField.ObjectType, "user field ObjectType should revert")
 	assert.Equal(t, "", userField.TargetType, "user field TargetType should revert")
-	assert.False(t, userField.PermissionField.Valid, "user field PermissionField should be NULL")
 
 	// The post-migration channel field keeps its PSAv2 metadata intact.
 	var channelField struct {
-		ObjectType        string         `db:"objecttype"`
-		TargetType        string         `db:"targettype"`
-		TargetID          string         `db:"targetid"`
-		PermissionField   sql.NullString `db:"permissionfield"`
-		PermissionValues  sql.NullString `db:"permissionvalues"`
-		PermissionOptions sql.NullString `db:"permissionoptions"`
+		ObjectType string `db:"objecttype"`
+		TargetType string `db:"targettype"`
+		TargetID   string `db:"targetid"`
 	}
-	require.NoError(t, master.Get(&channelField, "SELECT ObjectType, TargetType, TargetID, PermissionField, PermissionValues, PermissionOptions FROM PropertyFields WHERE ID = ?", channelFieldID))
+	require.NoError(t, master.Get(&channelField, "SELECT ObjectType, TargetType, TargetID FROM PropertyFields WHERE ID = ?", channelFieldID))
 	assert.Equal(t, "channel", channelField.ObjectType, "channel field ObjectType must survive rollback")
 	assert.Equal(t, "channel", channelField.TargetType, "channel field TargetType must survive rollback")
 	assert.Equal(t, channelTargetID, channelField.TargetID, "channel field TargetID must survive rollback")
-	assert.True(t, channelField.PermissionField.Valid, "channel field PermissionField must survive rollback")
-	assert.Equal(t, "sysadmin", channelField.PermissionField.String)
-	assert.True(t, channelField.PermissionValues.Valid)
-	assert.Equal(t, "member", channelField.PermissionValues.String)
-	assert.True(t, channelField.PermissionOptions.Valid)
-	assert.Equal(t, "sysadmin", channelField.PermissionOptions.String)
 }
 
 func TestMigration000185NoOpOnFreshDB(t *testing.T) {
@@ -314,13 +294,12 @@ func TestMigration000185NoOpOnFreshDB(t *testing.T) {
 	defer store.Close()
 
 	master := store.GetMaster()
-
-	upSQL := readMigrationSQL(t, "000176_migrate_cpa_to_access_control.up.sql")
-	downSQL := readMigrationSQL(t, "000176_migrate_cpa_to_access_control.down.sql")
+	cpaToAccessControlUpSQL := readMigrationSQL(t, "000176_migrate_cpa_to_access_control.up.sql")
+	cpaToAccessControlDownSQL := readMigrationSQL(t, "000176_migrate_cpa_to_access_control.down.sql")
 
 	// On a fresh database with no CPA group, both up and down should be
 	// safe no-ops (the UPDATE statements match zero rows).
-	_, err = master.ExecNoTimeout(upSQL)
+	_, err = master.ExecNoTimeout(cpaToAccessControlUpSQL)
 	assert.NoError(t, err, "up migration should be a safe no-op on fresh DB")
 
 	// The attribute matviews exist in the final schema. Since migration 000216
@@ -331,6 +310,6 @@ func TestMigration000185NoOpOnFreshDB(t *testing.T) {
 		assert.True(t, viewExists, "%s should exist after up migration on fresh DB", view)
 	}
 
-	_, err = master.ExecNoTimeout(downSQL)
+	_, err = master.ExecNoTimeout(cpaToAccessControlDownSQL)
 	assert.NoError(t, err, "down migration should be a safe no-op on fresh DB")
 }

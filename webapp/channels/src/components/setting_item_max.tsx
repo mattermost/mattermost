@@ -3,10 +3,11 @@
 
 import classNames from 'classnames';
 import React, {useCallback, useEffect, useRef} from 'react';
-import type {ReactNode} from 'react';
+import type {JSX, ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {Button, type ButtonVariant} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
+import type {ButtonVariant} from '@mattermost/shared/components/button';
 
 import SaveButton from 'components/save_button';
 
@@ -91,13 +92,26 @@ const SettingItemMax = ({
             if (shiftEnter && isKeyPressed(e, Constants.KeyCodes.ENTER) && e.shiftKey) {
                 return;
             }
+            const closestButton = target.closest('button');
+            const isFooterNonSaveButton = Boolean(
+                closestButton &&
+                closestButton.id !== 'saveSetting' &&
+                closestButton.closest('.setting-list-item__buttons'),
+            );
+            const isNonPrimaryContentButton = Boolean(
+                closestButton &&
+                (/button--emphasis-(tertiary|quaternary|link)/).test(closestButton.className),
+            );
+
             if (disableEnterSubmit !== true &&
                 isKeyPressed(e, Constants.KeyCodes.ENTER) &&
                 submitFromProps &&
                 target.tagName !== 'SELECT' &&
                 target.parentElement &&
                 target.parentElement.className !== 'react-select__input' &&
-                !target.classList.contains('btn-tertiary') &&
+                !isFooterNonSaveButton &&
+                !isNonPrimaryContentButton &&
+                target.id !== 'cancelSetting' &&
                 settingList.current &&
                 settingList.current.contains(target)) {
                 handleSubmit(e);
@@ -105,11 +119,26 @@ const SettingItemMax = ({
         };
 
         if (settingList.current) {
-            const focusableElements: NodeListOf<HTMLElement> = settingList.current.querySelectorAll('.btn:not(.save-button):not(.btn-tertiary), input.form-control, input[type="radio"][checked], input[type="checkbox"], select, textarea, [tabindex]:not([tabindex="-1"])');
-            if (focusableElements.length > 0) {
-                a11yFocus(focusableElements[0]);
+            // Prefer form controls over footer Save/Cancel (Compass Buttons no longer use .btn).
+            // Include [tabindex]:not([tabindex="-1"]) so react-select (and similar) receive
+            // Edit→expand focus; .setting-list itself uses tabindex="-1" and is excluded.
+            const formControls = Array.from(settingList.current.querySelectorAll<HTMLElement>(
+                'input.form-control, input[type="radio"][checked], input[type="checkbox"], select, textarea, [tabindex]:not([tabindex="-1"])',
+            )).filter((el) => !el.closest('.setting-list-item__buttons'));
+            if (formControls.length > 0) {
+                a11yFocus(formControls[0]);
             } else {
-                a11yFocus(settingList.current);
+                const buttons: NodeListOf<HTMLElement> = settingList.current.querySelectorAll(
+                    'button:not(#saveSetting):not(#cancelSetting)',
+                );
+                const focusableButton = Array.from(buttons).find(
+                    (button) => !(/button--emphasis-(tertiary|quaternary|link)/).test(button.className),
+                );
+                if (focusableButton) {
+                    a11yFocus(focusableButton);
+                } else {
+                    a11yFocus(settingList.current);
+                }
             }
         }
 
@@ -257,15 +286,17 @@ const SettingItemMax = ({
                         >
                             {serverError}
                         </div>
-                        {submit}
-                        <Button
-                            id='cancelSetting'
-                            data-testid='cancelButton'
-                            emphasis='tertiary'
-                            onClick={handleUpdateSection}
-                        >
-                            {cancelButtonText}
-                        </Button>
+                        <div className='setting-list-item__buttons'>
+                            {submit}
+                            <Button
+                                id='cancelSetting'
+                                data-testid='cancelButton'
+                                emphasis='tertiary'
+                                onClick={handleUpdateSection}
+                            >
+                                {cancelButtonText}
+                            </Button>
+                        </div>
                     </div>
                 </div>
             </div>

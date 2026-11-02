@@ -3,23 +3,14 @@
 
 /**
  * System Console — Global Attributes access gate and attribute listing.
- * Visibility is gated by the GlobalAttributes feature flag AND an Enterprise-tier license.
+ * Visibility is gated by an Enterprise-tier license.
  * Once past the gate, the page lists every access_control/template property field on the server.
  *
  * Local runs: upload or use a license with SkuShortName `enterprise`, `entry`, or `advanced`.
  * Professional-only licenses hide this admin route (React Router redirects away).
- *
- * Flag-off access-gate tests live only in this file. The form spec assumes the flag is on
- * and must not turn it off — both files share a server, and default PW_WORKERS is 1.
  */
 
-import {expect, test, getAdminClient} from '@mattermost/playwright-lib';
-
-import {
-    CLASSIFICATION_MARKINGS_ADMIN_PATH,
-    deleteClassificationMarkingsFieldIfExists,
-    setClassificationMarkingsFeatureFlag,
-} from '../site_configuration/classification_markings_helpers';
+import {expect, test} from '@mattermost/playwright-lib';
 
 import {
     GLOBAL_ATTRIBUTES_ADMIN_PATH,
@@ -28,86 +19,38 @@ import {
     deleteGlobalAttributeFieldIfExists,
     deleteLinkedDependentField,
     requireGlobalAttributesEnabled,
-    setGlobalAttributesFeatureFlag,
+    requireHierarchicalAttributesEnabled,
 } from './global_attributes_helpers';
 
 test.describe('System Console - Global Attributes listing', {tag: '@system_console'}, () => {
-    // Access-gate tests toggle the server-wide GlobalAttributes flag. Stay serial so a
-    // flag-off assertion cannot race a later listing/delete test in this file.
     test.describe.configure({mode: 'serial'});
-
-    let originalFlagValue: boolean | undefined;
-    let originalClassificationFlagValue: boolean | undefined;
-
-    test.beforeAll(async () => {
-        const {adminClient} = await getAdminClient();
-        const {FeatureFlags} = await adminClient.getConfig();
-        originalFlagValue = FeatureFlags.GlobalAttributes === true;
-        originalClassificationFlagValue = FeatureFlags.ClassificationMarkings === true;
-    });
-
-    test.afterAll(async () => {
-        const {adminClient} = await getAdminClient();
-        if (adminClient && originalFlagValue !== undefined) {
-            await setGlobalAttributesFeatureFlag(adminClient, originalFlagValue);
-        }
-        if (adminClient && originalClassificationFlagValue !== undefined) {
-            await setClassificationMarkingsFeatureFlag(adminClient, originalClassificationFlagValue);
-        }
-    });
 
     test.describe('access gate', () => {
         /**
-         * @objective Ensure the Manage Attributes admin route is unavailable when the feature flag is off.
+         * @objective Ensure the Attribute Management page is reachable and shows its page frame
+         * on an Enterprise+ license.
          */
-        test('feature flag off hides Manage Attributes regardless of license', async ({pw}) => {
-            const {adminUser, adminClient} = await getAdminClient();
-
-            if (!adminUser || !adminClient) {
-                throw new Error('Failed to get admin user');
-            }
-
-            // # Turn off GlobalAttributes in server config
-            await setGlobalAttributesFeatureFlag(adminClient, false);
-            const {FeatureFlags} = await adminClient.getConfig();
-            test.skip(
-                FeatureFlags.GlobalAttributes === true,
-                'GlobalAttributes stays enabled (e.g. MM_FEATUREFLAGS or split-key overrides); cannot assert flag-off in this environment.',
-            );
-
-            // # Navigate directly to the Manage Attributes path
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
-
-            // * User is redirected away from the hidden route (no Route registered)
-            await expect(systemConsolePage.page).not.toHaveURL(/manage_attributes/);
-            // * Manage Attributes menu entry is not shown in the sidebar
-            await expect(
-                systemConsolePage.page.getByTestId('admin-sidebar').getByText('Manage Attributes'),
-            ).not.toBeVisible();
-        });
-
-        /**
-         * @objective Ensure the Manage Attributes page is reachable and shows its page frame
-         * once the feature flag is on and the license meets the Enterprise tier.
-         */
-        test('feature flag on with Enterprise+ license shows the page frame', async ({pw}) => {
+        test('Enterprise+ license shows Attribute Management', async ({pw}) => {
             const {adminUser} = await requireGlobalAttributesEnabled(pw);
 
-            // # Log in and open the Manage Attributes URL
+            // # Log in and open the Attribute Management URL
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
 
-            // * URL stays on the Manage Attributes section
+            // * URL stays on the Attribute Management section
             await expect(systemConsolePage.page).toHaveURL(/manage_attributes/);
-            // * Sidebar menu entry and page heading are both visible ("Manage Attributes"
+            // * Sidebar menu entry and page heading are both visible ("Attribute Management"
             // renders in both places, so each is asserted within its own scope)
             await expect(
-                systemConsolePage.page.getByTestId('admin-sidebar').getByText('Manage Attributes'),
+                systemConsolePage.page.getByTestId('admin-sidebar').getByText('Attribute Management'),
             ).toBeVisible();
             await expect(
-                systemConsolePage.page.getByTestId('admin-console-header').getByText('Manage Attributes'),
+                systemConsolePage.page.getByTestId('admin-console-header').getByText('Attribute Management'),
             ).toBeVisible();
+            // * The old User Attributes sidebar entry is replaced by Attribute Management
+            await expect(
+                systemConsolePage.page.getByTestId('admin-sidebar').getByText('User Attributes', {exact: true}),
+            ).not.toBeVisible();
             // * Page frame's static subtitle is present (renders regardless of fetch state)
             await expect(
                 systemConsolePage.page.getByText('Define an attribute once, then choose which resources can use it.'),
@@ -119,7 +62,7 @@ test.describe('System Console - Global Attributes listing', {tag: '@system_conso
         /**
          * @objective Ensure a real access_control/template attribute renders in the table with
          * its display name, type icon+label, source, and options count — across every field
-         * type the ticket's Type column has a mapping for (Text/Select/Multiselect/Ranked),
+         * type the Type column has a mapping for (Text/Phone/URL/Email/Select/Multiselect/Ranked),
          * plus one unmapped type (date) to prove the fallback also holds end-to-end.
          */
         test('renders one seeded field per type with correct Attribute/Type/Source/Options values', async ({pw}) => {
@@ -132,6 +75,8 @@ test.describe('System Console - Global Attributes listing', {tag: '@system_conso
             // unit-test-only since the admin API blocks source_plugin_id/protected from non-plugin
             // callers, and rank uses type: 'rank' directly (the same type Classification Markings'
             // own saveCreateField creates), not the select-based seeding some older e2e helpers use.
+            // Phone/URL/email are text-field subtypes (attrs.value_type); the create menu offers
+            // Phone and URL, while email is API-only (hidden in the Type menu, still listed).
             // displayName embeds the same per-run timestamp as name — required so the row locator
             // below can't collide with another concurrently-running browser project's seeded row
             // (this suite's projects share one server/worker pool; see playwright.config.ts).
@@ -142,6 +87,30 @@ test.describe('System Console - Global Attributes listing', {tag: '@system_conso
                     type: 'text',
                     attrs: {},
                     expectedType: 'Text',
+                    expectedOptions: 'Free Text',
+                },
+                {
+                    name: `e2e_global_attribute_phone_${timestamp}`,
+                    displayName: `E2E Phone Attribute ${timestamp}`,
+                    type: 'text',
+                    attrs: {value_type: 'phone'},
+                    expectedType: 'Phone',
+                    expectedOptions: 'Free Text',
+                },
+                {
+                    name: `e2e_global_attribute_url_${timestamp}`,
+                    displayName: `E2E URL Attribute ${timestamp}`,
+                    type: 'text',
+                    attrs: {value_type: 'url'},
+                    expectedType: 'URL',
+                    expectedOptions: 'Free Text',
+                },
+                {
+                    name: `e2e_global_attribute_email_${timestamp}`,
+                    displayName: `E2E Email Attribute ${timestamp}`,
+                    type: 'text',
+                    attrs: {value_type: 'email'},
+                    expectedType: 'Email',
                     expectedOptions: 'Free Text',
                 },
                 {
@@ -196,7 +165,7 @@ test.describe('System Console - Global Attributes listing', {tag: '@system_conso
 
             try {
                 // # Seed every field inside the try block — if creation fails partway
-                // through (e.g. field 3 of 5), the finally below still cleans up whatever
+                // through (e.g. field 3 of 8), the finally below still cleans up whatever
                 // was already created instead of leaving it orphaned on the shared server.
                 for (const seed of seeds) {
                     await createGlobalAttributeField(adminClient, seed.name, {
@@ -205,7 +174,7 @@ test.describe('System Console - Global Attributes listing', {tag: '@system_conso
                     });
                 }
 
-                // # Log in and open the Manage Attributes page once every field is seeded
+                // # Log in and open the Attribute Management page once every field is seeded
                 const {systemConsolePage} = await pw.testBrowser.login(adminUser);
                 await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
 
@@ -311,117 +280,112 @@ test.describe('System Console - Global Attributes listing', {tag: '@system_conso
         });
 
         /**
-         * @objective Ensure a real Classification Markings field (name/object_type/group_id
-         * matching production's saveCreateField) renders the read-only subtitle and an
-         * open-in-new link to its own admin page instead of the ordinary dot-menu, and that an
-         * unrelated field — including one that shares the same 'rank' type — is entirely unaffected.
+         * @objective Ensure a seeded graph field renders as Hierarchical with an options count,
+         * not as Free Text or an unknown type.
          */
-        test(
-            'renders the Classification Markings row as a read-only open-in-new link, leaving an unrelated rank field unaffected',
-            {tag: ['@system_console', '@classification_markings']},
-            async ({pw}) => {
-                const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+        test('renders a seeded graph field as Hierarchical with its option count', async ({pw}) => {
+            await pw.ensureFeatureFlag('PropertyFieldGraph', true);
+            const {adminUser, adminClient} = await requireHierarchicalAttributesEnabled(pw);
 
-                // # The link's destination page is gated by its own independent feature flag
-                // (ClassificationMarkings), separate from the GlobalAttributes flag gating this
-                // listing page — both must be on for the link to render.
-                // Tagged @classification_markings like every other spec that touches this same
-                // shared server-wide field/flag (classification_markings.spec.ts,
-                // global_classification_banner.spec.ts) — those specs are NOT otherwise
-                // concurrency-guarded against each other; the tag is this suite's existing
-                // (if informal) convention for grouping tests that share this exact resource.
-                await setClassificationMarkingsFeatureFlag(adminClient, true);
-                await pw.skipIfFeatureFlagNotSet('ClassificationMarkings', true);
+            const timestamp = Date.now();
+            const name = `e2e_global_attribute_graph_${timestamp}`;
+            const displayName = `E2E Hierarchical Attribute ${timestamp}`;
 
-                const timestamp = Date.now();
-                const classificationDisplayName = `E2E Classification Attribute ${timestamp}`;
-                const unrelatedRankName = `e2e_unrelated_rank_${timestamp}`;
-                const unrelatedRankDisplayName = `E2E Unrelated Ranked Attribute ${timestamp}`;
+            try {
+                await createGlobalAttributeField(adminClient, name, {
+                    type: 'graph',
+                    attrs: {
+                        display_name: displayName,
+                        options: [
+                            {id: '', name: 'Air', parents: []},
+                            {id: '', name: 'Fighter', parents: ['Air']},
+                        ],
+                    },
+                });
 
-                try {
-                    // # Clean slate first via the classification-aware helper (not the generic
-                    // deleteGlobalAttributeFieldIfExists): it also removes any linked system/channel
-                    // field first, avoiding server-side deletion-protection errors that leave a
-                    // stale template field behind if another classification spec ran previously.
-                    await deleteClassificationMarkingsFieldIfExists(adminClient);
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
 
-                    // # Seed the real classification field: name 'classification', type 'rank',
-                    // matching classification_markings/utils/index.ts's saveCreateField exactly —
-                    // not the select-based shape some older, test-only e2e helpers use.
-                    await createGlobalAttributeField(adminClient, 'classification', {
-                        type: 'rank',
-                        attrs: {
-                            display_name: classificationDisplayName,
-                            options: [
-                                {id: '', name: 'Unclassified', rank: 1},
-                                {id: '', name: 'Secret', rank: 2},
-                            ],
-                        },
+                const row = systemConsolePage.page.locator('tr', {
+                    has: systemConsolePage.page.getByTestId('global-attribute-name').filter({hasText: displayName}),
+                });
+
+                await expect(row.getByTestId('global-attribute-name')).toHaveText(displayName);
+                await expect(row.getByTestId('global-attribute-type')).toContainText('Hierarchical');
+                await expect(row.getByTestId('global-attribute-type').locator('svg')).toBeVisible();
+                await expect(row.getByTestId('global-attribute-source')).toContainText('Managed here');
+                await expect(row.getByTestId('global-attribute-options')).toContainText('2 options');
+            } finally {
+                await deleteGlobalAttributeFieldIfExists(adminClient, name);
+            }
+        });
+
+        /**
+         * @objective Verify each attribute's persisted sort_order propagates to profile settings
+         * and popover ordering. The Manage Attributes table has no manual reorder control today,
+         * so this sets sort_order directly via the API rather than through a UI action.
+         */
+        test("propagates each attribute's persisted sort_order to profile settings and popover ordering", async ({
+            pw,
+        }) => {
+            await requireGlobalAttributesEnabled(pw);
+            const {adminClient, team, user} = await pw.initSetup();
+
+            const timestamp = Date.now();
+            const labels = [`PW Sort First ${timestamp}`, `PW Sort Second ${timestamp}`, `PW Sort Third ${timestamp}`];
+            const names = labels.map((_, index) => `e2e_global_attribute_sort_${index}_${timestamp}`);
+            const linkedIds: string[] = [];
+
+            try {
+                // # Create three attributes with sort_order descending relative to creation
+                // order, so the rendered order proves it follows sort_order, not insertion order.
+                for (const [index, label] of labels.entries()) {
+                    const template = await createGlobalAttributeField(adminClient, names[index], {
+                        type: 'text',
+                        attrs: {display_name: label, sort_order: (labels.length - index) * 10},
                     });
-
-                    // # Seed an unrelated field that shares the same 'rank' type, to prove the
-                    // predicate keys on name/object_type/group_id, not on type.
-                    await createGlobalAttributeField(adminClient, unrelatedRankName, {
-                        type: 'rank',
-                        attrs: {
-                            display_name: unrelatedRankDisplayName,
-                            options: [
-                                {id: '', name: 'Low', rank: 1},
-                                {id: '', name: 'High', rank: 2},
-                            ],
-                        },
-                    });
-
-                    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-                    await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
-
-                    const classificationRow = systemConsolePage.page.locator('tr', {
-                        has: systemConsolePage.page
-                            .getByTestId('global-attribute-name')
-                            .filter({hasText: classificationDisplayName}),
-                    });
-                    await classificationRow.waitFor();
-
-                    // * The read-only subtitle renders under the attribute name
-                    await expect(classificationRow.getByText('Read-only')).toBeVisible();
-
-                    // * The Source column identifies this row's true source, not the generic
-                    // "Managed here" every other native field gets
-                    await expect(classificationRow.getByTestId('global-attribute-source')).toContainText(
-                        'Classification Markings',
+                    const linked = await createLinkedDependentField(
+                        adminClient,
+                        names[index],
+                        template.id,
+                        'text',
+                        'user',
+                        {display_name: label, sort_order: (labels.length - index) * 10, visibility: 'always'},
                     );
+                    linkedIds.push(linked.id);
 
-                    // * The rightmost cell is an open-in-new link to the Classification Markings
-                    // admin page, not the dot-menu action trigger
-                    const openInNewLink = classificationRow.getByRole('link', {name: 'Open Classification Markings'});
-                    await expect(openInNewLink).toBeVisible();
-                    await expect(openInNewLink).toHaveAttribute('href', CLASSIFICATION_MARKINGS_ADMIN_PATH);
-                    await expect(classificationRow.getByRole('button', {name: 'More actions'})).toHaveCount(0);
-
-                    // # Clicking the link actually navigates to the Classification Markings page
-                    await openInNewLink.click();
-                    // * Navigation lands on the Classification Markings admin page
-                    await expect(systemConsolePage.page).toHaveURL(new RegExp(CLASSIFICATION_MARKINGS_ADMIN_PATH));
-
-                    await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
-
-                    // * An unrelated 'rank'-type field is unaffected: ordinary dot-menu, no subtitle
-                    const unrelatedRow = systemConsolePage.page.locator('tr', {
-                        has: systemConsolePage.page
-                            .getByTestId('global-attribute-name')
-                            .filter({hasText: unrelatedRankDisplayName}),
+                    await adminClient.updateUserCustomProfileAttributesValues(user.id, {
+                        [linked.id]: `Value ${index + 1}`,
                     });
-                    await unrelatedRow.waitFor();
-                    await expect(unrelatedRow.getByRole('button', {name: 'More actions'})).toBeVisible();
-                    await expect(unrelatedRow.getByText('Read-only')).toHaveCount(0);
-                    await expect(unrelatedRow.getByRole('link', {name: 'Open Classification Markings'})).toHaveCount(0);
-                    await expect(unrelatedRow.getByTestId('global-attribute-source')).toContainText('Managed here');
-                } finally {
-                    await deleteClassificationMarkingsFieldIfExists(adminClient);
-                    await deleteGlobalAttributeFieldIfExists(adminClient, unrelatedRankName);
                 }
-            },
-        );
+
+                // sort_order is 30/20/10 for First/Second/Third, so ascending order is
+                // Third, Second, First.
+                const expectedOrder = [labels[2], labels[1], labels[0]];
+
+                // * The expected order renders in profile settings (Settings > Profile)
+                const {channelsPage} = await pw.testBrowser.login(user);
+                await channelsPage.goto(team.name, 'town-square');
+                const profileModal = await channelsPage.openProfileModal();
+                const sectionHeadings = await profileModal.sectionHeadings.allTextContents();
+                expect(sectionHeadings.filter((heading: string) => labels.includes(heading))).toEqual(expectedOrder);
+                await profileModal.closeModal();
+
+                // * The same order renders in the profile popover
+                await channelsPage.postMessage(`sort-order-${timestamp}`);
+                const post = await channelsPage.getLastPost();
+                const popover = await channelsPage.openProfilePopover(post);
+                const attributeHeadings = await popover.attributeHeadings.allTextContents();
+                expect(attributeHeadings.filter((heading: string) => labels.includes(heading))).toEqual(expectedOrder);
+            } finally {
+                for (const linkedId of linkedIds) {
+                    await deleteLinkedDependentField(adminClient, linkedId);
+                }
+                for (const name of names) {
+                    await deleteGlobalAttributeFieldIfExists(adminClient, name);
+                }
+            }
+        });
     });
 
     test.describe('delete attribute', () => {
@@ -577,6 +541,65 @@ test.describe('System Console - Global Attributes listing', {tag: '@system_conso
                 if (dependentFieldId) {
                     await deleteLinkedDependentField(adminClient, dependentFieldId);
                 }
+                await deleteGlobalAttributeFieldIfExists(adminClient, name);
+            }
+        });
+    });
+
+    test.describe('read-only for non-sysadmin', () => {
+        /**
+         * @objective Ensure a system_manager (non-sysadmin with System Console access) sees
+         * Attribute Management as read-only: New attribute disabled, row menu offers View
+         * instead of Edit, and Delete is disabled. The create/edit page they can still open
+         * is already schema-gated as read-only; this covers the listing that previously
+         * ignored isDisabled.
+         */
+        test('disables New attribute and Delete, and offers View, for a system_manager', async ({pw}) => {
+            const {adminClient} = await requireGlobalAttributesEnabled(pw);
+            const {user: systemManagerUser} = await pw.initSetup();
+
+            const timestamp = Date.now();
+            const name = `e2e_global_attribute_readonly_${timestamp}`;
+            const displayName = `E2E Readonly Attribute ${timestamp}`;
+
+            try {
+                await adminClient.updateUserRoles(systemManagerUser.id, 'system_user system_manager');
+
+                const field = await createGlobalAttributeField(adminClient, name, {
+                    type: 'text',
+                    attrs: {display_name: displayName},
+                });
+
+                const {systemConsolePage} = await pw.testBrowser.login(systemManagerUser);
+                const {page} = systemConsolePage;
+                await page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+                await expect(page).toHaveURL(/manage_attributes/);
+
+                // * New attribute is disabled — schema isDisabled wires through the listing
+                await expect(page.getByTestId('newAttributeButton')).toBeDisabled();
+
+                const row = page.locator('tr', {
+                    has: page.getByTestId('global-attribute-name').filter({hasText: displayName}),
+                });
+                await expect(row).toBeVisible();
+
+                // # Open the row actions menu
+                await page.getByTestId(`global-attribute-actions-${field.id}`).click();
+
+                // * View (not Edit) is offered and navigable; Delete stays disabled
+                const viewItem = page.locator(`#global-attribute-actions-${field.id}-edit`);
+                await expect(viewItem).toContainText('View attribute');
+                await expect(viewItem).not.toHaveAttribute('aria-disabled', 'true');
+
+                const deleteItem = page.locator(`#global-attribute-actions-${field.id}-delete`);
+                await expect(deleteItem).toContainText('Delete attribute');
+                await expect(deleteItem).toHaveAttribute('aria-disabled', 'true');
+
+                // # View opens the details page (read-only via the same schema isDisabled)
+                await viewItem.click();
+                await expect(page).toHaveURL(new RegExp(`/attribute_details/${field.id}$`));
+                await expect(page.getByTestId('attributeDisplayNameInput')).toBeDisabled();
+            } finally {
                 await deleteGlobalAttributeFieldIfExists(adminClient, name);
             }
         });

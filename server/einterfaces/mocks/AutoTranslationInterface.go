@@ -291,7 +291,7 @@ func (_m *AutoTranslationInterface) Start() error {
 }
 
 // Translate provides a mock function with given fields: ctx, objectType, objectID, channelID, userID, content
-func (_m *AutoTranslationInterface) Translate(ctx context.Context, objectType string, objectID string, channelID string, userID string, content interface{}) (*model.Translation, *model.AppError) {
+func (_m *AutoTranslationInterface) Translate(ctx context.Context, objectType string, objectID string, channelID string, userID string, content any) (*model.Translation, *model.AppError) {
 	ret := _m.Called(ctx, objectType, objectID, channelID, userID, content)
 
 	if len(ret) == 0 {
@@ -300,10 +300,10 @@ func (_m *AutoTranslationInterface) Translate(ctx context.Context, objectType st
 
 	var r0 *model.Translation
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string, interface{}) (*model.Translation, *model.AppError)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string, any) (*model.Translation, *model.AppError)); ok {
 		return rf(ctx, objectType, objectID, channelID, userID, content)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string, interface{}) *model.Translation); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string, any) *model.Translation); ok {
 		r0 = rf(ctx, objectType, objectID, channelID, userID, content)
 	} else {
 		if ret.Get(0) != nil {
@@ -311,7 +311,7 @@ func (_m *AutoTranslationInterface) Translate(ctx context.Context, objectType st
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, string, string, string, interface{}) *model.AppError); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, string, string, any) *model.AppError); ok {
 		r1 = rf(ctx, objectType, objectID, channelID, userID, content)
 	} else {
 		if ret.Get(1) != nil {

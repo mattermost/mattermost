@@ -16,7 +16,8 @@ function mapStateToProps(state: GlobalState) {
     const config = Selectors.getConfig(state);
 
     return {
-        logs: Selectors.getAllLogs(state),
+        logs: Selectors.getAllLogsWithNode(state),
+        logNodes: Selectors.getLogNodes(state),
         plainLogs: Selectors.getPlainLogs(state),
         isPlainLogs: config.LogSettings?.FileJson === false,
     };

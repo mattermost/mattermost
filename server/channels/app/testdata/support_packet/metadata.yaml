@@ -1,0 +1,10 @@
+version: 1
+type: support-packet
+generated_at: 1735689600000
+server_version: 11.0.0
+server_id: server-id-fixed
+license_id: license-id-fixed
+customer_id: customer-id-fixed
+extras:
+  region: us-east
+  tier: enterprise

@@ -6,8 +6,8 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import type {OnChangeValue} from 'react-select';
 
 import {BellOffOutlineIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
 import {GenericModal} from '@mattermost/components';
-import {Button} from '@mattermost/shared/components/button';
 import type {Channel, ChannelMembership, ChannelNotifyProps} from '@mattermost/types/channels';
 import type {UserNotifyProps, UserProfile} from '@mattermost/types/users';
 
@@ -359,7 +359,7 @@ export default function ChannelNotificationsModal(props: Props) {
     );
 
     const footerContent = (
-        <footer className='ChannelNotificationModal__footer'>
+        <>
             {serverError &&
             <span
                 role='alert'
@@ -370,7 +370,7 @@ export default function ChannelNotificationsModal(props: Props) {
             }
             <Button
                 emphasis='tertiary'
-                size='md'
+                size='medium'
                 onClick={handleHide}
             >
                 <FormattedMessage
@@ -380,7 +380,7 @@ export default function ChannelNotificationsModal(props: Props) {
             </Button>
             <Button
                 emphasis='primary'
-                size='md'
+                size='medium'
                 onClick={handleSave}
             >
                 <FormattedMessage
@@ -388,7 +388,7 @@ export default function ChannelNotificationsModal(props: Props) {
                     defaultMessage='Save'
                 />
             </Button>
-        </footer>
+        </>
     );
 
     const headerText = (

@@ -122,9 +122,6 @@ type Params struct {
 	// Views
 	ViewId string
 
-	// Cloud
-	InvoiceId string
-
 	// Custom Profile Attributes
 	FieldId string
 
@@ -193,7 +190,6 @@ func ParamsFromRequest(r *http.Request) *Params {
 	params.GroupId = props["group_id"]
 	params.RemoteId = props["remote_id"]
 	params.SharedChannelInvitationId = props["shared_channel_invitation_id"]
-	params.InvoiceId = props["invoice_id"]
 	params.OutgoingOAuthConnectionID = props["outgoing_oauth_connection_id"]
 	params.ExcludeOffline, _ = strconv.ParseBool(query.Get("exclude_offline"))
 	params.InChannel = query.Get("in_channel")

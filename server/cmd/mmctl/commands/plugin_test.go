@@ -9,9 +9,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/golang/mock/gomock"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/pkg/errors"
+	"go.uber.org/mock/gomock"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 

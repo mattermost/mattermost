@@ -2,10 +2,10 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useRef, useState} from 'react';
+import React, {useRef, useState, type JSX} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {AuthChangeResponse} from '@mattermost/types/users';
 
 import type {PasswordConfig} from 'mattermost-redux/selectors/entities/general';

@@ -2,14 +2,13 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {act} from 'react-dom/test-utils';
 import {defineMessage} from 'react-intl';
 
 import type {CloudState} from '@mattermost/types/cloud';
 import type {AdminConfig, EnvironmentConfig} from '@mattermost/types/config';
 
 import {defaultIntl} from 'tests/helpers/intl-test-helper';
-import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import {it} from './admin_definition_helpers';
 import SchemaAdminSettings, {SchemaAdminSettings as SchemaAdminSettingsClass, getConfigFromState} from './schema_admin_settings';
@@ -923,7 +922,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
             // The danger SectionNotice renders with its title and body copy.
             expect(screen.getByText(WARNING_TITLE)).toBeInTheDocument();
             expect(screen.getByText(WARNING_TEXT)).toBeInTheDocument();
-            expect(container.querySelector('.sectionNoticeContainer.danger')).toBeInTheDocument();
+            expect(container.querySelector('[class*="section-notice--type-danger"]')).toBeInTheDocument();
 
             // The normal help text still renders alongside the callout.
             expect(screen.getByText('danger-help-text')).toBeInTheDocument();
@@ -934,7 +933,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
 
             expect(screen.queryByText(WARNING_TITLE)).not.toBeInTheDocument();
             expect(screen.queryByText(WARNING_TEXT)).not.toBeInTheDocument();
-            expect(container.querySelector('.sectionNoticeContainer.danger')).not.toBeInTheDocument();
+            expect(container.querySelector('[class*="section-notice--type-danger"]')).not.toBeInTheDocument();
 
             // The normal help text is unaffected.
             expect(screen.getByText('danger-help-text')).toBeInTheDocument();
@@ -1031,7 +1030,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
             );
 
             expect(screen.getByText(WARNING_TITLE)).toBeInTheDocument();
-            expect(container.querySelector('.sectionNoticeContainer.danger')).toBeInTheDocument();
+            expect(container.querySelector('[class*="section-notice--type-danger"]')).toBeInTheDocument();
         });
 
         test('does not render the callout when the setting is disabled even at the insecure value', () => {
@@ -1066,7 +1065,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
             );
 
             expect(screen.queryByText(WARNING_TITLE)).not.toBeInTheDocument();
-            expect(container.querySelector('.sectionNoticeContainer.danger')).not.toBeInTheDocument();
+            expect(container.querySelector('[class*="section-notice--type-danger"]')).not.toBeInTheDocument();
         });
     });
 

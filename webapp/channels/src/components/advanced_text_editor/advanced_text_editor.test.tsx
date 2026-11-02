@@ -9,13 +9,13 @@ import {PostPriority} from '@mattermost/types/posts';
 import Permissions from 'mattermost-redux/constants/permissions';
 
 import {onSubmit} from 'actions/views/create_comment';
-import {removeDraft, updateDraft} from 'actions/views/drafts';
+import {quoteTextInDraft, removeDraft, updateDraft} from 'actions/views/drafts';
 
 import type {FileUpload} from 'components/file_upload/file_upload';
 import type Textbox from 'components/textbox/textbox';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
-import {renderWithContext, userEvent, screen, act, fireEvent} from 'tests/react_testing_utils';
+import {renderWithContext, userEvent, screen, act, createEvent, fireEvent} from 'tests/react_testing_utils';
 import Constants, {Locations, PostTypes, StoragePrefixes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -211,6 +211,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
 
     describe('keyDown behavior', () => {
         it('ESC should blur the input', async () => {
+            jest.useFakeTimers();
             renderWithContext(
                 <AdvancedTextEditor
                     {...baseProps}
@@ -227,7 +228,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             );
             const textbox = screen.getByTestId('post_textbox');
 
-            await userEvent.type(textbox, 'something{escape}');
+            await userEvent.type(textbox, 'something{escape}', {advanceTimers: jest.advanceTimersByTime});
 
             expect(textbox).not.toHaveFocus();
             expect(mockedUpdateDraft).not.toHaveBeenCalled();
@@ -368,8 +369,10 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 const textbox = screen.getByPlaceholderText('Write to Other Channel');
                 expect(textbox).toHaveValue(sourceDraft);
 
-                // SuggestionBox listens to onInput, not onChange.
-                fireEvent.input(textbox, {target: {value: destinationMessage}});
+                // SuggestionBox listens to onInput, not onChange. Dispatched directly instead of
+                // with fireEvent because fireEvent opens a nested act(...) scope, which React
+                // rejects while it's already flushing this commit.
+                textbox.dispatchEvent(createEvent.input(textbox, {target: {value: destinationMessage}}));
                 setSendDestinationMessage(true);
             }, [editorChannelId]);
 
@@ -381,7 +384,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                     return;
                 }
 
-                fireEvent.click(screen.getByTestId('SendMessageButton'));
+                screen.getByTestId('SendMessageButton').click();
             }, [sendDestinationMessage]);
 
             return (
@@ -480,7 +483,10 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
 
                 const textbox = screen.getByPlaceholderText('Write to Other Channel');
                 expect(textbox).toHaveValue(sourceDraft);
-                fireEvent.input(textbox, {target: {value: destinationMessage}});
+
+                // Dispatched directly instead of with fireEvent because fireEvent opens a nested
+                // act(...) scope, which React rejects while it's already flushing this commit.
+                textbox.dispatchEvent(createEvent.input(textbox, {target: {value: destinationMessage}}));
             }, [editorChannelId]);
 
             return (
@@ -1086,6 +1092,83 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(screen.getByPlaceholderText(
                 'This channel is read-only. Only members with permission can post here. (encrypted)',
             )).toBeInTheDocument();
+        });
+    });
+
+    describe('quoting text from a post', () => {
+        const stateWithDraft = mergeObjects(initialState, {
+            entities: {
+                roles: {
+                    roles: {
+                        user_roles: {permissions: [Permissions.CREATE_POST]},
+                    },
+                },
+            },
+            storage: {
+                storage: {
+                    [StoragePrefixes.DRAFT + channelId]: {
+                        value: TestHelper.getPostDraftMock({
+                            message: 'original draft',
+                        }),
+                    },
+                },
+            },
+        });
+
+        it('should append the quote to the draft of the matching channel', () => {
+            const {store} = renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                stateWithDraft,
+            );
+
+            act(() => {
+                store.dispatch(quoteTextInDraft(channelId, '', 'Diam sapien\npellentesque'));
+            });
+
+            expect(screen.getByTestId('post_textbox')).toHaveValue('original draft\n\n> Diam sapien\n> pellentesque\n\n');
+            expect(store.getState().views.drafts.pendingQuote).toBeNull();
+        });
+
+        it('should ignore a quote meant for another channel or thread', () => {
+            const {store} = renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                stateWithDraft,
+            );
+
+            act(() => {
+                store.dispatch(quoteTextInDraft(channelId, 'some_root_id', 'Diam sapien'));
+            });
+
+            expect(screen.getByTestId('post_textbox')).toHaveValue('original draft');
+            expect(store.getState().views.drafts.pendingQuote).not.toBeNull();
+
+            act(() => {
+                store.dispatch(quoteTextInDraft(otherChannelId, '', 'Diam sapien'));
+            });
+
+            expect(screen.getByTestId('post_textbox')).toHaveValue('original draft');
+        });
+
+        it('should not quote into a message being edited', () => {
+            const {store} = renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    isInEditMode={true}
+                />,
+                stateWithDraft,
+            );
+            const textbox = screen.getByTestId('edit_textbox');
+            const valueBefore = (textbox as HTMLTextAreaElement).value;
+
+            act(() => {
+                store.dispatch(quoteTextInDraft(channelId, '', 'Diam sapien'));
+            });
+
+            expect(textbox).toHaveValue(valueBefore);
         });
     });
 });

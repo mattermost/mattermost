@@ -42,11 +42,24 @@ type Bot struct {
 	DeleteAt       int64  `json:"delete_at"`
 }
 
+// IsProtectedBotUsername returns whether username is one of the protected,
+// system-owned bot usernames. See ProtectedBotUsernames.
+func IsProtectedBotUsername(username string) bool {
+	_, ok := ProtectedBotUsernames[strings.ToLower(username)]
+	return ok
+}
+
 // IsSystemOwned returns whether the bot is one of the protected, system-owned
 // bots that must not be disabled. See ProtectedBotUsernames.
 func (b *Bot) IsSystemOwned() bool {
-	_, ok := ProtectedBotUsernames[b.Username]
-	return ok
+	return IsProtectedBotUsername(b.Username)
+}
+
+// HasUserOwner reports whether OwnerId refers to a user account rather than a
+// plugin. A plugin owner carries a manifest id, which is never id-shaped, so an
+// id-shaped OwnerId means a user owner even when that user no longer exists.
+func (b *Bot) HasUserOwner() bool {
+	return IsValidId(b.OwnerId)
 }
 
 // MarshalJSON adds the computed system_owned field to the bot's JSON

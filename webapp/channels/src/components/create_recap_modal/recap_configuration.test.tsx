@@ -247,7 +247,7 @@ describe('RecapConfiguration', () => {
                 />,
             );
 
-            const toggle = screen.getByRole('button', {name: /run once/i});
+            const toggle = screen.getByRole('switch', {name: /run once/i});
             expect(toggle).toBeDisabled();
         });
 
@@ -259,7 +259,7 @@ describe('RecapConfiguration', () => {
                 />,
             );
 
-            const toggle = screen.getByRole('button', {name: /run once/i});
+            const toggle = screen.getByRole('switch', {name: /run once/i});
             expect(toggle).not.toBeDisabled();
         });
 
@@ -272,7 +272,7 @@ describe('RecapConfiguration', () => {
                 />,
             );
 
-            const toggle = screen.getByRole('button', {name: /run once/i});
+            const toggle = screen.getByRole('switch', {name: /run once/i});
             expect(toggle).not.toBeDisabled();
         });
     });

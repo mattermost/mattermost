@@ -2,17 +2,20 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React from 'react';
+import React, {type JSX} from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {LinkVariantIcon, LinkVariantOffIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {Button as SharedButton} from '@mattermost/shared/components/button';
 import type {GroupSearchOpts, MixedUnlinkedGroupRedux} from '@mattermost/types/groups';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import GroupRow from 'components/admin_console/group_settings/group_row';
 import LocalizedPlaceholderInput from 'components/localized_placeholder_input';
-import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
 import NextIcon from 'components/widgets/icons/fa_next_icon';
 import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
 import SearchIcon from 'components/widgets/icons/search_icon';
@@ -164,8 +167,8 @@ export default class GroupsList extends React.PureComponent<Props, State> {
                     emphasis='primary'
                     onClick={() => this.linkSelectedGroups()}
                     disabled={this.props.readOnly}
+                    leadingIcon={<Icon glyph={<LinkVariantIcon/>}/>}
                 >
-                    <i className='icon fa fa-link'/>
                     <FormattedMessage
                         id='admin.group_settings.groups_list.link_selected'
                         defaultMessage='Link Selected Groups'
@@ -179,8 +182,8 @@ export default class GroupsList extends React.PureComponent<Props, State> {
                     emphasis='primary'
                     onClick={() => this.unlinkSelectedGroups()}
                     disabled={this.props.readOnly}
+                    leadingIcon={<Icon glyph={<LinkVariantOffIcon/>}/>}
                 >
-                    <i className='icon fa fa-unlink'/>
                     <FormattedMessage
                         id='admin.group_settings.groups_list.unlink_selected'
                         defaultMessage='Unlink Selected Groups'
@@ -193,8 +196,8 @@ export default class GroupsList extends React.PureComponent<Props, State> {
                     type='button'
                     emphasis='primary'
                     disabled={this.props.readOnly}
+                    leadingIcon={<Icon glyph={<LinkVariantIcon/>}/>}
                 >
-                    <i className='icon icon-link-variant'/>
                     <FormattedMessage
                         id='admin.group_settings.groups_list.link_selected'
                         defaultMessage='Link Selected Groups'
@@ -363,60 +366,52 @@ export default class GroupsList extends React.PureComponent<Props, State> {
                 }}
             >
                 <div className='filter-row'>
-                    <span
-                        className={'filter-check ' + (this.state.filterIsLinked ? 'checked' : '')}
-                        onClick={() => this.handleFilterCheck([['filterIsLinked', !this.state.filterIsLinked], ['filterIsUnlinked', false]])}
+                    <Checkbox
+                        className='filter-check'
+                        checked={Boolean(this.state.filterIsLinked)}
+                        onChange={() => this.handleFilterCheck([['filterIsLinked', !this.state.filterIsLinked], ['filterIsUnlinked', false]])}
                     >
-                        {this.state.filterIsLinked && <CheckboxCheckedIcon/>}
-                    </span>
-                    <span>
                         <FormattedMessage
                             id='admin.group_settings.filters.isLinked'
                             defaultMessage='Is Linked'
                         />
-                    </span>
+                    </Checkbox>
                 </div>
                 <div className='filter-row'>
-                    <span
-                        className={'filter-check ' + (this.state.filterIsUnlinked ? 'checked' : '')}
-                        onClick={() => this.handleFilterCheck([['filterIsUnlinked', !this.state.filterIsUnlinked], ['filterIsLinked', false]])}
+                    <Checkbox
+                        className='filter-check'
+                        checked={Boolean(this.state.filterIsUnlinked)}
+                        onChange={() => this.handleFilterCheck([['filterIsUnlinked', !this.state.filterIsUnlinked], ['filterIsLinked', false]])}
                     >
-                        {this.state.filterIsUnlinked && <CheckboxCheckedIcon/>}
-                    </span>
-                    <span>
                         <FormattedMessage
                             id='admin.group_settings.filters.isUnlinked'
                             defaultMessage='Is Not Linked'
                         />
-                    </span>
+                    </Checkbox>
                 </div>
                 <div className='filter-row'>
-                    <span
-                        className={'filter-check ' + (this.state.filterIsConfigured ? 'checked' : '')}
-                        onClick={() => this.handleFilterCheck([['filterIsConfigured', !this.state.filterIsConfigured], ['filterIsUnconfigured', false]])}
+                    <Checkbox
+                        className='filter-check'
+                        checked={Boolean(this.state.filterIsConfigured)}
+                        onChange={() => this.handleFilterCheck([['filterIsConfigured', !this.state.filterIsConfigured], ['filterIsUnconfigured', false]])}
                     >
-                        {this.state.filterIsConfigured && <CheckboxCheckedIcon/>}
-                    </span>
-                    <span>
                         <FormattedMessage
                             id='admin.group_settings.filters.isConfigured'
                             defaultMessage='Is Configured'
                         />
-                    </span>
+                    </Checkbox>
                 </div>
                 <div className='filter-row'>
-                    <span
-                        className={'filter-check ' + (this.state.filterIsUnconfigured ? 'checked' : '')}
-                        onClick={() => this.handleFilterCheck([['filterIsUnconfigured', !this.state.filterIsUnconfigured], ['filterIsConfigured', false]])}
+                    <Checkbox
+                        className='filter-check'
+                        checked={Boolean(this.state.filterIsUnconfigured)}
+                        onChange={() => this.handleFilterCheck([['filterIsUnconfigured', !this.state.filterIsUnconfigured], ['filterIsConfigured', false]])}
                     >
-                        {this.state.filterIsUnconfigured && <CheckboxCheckedIcon/>}
-                    </span>
-                    <span>
                         <FormattedMessage
                             id='admin.group_settings.filters.isUnconfigured'
                             defaultMessage='Is Not Configured'
                         />
-                    </span>
+                    </Checkbox>
                 </div>
                 <Button
                     onClick={() => {
@@ -520,24 +515,28 @@ export default class GroupsList extends React.PureComponent<Props, State> {
                                 }}
                             />
                         </div>
-                        <Button
+                        <SharedButton
                             type='button'
-                            emphasis='tertiary'
-                            className={classNames({disabled: firstPage})}
+                            emphasis='quaternary'
+                            size='sm'
+                            className={classNames('btn-icon ml-2', 'prev', {disabled: firstPage})}
                             onClick={(e: any) => this.previousPage(e)}
                             disabled={firstPage}
+                            data-testid='page-link-prev'
                         >
                             <PreviousIcon/>
-                        </Button>
-                        <Button
+                        </SharedButton>
+                        <SharedButton
                             type='button'
-                            emphasis='tertiary'
-                            className={classNames({disabled: lastPage})}
+                            emphasis='quaternary'
+                            size='sm'
+                            className={classNames('btn-icon', 'next', {disabled: lastPage})}
                             onClick={(e: any) => this.nextPage(e)}
                             disabled={lastPage}
+                            data-testid='page-link-next'
                         >
                             <NextIcon/>
-                        </Button>
+                        </SharedButton>
                     </div>
                 }
             </div>

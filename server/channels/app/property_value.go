@@ -66,6 +66,7 @@ func (a *App) invalidateUserPropertyValuesEpochs(values []*model.PropertyValue) 
 	}
 	for targetID := range seen {
 		a.Srv().Store().Attributes().InvalidateUserPropertyValuesEpoch(targetID)
+		a.Srv().Store().Attributes().InvalidateUserAttributes(targetID)
 	}
 }
 
@@ -82,6 +83,7 @@ func (a *App) invalidateUserPropertyValuesEpoch(targetType, targetID string) {
 		return
 	}
 	a.Srv().Store().Attributes().InvalidateUserPropertyValuesEpoch(targetID)
+	a.Srv().Store().Attributes().InvalidateUserAttributes(targetID)
 }
 
 // invalidateAllUserAttributeCaches marks the AttributeView stale and drops every cached CPA epoch.
@@ -94,6 +96,7 @@ func (a *App) invalidateAllUserAttributeCaches() {
 		return
 	}
 	a.Srv().Store().Attributes().ClearUserPropertyValuesEpochCache()
+	a.Srv().Store().Attributes().ClearUserAttributesCache()
 }
 
 // CreatePropertyValue creates a new property value.
@@ -231,6 +234,29 @@ func (a *App) UpsertPropertyValue(rctx request.CTX, value *model.PropertyValue) 
 	return upsertedValue, nil
 }
 
+// PropertyValueBroadcaster returns model.BroadcastValueWithTemplate for one
+// broadcast's worth of values: each linked field's template is read once
+// however many of the values link to it, and a value whose template can't be
+// read is withheld. Create one per broadcast; it caches what it reads.
+func (a *App) PropertyValueBroadcaster(rctx request.CTX) func(field *model.PropertyField, value json.RawMessage) json.RawMessage {
+	templates := make(map[string]*model.PropertyField)
+	return func(field *model.PropertyField, value json.RawMessage) json.RawMessage {
+		var template *model.PropertyField
+		if field != nil && field.LinkSourceID() != "" {
+			t, err := a.linkedFieldTemplate(rctx, field, templates)
+			if err != nil {
+				rctx.Logger().Warn("Failed to read a linked field's template, withholding its value from the broadcast",
+					mlog.String("field_id", field.ID), mlog.Err(err))
+				// Cached as nil, so the rest of the broadcast withholds this
+				// template's fields without reading it again.
+				templates[field.LinkSourceID()] = nil
+			}
+			template = t
+		}
+		return model.BroadcastValueWithTemplate(field, template, value)
+	}
+}
+
 // UpsertPropertyValues creates or updates multiple property values.
 // When objectType is non-empty, WebSocket events are broadcast to notify
 // clients of the updated values, and every referenced field is required
@@ -289,19 +315,21 @@ func (a *App) UpsertPropertyValues(rctx request.CTX, values []*model.PropertyVal
 
 	// ObjectType-mismatch check is gated on a non-empty objectType argument.
 	// Plugin API today always passes objectType="" and keeps its loose
-	// contract on this specific check.
+	// contract on this specific check. fieldByID is hoisted so the broadcast
+	// below can read each field's permissions.
+	var fieldByID map[string]*model.PropertyField
 	if objectType != "" {
 		fields, fieldsErr := a.GetPropertyFields(rctx, groupID, fieldIDs)
 		if fieldsErr != nil {
 			return nil, fieldsErr
 		}
-		fieldByID := make(map[string]*model.PropertyField, len(fields))
+		fieldByID = make(map[string]*model.PropertyField, len(fields))
 		for _, f := range fields {
 			fieldByID[f.ID] = f
 		}
 		for _, v := range values {
 			f, ok := fieldByID[v.FieldID]
-			if !ok {
+			if !ok || f.DeleteAt != 0 {
 				return nil, model.NewAppError(
 					"UpsertPropertyValues",
 					"app.property_value.upsert.field_not_found.app_error",
@@ -341,7 +369,16 @@ func (a *App) UpsertPropertyValues(rctx request.CTX, values []*model.PropertyVal
 		if appErr != nil {
 			rctx.Logger().Warn("Failed to resolve broadcast params for property values", mlog.Err(appErr))
 		} else {
-			valuesJSON, jsonErr := json.Marshal(result)
+			// Broadcast copies, never result: result is what the caller who
+			// just wrote these values gets back over HTTP, and that caller is
+			// allowed to see them.
+			broadcastValue := a.PropertyValueBroadcaster(rctx)
+			broadcastValues := make([]model.PropertyValue, len(result))
+			for i, v := range result {
+				broadcastValues[i] = *v
+				broadcastValues[i].Value = broadcastValue(fieldByID[v.FieldID], v.Value)
+			}
+			valuesJSON, jsonErr := json.Marshal(broadcastValues)
 			if jsonErr != nil {
 				rctx.Logger().Warn("Failed to encode property values to JSON", mlog.Err(jsonErr))
 			} else {

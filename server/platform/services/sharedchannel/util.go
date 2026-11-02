@@ -98,13 +98,11 @@ func isConflictError(err error) (string, bool) {
 		return "", false
 	}
 
-	var errConflict *store.ErrConflict
-	if errors.As(err, &errConflict) {
+	if errConflict, ok := errors.AsType[*store.ErrConflict](err); ok {
 		return strings.ToLower(errConflict.Resource), true
 	}
 
-	var errInput *store.ErrInvalidInput
-	if errors.As(err, &errInput) {
+	if errInput, ok := errors.AsType[*store.ErrInvalidInput](err); ok {
 		_, field, _ := errInput.InvalidInputInfo()
 		return strings.ToLower(field), true
 	}

@@ -45,11 +45,11 @@ describe('TestButton', () => {
 
         const button = screen.getByRole('button', {name: /test access rule/i});
         expect(button).toBeInTheDocument();
-        expect(button).toHaveClass('btn', 'btn-sm', 'btn-tertiary');
+        expect(button.className).toEqual(expect.stringContaining('_button--emphasis-tertiary'));
+        expect(button.className).toEqual(expect.stringContaining('_button--size-small'));
 
-        // Check for icon
-        const icon = button.querySelector('i.icon.icon-lock-outline');
-        expect(icon).toBeInTheDocument();
+        // Leading icon is provided via compass-ui Icon glyph slot
+        expect(button.querySelector('svg')).toBeInTheDocument();
     });
 
     test('should render the supplied label override instead of the default copy', () => {
@@ -67,7 +67,7 @@ describe('TestButton', () => {
         expect(screen.queryByRole('button', {name: /test access rule/i})).not.toBeInTheDocument();
         const button = screen.getByRole('button', {name: /simulate rules/i});
         expect(button).toBeInTheDocument();
-        expect(button.querySelector('i.icon.icon-lock-outline')).toBeInTheDocument();
+        expect(button.querySelector('svg')).toBeInTheDocument();
     });
 
     test('should be enabled and clickable when disabled is false', () => {
@@ -250,6 +250,33 @@ describe('hasUsableAttributes', () => {
                     visibility: 'always',
                     value_type: '',
                     ldap: 'ldap_department',
+                },
+                create_at: 0,
+                update_at: 0,
+                delete_at: 0,
+                created_by: '',
+                updated_by: '',
+            },
+        ];
+
+        expect(hasUsableAttributes(userAttributes, false)).toBe(true);
+    });
+
+    test('should return true when attributes are OpenID Connect synced', () => {
+        const userAttributes: UserPropertyField[] = [
+            {
+                id: 'attr1',
+                name: 'department',
+                type: 'text',
+                group_id: 'custom_profile_attributes',
+                target_id: '',
+                target_type: '',
+                object_type: '',
+                attrs: {
+                    sort_order: 0,
+                    visibility: 'always',
+                    value_type: '',
+                    openid: 'org.department',
                 },
                 create_at: 0,
                 update_at: 0,
@@ -635,6 +662,44 @@ describe('isSimpleExpression / isSimpleCondition with session attributes', () =>
     test('unknown namespaces are not simple', () => {
         expect(isSimpleCondition('user.bogus.x == "y"')).toBe(false);
         expect(isSimpleExpression('user.bogus.x == "y"')).toBe(false);
+    });
+});
+
+describe('isSimpleExpression / isSimpleCondition with graph attributes', () => {
+    // Whether an expression is "simple" decides whether the visual table editor
+    // can open it at all — a saved policy that fails this check is stuck in the
+    // raw CEL editor, with the toggle back to the table disabled.
+    test.each(['coversAll', 'coversAny', 'withinAll', 'withinAny'])('%s over a list of option names is simple', (fn) => {
+        expect(isSimpleCondition(`user.attributes.programs.${fn}(["F-18 Program"])`)).toBe(true);
+        expect(isSimpleCondition(`user.attributes.programs.${fn}(["F-18 Program", "Navy Program"])`)).toBe(true);
+    });
+
+    test.each(['coversAll', 'coversAny', 'withinAll', 'withinAny'])('%s against a channel attribute is simple', (fn) => {
+        expect(isSimpleCondition(`user.attributes.programs.${fn}(resource.attributes.programs)`)).toBe(true);
+    });
+
+    test('exact membership on a graph attribute is the plain in form', () => {
+        expect(isSimpleCondition('"F-18 Program" in user.attributes.programs')).toBe(true);
+    });
+
+    test('a hierarchy predicate combines with the other condition kinds', () => {
+        expect(isSimpleExpression('user.attributes.programs.coversAll(["F-18 Program"]) && user.attributes.clearance >= "Secret"')).toBe(true);
+    });
+
+    test('a desugared marker is not simple', () => {
+        // _graph_covers_all is the compiled form the server desugars a predicate
+        // into. It is never author input, so the table editor must not claim it.
+        expect(isSimpleCondition('_graph_covers_all(user.attributes.programs, [["abc"]], "field-id")')).toBe(false);
+    });
+
+    test('a negated hierarchy predicate is not simple', () => {
+        // Legal to save, but the visual format has no representation for `!`,
+        // so the rule belongs in the CEL editor.
+        expect(isSimpleCondition('!user.attributes.programs.coversAll(["F-18 Program"])')).toBe(false);
+    });
+
+    test('a hierarchy predicate on the resource side is not simple', () => {
+        expect(isSimpleCondition('resource.attributes.programs.coversAll(["F-18 Program"])')).toBe(false);
     });
 });
 

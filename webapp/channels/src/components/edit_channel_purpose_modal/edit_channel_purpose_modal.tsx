@@ -7,7 +7,7 @@ import {Modal} from 'react-bootstrap';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {Channel} from '@mattermost/types/channels';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -41,7 +41,7 @@ type State = {
 };
 
 export class EditChannelPurposeModal extends React.PureComponent<Props, State> {
-    private purpose: React.RefObject<HTMLTextAreaElement>;
+    private purpose: React.RefObject<HTMLTextAreaElement | null>;
 
     constructor(props: Props) {
         super(props);

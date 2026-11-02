@@ -47,7 +47,7 @@ test('MM-T5611 opens external and internal bookmark links', {tag: '@channels'}, 
         userClient,
         channel.id,
         'Town Square',
-        new URL(`/${team.name}/channels/town-square`, testConfig.baseURL).toString(),
+        `${testConfig.baseURL}/${team.name}/channels/town-square`,
     );
     await channelsPage.goto(team.name, channel.name);
 

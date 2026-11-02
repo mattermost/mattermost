@@ -126,32 +126,20 @@ func (os *OpensearchInterfaceImpl) fetchServerInfo(ctx context.Context, client *
 	os.version = major
 	os.fullVersion = version
 
-	// Query every node because the CAT plugins API omits nodes with no plugins. Plugin information is
-	// also included in Support Packets. If it cannot be retrieved, preserve the existing best-effort
-	// behavior and let template creation report any resulting backend error.
-	resp, err := client.Nodes.Info(ctx, &opensearchapi.NodesInfoReq{Metrics: []string{"plugins"}})
+	// CAT plugins is used because internally it calls nodes, but for some reason AWS's nodes
+	// endpoint doesn't correctly return its list (but CAT does). However, CAT omits nodes with no
+	// plugins, so this inventory must not be used to prove cluster-wide absence.
+	resp, err := client.Cat.Plugins(ctx, nil)
 	if err != nil {
-		os.Platform.Log().Warn("Error retrieving opensearch node plugins", mlog.Err(err))
-		return nil
-	}
-	if resp.NodesInfo.Failed > 0 {
-		os.Platform.Log().Warn("Some opensearch nodes failed to return plugin information", mlog.Int("failed_nodes", resp.NodesInfo.Failed))
+		os.Platform.Log().Warn("Error retrieving opensearch plugins", mlog.Err(err))
 		return nil
 	}
 
 	os.plugins = nil
-	analysisICUInstalledOnEveryNode := true
-	for _, node := range resp.Nodes {
-		nodePlugins := make([]string, 0, len(node.Plugins))
-		for _, plugin := range node.Plugins {
-			nodePlugins = append(nodePlugins, plugin.Name)
+	for _, plugin := range resp.Plugins {
+		if plugin.Component != "" {
+			os.plugins = append(os.plugins, plugin.Component)
 		}
-		os.plugins = append(os.plugins, nodePlugins...)
-		analysisICUInstalledOnEveryNode = analysisICUInstalledOnEveryNode && common.HasAnalysisPlugin(nodePlugins, "analysis-icu")
-	}
-
-	if len(resp.Nodes) > 0 && !analysisICUInstalledOnEveryNode {
-		return model.NewAppError("Opensearch.fetchServerInfo", "ent.elasticsearch.analysis_icu_required", map[string]any{"Backend": "OpenSearch"}, "", http.StatusInternalServerError)
 	}
 
 	return nil
@@ -166,9 +154,6 @@ func (os *OpensearchInterfaceImpl) Start(ctx context.Context) *model.AppError {
 	defer os.mutex.Unlock()
 
 	if os.ready.Load() != 0 {
-		// Elasticsearch is already started. We don't return an error
-		// because "Test Connection" already re-initializes the client. So this
-		// can be a valid scenario.
 		return nil
 	}
 
@@ -828,7 +813,7 @@ func (os *OpensearchInterfaceImpl) SearchPosts(channels model.ChannelList, searc
 
 		matchesForPost, err := common.GetMatchesForHit(hit.Highlight)
 		if err != nil {
-			return postIds, matches, model.NewAppError("Opensearch.SearchPosts", "ent.elasticsearch.search_posts.parse_matches_failed", nil, "", http.StatusInternalServerError).Wrap(err)
+			os.Platform.Log().Warn("Failed to parse search result highlights, returning post without highlights", mlog.String("post_id", post.Id), mlog.Err(err))
 		}
 		matches[post.Id] = matchesForPost
 	}
@@ -1723,18 +1708,13 @@ func (os *OpensearchInterfaceImpl) TestConfig(rctx request.CTX, cfg *model.Confi
 		return appErr
 	}
 
-	if appErr = os.fetchServerInfo(context.Background(), client); appErr != nil {
-		return appErr
-	}
+	defer func() { _ = client.Close() }()
 
-	// Resetting the state.
-	if os.ready.CompareAndSwap(0, 1) {
-		// Re-assign the client.
-		// This is necessary in case opensearch was started
-		// after server start.
-		os.mutex.Lock()
-		os.client = client
-		os.mutex.Unlock()
+	// TestConfig only checks the connection: it must not change the running
+	// engine, since cfg may be an unsaved candidate config. Starting an engine
+	// that became reachable after server start is the search engine watcher's job.
+	if _, _, appErr = checkVersion(rctx.Context(), client, rctx.Logger()); appErr != nil {
+		return appErr
 	}
 
 	return nil

@@ -19,6 +19,7 @@ import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/tea
 import {isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import {goToLastViewedChannel} from 'actions/views/channel';
+import {getChannelViewPluginComponent} from 'selectors/channel_view_plugin';
 
 import {getIsChannelBookmarksEnabled} from 'components/channel_bookmarks/utils';
 
@@ -52,6 +53,7 @@ function mapStateToProps(state: GlobalState) {
         restrictDirectMessage: channel ? state.entities.channels.restrictedDMs[channel.id] : false,
         isChannelBookmarksEnabled: getIsChannelBookmarksEnabled(state),
         missingChannelRole,
+        channelViewPluginComponent: getChannelViewPluginComponent(state, channel),
     };
 }
 

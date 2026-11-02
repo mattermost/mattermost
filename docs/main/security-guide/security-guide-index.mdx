@@ -3,6 +3,12 @@ title: "Security Guide"
 ---
 Mattermost offers a comprehensive set of security features to protect information in its mobile applications. These features, ranging from encryption and authentication to device management and user education, provide a secure environment for team collaboration and communication. By prioritizing security, Mattermost ensures that customers can trust the mobile application to safeguard their data and privacy.
 
+<CardGrid columns={3} cards={[
+  {title: 'Security Updates', to: '/security-guide/security-updates', description: 'Live bulletin: filter by version, severity, product, and date.'},
+  {title: 'Secure Mattermost', to: '/security-guide/secure-mattermost', description: 'Hardening features and where to configure them.'},
+  {title: 'Zero Trust', to: '/security-guide/zero-trust', description: 'Control mapping against the CISA Zero Trust Maturity Model.'},
+]} />
+
 ## Data-in-Transit Encryption
 
 Mattermost can be configured to use Transport Layer Security (TLS) to encrypt data transmitted over the network. TLS provides a secure channel for data exchange, protecting it from eavesdropping and tampering during transmission. This encryption ensures that only the intended recipients can access the content, preventing unauthorized parties from intercepting or reading the information.
@@ -82,7 +88,7 @@ The Mattermost mobile app generates audit logs that record user activities and s
 
 ### Patch Management
 
-Mattermost regularly releases security updates to address vulnerabilities and enhance the application's security posture. Users are encouraged to keep their mobile applications up to date to benefit from the latest security improvements. Learn more about Mattermost [releases and the release life cycle](/product-overview/releases-lifecycle).
+Mattermost regularly releases security updates to address vulnerabilities and enhance the application's security posture. Users are encouraged to keep their mobile applications up to date to benefit from the latest security improvements. Browse the live [Security Updates bulletin](/security-guide/security-updates) and filter by affected version, severity, and product. Learn more about Mattermost [releases and the release life cycle](/product-overview/releases-lifecycle).
 
 ### Community and Expert Contributions
 
@@ -177,4 +183,4 @@ For organizations who choose to deploy in such a configuration, please consider 
 2.  Per the recommended install instructions, use a VPN client to apply network security to your deployment.
 3.  Enable monitoring and alerting from your proxy server to detect and isolate malicious behavior reaching your deployment.
 
-Above all, make sure to subscribe to the [Mattermost Security Bulletin](https://mattermost.com/security-updates/#sign-up) and apply security patches as recommended.
+Above all, make sure to subscribe to the [Mattermost Security Bulletin](https://mattermost.com/security-updates/#sign-up), review the [Security Updates](/security-guide/security-updates) page, and apply security patches as recommended.

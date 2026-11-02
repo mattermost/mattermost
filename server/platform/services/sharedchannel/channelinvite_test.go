@@ -148,7 +148,7 @@ func (stubRemoteClusterService) SendFile(context.Context, *model.UploadSession, 
 func (stubRemoteClusterService) SendProfileImage(context.Context, string, *model.RemoteCluster, remotecluster.ProfileImageProvider, remotecluster.SendProfileImageResultFunc) error {
 	return nil
 }
-func (stubRemoteClusterService) AcceptInvitation(*model.RemoteClusterInvite, string, string, string, string, string) (*model.RemoteCluster, error) {
+func (stubRemoteClusterService) AcceptInvitation(*model.RemoteClusterInvite, string, string, string, string, string) (*model.RemoteCluster, *model.AppError) {
 	return nil, nil
 }
 func (stubRemoteClusterService) ReceiveIncomingMsg(*model.RemoteCluster, model.RemoteClusterMsg) remotecluster.Response {

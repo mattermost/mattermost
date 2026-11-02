@@ -47,14 +47,15 @@ exports[`component/file_preview/file_progress_preview should match snapshot 1`] 
         </a>
       </div>
       <div
-        class="post-image__progressBar progress"
+        aria-label="Progress"
+        aria-valuemax="100"
+        aria-valuemin="0"
+        aria-valuenow="50"
+        class="_progress-bar_as2vp_10 _progress-bar--size-small_as2vp_16 post-image__progressBar"
+        role="progressbar"
       >
         <div
-          aria-valuemax="100"
-          aria-valuemin="0"
-          aria-valuenow="50"
-          class="progress-bar"
-          role="progressbar"
+          class="_progress-bar__fill_as2vp_20 _progress-bar__fill--default_as2vp_37"
           style="width: 50%;"
         />
       </div>

@@ -11,7 +11,7 @@ exports[`components/OpenIdConvert should match snapshot 1`] = `
       <img
         alt="OpenId Convert Image"
         class="OpenIdConvert_image"
-        src=""
+        src="test-file-stub"
       />
     </div>
     <div
@@ -24,20 +24,29 @@ exports[`components/OpenIdConvert should match snapshot 1`] = `
         class="OpenIdConvert_actionWrapper"
       >
         <button
-          class="btn"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
           data-testid="openIdConvert"
+          type="button"
         >
-          Convert to OpenID Connect
+          <span
+            class="_button__label_we8pe_31"
+          >
+            Convert to OpenID Connect
+          </span>
         </button>
         <a
-          class="btn-secondary"
+          class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64"
           data-testid="openIdLearnMore"
           href="https://www.mattermost.com/default-openid-docs?utm_source=mattermost&utm_medium=in-product&utm_content=openid_convert&uid=&sid=&edition=team&server_version="
           location="openid_convert"
           rel="noopener noreferrer"
           target="_blank"
         >
-          Learn more
+          <span
+            class="_button__label_we8pe_31"
+          >
+            Learn more
+          </span>
         </a>
         <div
           class="error-message"

@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
-	"sort"
+	"slices"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -31,12 +31,12 @@ func printStringMap(value reflect.Value, tabVal int) string {
 		stringToKeyMap[k.String()] = k
 	}
 
-	sort.Strings(sortedKeys)
+	slices.Sort(sortedKeys)
 
 	for _, keyString := range sortedKeys {
 		key := stringToKeyMap[keyString]
 		val := value.MapIndex(key)
-		if newVal, ok := val.Interface().(map[string]any); !ok {
+		if newVal, ok := reflect.TypeAssert[map[string]any](val); !ok {
 			fmt.Fprintf(out, "%s", strings.Repeat("\t", tabVal))
 			fmt.Fprintf(out, "%v: \"%v\"\n", key.Interface(), val.Interface())
 		} else {

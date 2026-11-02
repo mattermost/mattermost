@@ -155,32 +155,19 @@ func (es *ElasticsearchInterfaceImpl) fetchServerInfo(ctx context.Context, clien
 	es.version = major
 	es.fullVersion = version
 
-	// Query every node because the CAT plugins API omits nodes with no plugins. Plugin information is
-	// also included in Support Packets. If it cannot be retrieved, preserve the existing best-effort
-	// behavior and let template creation report any resulting backend error.
-	resp, err := client.Nodes.Info().Metric("plugins").Do(ctx)
+	// Plugin information is advisory: it is used for optional analyzers and Support Packets only.
+	// CAT omits nodes with no plugins, so this inventory must not be used to prove cluster-wide absence.
+	resp, err := client.API.Cat.Plugins().Format("json").H("component").Do(ctx)
 	if err != nil {
-		es.Platform.Log().Warn("Error retrieving elasticsearch node plugins", mlog.Err(err))
-		return nil
-	}
-	if resp.NodeStats != nil && resp.NodeStats.Failed > 0 {
-		es.Platform.Log().Warn("Some elasticsearch nodes failed to return plugin information", mlog.Int("failed_nodes", resp.NodeStats.Failed))
+		es.Platform.Log().Warn("Error retrieving elasticsearch plugins", mlog.Err(err))
 		return nil
 	}
 
 	es.plugins = nil
-	analysisICUInstalledOnEveryNode := true
-	for _, node := range resp.Nodes {
-		nodePlugins := make([]string, 0, len(node.Plugins))
-		for _, plugin := range node.Plugins {
-			nodePlugins = append(nodePlugins, plugin.Name)
+	for _, plugin := range resp {
+		if plugin.Component != nil && *plugin.Component != "" {
+			es.plugins = append(es.plugins, *plugin.Component)
 		}
-		es.plugins = append(es.plugins, nodePlugins...)
-		analysisICUInstalledOnEveryNode = analysisICUInstalledOnEveryNode && common.HasAnalysisPlugin(nodePlugins, "analysis-icu")
-	}
-
-	if len(resp.Nodes) > 0 && !analysisICUInstalledOnEveryNode {
-		return model.NewAppError("Elasticsearch.fetchServerInfo", "ent.elasticsearch.analysis_icu_required", map[string]any{"Backend": "Elasticsearch"}, "", http.StatusInternalServerError)
 	}
 
 	return nil
@@ -195,9 +182,6 @@ func (es *ElasticsearchInterfaceImpl) Start(ctx context.Context) *model.AppError
 	defer es.mutex.Unlock()
 
 	if es.ready.Load() != 0 {
-		// Elasticsearch is already started. We don't return an error
-		// because "Test Connection" already re-initializes the client. So this
-		// can be a valid scenario.
 		return nil
 	}
 
@@ -833,7 +817,7 @@ func (es *ElasticsearchInterfaceImpl) SearchPosts(channels model.ChannelList, se
 
 		matchesForPost, err := common.GetMatchesForHit(hit.Highlight)
 		if err != nil {
-			return postIds, matches, model.NewAppError("Elasticsearch.SearchPosts", "ent.elasticsearch.search_posts.parse_matches_failed", nil, "", http.StatusInternalServerError).Wrap(err)
+			es.Platform.Log().Warn("Failed to parse search result highlights, returning post without highlights", mlog.String("post_id", post.Id), mlog.Err(err))
 		}
 		matches[post.Id] = matchesForPost
 	}
@@ -1659,18 +1643,13 @@ func (es *ElasticsearchInterfaceImpl) TestConfig(rctx request.CTX, cfg *model.Co
 		return appErr
 	}
 
-	if appErr = es.fetchServerInfo(context.Background(), client); appErr != nil {
-		return appErr
-	}
+	defer func() { _ = client.Close(context.Background()) }()
 
-	// Resetting the state.
-	if es.ready.CompareAndSwap(0, 1) {
-		// Re-assign the client.
-		// This is necessary in case elasticsearch was started
-		// after server start.
-		es.mutex.Lock()
-		es.client = client
-		es.mutex.Unlock()
+	// TestConfig only checks the connection: it must not change the running
+	// engine, since cfg may be an unsaved candidate config. Starting an engine
+	// that became reachable after server start is the search engine watcher's job.
+	if _, _, appErr = checkVersion(rctx.Context(), client, rctx.Logger()); appErr != nil {
+		return appErr
 	}
 
 	return nil

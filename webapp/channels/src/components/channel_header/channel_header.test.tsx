@@ -29,7 +29,7 @@ describe('components/ChannelHeader', () => {
         currentUser: TestHelper.getUserMock({}),
         isCustomStatusEnabled: false,
         isCustomStatusExpired: false,
-        isFileAttachmentsEnabled: true,
+        canSearchFiles: true,
         lastActivityTimestamp: 1632146562846,
         isLastActiveEnabled: true,
         memberCount: 2,
@@ -220,6 +220,18 @@ describe('components/ChannelHeader', () => {
             <ChannelHeader {...props}/>,
         );
         expect(container).toMatchSnapshot();
+    });
+
+    test('should not render the channel files button when file search is disabled', () => {
+        const props = {
+            ...populatedProps,
+            canSearchFiles: false,
+        };
+
+        renderWithContext(
+            <ChannelHeader {...props}/>,
+        );
+        expect(document.getElementById('channelHeaderFilesButton')).not.toBeInTheDocument();
     });
 
     test('should render active flagged posts', () => {

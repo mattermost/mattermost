@@ -6,7 +6,7 @@ import type {ComponentProps} from 'react';
 
 import {Permissions} from 'mattermost-redux/constants';
 
-import {act, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import AccessTab from './team_access_tab';
@@ -80,11 +80,11 @@ describe('components/TeamSettings', () => {
         expect(baseActions.regenerateTeamInviteId).toHaveBeenCalledWith(defaultProps.team?.id);
     });
 
-    test('should not render allowed domains checkbox if no permissions for team inviting', () => {
-        const props = {...defaultProps, canInviteTeamMembers: false};
-        renderWithContext(<AccessTab {...props}/>);
-        const allowedDomainsCheckbox = screen.queryByTestId('allowedDomainsCheckbox');
-        expect(allowedDomainsCheckbox).toBeNull();
+    test('should still render allowed domains checkbox if no permissions for team inviting', () => {
+        // Allowed domains is independent of INVITE_USER; only the invite section is gated.
+        renderWithContext(<AccessTab {...defaultProps}/>);
+        expect(screen.getByTestId('allowedDomainsCheckbox')).toBeInTheDocument();
+        expect(screen.queryByTestId('teamInviteContainer')).toBeNull();
     });
 
     test('should not show allowed domains input if allowed domains is empty', () => {
@@ -108,10 +108,8 @@ describe('components/TeamSettings', () => {
         renderWithContext(<AccessTab {...props}/>);
         const allowedDomainsInput = screen.getAllByRole('combobox')[0];
         const newDomain = 'best.com';
-        await act(async () => {
-            await allowedDomainsInput.focus();
-            await userEvent.type(allowedDomainsInput, `${newDomain},`);
-        });
+        allowedDomainsInput.focus();
+        await userEvent.type(allowedDomainsInput, `${newDomain},`);
 
         const newDomainText = screen.getByText(newDomain);
         expect(newDomainText).toBeInTheDocument();

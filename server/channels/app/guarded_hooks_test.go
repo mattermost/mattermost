@@ -514,6 +514,115 @@ func TestChannelGuardBlocksScheduledPostWhenPluginInactive(t *testing.T) {
 	})
 }
 
+// TestChannelGuardSkippedForBurnOnReadScheduledPost verifies that a guard claimant never sees a
+// burn-on-read scheduled post. Plugin-invisibility takes precedence over guard enforcement, so
+// such a post is saved even when a guard would reject it and even when the guard plugin is down.
+func TestChannelGuardSkippedForBurnOnReadScheduledPost(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("active guard cannot reject it", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		tearDown, pluginIDs, errs := SetAppEnvironmentWithPlugins(t,
+			[]string{guardPluginRejectsAll("not permitted")},
+			th.App, th.NewPluginAPI,
+		)
+		defer tearDown()
+		require.NoError(t, errs[0])
+		pluginID := pluginIDs[0]
+		require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
+
+		appErr := th.App.RegisterChannelGuard(th.Context, th.BasicChannel.Id, pluginID)
+		require.Nil(t, appErr, "RegisterChannelGuard must succeed")
+
+		// Control: the guard does reject a regular scheduled post in this channel, so the
+		// burn-on-read assertions below cannot pass just because the guard never resolved.
+		_, appErr = th.App.SaveScheduledPost(th.Context, &model.ScheduledPost{
+			Draft: model.Draft{
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "regular",
+			},
+			ScheduledAt: model.GetMillis() + 60_000,
+		}, "")
+		require.NotNil(t, appErr)
+		require.Contains(t, appErr.Id, "rejected_by_plugin")
+
+		saved, appErr := th.App.SaveScheduledPost(th.Context, &model.ScheduledPost{
+			Draft: model.Draft{
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "burn-on-read secret",
+				Type:      model.PostTypeBurnOnRead,
+			},
+			ScheduledAt: model.GetMillis() + 60_000,
+		}, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, saved)
+
+		fetched, storeErr := th.App.Srv().Store().ScheduledPost().Get(th.Context, saved.Id)
+		require.NoError(t, storeErr)
+		assert.Equal(t, "burn-on-read secret", fetched.Message)
+
+		saved.Message = "burn-on-read secret edited"
+		updated, appErr := th.App.UpdateScheduledPost(th.Context, th.BasicUser.Id, saved, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, updated)
+
+		fetched, storeErr = th.App.Srv().Store().ScheduledPost().Get(th.Context, saved.Id)
+		require.NoError(t, storeErr)
+		assert.Equal(t, "burn-on-read secret edited", fetched.Message)
+	})
+
+	// The skip precedes resolveGuards, so burn-on-read posts also bypass the fail-closed
+	// inactive-guard check the other scheduled-post paths enforce.
+	t.Run("inactive guard does not block it", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		tearDown, pluginIDs, errs := SetAppEnvironmentWithPlugins(t,
+			[]string{guardPluginRegistersOnly(th.BasicChannel.Id)},
+			th.App, th.NewPluginAPI,
+		)
+		defer tearDown()
+		require.NoError(t, errs[0])
+		pluginID := pluginIDs[0]
+		require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
+
+		require.True(t, th.App.GetPluginsEnvironment().Deactivate(pluginID))
+		require.False(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
+
+		// Control: the inactive guard does fail-close a regular scheduled post.
+		_, appErr := th.App.SaveScheduledPost(th.Context, &model.ScheduledPost{
+			Draft: model.Draft{
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "regular",
+			},
+			ScheduledAt: model.GetMillis() + 60_000,
+		}, "")
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.plugin.inactive_guard.app_error", appErr.Id)
+
+		saved, appErr := th.App.SaveScheduledPost(th.Context, &model.ScheduledPost{
+			Draft: model.Draft{
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "burn-on-read secret",
+				Type:      model.PostTypeBurnOnRead,
+			},
+			ScheduledAt: model.GetMillis() + 60_000,
+		}, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, saved)
+
+		fetched, storeErr := th.App.Srv().Store().ScheduledPost().Get(th.Context, saved.Id)
+		require.NoError(t, storeErr)
+		assert.Equal(t, "burn-on-read secret", fetched.Message)
+	})
+}
+
 // TestChannelGuardBlocksDraftWhenPluginInactive verifies fail-closed enforcement on the
 // UpsertDraft path. Three states are exercised:
 // (1) plugin active + hook rejects → 400 rejected_by_plugin, no row persisted

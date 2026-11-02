@@ -2,6 +2,7 @@
 
 Explicitly import subdirectory instruction files that must always be in context:
 @server/AGENTS.md
+@e2e-tests/playwright/AGENTS.md
 
 ## Pull Requests
 
@@ -13,7 +14,5 @@ When creating a pull request, follow `.github/PULL_REQUEST_TEMPLATE.md` exactly:
 
 ## Cursor Cloud Agents
 
-This repository has a checked-in Cloud Agent environment under `.cursor/`. Docker is started by `.cursor/scripts/cloud-agent-start.sh`; if Docker is unavailable in Cloud, treat that as an environment failure rather than falling back to snapshot assumptions.
-
-The environment declares `mattermost/enterprise` as a Cursor multi-repo dependency. Cursor clones the repositories as siblings, so `server/Makefile` can use its default `../../enterprise` path; the install hook does not clone or symlink enterprise.
+Cursor Cloud Agents must follow `.cursor/AGENTS.md`, materialized by `.cursor/scripts/cloud-agent-start.sh`.
 

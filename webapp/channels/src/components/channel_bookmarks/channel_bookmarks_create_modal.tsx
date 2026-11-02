@@ -123,7 +123,7 @@ function ChannelBookmarkCreateModal({
     const [pendingFile, setPendingFile] = useState<FilePreviewInfo | null>();
     const [fileError, setFileError] = useState('');
     const [fileId, setFileId] = useState(bookmark?.file_id);
-    const uploadRequestRef = useRef<XMLHttpRequest>();
+    const uploadRequestRef = useRef<XMLHttpRequest>(undefined);
     const fileInfo: FileInfo | undefined = useSelector((state: GlobalState) => (fileId && getFile(state, fileId)) || undefined);
 
     const maxFileSize = useSelector((state: GlobalState) => {
@@ -638,7 +638,7 @@ export const useBookmarkLinkValidation = (link: string, onValidated: (validatedL
     const [loading, setLoading] = useState<URL>();
     const [error, setError] = useState<ReactNode>();
     const [suppressed, setSuppressed] = useState(false);
-    const abort = useRef<AbortController>();
+    const abort = useRef<AbortController>(undefined);
 
     const start = useCallback((url: URL) => {
         setLoading(url);

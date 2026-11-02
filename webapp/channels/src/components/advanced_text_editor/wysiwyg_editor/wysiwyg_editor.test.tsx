@@ -15,6 +15,8 @@ const mockConstructorError: {current: Error | null} = {current: null};
 const mockChainCalls: {current: string[]} = {current: []};
 const mockSetNodeThrows: {current: boolean} = {current: false};
 const mockRunReturnsFalse: {current: boolean} = {current: false};
+const mockMarkdownFailure: {current: 'parse' | 'insert' | null} = {current: null};
+const mockInsertedContent: {current: unknown[]} = {current: []};
 
 jest.mock('@tiptap/react', () => {
     const ReactMock = require('react') as typeof import('react');
@@ -25,11 +27,19 @@ jest.mock('@tiptap/react', () => {
             const base: any = {
                 isDestroyed: false,
                 isEmpty: true,
+                isActive: () => false,
                 commands: {
                     clearContent: () => undefined,
                     focus: () => undefined,
                     blur: () => undefined,
-                    insertContent: () => undefined,
+                    insertContent: (content: unknown) => {
+                        if (mockMarkdownFailure.current === 'insert' && mockInsertedContent.current.length === 0) {
+                            mockInsertedContent.current.push('rejected');
+                            throw new RangeError('Invalid content for node listItem');
+                        }
+                        mockInsertedContent.current.push(content);
+                        return true;
+                    },
                 },
 
                 // Mirrors the real library: an update is emitted unless the caller opts out.
@@ -67,6 +77,16 @@ jest.mock('@tiptap/react', () => {
             const hasMarkdownExt = (config?.extensions ?? []).some((e: any) => (e.name || e.config?.name) === 'markdown');
             if (hasMarkdownExt) {
                 base.getMarkdown = () => 'hi';
+                base.schema = {nodes: {}};
+                base.markdown = {
+                    parse: (md: string) => {
+                        if (mockMarkdownFailure.current === 'parse') {
+                            throw new Error('Unsupported markdown');
+                        }
+                        return {type: 'doc', content: [{type: 'paragraph', content: [{type: 'text', text: md}]}]};
+                    },
+                    serialize: () => 'hi',
+                };
             }
 
             // Tiptap emits contentError synchronously inside the Editor
@@ -409,6 +429,68 @@ describe('WysiwygEditor', () => {
 
         const result = mockCapturedConfig.current?.editorProps?.handlePaste?.({} as any, mkEvent());
         expect(result).toBe(true);
+    });
+
+    describe('handlePaste and the text/html flavour', () => {
+        const paste = (text: string, html: string) => {
+            renderWithContext(<WysiwygEditor {...baseProps}/>);
+            return mockCapturedConfig.current?.editorProps?.handlePaste?.({} as any, {
+                preventDefault: jest.fn(),
+                clipboardData: {getData: (type: string) => (type === 'text/plain' ? text : html)},
+            } as any);
+        };
+
+        test('parses markdown even when the clipboard also carries HTML', () => {
+            expect(paste('# heading', '<meta charset="utf-8"><span># heading</span>')).toBe(true);
+        });
+
+        test('defers to ProseMirror when the HTML came from another editor', () => {
+            expect(paste('# heading', '<div data-pm-slice="1 1 []"><h1>heading</h1></div>')).toBe(false);
+        });
+
+        test('defers to ProseMirror when the text is not markdown', () => {
+            expect(paste('just words', '<b>just words</b>')).toBe(false);
+        });
+
+        test.each(['parse', 'insert'] as const)('pastes the markdown as plain text when the %s step fails', (failure) => {
+            mockMarkdownFailure.current = failure;
+            mockInsertedContent.current = [];
+            try {
+                expect(paste('# title\n\n- [ ] todo', '<b>ignored</b>')).toBe(true);
+                expect(mockInsertedContent.current[mockInsertedContent.current.length - 1]).toEqual([
+                    {type: 'paragraph', content: [{type: 'text', text: '# title'}]},
+                    {type: 'paragraph', content: []},
+                    {type: 'paragraph', content: [{type: 'text', text: '- [ ] todo'}]},
+                ]);
+            } finally {
+                mockMarkdownFailure.current = null;
+            }
+        });
+    });
+
+    describe('handlePaste with clipboard files', () => {
+        const paste = (text: string, files: File[]) => {
+            renderWithContext(<WysiwygEditor {...baseProps}/>);
+            return mockCapturedConfig.current?.editorProps?.handlePaste?.({} as any, {
+                preventDefault: jest.fn(),
+                clipboardData: {
+                    getData: (type: string) => (type === 'text/plain' ? text : '<img src="blob:image">'),
+                    files,
+                },
+            } as any);
+        };
+
+        test('swallows image-only pastes so the image is attached, not embedded', () => {
+            expect(paste('', [new File([''], 'image.png', {type: 'image/png'})])).toBe(true);
+        });
+
+        test('lets ProseMirror handle pastes with neither text nor files', () => {
+            expect(paste('', [])).toBe(false);
+        });
+
+        test('lets text win when the clipboard also carries files', () => {
+            expect(paste('just words', [new File([''], 'image.png', {type: 'image/png'})])).toBe(false);
+        });
     });
 
     test('getEditor() on the handle returns the underlying Tiptap Editor instance', () => {

@@ -54,8 +54,9 @@ func TestStartTemplateFailureDoesNotCreateBulkProcessors(t *testing.T) {
 		switch {
 		case r.URL.Path == "/":
 			_, _ = fmt.Fprint(w, `{"version":{"number":"2.11.0"}}`)
-		case r.URL.Path == "/_nodes/plugins":
-			_, _ = fmt.Fprint(w, `{"_nodes":{"total":2,"successful":1,"failed":1},"nodes":{"node-1":{"name":"node-1","plugins":[]}}}`)
+		case r.URL.Path == "/_cat/plugins":
+			// Plugin inventory is optional and must not prevent the real template check.
+			w.WriteHeader(http.StatusInternalServerError)
 		case strings.HasPrefix(r.URL.Path, "/_index_template/") && strings.HasSuffix(r.URL.Path, "posts"):
 			w.WriteHeader(http.StatusBadRequest)
 			_, _ = fmt.Fprint(w, `{"error":{"type":"illegal_argument_exception","reason":"failed to parse template","caused_by":{"type":"illegal_argument_exception","reason":"Custom Analyzer [mm_lowercaser] failed to find tokenizer under name [icu_tokenizer]"}},"status":400}`)
@@ -82,6 +83,7 @@ func TestStartTemplateFailureDoesNotCreateBulkProcessors(t *testing.T) {
 	appErr := impl.Start(context.Background())
 	require.NotNil(t, appErr)
 	require.Contains(t, appErr.Error(), "icu_tokenizer")
+	require.Contains(t, appErr.Error(), "Verify that the required analysis-icu plugin is installed on every opensearch node")
 	require.Equal(t, int32(0), impl.ready.Load())
 	require.Nil(t, impl.bulkProcessor)
 	require.Nil(t, impl.syncBulkProcessor)
@@ -89,16 +91,16 @@ func TestStartTemplateFailureDoesNotCreateBulkProcessors(t *testing.T) {
 	require.Nil(t, impl.Stop())
 }
 
-func TestStartWithoutAnalysisICUReturnsExplicitError(t *testing.T) {
-	templateRequested := make(chan struct{}, 1)
+func TestStartWithoutPluginInventoryUsesTemplateValidation(t *testing.T) {
+	templateRequested := make(chan string, 4)
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case r.URL.Path == "/":
 			_, _ = fmt.Fprint(w, `{"version":{"number":"2.11.0"}}`)
-		case r.URL.Path == "/_nodes/plugins":
-			_, _ = fmt.Fprint(w, `{"_nodes":{"total":2,"successful":2,"failed":0},"nodes":{"node-1":{"name":"node-1","plugins":[{"name":"analysis-icu"}]},"node-2":{"name":"node-2","plugins":[]}}}`)
+		case r.URL.Path == "/_cat/plugins":
+			_, _ = fmt.Fprint(w, `[]`)
 		case strings.HasPrefix(r.URL.Path, "/_index_template/"):
-			templateRequested <- struct{}{}
+			templateRequested <- strings.TrimPrefix(r.URL.Path, "/_index_template/")
 			_, _ = fmt.Fprint(w, `{"acknowledged":true}`)
 		default:
 			w.WriteHeader(http.StatusNotFound)
@@ -119,16 +121,57 @@ func TestStartWithoutAnalysisICUReturnsExplicitError(t *testing.T) {
 	impl := &OpensearchInterfaceImpl{Platform: th.Server.Platform()}
 	defer func() { require.Nil(t, impl.Stop()) }()
 	appErr := impl.Start(context.Background())
-	require.NotNil(t, appErr)
-	require.Equal(t, "ent.elasticsearch.analysis_icu_required", appErr.Id)
-	require.Equal(t, int32(0), impl.ready.Load())
-	require.Nil(t, impl.bulkProcessor)
-	require.Nil(t, impl.syncBulkProcessor)
-	select {
-	case <-templateRequested:
-		require.Fail(t, "template creation should not be attempted without analysis-icu on every node")
-	default:
+	require.Nil(t, appErr)
+	require.Equal(t, int32(1), impl.ready.Load())
+	require.Len(t, templateRequested, 4)
+	requestedTemplates := make([]string, 0, 4)
+	for range 4 {
+		requestedTemplates = append(requestedTemplates, <-templateRequested)
 	}
+	require.ElementsMatch(t, []string{common.IndexBasePosts, common.IndexBaseChannels, common.IndexBaseUsers, common.IndexBaseFiles}, requestedTemplates)
+}
+
+func TestSearchPostsReturnsHitsWithUnparseableHighlights(t *testing.T) {
+	goodPostID, badPostID := model.NewId(), model.NewId()
+	searchResponse := fmt.Sprintf(`{"took":1,"timed_out":false,"hits":{"total":{"value":2,"relation":"eq"},"max_score":1,"hits":[
+		{"_index":"posts","_id":%[1]q,"_score":1,"_source":{"id":%[1]q},"highlight":{"message":["<em>deployment</em> done"]}},
+		{"_index":"posts","_id":%[2]q,"_score":1,"_source":{"id":%[2]q},"highlight":{"message":["<em>deployment</b> broken"]}}
+	]}}`, goodPostID, badPostID)
+
+	cluster := pluginsHandler(t, &common.ClusterRecorder{})
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.HasSuffix(r.URL.Path, "/_search") {
+			_, _ = fmt.Fprint(w, searchResponse)
+			return
+		}
+		cluster(w, r)
+	}))
+	defer server.Close()
+	t.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", server.URL)
+	t.Setenv("MM_ELASTICSEARCHSETTINGS_BACKEND", model.ElasticsearchSettingsOSBackend)
+
+	th := api4.SetupEnterprise(t)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ElasticsearchSettings.ConnectionURL = server.URL
+		*cfg.ElasticsearchSettings.Backend = model.ElasticsearchSettingsOSBackend
+		*cfg.ElasticsearchSettings.EnableIndexing = true
+		*cfg.ElasticsearchSettings.EnableSearching = true
+	})
+	th.App.Srv().SetLicense(model.NewTestLicense())
+
+	impl := &OpensearchInterfaceImpl{Platform: th.Server.Platform()}
+	defer func() { require.Nil(t, impl.Stop()) }()
+	require.Nil(t, impl.Start(context.Background()))
+
+	channels := model.ChannelList{{Id: model.NewId(), TeamId: model.NewId(), Type: model.ChannelTypeOpen}}
+	ids, matches, appErr := impl.SearchPosts(channels, model.ParseSearchParams("deployment", 0), 0, 20)
+	require.Nil(t, appErr)
+	require.Equal(t, []string{goodPostID, badPostID}, ids)
+	require.Equal(t, []string{"deployment"}, matches[goodPostID])
+	require.Empty(t, matches[badPostID])
+
+	require.NoError(t, th.TestLogger.Flush())
+	testlib.AssertLog(t, th.LogBuffer, mlog.LvlWarn.Name, "Failed to parse search result highlights, returning post without highlights")
 }
 
 // missingCJKPluginsWarning mirrors the warning Start logs when no CJK analyzer plugin is detected.
@@ -138,7 +181,7 @@ const missingCJKPluginsWarning = "EnableCJKAnalyzers is set but no CJK analyzer 
 // of plugin names and recording the posts template and search request bodies.
 func pluginsHandler(t *testing.T, recorder *common.ClusterRecorder, nodePlugins ...[]string) http.HandlerFunc {
 	info := infoHandler("2.11.0")
-	nodesInfo := common.NodesPluginsResponse(nodePlugins...)
+	catPlugins := common.CatPluginsResponse(nodePlugins...)
 
 	readBody := func(w http.ResponseWriter, r *http.Request) ([]byte, bool) {
 		body, err := io.ReadAll(r.Body)
@@ -153,8 +196,8 @@ func pluginsHandler(t *testing.T, recorder *common.ClusterRecorder, nodePlugins 
 		switch {
 		case r.URL.Path == "/":
 			info(w, r)
-		case r.URL.Path == "/_nodes/plugins":
-			_, _ = fmt.Fprint(w, nodesInfo)
+		case r.URL.Path == "/_cat/plugins":
+			_, _ = fmt.Fprint(w, catPlugins)
 		case strings.HasPrefix(r.URL.Path, "/_index_template/"):
 			body, ok := readBody(w, r)
 			if !ok {
@@ -299,17 +342,6 @@ func TestCJKAnalyzersWithoutAnyCJKPlugin(t *testing.T) {
 
 	require.NoError(t, th.TestLogger.Flush())
 	testlib.AssertLog(t, th.LogBuffer, mlog.LvlWarn.Name, missingCJKPluginsWarning)
-}
-
-// TestAnalysisICURequirementAcceptsPrefixedNames covers the per-node analysis-icu requirement when
-// only some of the nodes report the plugin under a prefixed name.
-func TestAnalysisICURequirementAcceptsPrefixedNames(t *testing.T) {
-	recorder := &common.ClusterRecorder{}
-	_, impl := setupCJKCluster(t, recorder, []string{"opensearch-analysis-icu"}, []string{"analysis-icu"})
-
-	require.Nil(t, impl.Start(context.Background()))
-	require.Equal(t, int32(1), impl.ready.Load())
-	require.NotEmpty(t, recorder.PostsTemplate(), "no posts index template was created")
 }
 
 func (s *OpensearchInterfaceTestSuite) SetupSuite() {
@@ -659,4 +691,144 @@ func (s *OpensearchInterfaceTestSuite) TestTemplateCreationClientError() {
 			IndexTemplate: "test-invalid-template",
 		})
 	})
+}
+
+// TestTestConfigLeavesEngineStateUnchanged checks that TestConfig only probes the cluster: it must
+// not start a stopped engine, nor change what a running engine reports when given a candidate
+// config that points at another cluster.
+func TestTestConfigLeavesEngineStateUnchanged(t *testing.T) {
+	th, impl := setupCJKCluster(t, &common.ClusterRecorder{}, []string{"analysis-nori"})
+
+	require.Nil(t, impl.TestConfig(th.Context, th.App.Config()))
+	require.False(t, impl.IsActive())
+	require.Nil(t, impl.client)
+	require.Nil(t, impl.syncBulkProcessor)
+	require.Zero(t, impl.GetVersion())
+	require.Empty(t, impl.GetFullVersion())
+	require.Empty(t, impl.GetPlugins())
+
+	require.Nil(t, impl.Start(context.Background()))
+	client := impl.client
+
+	otherCluster := httptest.NewServer(infoHandler("3.0.0"))
+	t.Cleanup(otherCluster.Close)
+	candidate := th.App.Config().Clone()
+	*candidate.ElasticsearchSettings.ConnectionURL = otherCluster.URL
+
+	require.Nil(t, impl.TestConfig(th.Context, candidate))
+	require.True(t, impl.IsActive())
+	require.Same(t, client, impl.client)
+	require.Equal(t, 2, impl.GetVersion())
+	require.Equal(t, "2.11.0", impl.GetFullVersion())
+	require.Equal(t, []string{"analysis-nori"}, impl.GetPlugins())
+}
+
+// lifecycleCluster serves a fake cluster for the watcher lifecycle tests. While
+// down is set it fails every request with a status the client doesn't retry,
+// and counts the failed version requests so a test can tell Start() failed.
+func lifecycleCluster(t *testing.T, down *atomic.Bool, failedVersionRequests *atomic.Int32) *httptest.Server {
+	cluster := pluginsHandler(t, &common.ClusterRecorder{}, []string{"analysis-icu"})
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if down.Load() {
+			w.WriteHeader(http.StatusInternalServerError)
+			if r.Method == http.MethodGet && r.URL.Path == "/" {
+				failedVersionRequests.Add(1)
+			}
+			return
+		}
+		if r.URL.Path == "/_cluster/health" {
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = fmt.Fprint(w, `{"cluster_name":"test","status":"green"}`)
+			return
+		}
+		cluster(w, r)
+	}))
+	t.Cleanup(server.Close)
+	return server
+}
+
+// setupWatchedEngine registers a fresh engine with the platform and starts the
+// search engine watcher on it, so tests go through the real Start() path.
+func setupWatchedEngine(t *testing.T, serverURL string, enableIndexing bool) (*api4.TestHelper, *OpensearchInterfaceImpl) {
+	t.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", serverURL)
+	t.Setenv("MM_ELASTICSEARCHSETTINGS_BACKEND", model.ElasticsearchSettingsOSBackend)
+
+	th := api4.SetupEnterpriseWithServerOptions(t, nil)
+	ps := th.Server.Platform()
+	ps.StopSearchEngine()
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ElasticsearchSettings.ConnectionURL = serverURL
+		*cfg.ElasticsearchSettings.Backend = model.ElasticsearchSettingsOSBackend
+		*cfg.ElasticsearchSettings.EnableIndexing = enableIndexing
+		*cfg.ElasticsearchSettings.LiveIndexingBatchSize = 1
+	})
+	th.App.Srv().SetLicense(model.NewTestLicense())
+
+	impl := &OpensearchInterfaceImpl{Platform: ps}
+	th.App.SearchEngine().RegisterElasticsearchEngine(impl)
+	configListenerID, licenseListenerID := ps.StartSearchEngine()
+	t.Cleanup(func() {
+		ps.StopSearchEngine()
+		ps.RemoveConfigListener(configListenerID)
+		ps.RemoveLicenseListener(licenseListenerID)
+	})
+
+	return th, impl
+}
+
+func hasSyncBulkProcessor(engine *OpensearchInterfaceImpl) bool {
+	engine.mutex.RLock()
+	defer engine.mutex.RUnlock()
+	return engine.syncBulkProcessor != nil
+}
+
+// TestTestConfigThenSavingConfigStartsEngine follows TestConfig, then saving the
+// tested config, through the watcher to a full Start().
+func TestTestConfigThenSavingConfigStartsEngine(t *testing.T) {
+	var down atomic.Bool
+	var failedVersionRequests atomic.Int32
+	server := lifecycleCluster(t, &down, &failedVersionRequests)
+	th, impl := setupWatchedEngine(t, server.URL, false)
+	require.False(t, impl.IsActive())
+
+	submittedConfig := th.App.Config().Clone()
+	*submittedConfig.ElasticsearchSettings.EnableIndexing = true
+	require.Nil(t, impl.TestConfig(th.Context, submittedConfig))
+	require.False(t, impl.IsActive())
+	require.Nil(t, impl.client)
+	require.False(t, hasSyncBulkProcessor(impl))
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ElasticsearchSettings.EnableIndexing = true
+	})
+
+	require.Eventually(t, func() bool {
+		return impl.IsActive() && hasSyncBulkProcessor(impl)
+	}, 5*time.Second, 10*time.Millisecond)
+	require.Equal(t, "2.11.0", impl.GetFullVersion())
+	require.Equal(t, []string{"analysis-icu"}, impl.GetPlugins())
+}
+
+// TestTestElasticsearchStartsEngineWithoutWaitingForBackoff covers a saved
+// cluster that comes back while the watcher waits out its retry backoff: a
+// successful connection test starts the engine through the watcher right away.
+func TestTestElasticsearchStartsEngineWithoutWaitingForBackoff(t *testing.T) {
+	var down atomic.Bool
+	var failedVersionRequests atomic.Int32
+	down.Store(true)
+	server := lifecycleCluster(t, &down, &failedVersionRequests)
+	th, impl := setupWatchedEngine(t, server.URL, true)
+
+	// Wait for the watcher's first Start() to fail; it then backs off for 15s.
+	require.Eventually(t, func() bool {
+		return failedVersionRequests.Load() >= 1
+	}, 5*time.Second, 10*time.Millisecond)
+	require.Never(t, impl.IsActive, 200*time.Millisecond, 10*time.Millisecond)
+
+	down.Store(false)
+	require.Nil(t, th.App.TestElasticsearch(th.Context, th.App.Config().Clone()))
+
+	require.Eventually(t, func() bool {
+		return impl.IsActive() && hasSyncBulkProcessor(impl)
+	}, 5*time.Second, 10*time.Millisecond)
 }

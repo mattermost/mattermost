@@ -4,10 +4,9 @@
 import type {KeyboardEvent} from 'react';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {useIntl} from 'react-intl';
-import {components} from 'react-select';
 import {css} from 'styled-components';
 
-import {CheckIcon} from '@mattermost/compass-icons/components';
+import {CheckIcon, CloseCircleIcon} from '@mattermost/compass-icons/components';
 import type {PropertyFieldOption} from '@mattermost/types/properties';
 
 import * as Menu from 'components/menu';
@@ -26,6 +25,10 @@ type Props = {
     options: PropertyFieldOption[];
     onOptionsChange: (options: PropertyFieldOption[]) => void;
     disabled?: boolean;
+
+    // Lists the options without any way to change them, for an attribute whose
+    // options belong to its identity source sync.
+    readOnly?: boolean;
 };
 
 const buildNewOption = (name: string): PropertyFieldOption => ({id: '', name});
@@ -39,7 +42,7 @@ const buildNewOption = (name: string): PropertyFieldOption => ({id: '', name});
 // reorder requirement needs the same keyboard-accessible popover Rank already
 // has, not a mouse-only drag surface. Shared add/remove/rename/duplicate logic
 // lives in use_option_chip_editor.ts, consumed by this and the Rank editor.
-const AttributeOptionsValues = ({options, onOptionsChange, disabled = false}: Props) => {
+const AttributeOptionsValues = ({options, onOptionsChange, disabled = false, readOnly = false}: Props) => {
     const {formatMessage} = useIntl();
 
     const {
@@ -51,6 +54,38 @@ const AttributeOptionsValues = ({options, onOptionsChange, disabled = false}: Pr
     const handleMoveToPosition = useCallback((index: number, targetIndex: number) => {
         onOptionsChange(moveOptionByIndex(options, index, targetIndex));
     }, [options, onOptionsChange]);
+
+    if (readOnly) {
+        return (
+            <div
+                className='attribute-options-values attribute-options-values--readOnly'
+                data-testid='attributeOptionsValues'
+            >
+                {options.length > 0 && (
+                    <ul
+                        className='attribute-options-values__chips'
+                        aria-label={formatMessage({
+                            id: 'admin.global_attributes.attribute_details.options.synced_list_label',
+                            defaultMessage: 'Options',
+                        })}
+                    >
+                        {options.map((option) => (
+                            <li
+                                key={option.id || option.name}
+                                className='attribute-options-values__chip'
+                                data-testid='attributeOptionsValues__chip'
+                            >
+                                <span
+                                    className='attribute-options-values__chip-label attribute-options-values__chip-label--static'
+                                    data-testid='attributeOptionsValues__chipLabel'
+                                >{option.name}</span>
+                            </li>
+                        ))}
+                    </ul>
+                )}
+            </div>
+        );
+    }
 
     return (
         <div
@@ -251,7 +286,10 @@ const OptionChip = ({option, index, total, maxOptionNameLength, nameCollidesWith
                 aria-label={removeLabel}
                 disabled={disabled}
             >
-                <components.CrossIcon size={14}/>
+                <CloseCircleIcon
+                    size={12}
+                    aria-hidden={true}
+                />
             </button>
         </span>
     );

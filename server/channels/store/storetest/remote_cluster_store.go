@@ -70,6 +70,29 @@ func testRemoteClusterSave(t *testing.T, _ request.CTX, ss store.Store) {
 		require.Error(t, err)
 	})
 
+	t.Run("Save duplicate remote id and name returns a conflict", func(t *testing.T) {
+		rc := &model.RemoteCluster{
+			Name:      "dup_remote",
+			SiteURL:   makeSiteURL(),
+			CreatorId: model.NewId(),
+		}
+		saved, err := ss.RemoteCluster().Save(rc)
+		require.NoError(t, err)
+
+		_, err = ss.RemoteCluster().Delete(saved.RemoteId)
+		require.NoError(t, err)
+
+		dup := &model.RemoteCluster{
+			RemoteId:  saved.RemoteId,
+			Name:      saved.Name,
+			SiteURL:   makeSiteURL(),
+			CreatorId: model.NewId(),
+		}
+		_, err = ss.RemoteCluster().Save(dup)
+		var conflictErr *store.ErrConflict
+		require.ErrorAs(t, err, &conflictErr)
+	})
+
 	t.Run("Save plugin SiteURL collision is idempotent", func(t *testing.T) {
 		siteURL := makeSiteURL()
 
