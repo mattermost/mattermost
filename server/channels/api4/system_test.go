@@ -598,6 +598,20 @@ func TestQueryLogs(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	})
 
+	t.Run("search returns only matching entries, ignoring case", func(t *testing.T) {
+		nodes := waitForFilteredLogs(t, &model.LogFilter{Search: strings.ToUpper("querylogs_verify_" + testID)})
+		require.Len(t, nodes["default"], len(expectedMessages))
+		for _, line := range nodes["default"] {
+			assert.Contains(t, string(line), testID)
+		}
+	})
+
+	t.Run("overlong search is rejected with 400", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.QueryLogs(context.Background(), 0, 200, &model.LogFilter{Search: strings.Repeat("a", model.LogFilterSearchMaxLength+1)})
+		CheckErrorID(t, err, "model.log_filter.is_valid.search.app_error")
+		CheckBadRequestStatus(t, resp)
+	})
+
 	t.Run("non-admin is forbidden", func(t *testing.T) {
 		_, resp, err := th.Client.QueryLogs(context.Background(), 0, 200, &model.LogFilter{})
 		require.Error(t, err)

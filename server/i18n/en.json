@@ -18167,6 +18167,11 @@
     "description": "API error (400) returned to a system admin filtering server logs in the System Console when the end-date filter is unparseable. {{.Layout}} is the expected date format pattern (a Go time layout string) and must not be translated."
   },
   {
+    "id": "model.log_filter.is_valid.search.app_error",
+    "translation": "Invalid search filter. It must be at most {{.MaxLength}} characters.",
+    "description": "API error (400) returned to a system admin searching server logs in the System Console when the search term is too long. {{.MaxLength}} is the maximum number of characters."
+  },
+  {
     "id": "model.member.is_valid.channel.app_error",
     "translation": "Channel name is not valid",
     "description": "API error returned when a member invitation includes a channel ID with an invalid format; 'Channel name' refers to a chat channel identifier."
@@ -19345,6 +19350,16 @@
     "id": "plugin.api.get_users_in_channel",
     "translation": "Unable to get the users, invalid sorting criteria.",
     "description": "Error returned to plugins when listing channel users is called with an unsupported sort option; developer-facing."
+  },
+  {
+    "id": "plugin.api.kv_list_with_options.not_implemented",
+    "translation": "The server does not support listing plugin keys with options.",
+    "description": "Error a plugin receives when it lists its key-value store keys with filter options on a server version that does not support that API. The plugin library then falls back to listing all keys."
+  },
+  {
+    "id": "plugin.api.kv_list_with_options.rpc_error",
+    "translation": "Unable to list plugin keys with options.",
+    "description": "Error a plugin receives when the call from the plugin process to the server fails while it lists its key-value store keys with filter options."
   },
   {
     "id": "plugin.api.thread.invalid_thread_id.app_error",
