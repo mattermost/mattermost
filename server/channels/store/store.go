@@ -241,6 +241,9 @@ type ChannelStore interface {
 	// SearchInTeamInSessionScope is SearchInTeam limited to the channels in a
 	// session scope's resources.
 	SearchInTeamInSessionScope(teamID string, term string, resources *model.SessionScopeResources) (model.ChannelList, error)
+	// AutocompleteInSessionScope is Autocomplete limited to the channels in a
+	// session scope's resources, on teamID when it is set.
+	AutocompleteInSessionScope(teamID string, term string, resources *model.SessionScopeResources) (model.ChannelListWithTeamData, error)
 	GetChannelsByUser(userID string, includeDeleted bool, lastDeleteAt, pageSize int, fromChannelID string) (model.ChannelList, error)
 	GetAllChannelMemberIdsByChannelId(id string) ([]string, error)
 	GetAllChannels(page, perPage int, opts ChannelSearchOpts) (model.ChannelListWithTeamData, error)

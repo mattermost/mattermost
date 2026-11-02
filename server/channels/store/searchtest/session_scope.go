@@ -20,7 +20,7 @@ type scopedSearchFixture struct {
 
 	publicOpen   *model.Channel // public, open team, user not a member: in scope
 	listed       *model.Channel // private, closed team, user not a member, listed: in scope
-	publicClosed *model.Channel // public, closed team: out of scope
+	publicClosed *model.Channel // public, closed team: in scope only through PublicChannelTeamIDs
 	memberPriv   *model.Channel // private, open team, user is a member: out of scope
 	policy       *model.Channel // public, open team, policy enforced: out of scope
 	dm           *model.Channel // the user's DM: out of scope
@@ -97,6 +97,7 @@ func (f *scopedSearchFixture) cases() []struct {
 	want      []*model.Channel
 } {
 	full := &model.SessionScopeResources{ChannelIDs: []string{f.listed.Id}, OpenTeamPublicChannels: true}
+	teamGrant := &model.SessionScopeResources{ChannelIDs: []string{f.listed.Id}, PublicChannelTeamIDs: []string{f.closedTeam.Id}}
 	return []struct {
 		name      string
 		teamID    string
@@ -109,6 +110,9 @@ func (f *scopedSearchFixture) cases() []struct {
 		{"listed only", "", &model.SessionScopeResources{ChannelIDs: []string{f.listed.Id}}, []*model.Channel{f.listed}},
 		{"listing a DM or a policy channel grants nothing", "", &model.SessionScopeResources{ChannelIDs: []string{f.dm.Id, f.policy.Id}}, nil},
 		{"empty scope", "", &model.SessionScopeResources{}, nil},
+		{"public channels on a listed team", "", teamGrant, []*model.Channel{f.listed, f.publicClosed}},
+		{"listed team searched by team", f.closedTeam.Id, teamGrant, []*model.Channel{f.listed, f.publicClosed}},
+		{"listed open team without the open-team grant", "", &model.SessionScopeResources{PublicChannelTeamIDs: []string{f.openTeam.Id}}, []*model.Channel{f.publicOpen}},
 	}
 }
 

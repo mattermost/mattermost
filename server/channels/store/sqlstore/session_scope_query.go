@@ -11,9 +11,9 @@ import (
 
 // sessionScopeChannelIDsQuery selects the IDs of the channels in a session
 // scope's resources. It is the SQL form of model.SessionScopeAllowsChannel and
-// model.Team.IsOpenToAllUsers and must stay in step with them. The caller has
-// already dropped OpenTeamPublicChannels when the server turns the open-team
-// grant off.
+// model.SessionScopeGrantsTeamPublicChannels and must stay in step with them.
+// The caller has already applied the server's limits
+// (model.SessionScopeResources.WithLimits).
 func sessionScopeChannelIDsQuery(builder sq.StatementBuilderType, resources *model.SessionScopeResources) sq.SelectBuilder {
 	query := builder.Select("Channels.Id").
 		From("Channels").
@@ -35,6 +35,17 @@ func sessionScopeChannelIDsQuery(builder sq.StatementBuilderType, resources *mod
 				AND COALESCE(ot.GroupConstrained, false) = false
 				AND COALESCE(ot.AllowedDomains, '') = ''
 				AND NOT EXISTS (SELECT 1 FROM AccessControlPolicies tacp WHERE tacp.ID = ot.Id AND tacp.Type = ?)
+			)`, model.AccessControlPolicyTypeTeam),
+		})
+	}
+	if resources != nil && len(resources.PublicChannelTeamIDs) > 0 {
+		inScope = append(inScope, sq.And{
+			sq.Eq{"Channels.Type": model.ChannelTypeOpen},
+			sq.Eq{"Channels.TeamId": resources.PublicChannelTeamIDs},
+			sq.Expr(`Channels.TeamId IN (
+				SELECT lt.Id FROM Teams lt
+				WHERE lt.DeleteAt = 0
+				AND NOT EXISTS (SELECT 1 FROM AccessControlPolicies ltacp WHERE ltacp.ID = lt.Id AND ltacp.Type = ?)
 			)`, model.AccessControlPolicyTypeTeam),
 		})
 	}

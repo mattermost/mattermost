@@ -132,6 +132,36 @@ func (_m *ChannelStore) Autocomplete(rctx request.CTX, userID string, term strin
 	return r0, r1
 }
 
+// AutocompleteInSessionScope provides a mock function with given fields: teamID, term, resources
+func (_m *ChannelStore) AutocompleteInSessionScope(teamID string, term string, resources *model.SessionScopeResources) (model.ChannelListWithTeamData, error) {
+	ret := _m.Called(teamID, term, resources)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AutocompleteInSessionScope")
+	}
+
+	var r0 model.ChannelListWithTeamData
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string, *model.SessionScopeResources) (model.ChannelListWithTeamData, error)); ok {
+		return rf(teamID, term, resources)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, *model.SessionScopeResources) model.ChannelListWithTeamData); ok {
+		r0 = rf(teamID, term, resources)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(model.ChannelListWithTeamData)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, *model.SessionScopeResources) error); ok {
+		r1 = rf(teamID, term, resources)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // AutocompleteInTeam provides a mock function with given fields: rctx, teamID, userID, term, includeDeleted, isGuest
 func (_m *ChannelStore) AutocompleteInTeam(rctx request.CTX, teamID string, userID string, term string, includeDeleted bool, isGuest bool) (model.ChannelList, error) {
 	ret := _m.Called(rctx, teamID, userID, term, includeDeleted, isGuest)

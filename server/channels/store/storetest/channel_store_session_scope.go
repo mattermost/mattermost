@@ -17,7 +17,7 @@ import (
 
 // testChannelStoreGetChannelIDsInSessionScope checks that the SQL scope query
 // agrees with model.SessionScopeAllowsChannel for every kind of team the
-// open-team grant has to tell apart.
+// public-channel grants have to tell apart.
 func testChannelStoreGetChannelIDsInSessionScope(t *testing.T, rctx request.CTX, ss store.Store) {
 	savePolicy := func(t *testing.T, id, policyType string) {
 		version := model.AccessControlPolicyVersionV0_2
@@ -54,10 +54,11 @@ func testChannelStoreGetChannelIDsInSessionScope(t *testing.T, rctx request.CTX,
 		return team
 	}
 
+	marker := "scopemarker" + NewTestID()[:8]
 	saveChannel := func(t *testing.T, teamID string, channelType model.ChannelType) *model.Channel {
 		channel, err := ss.Channel().Save(rctx, &model.Channel{
 			TeamId:      teamID,
-			DisplayName: "Scope " + NewTestID(),
+			DisplayName: marker + " " + NewTestID(),
 			Name:        NewTestID(),
 			Type:        channelType,
 		}, -1)
@@ -93,10 +94,12 @@ func testChannelStoreGetChannelIDsInSessionScope(t *testing.T, rctx request.CTX,
 	channelIDs = append(channelIDs, archived.Id, policyChannel.Id)
 
 	for name, resources := range map[string]model.SessionScopeResources{
-		"open-team grant":      {OpenTeamPublicChannels: true},
-		"every channel listed": {ChannelIDs: channelIDs},
-		"listed and open-team": {ChannelIDs: channelIDs[:3], OpenTeamPublicChannels: true},
-		"empty scope":          {},
+		"open-team grant":            {OpenTeamPublicChannels: true},
+		"every channel listed":       {ChannelIDs: channelIDs},
+		"listed and open-team":       {ChannelIDs: channelIDs[:3], OpenTeamPublicChannels: true},
+		"empty scope":                {},
+		"listed teams":               {PublicChannelTeamIDs: []string{teams[1].Id, teams[2].Id, deleted.Id, policyTeam.Id}},
+		"listed teams and open-team": {ChannelIDs: channelIDs[:1], OpenTeamPublicChannels: true, PublicChannelTeamIDs: []string{open.Id, teams[1].Id}},
 	} {
 		t.Run(name, func(t *testing.T) {
 			scope := &model.SessionScope{Resources: resources}
@@ -106,7 +109,7 @@ func testChannelStoreGetChannelIDsInSessionScope(t *testing.T, rctx request.CTX,
 				require.NoError(t, err)
 				team, err := ss.Team().Get(channel.TeamId)
 				require.NoError(t, err)
-				if model.SessionScopeAllowsChannel(scope, channel, team, false) {
+				if model.SessionScopeAllowsChannel(scope, channel, team, model.SessionScopeLimits{}) {
 					want = append(want, id)
 					if channel.TeamId == open.Id {
 						wantOnOpen = append(wantOnOpen, id)
@@ -132,6 +135,25 @@ func testChannelStoreGetChannelIDsInSessionScope(t *testing.T, rctx request.CTX,
 			got, err = ss.Channel().GetChannelIDsInSessionScope("", &resources, true)
 			require.NoError(t, err)
 			assert.ElementsMatch(t, wantPublic, onlyOurs(got), "public channels only")
+
+			found, err := ss.Channel().AutocompleteInSessionScope("", marker, &resources)
+			require.NoError(t, err)
+			var foundIDs []string
+			for _, channel := range found {
+				foundIDs = append(foundIDs, channel.Id)
+				team, teamErr := ss.Team().Get(channel.TeamId)
+				require.NoError(t, teamErr)
+				assert.Equal(t, team.Name, channel.TeamName)
+			}
+			assert.ElementsMatch(t, want, foundIDs, "autocomplete across teams")
+
+			found, err = ss.Channel().AutocompleteInSessionScope(open.Id, marker, &resources)
+			require.NoError(t, err)
+			foundIDs = nil
+			for _, channel := range found {
+				foundIDs = append(foundIDs, channel.Id)
+			}
+			assert.ElementsMatch(t, wantOnOpen, foundIDs, "autocomplete on one team")
 		})
 	}
 }

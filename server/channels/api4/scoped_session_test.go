@@ -51,6 +51,8 @@ var scopedSessionAllowedRoutes = []string{
 	"POST /api/v4/teams/{team_id}/files/search",
 	"POST /api/v4/teams/{team_id}/posts/search",
 	"POST /api/v4/posts/search",
+	"POST /api/v4/channels/search",
+	"POST /api/v4/teams/search",
 	"GET /api/v4/users/{user_id}",
 	"POST /api/v4/users/ids",
 	"POST /api/v4/users/usernames",
@@ -921,5 +923,163 @@ func TestScopedSessionSearch(t *testing.T) {
 		results, _, err := f.client.SearchPostsWithParams(ctx, "", &model.SearchParameter{Terms: &term})
 		require.NoError(t, err)
 		assert.ElementsMatch(t, []string{posts[f.triggering.Id].Id}, found(t, results))
+	})
+}
+
+func TestScopedSessionChannelAndTeamSearch(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	f := setupScopedAPIFixture(t, th)
+	ctx := context.Background()
+
+	marker := "scopedsearch" + model.NewId()[:8]
+	rename := func(channel *model.Channel) {
+		channel.DisplayName = marker + " " + channel.Name
+		_, err := th.App.Srv().Store().Channel().Update(th.Context, channel)
+		require.NoError(t, err)
+		th.App.Srv().Store().Channel().InvalidateChannel(channel.Id)
+	}
+	publicClosed := th.CreateChannelWithClientAndTeam(t, th.Client, model.ChannelTypeOpen, f.closedTeam.Id)
+	privateClosed := th.CreateChannelWithClientAndTeam(t, th.Client, model.ChannelTypePrivate, f.closedTeam.Id)
+	for _, channel := range []*model.Channel{f.triggering, f.publicOpen, f.memberPriv, publicClosed, privateClosed} {
+		rename(channel)
+	}
+	unlistedClosed := th.CreateTeam(t)
+	unlistedClosed.AllowOpenInvite = false
+	unlistedClosed.Type = model.TeamInvite
+	_, err := th.App.Srv().Store().Team().Update(unlistedClosed)
+	require.NoError(t, err)
+	restricted := th.CreateTeam(t)
+	restricted.AllowOpenInvite = true
+	restricted.AllowedDomains = "example.com"
+	_, err = th.App.Srv().Store().Team().Update(restricted)
+	require.NoError(t, err)
+
+	ids := func(channels model.ChannelListWithTeamData) []string {
+		var out []string
+		for _, channel := range channels {
+			out = append(out, channel.Id)
+		}
+		return out
+	}
+	teamIDs := func(teams []*model.Team) []string {
+		var out []string
+		for _, team := range teams {
+			out = append(out, team.Id)
+		}
+		return out
+	}
+
+	t.Run("channels across teams", func(t *testing.T) {
+		found, _, err := f.client.SearchAllChannelsForUser(ctx, marker)
+		require.NoError(t, err)
+		assert.ElementsMatch(t, []string{f.triggering.Id, f.publicOpen.Id}, ids(found))
+		for _, channel := range found {
+			assert.NotEmpty(t, channel.TeamName)
+		}
+
+		found, _, err = f.client.SearchAllChannelsForUser(ctx, f.botDM.Name)
+		require.NoError(t, err)
+		assert.Empty(t, found, "DMs are never found")
+	})
+
+	t.Run("channels on one team", func(t *testing.T) {
+		r, err := f.client.DoAPIPostJSON(ctx, "/channels/search?system_console=false", &model.ChannelSearch{Term: marker, TeamIds: []string{f.closedTeam.Id}})
+		require.NoError(t, err)
+		var channels model.ChannelList
+		require.NoError(t, json.NewDecoder(r.Body).Decode(&channels))
+		r.Body.Close()
+		require.Len(t, channels, 1)
+		assert.Equal(t, f.triggering.Id, channels[0].Id)
+
+		_, resp, err := f.client.SearchAllChannelsForUserWithOpts(ctx, &model.ChannelSearch{Term: marker, TeamIds: []string{unlistedClosed.Id}})
+		requireScopeError(t, resp, err)
+	})
+
+	t.Run("the System Console search is denied", func(t *testing.T) {
+		r, err := f.client.DoAPIPostJSON(ctx, "/channels/search", &model.ChannelSearch{Term: marker})
+		requireScopeError(t, model.BuildResponse(r), err)
+		_, _, err = th.SystemAdminClient.SearchAllChannels(ctx, &model.ChannelSearch{Term: marker})
+		require.NoError(t, err, "unscoped admins still use it")
+	})
+
+	t.Run("teams", func(t *testing.T) {
+		for team, want := range map[*model.Team]bool{f.openTeam: true, f.closedTeam: true, unlistedClosed: false, restricted: false} {
+			found, _, err := f.client.SearchTeams(ctx, &model.TeamSearch{Term: team.Name})
+			require.NoError(t, err)
+			if want {
+				assert.Equal(t, []string{team.Id}, teamIDs(found), team.Name)
+				assert.Empty(t, found[0].Email, "sanitized")
+			} else {
+				assert.Empty(t, found, team.Name)
+			}
+		}
+
+		paged, total, _, err := f.client.SearchTeamsPaged(ctx, &model.TeamSearch{Term: f.openTeam.Name, Page: model.NewPointer(0), PerPage: model.NewPointer(10)})
+		require.NoError(t, err)
+		assert.Equal(t, int64(1), total)
+		assert.Equal(t, []string{f.openTeam.Id}, teamIDs(paged))
+	})
+
+	t.Run("the triggering team's public channels with public_channel_team_ids", func(t *testing.T) {
+		session, appErr := th.App.CreateScopedSession(th.Context, "com.example.scoped", f.bot.Id, &model.SessionScope{
+			Permissions: model.ScopeReadPermissions,
+			Resources: model.SessionScopeResources{
+				ChannelIDs:           []string{f.triggering.Id},
+				PublicChannelTeamIDs: []string{f.closedTeam.Id},
+			},
+		}, model.GetMillis()+30*60*1000)
+		require.Nil(t, appErr)
+		client := th.CreateClient()
+		client.SetToken(session.Token)
+
+		found, _, err := client.SearchAllChannelsForUser(ctx, marker)
+		require.NoError(t, err)
+		assert.ElementsMatch(t, []string{f.triggering.Id, publicClosed.Id}, ids(found), "not the team's unlisted private channel, nor the open team without its grant")
+
+		listed, _, err := client.GetPublicChannelsForTeam(ctx, f.closedTeam.Id, 0, 100, "")
+		require.NoError(t, err)
+		var listedIDs []string
+		for _, channel := range listed {
+			listedIDs = append(listedIDs, channel.Id)
+		}
+		assert.Contains(t, listedIDs, publicClosed.Id)
+		assert.NotContains(t, listedIDs, privateClosed.Id)
+
+		searched, _, err := client.SearchChannels(ctx, f.closedTeam.Id, &model.ChannelSearch{Term: publicClosed.Name})
+		require.NoError(t, err)
+		require.Len(t, searched, 1)
+
+		term := "teamgrantneedle" + model.NewId()[:6]
+		posts := map[string]string{}
+		for _, channel := range []*model.Channel{publicClosed, privateClosed, f.publicOpen, f.botDM} {
+			post, _, postErr := th.Client.CreatePost(ctx, &model.Post{ChannelId: channel.Id, Message: term})
+			require.NoError(t, postErr)
+			posts[channel.Id] = post.Id
+		}
+		for _, teamID := range []string{"", f.closedTeam.Id} {
+			results, _, searchErr := client.SearchPostsWithParams(ctx, teamID, &model.SearchParameter{Terms: &term})
+			require.NoError(t, searchErr)
+			var got []string
+			for id := range results.Posts {
+				got = append(got, id)
+			}
+			assert.ElementsMatch(t, []string{posts[publicClosed.Id]}, got, "team %q", teamID)
+		}
+
+		foundTeams, _, err := client.SearchTeams(ctx, &model.TeamSearch{Term: f.closedTeam.Name})
+		require.NoError(t, err)
+		assert.Equal(t, []string{f.closedTeam.Id}, teamIDs(foundTeams))
+		foundTeams, _, err = client.SearchTeams(ctx, &model.TeamSearch{Term: f.openTeam.Name})
+		require.NoError(t, err)
+		assert.Empty(t, foundTeams, "open team without the open-team grant or a listed channel")
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ComplianceSettings.Enable = true })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ComplianceSettings.Enable = false })
+		found, _, err = client.SearchAllChannelsForUser(ctx, marker)
+		require.NoError(t, err)
+		assert.ElementsMatch(t, []string{f.triggering.Id}, ids(found), "compliance mode drops the team grant")
+		results, _, err := client.SearchPostsWithParams(ctx, "", &model.SearchParameter{Terms: &term})
+		require.NoError(t, err)
+		assert.Empty(t, results.Posts)
 	})
 }

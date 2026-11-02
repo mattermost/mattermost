@@ -6,6 +6,7 @@ package api4
 import (
 	"encoding/json"
 	"net/http"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -56,7 +57,7 @@ func (api *API) InitChannel() {
 	api.BaseRoutes.Channels.Handle("", api.APISessionRequired(getAllChannels)).Methods(http.MethodGet)
 	api.BaseRoutes.Channels.Handle("", api.APISessionRequired(createChannel)).Methods(http.MethodPost)
 	api.BaseRoutes.Channels.Handle("/direct", api.APISessionRequired(createDirectChannel)).Methods(http.MethodPost)
-	api.BaseRoutes.Channels.Handle("/search", api.APISessionRequiredDisableWhenBusy(searchAllChannels)).Methods(http.MethodPost)
+	api.BaseRoutes.Channels.Handle("/search", api.APISessionRequiredDisableWhenBusy(searchAllChannels, handlerParamScopedSession)).Methods(http.MethodPost)
 	api.BaseRoutes.Channels.Handle("/group/search", api.APISessionRequiredDisableWhenBusy(searchGroupChannels)).Methods(http.MethodPost)
 	api.BaseRoutes.Channels.Handle("/group", api.APISessionRequired(createGroupChannel)).Methods(http.MethodPost)
 	api.BaseRoutes.Channels.Handle("/members/{user_id:[A-Za-z0-9]+}/view", api.APISessionRequired(viewChannel)).Methods(http.MethodPost)
@@ -1786,6 +1787,50 @@ func searchChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// searchAllChannelsInSessionScope is the user (non-System Console) search of
+// searchAllChannels for a scoped session: it searches only the scope's
+// channels, on one team when a single team is given.
+func searchAllChannelsInSessionScope(c *Context, w http.ResponseWriter, props *model.ChannelSearch, scope *model.SessionScope, fromSysConsole bool) {
+	if fromSysConsole {
+		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementChannels)
+		return
+	}
+
+	teamID := ""
+	if len(props.TeamIds) == 1 && model.IsValidId(props.TeamIds[0]) {
+		teamID = props.TeamIds[0]
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamID, model.PermissionListTeamChannels) {
+			c.SetPermissionError(model.PermissionListTeamChannels)
+			return
+		}
+	} else if !scope.HasPermission(model.PermissionListTeamChannels.Id) {
+		c.SetPermissionError(model.PermissionListTeamChannels)
+		return
+	}
+
+	found, appErr := c.App.SearchAllChannelsInSessionScope(c.AppContext, scope, teamID, props.Term)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+	found = slices.DeleteFunc(found, func(channel *model.ChannelWithTeamData) bool {
+		return (props.Private && channel.Type != model.ChannelTypePrivate) ||
+			(props.ExcludeGroupConstrained && channel.IsGroupConstrained())
+	})
+
+	var response any = found
+	if teamID != "" {
+		channels := make(model.ChannelList, 0, len(found))
+		for _, channel := range found {
+			channels = append(channels, &channel.Channel)
+		}
+		response = channels
+	}
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
 func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	var props *model.ChannelSearch
 	err := json.NewDecoder(r.Body).Decode(&props)
@@ -1801,6 +1846,11 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetInvalidParam("system_console")
 			return
 		}
+	}
+
+	if scope, scoped := c.AppContext.Session().Scope(); scoped {
+		searchAllChannelsInSessionScope(c, w, props, scope, fromSysConsole)
+		return
 	}
 
 	if !fromSysConsole {

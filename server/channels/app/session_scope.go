@@ -394,12 +394,10 @@ func (a *App) searchScopeForUser(rctx request.CTX, userID string) (resources *mo
 }
 
 // sessionScopeResources returns the channels the scope covers on this server,
-// without the open-team grant when the server turns it off.
+// without the grants the server's limits turn off.
 func (a *App) sessionScopeResources(rctx request.CTX, scope *model.SessionScope) *model.SessionScopeResources {
-	return &model.SessionScopeResources{
-		ChannelIDs:             slices.Clone(scope.Resources.ChannelIDs),
-		OpenTeamPublicChannels: scope.Resources.OpenTeamPublicChannels && !a.openTeamGrantDisabled(rctx),
-	}
+	resources := scope.Resources.WithLimits(a.sessionScopeLimits(rctx))
+	return &resources
 }
 
 // GetPublicChannelsForTeamInSessionScope is GetPublicChannelsForTeam limited to
@@ -434,4 +432,38 @@ func (a *App) SearchChannelsInSessionScope(rctx request.CTX, scope *model.Sessio
 		return nil, model.NewAppError("SearchChannelsInSessionScope", "app.channel.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return channels, nil
+}
+
+// SearchAllChannelsInSessionScope searches the scope's channels across teams,
+// or on teamID when it is set.
+func (a *App) SearchAllChannelsInSessionScope(rctx request.CTX, scope *model.SessionScope, teamID string, term string) (model.ChannelListWithTeamData, *model.AppError) {
+	channels, err := a.Srv().Store().Channel().AutocompleteInSessionScope(teamID, strings.TrimSpace(term), a.sessionScopeResources(rctx, scope))
+	if err != nil {
+		return nil, model.NewAppError("SearchAllChannelsInSessionScope", "app.channel.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return channels, nil
+}
+
+// SearchTeamsInSessionScope returns the teams matching term that the scope can
+// view.
+func (a *App) SearchTeamsInSessionScope(rctx request.CTX, scope *model.SessionScope, term string) ([]*model.Team, *model.AppError) {
+	if !scope.HasPermission(model.PermissionViewTeam.Id) {
+		return []*model.Team{}, nil
+	}
+	teams, err := a.Srv().Store().Team().SearchAll(&model.TeamSearch{Term: term})
+	if err != nil {
+		return nil, model.NewAppError("SearchTeamsInSessionScope", "app.team.search_all_team.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	listedTeamIDs := map[string]bool{}
+	for _, channel := range a.scopeListedChannels(rctx, scope) {
+		listedTeamIDs[channel.TeamId] = true
+	}
+	limits := a.sessionScopeLimits(rctx)
+	return slices.DeleteFunc(teams, func(team *model.Team) bool {
+		if team.DeleteAt != 0 {
+			return true
+		}
+		return !listedTeamIDs[team.Id] && !model.SessionScopeGrantsTeamPublicChannels(scope, team, limits)
+	}), nil
 }
