@@ -184,7 +184,10 @@ function expectedFlagValue(
         }
         if (rule.percentage !== undefined && rule.percentage < 100) {
             if (rule.percentage <= 0) {
-                continue;
+                // The condition still matches (its matchers passed), so it decides the result; the
+                // rule's own partition just has 0% of the buckets, leaving all of them to the
+                // flag's own value — the same `defaultTreatment` the mock gives that partition.
+                return definition.value;
             }
             return undefined;
         }
