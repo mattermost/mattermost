@@ -1,7 +1,10 @@
 name: Release Docs - Breaking Change Notices
 
-# Developers are asked nothing. At code freeze (a release-X.Y branch is created) this lists the
-# milestone's possible breaking changes, each with its source PR and why: breaking-change or
+# Developers are asked nothing. From the release branch cut (a release-X.Y branch is created)
+# until the final release is cut (the vX.Y.0 tag exists), this lists the milestone's possible
+# breaking changes: once when the branch is created, then every weekday, so PRs cherry-picked
+# into the release are picked up. It is not tied to code freeze, which has no GitHub event.
+# Each candidate comes with its source PR and why: each with its source PR and why: breaking-change or
 # deprecation labels on the PR or its Jira ticket, removals config-change-checker.yml wrote into
 # the release note, release-note wording, removed WebSocket events and destructive migrations
 # in the release diff, and a Claude review of the milestone's release notes.
@@ -13,6 +16,9 @@ on:
   push:
     branches:
       - 'release-*'
+  schedule:
+    # Weekdays. Skips itself when no release-X.Y branch is waiting for its vX.Y.0 tag.
+    - cron: '17 14 * * 1-5'
   workflow_dispatch:
     inputs:
       version:
@@ -32,7 +38,7 @@ jobs:
     with:
       task: breaking-changes
       version: ${{ inputs.version }}
-      confirmed: ${{ inputs.confirmed }}
+      confirmed: ${{ inputs.confirmed || '' }}
       mode: dry_run
     secrets: inherit
     permissions:

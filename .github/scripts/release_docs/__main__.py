@@ -51,7 +51,18 @@ RELEASE_BRANCH = re.compile(r"release-(\d+)\.(\d+)")
 
 # ── Resolve: does this event run the task, for which version, in which mode ─────────
 
-def resolve(task: str, env: dict, event: dict) -> dict:
+def release_in_progress(gh) -> Version | None:
+    """The newest release whose ``release-X.Y`` branch is cut but whose final ``vX.Y.0`` tag is not."""
+    tags = {ref.removeprefix("refs/tags/") for ref in gh.matching_refs(SERVER_REPO, "tags/v")}
+    open_releases = []
+    for ref in gh.matching_refs(SERVER_REPO, "heads/release-"):
+        match = RELEASE_BRANCH.fullmatch(ref.removeprefix("refs/heads/"))
+        if match and f"v{match.group(1)}.{match.group(2)}.0" not in tags:
+            open_releases.append(Version(int(match.group(1)), int(match.group(2)), 0))
+    return max(open_releases, default=None)
+
+
+def resolve(task: str, env: dict, event: dict, gh=None) -> dict:
     mode = (env.get("INPUT_MODE") or env.get("PHASE3_MODE") or "dry_run").strip().lower().replace("-", "_")
     if mode not in MODES:
         raise ValueError(f"mode must be dry_run or live (PHASE3_MODE or the mode input), not {mode!r}")
@@ -78,6 +89,15 @@ def resolve(task: str, env: dict, event: dict) -> dict:
         if task == dot_release.TASK and not dot:
             return {"run": "false", "reason": f"{tag} is a feature release: the version archive task handles it"}
         return {"run": "true", "version": tag, "mode": mode, "reason": f"release {event.get('action')}"}
+    if name == "schedule":
+        # The breaking-change list runs every weekday from the branch cut until the final release is cut.
+        if task != "breaking-changes":
+            raise ValueError(f"{task} does not run on a schedule")
+        version = release_in_progress(gh)
+        if not version:
+            return {"run": "false", "reason": "no release-X.Y branch is waiting for its final vX.Y.0 tag"}
+        return {"run": "true", "version": version.tag, "mode": mode,
+                "reason": f"weekday run between the release-{version.major}.{version.minor} branch cut and {version.tag}"}
     if name == "push":
         ref = event.get("ref", "").removeprefix("refs/heads/")
         match = RELEASE_BRANCH.fullmatch(ref)
@@ -461,7 +481,7 @@ def main(argv: list[str]) -> int:
             with open(env["GITHUB_EVENT_PATH"], encoding="utf-8") as f:
                 event = json.load(f)
         try:
-            outputs = resolve(args.task, env, event)
+            outputs = resolve(args.task, env, event, GitHub(env["GITHUB_TOKEN"]) if env.get("GITHUB_TOKEN") else None)
         except ValueError as err:
             print(f"::error::{err}")
             return 1

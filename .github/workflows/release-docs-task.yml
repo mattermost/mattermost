@@ -103,6 +103,7 @@ jobs:
           INPUT_VERSION: ${{ inputs.version }}
           INPUT_MODE: ${{ inputs.mode != 'default' && inputs.mode || '' }}
           PHASE3_MODE: ${{ vars.PHASE3_MODE }}
+          GITHUB_TOKEN: ${{ github.token }}
         run: python3 -m release_docs resolve "$TASK"
 
       - name: Get read token

@@ -156,9 +156,23 @@ class CandidatesTest(unittest.TestCase):
 
 
 class WorkflowTest(unittest.TestCase):
-    def test_runs_at_code_freeze(self):
+    def test_runs_at_the_branch_cut(self):
         resolved = cli.resolve("breaking-changes", {"EVENT_NAME": "push"}, {"ref": "refs/heads/release-12.2", "created": True})
         self.assertEqual((resolved["run"], resolved["version"]), ("true", "v12.2.0"))
+
+    def test_weekday_runs_continue_until_the_final_release_is_cut(self):
+        gh = FakeGitHub()
+        gh.add_repo(SERVER, {})
+        for branch in ("release-12.1", "release-12.2", "release-12.2-fix"):
+            gh.repos[SERVER]["branches"][branch] = list(gh.repos[SERVER]["branches"]["master"])
+        gh.tags[SERVER] = ["v12.1.0", "v12.2.0-rc1"]
+        env = {"EVENT_NAME": "schedule"}
+        resolved = cli.resolve("breaking-changes", env, {}, gh)
+        self.assertEqual((resolved["run"], resolved["version"]), ("true", "v12.2.0"))
+        gh.tags[SERVER].append("v12.2.0")
+        self.assertEqual(cli.resolve("breaking-changes", env, {}, gh)["run"], "false")
+        with self.assertRaises(ValueError):
+            cli.resolve("release-docs", env, {}, gh)
 
     def test_run_task(self):
         gh = milestone_github()
