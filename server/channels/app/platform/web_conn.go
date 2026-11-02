@@ -556,16 +556,32 @@ func (wc *WebConn) readPump() {
 	}
 }
 
+var errBinaryFrameTooLarge = errors.New("websocket frame exceeds max size")
+
+// binaryFramePool holds buffers one byte larger than the max frame size, so a
+// completely filled buffer means the frame is too large.
+var binaryFramePool = sync.Pool{
+	New: func() any {
+		b := make([]byte, model.SocketMaxMessageSizeKb+1)
+		return &b
+	},
+}
+
 // decodeBinaryRequest reads a binary frame into memory and walks its structure
 // before decoding it, so that the lengths its headers declare are matched
-// against the bytes the frame carries. Frame size stays bounded by the read
-// limit set on the connection, which the reader below leaves a byte of room to
-// report on its own.
+// against the bytes the frame carries.
 func decodeBinaryRequest(rd io.Reader, req *model.WebSocketRequest) error {
-	frame, err := io.ReadAll(io.LimitReader(rd, model.SocketMaxMessageSizeKb+1))
-	if err != nil {
+	bp := binaryFramePool.Get().(*[]byte)
+	defer binaryFramePool.Put(bp)
+
+	n, err := io.ReadFull(rd, *bp)
+	switch {
+	case err == nil:
+		return errBinaryFrameTooLarge
+	case err != io.EOF && err != io.ErrUnexpectedEOF:
 		return err
 	}
+	frame := (*bp)[:n]
 
 	if err := msgpack.NewDecoder(bytes.NewReader(frame)).Skip(); err != nil {
 		return err

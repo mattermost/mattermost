@@ -8,6 +8,7 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"errors"
+	"io"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -16,6 +17,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"testing/iotest"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -893,6 +895,42 @@ func TestWebConnReadsBinaryFramesUpToTheReadLimit(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestDecodeBinaryRequestEnforcesMaxSize(t *testing.T) {
+	const action = "test_decode_size_action"
+	atLimit := binaryFrameOfSize(t, action, model.SocketMaxMessageSizeKb)
+
+	t.Run("frame at the max size decodes", func(t *testing.T) {
+		var req model.WebSocketRequest
+		require.NoError(t, decodeBinaryRequest(bytes.NewReader(atLimit), &req))
+		assert.Equal(t, action, req.Action)
+	})
+
+	t.Run("frame past the max size is rejected rather than truncated", func(t *testing.T) {
+		pastLimit := append(slices.Clone(atLimit), 0xC0)
+		var req model.WebSocketRequest
+		require.ErrorIs(t, decodeBinaryRequest(bytes.NewReader(pastLimit), &req), errBinaryFrameTooLarge)
+		assert.Empty(t, req.Action)
+	})
+
+	t.Run("reader errors are returned", func(t *testing.T) {
+		readErr := errors.New("read failed")
+		var req model.WebSocketRequest
+		require.ErrorIs(t, decodeBinaryRequest(io.MultiReader(bytes.NewReader(atLimit[:10]), iotest.ErrReader(readErr)), &req), readErr)
+	})
+
+	t.Run("decoded values do not share the pooled buffer", func(t *testing.T) {
+		var first model.WebSocketRequest
+		require.NoError(t, decodeBinaryRequest(bytes.NewReader(atLimit), &first))
+		padding := first.Data["padding"].(string)
+
+		overwrite := bytes.ReplaceAll(atLimit, []byte("x"), []byte("y"))
+		var second model.WebSocketRequest
+		require.NoError(t, decodeBinaryRequest(bytes.NewReader(overwrite), &second))
+
+		assert.Equal(t, strings.Repeat("x", len(padding)), padding)
+	})
 }
 
 func BenchmarkShouldSendEvent(b *testing.B) {
