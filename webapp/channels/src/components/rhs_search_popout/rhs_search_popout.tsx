@@ -18,12 +18,16 @@ import SearchResults from 'components/search_results';
 import {getHistory} from 'utils/browser_history';
 import {RHSStates} from 'utils/constants';
 import {mentionFiltersFromSearchParams} from 'utils/mention_search';
+import {ID_PATH_PATTERN} from 'utils/path';
 import usePopoutTitle from 'utils/popouts/use_popout_title';
 
 import type {GlobalState} from 'types/store';
 import type {RhsState, SearchType} from 'types/store/rhs';
 
 import {getSearchPopoutTitle} from './title';
+
+// Same shape mention filters already require of a channel id read from the popout URL.
+const SEARCH_TEAM_ID_REGEX = new RegExp(`^${ID_PATH_PATTERN}$`);
 
 export default function RhsSearchPopout() {
     const dispatch = useDispatch();
@@ -37,7 +41,8 @@ export default function RhsSearchPopout() {
         const searchType = queryParams.get('type') as SearchType;
         const mode = queryParams.get('mode') as NonNullable<RhsState>;
         const channelIdentifier = queryParams.get('channel') ?? '';
-        const searchTeamId = queryParams.get('searchTeamId');
+        const rawSearchTeamId = queryParams.get('searchTeamId');
+        const searchTeamId = rawSearchTeamId === '' || SEARCH_TEAM_ID_REGEX.test(rawSearchTeamId ?? '') ? rawSearchTeamId : null;
         const mentionFilters = mentionFiltersFromSearchParams(queryParams);
 
         return {
