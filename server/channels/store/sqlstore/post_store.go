@@ -418,11 +418,11 @@ func (s *SqlPostStore) populateReplyCount(posts []*model.Post) error {
 	return nil
 }
 
-// postPropsUpdateExpr writes :Props over a post's Props, except for the deferred
-// notification markers, which only ReleaseDeferredNotification may clear. Callers build
-// :Props from a copy of the row read earlier, so without this an edit that overlaps a
-// release would write the markers back, and the post would be released, counted, and
-// notified a second time. The expression reads the row under its lock, so it also holds
+// postPropsUpdateExpr writes :Props over a post's Props, keeping the notification markers of
+// the stored row: only CreatePost sets them and only ReleaseDeferredNotification clears them.
+// Callers build :Props from a copy of the row read earlier, so without this an edit that
+// overlaps a release would write the markers back, and the post would be released, counted,
+// and notified a second time. The expression reads the row under its lock, so it also holds
 // when the release commits while the update waits.
 //
 // Rows received through Shared Channels are written as given: the origin cluster releases
@@ -433,11 +433,10 @@ func (s *SqlPostStore) populateReplyCount(posts []*model.Post) error {
 const postPropsUpdateExpr = `CASE
 	WHEN COALESCE(Posts.RemoteId, '') <> ''
 		THEN CAST(:Props AS jsonb)
-	WHEN Posts.Props @> jsonb_build_object('deferred_notification', true, 'silent_notification', true)
-		THEN COALESCE(NULLIF(CAST(:Props AS jsonb), 'null'), jsonb_build_object()) || jsonb_build_object('deferred_notification', true, 'silent_notification', true)
-	WHEN CAST(:Props AS jsonb) @> jsonb_build_object('deferred_notification', true)
-		THEN (CAST(:Props AS jsonb) - 'deferred_notification' - 'silent_notification') || jsonb_strip_nulls(jsonb_build_object('silent_notification', Posts.Props -> 'silent_notification'))
-	ELSE CAST(:Props AS jsonb)
+	ELSE (COALESCE(NULLIF(CAST(:Props AS jsonb), 'null'), jsonb_build_object()) - 'deferred_notification' - 'silent_notification')
+		|| jsonb_strip_nulls(jsonb_build_object(
+			'deferred_notification', Posts.Props -> 'deferred_notification',
+			'silent_notification', Posts.Props -> 'silent_notification'))
 END`
 
 // namedGet runs a named statement that returns a single row, with the parameter naming
@@ -622,7 +621,7 @@ func (s *SqlPostStore) ReleaseDeferredNotification(rctx request.CTX, postID stri
 	}
 
 	countDelta := 1
-	if released.IsJoinLeaveMessage() {
+	if released.ExcludesFromChannelMessageCount() {
 		countDelta = 0
 	}
 	channelQuery := s.getQueryBuilder().

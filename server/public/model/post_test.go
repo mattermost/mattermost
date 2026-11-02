@@ -237,34 +237,6 @@ func TestPostDeferredNotificationSanitization(t *testing.T) {
 	}
 }
 
-func TestPostPreserveIdentityPropsFromKeepsDeferredNotification(t *testing.T) {
-	t.Run("an edit keeps the deferred markers of the original post", func(t *testing.T) {
-		oldPost := &Post{Props: StringInterface{
-			PostPropsDeferredNotification: true,
-			PostPropsSilentNotification:   true,
-		}}
-		edited := &Post{Message: "final answer"}
-		edited.SanitizeProps()
-		edited.PreserveIdentityPropsFrom(oldPost)
-
-		assert.True(t, edited.HasDeferredNotification())
-		assert.True(t, edited.HasSilentNotification())
-	})
-
-	t.Run("an edit cannot make a post deferred", func(t *testing.T) {
-		oldPost := &Post{}
-		edited := &Post{Message: "edit", Props: StringInterface{
-			PostPropsDeferredNotification: true,
-			PostPropsSilentNotification:   true,
-		}}
-		edited.SanitizeProps()
-		edited.PreserveIdentityPropsFrom(oldPost)
-
-		assert.False(t, edited.HasDeferredNotification())
-		assert.False(t, edited.HasSilentNotification())
-	})
-}
-
 func TestPostChannelMentions(t *testing.T) {
 	post := Post{Message: "~a ~b ~b ~c/~d."}
 	assert.Equal(t, []string{"a", "b", "c", "d"}, post.ChannelMentions())

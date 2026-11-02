@@ -4505,12 +4505,13 @@ func testPostStoreDeferredNotificationMarkersOnWrite(t *testing.T, rctx request.
 			wantMessage: "edited",
 		},
 		{
-			name:  "other prop changes on a silent post are written as given",
+			name:  "a write cannot make a silent post notify",
 			props: model.StringInterface{model.PostPropsSilentNotification: true},
 			edit: func(post *model.Post) {
 				post.Message = "edited"
 				post.DelProp(model.PostPropsSilentNotification)
 			},
+			wantSilent:  true,
 			wantMessage: "edited",
 		},
 		{

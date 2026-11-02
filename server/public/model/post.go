@@ -747,7 +747,6 @@ func (o *Post) SanitizeNonIdentityProps() {
 // updates (see app/integration_action.go).
 var postIdentityPropsPreservedOnUpdate = []string{
 	PostPropsSilentNotification,
-	PostPropsDeferredNotification,
 	PostPropsFromBot,
 	PostPropsFromWebhook,
 	PostPropsFromOAuthApp,
