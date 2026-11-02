@@ -139,6 +139,24 @@ describe('stores/LocalStorageStore', () => {
             expect(LocalStorageStore.getMarkdownView('code_block', 'userId1', 'raw')).toEqual('raw');
         });
 
+        test('uses the fallback and does not throw when storage is blocked', () => {
+            const getItem = jest.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+                throw new Error('blocked');
+            });
+            const setItem = jest.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+                throw new Error('blocked');
+            });
+            const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+            expect(LocalStorageStore.getMarkdownView('file_preview', 'userId1', 'rendered')).toEqual('rendered');
+            expect(() => LocalStorageStore.setMarkdownView('file_preview', 'userId1', 'raw')).not.toThrow();
+            expect(warn).toHaveBeenCalled();
+
+            getItem.mockRestore();
+            setItem.mockRestore();
+            warn.mockRestore();
+        });
+
         test('surfaces are stored independently', () => {
             LocalStorageStore.setMarkdownView('file_preview', 'userId1', 'raw');
 

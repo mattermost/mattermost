@@ -75,12 +75,22 @@ class LocalStorageStoreClass {
 
     // Each surface that offers the Markdown toggle keeps its own choice, and owns what it falls back to
     getMarkdownView(surface: string, userId: string, fallback: MarkdownView, state = store.getState()): MarkdownView {
-        const stored = this.getItem(getMarkdownViewKey(surface, userId), state);
+        let stored;
+        try {
+            stored = this.getItem(getMarkdownViewKey(surface, userId), state);
+        } catch {
+            // Storage can be blocked or disabled; use the surface default
+        }
         return stored === MarkdownViews.RENDERED || stored === MarkdownViews.RAW ? stored : fallback;
     }
 
     setMarkdownView(surface: string, userId: string, view: MarkdownView) {
-        this.setItem(getMarkdownViewKey(surface, userId), view);
+        try {
+            this.setItem(getMarkdownViewKey(surface, userId), view);
+        } catch (error) {
+            // eslint-disable-next-line no-console
+            console.warn('Unable to store the Markdown view preference', error);
+        }
     }
 
     getPenultimateViewedType(userId: string, teamId: string, state = store.getState()) {
