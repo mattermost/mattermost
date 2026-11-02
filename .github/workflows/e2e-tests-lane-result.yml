@@ -50,6 +50,11 @@ on:
         type: string
         required: false
         default: ""
+      support_paths:
+        description: Comma-separated directories of the code the specs run through (page objects, support commands, fixtures); empty turns triage's support-code check off
+        type: string
+        required: false
+        default: ""
       enable_reporting:
         type: boolean
         required: false
@@ -163,6 +168,8 @@ jobs:
           triage-lanes: ${{ steps.lanes.outputs.triage-lanes }}
           test-root: ${{ inputs.test_root }}
           history-lane: ${{ inputs.history_lane }}
+          # A failure in an unchanged spec is "merge master" when master changed the code it runs through.
+          support-paths: ${{ inputs.support_paths }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
           # Infrastructure/report failures remain red; triage still supplies diagnostics.

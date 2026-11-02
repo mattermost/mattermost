@@ -491,6 +491,7 @@ jobs:
       description: ${{ needs.report.outputs.commit_status_description }}
       report_url: ${{ needs.report.outputs.report_url }}
       test_root: e2e-tests/cypress
+      support_paths: e2e-tests/cypress/tests/support,e2e-tests/cypress/tests/utils,e2e-tests/cypress/tests/fixtures
       enable_reporting: ${{ inputs.enable_reporting }}
       webhook_payload: ${{ needs.report.outputs.webhook_payload }}
     secrets:

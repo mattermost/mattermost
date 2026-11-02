@@ -447,6 +447,7 @@ jobs:
       # Master runs the subpath suite only when subpath code changes, so it has almost no history:
       # judge it against the same edition's standard lane (same tests and server build).
       history_lane: ${{ inputs.server_deploy != '' && format('playwright-full-{0}', inputs.server_edition || 'enterprise') || '' }}
+      support_paths: e2e-tests/playwright/lib
       enable_reporting: ${{ inputs.enable_reporting }}
       webhook_payload: ${{ needs.report.outputs.webhook_payload }}
     secrets:
