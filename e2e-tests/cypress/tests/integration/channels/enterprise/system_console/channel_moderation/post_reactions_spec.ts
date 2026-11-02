@@ -42,6 +42,12 @@ describe('MM-23102 - Channel Moderation - Post Reactions', () => {
         // * Check if server has license
         cy.apiRequireLicense();
 
+        // # Other spec files sharing this server session (e.g. ones that edit the System
+        // # Scheme) may leave Post Reactions already toggled off; reset to the default
+        // # (checked) state first so MM-T1543/MM-T1544's channel-level enable/disable
+        // # below aren't blocked by a System-Scheme-level override.
+        resetSystemSchemePermissionsToDefault();
+
         cy.apiInitSetup().then(({team, channel, user}) => {
             regularUser = user;
             testTeam = team;
@@ -133,11 +139,6 @@ describe('MM-23102 - Channel Moderation - Post Reactions', () => {
     });
 
     it('MM-T1545 Post Reactions option removed for Guests and Members in System Scheme', () => {
-        // # Other spec files sharing this server session (e.g. ones that edit the System
-        // # Scheme) may leave Post Reactions already toggled off; reset to the default
-        // # (checked) state first so the clicks below are guaranteed to disable it.
-        resetSystemSchemePermissionsToDefault();
-
         // # Login as sysadmin and visit the Permissions page in the system console.
         // # Edit the System Scheme and remove the Post Reaction option for Guests & Save.
         goToSystemScheme();
