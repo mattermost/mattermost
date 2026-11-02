@@ -358,6 +358,13 @@ func (s LocalCacheChannelStore) GetByNames(teamId string, names []string, allowF
 func (s LocalCacheChannelStore) getByNames(teamId string, names []string, allowFromCache, includeArchivedChannels bool) ([]*model.Channel, error) {
 	var channels []*model.Channel
 
+	// Cache entries are keyed by teamId+name, which only identifies a single channel within a team.
+	// A lookup across all teams (empty teamId) can match several channels per name, and caching it
+	// would keep just one of them and return only that one from then on.
+	if teamId == "" {
+		allowFromCache = false
+	}
+
 	if allowFromCache {
 		var misses []string
 		visited := make(map[string]struct{})

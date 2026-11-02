@@ -1106,6 +1106,67 @@ func TestFillInPostPropsChannelMentionByID(t *testing.T) {
 		assert.Equal(t, newTeam.Name, sanitized[movable.Id].(map[string]any)["team_name"])
 	})
 
+	t.Run("read-time sanitization of name-keyed mentions", func(t *testing.T) {
+		sanitize := func(post *model.Post) map[string]any {
+			mentions, _ := th.App.sanitizeChannelMentionsForUser(th.Context, post.Clone(), th.BasicUser.Id).GetProp(model.PostPropsChannelMentions).(map[string]any)
+			return mentions
+		}
+
+		t.Run("a channel that moved teams keeps its link, with the new team", func(t *testing.T) {
+			movable := th.CreateChannel(t, th.BasicTeam)
+			post := &model.Post{Message: "see ~" + movable.Name}
+			require.Contains(t, resolve(t, post), movable.Name)
+
+			newTeam := th.CreateTeam(t)
+			th.LinkUserToTeam(t, th.BasicUser, newTeam)
+			require.Nil(t, th.App.MoveChannel(th.Context, newTeam, movable, th.BasicUser))
+
+			mentions := sanitize(post)
+			require.Contains(t, mentions, movable.Name)
+			assert.Equal(t, newTeam.Name, mentions[movable.Name].(map[string]any)["team_name"])
+		})
+
+		t.Run("a renamed channel's old name is dropped rather than linking to a dead URL", func(t *testing.T) {
+			renamed := th.CreateChannel(t, th.BasicTeam)
+			oldName := renamed.Name
+			post := &model.Post{Message: "see ~" + oldName}
+			require.Contains(t, resolve(t, post), oldName)
+
+			renamed.Name = "renamed-" + model.NewId()
+			_, appErr := th.App.UpdateChannel(th.Context, renamed)
+			require.Nil(t, appErr)
+
+			assert.Nil(t, sanitize(post))
+		})
+
+		t.Run("entries written before team_id was stored still resolve by name", func(t *testing.T) {
+			post := &model.Post{}
+			post.AddProp(model.PostPropsChannelMentions, map[string]any{
+				th.BasicChannel.Name: map[string]any{
+					"display_name": "Stale display name",
+					"team_name":    th.BasicTeam.Name,
+					"id":           th.BasicChannel.Id,
+				},
+			})
+			mentions := sanitize(post)
+			require.Contains(t, mentions, th.BasicChannel.Name)
+			assert.Equal(t, th.BasicChannel.DisplayName, mentions[th.BasicChannel.Name].(map[string]any)["display_name"])
+		})
+
+		t.Run("a key that leads to a different channel than the stored id is dropped", func(t *testing.T) {
+			post := &model.Post{}
+			post.AddProp(model.PostPropsChannelMentions, map[string]any{
+				anonymous.Id: map[string]any{
+					"display_name": "Spoofed",
+					"team_name":    th.BasicTeam.Name,
+					"team_id":      th.BasicTeam.Id,
+					"id":           th.BasicChannel.Id,
+				},
+			})
+			assert.Nil(t, sanitize(post))
+		})
+	})
+
 	t.Run("read-time sanitization does not treat an ID-shaped key as an ID unless it matches the stored id", func(t *testing.T) {
 		// A key that looks like a channel ID but whose stored id differs goes through the name lookup,
 		// which finds nothing, so the entry is dropped instead of resolving the channel with that ID.

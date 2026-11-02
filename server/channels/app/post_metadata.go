@@ -443,31 +443,41 @@ func (a *App) sanitizeChannelMentionsForUser(rctx request.CTX, post *model.Post,
 			continue
 		}
 
-		// Fetch the channel from database (gets fresh data). ~<channel_id> mentions are keyed by the
-		// channel ID rather than its name (see FillInPostProps); look those up by ID directly, which is
-		// cached, instead of paying for a name lookup that cannot match.
+		// Fetch the channel to get fresh data. Entries written by FillInPostProps carry the channel's
+		// id and team_id, so look them up by ID, which is cached, instead of by team and channel name,
+		// which costs two uncached queries per mention on every read. Entries written before team_id
+		// was stored fall back to the name lookup.
 		var channel *model.Channel
-		var err *model.AppError
-		if storedID, _ := dataMap["id"].(string); storedID == channelName && model.IsValidId(channelName) {
-			channel, err = a.Srv().getChannel(rctx, channelName)
+		storedID, _ := dataMap["id"].(string)
+		storedTeamID, _ := dataMap["team_id"].(string)
+		if model.IsValidId(storedID) && storedTeamID != "" {
+			var err *model.AppError
+			channel, err = a.Srv().getChannel(rctx, storedID)
+			if err != nil {
+				continue
+			}
+			// The key must still lead to this channel: either its ID (~<channel_id> mentions) or its
+			// current name. A renamed channel's old name would be a dead link, so drop it, as the name
+			// lookup does.
+			if channelName != channel.Id && channelName != channel.Name {
+				continue
+			}
 			// Unlike the name lookup, the ID lookup is not scoped to teamName. If the channel has
 			// since moved teams, refresh team_name so the link points at the channel's current team.
-			if err == nil {
-				if storedTeamID, _ := dataMap["team_id"].(string); storedTeamID != channel.TeamId {
-					team, teamErr := a.Srv().Store().Team().Get(channel.TeamId)
-					if teamErr != nil {
-						continue
-					}
-					teamName = team.Name
+			if storedTeamID != channel.TeamId {
+				team, teamErr := a.Srv().Store().Team().Get(channel.TeamId)
+				if teamErr != nil {
+					continue
 				}
+				teamName = team.Name
 			}
 		} else {
+			var err *model.AppError
 			channel, err = a.GetChannelByNameForTeamName(rctx, channelName, teamName, true)
-		}
-
-		if err != nil {
-			// Channel not found or error fetching, skip
-			continue
+			if err != nil {
+				// Channel not found or error fetching, skip
+				continue
+			}
 		}
 
 		// Resolve the channel mention if the viewer may see the channel's name/link.

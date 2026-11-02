@@ -518,6 +518,25 @@ func TestChannelStoreGetByNamesCache(t *testing.T) {
 		assert.ElementsMatch(t, []*model.Channel{&fakeChannel, &fakeChannel2}, channels)
 		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetByNames", 2)
 	})
+
+	t.Run("lookups across all teams are not cached, so every same-named channel is returned", func(t *testing.T) {
+		mockStore := getMockStore(t)
+		mockCacheProvider := getMockCacheProvider()
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider, logger)
+		require.NoError(t, err)
+
+		teamAChannel := model.Channel{Id: "channel-a", TeamId: "team-a", Name: "shared"}
+		teamBChannel := model.Channel{Id: "channel-b", TeamId: "team-b", Name: "shared"}
+		mockChannelStore := mockStore.Channel().(*mocks.ChannelStore)
+		mockChannelStore.On("GetByNames", "", []string{"shared"}, false).Return([]*model.Channel{&teamAChannel, &teamBChannel}, nil)
+
+		for range 2 {
+			channels, err := cachedStore.Channel().GetByNames("", []string{"shared"}, true)
+			require.NoError(t, err)
+			assert.ElementsMatch(t, []*model.Channel{&teamAChannel, &teamBChannel}, channels)
+		}
+		mockChannelStore.AssertNumberOfCalls(t, "GetByNames", 2)
+	})
 }
 
 func TestChannelStoreGetAllChannelMembersForUser(t *testing.T) {
