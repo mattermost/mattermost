@@ -16,6 +16,8 @@ const SessionPropScope = "scope"
 
 const SessionScopeMaxChannelIDs = 200
 
+const SessionScopeMaxTeamIDs = 50
+
 const SessionScopeMaxLifetimeMillis = 24 * 60 * 60 * 1000
 
 // ScopeReadPermissions are the only permissions a session scope may hold.
@@ -50,6 +52,40 @@ type SessionScopeResources struct {
 	// OpenTeamPublicChannels adds every public channel on a team that any user
 	// can join, see Team.IsOpenToAllUsers.
 	OpenTeamPublicChannels bool `json:"open_team_public_channels,omitempty"`
+
+	// PublicChannelTeamIDs adds every public channel on these teams, whether or
+	// not the team is open to all users, and makes the teams visible.
+	PublicChannelTeamIDs []string `json:"public_channel_team_ids,omitempty"`
+}
+
+// SessionScopeLimits are the server settings that turn a scope's public-channel
+// grants off.
+type SessionScopeLimits struct {
+	// ComplianceMode is ComplianceSettings.Enable. It turns both public-channel
+	// grants off, since compliance mode blocks reading public channels without
+	// membership.
+	ComplianceMode bool
+
+	// UsersCannotJoinOpenTeams is true when the system_user role lacks
+	// join_public_teams. It turns the open-team grant off, since that grant is
+	// only safe because any user could join those teams.
+	UsersCannotJoinOpenTeams bool
+}
+
+func (l SessionScopeLimits) openTeamGrantOff() bool {
+	return l.ComplianceMode || l.UsersCannotJoinOpenTeams
+}
+
+// WithLimits returns the resources without the grants limits turns off.
+func (r SessionScopeResources) WithLimits(limits SessionScopeLimits) SessionScopeResources {
+	effective := SessionScopeResources{ChannelIDs: slices.Clone(r.ChannelIDs)}
+	if !limits.openTeamGrantOff() {
+		effective.OpenTeamPublicChannels = r.OpenTeamPublicChannels
+	}
+	if !limits.ComplianceMode {
+		effective.PublicChannelTeamIDs = slices.Clone(r.PublicChannelTeamIDs)
+	}
+	return effective
 }
 
 func (s *SessionScope) IsValid() *AppError {
@@ -68,6 +104,15 @@ func (s *SessionScope) IsValid() *AppError {
 	for _, channelID := range s.Resources.ChannelIDs {
 		if !IsValidId(channelID) {
 			return NewAppError("SessionScope.IsValid", "model.session_scope.is_valid.channel_ids.app_error", map[string]any{"Max": SessionScopeMaxChannelIDs}, "channel_id="+channelID, http.StatusBadRequest)
+		}
+	}
+
+	if len(s.Resources.PublicChannelTeamIDs) > SessionScopeMaxTeamIDs {
+		return NewAppError("SessionScope.IsValid", "model.session_scope.is_valid.team_ids.app_error", map[string]any{"Max": SessionScopeMaxTeamIDs}, "", http.StatusBadRequest)
+	}
+	for _, teamID := range s.Resources.PublicChannelTeamIDs {
+		if !IsValidId(teamID) {
+			return NewAppError("SessionScope.IsValid", "model.session_scope.is_valid.team_ids.app_error", map[string]any{"Max": SessionScopeMaxTeamIDs}, "team_id="+teamID, http.StatusBadRequest)
 		}
 	}
 
@@ -111,12 +156,24 @@ func (s *Session) Scope() (scope *SessionScope, scoped bool) {
 	return &parsed, true
 }
 
+// SessionScopeGrantsTeamPublicChannels reports whether a public-channel grant of
+// the scope covers team: the open-team grant for a team open to all users, or
+// the team being in PublicChannelTeamIDs. Deleted and policy-enforced teams are
+// never covered.
+func SessionScopeGrantsTeamPublicChannels(scope *SessionScope, team *Team, limits SessionScopeLimits) bool {
+	if scope == nil || team == nil || team.DeleteAt != 0 || team.PolicyEnforced {
+		return false
+	}
+	if scope.Resources.OpenTeamPublicChannels && !limits.openTeamGrantOff() && team.IsOpenToAllUsers() {
+		return true
+	}
+	return !limits.ComplianceMode && slices.Contains(scope.Resources.PublicChannelTeamIDs, team.Id)
+}
+
 // SessionScopeAllowsChannel is the single decision of whether a channel is in a
 // session scope. team must be the channel's team, or nil if it isn't known; it
-// is only consulted for the open-team grant. openTeamGrantDisabled turns the
-// open-team grant off. It must be true when ComplianceSettings.Enable is on or
-// when the system_user role lacks join_public_teams.
-func SessionScopeAllowsChannel(scope *SessionScope, channel *Channel, team *Team, openTeamGrantDisabled bool) bool {
+// is only consulted for the public-channel grants.
+func SessionScopeAllowsChannel(scope *SessionScope, channel *Channel, team *Team, limits SessionScopeLimits) bool {
 	if scope == nil || channel == nil {
 		return false
 	}
@@ -128,10 +185,8 @@ func SessionScopeAllowsChannel(scope *SessionScope, channel *Channel, team *Team
 		return true
 	}
 
-	return scope.Resources.OpenTeamPublicChannels &&
-		!openTeamGrantDisabled &&
-		channel.Type == ChannelTypeOpen &&
+	return channel.Type == ChannelTypeOpen &&
 		team != nil &&
 		team.Id == channel.TeamId &&
-		team.IsOpenToAllUsers()
+		SessionScopeGrantsTeamPublicChannels(scope, team, limits)
 }

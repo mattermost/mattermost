@@ -30,9 +30,9 @@ type SessionScopeTarget struct {
 //
 // A scoped session may use a permission only if the scope holds it, and only
 // on a channel in the scope (see model.SessionScopeAllowsChannel), or for
-// view_team/list_team_channels, on a team open to all users or holding a
-// channel the scope lists by ID. Everything else, including every system-wide
-// check, is denied.
+// view_team/list_team_channels, on a team a public-channel grant covers (see
+// model.SessionScopeGrantsTeamPublicChannels) or holding a channel the scope
+// lists by ID. Everything else, including every system-wide check, is denied.
 func (a *App) EvaluateSessionScope(rctx request.CTX, session *model.Session, permissionID string, target SessionScopeTarget) (scoped bool, allowed bool) {
 	if session == nil {
 		return false, false
@@ -71,26 +71,28 @@ func (a *App) EvaluateSessionScope(rctx request.CTX, session *model.Session, per
 		if team.DeleteAt != 0 {
 			return true, false
 		}
-		openTeamGrant := scope.Resources.OpenTeamPublicChannels && team.IsOpenToAllUsers() && !a.openTeamGrantDisabled(rctx)
-		return true, openTeamGrant || a.scopeListsChannelOnTeam(rctx, scope, team.Id)
+		return true, model.SessionScopeGrantsTeamPublicChannels(scope, team, a.sessionScopeLimits(rctx)) || a.scopeListsChannelOnTeam(rctx, scope, team.Id)
 	}
 
 	return true, false
 }
 
-// openTeamGrantDisabled reports whether the server turns the scope's open-team
-// grant off: in compliance mode, or when ordinary users can't join open teams,
-// since the grant is only safe because any user could read those channels.
-func (a *App) openTeamGrantDisabled(rctx request.CTX) bool {
-	if *a.Config().ComplianceSettings.Enable {
-		return true
+// sessionScopeLimits returns the server settings that turn a scope's
+// public-channel grants off. Failing to read the system user role turns the
+// open-team grant off.
+func (a *App) sessionScopeLimits(rctx request.CTX) model.SessionScopeLimits {
+	limits := model.SessionScopeLimits{ComplianceMode: *a.Config().ComplianceSettings.Enable}
+	if limits.ComplianceMode {
+		return limits
 	}
 	role, err := a.Srv().Store().Role().GetByName(rctx, model.SystemUserRoleId)
 	if err != nil {
 		rctx.Logger().Warn("Failed to get the system user role for a session scope check", mlog.Err(err))
-		return true
+		limits.UsersCannotJoinOpenTeams = true
+		return limits
 	}
-	return !slices.Contains(role.Permissions, model.PermissionJoinPublicTeams.Id)
+	limits.UsersCannotJoinOpenTeams = !slices.Contains(role.Permissions, model.PermissionJoinPublicTeams.Id)
+	return limits
 }
 
 // scopeListedChannels returns the channels the scope lists by ID that are in
@@ -108,7 +110,7 @@ func (a *App) scopeListedChannels(rctx request.CTX, scope *model.SessionScope) [
 	}
 	listed := make([]*model.Channel, 0, len(channels))
 	for _, channel := range channels {
-		if model.SessionScopeAllowsChannel(scope, channel, nil, true) {
+		if model.SessionScopeAllowsChannel(scope, channel, nil, model.SessionScopeLimits{}) {
 			listed = append(listed, channel)
 		}
 	}
@@ -124,27 +126,26 @@ func (a *App) scopeListsChannelOnTeam(rctx request.CTX, scope *model.SessionScop
 }
 
 // ScopeAllowsChannel reports whether channel is in scope, loading the channel's
-// team only when the open-team grant needs it.
+// team and the server limits only when a public-channel grant needs them.
 func (a *App) ScopeAllowsChannel(rctx request.CTX, scope *model.SessionScope, channel *model.Channel) bool {
 	if scope == nil || channel == nil {
 		return false
 	}
 
 	var team *model.Team
-	openTeamGrantDisabled := true
-	if scope.Resources.OpenTeamPublicChannels && channel.Type == model.ChannelTypeOpen && !scope.ListsChannel(channel.Id) {
-		openTeamGrantDisabled = a.openTeamGrantDisabled(rctx)
-		if !openTeamGrantDisabled {
-			var appErr *model.AppError
-			team, appErr = a.GetTeam(channel.TeamId)
-			if appErr != nil {
-				rctx.Logger().Debug("Failed to get team for session scope check", mlog.String("team_id", channel.TeamId), mlog.Err(appErr))
-				return false
-			}
+	var limits model.SessionScopeLimits
+	publicGrant := scope.Resources.OpenTeamPublicChannels || slices.Contains(scope.Resources.PublicChannelTeamIDs, channel.TeamId)
+	if publicGrant && channel.Type == model.ChannelTypeOpen && !scope.ListsChannel(channel.Id) {
+		limits = a.sessionScopeLimits(rctx)
+		var appErr *model.AppError
+		team, appErr = a.GetTeam(channel.TeamId)
+		if appErr != nil {
+			rctx.Logger().Debug("Failed to get team for session scope check", mlog.String("team_id", channel.TeamId), mlog.Err(appErr))
+			return false
 		}
 	}
 
-	return model.SessionScopeAllowsChannel(scope, channel, team, openTeamGrantDisabled)
+	return model.SessionScopeAllowsChannel(scope, channel, team, limits)
 }
 
 // sessionScopeDecision is EvaluateSessionScope for callers without a request
@@ -226,6 +227,7 @@ func (a *App) CreateScopedSession(rctx request.CTX, pluginID, userID string, sco
 	auditRec.AddMeta(model.AuditKeyOnBehalfOfUserID, scopeCopy.OnBehalfOfUserID)
 	model.AddEventParameterToAuditRec(auditRec, "channel_ids", scopeCopy.Resources.ChannelIDs)
 	model.AddEventParameterToAuditRec(auditRec, "open_team_public_channels", scopeCopy.Resources.OpenTeamPublicChannels)
+	model.AddEventParameterToAuditRec(auditRec, "public_channel_team_ids", scopeCopy.Resources.PublicChannelTeamIDs)
 	model.AddEventParameterToAuditRec(auditRec, "permissions", scopeCopy.Permissions)
 
 	if validErr := scopeCopy.IsValid(); validErr != nil {
@@ -260,6 +262,18 @@ func (a *App) CreateScopedSession(rctx request.CTX, pluginID, userID string, sco
 		for _, channelID := range scopeCopy.Resources.ChannelIDs {
 			if !found[channelID] {
 				return nil, model.NewAppError("CreateScopedSession", "app.session.create_scoped.channel.app_error", nil, "channel_id="+channelID, http.StatusBadRequest)
+			}
+		}
+	}
+
+	if len(scopeCopy.Resources.PublicChannelTeamIDs) > 0 {
+		teams, teamErr := a.Srv().Store().Team().GetMany(scopeCopy.Resources.PublicChannelTeamIDs)
+		if teamErr != nil {
+			return nil, model.NewAppError("CreateScopedSession", "app.session.create_scoped.team.app_error", nil, "", http.StatusBadRequest).Wrap(teamErr)
+		}
+		for _, teamID := range scopeCopy.Resources.PublicChannelTeamIDs {
+			if !slices.ContainsFunc(teams, func(team *model.Team) bool { return team.Id == teamID }) {
+				return nil, model.NewAppError("CreateScopedSession", "app.session.create_scoped.team.app_error", nil, "team_id="+teamID, http.StatusBadRequest)
 			}
 		}
 	}

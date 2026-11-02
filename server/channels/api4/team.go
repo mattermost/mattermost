@@ -60,7 +60,7 @@ func (api *API) InitTeam() {
 
 	api.BaseRoutes.TeamForUser.Handle("/unread", api.APISessionRequired(getTeamUnread)).Methods(http.MethodGet)
 
-	api.BaseRoutes.TeamByName.Handle("", api.APISessionRequired(getTeamByName)).Methods(http.MethodGet)
+	api.BaseRoutes.TeamByName.Handle("", api.APISessionRequired(getTeamByName, handlerParamScopedSession)).Methods(http.MethodGet)
 	api.BaseRoutes.TeamMember.Handle("", api.APISessionRequired(getTeamMember)).Methods(http.MethodGet)
 	api.BaseRoutes.TeamByName.Handle("/exists", api.APISessionRequired(teamExists)).Methods(http.MethodGet)
 	api.BaseRoutes.TeamMember.Handle("/roles", api.APISessionRequired(updateTeamMemberRoles)).Methods(http.MethodPut)
@@ -368,7 +368,8 @@ func getTeamByName(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if (!team.AllowOpenInvite || team.Type != model.TeamOpen) && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam) {
+	openInvite := team.AllowOpenInvite && team.Type == model.TeamOpen && !c.AppContext.Session().IsScoped()
+	if !openInvite && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam) {
 		c.SetPermissionError(model.PermissionViewTeam)
 		return
 	}

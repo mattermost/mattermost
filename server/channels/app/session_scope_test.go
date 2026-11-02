@@ -249,6 +249,89 @@ func TestSessionScopeOpenTeamGrantNeedsJoinPublicTeams(t *testing.T) {
 	assert.True(t, th.App.SessionHasPermissionToTeam(*session, f.closedTeam.Id, model.PermissionViewTeam), "team holding a listed channel")
 }
 
+func TestSessionScopePublicChannelsOnListedTeams(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	f := newScopeFixture(t, th)
+	scope := f.scope()
+	scope.Permissions = append(scope.Permissions, model.PermissionListTeamChannels.Id)
+	scope.Resources.OpenTeamPublicChannels = false
+	scope.Resources.PublicChannelTeamIDs = []string{f.closedTeam.Id}
+	session := mintScoped(t, th, f.bot.Id, scope)
+	rctx := th.Context.WithSession(session)
+
+	canRead := func(channel *model.Channel) bool {
+		ok, _ := th.App.SessionHasPermissionToChannel(rctx, *session, channel.Id, model.PermissionReadChannelContent)
+		return ok
+	}
+	otherClosed := setTeamOpen(t, th, th.CreateTeam(t), false)
+
+	assert.True(t, canRead(f.publicClosed), "public channel on the listed invite-only team, bot not a member")
+	assert.True(t, canRead(f.triggering), "listed channel")
+	assert.False(t, canRead(th.CreatePrivateChannel(t, f.closedTeam)), "unlisted private channel on the listed team")
+	assert.False(t, canRead(f.publicOpen), "public channel on an open team without the open-team grant")
+	assert.False(t, canRead(th.CreateChannel(t, otherClosed)), "public channel on another invite-only team")
+	assert.False(t, canRead(f.botDM))
+	assert.True(t, th.App.SessionHasPermissionToTeam(*session, f.closedTeam.Id, model.PermissionViewTeam))
+	assert.True(t, th.App.SessionHasPermissionToTeam(*session, f.closedTeam.Id, model.PermissionListTeamChannels))
+	assert.False(t, th.App.SessionHasPermissionToTeam(*session, otherClosed.Id, model.PermissionViewTeam))
+	assert.False(t, th.App.SessionHasPermissionToTeam(*session, f.closedTeam.Id, model.PermissionManageTeam))
+
+	t.Run("not tied to join_public_teams", func(t *testing.T) {
+		th.RemovePermissionFromRole(t, model.PermissionJoinPublicTeams.Id, model.SystemUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionJoinPublicTeams.Id, model.SystemUserRoleId)
+		assert.True(t, canRead(f.publicClosed))
+	})
+
+	t.Run("compliance mode turns it off", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ComplianceSettings.Enable = true })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ComplianceSettings.Enable = false })
+		assert.False(t, canRead(f.publicClosed))
+		assert.True(t, canRead(f.triggering), "listed channel")
+	})
+
+	t.Run("policy-enforced channels and teams are excluded", func(t *testing.T) {
+		policyChannel := th.CreateChannel(t, f.closedTeam)
+		policyChannel.PolicyEnforced = true
+		assert.False(t, th.App.ScopeAllowsChannel(rctx, scope, policyChannel))
+
+		policyTeam := setTeamOpen(t, th, th.CreateTeam(t), false)
+		policyPublic := th.CreateChannel(t, policyTeam)
+		_, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, &model.AccessControlPolicy{
+			ID:      policyTeam.Id,
+			Name:    "Scoped team policy",
+			Type:    model.AccessControlPolicyTypeTeam,
+			Active:  true,
+			Version: model.AccessControlPolicyVersionV0_3,
+			Rules: []model.AccessControlPolicyRule{{
+				Actions:    []string{model.AccessControlPolicyActionMembership},
+				Expression: `user.attributes.program == "engineering"`,
+			}},
+		})
+		require.NoError(t, err)
+		policyScope := f.scope()
+		policyScope.Resources.PublicChannelTeamIDs = []string{policyTeam.Id}
+		policySession := mintScoped(t, th, f.bot.Id, policyScope)
+		team, appErr := th.App.GetTeam(policyTeam.Id)
+		require.Nil(t, appErr)
+		require.True(t, team.PolicyEnforced)
+		ok, _ := th.App.SessionHasPermissionToChannel(th.Context.WithSession(policySession), *policySession, policyPublic.Id, model.PermissionReadChannelContent)
+		assert.False(t, ok)
+		assert.False(t, th.App.SessionHasPermissionToTeam(*policySession, policyTeam.Id, model.PermissionViewTeam))
+	})
+
+	t.Run("a deleted team grants nothing", func(t *testing.T) {
+		team := setTeamOpen(t, th, th.CreateTeam(t), false)
+		public := th.CreateChannel(t, team)
+		teamScope := f.scope()
+		teamScope.Resources.PublicChannelTeamIDs = []string{team.Id}
+		teamSession := mintScoped(t, th, f.bot.Id, teamScope)
+		require.Nil(t, th.App.SoftDeleteTeam(team.Id))
+		ok, _ := th.App.SessionHasPermissionToChannel(th.Context.WithSession(teamSession), *teamSession, public.Id, model.PermissionReadChannelContent)
+		assert.False(t, ok)
+		assert.False(t, th.App.SessionHasPermissionToTeam(*teamSession, team.Id, model.PermissionViewTeam))
+	})
+}
+
 func TestSessionScopeViewUsersRestrictions(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	f := newScopeFixture(t, th)
@@ -412,6 +495,7 @@ func TestCreateScopedSession(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		scope := f.scope()
+		scope.Resources.PublicChannelTeamIDs = []string{f.closedTeam.Id}
 		scope.CreatedByPluginID = "forged"
 		session, appErr := th.App.CreateScopedSession(th.Context, scopeTestPluginID, f.bot.Id, scope, expiresAt)
 		require.Nil(t, appErr)
@@ -450,10 +534,20 @@ func TestCreateScopedSession(t *testing.T) {
 			s.Resources.ChannelIDs = []string{th.CreateGroupChannel(t, th.BasicUser2, f.bot).Id}
 			return s
 		}, expiresAt},
-		"missing channel":   {scopeTestPluginID, f.bot.Id, func() *model.SessionScope { s := f.scope(); s.Resources.ChannelIDs = []string{model.NewId()}; return s }, expiresAt},
-		"expired":           {scopeTestPluginID, f.bot.Id, f.scope, model.GetMillis() - 1},
-		"beyond 24h":        {scopeTestPluginID, f.bot.Id, f.scope, model.GetMillis() + model.SessionScopeMaxLifetimeMillis + 60*1000},
-		"missing user":      {scopeTestPluginID, model.NewId(), f.scope, expiresAt},
+		"missing channel": {scopeTestPluginID, f.bot.Id, func() *model.SessionScope { s := f.scope(); s.Resources.ChannelIDs = []string{model.NewId()}; return s }, expiresAt},
+		"expired":         {scopeTestPluginID, f.bot.Id, f.scope, model.GetMillis() - 1},
+		"beyond 24h":      {scopeTestPluginID, f.bot.Id, f.scope, model.GetMillis() + model.SessionScopeMaxLifetimeMillis + 60*1000},
+		"missing user":    {scopeTestPluginID, model.NewId(), f.scope, expiresAt},
+		"missing team": {scopeTestPluginID, f.bot.Id, func() *model.SessionScope {
+			s := f.scope()
+			s.Resources.PublicChannelTeamIDs = []string{f.closedTeam.Id, model.NewId()}
+			return s
+		}, expiresAt},
+		"invalid team ID": {scopeTestPluginID, f.bot.Id, func() *model.SessionScope {
+			s := f.scope()
+			s.Resources.PublicChannelTeamIDs = []string{"x"}
+			return s
+		}, expiresAt},
 		"invalid behalf of": {scopeTestPluginID, f.bot.Id, func() *model.SessionScope { s := f.scope(); s.OnBehalfOfUserID = "x"; return s }, expiresAt},
 	} {
 		t.Run(name, func(t *testing.T) {

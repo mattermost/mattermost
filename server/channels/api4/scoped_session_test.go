@@ -33,17 +33,24 @@ const scopedSessionErrorID = "api.context.scoped_session_out_of_scope.app_error"
 var scopedSessionAllowedRoutes = []string{
 	"GET /api/v4/channels/{channel_id}",
 	"GET /api/v4/channels/{channel_id}/posts",
+	"GET /api/v4/channels/{channel_id}/pinned",
+	"GET /api/v4/channels/{channel_id}/stats",
 	"GET /api/v4/files/{file_id}",
 	"HEAD /api/v4/files/{file_id}",
 	"GET /api/v4/files/{file_id}/info",
 	"GET /api/v4/posts/{post_id}",
 	"GET /api/v4/posts/{post_id}/files/info",
 	"GET /api/v4/posts/{post_id}/thread",
+	"GET /api/v4/posts/{post_id}/reactions",
 	"GET /api/v4/teams/{team_id}",
+	"GET /api/v4/teams/{team_id}/channels/name/{channel_name}",
+	"GET /api/v4/teams/name/{team_name}",
+	"GET /api/v4/teams/name/{team_name}/channels/name/{channel_name}",
 	"GET /api/v4/users/{user_id}",
 	"POST /api/v4/users/ids",
 	"POST /api/v4/users/usernames",
 	"GET /api/v4/users/username/{username}",
+	"POST /api/v4/users/search",
 }
 
 type scopedAPIFixture struct {
@@ -348,6 +355,187 @@ func TestScopedSessionReads(t *testing.T) {
 		_, resp, err = f.client.CreateUserAccessToken(ctx, f.bot.Id, "x", 0)
 		requireScopeError(t, resp, err)
 	})
+}
+
+func TestScopedSessionLookupsByName(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	f := setupScopedAPIFixture(t, th)
+	ctx := context.Background()
+
+	t.Run("channel by name", func(t *testing.T) {
+		got, _, err := f.client.GetChannelByName(ctx, f.triggering.Name, f.closedTeam.Id, "")
+		require.NoError(t, err)
+		assert.Equal(t, f.triggering.Id, got.Id)
+		got, _, err = f.client.GetChannelByNameForTeamName(ctx, f.publicOpen.Name, f.openTeam.Name, "")
+		require.NoError(t, err)
+		assert.Equal(t, f.publicOpen.Id, got.Id)
+
+		publicClosed := th.CreateChannelWithClientAndTeam(t, th.Client, model.ChannelTypeOpen, f.closedTeam.Id)
+		for _, lookup := range []struct{ name, teamID, teamName string }{
+			{f.memberPriv.Name, f.openTeam.Id, f.openTeam.Name},
+			{publicClosed.Name, f.closedTeam.Id, f.closedTeam.Name},
+			{f.botDM.Name, f.openTeam.Id, f.openTeam.Name},
+			{"missing-" + model.NewId(), f.openTeam.Id, f.openTeam.Name},
+		} {
+			_, resp, err := f.client.GetChannelByName(ctx, lookup.name, lookup.teamID, "")
+			requireScopeError(t, resp, err)
+			_, resp, err = f.client.GetChannelByNameForTeamName(ctx, lookup.name, lookup.teamName, "")
+			requireScopeError(t, resp, err)
+		}
+	})
+
+	t.Run("team by name", func(t *testing.T) {
+		got, _, err := f.client.GetTeamByName(ctx, f.openTeam.Name, "")
+		require.NoError(t, err)
+		assert.Equal(t, f.openTeam.Id, got.Id)
+		_, _, err = f.client.GetTeamByName(ctx, f.closedTeam.Name, "")
+		require.NoError(t, err, "invite-only team holding a listed channel")
+
+		unlistedClosed := th.CreateTeam(t)
+		unlistedClosed.AllowOpenInvite = false
+		unlistedClosed.Type = model.TeamInvite
+		_, err = th.App.Srv().Store().Team().Update(unlistedClosed)
+		require.NoError(t, err)
+		_, resp, err := f.client.GetTeamByName(ctx, unlistedClosed.Name, "")
+		requireScopeError(t, resp, err)
+
+		restricted := th.CreateTeam(t)
+		restricted.AllowOpenInvite = true
+		restricted.AllowedDomains = "example.com"
+		_, err = th.App.Srv().Store().Team().Update(restricted)
+		require.NoError(t, err)
+		_, _, err = th.Client.GetTeamByName(ctx, restricted.Name, "")
+		require.NoError(t, err, "unscoped sessions see open-invite teams by name")
+		_, resp, err = f.client.GetTeamByName(ctx, restricted.Name, "")
+		requireScopeError(t, resp, err)
+	})
+
+	t.Run("users", func(t *testing.T) {
+		users, _, err := f.client.SearchUsers(ctx, &model.UserSearch{Term: th.BasicUser.Username})
+		require.NoError(t, err)
+		require.NotEmpty(t, users)
+		assert.Equal(t, th.BasicUser.Id, users[0].Id)
+
+		users, _, err = f.client.SearchUsers(ctx, &model.UserSearch{Term: th.BasicUser.Username, InChannelId: f.triggering.Id})
+		require.NoError(t, err)
+		assert.NotEmpty(t, users, "members of an in-scope channel")
+		users, _, err = f.client.SearchUsers(ctx, &model.UserSearch{Term: th.BasicUser.Username, TeamId: f.closedTeam.Id, NotInChannelId: f.triggering.Id})
+		require.NoError(t, err)
+		assert.Empty(t, users)
+
+		for _, search := range []*model.UserSearch{
+			{Term: th.BasicUser.Username, InChannelId: f.botDM.Id},
+			{Term: th.BasicUser.Username, InChannelId: f.memberPriv.Id},
+			{Term: th.BasicUser.Username, InGroupId: model.NewId()},
+			{Term: th.BasicUser.Username, NotInGroupId: model.NewId()},
+		} {
+			_, resp, err := f.client.SearchUsers(ctx, search)
+			requireScopeError(t, resp, err)
+		}
+	})
+}
+
+func TestScopedSessionChannelMetadata(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	f := setupScopedAPIFixture(t, th)
+	ctx := context.Background()
+
+	post, _, err := th.Client.CreatePost(ctx, &model.Post{ChannelId: f.triggering.Id, Message: "pinned"})
+	require.NoError(t, err)
+	_, err = th.Client.PinPost(ctx, post.Id)
+	require.NoError(t, err)
+	_, _, err = th.Client.SaveReaction(ctx, &model.Reaction{UserId: th.BasicUser.Id, PostId: post.Id, EmojiName: "smile"})
+	require.NoError(t, err)
+	_, err = th.Client.PinPost(ctx, f.dmPost.Id)
+	require.NoError(t, err)
+	_, _, err = th.Client.SaveReaction(ctx, &model.Reaction{UserId: th.BasicUser.Id, PostId: f.dmPost.Id, EmojiName: "smile"})
+	require.NoError(t, err)
+
+	stats, _, err := f.client.GetChannelStats(ctx, f.triggering.Id, "", false)
+	require.NoError(t, err)
+	assert.Equal(t, int64(1), stats.PinnedPostCount)
+	pinned, _, err := f.client.GetPinnedPosts(ctx, f.triggering.Id, "")
+	require.NoError(t, err)
+	assert.Contains(t, pinned.Posts, post.Id)
+	reactions, _, err := f.client.GetReactions(ctx, post.Id)
+	require.NoError(t, err)
+	assert.Len(t, reactions, 1)
+
+	for _, channel := range []*model.Channel{f.botDM, f.memberPriv} {
+		_, resp, statsErr := f.client.GetChannelStats(ctx, channel.Id, "", false)
+		requireScopeError(t, resp, statsErr)
+		_, resp, pinnedErr := f.client.GetPinnedPosts(ctx, channel.Id, "")
+		requireScopeError(t, resp, pinnedErr)
+	}
+	_, resp, err := f.client.GetReactions(ctx, f.dmPost.Id)
+	requireScopeError(t, resp, err)
+}
+
+// A fresh server's teams are invite-only, so the open-team grant alone leaves the
+// triggering channel's team mostly out of scope; public_channel_team_ids covers it.
+func TestScopedSessionPublicChannelsOnListedTeam(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	f := setupScopedAPIFixture(t, th)
+	ctx := context.Background()
+
+	publicClosed := th.CreateChannelWithClientAndTeam(t, th.Client, model.ChannelTypeOpen, f.closedTeam.Id)
+	privateClosed := th.CreateChannelWithClientAndTeam(t, th.Client, model.ChannelTypePrivate, f.closedTeam.Id)
+	otherClosed := th.CreateTeam(t)
+	otherClosed.AllowOpenInvite = false
+	otherClosed.Type = model.TeamInvite
+	_, err := th.App.Srv().Store().Team().Update(otherClosed)
+	require.NoError(t, err)
+	th.LinkUserToTeam(t, th.BasicUser, otherClosed)
+	otherPublic := th.CreateChannelWithClientAndTeam(t, th.Client, model.ChannelTypeOpen, otherClosed.Id)
+	post, _, err := th.Client.CreatePost(ctx, &model.Post{ChannelId: publicClosed.Id, Message: "team grant"})
+	require.NoError(t, err)
+
+	_, resp, err := f.client.GetChannel(ctx, publicClosed.Id)
+	requireScopeError(t, resp, err)
+
+	session, appErr := th.App.CreateScopedSession(th.Context, "com.example.scoped", f.bot.Id, &model.SessionScope{
+		Permissions: model.ScopeReadPermissions,
+		Resources: model.SessionScopeResources{
+			ChannelIDs:             []string{f.triggering.Id},
+			OpenTeamPublicChannels: true,
+			PublicChannelTeamIDs:   []string{f.closedTeam.Id},
+		},
+	}, model.GetMillis()+30*60*1000)
+	require.Nil(t, appErr)
+	client := th.CreateClient()
+	client.SetToken(session.Token)
+
+	_, _, err = client.GetChannel(ctx, publicClosed.Id)
+	require.NoError(t, err, "public channel on the triggering team, bot not on the team")
+	list, _, err := client.GetPostsForChannel(ctx, publicClosed.Id, 0, 10, "", false, false)
+	require.NoError(t, err)
+	assert.Contains(t, list.Posts, post.Id)
+	_, _, err = client.GetPostThread(ctx, post.Id, "", false)
+	require.NoError(t, err)
+	_, _, err = client.GetChannelByName(ctx, publicClosed.Name, f.closedTeam.Id, "")
+	require.NoError(t, err)
+	_, _, err = client.GetTeam(ctx, f.closedTeam.Id, "")
+	require.NoError(t, err)
+	_, _, err = client.GetPostsForChannel(ctx, f.publicOpen.Id, 0, 10, "", false, false)
+	require.NoError(t, err, "the open-team grant still applies")
+
+	for _, channel := range []*model.Channel{privateClosed, otherPublic, f.memberPriv, f.botDM} {
+		_, resp, err = client.GetChannel(ctx, channel.Id)
+		requireScopeError(t, resp, err)
+		_, resp, err = client.GetPostsForChannel(ctx, channel.Id, 0, 10, "", false, false)
+		requireScopeError(t, resp, err)
+	}
+	_, resp, err = client.GetTeam(ctx, otherClosed.Id, "")
+	requireScopeError(t, resp, err)
+	_, resp, err = client.CreatePost(ctx, &model.Post{ChannelId: publicClosed.Id, Message: "nope"})
+	requireScopeError(t, resp, err)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ComplianceSettings.Enable = true })
+	defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ComplianceSettings.Enable = false })
+	_, resp, err = client.GetPostsForChannel(ctx, publicClosed.Id, 0, 10, "", false, false)
+	requireScopeError(t, resp, err)
+	_, _, err = client.GetPostsForChannel(ctx, f.triggering.Id, 0, 10, "", false, false)
+	require.NoError(t, err, "listed channel in compliance mode")
 }
 
 func TestScopedSessionMissingObjectsLookOutOfScope(t *testing.T) {

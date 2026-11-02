@@ -12112,6 +12112,11 @@
     "description": "Error returned when a plugin calls CreateScopedSession without a scope."
   },
   {
+    "id": "app.session.create_scoped.team.app_error",
+    "translation": "Scoped session teams must exist.",
+    "description": "Error returned when a plugin requests a scoped session granting the public channels of a team that does not exist."
+  },
+  {
     "id": "app.session.create_scoped.user.app_error",
     "translation": "Scoped sessions can only be created for active local users.",
     "description": "Error returned when a plugin requests a scoped session for a deactivated or remote (shared channel) user."
@@ -18885,6 +18890,11 @@
     "id": "model.session_scope.is_valid.permissions.app_error",
     "translation": "Session scope permissions must be a non-empty list of read permissions.",
     "description": "Validation error when a plugin asks for a scoped session whose permission list is empty or includes a permission other than the allowed read permissions."
+  },
+  {
+    "id": "model.session_scope.is_valid.team_ids.app_error",
+    "translation": "Session scope team IDs must be valid, at most {{.Max}}.",
+    "description": "Validation error when a plugin asks for a scoped session with an invalid team ID or too many teams in public_channel_team_ids. {{.Max}} is the maximum number of teams."
   },
   {
     "id": "model.team.is_valid.characters.app_error",

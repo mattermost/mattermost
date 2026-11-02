@@ -32,7 +32,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("/ids", api.APISessionRequired(getUsersByIds, handlerParamScopedSession)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/usernames", api.APISessionRequired(getUsersByNames, handlerParamScopedSession)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/known", api.APISessionRequired(getKnownUsers)).Methods(http.MethodGet)
-	api.BaseRoutes.Users.Handle("/search", api.APISessionRequiredDisableWhenBusy(searchUsers)).Methods(http.MethodPost)
+	api.BaseRoutes.Users.Handle("/search", api.APISessionRequiredDisableWhenBusy(searchUsers, handlerParamScopedSession)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/autocomplete", api.APISessionRequired(autocompleteUsers)).Methods(http.MethodGet)
 	api.BaseRoutes.Users.Handle("/stats", api.APISessionRequired(getTotalUsersStats)).Methods(http.MethodGet)
 	api.BaseRoutes.Users.Handle("/stats/filtered", api.APISessionRequired(getFilteredUsersStats)).Methods(http.MethodGet)
@@ -1294,6 +1294,11 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if props.TeamId == "" && props.NotInChannelId != "" {
 		c.SetInvalidParam("team_id")
+		return
+	}
+
+	if (props.InGroupId != "" || props.NotInGroupId != "") && c.AppContext.Session().IsScoped() {
+		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementGroups)
 		return
 	}
 
