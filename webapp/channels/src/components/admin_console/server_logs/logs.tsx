@@ -4,10 +4,8 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
-import {LogLevelEnum} from '@mattermost/types/admin';
 import type {
     LogFilter,
-    LogLevels,
     LogServerNames,
 } from '@mattermost/types/admin';
 
@@ -21,13 +19,14 @@ import LogList, {loadPrefs} from './log_list';
 import PlainLogList from './plain_log_list';
 import type {LogObjectWithAdditionalInfo} from './types';
 import useLogPolling from './use_log_polling';
-import {presetStartMs} from './utils';
+import {LEVEL_GROUPS, groupLevels, presetStartMs} from './utils';
 
 import './logs.scss';
 
 type Props = {
     logs: LogObjectWithAdditionalInfo[];
     logNodes: string[];
+    truncatedLogNodes: string[];
     plainLogs: string[];
     isPlainLogs: boolean;
     actions: {
@@ -82,7 +81,6 @@ function formatFilterDate(date: Date): string {
 const POLL_OVERLAP_MS = 30000;
 
 const ALL_SERVER_NAMES: LogServerNames = [];
-const LOG_LEVELS: LogLevels = [LogLevelEnum.ERROR, LogLevelEnum.WARN, LogLevelEnum.INFO, LogLevelEnum.DEBUG];
 
 const PLAIN_LOGS_PER_PAGE = 1000;
 
@@ -104,7 +102,7 @@ function getInitialFormat(configIsPlainLogs: boolean): boolean {
     return false;
 }
 
-export default function Logs({logs, logNodes, plainLogs, isPlainLogs: configIsPlainLogs, actions}: Props) {
+export default function Logs({logs, logNodes, truncatedLogNodes, plainLogs, isPlainLogs: configIsPlainLogs, actions}: Props) {
     const [isPlainLogs, setIsPlainLogs] = useState(() => getInitialFormat(configIsPlainLogs));
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
@@ -166,8 +164,8 @@ export default function Logs({logs, logNodes, plainLogs, isPlainLogs: configIsPl
                 await actions.getPlainLogs(plainPage, PLAIN_LOGS_PER_PAGE);
                 return;
             }
-            const allLevels = LOG_LEVELS.every((level) => enabledLevels.has(level));
-            const logLevels = allLevels ? [] : LOG_LEVELS.filter((level) => enabledLevels.has(level));
+            const allLevels = LEVEL_GROUPS.every((group) => enabledLevels.has(group));
+            const logLevels = allLevels ? [] : LEVEL_GROUPS.filter((group) => enabledLevels.has(group)).flatMap(groupLevels);
 
             // A full reload covers the whole range, a poll only what's been logged since the last fetch
             if (!silent) {
@@ -182,6 +180,7 @@ export default function Logs({logs, logNodes, plainLogs, isPlainLogs: configIsPl
                 logLevels,
                 dateFrom: since === null ? '' : formatFilterDate(new Date(since)),
                 dateTo: '',
+                search,
             };
             const result = await (silent ? actions.getNewLogs(query) : actions.getLogs(query));
             if (!result?.error) {
@@ -198,7 +197,7 @@ export default function Logs({logs, logNodes, plainLogs, isPlainLogs: configIsPl
         });
         fetchQueueRef.current = fetched.catch(() => undefined);
         return fetched;
-    }, [isPlainLogs, plainPage, activeTimePreset, enabledLevels, selectedNode, actions]);
+    }, [isPlainLogs, plainPage, activeTimePreset, enabledLevels, selectedNode, search, actions]);
 
     // reload's deps are the query's inputs, so this also covers every filter and page change
     useEffect(() => {
@@ -254,6 +253,7 @@ export default function Logs({logs, logNodes, plainLogs, isPlainLogs: configIsPl
         <LogList
             loading={loading}
             logs={logs}
+            truncatedNodes={truncatedLogNodes}
             onSearchChange={setSearch}
             search={search}
             enabledLevels={enabledLevels}

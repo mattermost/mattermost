@@ -7,6 +7,7 @@ import type {DataRetentionCustomPolicies, DataRetentionCustomPolicy} from '@matt
 import type {PluginStatusRedux} from '@mattermost/types/plugins';
 import type {GlobalState} from '@mattermost/types/store';
 
+import {General} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 
 export function getLogs(state: GlobalState) {
@@ -16,12 +17,6 @@ export function getLogs(state: GlobalState) {
 export function getPlainLogs(state: GlobalState) {
     return state.entities.admin.plainLogs;
 }
-
-export const getAllLogs = createSelector(
-    'getAllLogs',
-    getLogs,
-    (logs) => Object.values(logs).flat(),
-);
 
 // A poll keeps the stored entries it doesn't change, so their tagged copies are reused too
 const entriesWithNode = new WeakMap<LogObject, LogObjectWithNode>();
@@ -44,6 +39,13 @@ export const getLogNodes = createSelector(
     'getLogNodes',
     getLogs,
     (logs) => Object.keys(logs),
+);
+
+// Nodes that returned a full page, so older matching entries were left out
+export const getTruncatedLogNodes = createSelector(
+    'getTruncatedLogNodes',
+    getLogs,
+    (logsByNode) => Object.keys(logsByNode).filter((node) => logsByNode[node].length >= General.LOGS_PAGE_SIZE_DEFAULT),
 );
 
 export function getAudits(state: GlobalState) {
