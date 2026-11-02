@@ -73,6 +73,7 @@ const NAV_CHILDREN = new Set([
   'aws_bedrock_setup',
   'managing_agents',
   'access_control',
+  'channel_settings',
   'mcp_integrations',
   'tool_approval',
   'web_search',

@@ -467,9 +467,13 @@ const ADMIN_CONFIGURE_GROUPS = {
         {id: 'agents/docs/managing_agents', label: 'Create and manage agents'},
         {id: 'agents/docs/access_control', label: 'Control who can use agents'},
       ]),
+      ...agentsDocItems([
+        {id: 'agents/docs/channel_settings', label: 'Control agents in channels'},
+      ]),
       ...agentsDocCategory('MCP and tools', 'agents/docs/mcp_integrations', [
         {id: 'agents/docs/tool_approval', label: 'Tool approval and credentials'},
-        {id: 'agents/docs/mcp_server', label: 'Mattermost MCP server'},
+      ]),
+      ...agentsDocCategory('Developers and integrators', 'agents/docs/mcp_server', [
         {id: 'agents/docs/mcp_tools', label: 'Mattermost MCP tool reference'},
         {id: 'agents/docs/llm_bridge', label: 'LLM Bridge for plugins'},
       ]),
@@ -480,6 +484,7 @@ const ADMIN_CONFIGURE_GROUPS = {
         {id: 'agents/docs/observability', label: 'Monitor Agents'},
         {id: 'agents/docs/backup_and_automation', label: 'Back up and automate'},
         {id: 'agents/docs/troubleshooting', label: 'Troubleshoot Agents'},
+        {id: 'end-user-guide/collaborate/agents-context-management', label: 'Data handling'},
         {id: 'agents/docs/sovereign_ai', label: 'Sovereign AI deployments'},
         {id: 'agents/docs/upgrading_to_2.0', label: 'Upgrade from Agents 1.x'},
       ]),
@@ -2117,6 +2122,8 @@ function buildEndUserGuideSidebar(autoCat) {
       {id: 'agents/docs/summaries_and_search', label: 'Summaries and AI search'},
       {id: 'agents/docs/meeting_summaries', label: 'Meeting summaries'},
       {id: 'agents/docs/custom_prompts', label: 'Custom prompts'},
+      {id: 'agents/docs/managing_agents', label: 'Create and manage agents'},
+      {id: 'agents/docs/mcp_server', label: 'Use Mattermost from Claude, Cursor, or VS Code'},
     ]),
     'end-user-guide/collaborate/agents-context-management',
   ]);
