@@ -6056,27 +6056,6 @@ func (s *RetryLayerFileInfoStore) GetStorageUsage(allowFromCache bool, includeDe
 
 }
 
-func (s *RetryLayerFileInfoStore) GetUptoNSizeFileTime(n int64) (int64, error) {
-
-	tries := 0
-	for {
-		result, err := s.FileInfoStore.GetUptoNSizeFileTime(n)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
 func (s *RetryLayerFileInfoStore) GetWithOptions(page int, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, error) {
 
 	tries := 0
@@ -8902,6 +8881,27 @@ func (s *RetryLayerPluginStore) List(pluginID string, page int, perPage int) ([]
 	tries := 0
 	for {
 		result, err := s.PluginStore.List(pluginID, page, perPage)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPluginStore) ListWithOptions(pluginID string, options model.PluginKVListOptions, page int, perPage int) ([]string, error) {
+
+	tries := 0
+	for {
+		result, err := s.PluginStore.ListWithOptions(pluginID, options, page, perPage)
 		if err == nil {
 			return result, nil
 		}

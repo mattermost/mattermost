@@ -39,6 +39,7 @@ const (
 	HeaderRequestedWith             = "X-Requested-With"
 	HeaderRequestedWithXML          = "XMLHttpRequest"
 	HeaderFirstInaccessiblePostTime = "First-Inaccessible-Post-Time"
+	// Deprecated: the server no longer sets this header.
 	HeaderFirstInaccessibleFileTime = "First-Inaccessible-File-Time"
 	HeaderRange                     = "Range"
 	HeaderRejectReason              = "X-Reject-Reason"
@@ -7363,15 +7364,6 @@ func (c *Client4) UpdatePassword(ctx context.Context, userId, currentPassword, n
 
 func (c *Client4) GetCloudProducts(ctx context.Context) ([]*Product, *Response, error) {
 	r, err := c.doAPIGet(ctx, c.cloudRoute().Join("products"), "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return DecodeJSONFromResponse[[]*Product](r)
-}
-
-func (c *Client4) GetSelfHostedProducts(ctx context.Context) ([]*Product, *Response, error) {
-	r, err := c.doAPIGet(ctx, c.cloudRoute().Join("products", "selfhosted"), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
