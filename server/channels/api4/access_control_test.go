@@ -3054,6 +3054,10 @@ func TestUnassignAccessPolicyTeamAdmin(t *testing.T) {
 // uses a parent with no channel children. The other cases persist a child
 // channel policy on a private channel of the caller's team so the parent is
 // assigned to that channel.
+//
+// Get cases may pass channelId of a child channel. Those cases omit team_id,
+// pass team_id for another team the caller belongs to, or sign in as a
+// channel member.
 func TestAccessControlPolicyTeamAdminStoredRules(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
@@ -3063,17 +3067,21 @@ func TestAccessControlPolicyTeamAdminStoredRules(t *testing.T) {
 	const submittedExpr = "user.attributes.department == 'platform'"
 
 	type storedRuleCase struct {
-		name               string
-		action             string
-		callerSatisfies    bool
-		withPrivateChannel bool
-		withPublicChannel  bool
-		joinPublicChannel  bool
-		channelQuery       bool
-		systemAdmin        bool
-		assertChildRemains bool
-		mixedActivate      bool
-		want               int
+		name                string
+		action              string
+		callerSatisfies     bool
+		withPrivateChannel  bool
+		withPublicChannel   bool
+		joinPublicChannel   bool
+		channelQuery        bool
+		omitTeamID          bool
+		otherTeamMember     bool
+		asChannelMember     bool
+		privateChannelQuery bool
+		systemAdmin         bool
+		assertChildRemains  bool
+		mixedActivate       bool
+		want                int
 	}
 
 	cases := []storedRuleCase{
@@ -3096,6 +3104,10 @@ func TestAccessControlPolicyTeamAdminStoredRules(t *testing.T) {
 		{name: "assign a private channel when parent has only a public channel and caller does not satisfy stored rules", action: "assign", withPublicChannel: true, want: http.StatusForbidden},
 		{name: "activate when the batch lists a policy the caller satisfies before one they do not", action: "activate", withPrivateChannel: true, mixedActivate: true, want: http.StatusForbidden},
 		{name: "get with the id of a joined public channel when the parent also has a private channel and caller does not satisfy stored rules", action: "get", withPrivateChannel: true, withPublicChannel: true, joinPublicChannel: true, channelQuery: true, want: http.StatusForbidden},
+		{name: "get with the id of a joined public channel and no team id when the parent also has a private channel and caller does not satisfy stored rules", action: "get", withPrivateChannel: true, withPublicChannel: true, joinPublicChannel: true, channelQuery: true, omitTeamID: true, want: http.StatusForbidden},
+		{name: "get with the id of a joined public channel and a team id for another team when the parent also has a private channel and caller does not satisfy stored rules", action: "get", withPrivateChannel: true, withPublicChannel: true, joinPublicChannel: true, channelQuery: true, otherTeamMember: true, want: http.StatusForbidden},
+		{name: "get with the id of a joined public channel for a channel member when the parent also has a private channel and caller does not satisfy stored rules", action: "get", withPrivateChannel: true, withPublicChannel: true, joinPublicChannel: true, channelQuery: true, omitTeamID: true, asChannelMember: true, want: http.StatusOK},
+		{name: "get with the id of a private channel the caller has not joined when caller does not satisfy stored rules", action: "get", withPrivateChannel: true, privateChannelQuery: true, want: http.StatusForbidden},
 	}
 
 	for _, tc := range cases {
@@ -3202,6 +3214,13 @@ func TestAccessControlPolicyTeamAdminStoredRules(t *testing.T) {
 			client := th.Client
 			if tc.systemAdmin {
 				client = th.SystemAdminClient
+			} else if tc.asChannelMember {
+				th.LoginBasic(t)
+				defer th.LoginBasic(t)
+				if tc.joinPublicChannel {
+					require.NotNil(t, publicLinked)
+					th.AddUserToChannel(t, th.BasicUser, publicLinked)
+				}
 			} else {
 				makeTeamAdminAndLogin(t, th, th.TeamAdminUser, th.BasicTeam)
 				defer th.LoginBasic(t)
@@ -3209,6 +3228,17 @@ func TestAccessControlPolicyTeamAdminStoredRules(t *testing.T) {
 					require.NotNil(t, publicLinked)
 					th.AddUserToChannel(t, th.TeamAdminUser, publicLinked)
 				}
+			}
+
+			// otherTeamMember signs the caller into a second team as a member.
+			// The request's team_id is that team. The caller remains a team
+			// admin of the channel's team.
+			var otherTeam *model.Team
+			if tc.otherTeamMember {
+				otherTeam = th.CreateTeamWithClient(t, th.SystemAdminClient)
+				th.LinkUserToTeam(t, th.TeamAdminUser, otherTeam)
+				_, _, loginErr := th.Client.Login(context.Background(), th.TeamAdminUser.Email, th.TeamAdminUser.Password)
+				require.NoError(t, loginErr)
 			}
 
 			teamQuery := "?team_id=" + th.BasicTeam.Id
@@ -3263,10 +3293,24 @@ func TestAccessControlPolicyTeamAdminStoredRules(t *testing.T) {
 				resp, err = client.DoAPIDelete(context.Background(),
 					"/access_control_policies/"+savedParent.ID+teamQuery)
 			case "get":
-				getPath := "/access_control_policies/" + savedParent.ID + teamQuery
+				getPath := "/access_control_policies/" + savedParent.ID
+				sep := "?"
+				if !tc.omitTeamID {
+					teamID := th.BasicTeam.Id
+					if otherTeam != nil {
+						teamID = otherTeam.Id
+					}
+					getPath += sep + "team_id=" + teamID
+					sep = "&"
+				}
 				if tc.channelQuery {
 					require.NotNil(t, publicLinked)
-					getPath += "&channelId=" + publicLinked.Id
+					getPath += sep + "channelId=" + publicLinked.Id
+					sep = "&"
+				}
+				if tc.privateChannelQuery {
+					require.NotNil(t, linked)
+					getPath += sep + "channelId=" + linked.Id
 				}
 				resp, err = client.DoAPIGet(context.Background(), getPath, "")
 			case "get_channels":
