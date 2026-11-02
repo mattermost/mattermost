@@ -57,6 +57,21 @@ describe('useClassificationClearance', () => {
         expect(result.current).toEqual({clearanceEnabled: false, isResolving: true});
     });
 
+    it('retries a failed lookup once the browser is back online', async () => {
+        getPropertyFields.mockRejectedValueOnce(new Error('boom')).mockResolvedValue([]);
+
+        const {result} = renderHookWithContext(() => useClassificationClearance('template1'), abacEnabledState);
+        await act(async () => {});
+        expect(result.current.isResolving).toBe(true);
+
+        await act(async () => {
+            window.dispatchEvent(new Event('online'));
+        });
+
+        expect(getPropertyFields).toHaveBeenCalledTimes(2);
+        expect(result.current).toEqual({clearanceEnabled: false, isResolving: false});
+    });
+
     it('goes back to resolving when a new lookup starts after the check was disabled', async () => {
         getPropertyFields.mockResolvedValueOnce([]).mockReturnValue(new Promise(() => {}));
 

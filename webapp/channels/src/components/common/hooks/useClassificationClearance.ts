@@ -22,8 +22,9 @@ import {getPropertyGroupByName, makeGetPropertyFieldsForObjectTypeAndGroup} from
  * then compare a user's clearance with a channel's classification, so markings
  * are no longer informational only. Mirrors the System Console's check.
  *
- * `isResolving` stays true until the lookup succeeds so callers can avoid
- * flashing the informational notice. Pass no template id to skip the lookup.
+ * `isResolving` stays true until the lookup succeeds (a failed lookup is retried
+ * once the browser is back online) so callers can avoid flashing the
+ * informational notice. Pass no template id to skip the lookup.
  */
 export default function useClassificationClearance(templateFieldId?: string): {clearanceEnabled: boolean; isResolving: boolean} {
     const dispatch = useDispatch();
@@ -35,6 +36,7 @@ export default function useClassificationClearance(templateFieldId?: string): {c
     const userFields = useSelector((state: GlobalState) => (groupId ? getUserFields(state, USER_OBJECT_TYPE, groupId) : undefined));
 
     const [lookupSettled, setLookupSettled] = useState(false);
+    const [attempt, setAttempt] = useState(0);
 
     useEffect(() => {
         if (!shouldCheck) {
@@ -42,11 +44,16 @@ export default function useClassificationClearance(templateFieldId?: string): {c
         }
 
         let active = true;
+        const retryWhenOnline = () => setAttempt((n) => n + 1);
+
         const lookup = async () => {
             try {
                 await dispatch(fetchPropertyFields(ACCESS_CONTROL_PROPERTY_GROUP, USER_OBJECT_TYPE, SYSTEM_TARGET_TYPE, SYSTEM_TARGET_ID));
             } catch {
                 // A failed lookup does not prove that no clearance attribute exists.
+                if (active) {
+                    window.addEventListener('online', retryWhenOnline, {once: true});
+                }
                 return;
             }
             if (active) {
@@ -57,9 +64,10 @@ export default function useClassificationClearance(templateFieldId?: string): {c
 
         return () => {
             active = false;
+            window.removeEventListener('online', retryWhenOnline);
             setLookupSettled(false);
         };
-    }, [shouldCheck, dispatch]);
+    }, [shouldCheck, dispatch, attempt]);
 
     const clearanceEnabled = shouldCheck && Boolean(userFields?.some((f) => f.linked_field_id === templateFieldId));
 
