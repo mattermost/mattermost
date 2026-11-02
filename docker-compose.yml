@@ -14,10 +14,11 @@ services:
     environment:
       # Database connection configuration
       - MM_SQLSETTINGS_DRIVERNAME=postgres
-      - MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest_password@postgres:5432/mattermost?sslmode=disable&connect_timeout=10
+      - MM_SQLSETTINGS_DATASOURCE=postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=require&connect_timeout=10
       # Service operational settings
-      - MM_SERVICESETTINGS_SITEURL=http://localhost:8065
+      - MM_SERVICESETTINGS_SITEURL=${MM_SITE_URL}
       - MM_SERVICESETTINGS_LISTENADDRESS=:8065
+      # File storage configuration
       - MM_FILESETTINGS_DRIVERNAME=local
       - MM_FILESETTINGS_DIRECTORY=/mattermost/data
     volumes:
@@ -28,24 +29,24 @@ services:
     networks:
       - mattermost_network
 
-  postgres:
-    image: postgres:15-alpine
-    container_name: mattermost-db
-    restart: unless-stopped
-    environment:
-      - POSTGRES_USER=mmuser
-      - POSTGRES_PASSWORD=mostest_password
-      - POSTGRES_DB=mattermost
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - mattermost_network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U mmuser -d mattermost"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
+  #postgres:
+  #  image: postgres:15-alpine
+  #  container_name: mattermost-db
+  #  restart: unless-stopped
+  #  environment:
+  #    - POSTGRES_USER=mmuser
+  #    - POSTGRES_PASSWORD=mostest_password
+  #    - POSTGRES_DB=mattermost
+  #  volumes:
+  #    - postgres_data:/var/lib/postgresql/data
+  #  networks:
+  #    - mattermost_network
+  #  healthcheck:
+  #    test: ["CMD-SHELL", "pg_isready -U mmuser -d mattermost"]
+  #    interval: 10s
+  #    timeout: 5s
+  #    retries: 5
+  #    start_period: 10s
 
 volumes:
   mattermost_config:
@@ -56,8 +57,8 @@ volumes:
     driver: local
   mattermost_client_plugins:
     driver: local
-  postgres_data:
-    driver: local
+  #postgres_data:
+  #  driver: local
 
 networks:
   mattermost_network:
