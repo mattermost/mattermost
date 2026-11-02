@@ -47,14 +47,14 @@ describe('useClassificationClearance', () => {
         expect(result.current).toEqual({clearanceEnabled: false, isResolving: false});
     });
 
-    it('resolves to not resolving when the lookup fails', async () => {
+    it('stays resolving when the lookup fails', async () => {
         getPropertyFields.mockRejectedValue(new Error('boom'));
 
         const {result} = renderHookWithContext(() => useClassificationClearance('template1'), abacEnabledState);
 
         await act(async () => {});
 
-        expect(result.current).toEqual({clearanceEnabled: false, isResolving: false});
+        expect(result.current).toEqual({clearanceEnabled: false, isResolving: true});
     });
 
     it('goes back to resolving when a new lookup starts after the check was disabled', async () => {

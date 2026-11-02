@@ -22,7 +22,7 @@ import {getPropertyGroupByName, makeGetPropertyFieldsForObjectTypeAndGroup} from
  * then compare a user's clearance with a channel's classification, so markings
  * are no longer informational only. Mirrors the System Console's check.
  *
- * `isResolving` stays true until the lookup settles so callers can avoid
+ * `isResolving` stays true until the lookup succeeds so callers can avoid
  * flashing the informational notice. Pass no template id to skip the lookup.
  */
 export default function useClassificationClearance(templateFieldId?: string): {clearanceEnabled: boolean; isResolving: boolean} {
@@ -46,7 +46,8 @@ export default function useClassificationClearance(templateFieldId?: string): {c
             try {
                 await dispatch(fetchPropertyFields(ACCESS_CONTROL_PROPERTY_GROUP, USER_OBJECT_TYPE, SYSTEM_TARGET_TYPE, SYSTEM_TARGET_ID));
             } catch {
-                // A failed lookup is treated as no clearance attribute.
+                // A failed lookup does not prove that no clearance attribute exists.
+                return;
             }
             if (active) {
                 setLookupSettled(true);
