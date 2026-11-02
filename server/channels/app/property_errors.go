@@ -55,13 +55,11 @@ func mapPropertyServiceError(where string, err error) *model.AppError {
 		return model.NewAppError(where, "app.property_field.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
 	}
 
-	var conflictErr *store.ErrConflict
-	if errors.As(err, &conflictErr) {
+	if _, ok := errors.AsType[*store.ErrConflict](err); ok {
 		return model.NewAppError(where, "app.property_field.update.conflict.app_error", nil, "concurrent modification detected; please retry", http.StatusConflict).Wrap(err)
 	}
 
-	var notFoundErr *store.ErrNotFound
-	if errors.As(err, &notFoundErr) {
+	if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 		return model.NewAppError(where, "app.property.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
 	}
 
@@ -70,18 +68,15 @@ func mapPropertyServiceError(where string, err error) *model.AppError {
 	// is not a live option of the field. They describe the request rather than the
 	// server, so a 500 would send a caller looking in the wrong place. The detail is
 	// the store's own message, which names the field or option at fault and no more.
-	var invalidInputErr *store.ErrInvalidInput
-	if errors.As(err, &invalidInputErr) {
+	if invalidInputErr, ok := errors.AsType[*store.ErrInvalidInput](err); ok {
 		return model.NewAppError(where, "app.property.invalid_input.app_error", nil, invalidInputErr.Error(), http.StatusBadRequest).Wrap(err)
 	}
 
-	var resultsMismatchErr *store.ErrResultsMismatch
-	if errors.As(err, &resultsMismatchErr) {
+	if _, ok := errors.AsType[*store.ErrResultsMismatch](err); ok {
 		return model.NewAppError(where, "app.property.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
 	}
 
-	var appErr *model.AppError
-	if errors.As(err, &appErr) {
+	if appErr, ok := errors.AsType[*model.AppError](err); ok {
 		return appErr
 	}
 

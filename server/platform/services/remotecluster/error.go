@@ -11,8 +11,9 @@ import (
 var (
 	RemoteClusterAlreadyConfirmedError = errors.New("the remote cluster has already been confirmed")
 
-	errRemoteUnreachable = errors.New("remote unreachable")
-	errInvalidRemoteURL  = errors.New("invalid remote URL")
+	errRemoteUnreachable      = errors.New("remote unreachable")
+	errInvalidRemoteURL       = errors.New("invalid remote URL")
+	errRemoteResponseTooLarge = errors.New("remote response too large")
 )
 
 type BufferFullError struct {

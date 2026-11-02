@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {LogObject} from '@mattermost/types/admin';
+import {LogNodeKey} from '@mattermost/types/admin';
+import type {LogObject, LogObjectWithNode} from '@mattermost/types/admin';
 import type {DataRetentionCustomPolicies, DataRetentionCustomPolicy} from '@mattermost/types/data_retention';
 import type {PluginStatusRedux} from '@mattermost/types/plugins';
 import type {GlobalState} from '@mattermost/types/store';
@@ -19,13 +20,30 @@ export function getPlainLogs(state: GlobalState) {
 export const getAllLogs = createSelector(
     'getAllLogs',
     getLogs,
-    (logs) => {
-        return Object.values(logs).reduce<LogObject[]>((acc, log) => {
-            // @ts-expect-error: object that is returned from the server contains an array of logs but ts gets confused that its one log object
-            acc.push(...log);
-            return acc;
-        }, []);
-    },
+    (logs) => Object.values(logs).flat(),
+);
+
+// A poll keeps the stored entries it doesn't change, so their tagged copies are reused too
+const entriesWithNode = new WeakMap<LogObject, LogObjectWithNode>();
+
+export const getAllLogsWithNode = createSelector(
+    'getAllLogsWithNode',
+    getLogs,
+    (logs) => Object.entries(logs).flatMap(([node, entries]) => entries.map((entry) => {
+        let tagged = entriesWithNode.get(entry);
+        if (tagged === undefined) {
+            tagged = {...entry, [LogNodeKey]: node};
+            entriesWithNode.set(entry, tagged);
+        }
+        return tagged;
+    })),
+);
+
+// Includes nodes that returned no entries, which the flattened entries can't show
+export const getLogNodes = createSelector(
+    'getLogNodes',
+    getLogs,
+    (logs) => Object.keys(logs),
 );
 
 export function getAudits(state: GlobalState) {

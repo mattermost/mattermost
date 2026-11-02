@@ -1,17 +1,47 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+@use "sass:math";
+
 // Shared by the structured and plain text viewers so both read as the same page
 
 $level-column-width: 56px;
 $timestamp-column-width: 96px;
 $caller-column-width: 200px;
+$node-column-width: 120px;
+$node-column-min-width: 64px;
+$message-column-min-width: 120px;
+$row-padding-x: 24px;
+$column-gap: 12px;
+$expand-indicator-width: 16px;
 
 // Log content only; the chrome around it keeps the admin console's Open Sans
 $mono-font: 'SFMono-Regular', consolas, 'Liberation Mono', menlo, monospace;
 
+// On narrow windows node and caller shrink so the message keeps a readable width
+@mixin node-column {
+    min-width: $node-column-min-width;
+    flex: 0 1 $node-column-width;
+}
+
+@mixin message-column {
+    min-width: $message-column-min-width;
+    flex: 1;
+}
+
+@mixin caller-column {
+    min-width: 60px;
+    flex: 0 1 $caller-column-width;
+}
+
 // Indents the expanded details to line up with the message column
-$details-indent: 24px + $level-column-width + 12px + $timestamp-column-width + 12px;
+$details-indent: $row-padding-x + $level-column-width + $column-gap + $timestamp-column-width + $column-gap;
+
+// Below this row width node and caller shrink: every column at its basis plus the gaps, chevron and padding
+$row-shrink-width: $details-indent + $node-column-width + $message-column-min-width + $caller-column-width + 3 * $column-gap + $expand-indicator-width + $row-padding-x;
+
+// The node column's rendered width: flex gives it node / (node + caller) of the row's shortfall
+$details-node-width: clamp($node-column-min-width, $node-column-width - ($row-shrink-width - 100%) * math.div($node-column-width, $node-column-width + $caller-column-width), $node-column-width);
 
 @mixin viewer-shell {
     display: flex;

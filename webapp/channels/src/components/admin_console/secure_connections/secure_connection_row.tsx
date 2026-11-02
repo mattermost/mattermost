@@ -1,16 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {forwardRef} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {Link, useHistory} from 'react-router-dom';
 import styled from 'styled-components';
 
 import {DotsHorizontalIcon, CodeTagsIcon, PencilOutlineIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
-import {buttonClassNames} from '@mattermost/shared/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import type {RemoteCluster} from '@mattermost/types/remote_clusters';
 
 import * as Menu from 'components/menu';
+import type {MenuButtonComponentProps} from 'components/menu';
 
 import {ConnectionStatusLabel} from './controls';
 import {useRemoteClusterCreateInvite, useRemoteClusterDelete} from './modals/modal_utils';
@@ -43,6 +45,17 @@ export default function SecureConnectionRow(props: Props) {
 
 const menuId = 'secure_connection_row_menu';
 
+const RowMenuTrigger = forwardRef<HTMLButtonElement, MenuButtonComponentProps>((props, ref) => (
+    <IconButton
+        {...props}
+        ref={ref}
+        style={undefined}
+        size='small'
+        icon={<Icon glyph={<DotsHorizontalIcon/>}/>}
+    />
+));
+RowMenuTrigger.displayName = 'RowMenuTrigger';
+
 const RowMenu = ({remoteCluster: rc, onDeleteSuccess, disabled}: Props) => {
     const {formatMessage} = useIntl();
     const history = useHistory<RemoteCluster>();
@@ -65,9 +78,8 @@ const RowMenu = ({remoteCluster: rc, onDeleteSuccess, disabled}: Props) => {
         <Menu.Container
             menuButton={{
                 id: `${menuId}-button-${rc.remote_id}`,
-                class: buttonClassNames({emphasis: 'tertiary', size: 'sm'}, 'connection-row-menu-button', {disabled}),
+                as: RowMenuTrigger,
                 disabled,
-                children: !disabled && <DotsHorizontalIcon size={16}/>,
                 'aria-label': formatMessage({id: 'admin.secure_connection_row.menu-button.aria_label', defaultMessage: 'Connection options for {connection}'}, {connection: rc.display_name}),
             }}
             menu={{
@@ -130,10 +142,6 @@ const RowLink = styled(Link<RemoteCluster>).attrs({className: 'secure-connection
 
     &:last-child {
         border-bottom: 0;
-    }
-
-    .connection-row-menu-button {
-        padding: 0px 8px;
     }
 `;
 

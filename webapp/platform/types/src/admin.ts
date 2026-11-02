@@ -33,6 +33,17 @@ export type LogObject = {
     msg: string;
     timestamp: string;
     worker: string;
+
+    // Set on the entry the server returns in place of a node it could not reach
+    failed_node?: boolean;
+};
+
+// The node an entry came from. A symbol, so it can't clash with a field the server logged
+// and is left out of JSON.stringify and Object.entries
+export const LogNodeKey: unique symbol = Symbol('node');
+
+export type LogObjectWithNode = LogObject & {
+    [LogNodeKey]: string;
 };
 
 export type LogFilter = {
@@ -50,7 +61,7 @@ export type LogFilterQuery = {
 };
 
 export type AdminState = {
-    logs: LogObject[];
+    logs: {[node: string]: LogObject[]};
     plainLogs: string[];
     audits: Record<string, Audit>;
     config: Partial<AdminConfig>;

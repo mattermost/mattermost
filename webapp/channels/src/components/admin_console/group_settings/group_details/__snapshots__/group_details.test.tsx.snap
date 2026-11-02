@@ -164,14 +164,40 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
                   class="MenuWrapper "
                 >
                   <button
-                    class="btn btn-primary"
+                    class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
                     id="add_team_or_channel"
                     type="button"
                   >
-                    Add Team or Channel
-                    <i
-                      class="fa fa-caret-down"
-                    />
+                    <span
+                      class="_button__label_we8pe_31"
+                    >
+                      Add Team or Channel
+                    </span>
+                    <span
+                      class="_button__icon-slot_we8pe_35"
+                    >
+                      <div
+                        aria-hidden="true"
+                        class="_icon_1i355_2 _icon--size-16_1i355_38"
+                      >
+                        <div
+                          class="_icon__glyph-area_1i355_9"
+                        >
+                          <svg
+                            fill="currentColor"
+                            height="18"
+                            version="1.1"
+                            viewBox="0 0 24 24"
+                            width="18"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"
+                            />
+                          </svg>
+                        </div>
+                      </div>
+                    </span>
                   </button>
                 </div>
               </div>
@@ -356,7 +382,8 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
                 1 - 20 of 20
               </div>
               <button
-                class="btn btn-tertiary prev disabled"
+                class="btn btn-quaternary btn-sm btn-icon ml-2 prev disabled"
+                data-testid="page-link-prev"
                 disabled=""
                 type="button"
               >
@@ -366,7 +393,8 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
                 />
               </button>
               <button
-                class="btn btn-tertiary next disabled"
+                class="btn btn-quaternary btn-sm btn-icon next disabled"
+                data-testid="page-link-next"
                 disabled=""
                 type="button"
               >
@@ -384,22 +412,28 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary"
+        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
         type="submit"
       >
-        <span>
+        <span
+          class="_button__label_we8pe_31"
+        >
           Save
         </span>
       </button>
       <a
-        class="btn btn-quaternary"
+        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
         href="/admin_console/user_management/groups"
         id="cancelButtonSettings"
       >
-        Cancel
+        <span
+          class="_button__label_we8pe_31"
+        >
+          Cancel
+        </span>
       </a>
       <div
         class="error-message"
@@ -574,14 +608,40 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
                   class="MenuWrapper "
                 >
                   <button
-                    class="btn btn-primary"
+                    class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
                     id="add_team_or_channel"
                     type="button"
                   >
-                    Add Team or Channel
-                    <i
-                      class="fa fa-caret-down"
-                    />
+                    <span
+                      class="_button__label_we8pe_31"
+                    >
+                      Add Team or Channel
+                    </span>
+                    <span
+                      class="_button__icon-slot_we8pe_35"
+                    >
+                      <div
+                        aria-hidden="true"
+                        class="_icon_1i355_2 _icon--size-16_1i355_38"
+                      >
+                        <div
+                          class="_icon__glyph-area_1i355_9"
+                        >
+                          <svg
+                            fill="currentColor"
+                            height="18"
+                            version="1.1"
+                            viewBox="0 0 24 24"
+                            width="18"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"
+                            />
+                          </svg>
+                        </div>
+                      </div>
+                    </span>
                   </button>
                 </div>
               </div>
@@ -766,7 +826,8 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
                 1 - 20 of 20
               </div>
               <button
-                class="btn btn-tertiary prev disabled"
+                class="btn btn-quaternary btn-sm btn-icon ml-2 prev disabled"
+                data-testid="page-link-prev"
                 disabled=""
                 type="button"
               >
@@ -776,7 +837,8 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
                 />
               </button>
               <button
-                class="btn btn-tertiary next disabled"
+                class="btn btn-quaternary btn-sm btn-icon next disabled"
+                data-testid="page-link-next"
                 disabled=""
                 type="button"
               >
@@ -794,22 +856,28 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary"
+        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
         type="submit"
       >
-        <span>
+        <span
+          class="_button__label_we8pe_31"
+        >
           Save
         </span>
       </button>
       <a
-        class="btn btn-quaternary"
+        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
         href="/admin_console/user_management/groups"
         id="cancelButtonSettings"
       >
-        Cancel
+        <span
+          class="_button__label_we8pe_31"
+        >
+          Cancel
+        </span>
       </a>
       <div
         class="error-message"
@@ -982,14 +1050,40 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
                   class="MenuWrapper "
                 >
                   <button
-                    class="btn btn-primary"
+                    class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
                     id="add_team_or_channel"
                     type="button"
                   >
-                    Add Team or Channel
-                    <i
-                      class="fa fa-caret-down"
-                    />
+                    <span
+                      class="_button__label_we8pe_31"
+                    >
+                      Add Team or Channel
+                    </span>
+                    <span
+                      class="_button__icon-slot_we8pe_35"
+                    >
+                      <div
+                        aria-hidden="true"
+                        class="_icon_1i355_2 _icon--size-16_1i355_38"
+                      >
+                        <div
+                          class="_icon__glyph-area_1i355_9"
+                        >
+                          <svg
+                            fill="currentColor"
+                            height="18"
+                            version="1.1"
+                            viewBox="0 0 24 24"
+                            width="18"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"
+                            />
+                          </svg>
+                        </div>
+                      </div>
+                    </span>
                   </button>
                 </div>
               </div>
@@ -1174,7 +1268,8 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
                 1 - 20 of 20
               </div>
               <button
-                class="btn btn-tertiary prev disabled"
+                class="btn btn-quaternary btn-sm btn-icon ml-2 prev disabled"
+                data-testid="page-link-prev"
                 disabled=""
                 type="button"
               >
@@ -1184,7 +1279,8 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
                 />
               </button>
               <button
-                class="btn btn-tertiary next disabled"
+                class="btn btn-quaternary btn-sm btn-icon next disabled"
+                data-testid="page-link-next"
                 disabled=""
                 type="button"
               >
@@ -1202,22 +1298,28 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary"
+        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
         type="submit"
       >
-        <span>
+        <span
+          class="_button__label_we8pe_31"
+        >
           Save
         </span>
       </button>
       <a
-        class="btn btn-quaternary"
+        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
         href="/admin_console/user_management/groups"
         id="cancelButtonSettings"
       >
-        Cancel
+        <span
+          class="_button__label_we8pe_31"
+        >
+          Cancel
+        </span>
       </a>
       <div
         class="error-message"
@@ -1390,14 +1492,40 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
                   class="MenuWrapper "
                 >
                   <button
-                    class="btn btn-primary"
+                    class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
                     id="add_team_or_channel"
                     type="button"
                   >
-                    Add Team or Channel
-                    <i
-                      class="fa fa-caret-down"
-                    />
+                    <span
+                      class="_button__label_we8pe_31"
+                    >
+                      Add Team or Channel
+                    </span>
+                    <span
+                      class="_button__icon-slot_we8pe_35"
+                    >
+                      <div
+                        aria-hidden="true"
+                        class="_icon_1i355_2 _icon--size-16_1i355_38"
+                      >
+                        <div
+                          class="_icon__glyph-area_1i355_9"
+                        >
+                          <svg
+                            fill="currentColor"
+                            height="18"
+                            version="1.1"
+                            viewBox="0 0 24 24"
+                            width="18"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"
+                            />
+                          </svg>
+                        </div>
+                      </div>
+                    </span>
                   </button>
                 </div>
               </div>
@@ -1580,7 +1708,8 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
                 1 - 20 of 20
               </div>
               <button
-                class="btn btn-tertiary prev disabled"
+                class="btn btn-quaternary btn-sm btn-icon ml-2 prev disabled"
+                data-testid="page-link-prev"
                 disabled=""
                 type="button"
               >
@@ -1590,7 +1719,8 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
                 />
               </button>
               <button
-                class="btn btn-tertiary next disabled"
+                class="btn btn-quaternary btn-sm btn-icon next disabled"
+                data-testid="page-link-next"
                 disabled=""
                 type="button"
               >
@@ -1608,22 +1738,28 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary"
+        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
         type="submit"
       >
-        <span>
+        <span
+          class="_button__label_we8pe_31"
+        >
           Save
         </span>
       </button>
       <a
-        class="btn btn-quaternary"
+        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
         href="/admin_console/user_management/groups"
         id="cancelButtonSettings"
       >
-        Cancel
+        <span
+          class="_button__label_we8pe_31"
+        >
+          Cancel
+        </span>
       </a>
       <div
         class="error-message"

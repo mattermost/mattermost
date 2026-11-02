@@ -32,7 +32,7 @@ var versionSkew = healthcheck.Rule{
 	Volatility: healthcheck.VolatilityTopology,
 	Subject:    "cluster.version",
 	Eval:       clusterLicensed(healthcheck.Gate((*healthcheck.Snapshot).ClusterEnabled, healthcheck.ReasonConfigUnavailable, evalVersionSkewGlobal)),
-	EvalNode:   healthcheck.LicensedNode(clusterFeature, healthcheck.GateNode((*healthcheck.Snapshot).ClusterEnabled, healthcheck.ReasonConfigUnavailable, evalVersionSkewNode)),
+	EvalNode:   healthcheck.LicensedNode(healthcheck.FeatureCluster, healthcheck.GateNode((*healthcheck.Snapshot).ClusterEnabled, healthcheck.ReasonConfigUnavailable, evalVersionSkewNode)),
 }
 
 // versionCounts counts the nodes reporting each version; nodes that report none are left out.

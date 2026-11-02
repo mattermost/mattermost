@@ -15,9 +15,6 @@ import {
 
 import {openModal} from 'actions/views/modals';
 
-import useGetHighestThresholdCloudLimit from 'components/common/hooks/useGetHighestThresholdCloudLimit';
-import useGetLimits from 'components/common/hooks/useGetLimits';
-import useGetUsage from 'components/common/hooks/useGetUsage';
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 import * as Menu from 'components/menu';
 import TrialBenefitsModal from 'components/trial_benefits_modal/trial_benefits_modal';
@@ -37,8 +34,6 @@ export default function ProductSwitcherCloudTrialMenuItem(props: Props) {
     const subscriptionProduct = useSelector(getSubscriptionProduct);
     const isStarter = subscriptionProduct?.sku === CloudProducts.STARTER;
 
-    const someLimitNeedsAttention = Boolean(useGetHighestThresholdCloudLimit(useGetUsage(), useGetLimits()[0]));
-
     const {openPricingModal, isAirGapped} = useOpenPricingModal();
 
     // Don't show if not cloud
@@ -46,8 +41,8 @@ export default function ProductSwitcherCloudTrialMenuItem(props: Props) {
         return null;
     }
 
-    // Don't show if some limit needs attention OR not on starter/trial
-    if (Boolean(someLimitNeedsAttention) || (!isStarter && !props.isFreeTrialSubscription)) {
+    // Don't show if not on starter/trial
+    if (!isStarter && !props.isFreeTrialSubscription) {
         return null;
     }
 

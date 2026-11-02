@@ -102,6 +102,24 @@ func TestPushRules(t *testing.T) {
 			},
 		},
 		{
+			name:     "test proxy with the hosted service licensed",
+			snapshot: withLicenseFeatures(pushSnapshot(true, "https://push-test.mattermost.com"), &model.Features{MHPNS: new(true)}),
+			want: map[string]pushWant{
+				"PUSH_EMPTY_URL":  resolved,
+				"PUSH_BAD_SCHEME": resolved,
+				"PUSH_TEST_PROXY": {state: healthcheck.StateFiring, messageID: "health.rule.push_test_proxy.message.hosted", url: "https://push-test.mattermost.com"},
+			},
+		},
+		{
+			name:     "test proxy without the hosted service licensed",
+			snapshot: withLicenseFeatures(pushSnapshot(true, "https://push-test.mattermost.com"), &model.Features{MHPNS: new(false)}),
+			want: map[string]pushWant{
+				"PUSH_EMPTY_URL":  resolved,
+				"PUSH_BAD_SCHEME": resolved,
+				"PUSH_TEST_PROXY": {state: healthcheck.StateFiring, messageID: "health.rule.push_test_proxy.message", url: "https://push-test.mattermost.com"},
+			},
+		},
+		{
 			name:     "https test proxy with port and path",
 			snapshot: pushSnapshot(true, "HTTPS://Push-Test.mattermost.com:443/"),
 			want: map[string]pushWant{

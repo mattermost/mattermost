@@ -41,6 +41,8 @@ func TestParseNamedArgs(t *testing.T) {
 		{"quoted spaces with embedded quote", "remote add --arg1 \"Bob O'Brien's remote\"", map[string]string{ActionKey: "add", "arg1": "Bob O'Brien's remote"}},
 		{"single quoted with embedded apostrophe", "remote add --arg1 'O'Brien'", map[string]string{ActionKey: "add", "arg1": "O'Brien"}},
 		{"quoted value that looks like a flag", "remote add --arg1 \"--arg2\"", map[string]string{ActionKey: "add", "arg1": "--arg2"}},
+		{"unquoted dashes-prefixed invite is treated as a flag", "remote accept --name remote1 --password s3cret --invite --abc123", map[string]string{ActionKey: "accept", "name": "remote1", "password": "s3cret", "invite": "", "abc123": ""}},
+		{"quoted dashes-prefixed invite is kept", "remote accept --name remote1 --password s3cret --invite \"--abc123\"", map[string]string{ActionKey: "accept", "name": "remote1", "password": "s3cret", "invite": "--abc123"}},
 		{"single quote closes only before whitespace", "remote add --arg1 'a'b c'", map[string]string{ActionKey: "add", "arg1": "a'b c"}},
 		{"double quoted value containing a flag", "remote add --arg1 \"use --arg2 here\" --arg3 val3", map[string]string{ActionKey: "add", "arg1": "use --arg2 here", "arg3": "val3"}},
 		{"curly double quoted value containing a flag", "remote add --arg1 \u201cuse --arg2 here\u201d", map[string]string{ActionKey: "add", "arg1": "use --arg2 here"}},

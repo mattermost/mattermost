@@ -5,7 +5,7 @@ import React, {useEffect, type JSX} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {getCloudProducts, getCloudSubscription} from 'mattermost-redux/actions/cloud';
@@ -78,7 +78,7 @@ const PlanUpgradeButton = (): JSX.Element | null => {
                 aria-haspopup='dialog'
                 onClick={() => openPricingModal()}
                 emphasis='primary'
-                size='xs'
+                size='x-small'
             >
                 {formatMessage({id: 'pricing_modal.btn.viewPlans', defaultMessage: 'View plans'})}
             </Button>

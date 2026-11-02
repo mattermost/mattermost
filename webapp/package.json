@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "@mattermost/compass-icons": "0.1.63",
+    "@mattermost/compass-ui": "0.1.0-alpha.21",
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "react-intl": "7.1.14",
@@ -58,9 +59,6 @@
     "webpack-dev-server": "5.2.2"
   },
   "overrides": {
-    "@deanwhillier/jest-matchmedia-mock": {
-      "jest": "30.5.2"
-    },
     "@giphy/react-components": {
       "styled-components": "5.3.11"
     },

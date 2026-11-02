@@ -112,7 +112,7 @@ const AdminUserCard = ({isLoading = false, ...props}: Props) => {
                                         id: 'admin.userManagement.userDetail.picture.edit',
                                         defaultMessage: 'Edit profile picture',
                                     }),
-                                    children: props.isUploadingPicture ? <LoadingSpinner/> : <CameraOutlineIcon size={16}/>,
+                                    children: props.isUploadingPicture ? <LoadingSpinner legacy={true}/> : <CameraOutlineIcon size={16}/>,
                                 }}
                                 menu={{
                                     id: 'adminUserCardPictureMenu',

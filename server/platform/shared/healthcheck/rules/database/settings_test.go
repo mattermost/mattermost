@@ -17,28 +17,50 @@ func withStats(users, posts int64) *model.SupportPacketStats {
 	return &model.SupportPacketStats{RegisteredUsers: new(users), Posts: new(posts)}
 }
 
+// professional is a license without Elasticsearch; any license makes the store use replicas.
+func professional() *model.SupportPacketDiagnostics {
+	return withLicense(&model.SupportPacketDiagnostics{}, model.SupportPacketLicense{
+		SkuShortName: model.LicenseShortSkuProfessional,
+		Features:     &model.Features{Elasticsearch: new(false)},
+	})
+}
+
+func enterprise() *model.SupportPacketDiagnostics {
+	return withLicense(&model.SupportPacketDiagnostics{}, model.SupportPacketLicense{
+		SkuShortName: model.LicenseShortSkuEnterprise,
+		Features:     &model.Features{Elasticsearch: new(true)},
+	})
+}
+
+func unlicensed() *model.SupportPacketDiagnostics {
+	return &model.SupportPacketDiagnostics{}
+}
+
 func TestDBNoReadReplica(t *testing.T) {
 	t.Parallel()
 
 	withReplica := defaultConfig()
 	withReplica.SqlSettings.DataSourceReplicas = []string{replicaDSN}
 
+	configFailed := newSnapshot(defaultConfig(), withStats(5000, 0), professional())
+	configFailed.Sections[model.SectionConfig] = errors.New("boom")
+
 	testCases := []struct {
 		name     string
 		snapshot *healthcheck.Snapshot
 		want     want
 	}{
-		{"config absent", newSnapshot(nil, withStats(5000, 0), nil), unknownConfigWant},
-		{"config section failed", &healthcheck.Snapshot{
-			Config:   &model.SupportPacketConfig{Config: defaultConfig()},
-			Sections: map[model.WorkspaceSection]error{model.SectionConfig: errors.New("boom")},
-		}, unknownConfigWant},
-		{"no replica at 2000 users", newSnapshot(defaultConfig(), withStats(2000, 0), nil), firingWant("health.rule.db_no_read_replica.message").withValue(2000)},
-		{"no replica below 2000 users", newSnapshot(defaultConfig(), withStats(1999, 0), nil), resolvedWant.withValue(1999)},
-		{"replica configured", newSnapshot(withReplica, withStats(5000, 0), nil), resolvedWant},
-		{"stats absent with replica configured", newSnapshot(withReplica, nil, nil), resolvedWant},
-		{"stats absent without replica", newSnapshot(defaultConfig(), nil, nil), unknownStatsWant},
-		{"user count not collected", newSnapshot(defaultConfig(), &model.SupportPacketStats{}, nil), unknownStatsWant},
+		{"config absent", newSnapshot(nil, withStats(5000, 0), professional()), unknownConfigWant},
+		{"config section failed", configFailed, unknownConfigWant},
+		{"no replica at 2000 users", newSnapshot(defaultConfig(), withStats(2000, 0), professional()), firingWant("health.rule.db_no_read_replica.message").withValue(2000)},
+		{"no replica below 2000 users", newSnapshot(defaultConfig(), withStats(1999, 0), professional()), resolvedWant.withValue(1999)},
+		{"replica configured", newSnapshot(withReplica, withStats(5000, 0), professional()), resolvedWant},
+		{"stats absent with replica configured", newSnapshot(withReplica, nil, professional()), resolvedWant},
+		{"stats absent without replica", newSnapshot(defaultConfig(), nil, professional()), unknownStatsWant},
+		{"user count not collected", newSnapshot(defaultConfig(), &model.SupportPacketStats{}, professional()), unknownStatsWant},
+		{"unlicensed at 2000 users", newSnapshot(defaultConfig(), withStats(2000, 0), unlicensed()), resolvedWant},
+		{"license unavailable at 2000 users", newSnapshot(defaultConfig(), withStats(2000, 0), nil), unknownLicenseWant},
+		{"license unavailable below 2000 users", newSnapshot(defaultConfig(), withStats(1999, 0), nil), resolvedWant.withValue(1999)},
 	}
 
 	for _, tc := range testCases {
@@ -72,22 +94,28 @@ func TestDBNoSearchReplica(t *testing.T) {
 	dbSearchUnset := defaultConfig()
 	dbSearchUnset.SqlSettings.DisableDatabaseSearch = nil
 
+	const message = "health.rule.db_no_search_replica.message"
+	const esMessage = "health.rule.db_no_search_replica.message.elasticsearch"
+
 	testCases := []struct {
 		name     string
 		snapshot *healthcheck.Snapshot
 		want     want
 	}{
-		{"config absent", newSnapshot(nil, withStats(0, 2_000_000), nil), unknownConfigWant},
-		{"database search at 2M posts", newSnapshot(defaultConfig(), withStats(0, 2_000_000), nil), firingWant("health.rule.db_no_search_replica.message").withValue(2_000_000)},
-		{"database search below 2M posts", newSnapshot(defaultConfig(), withStats(0, 1_999_999), nil), resolvedWant.withValue(1_999_999)},
-		{"indexing without searching at 2M posts", newSnapshot(indexingOnly, withStats(0, 2_000_000), nil), firingWant("health.rule.db_no_search_replica.message").withValue(2_000_000)},
-		{"elasticsearch searching", newSnapshot(searching, withStats(0, 2_000_000), nil), resolvedWant},
-		{"search replica configured", newSnapshot(withSearchReplica, withStats(0, 2_000_000), nil), resolvedWant},
-		{"searching unreadable", newSnapshot(searchingUnset, withStats(0, 2_000_000), nil), unknownConfigWant},
-		{"database search disabled", newSnapshot(dbSearchDisabled, withStats(0, 2_000_000), nil), resolvedWant},
-		{"database search setting unreadable", newSnapshot(dbSearchUnset, withStats(0, 2_000_000), nil), unknownConfigWant},
-		{"stats absent", newSnapshot(defaultConfig(), nil, nil), unknownStatsWant},
-		{"stats absent while searching", newSnapshot(searching, nil, nil), resolvedWant},
+		{"config absent", newSnapshot(nil, withStats(0, 2_000_000), professional()), unknownConfigWant},
+		{"database search at 2M posts", newSnapshot(defaultConfig(), withStats(0, 2_000_000), professional()), firingWant(message).withValue(2_000_000)},
+		{"database search below 2M posts", newSnapshot(defaultConfig(), withStats(0, 1_999_999), professional()), resolvedWant.withValue(1_999_999)},
+		{"elasticsearch licensed but not searching", newSnapshot(indexingOnly, withStats(0, 2_000_000), enterprise()), firingWant(esMessage).withValue(2_000_000)},
+		{"elasticsearch searching", newSnapshot(searching, withStats(0, 2_000_000), enterprise()), resolvedWant},
+		{"searching without the elasticsearch license", newSnapshot(searching, withStats(0, 2_000_000), professional()), firingWant(message).withValue(2_000_000)},
+		{"search replica configured", newSnapshot(withSearchReplica, withStats(0, 2_000_000), professional()), resolvedWant},
+		{"searching unreadable", newSnapshot(searchingUnset, withStats(0, 2_000_000), professional()), unknownConfigWant},
+		{"database search disabled", newSnapshot(dbSearchDisabled, withStats(0, 2_000_000), professional()), resolvedWant},
+		{"database search setting unreadable", newSnapshot(dbSearchUnset, withStats(0, 2_000_000), professional()), unknownConfigWant},
+		{"stats absent", newSnapshot(defaultConfig(), nil, professional()), unknownStatsWant},
+		{"stats absent while searching", newSnapshot(searching, nil, enterprise()), resolvedWant},
+		{"unlicensed at 2M posts", newSnapshot(defaultConfig(), withStats(0, 2_000_000), unlicensed()), resolvedWant},
+		{"license unavailable at 2M posts", newSnapshot(defaultConfig(), withStats(0, 2_000_000), nil), unknownLicenseWant},
 	}
 
 	for _, tc := range testCases {

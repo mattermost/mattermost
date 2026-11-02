@@ -34,8 +34,11 @@ func (a *App) hydratePropertyValues(rctx request.CTX, posts []*model.Post, group
 		return
 	}
 
-	// Identify the viewer so a redaction hook on the group can filter per caller.
-	rctx = RequestContextWithCallerID(rctx, rctx.Session().UserId)
+	// Identify the viewer so a redaction hook on the group can filter per
+	// caller. A local-mode session has no UserId and is tagged as the local
+	// admin; tagging its empty UserId would have the access control hook
+	// refuse every read.
+	rctx = rctxWithSessionCallerID(rctx)
 
 	// Fields are scoped per channel, so posts are grouped by channel.
 	byChannel := map[string][]*model.Post{}

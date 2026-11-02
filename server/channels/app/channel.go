@@ -385,7 +385,7 @@ func (a *App) setChannelPropertyValuesOnCreate(rctx request.CTX, channel *model.
 		value.UpdatedBy = channel.CreatorId
 	}
 
-	_, appErr := a.UpsertPropertyValues(rctx, values, model.PropertyFieldObjectTypeChannel, channel.Id, "")
+	_, appErr := a.UpsertPropertyValues(rctxWithSessionCallerID(rctx), values, model.PropertyFieldObjectTypeChannel, channel.Id, "")
 	if appErr == nil {
 		return nil
 	}
@@ -747,7 +747,7 @@ func (a *App) createGroupChannel(rctx request.CTX, userIDs []string, creatorID s
 		} else {
 			// if we could successfully share the channel, we invite
 			// the remotes involved to it
-			if sc, _ := a.getSharedChannelsService(false); sc != nil {
+			if sc, _ := a.getSharedChannelsService(); sc != nil {
 				for remoteID := range remoteIDs {
 					rc, err := a.Srv().Store().RemoteCluster().Get(remoteID, false)
 					if err != nil {
@@ -1905,8 +1905,7 @@ func (a *App) addUserToChannel(rctx request.CTX, user *model.User, channel *mode
 
 	channelMember, nErr := a.Srv().Store().Channel().GetMember(rctx, channel.Id, user.Id)
 	if nErr != nil {
-		var nfErr *store.ErrNotFound
-		if !errors.As(nErr, &nfErr) {
+		if _, ok := errors.AsType[*store.ErrNotFound](nErr); !ok {
 			return nil, model.NewAppError("AddUserToChannel", "app.channel.get_member.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 	} else {
@@ -2057,8 +2056,7 @@ type ChannelMemberOpts struct {
 // AddChannelMember adds a user to a channel. It is a wrapper over AddUserToChannel.
 func (a *App) AddChannelMember(rctx request.CTX, userID string, channel *model.Channel, opts ChannelMemberOpts) (*model.ChannelMember, *model.AppError) {
 	if member, err := a.Srv().Store().Channel().GetMember(rctx, channel.Id, userID); err != nil {
-		var nfErr *store.ErrNotFound
-		if !errors.As(err, &nfErr) {
+		if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
 			return nil, model.NewAppError("AddChannelMember", "app.channel.get_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	} else {
@@ -4541,8 +4539,7 @@ func (a *App) postMessageForConvertGroupMessageToChannel(rctx request.CTX, chann
 func (s *Server) getDirectChannel(rctx request.CTX, userID, otherUserID string) (*model.Channel, *model.AppError) {
 	channel, nErr := s.Store().Channel().GetByName("", model.GetDMNameFromIds(userID, otherUserID), true)
 	if nErr != nil {
-		var nfErr *store.ErrNotFound
-		if errors.As(nErr, &nfErr) {
+		if _, ok := errors.AsType[*store.ErrNotFound](nErr); ok {
 			return nil, nil
 		}
 
