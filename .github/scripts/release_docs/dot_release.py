@@ -42,6 +42,7 @@ DEPLOY_PAGES = release_docs_pr.DEPLOY_PAGES
 ARCHIVE = version_archive.ARCHIVE_PATH
 DOCS_DIR = "docs/main/product-overview"
 CONFIG_GO = "server/public/model/config.go"
+GO_VERSION_FILE = "server/.go-version"
 BREAKING_LABEL = "Breaking Change"
 # Labels that mark a PR or its Jira ticket as a security fix. GitHub's "3: Security Review"
 # and "Security/Review code" are review steps, not fixes, so they are not listed.
@@ -58,13 +59,15 @@ PR_IN_TITLE = re.compile(r"\s*\(#(\d+)\)\s*$")
 VERSION_BUMP = re.compile(r"(?i)^Update latest (?:patch |minor |major )?version to ")
 REVERT = re.compile(r'^Revert "(.+)"$')
 REVERTED_SHA = re.compile(r"This reverts commit ([0-9a-f]{7,40})")
-GO_BUMP = re.compile(r"(?i)\b(?:bump|upgrade|update)\w*\b.*\bgo(?:lang)?\b.*\d+\.\d+")
+# "go" or "golang" as a word, not a module path such as golang.org/x/net or go-bar.
+GO_BUMP = re.compile(r"(?i)\b(?:bump|upgrade|update)\w*\b.*(?<![./-])\bgo(?:lang)?\b(?![./-]).*\d+\.\d+")
 PLUGIN_BUMP = re.compile(r"(?i)pre-?packag|\bplugins?\b.*\bv?\d+\.\d+\.\d+")
 TOOLING_TITLE = re.compile(r"(?i)^(?:ci|tests?|e2e|lint|build)(?:\([^)]*\))?:|^(?:fix|chore|feat)\((?:e2e|ci|tests?|lint|build)\)"
                            r"|^e2e/|^\[e2e\]")
 DEPENDENCY_TITLE = re.compile(r"(?i)^(?:chore|build|fix)\(deps(?:-dev)?\)|^bump \S+ from \S+ to \S+")
 DEPENDENCY_AUTHORS = {"dependabot[bot]", "renovate[bot]"}
-NON_PRODUCT_PREFIXES = (".github/", "e2e-tests/", "docs/", "server/tests/", "server/build/", "tools/", ".devcontainer/")
+NON_PRODUCT_PREFIXES = (".github/", "e2e-tests/", "docs/", "server/tests/", "server/build/", "server/scripts/",
+                        "webapp/scripts/", "tools/", "scripts/", ".devcontainer/")
 NON_PRODUCT_PARTS = ("/__snapshots__/", "/testdata/", "/tests/", "/test/", "/e2e/", "/mocks/", "/__mocks__/")
 NON_PRODUCT_SUFFIXES = ("_test.go", ".test.ts", ".test.tsx", ".test.js", ".test.jsx", ".snap",
                         ".golangci.yml", ".eslintrc.json", ".eslintrc.js", ".stylelintrc.json")
@@ -166,11 +169,11 @@ def skip_reason(commit: dict, go_changed: bool, plugins_changed: bool) -> str | 
     product = [f for f in files if is_product_file(f)]
     if VERSION_BUMP.match(title):
         return "version bump"
-    if go_changed and (BUILDENV_DOCKERFILE in files or GO_BUMP.search(title)):
+    if go_changed and (BUILDENV_DOCKERFILE in files or GO_VERSION_FILE in files or GO_BUMP.search(title)):
         return "Go update: in the Go runtime line"
-    if product == [PLUGIN_MAKEFILE] or (PLUGIN_BUMP.search(title) and set(product) <= {PLUGIN_MAKEFILE}):
+    if PLUGIN_BUMP.search(title) and set(product) <= {PLUGIN_MAKEFILE}:
         return "plugin update: in the pre-packaged plugin lines" if plugins_changed else "plugin update, undone in this range"
-    if TOOLING_TITLE.search(title) or (files and not product):
+    if TOOLING_TITLE.search(title) or (files and set(product) <= {PLUGIN_MAKEFILE}):
         return "CI, test, e2e, lint or build tooling only"
     return None
 
@@ -189,14 +192,32 @@ def polish(text: str) -> str:
     text = re.sub(r"\(?https://github\.com/[\w.-]+/[\w.-]+/(?:pull|issues)/\d+\)?", "", text)
     text = re.sub(r"\(?\b(?:MM|SEC)-\d+\b\)?:?", "", text)
     text = re.sub(r"\(#\d+\)|(?<![\w&])#\d+\b", "", text)
+    text = re.sub(r"\(\s*\)", "", text)
     text = re.sub(r"(?<!`)`([^`\n]+)`(?!`)", r"``\1``", text)
-    text = " ".join(text.split()).strip(" -")
+    text = re.sub(r"\s+([.,;:!?])", r"\1", " ".join(text.split())).strip(" -")
     if not text:
         return ""
     text = text[0].upper() + text[1:]
     if not text.endswith((".", "!", "?", ":")):
         text += "."
     return gc.escape_mdx_unsafe(text)
+
+
+def _note_items(text: str) -> list[str]:
+    """A release note's lines as items: a list marker, or a line ending a sentence followed by
+    one starting with a capital, starts a new item; any other line continues the one before."""
+    items = []
+    for raw in text.splitlines():
+        line = raw.strip()
+        if not line or CHECKER_LINE.match(line):
+            continue
+        marked = re.match(r"^[-*]\s+", line)
+        line = line[marked.end():] if marked else line
+        if items and not marked and not (re.search(r"[.!?)]$", items[-1]) and line[:1].isupper()):
+            items[-1] += " " + line
+        else:
+            items.append(line)
+    return items
 
 
 def note_bullets(body: str) -> list[str]:
@@ -206,11 +227,8 @@ def note_bullets(body: str) -> list[str]:
     bullets = []
     for note in gc.extract_release_notes(body or "") or []:
         text, _ = gc.split_docs_line(note)
-        kept = " ".join(line.strip() for line in text.splitlines() if line.strip() and not CHECKER_LINE.match(line.strip()))
-        if not kept:
-            continue
-        parts = re.split(r"(?<=[.!?])\s+Also (?=[a-z])", kept)
-        bullets += [polish(part) for part in parts]
+        for item in _note_items(text):
+            bullets += [polish(part) for part in re.split(r"(?<=[.!?])\s+Also (?=[a-z])", item)]
     return [b for b in bullets if b]
 
 
@@ -278,13 +296,28 @@ class Release:
 
 
 def plugin_name(package: str, changelogs: list[str]) -> str:
-    """The name the changelog already gives the plugin (newest mention first), else the usual one."""
-    for text in changelogs:
-        match = re.search(rf"Pre-packaged (.+?) plugin version \[v[^\]]+\]\(https://github\.com/mattermost/{re.escape(package)}/",
-                          text or "")
-        if match:
-            return match.group(1)
-    return plugin_display_name(package)
+    """The name the changelog gives the plugin most often (the newest on a tie), else the usual one."""
+    pattern = rf"Pre-packaged (.+?) plugin version \[v[^\]]+\]\(https://github\.com/mattermost/{re.escape(package)}/"
+    names = [name for text in changelogs for name in re.findall(pattern, text or "")]
+    if not names:
+        return plugin_display_name(package)
+    counts = Counter(names)
+    return max(counts, key=lambda name: (counts[name], -names.index(name)))
+
+
+def go_version(gh, ref: str) -> tuple[str | None, str]:
+    """(the Go version a tag builds with, a note when the two places that say so disagree).
+
+    ``server/.go-version`` is what the build uses; ``Dockerfile.buildenv`` was left behind on
+    some release branches (release-10.11 said 1.24.5 while building with 1.25.8).
+    """
+    pinned = (gh.file(REPO, GO_VERSION_FILE, ref) or "").strip() or None
+    image = go_version_from_buildenv(gh.file(REPO, BUILDENV_DOCKERFILE, ref) or "")
+    image = image.removeprefix("go") if image else None
+    note = ""
+    if pinned and image and pinned != image:
+        note = f"{ref}: {GO_VERSION_FILE} says {pinned}, {BUILDENV_DOCKERFILE} says {image}; used {pinned}"
+    return pinned or image, note
 
 
 def _security(labels: set, keys: set, jira_labels) -> bool:
@@ -313,12 +346,13 @@ def gather(gh, release: Release, changelogs: list[str], claude, fetch, jira_labe
     if not release.date:
         release.date, release.date_source = tag_commit["date"][:10], f"the commit date of tag {tag}"
 
-    old_go = go_version_from_buildenv(gh.file(REPO, BUILDENV_DOCKERFILE, previous_tag) or "")
-    new_go = go_version_from_buildenv(gh.file(REPO, BUILDENV_DOCKERFILE, tag) or "")
+    (old_go, old_note), (new_go, new_note) = go_version(gh, previous_tag), go_version(gh, tag)
+    result.notes += [n for n in (old_note, new_note) if n]
     if not old_go or not new_go:
-        result.todo(f"{version}: no Go version in {BUILDENV_DOCKERFILE} at {previous_tag if not old_go else tag}")
+        result.todo(f"{version}: no Go version in {GO_VERSION_FILE} or {BUILDENV_DOCKERFILE} at "
+                    f"{previous_tag if not old_go else tag}")
     elif old_go != new_go:
-        release.go = (old_go.removeprefix("go"), new_go.removeprefix("go"))
+        release.go = (old_go, new_go)
 
     old_plugins = plugin_packages(gh.file(REPO, PLUGIN_MAKEFILE, previous_tag) or "")
     new_plugins = plugin_packages(gh.file(REPO, PLUGIN_MAKEFILE, tag) or "")
@@ -327,7 +361,8 @@ def gather(gh, release: Release, changelogs: list[str], claude, fetch, jira_labe
         if old_plugins.get(package) == plugin_version:
             continue
         if fetch(f"https://github.com/mattermost/{package}/releases/tag/{plugin_version}", "HEAD")[0] != 200:
-            result.todo(f"{version}: {package} has no {plugin_version} release on GitHub")
+            result.todo(f"{version}: the changelog links {package} {plugin_version}, but its GitHub release page "
+                        "is not public (not found)")
         release.plugins.append(f"Pre-packaged {plugin_name(package, changelogs)} plugin version "
                                f"{plugin_version_link(package, plugin_version)}.")
     for package in sorted(set(old_plugins) - set(new_plugins)):
@@ -363,6 +398,9 @@ def gather(gh, release: Release, changelogs: list[str], claude, fetch, jira_labe
         original = gh.pull(REPO, cherry) if cherry and cherry != pr["number"] else None
         original = original or pr
         source = f"#{original['number']}"
+        if TOOLING_TITLE.search(_core_title(original.get("title", ""))):
+            release.skipped.append((source, _core_title(original.get("title", "")), "CI, test, e2e, lint or build tooling only"))
+            continue
         if original["number"] in seen:
             release.skipped.append((f"#{pr['number']}", title, f"same change as {source}"))
             continue
@@ -937,14 +975,18 @@ def new_target(gh, base: str, first: Version) -> Target:
     return target
 
 
-def sync_awaiting(gh, number: int, tags: list[str]) -> str:
+def sync_awaiting(gh, pr: dict, tags: list[str]) -> str:
     """``Do Not Merge/Awaiting Next Release`` stays until no GitHub release in the PR is a pre-release."""
+    labels = {label["name"] if isinstance(label, dict) else label for label in pr.get("labels", [])}
     waiting = [t for t in tags if (gh.release_by_tag(REPO, t) or {"prerelease": True}).get("prerelease")]
     if waiting:
-        gh.add_labels(REPO, number, [AWAITING_LABEL])
-        return f"Kept {AWAITING_LABEL}: {', '.join(waiting)} still a pre-release."
-    gh.remove_label(REPO, number, AWAITING_LABEL)
-    return f"Removed {AWAITING_LABEL}: every release in the PR is published."
+        if AWAITING_LABEL not in labels:
+            gh.add_labels(REPO, pr["number"], [AWAITING_LABEL])
+        return f"{AWAITING_LABEL}: {', '.join(waiting)} still a pre-release."
+    if AWAITING_LABEL in labels:
+        gh.remove_label(REPO, pr["number"], AWAITING_LABEL)
+        return f"Removed {AWAITING_LABEL}: every release in the PR is published."
+    return "Every release in the PR is published."
 
 
 def check_pr(title: str, files: dict, base: dict) -> list[str]:
@@ -1053,7 +1095,7 @@ def run(gh, versions: list[Version], env: dict, claude, fetch, live: bool, jira_
     if not result.files:
         outcome = f"PR #{target.pr['number']} is already up to date." if target.pr else "Nothing to change."
         if live and target.pr:
-            outcome += " " + sync_awaiting(gh, target.pr["number"], state["order"])
+            outcome += " " + sync_awaiting(gh, target.pr, state["order"])
         return result, outcome, base_files
     paths = ", ".join(f"`{p}`" for p in result.files)
     if not live:
@@ -1061,7 +1103,8 @@ def run(gh, versions: list[Version], env: dict, claude, fetch, live: bool, jira_
         return result, f"Dry run: would have {action} in {REPO}, changing {paths}.", base_files
     message = f"{result.title}\n\n{TRAILER}: {TASK}\n"
     action, number = write(gh, target, result.files, message, result.title, result.body, LABELS)
-    return result, f"{action} PR {REPO}#{number}, changing {paths}. {sync_awaiting(gh, number, state['order'])}", base_files
+    pr = target.pr or {"number": number, "labels": []}
+    return result, f"{action} PR {REPO}#{number}, changing {paths}. {sync_awaiting(gh, pr, state['order'])}", base_files
 
 
 def _refresh(v: Version, state: dict, severities: dict, files: dict, current, fetch, attempts, interval, sleep,
