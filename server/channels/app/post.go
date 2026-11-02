@@ -4343,7 +4343,37 @@ func (a *App) publishPostRevealedEventToAuthor(rctx request.CTX, post *model.Pos
 		connectionID,
 	)
 
-	postJSON, err := post.ToJSON()
+	// Prepare a copy for this author-addressed event. The post returned to the
+	// revealing user stays as it was.
+	authorPost := post.Clone()
+	if post.Metadata != nil {
+		metadataCopy := *post.Metadata
+		if len(post.Metadata.Embeds) > 0 {
+			embeds := make([]*model.PostEmbed, len(post.Metadata.Embeds))
+			for i, embed := range post.Metadata.Embeds {
+				if embed == nil {
+					continue
+				}
+				embedCopy := *embed
+				embeds[i] = &embedCopy
+			}
+			metadataCopy.Embeds = embeds
+		}
+		authorPost.Metadata = &metadataCopy
+	}
+
+	if sanitized, _, sanitizeErr := a.SanitizePostMetadataForUser(rctx, authorPost, post.UserId); sanitizeErr != nil {
+		rctx.Logger().Warn("Failed to prepare revealed post for author event",
+			mlog.String("post_id", post.Id),
+			mlog.String("user_id", post.UserId),
+			mlog.Err(sanitizeErr),
+		)
+		removePermalinkMetadataFromPost(authorPost)
+	} else {
+		authorPost = sanitized
+	}
+
+	postJSON, err := authorPost.ToJSON()
 	if err != nil {
 		return model.NewAppError("RevealPost", "app.post.marshal.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
