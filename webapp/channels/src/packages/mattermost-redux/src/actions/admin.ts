@@ -35,12 +35,13 @@ import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
 
 import {General} from '../constants';
 
-function toLogFilterQuery({serverNames = [], logLevels = [], dateFrom, dateTo}: LogFilter): LogFilterQuery {
+function toLogFilterQuery({serverNames = [], logLevels = [], dateFrom, dateTo, search = ''}: LogFilter): LogFilterQuery {
     return {
         server_names: serverNames,
         log_levels: logLevels,
         date_from: dateFrom,
         date_to: dateTo,
+        search,
     };
 }
 
