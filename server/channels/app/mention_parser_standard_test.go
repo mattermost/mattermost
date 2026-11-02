@@ -367,6 +367,10 @@ func TestProcessText(t *testing.T) {
 	groupID1 := model.NewId()
 	groupID2 := model.NewId()
 
+	maxLenKeyword := strings.Repeat("a", model.MentionKeysMaxLength)
+	maxLenDottedKeyword := strings.Repeat("b", model.MentionKeysMaxLength-1) + "."
+	longDottedWord := "@user1" + strings.Repeat(".", model.MentionKeysMaxLength)
+
 	for name, tc := range map[string]struct {
 		Text     string
 		Keywords map[string][]string
@@ -565,6 +569,136 @@ func TestProcessText(t *testing.T) {
 				OtherPotentialMentions: []string{"all"},
 			},
 		},
+		"Mention keyword ending in full stop followed by full stops": {
+			Text:     "hello @user1....",
+			Keywords: map[string][]string{"@user1.": {userID1}},
+			Expected: &MentionResults{
+				Mentions: map[string]MentionType{
+					userID1: KeywordMention,
+				},
+			},
+		},
+		"Mention keyword ending in hyphen followed by hyphens": {
+			Text:     "hello @user1----",
+			Keywords: map[string][]string{"@user1-": {userID1}},
+			Expected: &MentionResults{
+				Mentions: map[string]MentionType{
+					userID1: KeywordMention,
+				},
+			},
+		},
+		"Mention keyword ending in colon followed by colons": {
+			Text:     "hello @user1::::",
+			Keywords: map[string][]string{"@user1:": {userID1}},
+			Expected: &MentionResults{
+				Mentions: map[string]MentionType{
+					userID1: KeywordMention,
+				},
+			},
+		},
+		"Mention keyword ending in underscore followed by underscores": {
+			Text:     "hello @user1____",
+			Keywords: map[string][]string{"@user1_": {userID1}},
+			Expected: &MentionResults{
+				Mentions: map[string]MentionType{
+					userID1: KeywordMention,
+				},
+			},
+		},
+		"Mention keyword ending in full stop followed by mixed punctuation": {
+			Text:     "hello @user1.-",
+			Keywords: map[string][]string{"@user1.": {userID1}},
+			Expected: &MentionResults{
+				Mentions: map[string]MentionType{
+					userID1: KeywordMention,
+				},
+			},
+		},
+		"Mention keyword ending in full stop followed by all trailing characters": {
+			Text:     "hello @user1.-:_",
+			Keywords: map[string][]string{"@user1.": {userID1}},
+			Expected: &MentionResults{
+				Mentions: map[string]MentionType{
+					userID1: KeywordMention,
+				},
+			},
+		},
+		"Mention group ending in full stop followed by mixed punctuation": {
+			Text: "hello @engineering.-",
+			Groups: map[string]*model.Group{
+				groupID1: {Id: groupID1, Name: new("engineering.")},
+			},
+			Expected: &MentionResults{
+				GroupMentions: map[string]MentionType{groupID1: GroupMention},
+			},
+		},
+		"Mention here channel and all followed by several full stops": {
+			Text:     "hello @here... @channel... @all...",
+			Keywords: map[string][]string{},
+			Expected: &MentionResults{
+				HereMentioned:          true,
+				ChannelMentioned:       true,
+				AllMentioned:           true,
+				OtherPotentialMentions: []string{"here..", "channel..", "all.."},
+			},
+		},
+		"Mention mixed case keyword followed by full stops": {
+			Text:     "hello JoHn...",
+			Keywords: map[string][]string{"JoHn": {userID1}},
+			Expected: &MentionResults{
+				Mentions: map[string]MentionType{
+					userID1: KeywordMention,
+				},
+			},
+		},
+		"Mention mixed case keyword ending in full stop followed by mixed punctuation": {
+			Text:     "hello JoHn.-",
+			Keywords: map[string][]string{"JoHn.": {userID1}},
+			Expected: &MentionResults{
+				Mentions: map[string]MentionType{
+					userID1: KeywordMention,
+				},
+			},
+		},
+		"Punctuation words": {
+			Text:     "... .-:_ ___",
+			Keywords: map[string][]string{},
+			Expected: &MentionResults{},
+		},
+		"Keyword ending in full stop beside a run starting with hyphen": {
+			Text:     "hello @user1-.",
+			Keywords: map[string][]string{"@user1.": {userID1}},
+			Expected: &MentionResults{
+				OtherPotentialMentions: []string{"user1-"},
+			},
+		},
+		"Mention short keyword in a long word": {
+			Text:     longDottedWord,
+			Keywords: map[string][]string{"@user1": {userID1}},
+			Expected: &MentionResults{
+				Mentions: map[string]MentionType{
+					userID1: KeywordMention,
+				},
+			},
+		},
+		"Mention keyword of maximum length followed by one full stop": {
+			Text:     maxLenKeyword + ".",
+			Keywords: map[string][]string{maxLenKeyword: {userID1}},
+			Expected: &MentionResults{
+				Mentions: map[string]MentionType{
+					userID1: KeywordMention,
+				},
+			},
+		},
+		"Mention dotted keyword of maximum length followed by one full stop": {
+			Text:     maxLenDottedKeyword + ".",
+			Keywords: map[string][]string{maxLenDottedKeyword: {userID1}},
+			Expected: &MentionResults{
+				Mentions: map[string]MentionType{
+					userID1: KeywordMention,
+				},
+			},
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			p := makeStandardMentionParser(mapsToMentionKeywords(tc.Keywords, tc.Groups))
@@ -579,10 +713,20 @@ func TestProcessText(t *testing.T) {
 // cost by more than this. The total is bytes allocated while ProcessText runs.
 const maxTrailingRunDoublingRatio = 3.0
 
+// maxCappedTrailingRunRatio bounds the allocation of a trailing run four times
+// MentionKeysMaxLength against a run of MentionKeysMaxLength. Lowercasing the
+// whole longer word is about four times the shorter word, so the bound sits under that.
+const maxCappedTrailingRunRatio = 2.0
+
 const (
 	trailingRunLength       = 2000
 	trailingRunLongerLength = 6000
 	trailingRunGoroutines   = 20
+	cappedTrailingRunFactor = 4
+	// Repeats keep the concurrent length comparison above allocator noise.
+	// One call allocates only a few dozen bytes, which is smaller than the
+	// variation between runs of the same input.
+	cappedTrailingRunRepeats = 200
 )
 
 // processTextAllocBytes reports bytes allocated by one ProcessText call.
@@ -602,6 +746,10 @@ func processTextAllocBytes(text string, keywords map[string][]string) uint64 {
 // concurrentProcessTextAllocBytes reports bytes allocated by concurrent
 // ProcessText calls on the same text.
 func concurrentProcessTextAllocBytes(text string, keywords map[string][]string, goroutines int) uint64 {
+	return concurrentProcessTextAllocBytesRepeated(text, keywords, goroutines, 1)
+}
+
+func concurrentProcessTextAllocBytesRepeated(text string, keywords map[string][]string, goroutines int, repeats int) uint64 {
 	parsed := mapsToMentionKeywords(keywords, nil)
 	parsers := make([]*StandardMentionParser, goroutines)
 	for i := range parsers {
@@ -618,7 +766,9 @@ func concurrentProcessTextAllocBytes(text string, keywords map[string][]string, 
 	for _, parser := range parsers {
 		go func(p *StandardMentionParser) {
 			defer wg.Done()
-			p.ProcessText(text)
+			for range repeats {
+				p.ProcessText(text)
+			}
 		}(parser)
 	}
 	wg.Wait()
@@ -639,9 +789,22 @@ func assertTrailingRunCost(t *testing.T, smallCost, largeCost uint64) {
 		ratio, smallCost, largeCost)
 }
 
+func assertCappedTrailingRunCost(t *testing.T, smallCost, largeCost uint64) {
+	t.Helper()
+	if smallCost == 0 {
+		t.Fatal("shorter run allocated nothing")
+	}
+	ratio := float64(largeCost) / float64(smallCost)
+	t.Logf("capped trailing run cost ratio %.2f (shorter=%d longer=%d)", ratio, smallCost, largeCost)
+	assert.LessOrEqualf(t, ratio, maxCappedTrailingRunRatio,
+		"longer trailing run cost %.2f times (shorter=%d bytes, longer=%d bytes)",
+		ratio, smallCost, largeCost)
+}
+
 // TestProcessTextTrailingRunCost checks that the bytes allocated by ProcessText
 // for a word with a trailing punctuation run stay proportional to that run.
 // The same check is applied to a longer run and to several calls at once.
+// A run of MentionKeysMaxLength is also compared with one four times as long.
 // The test is not parallel because the allocation total is process-wide.
 func TestProcessTextTrailingRunCost(t *testing.T) {
 	userID := model.NewId()
@@ -699,6 +862,26 @@ func TestProcessTextTrailingRunCost(t *testing.T) {
 				assertTrailingRunCost(t, shortCost, longCost)
 			})
 		}
+	})
+
+	t.Run("length limit", func(t *testing.T) {
+		prefix := "@User1"
+		keywords := map[string][]string{strings.ToLower(prefix): {userID}}
+		shortText := prefix + strings.Repeat(".", model.MentionKeysMaxLength)
+		longText := prefix + strings.Repeat(".", model.MentionKeysMaxLength*cappedTrailingRunFactor)
+		shortCost := processTextAllocBytes(shortText, keywords)
+		longCost := processTextAllocBytes(longText, keywords)
+		assertCappedTrailingRunCost(t, shortCost, longCost)
+	})
+
+	t.Run("concurrent length limit", func(t *testing.T) {
+		prefix := "@User1"
+		keywords := map[string][]string{strings.ToLower(prefix): {userID}}
+		shortText := prefix + strings.Repeat(".", model.MentionKeysMaxLength)
+		longText := prefix + strings.Repeat(".", model.MentionKeysMaxLength*cappedTrailingRunFactor)
+		shortCost := concurrentProcessTextAllocBytesRepeated(shortText, keywords, trailingRunGoroutines, cappedTrailingRunRepeats)
+		longCost := concurrentProcessTextAllocBytesRepeated(longText, keywords, trailingRunGoroutines, cappedTrailingRunRepeats)
+		assertCappedTrailingRunCost(t, shortCost, longCost)
 	})
 }
 
