@@ -649,10 +649,39 @@ func (a *App) FillInPostProps(rctx request.CTX, post *model.Post, channel *model
 		// This is a transient hint from the client, not persisted data
 		post.DelProp(model.PostPropsCurrentTeamId)
 
+		// Key each resolved channel by the mention text used in the post.
+		mentionKeys := make(map[string]*model.Channel, len(mentionedChannels))
+		for _, mentioned := range mentionedChannels {
+			mentionKeys[mentioned.Name] = mentioned
+		}
+
+		// Mentions that did not match a channel name may be channel IDs (~<channel_id>). This lets
+		// integrations link a channel without knowing its name, which is randomly generated (and
+		// unrelated to the ID) when PrivacySettings.UseAnonymousURLs is enabled. Names take precedence.
+		var idMentions []string
+		for _, mention := range channelMentions {
+			if _, ok := mentionKeys[mention]; !ok && model.IsValidId(mention) {
+				idMentions = append(idMentions, mention)
+			}
+		}
+		if len(idMentions) > 0 {
+			channelsByID, idErr := a.Srv().Store().Channel().GetChannelsByIds(idMentions, false)
+			if idErr != nil {
+				return model.NewAppError("FillInPostProps", "app.channel.get_channels_by_ids.app_error", nil, "", http.StatusInternalServerError).Wrap(idErr)
+			}
+			for _, mentioned := range channelsByID {
+				// Match name-based resolution: no DMs/GMs, and stay within the post's team when known.
+				if mentioned.IsGroupOrDirect() || (teamId != "" && mentioned.TeamId != teamId) {
+					continue
+				}
+				mentionKeys[mentioned.Id] = mentioned
+			}
+		}
+
 		// Populate channel_mentions for channels the POST CREATOR has access to
 		// This includes public channels and private channels where creator is a member
 		// Prevents information disclosure while supporting private channel mentions for members
-		for _, mentioned := range mentionedChannels {
+		for mentionKey, mentioned := range mentionKeys {
 			// Resolve the channel mention if the post creator may see the channel's name/link.
 			if a.HasPermissionToResolveChannelMention(rctx, post.UserId, mentioned) {
 				team, err := a.Srv().Store().Team().Get(mentioned.TeamId)
@@ -660,7 +689,7 @@ func (a *App) FillInPostProps(rctx request.CTX, post *model.Post, channel *model
 					rctx.Logger().Warn("Failed to get team of the channel mention", mlog.String("team_id", channel.TeamId), mlog.String("channel_id", channel.Id), mlog.Err(err))
 					continue
 				}
-				channelMentionsProp[mentioned.Name] = map[string]any{
+				channelMentionsProp[mentionKey] = map[string]any{
 					"display_name": mentioned.DisplayName,
 					"team_name":    team.Name,
 					"id":           mentioned.Id, // Used by WebSocket broadcast hook for permission checks

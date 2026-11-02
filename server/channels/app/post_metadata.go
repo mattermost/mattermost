@@ -446,6 +446,13 @@ func (a *App) sanitizeChannelMentionsForUser(rctx request.CTX, post *model.Post,
 		// Fetch the channel from database (gets fresh data)
 		channel, err := a.GetChannelByNameForTeamName(rctx, channelName, teamName, true)
 
+		// ~<channel_id> mentions are keyed by the channel ID rather than its name (see FillInPostProps).
+		if err != nil && model.IsValidId(channelName) {
+			if storedID, _ := dataMap["id"].(string); storedID == channelName {
+				channel, err = a.GetChannel(rctx, channelName)
+			}
+		}
+
 		if err != nil {
 			// Channel not found or error fetching, skip
 			continue

@@ -872,6 +872,93 @@ func TestFillInPostPropsChannelMentionResolution(t *testing.T) {
 	})
 }
 
+func TestFillInPostPropsChannelMentionByID(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	// Simulate a channel created with PrivacySettings.UseAnonymousURLs: its name is a random ID
+	// that integrations have no way to guess, and that differs from the channel ID.
+	anonymous, appErr := th.App.CreateChannel(th.Context, &model.Channel{
+		DisplayName: "Incident Response",
+		Name:        model.NewId(),
+		Type:        model.ChannelTypeOpen,
+		TeamId:      th.BasicTeam.Id,
+	}, false)
+	require.Nil(t, appErr)
+	require.NotEqual(t, anonymous.Id, anonymous.Name)
+
+	otherTeam := th.CreateTeam(t)
+	otherTeamChannel, appErr := th.App.CreateChannel(th.Context, &model.Channel{
+		DisplayName: "Other Team",
+		Name:        model.NewId(),
+		Type:        model.ChannelTypeOpen,
+		TeamId:      otherTeam.Id,
+	}, false)
+	require.Nil(t, appErr)
+
+	private, appErr := th.App.CreateChannel(th.Context, &model.Channel{
+		DisplayName: "Private",
+		Name:        model.NewId(),
+		Type:        model.ChannelTypePrivate,
+		TeamId:      th.BasicTeam.Id,
+	}, false)
+	require.Nil(t, appErr)
+
+	resolve := func(t *testing.T, post *model.Post) map[string]any {
+		t.Helper()
+		post.ChannelId = th.BasicChannel.Id
+		post.UserId = th.BasicUser.Id
+		require.Nil(t, th.App.FillInPostProps(th.Context, post, th.BasicChannel))
+		mentions, _ := post.GetProp(model.PostPropsChannelMentions).(map[string]any)
+		return mentions
+	}
+
+	t.Run("~channel_id in a message attachment resolves to the channel", func(t *testing.T) {
+		post := &model.Post{}
+		model.ParseMessageAttachment(post, []*model.MessageAttachment{{Text: "Join ~" + anonymous.Id + " now"}})
+
+		mentions := resolve(t, post)
+		require.Contains(t, mentions, anonymous.Id)
+		entry := mentions[anonymous.Id].(map[string]any)
+		assert.Equal(t, anonymous.DisplayName, entry["display_name"])
+		assert.Equal(t, th.BasicTeam.Name, entry["team_name"])
+		assert.Equal(t, anonymous.Id, entry["id"])
+	})
+
+	t.Run("~channel_id mention survives read-time sanitization", func(t *testing.T) {
+		post := &model.Post{Message: "see ~" + anonymous.Id}
+		require.NotNil(t, resolve(t, post))
+
+		// Member of the channel: mention is kept with fresh data.
+		sanitized, _ := th.App.sanitizeChannelMentionsForUser(th.Context, post.Clone(), th.BasicUser.Id).GetProp(model.PostPropsChannelMentions).(map[string]any)
+		require.Contains(t, sanitized, anonymous.Id)
+		assert.Equal(t, anonymous.DisplayName, sanitized[anonymous.Id].(map[string]any)["display_name"])
+
+		// A user outside the team must not see it.
+		outsider := th.CreateUser(t)
+		assert.Nil(t, th.App.sanitizeChannelMentionsForUser(th.Context, post.Clone(), outsider.Id).GetProp(model.PostPropsChannelMentions))
+	})
+
+	t.Run("~channel_name still resolves", func(t *testing.T) {
+		mentions := resolve(t, &model.Post{Message: "see ~" + anonymous.Name})
+		require.Contains(t, mentions, anonymous.Name)
+		assert.NotContains(t, mentions, anonymous.Id)
+	})
+
+	t.Run("~channel_id on another team is not resolved", func(t *testing.T) {
+		assert.Nil(t, resolve(t, &model.Post{Message: "see ~" + otherTeamChannel.Id}))
+	})
+
+	t.Run("~channel_id of a private channel the author cannot see is not resolved", func(t *testing.T) {
+		assert.Nil(t, resolve(t, &model.Post{Message: "see ~" + private.Id}))
+	})
+
+	t.Run("~channel_id of a direct channel is not resolved", func(t *testing.T) {
+		dm := th.CreateDmChannel(t, th.BasicUser2)
+		assert.Nil(t, resolve(t, &model.Post{Message: "see ~" + dm.Id}))
+	})
+}
+
 func TestImageProxy(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
