@@ -308,10 +308,6 @@ const keepUserValue = (field: AppField, previousField: AppField | undefined, val
         }
         return value;
     case AppFieldTypes.CHECKBOX_MATRIX: {
-        // Guard against a stored value that isn't matrix entries.
-        if (!Array.isArray(value)) {
-            return undefined;
-        }
         const rowValues = new Set((field.matrix_config?.rows || []).map((row) => row.value));
         const columnValues = new Set((field.matrix_config?.columns || []).map((column) => column.value));
         const singlePerRow = field.matrix_config?.row_selection === 'single';
