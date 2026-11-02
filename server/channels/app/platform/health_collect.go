@@ -5,13 +5,12 @@ package platform
 
 import (
 	"cmp"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"maps"
 	"time"
-
-	"github.com/goccy/go-yaml"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -19,9 +18,24 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
 )
 
+// healthCollectTimeout bounds a run whose context has no deadline. It must cover the probes'
+// own timeouts: OAuth and push are 10 s each, the pg_stat queries 10 s each, plus SMTP, LDAP,
+// Elasticsearch and S3.
+const healthCollectTimeout = 3 * time.Minute
+
 // CollectHealthNodes collects every connected node's diagnostics for a health check run and
 // returns the snapshot's nodes. Without a cluster it returns the local node only.
-func (ps *PlatformService) CollectHealthNodes(rctx request.CTX, deadline time.Duration) ([]*healthcheck.NodeSnapshot, error) {
+//
+// The run waits for every connected node until the context's deadline, or healthCollectTimeout
+// if the context has none. Nodes that have not replied by then are marked with
+// healthcheck.ErrNodeNoReply. Cancelling the context aborts the run with an error.
+func (ps *PlatformService) CollectHealthNodes(rctx request.CTX) ([]*healthcheck.NodeSnapshot, error) {
+	if _, ok := rctx.Context().Deadline(); !ok {
+		ctx, cancel := context.WithTimeout(rctx.Context(), healthCollectTimeout)
+		defer cancel()
+		rctx = rctx.WithContext(ctx)
+	}
+
 	var (
 		localID string
 		infos   []*model.ClusterInfo
@@ -34,7 +48,7 @@ func (ps *PlatformService) CollectHealthNodes(rctx request.CTX, deadline time.Du
 		}
 	}
 
-	collected, err := ps.collectNodeDiagnostics(rctx, localID, infos, deadline)
+	collected, err := ps.collectNodeDiagnostics(rctx, localID, infos)
 	if err != nil {
 		return nil, err
 	}
@@ -43,9 +57,9 @@ func (ps *PlatformService) CollectHealthNodes(rctx request.CTX, deadline time.Du
 }
 
 // collectNodeDiagnostics broadcasts a collect request, collects this node's diagnostics
-// meanwhile, and waits until every connected node has replied or the deadline passes. The
-// result is keyed by cluster ID; a node that did not reply has no entry.
-func (ps *PlatformService) collectNodeDiagnostics(rctx request.CTX, localID string, infos []*model.ClusterInfo, deadline time.Duration) (map[string]*model.NodeDiagnostics, error) {
+// meanwhile, and waits until every connected node has replied or the context's deadline
+// passes. The result is keyed by cluster ID; a node that did not reply has no entry.
+func (ps *PlatformService) collectNodeDiagnostics(rctx request.CTX, localID string, infos []*model.ClusterInfo) (map[string]*model.NodeDiagnostics, error) {
 	// A node registered in the database but not connected never gets the broadcast, so it
 	// is not waited for.
 	pending := map[string]bool{}
@@ -82,9 +96,6 @@ func (ps *PlatformService) collectNodeDiagnostics(rctx request.CTX, localID stri
 		})
 	}
 
-	timer := time.NewTimer(deadline)
-	defer timer.Stop()
-
 	// Failures are already recorded per section in the envelope.
 	local, _ := ps.GetSupportPacketDiagnostics(rctx)
 	collected := map[string]*model.NodeDiagnostics{localID: local}
@@ -100,11 +111,13 @@ func (ps *PlatformService) collectNodeDiagnostics(rctx request.CTX, localID stri
 				continue
 			}
 			collected[reply.NodeID] = diagnostics
-		case <-timer.C:
-			rctx.Logger().Warn("Nodes did not reply to the health collect request in time", mlog.Any("node_ids", pending), mlog.Duration("deadline", deadline))
-			return collected, nil
 		case <-rctx.Context().Done():
-			return nil, rctx.Context().Err()
+			err := rctx.Context().Err()
+			if !errors.Is(err, context.DeadlineExceeded) {
+				return nil, err
+			}
+			rctx.Logger().Warn("Nodes did not reply to the health collect request in time", mlog.Any("node_ids", pending))
+			return collected, nil
 		}
 	}
 
@@ -165,7 +178,7 @@ func (ps *PlatformService) handleHealthCollect(msg *model.ClusterMessage) {
 
 		data, err := encodeHealthCollectReply(req.RunID, ps.Cluster().GetClusterId(), diagnostics)
 		if err != nil {
-			ps.logger.Warn("Failed to encode health collect reply", mlog.String("run_id", req.RunID), mlog.Err(err))
+			ps.logger.Error("Failed to encode health collect reply", mlog.String("run_id", req.RunID), mlog.Err(err))
 			return
 		}
 
@@ -210,11 +223,6 @@ func (ps *PlatformService) handleHealthCollectReply(msg *model.ClusterMessage) {
 
 // encodeHealthCollectReply returns the JSON of a HealthCollectReply.
 func encodeHealthCollectReply(runID, nodeID string, diagnostics *model.NodeDiagnostics) ([]byte, error) {
-	data, err := yaml.Marshal(diagnostics.Diagnostics)
-	if err != nil {
-		return nil, err
-	}
-
 	errs := make(map[model.NodeSection]string, len(diagnostics.Errors))
 	for section, sectionErr := range diagnostics.Errors {
 		errs[section] = ""
@@ -223,13 +231,12 @@ func encodeHealthCollectReply(runID, nodeID string, diagnostics *model.NodeDiagn
 		}
 	}
 
-	return json.Marshal(model.HealthCollectReply{RunID: runID, NodeID: nodeID, Diagnostics: data, Errors: errs})
+	return json.Marshal(model.HealthCollectReply{RunID: runID, NodeID: nodeID, Diagnostics: diagnostics.Diagnostics, Errors: errs})
 }
 
 func decodeHealthCollectReply(reply *model.HealthCollectReply) (*model.NodeDiagnostics, error) {
-	var diagnostics model.SupportPacketDiagnostics
-	if err := yaml.Unmarshal(reply.Diagnostics, &diagnostics); err != nil {
-		return nil, err
+	if reply.Diagnostics == nil {
+		return nil, errors.New("the reply has no diagnostics")
 	}
 
 	errs := make(model.SectionErrors, len(reply.Errors))
@@ -240,5 +247,5 @@ func decodeHealthCollectReply(reply *model.HealthCollectReply) (*model.NodeDiagn
 		}
 	}
 
-	return &model.NodeDiagnostics{Diagnostics: &diagnostics, Errors: errs}, nil
+	return &model.NodeDiagnostics{Diagnostics: reply.Diagnostics, Errors: errs}, nil
 }

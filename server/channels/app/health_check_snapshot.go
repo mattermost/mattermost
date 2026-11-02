@@ -12,11 +12,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
 )
 
-// healthCollectDeadline bounds how long a run waits for the other nodes' diagnostics. It must
-// cover the probes' own timeouts: OAuth and push are 10 s each, the pg_stat queries 10 s each,
-// plus SMTP, LDAP, Elasticsearch and S3.
-const healthCollectDeadline = 3 * time.Minute
-
 // BuildHealthSnapshot assembles a health snapshot from live server state, with every connected
 // node's diagnostics. A failed workspace collector is recorded in Snapshot.Sections rather than
 // failing the call; the error return is for a snapshot that cannot be built at all.
@@ -25,7 +20,7 @@ func (a *App) BuildHealthSnapshot(rctx request.CTX) (*healthcheck.Snapshot, erro
 }
 
 func (a *App) buildHealthSnapshotWithLatestVersionURL(rctx request.CTX, latestVersionURL string) (*healthcheck.Snapshot, error) {
-	nodes, err := a.Srv().Platform().CollectHealthNodes(rctx, healthCollectDeadline)
+	nodes, err := a.Srv().Platform().CollectHealthNodes(rctx)
 	if err != nil {
 		return nil, err
 	}

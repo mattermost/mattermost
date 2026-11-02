@@ -16,13 +16,13 @@ type HealthCollectRequest struct {
 	RequesterID string `json:"requester_id"` // the evaluating node's cluster ID
 }
 
-// HealthCollectReply is one node's answer. Diagnostics holds the node's diagnostics.yaml
-// bytes, so SupportPacketDiagnostics keeps one serialization (it has yaml tags only).
+// HealthCollectReply is one node's answer. SupportPacketDiagnostics has yaml tags only, so its
+// JSON uses the Go field names; both ends run the same build, so they agree on them.
 // Errors carries SectionErrors as strings, since error values do not serialize; a section
 // that collected cleanly maps to "".
 type HealthCollectReply struct {
-	RunID       string                 `json:"run_id"`
-	NodeID      string                 `json:"node_id"`
-	Diagnostics []byte                 `json:"diagnostics"`
-	Errors      map[NodeSection]string `json:"errors"`
+	RunID       string                    `json:"run_id"`
+	NodeID      string                    `json:"node_id"`
+	Diagnostics *SupportPacketDiagnostics `json:"diagnostics"`
+	Errors      map[NodeSection]string    `json:"errors"`
 }

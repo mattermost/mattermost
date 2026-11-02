@@ -6,6 +6,7 @@ package platform
 import (
 	"archive/zip"
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"os"
@@ -19,6 +20,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
@@ -106,6 +108,15 @@ func connectedInfos(ids ...string) []*model.ClusterInfo {
 	return infos
 }
 
+// withTimeout returns rctx with a deadline d from now.
+func withTimeout(t *testing.T, rctx request.CTX, d time.Duration) request.CTX {
+	t.Helper()
+
+	ctx, cancel := context.WithTimeout(rctx.Context(), d)
+	t.Cleanup(cancel)
+	return rctx.WithContext(ctx)
+}
+
 func nodesByID(nodes []*healthcheck.NodeSnapshot) map[string]*healthcheck.NodeSnapshot {
 	byID := map[string]*healthcheck.NodeSnapshot{}
 	for _, node := range nodes {
@@ -126,7 +137,7 @@ func TestCollectHealthNodes(t *testing.T) {
 		}
 
 		start := time.Now()
-		nodes, err := th.Service.CollectHealthNodes(th.Context, time.Minute)
+		nodes, err := th.Service.CollectHealthNodes(th.Context)
 		require.NoError(t, err)
 		assert.Less(t, time.Since(start), 30*time.Second)
 
@@ -150,7 +161,7 @@ func TestCollectHealthNodes(t *testing.T) {
 		}
 
 		start := time.Now()
-		nodes, err := th.Service.CollectHealthNodes(th.Context, 500*time.Millisecond)
+		nodes, err := th.Service.CollectHealthNodes(withTimeout(t, th.Context, 500*time.Millisecond))
 		require.NoError(t, err)
 		assert.GreaterOrEqual(t, time.Since(start), 500*time.Millisecond)
 
@@ -171,7 +182,7 @@ func TestCollectHealthNodes(t *testing.T) {
 			cluster.deliver(t, req.RunID, "node-3", "node-3-host", nil)
 		}
 
-		nodes, err := th.Service.CollectHealthNodes(th.Context, time.Minute)
+		nodes, err := th.Service.CollectHealthNodes(th.Context)
 		require.NoError(t, err)
 		byID := nodesByID(nodes)
 		require.Len(t, byID, 3)
@@ -184,7 +195,7 @@ func TestCollectHealthNodes(t *testing.T) {
 		runIDs := make(chan string, 1)
 		cluster.onRequest = func(req model.HealthCollectRequest) { runIDs <- req.RunID }
 
-		nodes, err := th.Service.CollectHealthNodes(th.Context, 100*time.Millisecond)
+		nodes, err := th.Service.CollectHealthNodes(withTimeout(t, th.Context, 100*time.Millisecond))
 		require.NoError(t, err)
 		assert.ErrorIs(t, nodesByID(nodes)["node-2"].CollectErr, healthcheck.ErrNodeNoReply)
 
@@ -195,12 +206,23 @@ func TestCollectHealthNodes(t *testing.T) {
 		th.Service.healthCollectMut.Unlock()
 	})
 
+	t.Run("cancelling the context aborts the run", func(t *testing.T) {
+		th, cluster := setupHealthCollect(t, connectedInfos("node-2"))
+		ctx, cancel := context.WithCancel(th.Context.Context())
+		defer cancel()
+		cluster.onRequest = func(model.HealthCollectRequest) { cancel() }
+
+		nodes, err := th.Service.CollectHealthNodes(th.Context.WithContext(ctx))
+		require.ErrorIs(t, err, context.Canceled)
+		assert.Nil(t, nodes)
+	})
+
 	t.Run("nodes that are not connected are not waited for", func(t *testing.T) {
 		infos := append(connectedInfos(), &model.ClusterInfo{Id: "node-2", Hostname: "node-2-host"})
 		th, cluster := setupHealthCollect(t, infos)
 
 		start := time.Now()
-		nodes, err := th.Service.CollectHealthNodes(th.Context, time.Minute)
+		nodes, err := th.Service.CollectHealthNodes(th.Context)
 		require.NoError(t, err)
 		assert.Less(t, time.Since(start), 30*time.Second)
 		assert.ErrorIs(t, nodesByID(nodes)["node-2"].CollectErr, healthcheck.ErrNodeNoReply)
@@ -211,7 +233,7 @@ func TestCollectHealthNodes(t *testing.T) {
 		th := Setup(t)
 		require.Nil(t, th.Service.Cluster())
 
-		nodes, err := th.Service.CollectHealthNodes(th.Context, time.Minute)
+		nodes, err := th.Service.CollectHealthNodes(th.Context)
 		require.NoError(t, err)
 		require.Len(t, nodes, 1)
 		assert.True(t, nodes[0].IsLeader)
@@ -282,6 +304,9 @@ func TestHealthCollectReplyRoundTrip(t *testing.T) {
 	require.Contains(t, got.Errors, model.SectionServerHost)
 	assert.NoError(t, got.Errors[model.SectionServerHost])
 	assert.EqualError(t, got.Errors[model.SectionSMTPProbe], "dial tcp 10.0.0.5:25: i/o timeout")
+
+	_, err = decodeHealthCollectReply(&model.HealthCollectReply{RunID: "run-1", NodeID: "node-1"})
+	assert.Error(t, err, "a reply without diagnostics")
 }
 
 func TestHealthNodes(t *testing.T) {
