@@ -5,14 +5,8 @@ import React, {useMemo} from 'react';
 import {defineMessages, useIntl} from 'react-intl';
 
 import {Combobox} from '@mattermost/compass-ui/components/combobox';
+import type {ComboboxOption} from '@mattermost/compass-ui/components/combobox';
 import type {PropertyFieldOption} from '@mattermost/types/properties';
-
-import {
-    attributeComboboxKeyGuard,
-    attributeComboboxMouseDownGuard,
-    clearButtonKeyGuard,
-    toComboboxOptions,
-} from './attribute_combobox_utils';
 
 const messages = defineMessages({
     listbox: {
@@ -73,6 +67,16 @@ export type AttributeComboboxProps = (SingleProps | MultiProps) & {
     zIndex?: number;
 };
 
+function toComboboxOptions(options: readonly PropertyFieldOption[], testIdPrefix?: string): ComboboxOption[] {
+    return options.map((option) => {
+        const comboboxOption: ComboboxOption = {value: option.id, label: option.name};
+        if (testIdPrefix) {
+            comboboxOption.menuItemProps = {'data-testid': `${testIdPrefix}-option-${option.id}`};
+        }
+        return comboboxOption;
+    });
+}
+
 export function AttributeCombobox(props: AttributeComboboxProps) {
     const {label, options, id, testId, disabled, invalid, placeholder, zIndex} = props;
 
@@ -106,34 +110,22 @@ export function AttributeCombobox(props: AttributeComboboxProps) {
     };
 
     return (
-
-        // Wrap only the Combobox. Both guards are needed: without the mousedown
-        // guard, focus can leave the input and the key guard stops seeing Escape.
-        <div
-            role='presentation'
-            onKeyDown={attributeComboboxKeyGuard}
-            onMouseDown={attributeComboboxMouseDownGuard}
-        >
-            <Combobox
-                id={id}
-                data-testid={testId}
-                aria-label={label}
-                options={comboboxOptions}
-                multiple={props.multiple}
-                value={props.multiple ? values : props.value}
-                selectedOptions={selectedOptions}
-                clearable={true}
-                clearButtonProps={{
-                    'data-testid': testId ? `${testId}-clear` : undefined,
-                    onKeyDown: clearButtonKeyGuard,
-                }}
-                disabled={disabled}
-                invalid={invalid}
-                placeholder={placeholder}
-                zIndex={zIndex}
-                {...labels}
-                onChange={handleChange}
-            />
-        </div>
+        <Combobox
+            id={id}
+            data-testid={testId}
+            aria-label={label}
+            options={comboboxOptions}
+            multiple={props.multiple}
+            value={props.multiple ? values : props.value}
+            selectedOptions={selectedOptions}
+            clearable={true}
+            clearButtonProps={{'data-testid': testId ? `${testId}-clear` : undefined}}
+            disabled={disabled}
+            invalid={invalid}
+            placeholder={placeholder}
+            zIndex={zIndex}
+            {...labels}
+            onChange={handleChange}
+        />
     );
 }

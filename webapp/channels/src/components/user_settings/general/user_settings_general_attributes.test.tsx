@@ -518,7 +518,6 @@ describe('components/user_settings/general/UserSettingsGeneral custom attribute 
 
             expect(getChipLabels()).toEqual(['Option 1']);
             expect(saveCustomProfileAttribute).not.toHaveBeenCalled();
-            expect(documentKeys()).not.toContain('Enter');
 
             await user.click(screen.getByRole('button', {name: 'Save'}));
 
