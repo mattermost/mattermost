@@ -29,7 +29,8 @@ TRUSTED_READER = './.e2e-trusted/.github/actions/e2e-status-lanes'
 READER_FORBIDDEN_REFS = {'${{ inputs.commit_sha }}', '${{ needs.resolve-pr.outputs.head_sha }}',
                         '${{ github.event.pull_request.head.sha }}', '${{ github.event.repository.default_branch }}'}
 LOCK = {'group': 'e2e-status-publish-${{ inputs.commit_sha }}', 'cancel-in-progress': False, 'queue': 'max'}
-PERMISSIONS = {'contents': 'read', 'statuses': 'write', 'pull-requests': 'read'}
+# actions: read lets triage read the run's failed jobs before it asks for an automatic re-run.
+PERMISSIONS = {'contents': 'read', 'statuses': 'write', 'pull-requests': 'read', 'actions': 'read'}
 
 
 def workflow(name):
