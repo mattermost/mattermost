@@ -1132,8 +1132,7 @@ func assignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Reconcile team scope: if all channels now belong to one team, set scope;
-	// if channels span multiple teams (e.g. system admin added cross-team), clear scope.
+	// Clear a team scope that does not match the channels now assigned.
 	if appErr := c.App.ReconcilePolicyTeamScope(c.AppContext, policyID); appErr != nil {
 		c.Logger.Warn("Failed to reconcile policy team scope after assign", mlog.String("policy_id", policyID), mlog.Err(appErr))
 	}
@@ -1211,15 +1210,6 @@ func unassignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Pre-flight: ensure scope is set before removing channels. This handles
-	// pre-scope policies (created before the scope field existed) by capturing
-	// the team from current channels before they are removed. Without this,
-	// unassigning all channels would leave the policy with no scope and no
-	// channels, making it unmanageable by team admins.
-	if appErr := c.App.ReconcilePolicyTeamScope(c.AppContext, policyID); appErr != nil {
-		c.Logger.Warn("Failed to reconcile policy team scope before unassign", mlog.String("policy_id", policyID), mlog.Err(appErr))
-	}
-
 	if len(assignments.ChannelIds) != 0 {
 		appErr := c.App.UnassignPoliciesFromChannels(c.AppContext, policyID, assignments.ChannelIds)
 		if appErr != nil {
@@ -1235,9 +1225,8 @@ func unassignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Post-unassign reconcile: update scope based on remaining channels.
-	// If channels remain in one team → scope set. Multiple teams → scope cleared.
-	// No channels remain → no-op (scope preserved from pre-flight or creation).
+	// Clear a team scope that does not match the channels still assigned.
+	// An empty scope is left empty, including when no channels remain.
 	if appErr := c.App.ReconcilePolicyTeamScope(c.AppContext, policyID); appErr != nil {
 		c.Logger.Warn("Failed to reconcile policy team scope after unassign", mlog.String("policy_id", policyID), mlog.Err(appErr))
 	}

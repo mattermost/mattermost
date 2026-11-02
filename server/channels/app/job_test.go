@@ -229,13 +229,15 @@ func TestSessionHasPermissionToCreateAccessControlSyncJob(t *testing.T) {
 		_, appErr := th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, teamAdmin.Id, "team_user team_admin")
 		require.Nil(t, appErr)
 
-		// Build ownership via the real parent->child channel relationship, then reconcile scope.
+		// The first save records this team's scope. The channel is in that team, so reconcile leaves the scope in place.
 		parentPolicy := &model.AccessControlPolicy{
 			ID:      model.NewId(),
 			Name:    "team-owned-policy",
 			Type:    model.AccessControlPolicyTypeParent,
 			Version: model.AccessControlPolicyVersionV0_2,
 			Rules:   []model.AccessControlPolicyRule{{Actions: []string{"*"}, Expression: "true"}},
+			Scope:   model.AccessControlPolicyScopeTeam,
+			ScopeID: th.BasicTeam.Id,
 		}
 		savedParent, storeErr := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, parentPolicy)
 		require.NoError(t, storeErr)
