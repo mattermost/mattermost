@@ -16,8 +16,13 @@ class GitHubError(Exception):
 
 
 class GitHub:
-    def __init__(self, token: str, api: str = API, opener=urllib.request.urlopen):
+    def __init__(self, token: str, api: str = API, opener=urllib.request.urlopen,
+                 write_token: str = "", committer: dict | None = None):
+        """``token`` makes every read. Anything that is not a GET uses ``write_token`` (default: ``token``),
+        and commits are authored by ``committer`` ({"name", "email"}) when given."""
         self.token = token
+        self.write_token = write_token or token
+        self.committer = committer
         self.api = api.rstrip("/")
         self.opener = opener
 
@@ -26,7 +31,7 @@ class GitHub:
         data = json.dumps(body).encode() if body is not None else None
         request = urllib.request.Request(url, data=data, method=method, headers={
             "Accept": "application/vnd.github+json",
-            "Authorization": f"Bearer {self.token}",
+            "Authorization": f"Bearer {self.token if method == 'GET' else self.write_token}",
             "X-GitHub-Api-Version": "2022-11-28",
             "User-Agent": "mattermost-release-docs",
             **({"Content-Type": "application/json"} if data else {}),
@@ -133,7 +138,8 @@ class GitHub:
             "tree": [{"path": path, "mode": "100644", "type": "blob", "content": text} for path, text in files.items()],
         })
         commit = self.request("POST", f"/repos/{repo}/git/commits",
-                              {"message": message, "tree": tree["sha"], "parents": [parent]})
+                              {"message": message, "tree": tree["sha"], "parents": [parent],
+                               **({"author": self.committer, "committer": self.committer} if self.committer else {})})
         self.request("PATCH", f"/repos/{repo}/git/refs/heads/{urllib.parse.quote(branch)}",
                      {"sha": commit["sha"], "force": False})
         return commit["sha"]

@@ -471,8 +471,13 @@ def main(argv: list[str]) -> int:
                 f.write(f"{key}={value}\n")
         return 0
 
-    gh = GitHub(env["GITHUB_TOKEN"])
-    read_gh = GitHub(env.get("READ_TOKEN") or env["GITHUB_TOKEN"])
+    # Reads use the changelog read app's token and writes the changelog write app's, commits are authored
+    # as CHANGELOG_GIT_USERNAME / CHANGELOG_GIT_EMAIL. A dry run without either reads with GITHUB_TOKEN.
+    read_token = env.get("READ_TOKEN") or env["GITHUB_TOKEN"]
+    committer = {"name": env["COMMIT_USER_NAME"], "email": env["COMMIT_USER_EMAIL"]} \
+        if env.get("COMMIT_USER_NAME") and env.get("COMMIT_USER_EMAIL") else None
+    gh = GitHub(read_token, write_token=env.get("WRITE_TOKEN", ""), committer=committer)
+    read_gh = gh
     run = run_task(args.task, env["VERSION"], env, gh, read_gh, Claude.from_env())
     result = run.result
     text = summary(result, run.outcome, env.get("MODE", "dry_run"), run.base_files, run.highlights)
