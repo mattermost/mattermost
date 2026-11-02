@@ -248,8 +248,9 @@ def git_added_files(base: str, head: str, path: str) -> list[str]:
 
 
 def go_version_from_buildenv(dockerfile: str) -> str | None:
-    """``FROM golang:1.26.10-bookworm@sha256:...`` -> ``go1.26.10``."""
-    match = re.search(r"(?m)^FROM\s+golang:(\d+\.\d+(?:\.\d+)?)", dockerfile or "")
+    """``FROM golang:1.26.10-bookworm@sha256:...`` -> ``go1.26.10``; older release branches use
+    ``FROM mattermost/golang-bullseye:1.26.7@sha256:...``."""
+    match = re.search(r"(?m)^FROM\s+(?:mattermost/)?golang(?:-[a-z]+)?:(\d+\.\d+(?:\.\d+)?)", dockerfile or "")
     return f"go{match.group(1)}" if match else None
 
 
