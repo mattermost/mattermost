@@ -49,6 +49,9 @@ const (
 	// UnmatchedUserMembershipSkipped: a membership was skipped because the referenced
 	// destination team or channel did not exist (deleted/renamed between runs).
 	UnmatchedUserMembershipSkipped UnmatchedUserAction = "membership_skipped"
+	// UnmatchedUserLinkedExisting: the export username matched an existing destination
+	// account. That account was left unchanged and team membership was linked to it.
+	UnmatchedUserLinkedExisting UnmatchedUserAction = "linked_existing"
 )
 
 // UnmatchedUser is one entry in the scoped-import report: a user from the export who
