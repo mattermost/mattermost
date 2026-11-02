@@ -10,6 +10,7 @@ import type {
 } from '@mattermost/types/admin';
 
 import {Client4} from 'mattermost-redux/client';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
@@ -29,7 +30,8 @@ type Props = {
     plainLogs: string[];
     isPlainLogs: boolean;
     actions: {
-        getLogs: (logFilter: LogFilter) => Promise<unknown>;
+        getLogs: (logFilter: LogFilter) => Promise<ActionResult | undefined>;
+        getNewLogs: (logFilter: LogFilter) => Promise<ActionResult | undefined>;
         getPlainLogs: (
             page?: number | undefined,
             perPage?: number | undefined,
@@ -70,14 +72,13 @@ const LOG_FORMAT_PREF_KEY = 'mm_admin_logs_format';
 
 // The logs API expects filter dates as UTC in "YYYY-MM-DD HH:mm:ss.SSS +00:00"
 function formatFilterDate(date: Date): string {
-    const pad = (n: number) => String(n).padStart(2, '0');
-    return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())} ${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}:${pad(date.getUTCSeconds())}.000 +00:00`;
+    const pad = (n: number, width = 2) => String(n).padStart(width, '0');
+    return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())} ${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}:${pad(date.getUTCSeconds())}.${pad(date.getUTCMilliseconds(), 3)} +00:00`;
 }
 
-// No end date, so the server ends the range at its own clock rather than the browser's
-function presetStart(minutes: number): string {
-    return formatFilterDate(new Date(presetStartMs(minutes)));
-}
+// A poll asks for everything logged since the previous fetch started, reaching back this much further
+// for a browser clock ahead of the servers' and for entries flushed late. The repeats are dropped when merged
+const POLL_OVERLAP_MS = 30000;
 
 const ALL_SERVER_NAMES: LogServerNames = [];
 
@@ -113,6 +114,9 @@ export default function Logs({logs, logNodes, truncatedLogNodes, plainLogs, isPl
     const [liveTailEnabled, setLiveTailEnabled] = useState(false);
     const [pollInterval, setPollInterval] = useState(30000);
 
+    // Moved on by every fetch, so entries age out of the range even when a poll brings nothing new
+    const [timeRangeStart, setTimeRangeStart] = useState<number | null>(null);
+
     // Node-filtered responses only hold the selected node, so the list only ever grows
     const [knownNodes, setKnownNodes] = useState<string[]>([]);
     useEffect(() => {
@@ -126,6 +130,10 @@ export default function Logs({logs, logNodes, truncatedLogNodes, plainLogs, isPl
     const nodes = useMemo(() => (
         selectedNode && !knownNodes.includes(selectedNode) ? [...knownNodes, selectedNode].sort() : knownNodes
     ), [knownNodes, selectedNode]);
+
+    // When the last successful fetch started, so a poll only asks for what's been logged since.
+    // Only a success moves it, so a failed poll's gap is covered by the next one
+    const lastFetchStartRef = useRef<number | null>(null);
 
     // One fetch at a time, so a slow response can't overwrite a newer one
     const fetchQueueRef = useRef<Promise<unknown>>(Promise.resolve());
@@ -144,6 +152,9 @@ export default function Logs({logs, logNodes, truncatedLogNodes, plainLogs, isPl
             setLoading(true);
         }
 
+        const rangeStart = activeTimePreset === null ? null : presetStartMs(activeTimePreset);
+        setTimeRangeStart(rangeStart);
+
         const fetchLogs = async () => {
             // A newer fetch is queued behind this one and would overwrite its result
             if (id !== latestFetchRef.current) {
@@ -154,13 +165,27 @@ export default function Logs({logs, logNodes, truncatedLogNodes, plainLogs, isPl
                 return;
             }
             const allLevels = LEVEL_GROUPS.every((group) => enabledLevels.has(group));
-            await actions.getLogs({
+            const logLevels = allLevels ? [] : LEVEL_GROUPS.filter((group) => enabledLevels.has(group)).flatMap(groupLevels);
+
+            // A full reload covers the whole range, a poll only what's been logged since the last fetch
+            if (!silent) {
+                lastFetchStartRef.current = null;
+            }
+            const since = lastFetchStartRef.current === null ? rangeStart : Math.max(lastFetchStartRef.current - POLL_OVERLAP_MS, rangeStart ?? 0);
+            const startedAt = Date.now();
+
+            // No end date, so the server ends the range at its own clock rather than the browser's
+            const query = {
                 serverNames: selectedNode ? [selectedNode] : ALL_SERVER_NAMES,
-                logLevels: allLevels ? [] : LEVEL_GROUPS.filter((group) => enabledLevels.has(group)).flatMap(groupLevels),
-                dateFrom: activeTimePreset === null ? '' : presetStart(activeTimePreset),
+                logLevels,
+                dateFrom: since === null ? '' : formatFilterDate(new Date(since)),
                 dateTo: '',
                 search,
-            });
+            };
+            const result = await (silent ? actions.getNewLogs(query) : actions.getLogs(query));
+            if (!result?.error) {
+                lastFetchStartRef.current = startedAt;
+            }
         };
 
         pendingFetchesRef.current++;
@@ -246,6 +271,7 @@ export default function Logs({logs, logNodes, truncatedLogNodes, plainLogs, isPl
             pollIntervalLabels={POLL_INTERVAL_LABELS}
             timePresets={TIME_PRESETS}
             activeTimePreset={activeTimePreset}
+            timeRangeStart={timeRangeStart}
             onTimePreset={setActiveTimePreset}
             onClearTimePreset={clearTimePreset}
             logFormatMenu={logFormatMenu}

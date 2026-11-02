@@ -45,6 +45,9 @@ export type LogObject = {
     // Only on entries logged by background jobs
     job_id?: string;
     worker?: string;
+
+    // Set on the entry the server returns in place of a node it could not reach
+    failed_node?: boolean;
 };
 
 // The node an entry came from. A symbol, so it can't clash with a field the server logged

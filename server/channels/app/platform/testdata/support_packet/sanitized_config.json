@@ -745,6 +745,7 @@
         "EnableAIRecaps": false,
         "IntegratedBoards": false,
         "EnableDocs": false,
+        "ProductRail": false,
         "CJKSearch": false,
         "AggregatePluginMetrics": false,
         "ManagedChannelCategories": false,

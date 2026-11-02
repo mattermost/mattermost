@@ -61,7 +61,7 @@ describe('components/admin_console/server_logs/Logs', () => {
                 truncatedLogNodes={[]}
                 plainLogs={[]}
                 isPlainLogs={false}
-                actions={{getLogs, getPlainLogs: jest.fn()}}
+                actions={{getLogs, getNewLogs: jest.fn(), getPlainLogs: jest.fn()}}
             />
         );
     }
@@ -188,7 +188,7 @@ describe('components/admin_console/server_logs/Logs refetching', () => {
             truncatedLogNodes={[]}
             plainLogs={[]}
             isPlainLogs={false}
-            actions={{getLogs: jest.fn(), getPlainLogs: jest.fn()}}
+            actions={{getLogs: jest.fn(), getNewLogs: jest.fn(), getPlainLogs: jest.fn()}}
         />
     );
 
@@ -260,7 +260,7 @@ describe('components/admin_console/server_logs/Logs fetching', () => {
         return {promise, resolve};
     }
 
-    function renderLogs(getLogs: jest.Mock) {
+    function renderLogs(getLogs: jest.Mock, getNewLogs: jest.Mock = jest.fn().mockResolvedValue({})) {
         return renderWithContext(
             <Logs
                 logs={[]}
@@ -268,7 +268,7 @@ describe('components/admin_console/server_logs/Logs fetching', () => {
                 truncatedLogNodes={[]}
                 plainLogs={[]}
                 isPlainLogs={false}
-                actions={{getLogs, getPlainLogs: jest.fn().mockResolvedValue({})}}
+                actions={{getLogs, getNewLogs, getPlainLogs: jest.fn().mockResolvedValue({})}}
             />,
         );
     }
@@ -363,21 +363,24 @@ describe('components/admin_console/server_logs/Logs fetching', () => {
 
     test('should send the search with a live-tail poll', async () => {
         const getLogs = jest.fn().mockResolvedValue({});
-        renderLogs(getLogs);
+        const getNewLogs = jest.fn().mockResolvedValue({});
+        renderLogs(getLogs, getNewLogs);
         await userEvent.type(screen.getByLabelText('Search logs'), 'websocket');
         await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(2));
 
         await pickMenuItem('Open menu to turn live tail on or off', 'Every 10 seconds');
 
         // Turning live tail on polls straight away
-        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(3));
-        expect(getLogs.mock.calls[2][0].search).toBe('websocket');
+        await waitFor(() => expect(getNewLogs).toHaveBeenCalledTimes(1));
+        expect(getNewLogs.mock.calls[0][0].search).toBe('websocket');
+        expect(getLogs).toHaveBeenCalledTimes(2);
     });
 
     test('should not queue a live-tail poll behind a pending search', async () => {
         const search = deferred();
         const getLogs = jest.fn().mockResolvedValueOnce({}).mockReturnValueOnce(search.promise).mockResolvedValue({});
-        renderLogs(getLogs);
+        const getNewLogs = jest.fn().mockResolvedValue({});
+        renderLogs(getLogs, getNewLogs);
         await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
 
         await userEvent.type(screen.getByLabelText('Search logs'), 'websocket');
@@ -388,6 +391,7 @@ describe('components/admin_console/server_logs/Logs fetching', () => {
         await new Promise((r) => setTimeout(r, 0));
 
         expect(getLogs).toHaveBeenCalledTimes(2);
+        expect(getNewLogs).not.toHaveBeenCalled();
     });
 
     test('should skip a queued fetch that a newer one replaces', async () => {
@@ -421,7 +425,7 @@ describe('components/admin_console/server_logs/Logs nodes', () => {
                 truncatedLogNodes={[]}
                 plainLogs={[]}
                 isPlainLogs={false}
-                actions={{getLogs, getPlainLogs: jest.fn().mockResolvedValue({})}}
+                actions={{getLogs, getNewLogs: jest.fn().mockResolvedValue({}), getPlainLogs: jest.fn().mockResolvedValue({})}}
             />
         );
     }
@@ -452,7 +456,7 @@ describe('components/admin_console/server_logs/Logs nodes', () => {
                 truncatedLogNodes={['node-b']}
                 plainLogs={[]}
                 isPlainLogs={false}
-                actions={{getLogs: jest.fn().mockResolvedValue({}), getPlainLogs: jest.fn().mockResolvedValue({})}}
+                actions={{getLogs: jest.fn().mockResolvedValue({}), getNewLogs: jest.fn().mockResolvedValue({}), getPlainLogs: jest.fn().mockResolvedValue({})}}
             />,
         );
 
@@ -555,5 +559,173 @@ describe('components/admin_console/server_logs/Logs nodes', () => {
         await pickNode('node-b');
 
         await waitFor(() => expect(JSON.parse(localStorage.getItem('mm_admin_logs_prefs')!).node).toBe('node-b'));
+    });
+});
+
+describe('components/admin_console/server_logs/Logs live tail', () => {
+    beforeEach(() => {
+        localStorage.clear();
+    });
+
+    afterEach(() => {
+        jest.useRealTimers();
+    });
+
+    // Fakes only the clock, so the promises and timers the tests wait on keep running
+    function fakeNow(now: string) {
+        jest.useFakeTimers({now: new Date(now), doNotFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'setImmediate', 'clearImmediate', 'queueMicrotask', 'nextTick', 'requestAnimationFrame', 'cancelAnimationFrame', 'requestIdleCallback', 'cancelIdleCallback', 'performance', 'hrtime']});
+    }
+
+    function timedLog(node: string, msg: string, timestamp: string): LogObjectWithAdditionalInfo {
+        return {...nodeLog(node, msg), timestamp};
+    }
+
+    function renderLogs(logs: LogObjectWithAdditionalInfo[] = [], {getLogs = jest.fn().mockResolvedValue({}), getNewLogs = jest.fn().mockResolvedValue({})} = {}) {
+        renderWithContext(
+            <Logs
+                logs={logs}
+                logNodes={[...new Set(logs.map((log) => log[LogNodeKey]!))]}
+                truncatedLogNodes={[]}
+                plainLogs={[]}
+                isPlainLogs={false}
+                actions={{getLogs, getNewLogs, getPlainLogs: jest.fn().mockResolvedValue({})}}
+            />,
+        );
+        return {getLogs, getNewLogs};
+    }
+
+    async function pickMenuItem(menuLabel: string, item: string, role: 'menuitemradio' | 'menuitemcheckbox' = 'menuitemradio') {
+        await userEvent.click(screen.getByLabelText(menuLabel));
+        await userEvent.click(screen.getByRole(role, {name: new RegExp(`^${item}`)}));
+    }
+
+    // Turning live tail on polls straight away
+    async function poll() {
+        await pickMenuItem('Open menu to turn live tail on or off', 'Off');
+        await pickMenuItem('Open menu to turn live tail on or off', 'Every 10 seconds');
+    }
+
+    test('should ask every node in one request for what was logged since the full load started, with an overlap', async () => {
+        fakeNow('2026-10-20T09:45:00.000Z');
+        const {getLogs, getNewLogs} = renderLogs();
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
+
+        jest.setSystemTime(new Date('2026-10-20T09:45:10.000Z'));
+        await poll();
+
+        await waitFor(() => expect(getNewLogs).toHaveBeenCalledTimes(1));
+        expect(getNewLogs).toHaveBeenCalledWith({serverNames: [], logLevels: [], dateFrom: '2026-10-20 09:44:30.000 +00:00', dateTo: '', search: ''});
+        expect(getLogs).toHaveBeenCalledTimes(1);
+    });
+
+    test('should ask from when the previous poll started on the next poll', async () => {
+        fakeNow('2026-10-20T09:45:00.000Z');
+        const {getLogs, getNewLogs} = renderLogs();
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
+
+        jest.setSystemTime(new Date('2026-10-20T09:45:10.123Z'));
+        await poll();
+        await waitFor(() => expect(getNewLogs).toHaveBeenCalledTimes(1));
+
+        jest.setSystemTime(new Date('2026-10-20T09:45:20.000Z'));
+        await poll();
+
+        await waitFor(() => expect(getNewLogs).toHaveBeenCalledTimes(2));
+        expect(getNewLogs).toHaveBeenLastCalledWith(expect.objectContaining({dateFrom: '2026-10-20 09:44:40.123 +00:00'}));
+    });
+
+    test('should keep asking from the last successful fetch after a poll fails', async () => {
+        fakeNow('2026-10-20T09:45:00.000Z');
+        const getNewLogs = jest.fn().mockResolvedValueOnce({error: new Error('unreachable')}).mockResolvedValue({});
+        const {getLogs} = renderLogs([], {getNewLogs});
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
+
+        jest.setSystemTime(new Date('2026-10-20T09:45:10.000Z'));
+        await poll();
+        await waitFor(() => expect(getNewLogs).toHaveBeenCalledTimes(1));
+
+        jest.setSystemTime(new Date('2026-10-20T09:45:20.000Z'));
+        await poll();
+
+        await waitFor(() => expect(getNewLogs).toHaveBeenCalledTimes(2));
+        expect(getNewLogs.mock.calls.map(([filter]) => filter.dateFrom)).toEqual([
+            '2026-10-20 09:44:30.000 +00:00',
+            '2026-10-20 09:44:30.000 +00:00',
+        ]);
+    });
+
+    test('should ask for the whole time range while no fetch has succeeded', async () => {
+        const {getLogs, getNewLogs} = renderLogs([], {getLogs: jest.fn().mockResolvedValue({error: new Error('unreachable')})});
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
+
+        await poll();
+
+        await waitFor(() => expect(getNewLogs).toHaveBeenCalledWith({serverNames: [], logLevels: [], dateFrom: '', dateTo: '', search: ''}));
+    });
+
+    test('should not reach back past the start of the time range', async () => {
+        fakeNow('2026-10-20T12:00:00.000Z');
+        const {getLogs, getNewLogs} = renderLogs();
+        await pickMenuItem('Open menu to select a time range', 'Last 5 minutes');
+        await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({dateFrom: '2026-10-20 11:55:00.000 +00:00'})));
+
+        // The tab was hidden for a while, so the last fetch is older than the range
+        jest.setSystemTime(new Date('2026-10-20T12:10:00.000Z'));
+        await poll();
+
+        await waitFor(() => expect(getNewLogs).toHaveBeenCalledWith(expect.objectContaining({dateFrom: '2026-10-20 12:05:00.000 +00:00'})));
+    });
+
+    test('should only ask the selected node, with the enabled levels', async () => {
+        localStorage.setItem('mm_admin_logs_prefs', JSON.stringify({node: 'node-b', enabledLevels: ['error', 'warn']}));
+        const {getLogs, getNewLogs} = renderLogs([timedLog('node-b', 'b1', '2026-10-20 09:40:01.000 Z')]);
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
+
+        await poll();
+
+        await waitFor(() => expect(getNewLogs).toHaveBeenCalledWith(expect.objectContaining({serverNames: ['node-b'], logLevels: ['panic', 'fatal', 'critical', 'error', 'warn']})));
+    });
+
+    test('should drop entries that age out of the time range on a poll that brings nothing new', async () => {
+        fakeNow('2026-10-20T09:44:00Z');
+        const {getLogs, getNewLogs} = renderLogs([
+            timedLog('node-a', 'older', '2026-10-20 09:40:00.000 Z'),
+            timedLog('node-a', 'newer', '2026-10-20 09:43:00.000 Z'),
+        ]);
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
+        await pickMenuItem('Open menu to select a time range', 'Last 5 minutes');
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(2));
+        expect(screen.getByText('older')).toBeInTheDocument();
+
+        jest.setSystemTime(new Date('2026-10-20T09:46:00Z'));
+        await pickMenuItem('Open menu to turn live tail on or off', 'Every 10 seconds');
+
+        await waitFor(() => expect(getNewLogs).toHaveBeenCalledTimes(1));
+        await waitFor(() => expect(screen.queryByText('older')).not.toBeInTheDocument());
+        expect(screen.getByText('newer')).toBeInTheDocument();
+    });
+
+    test('should reload everything when a filter changes while live tail is on', async () => {
+        const {getLogs, getNewLogs} = renderLogs();
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
+        await poll();
+        await waitFor(() => expect(getNewLogs).toHaveBeenCalledTimes(1));
+
+        await pickMenuItem('Open menu to select which log levels to show', 'Debug', 'menuitemcheckbox');
+
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(2));
+        expect(getLogs).toHaveBeenLastCalledWith({serverNames: [], logLevels: ['panic', 'fatal', 'critical', 'error', 'warn', 'info', 'stdlog'], dateFrom: '', dateTo: '', search: ''});
+    });
+
+    test('should reload everything on a manual reload while live tail is on', async () => {
+        const {getLogs, getNewLogs} = renderLogs();
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
+        await poll();
+        await waitFor(() => expect(getNewLogs).toHaveBeenCalledTimes(1));
+
+        await userEvent.click(screen.getByRole('button', {name: 'Reload'}));
+
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(2));
+        expect(getNewLogs).toHaveBeenCalledTimes(1);
     });
 });

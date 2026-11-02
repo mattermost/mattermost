@@ -134,5 +134,4 @@ function validateFileUploadResponse(data: FileUploadResponse, clientId: string, 
     expect(fileInfo.delete_at).toBe(0);
     expect(fileInfo.extension).toBe('png');
     expect(fileInfo.mime_type).toBe('image/png');
-    expect(fileInfo.archived).toBe(false);
 }

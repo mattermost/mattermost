@@ -9,12 +9,16 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"slices"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app/properties"
 )
 
 // registerTestPlugin writes a minimal manifest into the test server's plugin
@@ -304,7 +308,6 @@ func TestDecidePropertyFieldPermission(t *testing.T) {
 		assert.True(t, basis.Allowed)
 		assert.Equal(t, model.PermissionLevelEveryone, basis.Tier)
 		assert.Empty(t, basis.GrantID)
-		assert.False(t, basis.Legacy)
 	})
 
 	t.Run("restrictions deny and a matching user grant lists the action", func(t *testing.T) {
@@ -437,48 +440,36 @@ func TestDecidePropertyFieldPermission(t *testing.T) {
 		assert.False(t, basis.Allowed)
 	})
 
-	t.Run("nil Permissions falls back to the legacy columns", func(t *testing.T) {
+	t.Run("nil Permissions denies every action, even to a sysadmin", func(t *testing.T) {
 		field := &model.PropertyField{
-			GroupID:     groupID,
-			Name:        "legacy protected",
-			Type:        model.PropertyFieldTypeText,
-			ObjectType:  model.PropertyFieldObjectTypeUser,
-			TargetType:  string(model.PropertyFieldTargetLevelSystem),
-			Protected:   true,
-			Permissions: nil,
+			GroupID:           groupID,
+			Name:              "legacy columns only",
+			Type:              model.PropertyFieldTypeText,
+			ObjectType:        model.PropertyFieldObjectTypeUser,
+			TargetType:        string(model.PropertyFieldTargetLevelSystem),
+			PermissionField:   model.NewPointer(model.PermissionLevelEveryone),
+			PermissionOptions: model.NewPointer(model.PermissionLevelEveryone),
+			PermissionValues:  model.NewPointer(model.PermissionLevelEveryone),
 		}
 
-		basis := th.App.decidePropertyFieldPermission(th.Context, th.SystemAdminUser.Id, field, model.PropertyActionFieldWrite, "")
-		assert.False(t, basis.Allowed)
-		assert.True(t, basis.Legacy)
+		for _, action := range []string{
+			model.PropertyActionFieldWrite,
+			model.PropertyActionOptionRead,
+			model.PropertyActionOptionWrite,
+			model.PropertyActionValueRead,
+			model.PropertyActionValueWrite,
+		} {
+			basis := th.App.decidePropertyFieldPermission(th.Context, th.SystemAdminUser.Id, field, action, "")
+			assert.False(t, basis.Allowed, "action %s should be denied", action)
+		}
 
-		field.Protected = false
 		field.Permissions = &model.Permissions{
 			Restrictions: &model.Restrictions{
 				Field: model.WriteOnly{Write: model.PermissionLevelSysadmin},
 			},
 		}
-		basis = th.App.decidePropertyFieldPermission(th.Context, th.SystemAdminUser.Id, field, model.PropertyActionFieldWrite, "")
+		basis := th.App.decidePropertyFieldPermission(th.Context, th.SystemAdminUser.Id, field, model.PropertyActionFieldWrite, "")
 		assert.True(t, basis.Allowed)
-		assert.False(t, basis.Legacy)
-	})
-
-	t.Run("nil Permissions allows value.read and option.read", func(t *testing.T) {
-		field := &model.PropertyField{
-			GroupID:    groupID,
-			Name:       "legacy reads",
-			Type:       model.PropertyFieldTypeText,
-			ObjectType: model.PropertyFieldObjectTypeUser,
-			TargetType: string(model.PropertyFieldTargetLevelSystem),
-		}
-
-		basis := th.App.decidePropertyFieldPermission(th.Context, th.BasicUser.Id, field, model.PropertyActionValueRead, "")
-		assert.True(t, basis.Allowed)
-		assert.True(t, basis.Legacy)
-
-		basis = th.App.decidePropertyFieldPermission(th.Context, th.BasicUser.Id, field, model.PropertyActionOptionRead, "")
-		assert.True(t, basis.Allowed)
-		assert.True(t, basis.Legacy)
 	})
 }
 
@@ -709,6 +700,51 @@ func TestPropertyPermissionBasisFor(t *testing.T) {
 		assert.Equal(t, model.PropertyFieldAttrLDAP, basis.GrantID)
 	})
 
+	t.Run("a system caller allowed by a service grant on its group", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "system caller basis allowed",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Grants: []model.Grant{
+					{
+						Identity: model.Identity{Type: model.PropertyOwnerTypeService, ID: model.BoardsPropertyGroupName},
+						Allow:    []string{model.PropertyActionValueWrite},
+					},
+				},
+			},
+		}
+
+		rctx := RequestContextWithCallerID(th.Context, model.CallerIDBoardsSystem)
+		basis := th.App.PropertyPermissionBasisFor(rctx, field, model.PropertyActionValueWrite, "")
+		assert.True(t, basis.Allowed)
+		assert.Equal(t, model.PropertyOwnerTypeService, basis.CallerType)
+		assert.Equal(t, model.BoardsPropertyGroupName, basis.GrantID)
+	})
+
+	t.Run("a system caller with no matching service grant is denied", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "system caller basis denied",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Value: model.ReadWrite{Write: model.PermissionLevelEveryone},
+				},
+			},
+		}
+
+		rctx := RequestContextWithCallerID(th.Context, model.CallerIDBoardsSystem)
+		basis := th.App.PropertyPermissionBasisFor(rctx, field, model.PropertyActionValueWrite, "")
+		assert.False(t, basis.Allowed)
+		assert.Empty(t, basis.GrantID)
+		assert.Empty(t, basis.Tier)
+	})
+
 	t.Run("a SAML sync caller allowed by a service grant on saml", func(t *testing.T) {
 		field := &model.PropertyField{
 			GroupID:    groupID,
@@ -768,19 +804,27 @@ func TestPropertyPermissionBasisFor(t *testing.T) {
 		assert.Empty(t, basis.GrantID)
 	})
 
-	t.Run("a field with no permissions falls back to the legacy columns", func(t *testing.T) {
+	t.Run("a field with no permissions denies every action", func(t *testing.T) {
 		field := &model.PropertyField{
-			GroupID:    groupID,
-			Name:       "legacy basis",
-			Type:       model.PropertyFieldTypeText,
-			ObjectType: model.PropertyFieldObjectTypeUser,
-			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			GroupID:          groupID,
+			Name:             "no permissions basis",
+			Type:             model.PropertyFieldTypeText,
+			ObjectType:       model.PropertyFieldObjectTypeUser,
+			TargetType:       string(model.PropertyFieldTargetLevelSystem),
+			PermissionValues: model.NewPointer(model.PermissionLevelEveryone),
 		}
 
 		rctx := RequestContextWithCallerID(th.Context, th.BasicUser.Id)
-		basis := th.App.PropertyPermissionBasisFor(rctx, field, model.PropertyActionValueRead, "")
-		assert.True(t, basis.Legacy)
-		assert.True(t, basis.Allowed)
+		for _, action := range []string{
+			model.PropertyActionFieldWrite,
+			model.PropertyActionOptionRead,
+			model.PropertyActionOptionWrite,
+			model.PropertyActionValueRead,
+			model.PropertyActionValueWrite,
+		} {
+			basis := th.App.PropertyPermissionBasisFor(rctx, field, action, "")
+			assert.False(t, basis.Allowed, "action %s should be denied", action)
+		}
 	})
 
 	t.Run("a local-mode caller is unrestricted", func(t *testing.T) {
@@ -819,7 +863,9 @@ func TestPropertyPermissionBasisFor(t *testing.T) {
 			},
 		}
 
-		basis := th.App.PropertyPermissionBasisFor(th.Context, field, model.PropertyActionFieldWrite, "")
+		// Explicitly anonymous: th.Context names a local-mode admin, which the
+		// ladder admits without a lookup, so it cannot stand in for "nobody".
+		basis := th.App.PropertyPermissionBasisFor(th.emptyContextWithCallerID(anonymousCallerId), field, model.PropertyActionFieldWrite, "")
 		assert.False(t, basis.Allowed)
 	})
 
@@ -842,7 +888,6 @@ func TestPropertyPermissionBasisFor(t *testing.T) {
 		assert.False(t, basis.Allowed)
 		assert.Empty(t, basis.Tier)
 		assert.Empty(t, basis.GrantID)
-		assert.False(t, basis.Legacy)
 	})
 
 	t.Run("a nil field is denied without panicking", func(t *testing.T) {
@@ -850,7 +895,6 @@ func TestPropertyPermissionBasisFor(t *testing.T) {
 		require.NotPanics(t, func() {
 			basis := th.App.PropertyPermissionBasisFor(rctx, nil, model.PropertyActionFieldWrite, "")
 			assert.False(t, basis.Allowed)
-			assert.False(t, basis.Legacy)
 		})
 	})
 }
@@ -1049,5 +1093,181 @@ func TestLocalModeValueWrite(t *testing.T) {
 		require.Equal(t, model.PermissionLevelNone, field.Permissions.Restrictions.TierFor(model.PropertyActionValueWrite))
 
 		require.Nil(t, upsertAs(model.CallerIDLocalAdmin, field))
+	})
+}
+
+// TestAccessControlHookWarnsOnNoCaller checks that the access control hook
+// logs properties.NoCallerIDWarning, once per hook call, when a call with no
+// caller ID loses data: a write it refuses, or a value read it empties. It
+// names the operation and the group and field IDs. A field read, which only
+// hides options, logs nothing, and a tagged caller logs nothing. One app
+// operation can make more than one hook call: a value write reads its fields
+// first.
+func TestAccessControlHookWarnsOnNoCaller(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	// This test calls the property service untagged on purpose.
+	th.AllowUntaggedPropertyCaller()
+
+	groupID := registerTestPropertyGroup(t, th)
+	field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+		GroupID:    groupID,
+		Name:       "no_caller_" + model.NewId(),
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+	}, false, "")
+	require.Nil(t, appErr)
+
+	upsert := func(rctx request.CTX, user *model.User) *model.AppError {
+		_, appErr := th.App.UpsertPropertyValues(rctx, []*model.PropertyValue{{
+			GroupID:    groupID,
+			TargetType: model.PropertyValueTargetTypeUser,
+			TargetID:   user.Id,
+			FieldID:    field.ID,
+			Value:      json.RawMessage(`"value"`),
+		}}, model.PropertyFieldObjectTypeUser, user.Id, "")
+		return appErr
+	}
+	require.Nil(t, upsert(th.Context, th.BasicUser))
+	require.Nil(t, upsert(th.Context, th.BasicUser2))
+
+	// warnings returns the warnings logged so far, by operation, each with
+	// the field IDs it named. The logger is flushed first, so a warning
+	// logged by the call just made is in the buffer.
+	warnings := func(t *testing.T) map[string][][]any {
+		t.Helper()
+		require.NoError(t, th.TestLogger.Flush())
+		byOperation := map[string][][]any{}
+		for line := range strings.Lines(th.LogBuffer.String()) {
+			var entry map[string]any
+			if json.Unmarshal([]byte(line), &entry) != nil || entry["msg"] != properties.NoCallerIDWarning {
+				continue
+			}
+			assert.Equal(t, "warn", entry["level"])
+			assert.Equal(t, groupID, entry["group_id"])
+			operation, _ := entry["operation"].(string)
+			fieldIDs, _ := entry["field_ids"].([]any)
+			byOperation[operation] = append(byOperation[operation], fieldIDs)
+		}
+		return byOperation
+	}
+	require.Empty(t, warnings(t), "tagged calls must not warn")
+
+	untagged := request.EmptyContext(th.App.Log())
+
+	t.Run("a refused value write warns once", func(t *testing.T) {
+		require.NotNil(t, upsert(untagged, th.BasicUser))
+
+		assert.Equal(t, [][]any{{field.ID}}, warnings(t)["PreUpsertPropertyValues"])
+	})
+
+	t.Run("a refused field create warns without an empty field ID", func(t *testing.T) {
+		_, appErr := th.App.CreatePropertyField(untagged, &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "no_caller_protected_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs:      model.StringInterface{model.PropertyAttrsProtected: true},
+		}, false, "")
+		require.NotNil(t, appErr)
+
+		assert.Equal(t, [][]any{{}}, warnings(t)["PreCreatePropertyField"])
+	})
+
+	t.Run("an allowed field create does not warn", func(t *testing.T) {
+		before := len(warnings(t)["PreCreatePropertyField"])
+
+		_, appErr := th.App.CreatePropertyField(untagged, &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "no_caller_allowed_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		}, false, "")
+		require.Nil(t, appErr)
+
+		assert.Len(t, warnings(t)["PreCreatePropertyField"], before)
+	})
+
+	t.Run("a refused linked field create warns once", func(t *testing.T) {
+		// A template whose value reads are restricted gates every link to it.
+		template, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "no_caller_template_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{Restrictions: &model.Restrictions{
+				Field:  model.WriteOnly{Write: model.PermissionLevelSysadmin},
+				Value:  model.ReadWrite{Read: model.PermissionLevelSysadmin},
+				Option: model.ReadWrite{Read: model.PermissionLevelEveryone},
+			}},
+		}, false, "")
+		require.Nil(t, appErr)
+
+		observedRefusal := fmt.Sprintf("PreCreatePropertyField group_id=%s field_ids=[]", groupID)
+		countObserved := func() int {
+			th.untaggedPropertyCallsMut.Lock()
+			defer th.untaggedPropertyCallsMut.Unlock()
+			n := 0
+			for _, call := range th.untaggedPropertyCalls {
+				if call == observedRefusal {
+					n++
+				}
+			}
+			return n
+		}
+		warnedBefore := len(warnings(t)["PreCreatePropertyField"])
+		observedBefore := countObserved()
+
+		_, appErr = th.App.CreatePropertyField(untagged, &model.PropertyField{
+			GroupID:       groupID,
+			Name:          "no_caller_linked_" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &template.ID,
+		}, false, "")
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
+
+		assert.Equal(t, [][]any{{}}, warnings(t)["PreCreatePropertyField"][warnedBefore:])
+		assert.Equal(t, observedBefore+1, countObserved())
+	})
+
+	t.Run("an emptied read of several values warns once", func(t *testing.T) {
+		values, appErr := th.App.SearchPropertyValues(untagged, groupID, model.PropertyValueSearchOpts{FieldID: field.ID, PerPage: 10})
+		require.Nil(t, appErr)
+		assert.Empty(t, values)
+
+		assert.Equal(t, [][]any{{field.ID}}, warnings(t)["PostGetPropertyValues"])
+	})
+
+	t.Run("a field read does not warn, but the test observer sees it", func(t *testing.T) {
+		_, appErr := th.App.GetPropertyField(untagged, groupID, field.ID)
+		require.Nil(t, appErr)
+		_, appErr = th.App.SearchPropertyFields(untagged, groupID, model.PropertyFieldSearchOpts{PerPage: 10})
+		require.Nil(t, appErr)
+
+		logged := warnings(t)
+		assert.Empty(t, logged["PostGetPropertyField"])
+		assert.Empty(t, logged["PostGetPropertyFields"])
+
+		th.untaggedPropertyCallsMut.Lock()
+		observed := slices.Clone(th.untaggedPropertyCalls)
+		th.untaggedPropertyCallsMut.Unlock()
+		assert.Contains(t, observed, fmt.Sprintf("PostGetPropertyField group_id=%s field_ids=[%s]", groupID, field.ID))
+	})
+
+	t.Run("a tagged read does not warn", func(t *testing.T) {
+		before := warnings(t)
+
+		values, appErr := th.App.SearchPropertyValues(th.Context, groupID, model.PropertyValueSearchOpts{FieldID: field.ID, PerPage: 10})
+		require.Nil(t, appErr)
+		assert.Len(t, values, 2)
+
+		assert.Equal(t, before, warnings(t))
 	})
 }
