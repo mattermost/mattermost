@@ -352,72 +352,6 @@ function apiLinkGroupChannel(groupID: string, channelID: string): ResponseT {
 }
 Cypress.Commands.add('apiLinkGroupChannel', apiLinkGroupChannel);
 
-function simulateSubscription(subscription: Partial<Cypress.Subscription>, withLimits = true) {
-    cy.intercept('GET', '**/api/v4/cloud/subscription', {
-        statusCode: 200,
-        body: subscription,
-    });
-
-    cy.intercept('GET', '**/api/v4/cloud/products**', {
-        statusCode: 200,
-        body: [
-            {
-                id: 'prod_1',
-                sku: 'cloud-starter',
-                price_per_seat: 0,
-                recurring_interval: 'month',
-                name: 'Cloud Free',
-                cross_sells_to: '',
-            },
-            {
-                id: 'prod_2',
-                sku: 'cloud-professional',
-                price_per_seat: 10,
-                recurring_interval: 'month',
-                name: 'Cloud Professional',
-                cross_sells_to: 'prod_4',
-            },
-            {
-                id: 'prod_3',
-                sku: 'cloud-enterprise',
-                price_per_seat: 30,
-                recurring_interval: 'month',
-                name: 'Cloud Enterprise',
-                cross_sells_to: 'prod_5',
-            },
-            {
-                id: 'prod_4',
-                sku: 'cloud-professional',
-                price_per_seat: 96,
-                recurring_interval: 'year',
-                name: 'Cloud Professional Yearly',
-                cross_sells_to: 'prod_2',
-            },
-            {
-                id: 'prod_5',
-                sku: 'cloud-enterprise',
-                price_per_seat: 96,
-                recurring_interval: 'year',
-                name: 'Cloud Enterprise Yearly',
-                cross_sells_to: 'prod_3',
-            },
-        ],
-    });
-
-    if (withLimits) {
-        cy.intercept('GET', '**/api/v4/cloud/limits', {
-            statusCode: 200,
-            body: {
-                messages: {
-                    history: 10000,
-                },
-            },
-        });
-    }
-}
-
-Cypress.Commands.add('simulateSubscription', simulateSubscription);
-
 function linkUnlinkGroupSyncable(groupID: string, syncableID: string, syncableType: string, httpMethod: string) {
     return cy.request({
         headers: {'X-Requested-With': 'XMLHttpRequest'},
@@ -578,8 +512,6 @@ declare global {
             apiGetGroupChannels: typeof apiGetGroupChannels;
 
             apiGetGroupChannel: typeof apiGetGroupChannel;
-
-            simulateSubscription: typeof simulateSubscription;
         }
     }
 }

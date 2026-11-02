@@ -10,7 +10,9 @@ import type {IntlShape, WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, defineMessage, injectIntl, useIntl} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
 
+import {KeyVariantIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {ServerError} from '@mattermost/types/errors';
 import {valueRefersToOptions} from '@mattermost/types/properties';
@@ -1532,10 +1534,8 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                                 emphasis='tertiary'
                                                 className='manageUserSettingsBtn disabled'
                                                 disabled={true}
+                                                leadingIcon={<Icon glyph={<KeyVariantIcon/>}/>}
                                             >
-                                                <div className='RestrictedIndicator__content'>
-                                                    <i className={classNames('RestrictedIndicator__icon-tooltip', 'icon', 'icon-key-variant')}/>
-                                                </div>
                                                 <FormattedMessage
                                                     id='admin.user_item.manageSettings'
                                                     defaultMessage='Manage User Settings'

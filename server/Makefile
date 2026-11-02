@@ -1015,7 +1015,7 @@ endif
 vet-api: export GO := $(GO)
 vet-api: export GOBIN := $(GOBIN)
 vet-api: export ROOT := $(ROOT)
-vet-api: setup-go-work install-govet ## Run mattermost go vet to verify api4 documentation, currently not passing
+vet-api: setup-go-work install-govet ## Run mattermost go vet to verify api4 documentation
 	make -C ../api build
 	./scripts/vet-api-check.sh
 

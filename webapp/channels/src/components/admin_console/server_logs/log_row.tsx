@@ -29,6 +29,9 @@ type Props = {
     log: LogObjectWithAdditionalInfo;
     isExpanded: boolean;
     isFocused: boolean;
+
+    // Arrived in the latest live tail update
+    isNew?: boolean;
     onToggleExpand: (log: LogObjectWithAdditionalInfo) => void;
     onFocus: (log: LogObjectWithAdditionalInfo) => void;
     searchTerm: string;
@@ -205,7 +208,7 @@ function DetailValue({fieldKey, value}: {fieldKey: string; value: string}) {
     );
 }
 
-function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm, wrapText, showNode}: Props) {
+function LogRow({log, isExpanded, isFocused, isNew, onToggleExpand, onFocus, searchTerm, wrapText, showNode}: Props) {
     const [copyJsonStatus, copyJson] = useClipboardCopy();
     const [copyLineStatus, copyLine] = useClipboardCopy();
     const copyJsonSuccess = copyJsonStatus === 'copied';
@@ -255,6 +258,7 @@ function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm
         'LogRow--compact',
         isExpanded ? 'LogRow--expanded' : '',
         isFocused ? 'LogRow--focused' : '',
+        isNew ? 'LogRow--new' : '',
         log.level === 'error' ? 'LogRow--error-bg' : '',
         log.level === 'warn' ? 'LogRow--warn-bg' : '',
         wrapText || isExpanded ? 'LogRow--wrap' : 'LogRow--nowrap',

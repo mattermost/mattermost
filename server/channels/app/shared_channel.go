@@ -29,15 +29,11 @@ func isNotFoundError(err error) bool {
 	return errors.As(err, &nfErr)
 }
 
-func (a *App) getSharedChannelsService(ensureIsActive bool) (SharedChannelServiceIFace, error) {
+func (a *App) getSharedChannelsService() (SharedChannelServiceIFace, error) {
 	scService := a.Srv().GetSharedChannelSyncService()
 	if scService == nil {
 		return nil, model.NewAppError("getSharedChannelsService", "api.command_share.service_disabled",
 			nil, "", http.StatusBadRequest)
-	}
-	if ensureIsActive && !scService.Active() {
-		return nil, model.NewAppError("getSharedChannelsService", "api.command_share.service_inactive",
-			nil, "", http.StatusInternalServerError)
 	}
 	return scService, nil
 }
@@ -67,7 +63,7 @@ func (a *App) checkChannelIsShared(channelId string) error {
 }
 
 func (a *App) CheckCanInviteToSharedChannel(channelId string) error {
-	scService, err := a.getSharedChannelsService(false)
+	scService, err := a.getSharedChannelsService()
 	if err != nil {
 		return err
 	}
@@ -77,7 +73,7 @@ func (a *App) CheckCanInviteToSharedChannel(channelId string) error {
 // SharedChannels
 
 func (a *App) ShareChannel(rctx request.CTX, sc *model.SharedChannel) (*model.SharedChannel, error) {
-	scService, err := a.getSharedChannelsService(false)
+	scService, err := a.getSharedChannelsService()
 	if err != nil {
 		return nil, err
 	}
@@ -105,7 +101,7 @@ func (a *App) GetSharedChannelsCount(opts model.SharedChannelFilterOpts) (int64,
 }
 
 func (a *App) UpdateSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error) {
-	scService, err := a.getSharedChannelsService(false)
+	scService, err := a.getSharedChannelsService()
 	if err != nil {
 		return nil, err
 	}
@@ -113,7 +109,7 @@ func (a *App) UpdateSharedChannel(sc *model.SharedChannel) (*model.SharedChannel
 }
 
 func (a *App) UnshareChannel(channelID string) (bool, error) {
-	scService, err := a.getSharedChannelsService(false)
+	scService, err := a.getSharedChannelsService()
 	if err != nil {
 		return false, err
 	}
@@ -123,7 +119,7 @@ func (a *App) UnshareChannel(channelID string) (bool, error) {
 // SharedChannelRemotes
 
 func (a *App) InviteRemoteToChannel(channelID, remoteID, userID string, shareIfNotShared bool) error {
-	ssService, err := a.getSharedChannelsService(false)
+	ssService, err := a.getSharedChannelsService()
 	if err != nil {
 		return err
 	}
@@ -131,7 +127,7 @@ func (a *App) InviteRemoteToChannel(channelID, remoteID, userID string, shareIfN
 }
 
 func (a *App) UninviteRemoteFromChannel(channelID, remoteID string) error {
-	ssService, err := a.getSharedChannelsService(false)
+	ssService, err := a.getSharedChannelsService()
 	if err != nil {
 		return err
 	}
@@ -232,6 +228,13 @@ func (a *App) SyncSharedChannel(channelID string) error {
 }
 
 // Plugin inbound sync APIs
+//
+// Plugins run on every cluster node, so these APIs do not require the shared
+// channel service to be active (which is only the case on the cluster leader).
+// Received content is written to the database on the receiving node. Posts,
+// reactions and acknowledgements reach other remotes through cluster websocket
+// events handled by the leader; sync tasks queued as a side effect on a
+// follower (membership changes, statuses) wait in that node's inactive queue.
 
 // ReceiveSharedChannelSyncMsg processes an inbound sync message from a plugin remote.
 // The pluginID is server-injected (from api.id) for ownership validation; remoteID
@@ -241,7 +244,7 @@ func (a *App) ReceiveSharedChannelSyncMsg(rctx request.CTX, pluginID, remoteID s
 		return model.SyncResponse{}, fmt.Errorf("SyncMsg must not be nil")
 	}
 
-	scService, err := a.getSharedChannelsService(true)
+	scService, err := a.getSharedChannelsService()
 	if err != nil {
 		return model.SyncResponse{}, err
 	}
@@ -282,7 +285,7 @@ func (a *App) ReceiveSharedChannelAttachmentSyncMsg(rctx request.CTX, pluginID, 
 			"api.shared_channel.attachment.filename_required.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if _, err := a.getSharedChannelsService(true); err != nil {
+	if _, err := a.getSharedChannelsService(); err != nil {
 		return nil, err
 	}
 
@@ -424,7 +427,7 @@ func (a *App) ReceiveSharedChannelAttachmentSyncMsg(rctx request.CTX, pluginID, 
 // ReceiveSharedChannelProfileImageSyncMsg receives a profile image from a plugin remote.
 // The pluginID is server-injected for ownership validation; remoteID is caller-supplied.
 func (a *App) ReceiveSharedChannelProfileImageSyncMsg(rctx request.CTX, pluginID, remoteID, userID string, image []byte) error {
-	if _, err := a.getSharedChannelsService(true); err != nil {
+	if _, err := a.getSharedChannelsService(); err != nil {
 		return err
 	}
 

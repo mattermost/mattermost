@@ -11,7 +11,6 @@ import type {Post} from '@mattermost/types/posts';
 
 import {getFileDownloadUrl, getFilePreviewUrl, getFileUrl} from 'mattermost-redux/utils/file_utils';
 
-import ArchivedPreview from 'components/archived_preview';
 import AudioVideoPreview from 'components/audio_video_preview';
 import CodePreview, {hasSupportedLanguage} from 'components/code_preview';
 import FileInfoPreview from 'components/file_info_preview';
@@ -266,12 +265,8 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
             const nextTranslate: Record<number, Translate> = {};
             for (let i = 0; i < props.fileInfos.length; i++) {
                 const idUnchanged = state.prevFileIds[i] === nextFileIds[i];
-                nextScale[i] = idUnchanged && state.scale[i] !== undefined ?
-                    state.scale[i] :
-                    FilePreviewModal.getDefaultScaleForFile(props.fileInfos[i]);
-                nextTranslate[i] = idUnchanged && state.translate[i] !== undefined ?
-                    state.translate[i] :
-                    {x: 0, y: 0};
+                nextScale[i] = idUnchanged && state.scale[i] !== undefined ? state.scale[i] : FilePreviewModal.getDefaultScaleForFile(props.fileInfos[i]);
+                nextTranslate[i] = idUnchanged && state.translate[i] !== undefined ? state.translate[i] : {x: 0, y: 0};
             }
             updatedState.scale = nextScale;
             updatedState.translate = nextTranslate;
@@ -312,10 +307,6 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
 
     loadImage = (index: number) => {
         const fileInfo = this.props.fileInfos[index];
-        if (isFileInfo(fileInfo) && fileInfo.archived) {
-            this.handleImageLoaded(index);
-            return;
-        }
 
         // Determine file type using helper method
         const fileType = this.getFileTypeFromFileInfo(fileInfo);
@@ -447,16 +438,12 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
             const defaultScale = FilePreviewModal.getDefaultScaleForFile(fileInfo);
             const maxScale = FilePreviewModal.getMaxScaleForFile(fileInfo);
             const oldScale = prev.scale[idx] ?? defaultScale;
-            const newScale = direction > 0 ?
-                Math.min(oldScale + stepMagnitude, maxScale) :
-                Math.max(oldScale - stepMagnitude, ZoomSettings.MIN_SCALE);
+            const newScale = direction > 0 ? Math.min(oldScale + stepMagnitude, maxScale) : Math.max(oldScale - stepMagnitude, ZoomSettings.MIN_SCALE);
             if (newScale === oldScale) {
                 return null;
             }
             const oldTranslate = prev.translate[idx] ?? {x: 0, y: 0};
-            const newTranslate = newScale === defaultScale ?
-                {x: 0, y: 0} :
-                computeZoomAtCursor(oldScale, oldTranslate, cursorOffsetX, cursorOffsetY, newScale);
+            const newTranslate = newScale === defaultScale ? {x: 0, y: 0} : computeZoomAtCursor(oldScale, oldTranslate, cursorOffsetX, cursorOffsetY, newScale);
             return {
                 scale: {...prev.scale, [idx]: newScale},
                 translate: {...prev.translate, [idx]: newTranslate},
@@ -574,113 +561,103 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
         let content;
         let zoomBar;
 
-        if (isFileInfo(fileInfo) && fileInfo.archived) {
+        if (this.state.loaded[this.state.imageIndex]) {
+            if (fileType === FileTypes.IMAGE || fileType === FileTypes.SVG) {
+                const currentScale = this.state.scale[this.state.imageIndex];
+                const currentTranslate = this.state.translate[this.state.imageIndex] ?? {x: 0, y: 0};
+                const defaultScale = FilePreviewModal.getDefaultScaleForFile(fileInfo);
+                content = (
+                    <ImagePreview
+                        fileInfo={fileInfo as FileInfo}
+                        canDownloadFiles={this.props.canDownloadFiles}
+                        scale={currentScale}
+                        translate={currentTranslate}
+                        onWheel={this.handleImageWheel}
+                        onMouseDown={this.handleImageMouseDown}
+                        isZoomed={currentScale !== defaultScale}
+                        isDragging={this.state.isDragging}
+                    />
+                );
+                zoomBar = (
+                    <PopoverBar
+                        scale={this.state.scale[this.state.imageIndex]}
+                        defaultScale={ZoomSettings.DEFAULT_SCALE_IMAGE}
+                        maxScale={ZoomSettings.MAX_SCALE_IMAGE}
+                        showZoomControls={this.state.showZoomControls}
+                        handleZoomIn={this.handleZoomIn}
+                        handleZoomOut={this.handleZoomOut}
+                        handleZoomReset={this.handleZoomReset}
+                    />
+                );
+            } else if (fileType === FileTypes.VIDEO || fileType === FileTypes.AUDIO) {
+                content = (
+                    <AudioVideoPreview
+                        fileInfo={fileInfo as FileInfo}
+                        fileUrl={fileUrl}
+                    />
+                );
+            } else if (fileType === FileTypes.PDF) {
+                content = (
+                    <div
+                        className='file-preview-modal__scrollable'
+                        onClick={this.handleBgClose}
+                    >
+                        <React.Suspense fallback={null}>
+                            <PDFPreview
+                                fileInfo={fileInfo as FileInfo}
+                                fileUrl={fileUrl}
+                                scale={this.state.scale[this.state.imageIndex]}
+                                handleBgClose={this.handleBgClose}
+                            />
+                        </React.Suspense>
+                    </div>
+                );
+                zoomBar = (
+                    <PopoverBar
+                        scale={this.state.scale[this.state.imageIndex]}
+                        showZoomControls={this.state.showZoomControls}
+                        handleZoomIn={this.handleZoomIn}
+                        handleZoomOut={this.handleZoomOut}
+                        handleZoomReset={this.handleZoomReset}
+                    />
+                );
+            } else if (hasSupportedLanguage(fileInfo)) {
+                dialogClassName += ' modal-code';
+                canCopyContent = true;
+                content = (
+                    <CodePreview
+                        fileInfo={fileInfo as FileInfo}
+                        fileUrl={fileUrl}
+                        getContent={this.getContent}
+                    />
+                );
+            } else {
+                content = (
+                    <FileInfoPreview
+                        fileInfo={fileInfo as FileInfo}
+                        fileUrl={fileUrl}
+                    />
+                );
+            }
+        } else {
+            // display a progress indicator when the preview for an image is still loading
+            const progress = Math.floor(this.state.progress[this.state.imageIndex]);
+
             content = (
-                <ArchivedPreview
-                    fileInfo={fileInfo}
+                <LoadingImagePreview
+                    loading={
+                        <FormattedMessage
+                            id='view_image.loading'
+                            defaultMessage='Loading'
+                        />
+                    }
+                    progress={progress}
+                    size='24'
                 />
             );
         }
 
-        if (!isFileInfo(fileInfo) || !fileInfo.archived) {
-            if (this.state.loaded[this.state.imageIndex]) {
-                if (fileType === FileTypes.IMAGE || fileType === FileTypes.SVG) {
-                    const currentScale = this.state.scale[this.state.imageIndex];
-                    const currentTranslate = this.state.translate[this.state.imageIndex] ?? {x: 0, y: 0};
-                    const defaultScale = FilePreviewModal.getDefaultScaleForFile(fileInfo);
-                    content = (
-                        <ImagePreview
-                            fileInfo={fileInfo as FileInfo}
-                            canDownloadFiles={this.props.canDownloadFiles}
-                            scale={currentScale}
-                            translate={currentTranslate}
-                            onWheel={this.handleImageWheel}
-                            onMouseDown={this.handleImageMouseDown}
-                            isZoomed={currentScale !== defaultScale}
-                            isDragging={this.state.isDragging}
-                        />
-                    );
-                    zoomBar = (
-                        <PopoverBar
-                            scale={this.state.scale[this.state.imageIndex]}
-                            defaultScale={ZoomSettings.DEFAULT_SCALE_IMAGE}
-                            maxScale={ZoomSettings.MAX_SCALE_IMAGE}
-                            showZoomControls={this.state.showZoomControls}
-                            handleZoomIn={this.handleZoomIn}
-                            handleZoomOut={this.handleZoomOut}
-                            handleZoomReset={this.handleZoomReset}
-                        />
-                    );
-                } else if (fileType === FileTypes.VIDEO || fileType === FileTypes.AUDIO) {
-                    content = (
-                        <AudioVideoPreview
-                            fileInfo={fileInfo as FileInfo}
-                            fileUrl={fileUrl}
-                        />
-                    );
-                } else if (fileType === FileTypes.PDF) {
-                    content = (
-                        <div
-                            className='file-preview-modal__scrollable'
-                            onClick={this.handleBgClose}
-                        >
-                            <React.Suspense fallback={null}>
-                                <PDFPreview
-                                    fileInfo={fileInfo as FileInfo}
-                                    fileUrl={fileUrl}
-                                    scale={this.state.scale[this.state.imageIndex]}
-                                    handleBgClose={this.handleBgClose}
-                                />
-                            </React.Suspense>
-                        </div>
-                    );
-                    zoomBar = (
-                        <PopoverBar
-                            scale={this.state.scale[this.state.imageIndex]}
-                            showZoomControls={this.state.showZoomControls}
-                            handleZoomIn={this.handleZoomIn}
-                            handleZoomOut={this.handleZoomOut}
-                            handleZoomReset={this.handleZoomReset}
-                        />
-                    );
-                } else if (hasSupportedLanguage(fileInfo)) {
-                    dialogClassName += ' modal-code';
-                    canCopyContent = true;
-                    content = (
-                        <CodePreview
-                            fileInfo={fileInfo as FileInfo}
-                            fileUrl={fileUrl}
-                            getContent={this.getContent}
-                        />
-                    );
-                } else {
-                    content = (
-                        <FileInfoPreview
-                            fileInfo={fileInfo as FileInfo}
-                            fileUrl={fileUrl}
-                        />
-                    );
-                }
-            } else {
-                // display a progress indicator when the preview for an image is still loading
-                const progress = Math.floor(this.state.progress[this.state.imageIndex]);
-
-                content = (
-                    <LoadingImagePreview
-                        loading={
-                            <FormattedMessage
-                                id='view_image.loading'
-                                defaultMessage='Loading'
-                            />
-                        }
-                        progress={progress}
-                        size='24'
-                    />
-                );
-            }
-        }
-
-        if (isFileInfo(fileInfo) && !fileInfo.archived) {
+        if (isFileInfo(fileInfo)) {
             for (const preview of this.props.pluginFilePreviewComponents) {
                 if (preview.override(fileInfo, this.props.post)) {
                     content = (
@@ -748,7 +725,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                                 className={classNames(
                                     'file-preview-modal__content',
                                     {
-                                        'file-preview-modal__content-scrollable': (!isFileInfo(fileInfo) || !fileInfo.archived) && this.state.loaded[this.state.imageIndex] && (fileType === FileTypes.PDF),
+                                        'file-preview-modal__content-scrollable': this.state.loaded[this.state.imageIndex] && (fileType === FileTypes.PDF),
                                     },
                                 )}
                                 onClick={this.handleBgClose}
