@@ -12,12 +12,14 @@
 // sidebar is generated — same effect as Sphinx's conf.py exclude/redirect
 // rules on its own full-repo submodule checkout.
 //
-// Navigation: no top-level Agents nav section. admin_guide.md/user_guide.md
-// are inlined into the two curated pages (as Sphinx's `.. include::` did).
-// Every other page is either a listed child or unlisted:
+// Navigation: no top-level Agents nav section. admin_guide.md, user_guide.md
+// and data_handling.md are inlined into the three curated pages (as Sphinx's
+// `.. include::` did). Every other page is either a listed child or unlisted:
 //   - INLINE_PARTIALS: staged as an unlisted doc (direct-link parity) AND
 //     as a Markdown partial (leading underscore) the curated pages
-//     `import` and render inline, reproducing `.. include::`.
+//     `import` and render inline, reproducing `.. include::`. Links to these
+//     pages from other staged pages are rewritten to the curated page's URL
+//     (INLINE_CANONICAL_URLS), because the staged copy is noindex.
 //   - NAV_CHILDREN: normal listed (indexable) docs, placed in the sidebar by
 //     gen-documentation-sidebar.mjs via cross-directory {doc: ...} items
 //     (the admin "AI agents" group and the End User Guide Agents category).
@@ -50,24 +52,48 @@ const DEST_IMAGES = join(SITE_ROOT, 'static', 'images', 'agents');
 
 // Files whose body is inlined into a curated page via a Markdown partial
 // import, in addition to being staged as their own unlisted page.
-const INLINE_PARTIALS = new Set(['admin_guide', 'user_guide']);
+const INLINE_PARTIALS = new Set(['admin_guide', 'user_guide', 'data_handling']);
+
+// Where each inlined page is really published. Links to these pages from
+// other staged pages point here instead of at the unlisted staged copy.
+const INLINE_CANONICAL_URLS = {
+  admin_guide: '/administration-guide/configure/agents-admin-guide',
+  user_guide: '/end-user-guide/agents',
+  data_handling: '/end-user-guide/collaborate/agents-context-management',
+};
 
 // Files that get their own listed page, nested under a curated page by
 // gen-documentation-sidebar.mjs. Everything else staged ends up unlisted.
 // Keyed by path relative to the plugin's docs/ folder, without extension, so
 // same-named files in different folders can never be listed by accident.
 const NAV_CHILDREN = new Set([
+  // Admin: set up and configure
+  'llm_services',
   'providers',
   'aws_bedrock_setup',
+  'managing_agents',
+  'access_control',
+  'mcp_integrations',
+  'tool_approval',
+  'web_search',
+  'embedding_search',
+  'ai_output_security',
+  'observability',
+  'backup_and_automation',
+  'troubleshooting',
   'sovereign_ai',
-  'usage_tips',
-  'mcp_server',
-  'personal_agent',
   'upgrading_to_2.0',
-  'features/managing_agents',
-  'features/custom_prompts',
-  'features/channel_summaries',
-  'features/multiplayer_tool_calling',
+  // Developers and integrators
+  'mcp_server',
+  'mcp_tools',
+  'llm_bridge',
+  // End users
+  'personal_agent',
+  'using_tools',
+  'agents_in_channels',
+  'summaries_and_search',
+  'meeting_summaries',
+  'custom_prompts',
 ]);
 
 function rmrf(p) {
@@ -122,7 +148,8 @@ function rewriteImagePaths(body) {
 function rewriteRelativeMdLinks(body, fileRelDir) {
   return body.replace(/(\[[^\]]*]\()(?!https?:\/\/|\/|#)([^)\s#]+)\.md(#[^)\s]+)?(\))/g, (_m, pre, target, anchor, post) => {
     const resolved = posix.normalize(posix.join(fileRelDir, target));
-    return `${pre}/agents/docs/${resolved}${anchor || ''}${post}`;
+    const url = INLINE_CANONICAL_URLS[resolved] ?? `/agents/docs/${resolved}`;
+    return `${pre}${url}${anchor || ''}${post}`;
   });
 }
 

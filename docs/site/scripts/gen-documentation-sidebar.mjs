@@ -34,6 +34,20 @@ function agentsDocItems(specs) {
   }
   return items;
 }
+
+// A nested sidebar category of staged Agents pages whose landing page is one
+// of them. Returns a one-element array, so callers can spread it into an
+// items list. When the landing page isn't staged (submodule too old), the
+// children are returned flat instead, so nothing is lost and the category
+// never points at a missing doc.
+function agentsDocCategory(label, landingId, specs) {
+  const children = agentsDocItems(specs);
+  if (!existsSync(join(SRC, `${landingId}.md`)) && !existsSync(join(SRC, `${landingId}.mdx`))) {
+    console.warn(`[sidebar] WARN: ${landingId} was not staged from the Agents plugin docs (submodule too old?) — listing the "${label}" pages without a category.`);
+    return children;
+  }
+  return [{label, landingDoc: landingId, items: children}];
+}
 const OUT = join(SITE_ROOT, 'sidebars', 'documentation.generated.json');
 
 // ===========================================================================
@@ -444,15 +458,32 @@ const ADMIN_CONFIGURE_GROUPS = {
   agents: {
     label: 'AI agents',
     landing: 'agents-admin-guide',
-    items: agentsDocItems([
-      'agents/docs/providers',
-      'agents/docs/aws_bedrock_setup',
-      'agents/docs/sovereign_ai',
-      {id: 'agents/docs/mcp_server', label: 'Mattermost MCP server'},
-      {id: 'agents/docs/features/managing_agents', label: 'Manage agents'},
-      {id: 'agents/docs/features/multiplayer_tool_calling', label: 'Multiplayer tool calling'},
-      {id: 'agents/docs/upgrading_to_2.0', label: 'Upgrade to Agents 2.0'},
-    ]),
+    items: [
+      ...agentsDocCategory('Connect an LLM', 'agents/docs/llm_services', [
+        {id: 'agents/docs/providers', label: 'Provider configuration'},
+        {id: 'agents/docs/aws_bedrock_setup', label: 'AWS Bedrock'},
+      ]),
+      ...agentsDocItems([
+        {id: 'agents/docs/managing_agents', label: 'Create and manage agents'},
+        {id: 'agents/docs/access_control', label: 'Control who can use agents'},
+      ]),
+      ...agentsDocCategory('MCP and tools', 'agents/docs/mcp_integrations', [
+        {id: 'agents/docs/tool_approval', label: 'Tool approval and credentials'},
+        {id: 'agents/docs/mcp_server', label: 'Mattermost MCP server'},
+        {id: 'agents/docs/mcp_tools', label: 'Mattermost MCP tool reference'},
+        {id: 'agents/docs/llm_bridge', label: 'LLM Bridge for plugins'},
+      ]),
+      ...agentsDocItems([
+        {id: 'agents/docs/web_search', label: 'Web search'},
+        {id: 'agents/docs/embedding_search', label: 'Set up semantic search'},
+        {id: 'agents/docs/ai_output_security', label: 'Secure AI-generated links and HTML'},
+        {id: 'agents/docs/observability', label: 'Monitor Agents'},
+        {id: 'agents/docs/backup_and_automation', label: 'Back up and automate'},
+        {id: 'agents/docs/troubleshooting', label: 'Troubleshoot Agents'},
+        {id: 'agents/docs/sovereign_ai', label: 'Sovereign AI deployments'},
+        {id: 'agents/docs/upgrading_to_2.0', label: 'Upgrade from Agents 1.x'},
+      ]),
+    ],
   },
 };
 
@@ -1470,7 +1501,9 @@ function buildAdminConfigureItem(spec, leafLabels) {
   if (spec.doc) {
     return {type: 'doc', id: spec.doc, label: spec.label || docLabelById(spec.doc)};
   }
-  const g = ADMIN_CONFIGURE_GROUPS[spec.group];
+  // A group is either referenced by key ({group: 'agents'}) or written inline
+  // ({label, landingDoc, items}), which is how a group nests inside another.
+  const g = spec.items ? spec : ADMIN_CONFIGURE_GROUPS[spec.group];
   if (!g) throw new Error(`unknown admin configure group: ${spec.group}`);
   const items = g.items.map((it) => buildAdminConfigureItem(it, leafLabels));
   const cat = {type: 'category', label: g.label, collapsed: true, items};
@@ -2073,19 +2106,19 @@ function regroupEndUserSection(sectionCat, dirName, override) {
 }
 
 function buildEndUserGuideSidebar(autoCat) {
-  // usage_tips' label is overridden here because agents/docs/ is staged from
-  // the plugin submodule and gitignored, so its frontmatter title can't be
-  // corrected in this repo.
+  // Labels are overridden here where the staged page's title is longer than a
+  // sidebar entry should be. agents/docs/ is staged from the plugin submodule
+  // and gitignored, so a title can't be corrected in this repo.
   const promoted = promoteDocToCategory(autoCat.items, 'end-user-guide/agents', [
     ...agentsDocItems([
       {id: 'agents/docs/personal_agent', label: 'Use Agents as your personal AI assistant'},
-      {id: 'agents/docs/usage_tips', label: 'Agents usage tips and best practices'},
+      {id: 'agents/docs/using_tools', label: 'Use tools and approve actions'},
+      {id: 'agents/docs/agents_in_channels', label: 'Use agents in channels'},
+      {id: 'agents/docs/summaries_and_search', label: 'Summaries and AI search'},
+      {id: 'agents/docs/meeting_summaries', label: 'Meeting summaries'},
+      {id: 'agents/docs/custom_prompts', label: 'Custom prompts'},
     ]),
     'end-user-guide/collaborate/agents-context-management',
-    ...agentsDocItems([
-      {id: 'agents/docs/features/custom_prompts', label: 'Custom prompts'},
-      {id: 'agents/docs/features/channel_summaries', label: 'Channel summaries'},
-    ]),
   ]);
   if (!promoted) {
     console.warn('[sidebar] WARN: End User Guide "agents" doc not found — Agents child pages were not nested.');
