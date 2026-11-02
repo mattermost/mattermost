@@ -3,7 +3,7 @@
 import os
 from dataclasses import dataclass
 
-from .result import LABEL, TODO_MARKER, Result, branch_name
+from .result import LABEL as OPTIONAL_LABEL, TODO_MARKER, Result, branch_name
 
 TRAILER = "Release-Agent-Task"
 
@@ -77,13 +77,21 @@ def apply(gh, result: Result, target: Target, live: bool) -> str:
     if not live:
         action = f"updated PR #{pr['number']}" if pr else f"opened a draft PR from `{target.branch}`"
         return f"{prefix}{action} in {target.repo}, changing {paths}."
-    action, number = write(gh, target, result.files, commit_message(result), result.title, pr_body(result), [LABEL])
-    return f"{action} PR {target.repo}#{number}, changing {paths}."
+    action, number, skipped = write(gh, target, result.files, commit_message(result), result.title,
+                                    pr_body(result), [])
+    return f"{action} PR {target.repo}#{number}, changing {paths}.{skipped_label_note(skipped, target.repo)}"
 
 
-def write(gh, target: Target, files: dict, message: str, title: str, body: str, labels: list[str]) -> tuple[str, int]:
+def skipped_label_note(skipped: list[str], repo: str) -> str:
+    return (f" Label {', '.join(f'`{l}`' for l in skipped)} not added: it does not exist in {repo} "
+            "(the workflow never creates it).") if skipped else ""
+
+
+def write(gh, target: Target, files: dict, message: str, title: str, body: str, labels: list[str],
+          optional_labels: tuple[str, ...] = (OPTIONAL_LABEL,)) -> tuple[str, int, list[str]]:
     """Commit ``files`` on top of ``target.sha`` (creating the branch if needed), then open or
-    update the draft PR and add ``labels``. The ref only ever moves forward."""
+    update the draft PR and add ``labels``, plus each of ``optional_labels`` that already exists in
+    the repo (never created; the ones skipped are returned). The ref only ever moves forward."""
     if target.ref != target.branch:
         gh.create_branch(target.repo, target.branch, target.sha)
     gh.commit_files(target.repo, target.branch, target.sha, files, message)
@@ -92,5 +100,6 @@ def write(gh, target: Target, files: dict, message: str, title: str, body: str, 
         number, action = target.pr["number"], "Updated"
     else:
         number, action = gh.create_pr(target.repo, target.branch, target.base, title, body)["number"], "Opened draft"
-    gh.add_labels(target.repo, number, labels)
-    return action, number
+    present = [l for l in optional_labels if gh.label_exists(target.repo, l)]
+    gh.add_labels(target.repo, number, [*labels, *present])
+    return action, number, [l for l in optional_labels if l not in present]

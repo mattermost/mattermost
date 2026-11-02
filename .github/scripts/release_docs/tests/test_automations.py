@@ -121,6 +121,17 @@ class AutomationTest(unittest.TestCase):
                 self.assertEqual(run.result.files, {})
                 self.assertEqual(len(gh.pulls[s.repo]), 1)
 
+    def test_release_agent_label_is_skipped_and_noted_when_the_repo_has_none(self):
+        for s in SCENARIOS:
+            with self.subTest(s.task):
+                gh = s.github()
+                gh.labels_in_repo.discard(LABEL)
+                run = s.run(gh, live=True)
+                [pr] = gh.pulls[s.repo]
+                self.assertNotIn(LABEL, pr["labels"])
+                self.assertEqual(pr["head"], s.branch)
+                self.assertIn(f"Label `{LABEL}` not added", run.outcome)
+
     def test_missing_input_is_a_todo_and_a_failed_check(self):
         for s in SCENARIOS:
             with self.subTest(s.task):
