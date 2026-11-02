@@ -27,20 +27,24 @@ func newClientRoute(segment string) clientRoute {
 }
 
 func (r clientRoute) Join(segments ...any) clientRoute {
+	if r.err != nil {
+		return r
+	}
+
 	for _, segment := range segments {
 		if s, ok := segment.(string); ok {
 			cleaned, err := cleanSegment(s)
-			if err != nil && r.err == nil {
+			if err != nil {
 				r.err = err
+				return r
 			}
-			if err == nil {
-				r.segments = append(r.segments, cleaned)
-			}
+			r.segments = append(r.segments, cleaned)
 		}
 
 		if s, ok := segment.(clientRoute); ok {
-			if s.err != nil && r.err == nil {
+			if s.err != nil {
 				r.err = s.err
+				return r
 			}
 			r.segments = append(r.segments, s.segments...)
 		}

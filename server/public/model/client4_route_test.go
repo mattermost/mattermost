@@ -182,6 +182,12 @@ func TestClientRouteJoin(t *testing.T) {
 			segments: []any{"v4", "..", "users"},
 			wantErr:  true,
 		},
+		{
+			name:     "valid segments joined onto a rejected route",
+			base:     newClientRoute(".."),
+			segments: []any{"api", "v4"},
+			wantErr:  true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -196,6 +202,12 @@ func TestClientRouteJoin(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("rejected route stops accumulating segments", func(t *testing.T) {
+		result := newClientRoute("api").Join("v4", "..", "users").Join("me", newClientRoute("teams"))
+		require.ErrorIs(t, result.err, errInvalidClientRouteSegment)
+		require.Equal(t, []string{"api", "v4"}, result.segments)
+	})
 }
 
 func TestClientRouteURL(t *testing.T) {
