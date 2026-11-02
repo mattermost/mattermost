@@ -77,17 +77,20 @@ def apply(gh, result: Result, target: Target, live: bool) -> str:
     if not live:
         action = f"updated PR #{pr['number']}" if pr else f"opened a draft PR from `{target.branch}`"
         return f"{prefix}{action} in {target.repo}, changing {paths}."
+    action, number = write(gh, target, result.files, commit_message(result), result.title, pr_body(result), [LABEL])
+    return f"{action} PR {target.repo}#{number}, changing {paths}."
+
+
+def write(gh, target: Target, files: dict, message: str, title: str, body: str, labels: list[str]) -> tuple[str, int]:
+    """Commit ``files`` on top of ``target.sha`` (creating the branch if needed), then open or
+    update the draft PR and add ``labels``. The ref only ever moves forward."""
     if target.ref != target.branch:
         gh.create_branch(target.repo, target.branch, target.sha)
-    gh.commit_files(target.repo, target.branch, target.sha, result.files, commit_message(result))
-    body = pr_body(result)
-    if pr:
-        gh.update_pr(target.repo, pr["number"], result.title, body)
-        number = pr["number"]
-        action = "Updated"
+    gh.commit_files(target.repo, target.branch, target.sha, files, message)
+    if target.pr:
+        gh.update_pr(target.repo, target.pr["number"], title, body)
+        number, action = target.pr["number"], "Updated"
     else:
-        created = gh.create_pr(target.repo, target.branch, target.base, result.title, body)
-        number = created["number"]
-        action = "Opened draft"
-    gh.add_labels(target.repo, number, [LABEL])
-    return f"{action} PR {target.repo}#{number}, changing {paths}."
+        number, action = gh.create_pr(target.repo, target.branch, target.base, title, body)["number"], "Opened draft"
+    gh.add_labels(target.repo, number, labels)
+    return action, number

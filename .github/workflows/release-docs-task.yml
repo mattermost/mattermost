@@ -7,6 +7,8 @@ name: Release Docs Task
 # overrides it. dry_run writes the result to the run summary and the release-docs-<task>
 # artifact and changes nothing. live opens or updates a draft PR on the branch
 # release-agent/<version>/<task>, labelled release-agent, or sets the release description.
+# dot-release-docs shares one PR between the dot releases shipped together, on
+# release-agent/dot-release-docs/<first version>.
 # A missing input is written as TODO(release-agent) and fails the run.
 #
 # Settings (Settings → Secrets and variables → Actions):
@@ -18,9 +20,11 @@ name: Release Docs Task
 #                                              read with GITHUB_TOKEN.
 #   CHANGELOG_ESR_VERSIONS          (variable) ESR lines, e.g. "v10.11,v11.7,v12.4"
 #   RELEASE_AGENT_CALENDAR_ICS_URL  (secret or variable) Release Dates calendar, shared with the release agent
-#   ANTHROPIC_API_KEY               (secret)   highlights, breaking-change notices, blog and email drafts
+#   ANTHROPIC_API_KEY               (secret)   highlights, breaking-change notices, blog and email drafts,
+#                                              dot release bullets for PRs with no release note
 #   RELEASE_AGENT_JIRA_EMAIL        (variable) and RELEASE_AGENT_JIRA_TOKEN (secret): Jira versions and epics
-#                                              for drafts and release-highlights
+#                                              for drafts and release-highlights, and the security labels
+#                                              of the tickets behind dot release fixes
 #   CHANGELOG_READ_CLIENT_ID        (variable) and CHANGELOG_READ_PRIVATE_KEY (secret): reads
 #                                              mattermost/enterprise PRs for the drafts
 
@@ -31,7 +35,9 @@ on:
         required: true
         type: string
       version:
-        description: Version, or the milestone for breaking-changes. Empty on release and branch events.
+        description: >-
+          Version, or the milestone for breaking-changes, or one or more versions for dot-release-docs.
+          Empty on release and branch events.
         required: false
         type: string
         default: ''
@@ -48,6 +54,11 @@ on:
         type: string
         default: ''
       jira_fix_version:
+        required: false
+        type: string
+        default: ''
+      severity:
+        description: dot-release-docs only, e.g. "v12.1.1=Medium, v11.7.15=Low to Medium"
         required: false
         type: string
         default: ''
@@ -131,6 +142,7 @@ jobs:
           JIRA_EMAIL: ${{ vars.RELEASE_AGENT_JIRA_EMAIL }}
           JIRA_TOKEN: ${{ secrets.RELEASE_AGENT_JIRA_TOKEN }}
           JIRA_FIX_VERSION: ${{ inputs.jira_fix_version }}
+          SEVERITY: ${{ inputs.severity }}
           RELEASE_DATE: ${{ inputs.release_date }}
           MILESTONE: ${{ inputs.milestone }}
           OUTPUT_DIR: ${{ runner.temp }}/release-docs-output

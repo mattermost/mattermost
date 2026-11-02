@@ -24,6 +24,7 @@ class Result:
     todos: list = field(default_factory=list)
     notes: list = field(default_factory=list)
     skipped: str = ""  # why the task does not apply to this version
+    pr_branch: str = ""  # for tasks whose branch is not named after one version
 
     def todo(self, reason: str, bare: bool = False) -> str:
         """Record a missing input and return the visible marker to put where the value goes.
@@ -37,7 +38,7 @@ class Result:
 
     @property
     def branch(self) -> str:
-        return branch_name(self.version, self.task)
+        return self.pr_branch or branch_name(self.version, self.task)
 
     @property
     def failed(self) -> bool:

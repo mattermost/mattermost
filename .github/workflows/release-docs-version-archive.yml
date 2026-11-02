@@ -1,10 +1,11 @@
 name: Release Docs - Version Archive
 
-# Playbook T-3: a draft PR adding a release to the version archive (download links,
-# SHA-256 from the published .sha256 files, GPG signature and SBOM). Runs when a vX.Y.Z
-# GitHub release is published, which the delivery pipeline does as a pre-release at the
-# final build cut and for each dot release; RC tags are ignored. Waits for the files.
-# See release-docs-task.yml for modes and settings.
+# Playbook T-3: a draft PR adding a feature release to the version archive (download
+# links, SHA-256 from the published .sha256 files, GPG signature and SBOM). Runs when a
+# vX.Y.0 GitHub release is published, which the delivery pipeline does as a pre-release at
+# the final build cut; RC tags are ignored. Waits for the files. Dot releases (Z > 0) are
+# skipped: their archive entries are in the dot release docs PR
+# (release-docs-dot-release.yml). See release-docs-task.yml for modes and settings.
 
 on:
   release:
@@ -12,7 +13,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Release version, e.g. v12.2.0 or v11.7.15'
+        description: 'Feature release version, e.g. v12.2.0 (dot releases are in the dot release docs PR)'
         required: true
         type: string
       mode:
