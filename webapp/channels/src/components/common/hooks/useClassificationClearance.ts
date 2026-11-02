@@ -56,6 +56,7 @@ export default function useClassificationClearance(templateFieldId?: string): {c
 
         return () => {
             active = false;
+            setLookupSettled(false);
         };
     }, [shouldCheck, dispatch]);
 
