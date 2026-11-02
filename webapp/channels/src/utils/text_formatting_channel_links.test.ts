@@ -71,6 +71,19 @@ describe('TextFormatting.ChannelLinks', () => {
             );
         });
 
+        test('should link a ~channel_id mention keyed by channel ID (anonymous URLs)', () => {
+            // The server resolves ~<channel_id> and keys channel_mentions by the ID; the
+            // channel identifier router then redirects /team/channels/<id> to the channel.
+            expect(
+                TextFormatting.formatText('Discuss in ~n3g97w1tw3df8ggygy8mub353w.', {
+                    channelNamesMap: {n3g97w1tw3df8ggygy8mub353w: {display_name: 'Incident Response', team_name: 'acme'}},
+                    team: TH.getTeamMock({name: 'myteam'}),
+                }, emojiMap).trim(),
+            ).toBe(
+                '<p>Discuss in <a class="mention-link" href="/acme/channels/n3g97w1tw3df8ggygy8mub353w" data-channel-mention-team="acme" data-channel-mention="n3g97w1tw3df8ggygy8mub353w">~Incident Response</a>.</p>',
+            );
+        });
+
         test('should link in brackets', () => {
             expect(
                 TextFormatting.formatText('(~town-square)', {

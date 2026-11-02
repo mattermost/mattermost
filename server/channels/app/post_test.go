@@ -973,6 +973,63 @@ func TestFillInPostPropsChannelMentionByID(t *testing.T) {
 		dm := th.CreateDmChannel(t, th.BasicUser2)
 		assert.Nil(t, resolve(t, &model.Post{Message: "see ~" + dm.Id}))
 	})
+
+	t.Run("posting from a DM", func(t *testing.T) {
+		dm := th.CreateDmChannel(t, th.BasicUser2)
+		gm := th.CreateGroupChannel(t, th.BasicUser2, th.CreateUser(t))
+
+		resolveFromDM := func(t *testing.T, message, currentTeamID string) map[string]any {
+			t.Helper()
+			post := &model.Post{Message: message, ChannelId: dm.Id, UserId: th.BasicUser.Id}
+			if currentTeamID != "" {
+				post.AddProp(model.PostPropsCurrentTeamId, currentTeamID)
+			}
+			require.Nil(t, th.App.FillInPostProps(th.Context, post, dm))
+			mentions, _ := post.GetProp(model.PostPropsChannelMentions).(map[string]any)
+			return mentions
+		}
+
+		t.Run("with current_team_id resolves a channel on that team", func(t *testing.T) {
+			mentions := resolveFromDM(t, "see ~"+anonymous.Id, th.BasicTeam.Id)
+			require.Contains(t, mentions, anonymous.Id)
+			assert.Equal(t, th.BasicTeam.Name, mentions[anonymous.Id].(map[string]any)["team_name"])
+		})
+
+		t.Run("with current_team_id does not resolve a channel on another team", func(t *testing.T) {
+			assert.Nil(t, resolveFromDM(t, "see ~"+anonymous.Id, otherTeam.Id))
+		})
+
+		t.Run("without current_team_id does not resolve a channel on a team the author is not on", func(t *testing.T) {
+			assert.Nil(t, resolveFromDM(t, "see ~"+otherTeamChannel.Id, ""))
+		})
+
+		t.Run("without current_team_id does not resolve DM or GM IDs", func(t *testing.T) {
+			// teamId is empty here, so only IsGroupOrDirect() keeps these out.
+			assert.Nil(t, resolveFromDM(t, "see ~"+dm.Id+" and ~"+gm.Id, ""))
+		})
+	})
+
+	t.Run("editing a post to add a ~channel_id resolves it", func(t *testing.T) {
+		post, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "no mentions yet",
+		}, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+		require.Nil(t, post.GetProp(model.PostPropsChannelMentions))
+
+		edited := post.Clone()
+		edited.Message = "now in ~" + anonymous.Id
+		_, _, appErr = th.App.UpdatePost(th.Context, edited, &model.UpdatePostOptions{SafeUpdate: true})
+		require.Nil(t, appErr)
+
+		// The returned post is sanitized for the request session (none here), so check what was stored.
+		stored, err := th.App.Srv().Store().Post().GetSingle(th.Context, post.Id, false)
+		require.NoError(t, err)
+		mentions, _ := stored.GetProp(model.PostPropsChannelMentions).(map[string]any)
+		require.Contains(t, mentions, anonymous.Id)
+		assert.Equal(t, anonymous.DisplayName, mentions[anonymous.Id].(map[string]any)["display_name"])
+	})
 }
 
 func TestImageProxy(t *testing.T) {

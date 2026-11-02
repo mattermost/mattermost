@@ -536,6 +536,36 @@ func TestChannelMentionsBroadcastHook(t *testing.T) {
 		assert.Equal(t, cleanJSON, gotJSON)
 	})
 
+	t.Run("filters ~channel_id mentions keyed by channel ID", func(t *testing.T) {
+		msg := platform.MakeHookedWebSocketEvent(wsEvent)
+
+		err = hook.Process(msg, wc, map[string]any{
+			"channel_mentions": map[string]any{
+				th.BasicChannel.Id: map[string]any{
+					"id":           th.BasicChannel.Id,
+					"display_name": th.BasicChannel.DisplayName,
+					"team_name":    th.BasicTeam.Name,
+				},
+				privateChannel.Id: map[string]any{
+					"id":           privateChannel.Id,
+					"display_name": privateChannel.DisplayName,
+					"team_name":    th.BasicTeam.Name,
+				},
+			},
+		})
+		require.NoError(t, err)
+
+		gotJSON, ok := msg.Get("post").(string)
+		require.True(t, ok)
+		var gotPost model.Post
+		require.NoError(t, json.Unmarshal([]byte(gotJSON), &gotPost))
+
+		mentionsMap, ok := gotPost.GetProp(model.PostPropsChannelMentions).(map[string]any)
+		require.True(t, ok)
+		assert.Contains(t, mentionsMap, th.BasicChannel.Id)
+		assert.NotContains(t, mentionsMap, privateChannel.Id)
+	})
+
 	t.Run("retains same-team public channel mention for non-member recipient under compliance", func(t *testing.T) {
 		th.App.UpdateConfig(func(c *model.Config) {
 			c.ComplianceSettings.Enable = model.NewPointer(true)
