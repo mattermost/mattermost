@@ -610,6 +610,71 @@ func (a *App) attachFileIDsToPost(rctx request.CTX, postID, channelID, userID st
 	return attachedIds
 }
 
+// getChannelsMentionedByID resolves ~<channel_id> mentions: mentions that did not match a channel
+// name (namesFound) but are channel IDs, in any case. This lets integrations link a channel without
+// knowing its name, which is randomly generated (and unrelated to the ID) when
+// PrivacySettings.UseAnonymousURLs is enabled. Only active public/private channels are returned,
+// limited to teamID when it is set. Callers still apply their own visibility rules.
+func (a *App) getChannelsMentionedByID(rctx request.CTX, mentions []string, namesFound map[string]bool, teamID string) ([]*model.Channel, *model.AppError) {
+	var ids []string
+	seen := make(map[string]bool)
+	for _, mention := range mentions {
+		// Channel IDs are lowercase; accept any case like the webapp does when rendering.
+		id := strings.ToLower(mention)
+		if !namesFound[mention] && !seen[id] && model.IsValidId(id) {
+			ids = append(ids, id)
+			seen[id] = true
+		}
+	}
+	if len(ids) == 0 {
+		return nil, nil
+	}
+
+	// GetChannelsByIds already excludes board/space backing channels and archived channels.
+	channels, err := a.Srv().Store().Channel().GetChannelsByIds(ids, false)
+	if err != nil {
+		return nil, model.NewAppError("getChannelsMentionedByID", "app.channel.get_channels_by_ids.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// That read goes to a replica. Integrations typically create a channel and mention it right away,
+	// so re-read any ID the replica did not return from the master before giving up on it. Mentions
+	// are resolved only when a post is saved, so a miss here would leave the link broken for good.
+	found := make(map[string]bool, len(channels))
+	for _, channel := range channels {
+		found[channel.Id] = true
+	}
+	masterCtx := sqlstore.RequestContextWithMaster(rctx)
+	for _, id := range ids {
+		if found[id] {
+			continue
+		}
+		for _, channelType := range []model.ChannelType{model.ChannelTypeOpen, model.ChannelTypePrivate} {
+			channel, getErr := a.Srv().Store().Channel().GetChannelOfType(masterCtx, id, channelType)
+			if getErr != nil {
+				var nfErr *store.ErrNotFound
+				if !errors.As(getErr, &nfErr) {
+					rctx.Logger().Warn("Failed to look up mentioned channel", mlog.String("channel_id", id), mlog.Err(getErr))
+				}
+				continue
+			}
+			if channel.DeleteAt == 0 {
+				channels = append(channels, channel)
+			}
+			break
+		}
+	}
+
+	result := make([]*model.Channel, 0, len(channels))
+	for _, channel := range channels {
+		// Match name-based resolution: no DMs/GMs, and stay within the team when known.
+		if channel.IsGroupOrDirect() || (teamID != "" && channel.TeamId != teamID) {
+			continue
+		}
+		result = append(result, channel)
+	}
+	return result, nil
+}
+
 // FillInPostProps should be invoked before saving posts to fill in properties such as
 // channel_mentions.
 //
@@ -655,6 +720,11 @@ func (a *App) FillInPostProps(rctx request.CTX, post *model.Post, channel *model
 			key     string
 			channel *model.Channel
 		}
+		// The store returns rows in no particular order; sort so that, when the author can see several
+		// same-named channels, the same one is picked on every save and edit.
+		slices.SortFunc(mentionedChannels, func(x, y *model.Channel) int {
+			return strings.Compare(x.TeamId+x.Id, y.TeamId+y.Id)
+		})
 		candidates := make([]mentionCandidate, 0, len(mentionedChannels))
 		namesFound := make(map[string]bool, len(mentionedChannels))
 		for _, mentioned := range mentionedChannels {
@@ -662,32 +732,12 @@ func (a *App) FillInPostProps(rctx request.CTX, post *model.Post, channel *model
 			namesFound[mentioned.Name] = true
 		}
 
-		// Mentions that did not match a channel name may be channel IDs (~<channel_id>). This lets
-		// integrations link a channel without knowing its name, which is randomly generated (and
-		// unrelated to the ID) when PrivacySettings.UseAnonymousURLs is enabled. Names take precedence.
-		var idMentions []string
-		seenIDs := make(map[string]bool)
-		for _, mention := range channelMentions {
-			// Channel IDs are lowercase; accept any case like the webapp does when rendering.
-			id := strings.ToLower(mention)
-			if !namesFound[mention] && !seenIDs[id] && model.IsValidId(id) {
-				idMentions = append(idMentions, id)
-				seenIDs[id] = true
-			}
+		mentionedByID, idErr := a.getChannelsMentionedByID(rctx, channelMentions, namesFound, teamId)
+		if idErr != nil {
+			return idErr
 		}
-		if len(idMentions) > 0 {
-			channelsByID, idErr := a.Srv().Store().Channel().GetChannelsByIds(idMentions, false)
-			if idErr != nil {
-				return model.NewAppError("FillInPostProps", "app.channel.get_channels_by_ids.app_error", nil, "", http.StatusInternalServerError).Wrap(idErr)
-			}
-			for _, mentioned := range channelsByID {
-				// Match name-based resolution: no DMs/GMs, and stay within the post's team when known.
-				// (GetChannelsByIds already excludes board/space backing channels.)
-				if mentioned.IsGroupOrDirect() || (teamId != "" && mentioned.TeamId != teamId) {
-					continue
-				}
-				candidates = append(candidates, mentionCandidate{key: mentioned.Id, channel: mentioned})
-			}
+		for _, mentioned := range mentionedByID {
+			candidates = append(candidates, mentionCandidate{key: mentioned.Id, channel: mentioned})
 		}
 
 		// Populate channel_mentions for channels the POST CREATOR has access to

@@ -545,11 +545,13 @@ func TestChannelMentionsBroadcastHook(t *testing.T) {
 					"id":           th.BasicChannel.Id,
 					"display_name": th.BasicChannel.DisplayName,
 					"team_name":    th.BasicTeam.Name,
+					"team_id":      th.BasicTeam.Id,
 				},
 				privateChannel.Id: map[string]any{
 					"id":           privateChannel.Id,
 					"display_name": privateChannel.DisplayName,
 					"team_name":    th.BasicTeam.Name,
+					"team_id":      th.BasicTeam.Id,
 				},
 			},
 		})
@@ -562,7 +564,8 @@ func TestChannelMentionsBroadcastHook(t *testing.T) {
 
 		mentionsMap, ok := gotPost.GetProp(model.PostPropsChannelMentions).(map[string]any)
 		require.True(t, ok)
-		assert.Contains(t, mentionsMap, th.BasicChannel.Id)
+		require.Contains(t, mentionsMap, th.BasicChannel.Id)
+		assert.Equal(t, th.BasicTeam.Id, mentionsMap[th.BasicChannel.Id].(map[string]any)["team_id"])
 		assert.NotContains(t, mentionsMap, privateChannel.Id)
 	})
 

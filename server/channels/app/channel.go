@@ -4179,18 +4179,37 @@ func (a *App) FillInChannelsProps(rctx request.CTX, channelList model.ChannelLis
 			}
 
 			mentionedChannelsByName := make(map[string]*model.Channel)
+			namesFound := make(map[string]bool, len(mentionedChannels))
 			for _, channel := range mentionedChannels {
 				mentionedChannelsByName[channel.Name] = channel
+				namesFound[channel.Name] = true
+			}
+
+			// Also resolve ~<channel_id> mentions, as posts do. Header mentions are shown to every
+			// viewer without a permission check, so only same-team channels are looked up by ID.
+			mentionedChannelsByID := make(map[string]*model.Channel)
+			if teamID != "" {
+				byID, err := a.getChannelsMentionedByID(rctx, allChannelMentionNames, namesFound, teamID)
+				if err != nil {
+					return err
+				}
+				for _, channel := range byID {
+					mentionedChannelsByID[channel.Id] = channel
+				}
 			}
 
 			for _, channel := range channelList {
 				channelMentionsProp := make(map[string]any, len(channelMentions[channel]))
 				for _, channelMention := range channelMentions[channel] {
-					if mentioned, ok := mentionedChannelsByName[channelMention]; ok {
-						if mentioned.Type == model.ChannelTypeOpen {
-							channelMentionsProp[mentioned.Name] = map[string]any{
-								"display_name": mentioned.DisplayName,
-							}
+					key := channelMention
+					mentioned, ok := mentionedChannelsByName[channelMention]
+					if !ok {
+						key = strings.ToLower(channelMention)
+						mentioned, ok = mentionedChannelsByID[key]
+					}
+					if ok && mentioned.Type == model.ChannelTypeOpen {
+						channelMentionsProp[key] = map[string]any{
+							"display_name": mentioned.DisplayName,
 						}
 					}
 				}

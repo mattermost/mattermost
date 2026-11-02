@@ -1030,6 +1030,46 @@ func TestFillInPostPropsChannelMentionByID(t *testing.T) {
 		assert.Equal(t, visible.Id, mentions[sharedName].(map[string]any)["id"])
 	})
 
+	t.Run("same-named channels visible on several teams resolve to the same one every time", func(t *testing.T) {
+		sharedName := "both-" + model.NewId()
+		teamB := th.CreateTeam(t)
+		th.LinkUserToTeam(t, th.BasicUser, teamB)
+		var created []*model.Channel
+		for _, team := range []*model.Team{th.BasicTeam, teamB} {
+			ch, appErr := th.App.CreateChannel(th.Context, &model.Channel{
+				DisplayName: "Both " + team.Name, Name: sharedName, Type: model.ChannelTypeOpen, TeamId: team.Id,
+			}, false)
+			require.Nil(t, appErr)
+			created = append(created, ch)
+		}
+		// Candidates are ordered by TeamId, then channel ID.
+		expected := created[0]
+		if created[1].TeamId < created[0].TeamId {
+			expected = created[1]
+		}
+
+		dm := th.CreateDmChannel(t, th.BasicUser2)
+		for range 5 {
+			post := &model.Post{Message: "see ~" + sharedName, ChannelId: dm.Id, UserId: th.BasicUser.Id}
+			require.Nil(t, th.App.FillInPostProps(th.Context, post, dm))
+			mentions, _ := post.GetProp(model.PostPropsChannelMentions).(map[string]any)
+			require.Contains(t, mentions, sharedName)
+			assert.Equal(t, expected.Id, mentions[sharedName].(map[string]any)["id"])
+		}
+	})
+
+	t.Run("channel header resolves ~channel_id of public channels on its own team", func(t *testing.T) {
+		header := th.CreateChannel(t, th.BasicTeam)
+		header.Header = fmt.Sprintf("Escalate in ~%s, not ~%s or ~%s", strings.ToUpper(anonymous.Id), private.Id, otherTeamChannel.Id)
+		require.Nil(t, th.App.FillInChannelProps(th.Context, header))
+
+		mentions, _ := header.Props["channel_mentions"].(map[string]any)
+		require.Contains(t, mentions, anonymous.Id)
+		assert.Equal(t, anonymous.DisplayName, mentions[anonymous.Id].(map[string]any)["display_name"])
+		assert.NotContains(t, mentions, private.Id, "header mentions only expose public channels")
+		assert.NotContains(t, mentions, otherTeamChannel.Id)
+	})
+
 	// Guards the store-level filter in GetChannelsByIds that FillInPostProps relies on.
 	t.Run("~channel_id of board or space backing channels is not resolved", func(t *testing.T) {
 		for _, channelType := range []model.ChannelType{model.ChannelTypeOpenBoard, model.ChannelTypePrivateBoard, model.ChannelTypeSpace} {
