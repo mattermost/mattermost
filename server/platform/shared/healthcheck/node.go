@@ -10,14 +10,8 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
-var (
-	// ErrNodeNoReply marks a node whose diagnostics were not collected in time.
-	ErrNodeNoReply = errors.New("the node did not reply in time")
-	// ErrNodeOlderVersion marks a node that did not reply and runs an older version than the
-	// evaluating node, which may not know how to answer. Rules read such a node as unknown,
-	// not down, so a rolling upgrade does not look like an outage.
-	ErrNodeOlderVersion = errors.New("the node runs an older version and may not support collection")
-)
+// ErrNodeNoReply marks a node whose diagnostics were not collected in time.
+var ErrNodeNoReply = errors.New("the node did not reply in time")
 
 type NodeSnapshot struct {
 	Hostname    string
@@ -25,7 +19,7 @@ type NodeSnapshot struct {
 	ClusterInfo *model.ClusterInfo
 	Diagnostics *model.NodeDiagnostics
 	// CollectErr is set when the node's diagnostics could not be collected, in which case
-	// Diagnostics is nil. It is ErrNodeNoReply or ErrNodeOlderVersion.
+	// Diagnostics is nil. It is ErrNodeNoReply.
 	CollectErr error
 }
 

@@ -130,8 +130,6 @@ func healthNodes(infos []*model.ClusterInfo, localID string, collected map[strin
 
 		if diagnostics, ok := collected[id]; ok {
 			node.Diagnostics = diagnostics
-		} else if olderVersion(info) {
-			node.CollectErr = healthcheck.ErrNodeOlderVersion
 		} else {
 			node.CollectErr = healthcheck.ErrNodeNoReply
 		}
@@ -149,18 +147,6 @@ func healthNodes(infos []*model.ClusterInfo, localID string, collected map[strin
 
 	healthcheck.SelectLeader(nodes, cmp.Or(local, nodes[0]))
 	return nodes
-}
-
-// olderVersion reports whether a node gossips a release older than this one. Such a node may
-// predate health collection and never reply, so it reads as unknown rather than down.
-func olderVersion(info *model.ClusterInfo) bool {
-	if info == nil || info.Version == "" {
-		return false
-	}
-
-	major, minor, patch := model.SplitVersion(info.Version)
-	currentMajor, currentMinor, currentPatch := model.SplitVersion(model.CurrentVersion)
-	return cmp.Or(cmp.Compare(major, currentMajor), cmp.Compare(minor, currentMinor), cmp.Compare(patch, currentPatch)) < 0
 }
 
 // handleHealthCollect runs on every node: it collects this node's diagnostics and replies to

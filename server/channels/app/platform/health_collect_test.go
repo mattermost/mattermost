@@ -8,7 +8,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"os"
 	"path/filepath"
 	"sync"
@@ -343,44 +342,6 @@ func TestHealthNodes(t *testing.T) {
 		assert.Nil(t, nodes[2].Diagnostics)
 		assert.ErrorIs(t, nodes[2].CollectErr, healthcheck.ErrNodeNoReply)
 	})
-
-	t.Run("a node that did not reply reads as unknown when it runs an older version", func(t *testing.T) {
-		mixed := []*model.ClusterInfo{
-			{Id: "id-1", Hostname: "node-1", Version: current, IPAddress: "10.0.0.1"},
-			{Id: "older", Hostname: "older", Version: "10.11.0.9999", IPAddress: "10.0.0.2"},
-			{Id: "newer", Hostname: "newer", Version: "99.0.0.1", IPAddress: "10.0.0.3"},
-			{Id: "same", Hostname: "same", Version: current, IPAddress: "10.0.0.4"},
-			{Id: "db-only", Hostname: "db-only"},
-		}
-		nodes := healthNodes(mixed, "id-1", map[string]*model.NodeDiagnostics{"id-1": diagnostics("node-1", true)})
-		require.Len(t, nodes, 5)
-		assert.NoError(t, nodes[0].CollectErr)
-		assert.ErrorIs(t, nodes[1].CollectErr, healthcheck.ErrNodeOlderVersion)
-		for _, node := range nodes[2:] {
-			assert.Nil(t, node.Diagnostics, node.Hostname)
-			assert.ErrorIs(t, node.CollectErr, healthcheck.ErrNodeNoReply, node.Hostname)
-		}
-	})
-}
-
-func TestOlderVersion(t *testing.T) {
-	mainHelper.Parallel(t)
-
-	major, minor, patch := model.SplitVersion(model.CurrentVersion)
-	for _, tc := range []struct {
-		version string
-		older   bool
-	}{
-		{"", false},
-		{model.CurrentVersion + ".12345", false},
-		{fmt.Sprintf("%d.%d.%d.1", major, minor, patch+1), false},
-		{fmt.Sprintf("%d.%d.%d.1", major+1, 0, 0), false},
-		{fmt.Sprintf("%d.%d.%d.1", major-1, minor+5, patch+5), true},
-		{fmt.Sprintf("%d.%d.%d", major, minor-1, patch+5), true},
-	} {
-		assert.Equal(t, tc.older, olderVersion(&model.ClusterInfo{Version: tc.version}), tc.version)
-	}
-	assert.False(t, olderVersion(nil))
 }
 
 // A snapshot built from every node's reply evaluates like the Support Packet of the same

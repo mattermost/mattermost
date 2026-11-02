@@ -62,8 +62,8 @@ func (c *threeNodeCluster) GetClusterId() string { return "id-2" }
 
 func (c *threeNodeCluster) GetClusterInfos() ([]*model.ClusterInfo, error) {
 	return []*model.ClusterInfo{
-		{Id: "id-1", Hostname: "node-1", Version: "10.0.0.12345"},
-		{Id: "id-2", Hostname: "node-2", Version: model.CurrentVersion + ".12345"},
+		{Id: "id-1", Hostname: "node-1"},
+		{Id: "id-2", Hostname: "node-2"},
 		{Id: "id-3", Hostname: "node-3"},
 	}, nil
 }
@@ -83,7 +83,7 @@ func TestBuildHealthSnapshotMarksNodesThatDidNotReply(t *testing.T) {
 	require.Len(t, nodes, 3)
 
 	assert.Nil(t, nodes[0].Diagnostics)
-	assert.ErrorIs(t, nodes[0].CollectErr, healthcheck.ErrNodeOlderVersion)
+	assert.ErrorIs(t, nodes[0].CollectErr, healthcheck.ErrNodeNoReply)
 
 	require.NotNil(t, nodes[1].Diagnostics)
 	require.NotNil(t, nodes[1].Diagnostics.Diagnostics.Cluster.NumberOfNodes)
