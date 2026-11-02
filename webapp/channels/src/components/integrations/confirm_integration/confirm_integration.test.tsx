@@ -7,9 +7,11 @@ import type {Bot} from '@mattermost/types/bots';
 import type {IncomingWebhook, OAuthApp, OutgoingOAuthConnection, OutgoingWebhook} from '@mattermost/types/integrations';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
+import {setPendingBotToken, takePendingBotToken} from 'components/integrations/bots/bot_pending_token';
 import ConfirmIntegration from 'components/integrations/confirm_integration/confirm_integration';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {getHistory} from 'utils/browser_history';
 import {TestHelper} from 'utils/test_helper';
 
 describe('components/integrations/ConfirmIntegration', () => {
@@ -162,5 +164,69 @@ describe('components/integrations/ConfirmIntegration', () => {
 
         // Bad type means redirect to error page
         expect(container).toMatchSnapshot();
+    });
+
+    describe('bot confirmation', () => {
+        const botsListPath = `/${team.name}/integrations/bots`;
+        const confirmQuery = `?type=bots&id=${userId}`;
+        const otherToken = 'aaaaaaaaaaaaaaaaaaaaaaaaaa';
+
+        const renderBotConfirm = (search: string, element = <ConfirmIntegration {...props}/>) => {
+            props.location.search = search;
+            const result = renderWithContext(element, initialState);
+            return {...result, replace: getHistory().replace as jest.Mock};
+        };
+
+        afterEach(() => {
+            takePendingBotToken(userId);
+            takePendingBotToken('other-id');
+            takePendingBotToken(`${userId}x`);
+        });
+
+        test('shows the pending token and ignores a token query param', () => {
+            setPendingBotToken(userId, token);
+            const {replace} = renderBotConfirm(`${confirmQuery}&token=${otherToken}`);
+
+            expect(screen.getByText(token)).toBeInTheDocument();
+            expect(screen.queryByText(otherToken)).not.toBeInTheDocument();
+            expect(replace).not.toHaveBeenCalled();
+        });
+
+        test.each([
+            ['no pending token', () => undefined, confirmQuery],
+            ['a token query param only', () => undefined, `${confirmQuery}&token=${token}`],
+            ['an empty pending token', () => setPendingBotToken(userId, ''), confirmQuery],
+            ['a pending token for another id', () => setPendingBotToken('other-id', token), confirmQuery],
+            ['a pending token for an id that starts with this id', () => setPendingBotToken(`${userId}x`, token), confirmQuery],
+        ])('%s sends the user to the bots list', (_, seed, search) => {
+            seed();
+            const {replace} = renderBotConfirm(search);
+
+            expect(screen.queryByText(token)).not.toBeInTheDocument();
+            expect(replace).toHaveBeenCalledWith(botsListPath);
+        });
+
+        test('the token is still shown when effects run twice on mount', () => {
+            setPendingBotToken(userId, token);
+            const {replace} = renderBotConfirm(confirmQuery, (
+                <React.StrictMode>
+                    <ConfirmIntegration {...props}/>
+                </React.StrictMode>
+            ));
+
+            expect(screen.getByText(token)).toBeInTheDocument();
+            expect(replace).not.toHaveBeenCalledWith(botsListPath);
+        });
+
+        test('a remount after the first visit goes to the bots list', () => {
+            setPendingBotToken(userId, token);
+            const {unmount} = renderBotConfirm(confirmQuery);
+            expect(screen.getByText(token)).toBeInTheDocument();
+            unmount();
+
+            const {replace} = renderBotConfirm(confirmQuery);
+            expect(screen.queryByText(token)).not.toBeInTheDocument();
+            expect(replace).toHaveBeenCalledWith(botsListPath);
+        });
     });
 });

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {defineMessages, FormattedMessage} from 'react-intl';
 import {Link, useHistory} from 'react-router-dom';
 
@@ -13,6 +13,7 @@ import type {IDMappedObjects} from '@mattermost/types/utilities';
 import BackstageHeader from 'components/backstage/components/backstage_header';
 import CopyText from 'components/copy_text';
 import ExternalLink from 'components/external_link';
+import {takePendingBotToken} from 'components/integrations/bots/bot_pending_token';
 
 import {Constants, DeveloperLinks, ErrorPageTypes} from 'utils/constants';
 import {getSiteURL} from 'utils/url';
@@ -41,6 +42,17 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
             window.removeEventListener('keypress', handleKeyPress);
         };
     });
+
+    const takenBotToken = useRef<{id: string; token?: string}>(undefined);
+    const [takenToken, setTakenToken] = useState<{id: string; token?: string}>();
+    const botToken = takenToken?.id === id ? takenToken : undefined;
+
+    useEffect(() => {
+        if (takenBotToken.current?.id !== id) {
+            takenBotToken.current = {id, token: takePendingBotToken(id)};
+        }
+        setTakenToken(takenBotToken.current);
+    }, [id]);
 
     const handleKeyPress = (e: KeyboardEvent) => {
         if (e.key === 'Enter') {
@@ -403,7 +415,13 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
             </>
         );
     } else if (type === Constants.Integrations.BOT && bot) {
-        const botToken = (new URLSearchParams(location.search)).get('token') || '';
+        if (!botToken) {
+            return null;
+        }
+        if (!botToken.token) {
+            history.replace(`/${team.name}/integrations/bots`);
+            return null;
+        }
 
         headerText = (
             <FormattedMessage
@@ -437,13 +455,13 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                     id='add_outgoing_webhook.token'
                     defaultMessage='<b>Token</b>: {token}'
                     values={{
-                        token: <code>{botToken}</code>,
+                        token: <code>{botToken.token}</code>,
                         b: (chunks) => <b>{chunks}</b>,
                     }}
                 />
                 <CopyText
                     label={messages.copyToken}
-                    value={botToken}
+                    value={botToken.token}
                 />
                 <br/>
                 <br/>

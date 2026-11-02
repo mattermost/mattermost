@@ -17,6 +17,7 @@ import * as UserUtils from 'mattermost-redux/utils/user_utils';
 import BackstageHeader from 'components/backstage/components/backstage_header';
 import ExternalLink from 'components/external_link';
 import FormError from 'components/form_error';
+import {setPendingBotToken} from 'components/integrations/bots/bot_pending_token';
 import SpinnerButton from 'components/spinner_button';
 import WithTooltip from 'components/with_tooltip';
 
@@ -337,7 +338,6 @@ export default class AddBot extends React.PureComponent<Props, State> {
                 error = Utils.localizeMessage({id: 'bot.create_failed', defaultMessage: 'Failed to create bot'});
             }
 
-            let token = '';
             if (!error && data) {
                 if (this.state.pictureFile && this.state.pictureFile !== 'default') {
                     await this.props.actions.uploadProfileImage(data.user_id, this.state.pictureFile);
@@ -354,7 +354,7 @@ export default class AddBot extends React.PureComponent<Props, State> {
                     return;
                 }
 
-                token = tokenResult.data!.token!;
+                setPendingBotToken(data.user_id, tokenResult.data!.token!);
             }
 
             if (!error && data) {
@@ -362,7 +362,7 @@ export default class AddBot extends React.PureComponent<Props, State> {
             }
 
             if (data) {
-                getHistory().push(`/${this.props.team.name}/integrations/confirm?type=bots&id=${data.user_id}&token=${token}`);
+                getHistory().push(`/${this.props.team.name}/integrations/confirm?type=bots&id=${data.user_id}`);
                 return;
             }
         }
