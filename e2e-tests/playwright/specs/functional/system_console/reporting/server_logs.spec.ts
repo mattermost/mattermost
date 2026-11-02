@@ -8,6 +8,13 @@ import {expect, test} from '@mattermost/playwright-lib';
 // The layout of the logs query's date_from and date_to, which the server parses
 const FILTER_DATE_LAYOUT = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3} \+00:00$/;
 
+const MINUTE_MS = 60 * 1000;
+
+// A time in the logs query's date layout, which is ISO 8601 in UTC with a space for the T and the Z
+function formatFilterDate(time: number): string {
+    return new Date(time).toISOString().replace('T', ' ').replace('Z', ' +00:00');
+}
+
 /**
  * Write a uniquely identifiable entry to the server log.
  *
@@ -248,14 +255,28 @@ test.describe('System Console - Reporting - Server Logs', () => {
                 (request) => request.url().includes('/api/v4/logs/query') && request.method() === 'POST',
             );
             const queryResponse = page.waitForResponse((response) => response.url().includes('/api/v4/logs/query'));
+            const browserNow = () => page.evaluate(() => Date.now());
+            const openedAt = await browserNow();
             await serverLogs.applyDefaultCustomRange();
+            const appliedAt = await browserNow();
 
-            // * Verify both bounds are sent in the layout the server parses, start before end
+            // * Verify both bounds are sent in the layout the server parses
             const body = (await queryRequest).postDataJSON();
             expect(body.date_from).toMatch(FILTER_DATE_LAYOUT);
             expect(body.date_to).toMatch(FILTER_DATE_LAYOUT);
-            expect(body.date_from < body.date_to).toBe(true);
             expect((await queryResponse).status()).toBe(200);
+
+            // * Verify the end is the last millisecond of the minute the dialog opened in, so the
+            // range stops there instead of running on, and the start is an hour before that minute.
+            // The minute can tick over while the dialog opens, so either side of it is accepted
+            const openedMinutes: number[] = [];
+            for (let minute = openedAt - (openedAt % MINUTE_MS); minute <= appliedAt; minute += MINUTE_MS) {
+                openedMinutes.push(minute);
+            }
+            const minuteEnds = openedMinutes.map((minute) => formatFilterDate(minute + MINUTE_MS - 1));
+            expect(minuteEnds).toContain(body.date_to);
+            const openedMinute = openedMinutes[minuteEnds.indexOf(body.date_to)];
+            expect(body.date_from).toBe(formatFilterDate(openedMinute - 60 * MINUTE_MS));
 
             // * Verify the just-written entry is inside the range, which ends with the current minute
             await expect(serverLogs.row(marker)).toBeVisible();
