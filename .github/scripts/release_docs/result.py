@@ -3,6 +3,8 @@
 from dataclasses import dataclass, field
 
 TODO_MARKER = "TODO(release-agent)"
+# Optional: added to a PR only if the repo already has it. The agent's PRs are identified by
+# branch name (release-agent/...), never by this label.
 LABEL = "release-agent"
 
 
