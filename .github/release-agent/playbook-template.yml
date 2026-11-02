@@ -38,7 +38,6 @@ checklists:
   - title: (T-6) Code Freeze
     items:
       - title: 'Check that the loadtests results were posted in the Developers: Performance Comparisons channel and mark the ticket as resolved (example ticket). Add the benchmarking results to the changelog.'
-      - title: Assess localization readiness and take necessary action based on the process.
       - title: On the first day of the month, generate a list of contributors from the previous month. Ping John Combs to send out contributor mugs based on the list of contributors.
   - title: (T-5) Final Release Cut
     items:
