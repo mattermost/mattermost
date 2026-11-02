@@ -3067,13 +3067,18 @@ func TestAccessControlPolicyTeamAdminStoredRules(t *testing.T) {
 		action             string
 		callerSatisfies    bool
 		withPrivateChannel bool
+		withPublicChannel  bool
+		joinPublicChannel  bool
+		channelQuery       bool
 		systemAdmin        bool
+		assertChildRemains bool
+		mixedActivate      bool
 		want               int
 	}
 
 	cases := []storedRuleCase{
 		{name: "assign when caller does not satisfy stored rules", action: "assign", withPrivateChannel: true, want: http.StatusForbidden},
-		{name: "unassign when caller does not satisfy stored rules", action: "unassign", withPrivateChannel: true, want: http.StatusForbidden},
+		{name: "unassign when caller does not satisfy stored rules", action: "unassign", withPrivateChannel: true, assertChildRemains: true, want: http.StatusForbidden},
 		{name: "activate when caller does not satisfy stored rules", action: "activate", withPrivateChannel: true, want: http.StatusForbidden},
 		{name: "update when caller does not satisfy stored rules", action: "update", withPrivateChannel: true, want: http.StatusForbidden},
 		{name: "delete when caller does not satisfy stored rules", action: "delete", want: http.StatusForbidden},
@@ -3085,6 +3090,12 @@ func TestAccessControlPolicyTeamAdminStoredRules(t *testing.T) {
 		{name: "update when caller satisfies stored rules", action: "update", callerSatisfies: true, withPrivateChannel: true, want: http.StatusOK},
 		{name: "delete when caller satisfies stored rules", action: "delete", callerSatisfies: true, want: http.StatusOK},
 		{name: "get for a system admin when stored rules match no user", action: "get", withPrivateChannel: true, systemAdmin: true, want: http.StatusOK},
+		{name: "get when parent has only a public channel and caller does not satisfy stored rules", action: "get", withPublicChannel: true, want: http.StatusOK},
+		{name: "delete when parent has only a public channel and caller does not satisfy stored rules", action: "delete", withPublicChannel: true, want: http.StatusOK},
+		{name: "assign a private channel when parent has no channels and caller does not satisfy stored rules", action: "assign", want: http.StatusForbidden},
+		{name: "assign a private channel when parent has only a public channel and caller does not satisfy stored rules", action: "assign", withPublicChannel: true, want: http.StatusForbidden},
+		{name: "activate when the batch lists a policy the caller satisfies before one they do not", action: "activate", withPrivateChannel: true, mixedActivate: true, want: http.StatusForbidden},
+		{name: "get with the id of a joined public channel when the parent also has a private channel and caller does not satisfy stored rules", action: "get", withPrivateChannel: true, withPublicChannel: true, joinPublicChannel: true, channelQuery: true, want: http.StatusForbidden},
 	}
 
 	for _, tc := range cases {
@@ -3106,11 +3117,10 @@ func TestAccessControlPolicyTeamAdminStoredRules(t *testing.T) {
 				_ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, savedParent.ID)
 			})
 
-			var linked *model.Channel
-			if tc.withPrivateChannel {
-				linked = th.CreateChannelWithClientAndTeam(t, th.SystemAdminClient, model.ChannelTypePrivate, th.BasicTeam.Id)
+			saveChild := func(ch *model.Channel) {
+				t.Helper()
 				child := &model.AccessControlPolicy{
-					ID:      linked.Id,
+					ID:      ch.Id,
 					Type:    model.AccessControlPolicyTypeChannel,
 					Version: model.AccessControlPolicyVersionV0_3,
 					Props:   map[string]any{},
@@ -3121,8 +3131,36 @@ func TestAccessControlPolicyTeamAdminStoredRules(t *testing.T) {
 				t.Cleanup(func() {
 					_ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, savedChild.ID)
 				})
-				mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), linked.Id).
+				mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), ch.Id).
 					Return(savedChild, nil).Maybe()
+			}
+
+			var linked *model.Channel
+			if tc.withPrivateChannel {
+				linked = th.CreateChannelWithClientAndTeam(t, th.SystemAdminClient, model.ChannelTypePrivate, th.BasicTeam.Id)
+				saveChild(linked)
+			}
+			var publicLinked *model.Channel
+			if tc.withPublicChannel {
+				publicLinked = th.CreateChannelWithClientAndTeam(t, th.SystemAdminClient, model.ChannelTypeOpen, th.BasicTeam.Id)
+				saveChild(publicLinked)
+			}
+
+			var matchingParent *model.AccessControlPolicy
+			if tc.mixedActivate {
+				other := newParentPolicy(th.BasicTeam.Id)
+				other.Rules = []model.AccessControlPolicyRule{{
+					Expression: submittedExpr,
+					Actions:    []string{"membership"},
+				}}
+				var otherErr error
+				matchingParent, otherErr = th.App.Srv().Store().AccessControlPolicy().Save(th.Context, other)
+				require.NoError(t, otherErr)
+				t.Cleanup(func() {
+					_ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, matchingParent.ID)
+				})
+				mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), matchingParent.ID).
+					Return(matchingParent, nil).Maybe()
 			}
 
 			var assignTarget *model.Channel
@@ -3140,7 +3178,7 @@ func TestAccessControlPolicyTeamAdminStoredRules(t *testing.T) {
 			// testify uses the first match.
 			mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"), storedExpr, mock.Anything).
 				Return(matchedUser, matchedCount, nil).Maybe()
-			if tc.action == "update" && !tc.callerSatisfies {
+			if (tc.action == "update" && !tc.callerSatisfies) || tc.mixedActivate {
 				mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"), submittedExpr, mock.Anything).
 					Return([]*model.User{{Id: th.TeamAdminUser.Id}}, int64(1), nil).Maybe()
 			}
@@ -3167,6 +3205,10 @@ func TestAccessControlPolicyTeamAdminStoredRules(t *testing.T) {
 			} else {
 				makeTeamAdminAndLogin(t, th, th.TeamAdminUser, th.BasicTeam)
 				defer th.LoginBasic(t)
+				if tc.joinPublicChannel {
+					require.NotNil(t, publicLinked)
+					th.AddUserToChannel(t, th.TeamAdminUser, publicLinked)
+				}
 			}
 
 			teamQuery := "?team_id=" + th.BasicTeam.Id
@@ -3187,13 +3229,24 @@ func TestAccessControlPolicyTeamAdminStoredRules(t *testing.T) {
 						"team_id":     th.BasicTeam.Id,
 					})
 			case "activate":
+				entries := []model.AccessControlPolicyActiveUpdate{
+					{ID: savedParent.ID, Active: true},
+				}
+				// The policy the caller satisfies is listed first, so a handler
+				// that writes as it goes would change that policy before it
+				// rejects the later entry.
+				if tc.mixedActivate {
+					require.NotNil(t, matchingParent)
+					entries = []model.AccessControlPolicyActiveUpdate{
+						{ID: matchingParent.ID, Active: true},
+						{ID: savedParent.ID, Active: true},
+					}
+				}
 				resp, err = client.DoAPIPutJSON(context.Background(),
 					"/access_control_policies/activate",
 					model.AccessControlPolicyActiveUpdateRequest{
-						TeamID: th.BasicTeam.Id,
-						Entries: []model.AccessControlPolicyActiveUpdate{
-							{ID: savedParent.ID, Active: true},
-						},
+						TeamID:  th.BasicTeam.Id,
+						Entries: entries,
 					})
 			case "update":
 				body := *savedParent
@@ -3210,8 +3263,12 @@ func TestAccessControlPolicyTeamAdminStoredRules(t *testing.T) {
 				resp, err = client.DoAPIDelete(context.Background(),
 					"/access_control_policies/"+savedParent.ID+teamQuery)
 			case "get":
-				resp, err = client.DoAPIGet(context.Background(),
-					"/access_control_policies/"+savedParent.ID+teamQuery, "")
+				getPath := "/access_control_policies/" + savedParent.ID + teamQuery
+				if tc.channelQuery {
+					require.NotNil(t, publicLinked)
+					getPath += "&channelId=" + publicLinked.Id
+				}
+				resp, err = client.DoAPIGet(context.Background(), getPath, "")
 			case "get_channels":
 				resp, err = client.DoAPIGet(context.Background(),
 					"/access_control_policies/"+savedParent.ID+"/resources/channels"+teamQuery+"&limit=100", "")
@@ -3234,6 +3291,24 @@ func TestAccessControlPolicyTeamAdminStoredRules(t *testing.T) {
 			require.ErrorAs(t, err, &appErr)
 			require.Equal(t, "api.context.permissions.app_error", appErr.Id)
 			require.Contains(t, appErr.DetailedError, "permission="+model.PermissionManageTeamAccessRules.Id)
+			if tc.assertChildRemains {
+				require.NotNil(t, linked)
+				stillThere, storeErr := th.App.Srv().Store().AccessControlPolicy().Get(th.Context, linked.Id)
+				require.NoError(t, storeErr)
+				require.Equal(t, model.AccessControlPolicyTypeChannel, stillThere.Type)
+				require.Contains(t, stillThere.Imports, savedParent.ID)
+			}
+			if tc.mixedActivate {
+				require.NotNil(t, matchingParent)
+				reloaded, storeErr := th.App.Srv().Store().AccessControlPolicy().Get(th.Context, matchingParent.ID)
+				require.NoError(t, storeErr)
+				require.Equal(t, matchingParent.AutoAddMembers(), reloaded.AutoAddMembers())
+				require.Equal(t, matchingParent.Active, reloaded.Active)
+				denied, storeErr := th.App.Srv().Store().AccessControlPolicy().Get(th.Context, savedParent.ID)
+				require.NoError(t, storeErr)
+				require.Equal(t, savedParent.AutoAddMembers(), denied.AutoAddMembers())
+				require.Equal(t, savedParent.Active, denied.Active)
+			}
 		})
 	}
 }
