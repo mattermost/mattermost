@@ -96,7 +96,7 @@ test.describe(
                 await expect(attributeAppliesToChannels.notifyChannelAdminsButton).toBeVisible();
 
                 // # Click Required while blocked
-                await attributeAppliesToChannels.requiredToggle.click();
+                await attributeAppliesToChannels.clickRequired();
 
                 // * It did not flip
                 await expect(attributeAppliesToChannels.requiredToggle).not.toBeChecked();
@@ -387,9 +387,9 @@ test.describe(
                 await expect(attributeAppliesToChannels.missingValuesBanner).toContainText('New channels must set one');
 
                 // # Off, then back on, without saving
-                await attributeAppliesToChannels.requiredToggle.click();
+                await attributeAppliesToChannels.clickRequired();
                 await expect(attributeAppliesToChannels.requiredToggle).not.toBeChecked();
-                await attributeAppliesToChannels.requiredToggle.click();
+                await attributeAppliesToChannels.clickRequired();
 
                 // * Back on, and nothing was refused
                 await expect(attributeAppliesToChannels.requiredToggle).toBeChecked();

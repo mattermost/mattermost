@@ -15,13 +15,17 @@ export type ChannelDisplayLocation = 'display_label_header' | 'display_banner_to
 
 // The switch is a visually hidden checkbox under its <label>, which takes the
 // pointer, so the click goes to the label.
+async function clickToggle(toggle: Locator) {
+    const id = await toggle.getAttribute('id');
+    if (!id) {
+        throw new Error('clickToggle: the switch has no id, so its label cannot be found');
+    }
+    await toggle.page().locator(`label[for="${id}"]`).click();
+}
+
 async function setToggle(toggle: Locator, on: boolean) {
     if ((await toggle.isChecked()) !== on) {
-        const id = await toggle.getAttribute('id');
-        if (!id) {
-            throw new Error('setToggle: the switch has no id, so its label cannot be found');
-        }
-        await toggle.page().locator(`label[for="${id}"]`).click();
+        await clickToggle(toggle);
     }
     await expect(toggle).toBeChecked({checked: on});
 }
@@ -78,6 +82,14 @@ class ChannelResourceSettings {
      */
     async setRequired(required: boolean) {
         await setToggle(this.requiredToggle, required);
+    }
+
+    /**
+     * Clicks Required once without asserting the outcome, for tests that expect
+     * the click to be refused or that flip it back and forth before saving.
+     */
+    async clickRequired() {
+        await clickToggle(this.requiredToggle);
     }
 
     /**
