@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useState} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessage} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
 import type {Channel} from '@mattermost/types/channels';
@@ -13,7 +13,10 @@ import {getPropertyFieldLabel} from 'mattermost-redux/utils/property_utils';
 import AlertBanner from 'components/alert_banner';
 import useMissingRequiredChannelAttributes from 'components/common/hooks/useMissingRequiredChannelAttributes';
 
+import type {KindMessages} from 'utils/channel_kind';
 import Constants from 'utils/constants';
+
+import type {ChannelKind} from 'types/store/plugins';
 
 export type ChannelDetailsActions = {
     unarchiveChannel: (channelId: string) => Promise<ActionResult>;
@@ -22,10 +25,13 @@ export type ChannelDetailsActions = {
 type Props = {
     onExited: () => void;
     channel: Channel;
+
+    /** The kind of channel, so the modal says "board" rather than "channel" for a board. */
+    channelKind?: ChannelKind;
     actions: ChannelDetailsActions;
 };
 
-export default function UnarchiveChannelModal({onExited, channel, actions}: Props) {
+export default function UnarchiveChannelModal({onExited, channel, channelKind = 'channel', actions}: Props) {
     const [show, setShow] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [serverError, setServerError] = useState<string | undefined>();
@@ -64,12 +70,7 @@ export default function UnarchiveChannelModal({onExited, channel, actions}: Prop
             onHide={handleHide}
             onExited={onExited}
             ariaLabel='unarchive_channel_modal'
-            modalHeaderText={(
-                <FormattedMessage
-                    id='unarchive_channel.confirm'
-                    defaultMessage='Confirm UNARCHIVE Channel'
-                />
-            )}
+            modalHeaderText={<FormattedMessage {...messages.title[channelKind]}/>}
             handleCancel={handleHide}
             handleConfirm={handleUnarchive}
             autoCloseOnConfirmButton={false}
@@ -98,8 +99,7 @@ export default function UnarchiveChannelModal({onExited, channel, actions}: Prop
         >
             <div className='alert alert-danger'>
                 <FormattedMessage
-                    id='unarchiveChannelModal.viewArchived.question'
-                    defaultMessage={'Are you sure you wish to unarchive the <b>{display_name}</b> channel?'}
+                    {...messages.question[channelKind]}
                     values={{
                         display_name: channel.display_name,
                         b: (chunks: React.ReactNode) => <b>{chunks}</b>,
@@ -131,3 +131,28 @@ export default function UnarchiveChannelModal({onExited, channel, actions}: Prop
         </GenericModal>
     );
 }
+
+/* eslint-disable formatjs/enforce-placeholders -- values are passed where each message is rendered */
+const messages = {
+    title: {
+        channel: defineMessage({
+            id: 'unarchive_channel.confirm',
+            defaultMessage: 'Confirm UNARCHIVE Channel',
+        }),
+        board: defineMessage({
+            id: 'unarchive_channel.confirm.board',
+            defaultMessage: 'Confirm UNARCHIVE Board',
+        }),
+    },
+    question: {
+        channel: defineMessage({
+            id: 'unarchiveChannelModal.viewArchived.question',
+            defaultMessage: 'Are you sure you wish to unarchive the <b>{display_name}</b> channel?',
+        }),
+        board: defineMessage({
+            id: 'unarchiveChannelModal.viewArchived.question.board',
+            defaultMessage: 'Are you sure you wish to unarchive the <b>{display_name}</b> board?',
+        }),
+    },
+} satisfies Record<string, KindMessages>;
+/* eslint-enable formatjs/enforce-placeholders */

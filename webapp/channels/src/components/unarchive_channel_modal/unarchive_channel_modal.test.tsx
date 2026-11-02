@@ -6,8 +6,10 @@ import React from 'react';
 import type {PropertyField} from '@mattermost/types/properties';
 
 import useMissingRequiredChannelAttributes from 'components/common/hooks/useMissingRequiredChannelAttributes';
+import ConnectedUnarchiveChannelModal from 'components/unarchive_channel_modal';
 
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {boardChannelsState} from 'utils/channel_kind_test_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import UnarchiveChannelModal from './unarchive_channel_modal';
@@ -182,5 +184,19 @@ describe('components/unarchive_channel_modal', () => {
             expect(screen.getByText('Something went wrong')).toBeInTheDocument();
         });
         expect(screen.getByRole('dialog')).toBeInTheDocument();
+    });
+
+    test('says board for a board', () => {
+        renderWithContext(
+            <ConnectedUnarchiveChannelModal
+                channel={channel}
+                onExited={jest.fn()}
+            />,
+            boardChannelsState(channel.id),
+        );
+
+        expect(screen.getByText('Confirm UNARCHIVE Board')).toBeInTheDocument();
+        expect(screen.getByText(/Are you sure you wish to unarchive the/)).toHaveTextContent('Are you sure you wish to unarchive the testing board?');
+        expect(screen.queryByText(/channel/i)).not.toBeInTheDocument();
     });
 });

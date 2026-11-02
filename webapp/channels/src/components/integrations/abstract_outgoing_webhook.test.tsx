@@ -161,6 +161,42 @@ describe('components/integrations/AbstractOutgoingWebhook', () => {
         expect(usernameInput).toHaveValue('new_username');
     });
 
+    test('should fill in the username from the title when creating a hook', async () => {
+        const createProps = {...requiredProps, initialHook: undefined};
+        const {container} = renderWithContext(
+            <AbstractOutgoingWebhook
+                {...createProps}
+                enablePostUsernameOverride={true}
+            />,
+            initialState as GlobalState,
+        );
+
+        const displayNameInput = container.querySelector('#displayName') as HTMLInputElement;
+        const usernameInput = container.querySelector('#username') as HTMLInputElement;
+        await userEvent.type(displayNameInput, 'Deploy Hook');
+        expect(usernameInput).toHaveValue('deploy-hook');
+
+        await userEvent.clear(usernameInput);
+        await userEvent.type(usernameInput, 'custom');
+        await userEvent.type(displayNameInput, ' 2');
+        expect(usernameInput).toHaveValue('custom');
+    });
+
+    test('should not change the username from the title when editing a hook', async () => {
+        const {container} = renderWithContext(
+            <AbstractOutgoingWebhook
+                {...requiredProps}
+                enablePostUsernameOverride={true}
+            />,
+            initialState as GlobalState,
+        );
+
+        const usernameInput = container.querySelector('#username') as HTMLInputElement;
+        const username = usernameInput.value;
+        await userEvent.type(container.querySelector('#displayName') as HTMLInputElement, 'Renamed');
+        expect(usernameInput).toHaveValue(username);
+    });
+
     test('should update state.triggerWhen on selection change', async () => {
         const {container} = renderWithContext(<AbstractOutgoingWebhook {...requiredProps}/>, initialState as GlobalState);
         const triggerWhenSelect = container.querySelector('#triggerWhen') as HTMLSelectElement;
