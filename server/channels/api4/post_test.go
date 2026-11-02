@@ -8010,6 +8010,270 @@ func TestRevealPost(t *testing.T) {
 		defer resp.Body.Close()
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 	})
+
+	// Author post_revealed payload includes the previewed post text when the author is a
+	// member of that channel, and omits it when the author is not, including a direct
+	// channel, a group channel, and a private channel the author was removed from.
+	// A message that contains two permalinks keeps the preview for the channel the author
+	// belongs to and omits the other post text. The reveal response for a member of the
+	// previewed channel still includes the previewed post text.
+	t.Run("post_revealed_permalink_preview", func(t *testing.T) {
+		enableBurnOnReadFeature(th)
+
+		originalSiteURL := *th.App.Config().ServiceSettings.SiteURL
+		originalPermalinkPreviews := *th.App.Config().ServiceSettings.EnablePermalinkPreviews
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
+			*cfg.ServiceSettings.EnablePermalinkPreviews = true
+		})
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.ServiceSettings.SiteURL = originalSiteURL
+				*cfg.ServiceSettings.EnablePermalinkPreviews = originalPermalinkPreviews
+			})
+		})
+
+		recipientListContains := func(recipients any, userID string) bool {
+			switch ids := recipients.(type) {
+			case []string:
+				return slices.Contains(ids, userID)
+			case []any:
+				for _, id := range ids {
+					if s, ok := id.(string); ok && s == userID {
+						return true
+					}
+				}
+			}
+			return false
+		}
+
+		testCases := []struct {
+			name                     string
+			authorInPreviewedChannel bool
+			removeAuthorBeforeReveal bool
+			previewChannelKind       string
+			secondPermalink          bool
+			assertAuthorEvent        bool
+			expectPreviewedPostText  bool
+		}{
+			{
+				name:                     "author event omits previewed post text when author is not a channel member",
+				authorInPreviewedChannel: false,
+				assertAuthorEvent:        true,
+				expectPreviewedPostText:  false,
+			},
+			{
+				name:                     "author event includes previewed post text when author is a channel member",
+				authorInPreviewedChannel: true,
+				assertAuthorEvent:        true,
+				expectPreviewedPostText:  true,
+			},
+			{
+				name:                     "reveal response includes previewed post text",
+				authorInPreviewedChannel: false,
+				assertAuthorEvent:        false,
+				expectPreviewedPostText:  true,
+			},
+			{
+				name:                    "author event omits previewed post text when the previewed post is in a direct channel",
+				previewChannelKind:      "direct",
+				assertAuthorEvent:       true,
+				expectPreviewedPostText: false,
+			},
+			{
+				name:                    "author event omits previewed post text when the previewed post is in a group channel",
+				previewChannelKind:      "group",
+				assertAuthorEvent:       true,
+				expectPreviewedPostText: false,
+			},
+			{
+				name:                     "author event omits previewed post text when the author is removed from the channel before reveal",
+				authorInPreviewedChannel: true,
+				removeAuthorBeforeReveal: true,
+				assertAuthorEvent:        true,
+				expectPreviewedPostText:  false,
+			},
+			{
+				name:                     "author event includes the first permalink preview and omits the other permalink post text",
+				authorInPreviewedChannel: true,
+				secondPermalink:          true,
+				assertAuthorEvent:        true,
+				expectPreviewedPostText:  true,
+			},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				author := th.CreateUser(t)
+				th.LinkUserToTeam(t, author, th.BasicTeam)
+				th.AddUserToChannel(t, author, th.BasicChannel)
+				authorClient := th.CreateClient()
+				_, _, err := authorClient.Login(context.Background(), author.Email, author.Password)
+				require.NoError(t, err)
+				t.Cleanup(func() {
+					_, logoutErr := authorClient.Logout(context.Background())
+					require.NoError(t, logoutErr)
+				})
+
+				revealer := th.CreateUser(t)
+				th.LinkUserToTeam(t, revealer, th.BasicTeam)
+				th.AddUserToChannel(t, revealer, th.BasicChannel)
+				revealerClient := th.CreateClient()
+				_, _, err = revealerClient.Login(context.Background(), revealer.Email, revealer.Password)
+				require.NoError(t, err)
+				t.Cleanup(func() {
+					_, logoutErr := revealerClient.Logout(context.Background())
+					require.NoError(t, logoutErr)
+				})
+
+				var previewedChannel *model.Channel
+				switch tc.previewChannelKind {
+				case "direct":
+					other := th.CreateUser(t)
+					th.LinkUserToTeam(t, other, th.BasicTeam)
+					var cErr error
+					previewedChannel, _, cErr = revealerClient.CreateDirectChannel(context.Background(), revealer.Id, other.Id)
+					require.NoError(t, cErr)
+				case "group":
+					other1 := th.CreateUser(t)
+					other2 := th.CreateUser(t)
+					th.LinkUserToTeam(t, other1, th.BasicTeam)
+					th.LinkUserToTeam(t, other2, th.BasicTeam)
+					var cErr error
+					previewedChannel, _, cErr = revealerClient.CreateGroupChannel(context.Background(), []string{revealer.Id, other1.Id, other2.Id})
+					require.NoError(t, cErr)
+				default:
+					previewedChannel = th.CreateChannelWithClient(t, revealerClient, model.ChannelTypePrivate)
+					if tc.authorInPreviewedChannel {
+						th.AddUserToChannel(t, author, previewedChannel)
+					}
+				}
+				require.NotNil(t, previewedChannel)
+
+				if tc.authorInPreviewedChannel {
+					// Read the channel while the author is a member, before any later removal.
+					_, chResp, chErr := authorClient.GetChannel(context.Background(), previewedChannel.Id)
+					require.NoError(t, chErr)
+					CheckOKStatus(t, chResp)
+				}
+
+				// Marker appears only in the previewed post body, not in the permalink URL.
+				previewedText := "previewedbody" + model.NewId()
+				createdPreview, resp, err := revealerClient.CreatePost(context.Background(), &model.Post{
+					ChannelId: previewedChannel.Id,
+					Message:   previewedText,
+				})
+				require.NoError(t, err)
+				CheckCreatedStatus(t, resp)
+
+				permalink := fmt.Sprintf("%s/%s/pl/%s", *th.App.Config().ServiceSettings.SiteURL, th.BasicTeam.Name, createdPreview.Id)
+				require.NotContains(t, permalink, previewedText)
+				require.Contains(t, permalink, createdPreview.Id)
+
+				secondPreviewedText := ""
+				burnMessage := permalink
+				if tc.secondPermalink {
+					otherChannel := th.CreateChannelWithClient(t, revealerClient, model.ChannelTypePrivate)
+					secondPreviewedText = "otherpreview" + model.NewId()
+					createdOther, otherResp, otherErr := revealerClient.CreatePost(context.Background(), &model.Post{
+						ChannelId: otherChannel.Id,
+						Message:   secondPreviewedText,
+					})
+					require.NoError(t, otherErr)
+					CheckCreatedStatus(t, otherResp)
+
+					otherPermalink := fmt.Sprintf("%s/%s/pl/%s", *th.App.Config().ServiceSettings.SiteURL, th.BasicTeam.Name, createdOther.Id)
+					require.NotContains(t, otherPermalink, secondPreviewedText)
+					require.NotContains(t, otherPermalink, previewedText)
+					// First autolink is the channel the author belongs to. The other permalink follows it.
+					burnMessage = permalink + " " + otherPermalink
+				}
+
+				burnOnReadPost := &model.Post{
+					ChannelId: th.BasicChannel.Id,
+					Message:   burnMessage,
+					Type:      model.PostTypeBurnOnRead,
+				}
+				burnOnReadPost.AddProp(model.PostPropsExpireAt, model.GetMillis()+int64(model.DefaultExpirySeconds*1000))
+
+				createdBurnOnRead, resp, err := authorClient.CreatePost(context.Background(), burnOnReadPost)
+				require.NoError(t, err)
+				CheckCreatedStatus(t, resp)
+				require.Equal(t, author.Id, createdBurnOnRead.UserId)
+
+				if tc.removeAuthorBeforeReveal {
+					th.RemoveUserFromChannel(t, author, previewedChannel)
+				}
+
+				var authorWS *model.WebSocketClient
+				if tc.assertAuthorEvent {
+					authorWS = th.CreateConnectedWebSocketClientWithClient(t, authorClient)
+				}
+
+				revealedPost, resp, err := revealerClient.RevealPost(context.Background(), createdBurnOnRead.Id)
+				require.NoError(t, err)
+				CheckOKStatus(t, resp)
+				require.NotNil(t, revealedPost)
+				require.Equal(t, burnMessage, revealedPost.Message)
+
+				if tc.previewChannelKind == "direct" || tc.previewChannelKind == "group" {
+					// The revealer belongs to the channel, so the response still carries the preview.
+					revealedJSON, mErr := json.Marshal(revealedPost)
+					require.NoError(t, mErr)
+					require.Contains(t, string(revealedJSON), previewedText, "reveal response should include previewed post text")
+				}
+
+				if tc.assertAuthorEvent {
+					var eventPost model.Post
+					var eventPostJSON string
+					var recipients any
+					require.Eventually(t, func() bool {
+						select {
+						case event := <-authorWS.EventChannel:
+							if event.EventType() != model.WebsocketEventPostRevealed {
+								return false
+							}
+							raw, ok := event.GetData()["post"].(string)
+							if !ok {
+								return false
+							}
+							var parsed model.Post
+							if json.Unmarshal([]byte(raw), &parsed) != nil {
+								return false
+							}
+							if parsed.Id != createdBurnOnRead.Id {
+								return false
+							}
+							eventPost = parsed
+							eventPostJSON = raw
+							recipients = event.GetData()["recipients"]
+							return true
+						default:
+							return false
+						}
+					}, 5*time.Second, 100*time.Millisecond, "should have received post_revealed websocket event")
+
+					require.Equal(t, createdBurnOnRead.Id, eventPost.Id)
+					require.Equal(t, burnMessage, eventPost.Message)
+					require.True(t, recipientListContains(recipients, revealer.Id), "author post_revealed event should include the revealing user")
+
+					if tc.expectPreviewedPostText {
+						require.Contains(t, eventPostJSON, previewedText, "author post_revealed payload should include previewed post text")
+					} else {
+						require.NotContains(t, eventPostJSON, previewedText, "author post_revealed payload should omit previewed post text")
+					}
+					if secondPreviewedText != "" {
+						require.NotContains(t, eventPostJSON, secondPreviewedText, "author post_revealed payload should omit the other permalink post text")
+					}
+					return
+				}
+
+				revealedJSON, err := json.Marshal(revealedPost)
+				require.NoError(t, err)
+				require.Contains(t, string(revealedJSON), previewedText, "reveal response should include previewed post text")
+			})
+		}
+	})
 }
 
 func TestCreateBurnOnReadPost(t *testing.T) {
