@@ -1009,6 +1009,77 @@ func TestFillInPostPropsChannelMentionByID(t *testing.T) {
 		})
 	})
 
+	t.Run("same-named channels on several teams resolve to the one the author can see", func(t *testing.T) {
+		// From a DM without current_team_id the name lookup is global, so both channels come back.
+		sharedName := "shared-" + model.NewId()
+		visible, appErr := th.App.CreateChannel(th.Context, &model.Channel{
+			DisplayName: "Visible", Name: sharedName, Type: model.ChannelTypeOpen, TeamId: th.BasicTeam.Id,
+		}, false)
+		require.Nil(t, appErr)
+		_, appErr = th.App.CreateChannel(th.Context, &model.Channel{
+			DisplayName: "Hidden", Name: sharedName, Type: model.ChannelTypeOpen, TeamId: otherTeam.Id,
+		}, false)
+		require.Nil(t, appErr)
+
+		dm := th.CreateDmChannel(t, th.BasicUser2)
+		post := &model.Post{Message: "see ~" + sharedName, ChannelId: dm.Id, UserId: th.BasicUser.Id}
+		require.Nil(t, th.App.FillInPostProps(th.Context, post, dm))
+
+		mentions, _ := post.GetProp(model.PostPropsChannelMentions).(map[string]any)
+		require.Contains(t, mentions, sharedName)
+		assert.Equal(t, visible.Id, mentions[sharedName].(map[string]any)["id"])
+	})
+
+	// Guards the store-level filter in GetChannelsByIds that FillInPostProps relies on.
+	t.Run("~channel_id of board or space backing channels is not resolved", func(t *testing.T) {
+		for _, channelType := range []model.ChannelType{model.ChannelTypeOpenBoard, model.ChannelTypePrivateBoard, model.ChannelTypeSpace} {
+			// Creating real board/space channels needs views or feature flags; only the stored
+			// Type matters here, so create a regular channel the author belongs to and retype it.
+			backing := th.CreateChannel(t, th.BasicTeam)
+			_, err := th.GetSqlStore().GetMaster().Exec("UPDATE Channels SET Type = ? WHERE Id = ?", channelType, backing.Id)
+			require.NoError(t, err)
+			th.App.Srv().Store().Channel().InvalidateChannel(backing.Id)
+
+			assert.Nil(t, resolve(t, &model.Post{Message: "see ~" + backing.Id}), "type %s", channelType)
+		}
+	})
+
+	t.Run("uppercase ~CHANNEL_ID resolves, keyed by the lowercase ID", func(t *testing.T) {
+		mentions := resolve(t, &model.Post{Message: "see ~" + strings.ToUpper(anonymous.Id)})
+		require.Contains(t, mentions, anonymous.Id)
+	})
+
+	t.Run("read-time sanitization uses the current team of a channel that moved teams", func(t *testing.T) {
+		movable, appErr := th.App.CreateChannel(th.Context, &model.Channel{
+			DisplayName: "Movable", Name: model.NewId(), Type: model.ChannelTypeOpen, TeamId: th.BasicTeam.Id,
+		}, false)
+		require.Nil(t, appErr)
+		post := &model.Post{Message: "see ~" + movable.Id}
+		require.Contains(t, resolve(t, post), movable.Id)
+
+		newTeam := th.CreateTeam(t)
+		th.LinkUserToTeam(t, th.BasicUser, newTeam)
+		require.Nil(t, th.App.MoveChannel(th.Context, newTeam, movable, th.BasicUser))
+
+		sanitized, _ := th.App.sanitizeChannelMentionsForUser(th.Context, post.Clone(), th.BasicUser.Id).GetProp(model.PostPropsChannelMentions).(map[string]any)
+		require.Contains(t, sanitized, movable.Id)
+		assert.Equal(t, newTeam.Name, sanitized[movable.Id].(map[string]any)["team_name"])
+	})
+
+	t.Run("read-time sanitization does not treat an ID-shaped key as an ID unless it matches the stored id", func(t *testing.T) {
+		// A key that looks like a channel ID but whose stored id differs goes through the name lookup,
+		// which finds nothing, so the entry is dropped instead of resolving the channel with that ID.
+		post := &model.Post{}
+		post.AddProp(model.PostPropsChannelMentions, map[string]any{
+			anonymous.Id: map[string]any{
+				"display_name": "Spoofed",
+				"team_name":    th.BasicTeam.Name,
+				"id":           th.BasicChannel.Id,
+			},
+		})
+		assert.Nil(t, th.App.sanitizeChannelMentionsForUser(th.Context, post, th.BasicUser.Id).GetProp(model.PostPropsChannelMentions))
+	})
+
 	t.Run("editing a post to add a ~channel_id resolves it", func(t *testing.T) {
 		post, _, appErr := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,

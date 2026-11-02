@@ -450,6 +450,17 @@ func (a *App) sanitizeChannelMentionsForUser(rctx request.CTX, post *model.Post,
 		var err *model.AppError
 		if storedID, _ := dataMap["id"].(string); storedID == channelName && model.IsValidId(channelName) {
 			channel, err = a.Srv().getChannel(rctx, channelName)
+			// Unlike the name lookup, the ID lookup is not scoped to teamName. If the channel has
+			// since moved teams, refresh team_name so the link points at the channel's current team.
+			if err == nil {
+				if storedTeamID, _ := dataMap["team_id"].(string); storedTeamID != channel.TeamId {
+					team, teamErr := a.Srv().Store().Team().Get(channel.TeamId)
+					if teamErr != nil {
+						continue
+					}
+					teamName = team.Name
+				}
+			}
 		} else {
 			channel, err = a.GetChannelByNameForTeamName(rctx, channelName, teamName, true)
 		}

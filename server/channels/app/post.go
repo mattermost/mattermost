@@ -649,19 +649,30 @@ func (a *App) FillInPostProps(rctx request.CTX, post *model.Post, channel *model
 		// This is a transient hint from the client, not persisted data
 		post.DelProp(model.PostPropsCurrentTeamId)
 
-		// Key each resolved channel by the mention text used in the post.
-		mentionKeys := make(map[string]*model.Channel, len(mentionedChannels))
+		// Candidate channels for each mention key. Several channels can share a name when the lookup
+		// is not scoped to a team, so candidates are kept as a list and filtered by permission below.
+		type mentionCandidate struct {
+			key     string
+			channel *model.Channel
+		}
+		candidates := make([]mentionCandidate, 0, len(mentionedChannels))
+		namesFound := make(map[string]bool, len(mentionedChannels))
 		for _, mentioned := range mentionedChannels {
-			mentionKeys[mentioned.Name] = mentioned
+			candidates = append(candidates, mentionCandidate{key: mentioned.Name, channel: mentioned})
+			namesFound[mentioned.Name] = true
 		}
 
 		// Mentions that did not match a channel name may be channel IDs (~<channel_id>). This lets
 		// integrations link a channel without knowing its name, which is randomly generated (and
 		// unrelated to the ID) when PrivacySettings.UseAnonymousURLs is enabled. Names take precedence.
 		var idMentions []string
+		seenIDs := make(map[string]bool)
 		for _, mention := range channelMentions {
-			if _, ok := mentionKeys[mention]; !ok && model.IsValidId(mention) {
-				idMentions = append(idMentions, mention)
+			// Channel IDs are lowercase; accept any case like the webapp does when rendering.
+			id := strings.ToLower(mention)
+			if !namesFound[mention] && !seenIDs[id] && model.IsValidId(id) {
+				idMentions = append(idMentions, id)
+				seenIDs[id] = true
 			}
 		}
 		if len(idMentions) > 0 {
@@ -671,17 +682,23 @@ func (a *App) FillInPostProps(rctx request.CTX, post *model.Post, channel *model
 			}
 			for _, mentioned := range channelsByID {
 				// Match name-based resolution: no DMs/GMs, and stay within the post's team when known.
+				// (GetChannelsByIds already excludes board/space backing channels.)
 				if mentioned.IsGroupOrDirect() || (teamId != "" && mentioned.TeamId != teamId) {
 					continue
 				}
-				mentionKeys[mentioned.Id] = mentioned
+				candidates = append(candidates, mentionCandidate{key: mentioned.Id, channel: mentioned})
 			}
 		}
 
 		// Populate channel_mentions for channels the POST CREATOR has access to
 		// This includes public channels and private channels where creator is a member
 		// Prevents information disclosure while supporting private channel mentions for members
-		for mentionKey, mentioned := range mentionKeys {
+		for _, candidate := range candidates {
+			mentioned := candidate.channel
+			if _, done := channelMentionsProp[candidate.key]; done {
+				// An earlier candidate with this key was already resolved.
+				continue
+			}
 			// Resolve the channel mention if the post creator may see the channel's name/link.
 			if a.HasPermissionToResolveChannelMention(rctx, post.UserId, mentioned) {
 				team, err := a.Srv().Store().Team().Get(mentioned.TeamId)
@@ -689,9 +706,10 @@ func (a *App) FillInPostProps(rctx request.CTX, post *model.Post, channel *model
 					rctx.Logger().Warn("Failed to get team of the channel mention", mlog.String("team_id", mentioned.TeamId), mlog.String("channel_id", mentioned.Id), mlog.Err(err))
 					continue
 				}
-				channelMentionsProp[mentionKey] = map[string]any{
+				channelMentionsProp[candidate.key] = map[string]any{
 					"display_name": mentioned.DisplayName,
 					"team_name":    team.Name,
+					"team_id":      team.Id,      // Lets readers detect a channel that moved teams
 					"id":           mentioned.Id, // Used by WebSocket broadcast hook for permission checks
 				}
 			}
