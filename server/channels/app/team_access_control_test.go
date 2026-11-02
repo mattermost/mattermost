@@ -735,8 +735,10 @@ func TestReconcilePolicyTeamScope(t *testing.T) {
 		assert.Equal(t, th.BasicTeam.Id, scopeID)
 	})
 
-	t.Run("stale channel reference preserves scope", func(t *testing.T) {
+	t.Run("stale channel reference skips reconciliation", func(t *testing.T) {
 		// Simulate a channel being deleted after it was assigned to a policy.
+		// GetChannels returns fewer channels than channelIDs, so reconciliation
+		// must be skipped to avoid stamping an incorrect scope.
 		ch1 := th.CreatePrivateChannel(t, th.BasicTeam)
 		policy, _ := createTestPolicyHierarchy(t, th, []*model.Channel{ch1})
 
@@ -756,27 +758,6 @@ func TestReconcilePolicyTeamScope(t *testing.T) {
 		scope, scopeID := getScope(t, policy.ID)
 		assert.Equal(t, model.AccessControlPolicyScopeTeam, scope, "scope should be preserved when channel is stale")
 		assert.Equal(t, th.BasicTeam.Id, scopeID)
-	})
-
-	t.Run("stale channel reference does not prevent clearing scope for a cross-team channel", func(t *testing.T) {
-		otherTeam := th.CreateTeam(t)
-		staleChannel := &model.Channel{Id: model.NewId()}
-		otherTeamChannel := th.CreatePrivateChannel(t, otherTeam)
-		policy, _ := createTestPolicyHierarchy(t, th, []*model.Channel{staleChannel, otherTeamChannel})
-
-		policy.Scope = model.AccessControlPolicyScopeTeam
-		policy.ScopeID = th.BasicTeam.Id
-		_, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, policy)
-		require.NoError(t, err)
-
-		th.App.Srv().Store().Channel().InvalidateChannel(otherTeamChannel.Id)
-
-		appErr := th.App.ReconcilePolicyTeamScope(th.Context, policy.ID)
-		require.Nil(t, appErr)
-
-		scope, scopeID := getScope(t, policy.ID)
-		assert.Empty(t, scope)
-		assert.Empty(t, scopeID)
 	})
 
 	t.Run("parent saved without a scope stays empty across reconcile and channel removal", func(t *testing.T) {
