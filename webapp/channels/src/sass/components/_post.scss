@@ -835,15 +835,6 @@
 
                 span {
                     display: none;
-
-                    &.post-image__archived-name {
-                        display: inline-flex;
-                    }
-
-                    &.post-image__archived-filename,
-                    &.post-image__archived-label {
-                        display: inline-block;
-                    }
                 }
 
                 svg {

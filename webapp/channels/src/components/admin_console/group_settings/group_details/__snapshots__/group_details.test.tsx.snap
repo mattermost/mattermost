@@ -172,9 +172,31 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
                       class="_button__label_we8pe_31"
                     >
                       Add Team or Channel
-                      <i
-                        class="fa fa-caret-down"
-                      />
+                    </span>
+                    <span
+                      class="_button__icon-slot_we8pe_35"
+                    >
+                      <div
+                        aria-hidden="true"
+                        class="_icon_1i355_2 _icon--size-16_1i355_38"
+                      >
+                        <div
+                          class="_icon__glyph-area_1i355_9"
+                        >
+                          <svg
+                            fill="currentColor"
+                            height="18"
+                            version="1.1"
+                            viewBox="0 0 24 24"
+                            width="18"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"
+                            />
+                          </svg>
+                        </div>
+                      </div>
                     </span>
                   </button>
                 </div>
@@ -360,32 +382,26 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
                 1 - 20 of 20
               </div>
               <button
-                class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64 prev disabled"
+                class="btn btn-quaternary btn-sm btn-icon ml-2 prev disabled"
+                data-testid="page-link-prev"
                 disabled=""
                 type="button"
               >
-                <span
-                  class="_button__label_we8pe_31"
-                >
-                  <i
-                    class="icon icon-chevron-left"
-                    title="Previous Icon"
-                  />
-                </span>
+                <i
+                  class="icon icon-chevron-left"
+                  title="Previous Icon"
+                />
               </button>
               <button
-                class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64 next disabled"
+                class="btn btn-quaternary btn-sm btn-icon next disabled"
+                data-testid="page-link-next"
                 disabled=""
                 type="button"
               >
-                <span
-                  class="_button__label_we8pe_31"
-                >
-                  <i
-                    class="icon icon-chevron-right"
-                    title="Next Icon"
-                  />
-                </span>
+                <i
+                  class="icon icon-chevron-right"
+                  title="Next Icon"
+                />
               </button>
             </div>
           </div>
@@ -600,9 +616,31 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
                       class="_button__label_we8pe_31"
                     >
                       Add Team or Channel
-                      <i
-                        class="fa fa-caret-down"
-                      />
+                    </span>
+                    <span
+                      class="_button__icon-slot_we8pe_35"
+                    >
+                      <div
+                        aria-hidden="true"
+                        class="_icon_1i355_2 _icon--size-16_1i355_38"
+                      >
+                        <div
+                          class="_icon__glyph-area_1i355_9"
+                        >
+                          <svg
+                            fill="currentColor"
+                            height="18"
+                            version="1.1"
+                            viewBox="0 0 24 24"
+                            width="18"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"
+                            />
+                          </svg>
+                        </div>
+                      </div>
                     </span>
                   </button>
                 </div>
@@ -788,32 +826,26 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
                 1 - 20 of 20
               </div>
               <button
-                class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64 prev disabled"
+                class="btn btn-quaternary btn-sm btn-icon ml-2 prev disabled"
+                data-testid="page-link-prev"
                 disabled=""
                 type="button"
               >
-                <span
-                  class="_button__label_we8pe_31"
-                >
-                  <i
-                    class="icon icon-chevron-left"
-                    title="Previous Icon"
-                  />
-                </span>
+                <i
+                  class="icon icon-chevron-left"
+                  title="Previous Icon"
+                />
               </button>
               <button
-                class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64 next disabled"
+                class="btn btn-quaternary btn-sm btn-icon next disabled"
+                data-testid="page-link-next"
                 disabled=""
                 type="button"
               >
-                <span
-                  class="_button__label_we8pe_31"
-                >
-                  <i
-                    class="icon icon-chevron-right"
-                    title="Next Icon"
-                  />
-                </span>
+                <i
+                  class="icon icon-chevron-right"
+                  title="Next Icon"
+                />
               </button>
             </div>
           </div>
@@ -1026,9 +1058,31 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
                       class="_button__label_we8pe_31"
                     >
                       Add Team or Channel
-                      <i
-                        class="fa fa-caret-down"
-                      />
+                    </span>
+                    <span
+                      class="_button__icon-slot_we8pe_35"
+                    >
+                      <div
+                        aria-hidden="true"
+                        class="_icon_1i355_2 _icon--size-16_1i355_38"
+                      >
+                        <div
+                          class="_icon__glyph-area_1i355_9"
+                        >
+                          <svg
+                            fill="currentColor"
+                            height="18"
+                            version="1.1"
+                            viewBox="0 0 24 24"
+                            width="18"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"
+                            />
+                          </svg>
+                        </div>
+                      </div>
                     </span>
                   </button>
                 </div>
@@ -1214,32 +1268,26 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
                 1 - 20 of 20
               </div>
               <button
-                class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64 prev disabled"
+                class="btn btn-quaternary btn-sm btn-icon ml-2 prev disabled"
+                data-testid="page-link-prev"
                 disabled=""
                 type="button"
               >
-                <span
-                  class="_button__label_we8pe_31"
-                >
-                  <i
-                    class="icon icon-chevron-left"
-                    title="Previous Icon"
-                  />
-                </span>
+                <i
+                  class="icon icon-chevron-left"
+                  title="Previous Icon"
+                />
               </button>
               <button
-                class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64 next disabled"
+                class="btn btn-quaternary btn-sm btn-icon next disabled"
+                data-testid="page-link-next"
                 disabled=""
                 type="button"
               >
-                <span
-                  class="_button__label_we8pe_31"
-                >
-                  <i
-                    class="icon icon-chevron-right"
-                    title="Next Icon"
-                  />
-                </span>
+                <i
+                  class="icon icon-chevron-right"
+                  title="Next Icon"
+                />
               </button>
             </div>
           </div>
@@ -1452,9 +1500,31 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
                       class="_button__label_we8pe_31"
                     >
                       Add Team or Channel
-                      <i
-                        class="fa fa-caret-down"
-                      />
+                    </span>
+                    <span
+                      class="_button__icon-slot_we8pe_35"
+                    >
+                      <div
+                        aria-hidden="true"
+                        class="_icon_1i355_2 _icon--size-16_1i355_38"
+                      >
+                        <div
+                          class="_icon__glyph-area_1i355_9"
+                        >
+                          <svg
+                            fill="currentColor"
+                            height="18"
+                            version="1.1"
+                            viewBox="0 0 24 24"
+                            width="18"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"
+                            />
+                          </svg>
+                        </div>
+                      </div>
                     </span>
                   </button>
                 </div>
@@ -1638,32 +1708,26 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
                 1 - 20 of 20
               </div>
               <button
-                class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64 prev disabled"
+                class="btn btn-quaternary btn-sm btn-icon ml-2 prev disabled"
+                data-testid="page-link-prev"
                 disabled=""
                 type="button"
               >
-                <span
-                  class="_button__label_we8pe_31"
-                >
-                  <i
-                    class="icon icon-chevron-left"
-                    title="Previous Icon"
-                  />
-                </span>
+                <i
+                  class="icon icon-chevron-left"
+                  title="Previous Icon"
+                />
               </button>
               <button
-                class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64 next disabled"
+                class="btn btn-quaternary btn-sm btn-icon next disabled"
+                data-testid="page-link-next"
                 disabled=""
                 type="button"
               >
-                <span
-                  class="_button__label_we8pe_31"
-                >
-                  <i
-                    class="icon icon-chevron-right"
-                    title="Next Icon"
-                  />
-                </span>
+                <i
+                  class="icon icon-chevron-right"
+                  title="Next Icon"
+                />
               </button>
             </div>
           </div>

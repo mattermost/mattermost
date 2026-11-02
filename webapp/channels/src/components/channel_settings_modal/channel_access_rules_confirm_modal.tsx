@@ -175,17 +175,15 @@ function ChannelAccessRulesConfirmModal({
                     onClick={onConfirm}
                     disabled={isProcessing}
                     destructive={true}
+                    loading={isProcessing}
                 >
                     {(() => {
                         if (isProcessing) {
                             return (
-                                <>
-                                    <span className='icon icon-loading icon-spin'/>
-                                    <FormattedMessage
-                                        id='channel_settings.access_rules.confirm_modal.saving'
-                                        defaultMessage='Saving...'
-                                    />
-                                </>
+                                <FormattedMessage
+                                    id='channel_settings.access_rules.confirm_modal.saving'
+                                    defaultMessage='Saving...'
+                                />
                             );
                         }
 

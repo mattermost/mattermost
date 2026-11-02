@@ -105,7 +105,7 @@ func TestScopedImportCrashAndResumeExactlyOnce(t *testing.T) {
 
 	// Reference: a clean full import on its own destination.
 	ref := Setup(t).InitBasic(t)
-	_, appErr := ref.App.BulkImportWithPathAndOpts(ref.Context, strings.NewReader(jsonl), nil, false, true, 1,
+	_, _, appErr := ref.App.BulkImportWithPathAndOpts(ref.Context, strings.NewReader(jsonl), nil, false, true, 1,
 		"", model.BulkImportOpts{ImportedUsers: model.ImportedUsersInactive})
 	require.Nil(t, appErr, "reference full import must succeed")
 	wantRoots, wantReplies, wantReactions := resumeCounts(t, ref, teamName, chanName)
@@ -123,14 +123,14 @@ func TestScopedImportCrashAndResumeExactlyOnce(t *testing.T) {
 			lastCheckpoint = line
 		}
 	}
-	_, appErr = th.App.BulkImportWithPathAndOpts(th.Context,
+	_, _, appErr = th.App.BulkImportWithPathAndOpts(th.Context,
 		&truncatedErrReader{data: firstNLines(jsonl, keep)}, nil, false, true, 1, "",
 		model.BulkImportOpts{ImportedUsers: model.ImportedUsersInactive, OnCheckpoint: onCheckpoint})
 	require.NotNil(t, appErr, "import #1 must fail (simulated crash)")
 	t.Logf("crash recorded checkpoint at line %d; partial posts imported", lastCheckpoint)
 
 	// Import #2: resume from the recorded checkpoint with the full stream.
-	_, appErr = th.App.BulkImportWithPathAndOpts(th.Context, strings.NewReader(jsonl), nil, false, true, 1, "",
+	_, _, appErr = th.App.BulkImportWithPathAndOpts(th.Context, strings.NewReader(jsonl), nil, false, true, 1, "",
 		model.BulkImportOpts{ImportedUsers: model.ImportedUsersInactive, ResumeFromLine: lastCheckpoint})
 	require.Nil(t, appErr, "resume import must succeed")
 
@@ -140,7 +140,7 @@ func TestScopedImportCrashAndResumeExactlyOnce(t *testing.T) {
 	require.Equal(t, wantReactions, gotReactions, "resumed reactions must equal a clean full import — no loss, no duplicates")
 
 	// Resume again from the same checkpoint (repeated resume must stay exactly-once).
-	_, appErr = th.App.BulkImportWithPathAndOpts(th.Context, strings.NewReader(jsonl), nil, false, true, 1, "",
+	_, _, appErr = th.App.BulkImportWithPathAndOpts(th.Context, strings.NewReader(jsonl), nil, false, true, 1, "",
 		model.BulkImportOpts{ImportedUsers: model.ImportedUsersInactive, ResumeFromLine: lastCheckpoint})
 	require.Nil(t, appErr, "second resume must succeed")
 	r2, rep2, rea2 := resumeCounts(t, th, teamName, chanName)

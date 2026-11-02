@@ -790,18 +790,6 @@ func (c *Context) RequireBotUserId() *Context {
 	return c
 }
 
-func (c *Context) RequireInvoiceId() *Context {
-	if c.Err != nil {
-		return c
-	}
-
-	if len(c.Params.InvoiceId) != 27 && c.Params.InvoiceId != model.UpcomingInvoice {
-		c.SetInvalidURLParam("invoice_id")
-	}
-
-	return c
-}
-
 func (c *Context) RequireContentReviewerId() *Context {
 	if c.Err != nil {
 		return c
