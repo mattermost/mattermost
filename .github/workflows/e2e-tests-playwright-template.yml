@@ -431,6 +431,7 @@ jobs:
     needs: [prepare-run, dispatch-begin, workers, report]
     if: ${{ !cancelled() && needs.workers.result != 'cancelled' && needs.dispatch-begin.result != 'cancelled' }}
     permissions:
+      actions: read
       contents: read
       statuses: write
       pull-requests: read
