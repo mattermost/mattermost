@@ -5975,9 +5975,9 @@ components:
         actions:
           type: array
           description: >
-            Actions to evaluate, at most 16. Omit for discovery mode, which
-            returns the permitted set of all registered actions for the
-            resource type. An unregistered action returns 400.
+            Actions to evaluate, at most 16. Leave empty or omit for discovery
+            mode, which returns the permitted set of all registered actions for
+            the resource type. An unregistered action returns 400.
           maxItems: 16
           items:
             type: string

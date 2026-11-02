@@ -10,7 +10,8 @@
         omits `attrs.options` and sets `attrs.options_count` and
         `attrs.options_omitted`.
 
-        Replaced by `GET /api/v4/properties/groups/access_control/user/fields`.
+        Replaced by
+        `GET /api/v4/properties/groups/access_control/user/fields?target_type=system`.
 
         __Minimum server version__: 10.5
 
