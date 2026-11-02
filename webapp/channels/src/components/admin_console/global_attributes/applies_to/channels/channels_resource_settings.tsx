@@ -46,6 +46,9 @@ type Props = {
 
     // For banner/modal copy. Falls back to a generic phrase when unset.
     attributeDisplayName?: string;
+
+    // See useChannelMissingValues' revision.
+    channelFieldUpdateAt?: number;
 };
 
 /**
@@ -58,7 +61,7 @@ type Props = {
  * Two hosts render this component — the Applies-to card's Channels row and
  * the Classification page — and each still owns its own Save.
  */
-const ChannelsResourceSettings = ({value, onChange, ordered, disabled, channelFieldId, attributeDisplayName}: Props) => {
+const ChannelsResourceSettings = ({value, onChange, ordered, disabled, channelFieldId, attributeDisplayName, channelFieldUpdateAt}: Props) => {
     const intl = useIntl();
     const {formatMessage} = intl;
 
@@ -74,7 +77,7 @@ const ChannelsResourceSettings = ({value, onChange, ordered, disabled, channelFi
     // preserving that property. Also tied to requiredEnforcementEnabled: while
     // the kill switch is off the Required field (and its banner) don't render
     // at all, so there is nothing for this fetch to feed.
-    const missingValues = useChannelMissingValues({fieldId: channelFieldId, enabled: requiredEnforcementEnabled});
+    const missingValues = useChannelMissingValues({fieldId: channelFieldId, enabled: requiredEnforcementEnabled, revision: channelFieldUpdateAt});
     const openChannelsWithoutValueModal = useChannelsWithoutValueModal();
     const promptNotifyChannelAdmins = useNotifyChannelAdmins();
 
@@ -99,11 +102,14 @@ const ChannelsResourceSettings = ({value, onChange, ordered, disabled, channelFi
 
     const missingCount = missingValues.summary?.totalCount ?? 0;
     const sharedCount = missingValues.summary?.sharedCount ?? 0;
+    const savedRequired = missingValues.summary?.required ?? false;
 
-    // Blocked only in the off -> on direction. Turning Required OFF must
-    // always work: that is the escape hatch for a field that is already
-    // required while channels are non-compliant (e.g. after an unarchive).
-    const blockedByMissingValues = !value.required && missingCount > 0;
+    // Blocked only when the saved field is not required, matching the
+    // server, which refuses only a saved false -> true. Turning Required OFF
+    // must always work: that is the escape hatch for a field that is already
+    // required while channels are non-compliant (e.g. after an unarchive),
+    // and turning it back on before saving is no change at all.
+    const blockedByMissingValues = !value.required && !savedRequired && missingCount > 0;
 
     const handleRequiredToggle = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         if (blockedByMissingValues) {
@@ -252,7 +258,7 @@ const ChannelsResourceSettings = ({value, onChange, ordered, disabled, channelFi
                                     count={missingCount}
                                     attributeDisplayName={attributeDisplayName}
                                     canNotify={Boolean(channelFieldId)}
-                                    alreadyRequired={value.required}
+                                    alreadyRequired={savedRequired}
                                     blocked={blockedByMissingValues}
                                     attemptedEnable={attemptedEnable}
                                     status={notifyStatus}

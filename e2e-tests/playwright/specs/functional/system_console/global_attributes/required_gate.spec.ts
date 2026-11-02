@@ -18,6 +18,14 @@
 
 import {expect, test, getAdminClient} from '@mattermost/playwright-lib';
 
+import {
+    attributeName,
+    createAttribute,
+    deleteAttributes,
+    optionId as attributeOptionId,
+    purgeAttributes,
+} from '../../channels/channel_attributes/helpers';
+
 import {requireGlobalAttributesEnabled, setGlobalAttributesFeatureFlag} from './global_attributes_helpers';
 import {
     ATTRIBUTE_DETAILS_PATH,
@@ -284,6 +292,171 @@ test.describe(
 
                 const reloaded = await getChannelPropertyField(adminClient, pair.channelField.id);
                 expect(reloaded.attrs?.required).toBe(true);
+            } finally {
+                await deleteChannelAttributeField(adminClient, pair);
+            }
+        });
+
+        /**
+         * @objective Verify a channel attribute created on channels directly (no
+         * template) is edited as the saved attribute it is: the banner counts its
+         * own channels and offers Notify and View channel list, rather than the
+         * create-mode copy that asks to save it first.
+         */
+        test('a standalone channel attribute is edited as itself, not as an unsaved one', async ({pw}) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+
+            const suffix = pw.random.id();
+            await purgeAttributes(adminClient);
+
+            const {team} = await pw.initSetup();
+            const field = await createAttribute(adminClient, attributeName('standalone', suffix), {
+                type: 'select',
+                options: ['Value A'],
+            });
+            const channel = await createComplianceChannel(adminClient, team, suffix, `Standalone Missing ${suffix}`);
+
+            try {
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                const {page, globalAttributes} = systemConsolePage;
+                const {attributeAppliesToChannels} = globalAttributes;
+
+                await page.goto(`${ATTRIBUTE_DETAILS_PATH}/${field.id}`);
+                await expect(globalAttributes.displayNameInput).toBeVisible();
+                await attributeAppliesToChannels.expand();
+
+                // * The banner treats the attribute as saved: no create-mode copy, both actions offered
+                await expect(attributeAppliesToChannels.missingValuesBanner).toBeVisible();
+                await expect(attributeAppliesToChannels.missingValuesBanner).not.toContainText(
+                    'Save this attribute first',
+                );
+                await expect(attributeAppliesToChannels.notifyChannelAdminsButton).toBeVisible();
+                await expect(attributeAppliesToChannels.viewChannelListButton).toBeVisible();
+
+                // * The list is this attribute's own: the channel is in it until it has a value
+                let modal = await attributeAppliesToChannels.openChannelsWithoutValueModal();
+                await expect(modal.row(channel.display_name)).toBeVisible();
+                await modal.close();
+
+                await adminClient.patchPropertyValues('access_control', 'channel', channel.id, [
+                    {field_id: field.id, value: attributeOptionId(field, 'Value A')},
+                ] as Parameters<typeof adminClient.patchPropertyValues>[3]);
+
+                modal = await attributeAppliesToChannels.openChannelsWithoutValueModal();
+                await expect(modal.row(channel.display_name)).toHaveCount(0);
+                await modal.close();
+            } finally {
+                await deleteAttributes(adminClient, [field]);
+            }
+        });
+
+        /**
+         * @objective Verify an attribute that is already Required can be switched off
+         * and back on before saving: only a saved off -> on is refused, so undoing an
+         * unsaved change is not blocked and does not raise the warning.
+         */
+        test('an already-required attribute can be turned off and back on before saving', async ({pw}) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+
+            const suffix = pw.random.id();
+            await purgeRequiredGateFields(adminClient);
+
+            const {team} = await pw.initSetup();
+            const channel = await createComplianceChannel(adminClient, team, suffix);
+            await adminClient.deleteChannel(channel.id);
+
+            const pair = await createChannelAttributeField(adminClient, fieldName('undo', suffix), {
+                options: ['Value A'],
+                required: true,
+            });
+            await adminClient.unarchiveChannel(channel.id);
+
+            try {
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                const {page, globalAttributes} = systemConsolePage;
+                const {attributeAppliesToChannels} = globalAttributes;
+
+                await page.goto(`${ATTRIBUTE_DETAILS_PATH}/${pair.templateField.id}`);
+                await expect(globalAttributes.displayNameInput).toBeVisible();
+                await attributeAppliesToChannels.expand();
+
+                // * Saved Required, with the already-required copy
+                await expect(attributeAppliesToChannels.requiredToggle).toBeChecked();
+                await expect(attributeAppliesToChannels.missingValuesBanner).toContainText('New channels must set one');
+
+                // # Off, then back on, without saving
+                await attributeAppliesToChannels.requiredToggle.click();
+                await expect(attributeAppliesToChannels.requiredToggle).not.toBeChecked();
+                await attributeAppliesToChannels.requiredToggle.click();
+
+                // * Back on, and nothing was refused
+                await expect(attributeAppliesToChannels.requiredToggle).toBeChecked();
+                await expect(attributeAppliesToChannels.missingValuesBanner).not.toHaveClass(/warning/);
+                await expect(attributeAppliesToChannels.missingValuesBanner).toContainText('New channels must set one');
+            } finally {
+                await deleteChannelAttributeField(adminClient, pair);
+            }
+        });
+
+        /**
+         * @objective Verify View channel list pages through every channel missing a
+         * value: Previous and Next are shown with Close, Next reaches past the first
+         * 20, and on the last page Next is disabled rather than opening an empty page.
+         */
+        test('View channel list pages past the first 20 channels', async ({pw}) => {
+            await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+
+            const suffix = pw.random.id();
+            await purgeRequiredGateFields(adminClient);
+
+            const {team} = await pw.initSetup();
+            const pair = await createChannelAttributeField(adminClient, fieldName('paging', suffix), {
+                options: ['Value A'],
+            });
+
+            // The count is server-wide; these 21 guarantee more than one page.
+            for (let i = 0; i < 21; i++) {
+                await createComplianceChannel(adminClient, team, `${suffix}p${i}`, `Paging ${suffix} ${i}`);
+            }
+
+            try {
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                const {page, globalAttributes} = systemConsolePage;
+                const {attributeAppliesToChannels} = globalAttributes;
+
+                await page.goto(`${ATTRIBUTE_DETAILS_PATH}/${pair.templateField.id}`);
+                await expect(globalAttributes.displayNameInput).toBeVisible();
+                await attributeAppliesToChannels.expand();
+
+                const modal = await attributeAppliesToChannels.openChannelsWithoutValueModal();
+
+                // * The pager is shown alongside Close
+                await expect(modal.footerCloseButton).toBeVisible();
+                await expect(modal.rows).toHaveCount(20);
+                await expect(modal.previousButton).toBeDisabled();
+                await expect(modal.nextButton).toBeEnabled();
+
+                const header = await modal.container.getByText(/channels? still need/).innerText();
+                const total = Number(header.match(/(\d+) channels? still need/)?.[1]);
+                expect(total).toBeGreaterThan(20);
+                const lastPage = Math.ceil(total / 20) - 1;
+                const firstRow = await modal.rows.first().innerText();
+
+                // # Page forward to the last page. Previous enabling marks each page loaded.
+                for (let p = 1; p <= lastPage; p++) {
+                    await modal.nextButton.click();
+                    await expect(modal.previousButton).toBeEnabled();
+                }
+
+                // * The last page has its remaining rows, and Next stops there
+                await expect(modal.rows).toHaveCount(total - lastPage * 20);
+                await expect(modal.rows.first()).not.toHaveText(firstRow);
+                await expect(modal.nextButton).toBeDisabled();
+
+                await modal.close();
             } finally {
                 await deleteChannelAttributeField(adminClient, pair);
             }

@@ -8,6 +8,7 @@ import {GenericModal} from '@mattermost/components';
 import type {Channel} from '@mattermost/types/channels';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
+import {getPropertyFieldLabel} from 'mattermost-redux/utils/property_utils';
 
 import AlertBanner from 'components/alert_banner';
 import useMissingRequiredChannelAttributes from 'components/common/hooks/useMissingRequiredChannelAttributes';
@@ -74,6 +75,7 @@ export default function UnarchiveChannelModal({onExited, channel, actions}: Prop
             autoCloseOnConfirmButton={false}
             isConfirmDisabled={submitting}
             destructive={true}
+            autoFocusConfirmButton={true}
             confirmButtonText={missing.length > 0 ? (
                 <FormattedMessage
                     id='unarchive_channel.missing_attributes.confirm'
@@ -119,7 +121,7 @@ export default function UnarchiveChannelModal({onExited, channel, actions}: Prop
                             id='unarchive_channel.missing_attributes.body'
                             defaultMessage='This channel has no value for {attributes}. {count, plural, one {That attribute is} other {Those attributes are}} required. You can set the {count, plural, one {value} other {values}} after restoring the channel.'
                             values={{
-                                attributes: missing.map((field) => (field.attrs?.display_name as string | undefined) || field.name).join(', '),
+                                attributes: missing.map((field) => getPropertyFieldLabel(field)).join(', '),
                                 count: missing.length,
                             }}
                         />

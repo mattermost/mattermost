@@ -182,12 +182,60 @@ describe('ChannelsWithoutValueModal', () => {
             />,
         );
 
-        // Two buttons share the "Close" name: GenericModal's own header X and
-        // the footer confirm button this component supplies. The footer one
-        // renders last.
-        const closeButtons = screen.getAllByRole('button', {name: 'Close'});
-        await userEvent.click(closeButtons[closeButtons.length - 1]);
+        await userEvent.click(screen.getByTestId('channelsWithoutValueModalClose'));
 
         expect(onExited).toHaveBeenCalled();
+    });
+
+    function rows(count: number, offset = 0) {
+        return Array.from({length: count}, (_, i) => ({
+            channel_id: `c${offset + i}`,
+            channel_name: `ch-${offset + i}`,
+            channel_display_name: `Channel ${offset + i}`,
+            channel_type: 'O' as const,
+            team_id: 't1',
+            team_display_name: 'Team 1',
+            is_local: true,
+            channel_admins: [],
+        }));
+    }
+
+    it('renders Previous and Next alongside Close, and pages to the 21st channel', async () => {
+        mockedFetch.mockResolvedValueOnce(page({total_count: 21, channels: rows(20)}));
+        mockedFetch.mockResolvedValueOnce(page({total_count: 21, channels: rows(1, 20)}));
+
+        renderWithContext(
+            <ChannelsWithoutValueModal
+                fieldId='field1'
+                totalCount={21}
+                onExited={onExited}
+            />,
+        );
+
+        await waitFor(() => expect(screen.getByText('Channel 19')).toBeInTheDocument());
+        expect(screen.getByTestId('channelsWithoutValueModalClose')).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Previous'})).toBeDisabled();
+
+        await userEvent.click(screen.getByRole('button', {name: 'Next'}));
+
+        await waitFor(() => expect(screen.getByText('Channel 20')).toBeInTheDocument());
+        expect(mockedFetch).toHaveBeenLastCalledWith('field1', 1, 20);
+        expect(screen.getByRole('button', {name: 'Next'})).toBeDisabled();
+        expect(screen.getByRole('button', {name: 'Previous'})).toBeEnabled();
+    });
+
+    it('disables Next when exactly one full page is missing a value', async () => {
+        mockedFetch.mockResolvedValue(page({total_count: 20, channels: rows(20)}));
+
+        renderWithContext(
+            <ChannelsWithoutValueModal
+                fieldId='field1'
+                totalCount={20}
+                onExited={onExited}
+            />,
+        );
+
+        await waitFor(() => expect(screen.getByText('Channel 19')).toBeInTheDocument());
+        expect(screen.getByRole('button', {name: 'Next'})).toBeDisabled();
     });
 });

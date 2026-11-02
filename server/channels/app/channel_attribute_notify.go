@@ -42,34 +42,58 @@ func channelAttributeNotifyThrottleKey(fieldID string) string {
 	return "channel_attribute_notify_last_sent_" + fieldID
 }
 
-// channelAttributeDisplayName reads a channel attribute field's display name,
-// falling back to its internal Name when unset.
-func channelAttributeDisplayName(field *model.PropertyField) string {
+// classificationFieldName is the name of classification's linked fields.
+const classificationFieldName = "classification"
+
+// channelAttributeDisplayName is the name channel admins and the notifying
+// admin see for a channel attribute: the field's own display_name, else its
+// template's, else its name. The System Console copies the template's
+// display_name onto linked fields, but one created through the API or a plugin
+// need not carry it, so it is looked up rather than shown as the internal
+// name. classification writes no display_name and is labelled as the webapp's
+// getPropertyFieldLabel labels it.
+func (a *App) channelAttributeDisplayName(rctx request.CTX, groupID string, field *model.PropertyField) string {
 	if field == nil {
 		return ""
 	}
-	if field.Attrs != nil {
-		if dn, ok := field.Attrs[model.PropertyFieldAttrDisplayName].(string); ok && dn != "" {
+	if dn := propertyFieldDisplayName(field); dn != "" {
+		return dn
+	}
+	if field.LinkedFieldID != nil && *field.LinkedFieldID != "" {
+		template, appErr := a.GetPropertyField(rctx, groupID, *field.LinkedFieldID)
+		if appErr != nil {
+			rctx.Logger().Warn("Failed to load the template of a channel attribute for its display name", mlog.String("field_id", field.ID), mlog.Err(appErr))
+		} else if dn := propertyFieldDisplayName(template); dn != "" {
 			return dn
 		}
 	}
+	if field.Name == classificationFieldName {
+		return "Classification"
+	}
 	return field.Name
+}
+
+func propertyFieldDisplayName(field *model.PropertyField) string {
+	if field.Attrs == nil {
+		return ""
+	}
+	dn, _ := field.Attrs[model.PropertyFieldAttrDisplayName].(string)
+	return strings.TrimSpace(dn)
 }
 
 // channelAttributeNotifyMessagePreview renders the confirmation modal's
 // preview of the DM channel admins will receive. It is intentionally the
 // generic, no-channel-list form -- the real DM (see
 // channelAttributeNotifyDMBody) is rendered per admin with their own affected
-// channels, which this preview cannot enumerate for everyone at once. field
-// is nil in create mode, where notify is unreachable from the UI, but the
-// summary endpoint still needs a sensible value.
-func channelAttributeNotifyMessagePreview(field *model.PropertyField, viewerLocale string) string {
-	if field == nil {
+// channels, which this preview cannot enumerate for everyone at once. It is
+// empty in create mode, where notify is unreachable from the UI.
+func channelAttributeNotifyMessagePreview(attributeDisplayName, viewerLocale string) string {
+	if attributeDisplayName == "" {
 		return ""
 	}
 	T := i18n.GetUserTranslations(viewerLocale)
 	return T("app.channel_attributes.notify_missing_value.preview", model.StringInterface{
-		"AttributeName": channelAttributeDisplayName(field),
+		"AttributeName": attributeDisplayName,
 	})
 }
 
@@ -231,7 +255,7 @@ func (a *App) NotifyChannelAdminsOfMissingAttribute(rctx request.CTX, groupID st
 		Truncated:                 truncated,
 	}
 
-	displayName := channelAttributeDisplayName(field)
+	displayName := a.channelAttributeDisplayName(rctx, groupID, field)
 	fieldID := field.ID
 
 	a.Srv().Go(func() {

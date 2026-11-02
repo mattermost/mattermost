@@ -191,4 +191,65 @@ test.describe('System Console - notify all channel admins', {tag: ['@system_cons
             await deleteChannelAttributeField(adminClient, pair);
         }
     });
+
+    /**
+     * @objective Verify the notify preview and the DM name the attribute by its display
+     * name -- taken from the template when the linked channel field has none of its
+     * own -- and that the preview shows the formatted message, not its markdown.
+     */
+    test('names the attribute by its display name in the preview and the DM', async ({pw}) => {
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
+        const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+
+        const suffix = pw.random.id();
+        await purgeRequiredGateFields(adminClient);
+
+        const displayName = `Data Owner ${suffix}`;
+        const {team, user} = await pw.initSetup();
+        const pair = await createChannelAttributeField(adminClient, fieldName('notify_name', suffix), {
+            options: ['Value A'],
+            displayName,
+        });
+        const channel = await createComplianceChannel(adminClient, team, suffix, `Notify Name Channel ${suffix}`);
+        await adminClient.addToChannel(user.id, channel.id);
+        await adminClient.updateChannelMemberSchemeRoles(channel.id, user.id, true, true);
+
+        try {
+            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+            const {page, globalAttributes} = systemConsolePage;
+            const {attributeAppliesToChannels} = globalAttributes;
+
+            await page.goto(`${ATTRIBUTE_DETAILS_PATH}/${pair.templateField.id}`);
+            await expect(globalAttributes.displayNameInput).toBeVisible();
+            await attributeAppliesToChannels.expand();
+
+            const modal = await attributeAppliesToChannels.openNotifyChannelAdminsModal();
+
+            // * The preview names the display name, rendered bold rather than as **markdown**
+            await expect(modal.messagePreview.locator('strong')).toHaveText(displayName);
+            await expect(modal.messagePreview).not.toContainText('**');
+            await expect(modal.messagePreview).not.toContainText(pair.channelField.name);
+
+            await modal.confirm();
+            await expect(attributeAppliesToChannels.missingValuesBanner).toContainText('Notified');
+
+            // * The DM the channel admin receives names the display name too
+            const systemBot = await adminClient.getUserByUsername(SYSTEM_BOT_USERNAME);
+            const dm = await adminClient.createDirectChannel([user.id, systemBot.id]);
+            await expect
+                .poll(
+                    async () => {
+                        const {posts} = await adminClient.getPosts(dm.id);
+                        return (
+                            Object.values(posts).find((post) => post.message.includes(channel.display_name))?.message ??
+                            ''
+                        );
+                    },
+                    {timeout: 15000},
+                )
+                .toContain(`**${displayName}**`);
+        } finally {
+            await deleteChannelAttributeField(adminClient, pair);
+        }
+    });
 });

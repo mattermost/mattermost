@@ -11,6 +11,10 @@ export type ChannelMissingValuesSummary = {
     uniqueAdminCount: number;
     noAdminCount: number;
     messagePreview: string;
+
+    // Whether the saved field is required. The toggle's own value is the
+    // unsaved form state; the server only refuses a saved false -> true.
+    required: boolean;
 };
 
 export type ChannelMissingValuesState = {
@@ -27,9 +31,10 @@ export type ChannelMissingValuesState = {
 // the Required toggle's banner. fieldId is undefined in create mode -- the
 // channel-linked field has no ID yet, so the server reports every active
 // channel as missing a value. enabled=false never fetches (used to defer the
-// call until the Channels row is actually expanded).
-export default function useChannelMissingValues(args: {fieldId?: string; enabled: boolean}): ChannelMissingValuesState {
-    const {fieldId, enabled} = args;
+// call until the Channels row is actually expanded). A change to revision
+// refetches, for a host that saves the field without leaving the page.
+export default function useChannelMissingValues(args: {fieldId?: string; enabled: boolean; revision?: number}): ChannelMissingValuesState {
+    const {fieldId, enabled, revision} = args;
 
     const [loading, setLoading] = useState(false);
     const [failed, setFailed] = useState(false);
@@ -72,6 +77,7 @@ export default function useChannelMissingValues(args: {fieldId?: string; enabled
                 uniqueAdminCount: data.unique_admin_count,
                 noAdminCount: data.channels_without_admin_count,
                 messagePreview: data.message_preview,
+                required: data.required,
             });
             setLoading(false);
         }).catch(() => {
@@ -88,7 +94,7 @@ export default function useChannelMissingValues(args: {fieldId?: string; enabled
         return () => {
             seqRef.current += 1;
         };
-    }, [enabled, fieldId, reloadNonce]);
+    }, [enabled, fieldId, revision, reloadNonce]);
 
     return {loading, failed, summary, reload};
 }

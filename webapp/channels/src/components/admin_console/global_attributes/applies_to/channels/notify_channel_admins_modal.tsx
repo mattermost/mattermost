@@ -9,6 +9,8 @@ import {GenericModal} from '@mattermost/components';
 
 import {openModal} from 'actions/views/modals';
 
+import Markdown from 'components/markdown';
+
 import {ModalIdentifiers} from 'utils/constants';
 
 export type NotifyChannelAdminsStats = {
@@ -136,8 +138,10 @@ function NotifyChannelAdminsModal({
                     defaultMessage='Message to be sent'
                 />
             </div>
+            {/* Rendered as the DM will be, so the admin previews the message,
+                not its markdown source. */}
             <blockquote className='NotifyChannelAdminsModal__preview'>
-                {messagePreview}
+                <Markdown message={messagePreview}/>
             </blockquote>
         </GenericModal>
     );

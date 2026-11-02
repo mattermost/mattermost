@@ -6,6 +6,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {GlobeIcon, LockOutlineIcon, OpenInNewIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
 import {GenericModal} from '@mattermost/components';
 import type {ChannelMissingAttributeValue} from '@mattermost/types/properties';
 
@@ -136,6 +137,10 @@ function ChannelsWithoutValueModal({fieldId, attributeDisplayName, totalCount: s
         load(next);
     };
 
+    // Paged by the server's total, not by this page's row count: a full last
+    // page would otherwise leave Next enabled onto an empty page.
+    const hasNextPage = (page + 1) * PER_PAGE < totalCount;
+
     const handleNext = () => {
         const next = page + 1;
         setPage(next);
@@ -156,33 +161,42 @@ function ChannelsWithoutValueModal({fieldId, attributeDisplayName, totalCount: s
             bodyPadding={true}
             bodyDivider={true}
             footerDivider={true}
-            handleConfirm={onExited}
-            confirmButtonText={formatMessage({
-                id: 'admin.global_attributes.applies_to.channels.without_value.close',
-                defaultMessage: 'Close',
-            })}
+
+            // GenericModal renders either its own confirm/cancel buttons or
+            // footerContent, never both, so Close lives here with the pager.
             footerContent={(
-                <div className='ChannelsWithoutValueModal__pagination'>
-                    <button
-                        type='button'
-                        disabled={page === 0 || loading}
-                        onClick={handlePrevious}
+                <div className='ChannelsWithoutValueModal__footer'>
+                    <div className='ChannelsWithoutValueModal__pagination'>
+                        <Button
+                            emphasis='tertiary'
+                            disabled={page === 0 || loading}
+                            onClick={handlePrevious}
+                        >
+                            <FormattedMessage
+                                id='admin.global_attributes.applies_to.channels.without_value.previous'
+                                defaultMessage='Previous'
+                            />
+                        </Button>
+                        <Button
+                            emphasis='tertiary'
+                            disabled={loading || !hasNextPage}
+                            onClick={handleNext}
+                        >
+                            <FormattedMessage
+                                id='admin.global_attributes.applies_to.channels.without_value.next'
+                                defaultMessage='Next'
+                            />
+                        </Button>
+                    </div>
+                    <Button
+                        onClick={onExited}
+                        data-testid='channelsWithoutValueModalClose'
                     >
                         <FormattedMessage
-                            id='admin.global_attributes.applies_to.channels.without_value.previous'
-                            defaultMessage='Previous'
+                            id='admin.global_attributes.applies_to.channels.without_value.close'
+                            defaultMessage='Close'
                         />
-                    </button>
-                    <button
-                        type='button'
-                        disabled={loading || channels.length < PER_PAGE}
-                        onClick={handleNext}
-                    >
-                        <FormattedMessage
-                            id='admin.global_attributes.applies_to.channels.without_value.next'
-                            defaultMessage='Next'
-                        />
-                    </button>
+                    </Button>
                 </div>
             )}
         >

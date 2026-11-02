@@ -510,7 +510,8 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
                                 onChannelResourceRemove={handleChannelResourceRemove}
                                 disabled={saving || disabled}
                                 channelFieldId={channelField?.id}
-                                attributeDisplayName={(template?.attrs?.display_name as string | undefined) || undefined}
+                                attributeDisplayName={displayName}
+                                channelFieldUpdateAt={channelField?.update_at}
                             />
                         </>
                     )}

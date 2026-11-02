@@ -135,4 +135,44 @@ test.describe('Unarchive - required channel attribute warning', {tag: ['@channel
             await deleteChannelAttributeField(adminClient, pair);
         }
     });
+
+    /**
+     * @objective Verify the confirm button has focus when the warning is shown, so
+     * Enter restores the channel as it did before the warning was added.
+     */
+    test('Enter confirms the unarchive while the warning is shown', async ({pw}) => {
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
+        const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+
+        const suffix = pw.random.id();
+        await purgeRequiredGateFields(adminClient);
+
+        const {team} = await pw.initSetup();
+        const channel = await createComplianceChannel(adminClient, team, suffix, `Unarchive Enter ${suffix}`);
+        await adminClient.deleteChannel(channel.id);
+
+        const pair = await createChannelAttributeField(adminClient, fieldName('unarchive_enter', suffix), {
+            options: ['Value A'],
+            required: true,
+        });
+
+        try {
+            const {channelsPage, page} = await pw.testBrowser.login(adminUser);
+            await channelsPage.goto(team.name, channel.name);
+            await expect(channelsPage.archivedChannelMessage).toBeVisible();
+
+            const modal = await channelsPage.openUnarchiveChannelModal();
+            await expect(modal.missingAttributesBanner).toBeVisible();
+
+            // * Focus is on the confirm button
+            await expect(modal.confirmButton).toBeFocused();
+
+            // # Enter restores the channel
+            await page.keyboard.press('Enter');
+            await expect(modal.container).not.toBeVisible();
+            await expect(channelsPage.archivedChannelMessage).toHaveCount(0);
+        } finally {
+            await deleteChannelAttributeField(adminClient, pair);
+        }
+    });
 });

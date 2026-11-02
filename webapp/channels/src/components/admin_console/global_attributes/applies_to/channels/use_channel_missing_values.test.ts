@@ -54,7 +54,7 @@ describe('useChannelMissingValues', () => {
     });
 
     it('maps the response onto the summary shape', async () => {
-        mockedFetch.mockResolvedValue(summary({missing_channel_count: 5, unique_admin_count: 4, channels_without_admin_count: 1}));
+        mockedFetch.mockResolvedValue(summary({missing_channel_count: 5, unique_admin_count: 4, channels_without_admin_count: 1, required: true}));
 
         const {result} = renderHook(() => useChannelMissingValues({fieldId: 'field1', enabled: true}));
 
@@ -65,9 +65,26 @@ describe('useChannelMissingValues', () => {
             uniqueAdminCount: 4,
             noAdminCount: 1,
             messagePreview: 'preview text',
+            required: true,
         });
         expect(result.current.loading).toBe(false);
         expect(result.current.failed).toBe(false);
+    });
+
+    it('refetches when the revision changes, so a save on the same page is picked up', async () => {
+        mockedFetch.mockResolvedValueOnce(summary({required: true}));
+
+        const {result, rerender} = renderHook(
+            ({revision}: {revision: number}) => useChannelMissingValues({fieldId: 'field1', enabled: true, revision}),
+            {initialProps: {revision: 1}},
+        );
+        await waitFor(() => expect(result.current.summary?.required).toBe(true));
+
+        mockedFetch.mockResolvedValueOnce(summary({required: false}));
+        rerender({revision: 2});
+
+        await waitFor(() => expect(result.current.summary?.required).toBe(false));
+        expect(mockedFetch).toHaveBeenCalledTimes(2);
     });
 
     it('reports failed on rejection, leaving summary null', async () => {

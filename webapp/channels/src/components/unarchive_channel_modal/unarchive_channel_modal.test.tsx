@@ -3,6 +3,8 @@
 
 import React from 'react';
 
+import type {PropertyField} from '@mattermost/types/properties';
+
 import useMissingRequiredChannelAttributes from 'components/common/hooks/useMissingRequiredChannelAttributes';
 
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
@@ -11,6 +13,25 @@ import {TestHelper} from 'utils/test_helper';
 import UnarchiveChannelModal from './unarchive_channel_modal';
 
 jest.mock('components/common/hooks/useMissingRequiredChannelAttributes');
+
+function propertyField(overrides: Partial<PropertyField>): PropertyField {
+    return {
+        id: '',
+        group_id: 'group1',
+        name: '',
+        type: 'text',
+        target_id: '',
+        target_type: 'system',
+        object_type: 'channel',
+        create_at: 0,
+        update_at: 0,
+        delete_at: 0,
+        created_by: '',
+        updated_by: '',
+        attrs: {},
+        ...overrides,
+    };
+}
 
 const mockUseMissingRequiredChannelAttributes = jest.mocked(useMissingRequiredChannelAttributes);
 
@@ -57,6 +78,35 @@ describe('components/unarchive_channel_modal', () => {
         await waitFor(() => {
             expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
         });
+    });
+
+    test('focuses the confirm button so Enter restores the channel', async () => {
+        const unarchiveChannel = jest.fn().mockResolvedValue({data: true});
+        renderWithContext(
+            <UnarchiveChannelModal
+                {...baseProps}
+                actions={{unarchiveChannel}}
+            />,
+        );
+
+        await waitFor(() => expect(screen.getByRole('button', {name: 'Unarchive'})).toHaveFocus());
+        await userEvent.keyboard('{Enter}');
+
+        expect(unarchiveChannel).toHaveBeenCalledWith(channel.id);
+    });
+
+    test('names a missing attribute by its label, capitalizing classification', () => {
+        mockUseMissingRequiredChannelAttributes.mockReturnValue({
+            loading: false,
+            missing: [
+                propertyField({id: 'f1', name: 'cost_center', attrs: {required: true, display_name: 'Cost Center'}}),
+                propertyField({id: 'f2', name: 'classification', linked_field_id: 't1', attrs: {required: true}}),
+            ],
+        });
+
+        renderWithContext(<UnarchiveChannelModal {...baseProps}/>);
+
+        expect(screen.getByText(/This channel has no value for Cost Center, Classification\./)).toBeInTheDocument();
     });
 
     test('should have called props.onExited on Cancel', async () => {

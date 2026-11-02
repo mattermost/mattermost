@@ -118,10 +118,16 @@
         text-align: center;
     }
 
-    &__pagination {
+    &__footer {
         display: flex;
         width: 100%;
-        justify-content: flex-end;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    &__pagination {
+        display: flex;
         gap: 8px;
     }
 }

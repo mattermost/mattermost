@@ -59,18 +59,28 @@ export type ChannelAttributeFieldPair = {
  * create optional, backfill every active local channel, then PATCH Required.
  * A caller that needs a noncompliant channel must keep that channel archived
  * during this helper and restore it afterward.
+ *
+ * `displayName` is set on the template only, as an API or plugin caller may
+ * leave it: the linked channel field carries none of its own.
  */
 export async function createChannelAttributeField(
     adminClient: Client4,
     name: string,
-    opts: {options?: string[]; required?: boolean} = {},
+    opts: {options?: string[]; required?: boolean; displayName?: string} = {},
 ): Promise<ChannelAttributeFieldPair> {
+    const templateAttrs: Record<string, unknown> = {};
+    if (opts.options?.length) {
+        templateAttrs.options = opts.options.map((o) => ({id: '', name: o}));
+    }
+    if (opts.displayName) {
+        templateAttrs.display_name = opts.displayName;
+    }
     const templateField = await adminClient.createPropertyField(PROPERTY_GROUP, 'template', {
         name,
         type: opts.options?.length ? 'select' : 'text',
         target_type: TARGET_TYPE,
         target_id: '',
-        attrs: opts.options?.length ? {options: opts.options.map((o) => ({id: '', name: o}))} : undefined,
+        attrs: Object.keys(templateAttrs).length ? templateAttrs : undefined,
         permission_field: 'admin',
         permission_values: 'admin',
         permission_options: 'admin',

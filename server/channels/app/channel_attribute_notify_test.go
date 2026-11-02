@@ -319,3 +319,77 @@ func TestNotifyChannelAdminsOfMissingAttribute(t *testing.T) {
 		assert.EqualValues(t, 1, successes, "exactly one of many concurrent claims on the same field must win -- a read-then-write check would let more than one through")
 	})
 }
+
+func TestChannelAttributeDisplayName(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+	groupID := group.ID
+
+	// Read as the system admin the compliance and notify endpoints require.
+	rctx := RequestContextWithCallerID(th.Context, th.SystemAdminUser.Id)
+
+	template, err := th.App.Srv().Store().PropertyField().Create(&model.PropertyField{
+		GroupID:    groupID,
+		Name:       "data_owner",
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeTemplate,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs:      model.StringInterface{model.PropertyFieldAttrDisplayName: "Data Owner"},
+		Permissions: &model.Permissions{Restrictions: &model.Restrictions{
+			Field: model.WriteOnly{Write: model.PermissionLevelSysadmin},
+		}},
+	})
+	require.NoError(t, err)
+
+	linked := func(name string, linkedTo string, attrs model.StringInterface) *model.PropertyField {
+		return &model.PropertyField{
+			ID:            model.NewId(),
+			Name:          name,
+			ObjectType:    model.PropertyFieldObjectTypeChannel,
+			LinkedFieldID: model.NewPointer(linkedTo),
+			Attrs:         attrs,
+		}
+	}
+
+	t.Run("the field's own display name wins", func(t *testing.T) {
+		field := linked("data_owner", template.ID, model.StringInterface{model.PropertyFieldAttrDisplayName: "Owner"})
+		assert.Equal(t, "Owner", th.App.channelAttributeDisplayName(rctx, groupID, field))
+	})
+
+	t.Run("a linked field without one uses its template's", func(t *testing.T) {
+		field := linked("data_owner", template.ID, nil)
+		assert.Equal(t, "Data Owner", th.App.channelAttributeDisplayName(rctx, groupID, field))
+	})
+
+	t.Run("an unreadable template falls back to the field's name", func(t *testing.T) {
+		field := linked("data_owner", model.NewId(), nil)
+		assert.Equal(t, "data_owner", th.App.channelAttributeDisplayName(rctx, groupID, field))
+	})
+
+	t.Run("classification, whose template has no display name, is labelled Classification", func(t *testing.T) {
+		classificationTemplate, err := th.App.Srv().Store().PropertyField().Create(&model.PropertyField{
+			GroupID:    groupID,
+			Name:       "classification",
+			Type:       model.PropertyFieldTypeSelect,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{Restrictions: &model.Restrictions{
+				Field: model.WriteOnly{Write: model.PermissionLevelSysadmin},
+			}},
+		})
+		require.NoError(t, err)
+
+		field := linked("classification", classificationTemplate.ID, nil)
+		assert.Equal(t, "Classification", th.App.channelAttributeDisplayName(rctx, groupID, field))
+	})
+
+	t.Run("the preview names the attribute the same way", func(t *testing.T) {
+		field := linked("data_owner", template.ID, nil)
+		preview := channelAttributeNotifyMessagePreview(th.App.channelAttributeDisplayName(rctx, groupID, field), "en")
+		assert.Contains(t, preview, "**Data Owner**")
+	})
+}

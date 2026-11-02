@@ -2,13 +2,14 @@
 // See LICENSE.txt for license information.
 
 import {useEffect, useState} from 'react';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
 import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 
 import {PropertyTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
 import {ACCESS_CONTROL_PROPERTY_GROUP, CHANNEL_OBJECT_TYPE} from 'mattermost-redux/constants/properties';
+import {isChannelAttributesRequiredEnabled} from 'mattermost-redux/selectors/entities/general';
 import {isPropertyFieldRequired, isPropertyValueSet} from 'mattermost-redux/utils/property_utils';
 
 import useChannelAttributes from './useChannelAttributes';
@@ -37,11 +38,16 @@ const IDLE: RequestState = {channelId: '', status: 'loaded', missing: []};
  * this channel's values cached yet (or ever, if this channel was never
  * mounted elsewhere), and reading it as authoritative would read "no cached
  * value" as "unset" on every cold load, well before the fetch below settles.
+ *
+ * Reports nothing while ChannelAttributesRequired is off: the server enforces
+ * Required on no channel attribute then, so there is nothing to warn about.
  */
 export default function useMissingRequiredChannelAttributes(channelId: string): MissingRequiredChannelAttributesState {
     const dispatch = useDispatch();
 
-    const {enabled, loading: fieldsLoading, fields} = useChannelAttributes();
+    const {enabled: attributesEnabled, loading: fieldsLoading, fields} = useChannelAttributes();
+    const requiredEnforced = useSelector(isChannelAttributesRequiredEnabled);
+    const enabled = attributesEnabled && requiredEnforced;
     const requiredFields = fields.filter(isPropertyFieldRequired);
 
     const [request, setRequest] = useState<RequestState>(IDLE);

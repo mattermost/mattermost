@@ -165,6 +165,7 @@ describe('ChannelsResourceSettings', () => {
             uniqueAdminCount: 10,
             noAdminCount: 2,
             messagePreview: 'preview',
+            required: false,
         }}));
 
         const {onChange} = renderComponent({value: {...DEFAULT_CHANNEL_RESOURCE_CONFIG, required: false}});
@@ -185,6 +186,7 @@ describe('ChannelsResourceSettings', () => {
             uniqueAdminCount: 10,
             noAdminCount: 2,
             messagePreview: 'preview',
+            required: false,
         }}));
 
         renderComponent({value: {...DEFAULT_CHANNEL_RESOURCE_CONFIG, required: false}, channelFieldId: 'field1'});
@@ -206,6 +208,7 @@ describe('ChannelsResourceSettings', () => {
             uniqueAdminCount: 0,
             noAdminCount: 0,
             messagePreview: 'preview',
+            required: false,
         }}));
 
         renderComponent({value: {...DEFAULT_CHANNEL_RESOURCE_CONFIG, required: false}, channelFieldId: undefined});
@@ -225,6 +228,7 @@ describe('ChannelsResourceSettings', () => {
             uniqueAdminCount: 10,
             noAdminCount: 2,
             messagePreview: 'preview',
+            required: false,
         }}));
 
         const {onChange} = renderComponent({value: {...DEFAULT_CHANNEL_RESOURCE_CONFIG, required: true}});
@@ -232,6 +236,27 @@ describe('ChannelsResourceSettings', () => {
         await userEvent.click(screen.getByTestId('channelsResourceRequired-button'));
 
         expect(onChange).toHaveBeenCalledWith(expect.objectContaining({required: false}));
+    });
+
+    it('lets an unsaved Off be turned back On on an attribute whose saved state is already Required', async () => {
+        mockUseChannelMissingValues.mockReturnValue(missingValuesState({summary: {
+            totalCount: 1,
+            sharedCount: 0,
+            uniqueAdminCount: 1,
+            noAdminCount: 0,
+            messagePreview: 'preview',
+            required: true,
+        }}));
+
+        // The admin has already flipped it Off without saving; the host
+        // re-renders with the unsaved value.
+        const {onChange} = renderComponent({value: {...DEFAULT_CHANNEL_RESOURCE_CONFIG, required: false}, channelFieldId: 'field1'});
+
+        await userEvent.click(screen.getByTestId('channelsResourceRequired-button'));
+
+        expect(onChange).toHaveBeenCalledWith(expect.objectContaining({required: true}));
+        expect(screen.getByTestId('channelsMissingValuesBanner')).not.toHaveClass('warning');
+        expect(screen.getByText(/New channels must set one/)).toBeInTheDocument();
     });
 
     it('flips normally when nothing is missing', async () => {
@@ -249,6 +274,7 @@ describe('ChannelsResourceSettings', () => {
             uniqueAdminCount: 3,
             noAdminCount: 0,
             messagePreview: 'preview',
+            required: false,
         }}));
 
         renderComponent({channelFieldId: undefined});
@@ -264,6 +290,7 @@ describe('ChannelsResourceSettings', () => {
             uniqueAdminCount: 3,
             noAdminCount: 0,
             messagePreview: 'preview',
+            required: false,
         }}));
 
         renderComponent({channelFieldId: 'field1'});
@@ -279,6 +306,7 @@ describe('ChannelsResourceSettings', () => {
             uniqueAdminCount: 3,
             noAdminCount: 0,
             messagePreview: 'preview',
+            required: false,
         }}));
 
         renderComponent({channelFieldId: 'field1', attributeDisplayName: 'Cost center'});
@@ -296,7 +324,7 @@ describe('ChannelsResourceSettings', () => {
     it('posts the notify request only after the confirmation modal resolves true, then reloads the summary', async () => {
         const reload = jest.fn();
         mockUseChannelMissingValues.mockReturnValue(missingValuesState({
-            summary: {totalCount: 7, sharedCount: 0, uniqueAdminCount: 3, noAdminCount: 0, messagePreview: 'preview'},
+            summary: {totalCount: 7, sharedCount: 0, uniqueAdminCount: 3, noAdminCount: 0, messagePreview: 'preview', required: false},
             reload,
         }));
         promptNotify.mockResolvedValue(true);
@@ -321,7 +349,7 @@ describe('ChannelsResourceSettings', () => {
 
     it('tells the admin the notify run was truncated instead of implying every admin was reached', async () => {
         mockUseChannelMissingValues.mockReturnValue(missingValuesState({
-            summary: {totalCount: 30000, sharedCount: 0, uniqueAdminCount: 20000, noAdminCount: 0, messagePreview: 'preview'},
+            summary: {totalCount: 30000, sharedCount: 0, uniqueAdminCount: 20000, noAdminCount: 0, messagePreview: 'preview', required: false},
         }));
         promptNotify.mockResolvedValue(true);
         mockNotify.mockResolvedValue({notified_admin_count: 20000, notified_channel_count: 20000, channels_without_admin_count: 0, truncated: true});
@@ -336,7 +364,7 @@ describe('ChannelsResourceSettings', () => {
 
     it('does not act on a confirmation that resolves after the admin has switched to a different field', async () => {
         mockUseChannelMissingValues.mockReturnValue(missingValuesState({
-            summary: {totalCount: 7, sharedCount: 0, uniqueAdminCount: 3, noAdminCount: 0, messagePreview: 'preview'},
+            summary: {totalCount: 7, sharedCount: 0, uniqueAdminCount: 3, noAdminCount: 0, messagePreview: 'preview', required: false},
         }));
 
         let resolveConfirm: (value: boolean) => void = () => {};
@@ -378,7 +406,7 @@ describe('ChannelsResourceSettings', () => {
 
     it('does not POST when the confirmation is cancelled', async () => {
         mockUseChannelMissingValues.mockReturnValue(missingValuesState({summary: {
-            totalCount: 7, sharedCount: 0, uniqueAdminCount: 3, noAdminCount: 0, messagePreview: 'preview',
+            totalCount: 7, sharedCount: 0, uniqueAdminCount: 3, noAdminCount: 0, messagePreview: 'preview', required: false,
         }}));
         promptNotify.mockResolvedValue(false);
 

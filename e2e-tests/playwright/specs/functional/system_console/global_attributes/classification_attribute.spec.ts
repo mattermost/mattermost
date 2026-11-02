@@ -255,5 +255,43 @@ test.describe(
 
             expect(await findChannelField(adminClient, 'classification')).toBeUndefined();
         });
+
+        /**
+         * @objective Verify the missing-values banner and the notify preview call the
+         * attribute Classification, as the page does, rather than "this attribute" or
+         * its internal name.
+         */
+        test('names Classification in the missing-values banner and the notify preview', async ({pw}) => {
+            await pw.ensureFeatureFlag(FEATURE_FLAGS);
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+
+            await setupClassificationWithChannelField(adminClient);
+            const {team} = await pw.initSetup();
+
+            // A channel with no classification, so the banner has something to count.
+            await adminClient.createChannel({
+                team_id: team.id,
+                name: `classification-missing-${pw.random.id()}`,
+                display_name: 'Classification Missing',
+                type: 'O',
+            } as Parameters<typeof adminClient.createChannel>[0]);
+
+            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+            const {globalAttributes} = systemConsolePage;
+            const {appliesToChannels} = globalAttributes;
+
+            await globalAttributes.gotoClassificationAttribute();
+
+            // * The banner names Classification
+            await expect(appliesToChannels.missingValuesBanner).toContainText('a Classification value');
+            await expect(appliesToChannels.missingValuesBanner).not.toContainText('this attribute');
+
+            // * So does the notify preview, formatted rather than as markdown
+            const modal = await appliesToChannels.openNotifyChannelAdminsModal();
+            await expect(modal.container).toContainText('a Classification value');
+            await expect(modal.messagePreview.locator('strong')).toHaveText('Classification');
+            await expect(modal.messagePreview).not.toContainText('**');
+            await modal.cancel();
+        });
     },
 );

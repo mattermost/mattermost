@@ -54,6 +54,17 @@ function propertyValue(fieldId: string, value: unknown): PropertyValue<unknown> 
     };
 }
 
+const requiredEnforcedState = {
+    entities: {
+        general: {
+            config: {
+                FeatureFlagChannelAttributes: 'true',
+                FeatureFlagChannelAttributesRequired: 'true',
+            },
+        },
+    },
+};
+
 describe('useMissingRequiredChannelAttributes', () => {
     beforeEach(() => {
         jest.clearAllMocks();
@@ -71,7 +82,7 @@ describe('useMissingRequiredChannelAttributes', () => {
             resolveFetch = resolve;
         }));
 
-        const {result} = renderHookWithContext(() => useMissingRequiredChannelAttributes('channel1'));
+        const {result} = renderHookWithContext(() => useMissingRequiredChannelAttributes('channel1'), requiredEnforcedState);
 
         expect(result.current.loading).toBe(true);
         expect(result.current.missing).toEqual([]);
@@ -83,7 +94,7 @@ describe('useMissingRequiredChannelAttributes', () => {
     test('reports only the required fields that genuinely lack a value once the fetch succeeds', async () => {
         mockGetPropertyValues.mockResolvedValue([propertyValue('field1', '')]);
 
-        const {result} = renderHookWithContext(() => useMissingRequiredChannelAttributes('channel1'));
+        const {result} = renderHookWithContext(() => useMissingRequiredChannelAttributes('channel1'), requiredEnforcedState);
 
         await waitFor(() => expect(result.current.loading).toBe(false));
         expect(result.current.missing).toEqual([requiredField]);
@@ -92,7 +103,7 @@ describe('useMissingRequiredChannelAttributes', () => {
     test('does not report the field as missing once a real value is set', async () => {
         mockGetPropertyValues.mockResolvedValue([propertyValue('field1', 'set')]);
 
-        const {result} = renderHookWithContext(() => useMissingRequiredChannelAttributes('channel1'));
+        const {result} = renderHookWithContext(() => useMissingRequiredChannelAttributes('channel1'), requiredEnforcedState);
 
         await waitFor(() => expect(result.current.loading).toBe(false));
         expect(result.current.missing).toEqual([]);
@@ -101,7 +112,7 @@ describe('useMissingRequiredChannelAttributes', () => {
     test('fails open (missing: []) when the value fetch rejects', async () => {
         mockGetPropertyValues.mockRejectedValue(new Error('network'));
 
-        const {result} = renderHookWithContext(() => useMissingRequiredChannelAttributes('channel1'));
+        const {result} = renderHookWithContext(() => useMissingRequiredChannelAttributes('channel1'), requiredEnforcedState);
 
         await waitFor(() => expect(result.current.loading).toBe(false));
         expect(result.current.missing).toEqual([]);
@@ -115,6 +126,7 @@ describe('useMissingRequiredChannelAttributes', () => {
 
         const {result, rerender} = renderHookWithContext(
             (channelId: string = 'channel1') => useMissingRequiredChannelAttributes(channelId),
+            requiredEnforcedState,
         );
 
         // Switch to a second channel before the first channel's request settles.
@@ -130,5 +142,17 @@ describe('useMissingRequiredChannelAttributes', () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
 
         expect(result.current.missing).toEqual([]);
+    });
+
+    test('reports nothing and fetches nothing while ChannelAttributesRequired is off', async () => {
+        mockGetPropertyValues.mockResolvedValue([propertyValue('field1', '')]);
+
+        const {result} = renderHookWithContext(() => useMissingRequiredChannelAttributes('channel1'), {
+            entities: {general: {config: {FeatureFlagChannelAttributes: 'true', FeatureFlagChannelAttributesRequired: 'false'}}},
+        });
+
+        await waitFor(() => expect(result.current.loading).toBe(false));
+        expect(result.current.missing).toEqual([]);
+        expect(mockGetPropertyValues).not.toHaveBeenCalled();
     });
 });
