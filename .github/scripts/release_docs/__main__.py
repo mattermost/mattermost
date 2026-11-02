@@ -13,7 +13,7 @@ import sys
 from dataclasses import dataclass, field
 from datetime import date, datetime, timezone
 
-from changelog_release import changelog_path
+from changelog_release import changelog_path, parse_ls_remote, unreleased_branches
 
 from . import (
     breaking,
@@ -63,6 +63,16 @@ def release_in_progress(gh) -> Version | None:
     return max(open_releases, default=None)
 
 
+def release_at_rc(gh) -> Version | None:
+    """The release between its RC-1 and its final tag: the oldest cut ``release-X.Y`` with a
+    ``vX.Y.0-rcN`` tag and no ``vX.Y.0`` tag. Same rule as generate-changelog.yml, from
+    changelog_release.py."""
+    refs = gh.matching_refs(SERVER_REPO, "heads/release-") + gh.matching_refs(SERVER_REPO, "tags/v")
+    branches, tags, rcs = parse_ls_remote("\n".join(refs))
+    candidates = [b for b in unreleased_branches(branches, tags) if b in rcs]
+    return Version(candidates[0][0], candidates[0][1], 0) if candidates else None
+
+
 def resolve(task: str, env: dict, event: dict, gh=None) -> dict:
     mode = (env.get("INPUT_MODE") or env.get("PHASE3_MODE") or "dry_run").strip().lower().replace("-", "_")
     if mode not in MODES:
@@ -90,6 +100,14 @@ def resolve(task: str, env: dict, event: dict, gh=None) -> dict:
         if task == dot_release.TASK and not dot:
             return {"run": "false", "reason": f"{tag} is a feature release: the version archive task handles it"}
         return {"run": "true", "version": tag, "mode": mode, "reason": f"release {event.get('action')}"}
+    if name == "schedule" and task == release_docs_pr.TASK:
+        # A weekday backstop for the vX.Y.0-rc1 tag event: the task updates the PR it already
+        # opened, so a run after the tag event changes nothing.
+        version = release_at_rc(gh)
+        if not version:
+            return {"run": "false", "reason": "no release is between its vX.Y.0-rc1 and vX.Y.0 tags"}
+        return {"run": "true", "version": version.tag, "mode": mode,
+                "reason": f"weekday run between {version.tag}-rc1 and {version.tag}"}
     if name == "schedule":
         # The breaking-change list runs every weekday from the branch cut until the final release is cut.
         if task != "breaking-changes":

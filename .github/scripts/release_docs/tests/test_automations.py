@@ -275,6 +275,30 @@ class ResolveTest(unittest.TestCase):
         self.assertEqual(resolve("breaking-changes", {"EVENT_NAME": "push"}, {"ref": "refs/heads/release-12.2", "created": False})["run"], "false")
         self.assertEqual(resolve("breaking-changes", {"EVENT_NAME": "push"}, {"ref": "refs/heads/release-12.2-fix", "created": True})["run"], "false")
 
+    def test_weekday_run_opens_the_release_docs_pr_when_the_tag_event_did_not(self):
+        s = next(s for s in SCENARIOS if s.task == "release-docs")
+        gh = s.github()
+        branches = gh.repos[SERVER]["branches"]
+        branches["release-12.1"] = list(branches["master"])
+        gh.tags[SERVER] = ["v12.0.0", "v12.1.0-rc1", "v12.1.0-rc2"]
+        env = {"EVENT_NAME": "schedule", "PHASE3_MODE": "live"}
+        resolved = cli.resolve("release-docs", env, {}, gh)
+        self.assertEqual((resolved["run"], resolved["version"], resolved["mode"]), ("true", "v12.1.0", "live"))
+        # The tag event never ran, so the weekday run opens the PR.
+        run = s.run(gh, live=True)
+        self.assertEqual([w[0] for w in gh.writes], ["create_branch", "commit_files", "create_pr", "add_labels"])
+        [pr] = gh.pulls[SERVER]
+        self.assertEqual(pr["head"], s.branch)
+        # The next weekday run finds the PR already there and writes nothing.
+        gh.writes.clear()
+        run = s.run(gh, live=True)
+        self.assertEqual(gh.writes, [])
+        self.assertEqual(run.outcome, f"PR #{pr['number']} is already up to date.")
+        self.assertEqual(len(gh.pulls[SERVER]), 1)
+        # Once v12.1.0 is tagged, the weekday run stops.
+        gh.tags[SERVER].append("v12.1.0")
+        self.assertEqual(cli.resolve("release-docs", env, {}, gh)["run"], "false")
+
     def test_release_docs_pr_opens_when_rc1_is_tagged_on_the_release_branch(self):
         class TaggedGitHub(FakeGitHub):
             tag_commits = {}
