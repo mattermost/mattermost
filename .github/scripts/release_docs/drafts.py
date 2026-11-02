@@ -13,7 +13,6 @@ from .versions import Version
 
 BREAKING_TASK = "breaking-changes"
 DRAFTS_TASK = "drafts"
-BREAKING_LABEL = "Breaking Change"
 
 
 def release_note(body: str) -> str:
@@ -34,7 +33,8 @@ def pr_source(item: dict) -> dict:
     repo = item["repository_url"].split("/repos/", 1)[1]
     body = item.get("body") or ""
     return {"id": f"{repo}#{item['number']}", "url": item["html_url"], "title": item["title"],
-            "note": release_note(body), "upgrade_notes": upgrade_notes(body)}
+            "note": release_note(body), "upgrade_notes": upgrade_notes(body), "body": body,
+            "labels": [label["name"] for label in item.get("labels") or []]}
 
 
 def milestone_prs(gh, repos: list[str], milestone: str, label: str = "") -> list[dict]:
@@ -65,7 +65,7 @@ Reply with JSON only: {"notices": [{"source": "org/repo#123", "notice": "..."}]}
 def breaking_notices(milestone: str, prs: list[dict], claude) -> Result:
     result = Result(BREAKING_TASK, milestone)
     if not prs:
-        result.text = f"No merged PRs in milestone {milestone} have the `{BREAKING_LABEL}` label.\n"
+        result.text = f"No breaking changes confirmed for {milestone}; no notices drafted.\n"
         return result
     drafts = {}
     if claude is None:

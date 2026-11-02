@@ -28,6 +28,7 @@ from check_config_changes_ci import _AUTO_LINE_RE as CHECKER_LINE
 from check_config_changes_ci import _scan_struct_fields
 
 from . import release_docs_pr, templates, version_archive
+from .breaking import signals as breaking_signals
 from .publish import TRAILER, Target, run_url, write
 from .result import LABEL, Result
 from .versions import Version, changelog_page
@@ -43,7 +44,6 @@ ARCHIVE = version_archive.ARCHIVE_PATH
 DOCS_DIR = "docs/main/product-overview"
 CONFIG_GO = "server/public/model/config.go"
 GO_VERSION_FILE = "server/.go-version"
-BREAKING_LABEL = "Breaking Change"
 # Labels that mark a PR or its Jira ticket as a security fix. GitHub's "3: Security Review"
 # and "Security/Review code" are review steps, not fixes, so they are not listed.
 SECURITY_LABELS = {"security", "security fix", "security-fix", "securityfix", "kind/security", "type/security"}
@@ -71,7 +71,6 @@ NON_PRODUCT_PREFIXES = (".github/", "e2e-tests/", "docs/", "server/tests/", "ser
 NON_PRODUCT_PARTS = ("/__snapshots__/", "/testdata/", "/tests/", "/test/", "/e2e/", "/mocks/", "/__mocks__/")
 NON_PRODUCT_SUFFIXES = ("_test.go", ".test.ts", ".test.tsx", ".test.js", ".test.jsx", ".snap",
                         ".golangci.yml", ".eslintrc.json", ".eslintrc.js", ".stylelintrc.json")
-BREAKING_CHECKBOX = re.compile(r"(?im)^\s*-\s*\[[xX]\]\s*Breaking change\b")
 WRITTEN_STARTS = ("Fixed an issue where", "Updated", "Added", "Improved")
 SECURITY_STARTS = WRITTEN_STARTS + ("Fixed an issue with",)
 
@@ -273,7 +272,8 @@ class Change:
     url: str = ""
     written: bool = False  # Claude wrote it: the PR had no release note
     security: bool = False
-    breaking: bool = False
+    breaking: bool = False  # a strong signal: an existing breaking-change label, or a removal config-change-checker found
+    maybe_breaking: list = field(default_factory=list)  # weak signals (release-note wording), for a person to confirm
 
 
 @dataclass
@@ -320,12 +320,8 @@ def go_version(gh, ref: str) -> tuple[str | None, str]:
     return pinned or image, note
 
 
-def _security(labels: set, keys: set, jira_labels) -> bool:
-    if {label.lower() for label in labels} & SECURITY_LABELS:
-        return True
-    if keys and jira_labels:
-        return bool({label.lower() for label in (jira_labels(keys) or set())} & SECURITY_LABELS)
-    return False
+def _security(labels: set, jira: set) -> bool:
+    return bool({label.lower() for label in labels | jira} & SECURITY_LABELS)
 
 
 def _config_changed(gh, commit: dict) -> bool:
@@ -407,8 +403,11 @@ def gather(gh, release: Release, changelogs: list[str], claude, fetch, jira_labe
         seen.add(original["number"])
         labels = {l["name"] for l in pr.get("labels", [])} | {l["name"] for l in original.get("labels", [])}
         keys = jira_keys(original.get("title", ""), (original.get("head") or {}).get("ref", ""), original.get("body") or "")
-        security = _security(labels, keys, jira_labels)
-        breaking = BREAKING_LABEL in labels or bool(BREAKING_CHECKBOX.search(original.get("body") or ""))
+        jira = (jira_labels(keys) or set()) if keys and jira_labels else set()
+        security = _security(labels, jira)
+        found = breaking_signals(labels, original.get("body") or "", jira)
+        breaking = any(strong for _, strong in found)
+        maybe = [] if breaking else [reason for reason, _ in found]
         author = (original.get("user") or {}).get("login", "")
         bullets = note_bullets(original.get("body")) or note_bullets(pr.get("body"))
         dependency = author in DEPENDENCY_AUTHORS or bool(DEPENDENCY_TITLE.search(_core_title(original.get("title", ""))))
@@ -427,7 +426,8 @@ def gather(gh, release: Release, changelogs: list[str], claude, fetch, jira_labe
         elif _config_changed(gh, commit):
             kind = "functional"
         for text in bullets:
-            release.changes.append(Change(text, kind, source, original.get("html_url", ""), bool(written), security, breaking))
+            release.changes.append(Change(text, kind, source, original.get("html_url", ""), bool(written), security, breaking,
+                                          maybe))
 
 
 # ── Severity ────────────────────────────────────────────────────────────────────────
@@ -848,6 +848,7 @@ def release_state(release: Release) -> dict:
         "written": [[c.text, c.source, c.url] for c in release.changes if c.written],
         "security": [[c.text, c.source, c.url] for c in release.changes if c.security],
         "breaking": [[c.text, c.source, c.url] for c in release.changes if c.breaking],
+        "maybe_breaking": [[c.text, c.source, c.url, "; ".join(c.maybe_breaking)] for c in release.changes if c.maybe_breaking],
         "skipped": [list(s) for s in release.skipped],
     }
 
@@ -904,6 +905,9 @@ def details(state: dict, files: dict, others: list[str], branch: str) -> str:
             needs.append(f"- **{v.tag} bullet written by Claude** (the PR has no release note), from {_link(source, url)}: {text}")
         for text, source, url in s.get("breaking", []):
             needs.append(f"- **{v.tag} breaking change callout**, from {_link(source, url)}: {text}")
+        for text, source, url, why in s.get("maybe_breaking", []):
+            needs.append(f"- [ ] **{v.tag} possible breaking change** (no callout added), from {_link(source, url)}: {text} "
+                         f"Signals: {why}. Add a Breaking Changes callout if admins must act.")
     needs += [f"- [ ] **Consistency check:** {p}" for p in state.get("problems", [])]
     sections = ["**Needs confirming**", "", *needs]
     security = [f"- {v.tag}, {_link(source, url)}: {text}" for v in order for text, source, url in info[v.tag]["security"]]

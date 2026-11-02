@@ -288,6 +288,24 @@ class GatherTest(unittest.TestCase):
         self.assertTrue(by_source["#9"].written and by_source["#9"].security)
         self.assertTrue(by_source["#14"].breaking)
         self.assertFalse(by_source["#50"].written or by_source["#50"].security)
+        self.assertEqual(by_source["#13"].maybe_breaking, [])
+
+    def test_wording_alone_asks_a_person_and_adds_no_callout(self):
+        scene = release_scene()
+        scene.pulls[13] = pull(13, "Index posts faster", note("Posts are no longer indexed twice."))
+        scene.pulls[12] = pull(12, "Add EnableFoo", note("Added the ``ServiceSettings.EnableFoo`` configuration setting.\n"
+                                                         "Removed ``ServiceSettings.Old`` configuration setting."))
+        release = dr.Release(V("v12.1.1"), tabs=["latest"], severity="none")
+        dr.gather(scene, release, [], WritingClaude(), lambda url, method="GET": (200, ""), None, Result(dr.TASK, "v12.1.1"))
+        by_source = {c.source: c for c in release.changes}
+        self.assertFalse(by_source["#13"].breaking)
+        self.assertEqual(by_source["#13"].maybe_breaking, ['release note says "no longer": Posts are no longer indexed twice.'])
+        self.assertTrue(by_source["#12"].breaking)
+        state = {"order": ["v12.1.1"], "versions": {"v12.1.1": dr.release_state(release)}}
+        text = dr.details(state, {}, [], "branch")
+        self.assertIn("- [ ] **v12.1.1 possible breaking change** (no callout added), from "
+                      "[#13](https://github.com/mattermost/mattermost/pull/13): Posts are no longer indexed twice.", text)
+        self.assertIn("**v12.1.1 breaking change callout**, from [#12]", text)
 
     def test_no_claude_leaves_a_todo_not_a_guess(self):
         class Down:
@@ -638,8 +656,11 @@ class DotGitHub(FakeGitHub):
         pr = next(p for p in self.pulls[repo] if p["number"] == number)
         pr["labels"] = [name for name in pr["labels"] if name != label]
 
+    def commit_pulls(self, repo, sha):
+        return self.replay.commit_pulls(repo, sha)
+
     def __getattr__(self, name):
-        if name in ("tag_sha", "commit", "commits_between", "pull", "commit_pulls"):
+        if name in ("tag_sha", "commit", "commits_between", "pull"):
             return getattr(self.replay, name)
         raise AttributeError(name)
 
