@@ -372,16 +372,21 @@ func TestSearchTeamAccessPolicies(t *testing.T) {
 		mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"), "true", mock.Anything).
 			Return([]*model.User{th.BasicUser}, int64(1), nil).Maybe()
 
-		policies, _, appErr := th.App.SearchTeamAccessPolicies(th.Context, th.BasicTeam.Id, th.BasicUser.Id, model.AccessControlPolicySearch{})
-		require.Nil(t, appErr)
-		found := false
-		for _, p := range policies {
-			if p.ID == policy.ID {
-				found = true
-				break
+		for name, opts := range map[string]model.AccessControlPolicySearch{
+			"empty options":         {},
+			"team id in the search": {TeamID: th.BasicTeam.Id},
+		} {
+			policies, _, appErr := th.App.SearchTeamAccessPolicies(th.Context, th.BasicTeam.Id, th.BasicUser.Id, opts)
+			require.Nil(t, appErr, name)
+			found := false
+			for _, p := range policies {
+				if p.ID == policy.ID {
+					found = true
+					break
+				}
 			}
+			assert.True(t, found, "channelless policy whose first save has team scope should appear in search results: %s", name)
 		}
-		assert.True(t, found, "channelless policy whose first save has team scope should appear in search results")
 	})
 
 	t.Run("omits a parent whose scope was set on a later save", func(t *testing.T) {

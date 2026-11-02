@@ -34,6 +34,7 @@ func (a *App) SearchTeamAccessPolicies(rctx request.CTX, teamID, requesterID str
 	scopeOpts.Type = model.AccessControlPolicyTypeParent
 	scopeOpts.Scope = model.AccessControlPolicyScopeTeam
 	scopeOpts.ScopeID = teamID
+	scopeOpts.TeamID = ""
 	scopeOpts.IncludeChildren = true
 	scopeOpts.Cursor = model.AccessControlPolicyCursor{}
 	scopeOpts.Limit = teamPoliciesMaxFetch
