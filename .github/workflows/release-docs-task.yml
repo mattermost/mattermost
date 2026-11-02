@@ -6,7 +6,7 @@ name: Release Docs Task
 # Mode: PHASE3_MODE (variable) is dry_run (the default) or live; a manual run's mode input
 # overrides it. dry_run writes the result to the run summary and the release-docs-<task>
 # artifact and changes nothing. live opens or updates a draft PR on the branch
-# release-agent/<version>/<task>, labelled release-agent, or sets the release description.
+# release-agent/<version>/<task>, labelled release-agent if that label exists, or sets the release description.
 # dot-release-docs shares one PR between the dot releases shipped together, on
 # release-agent/dot-release-docs/<first version>.
 # A missing input is written as TODO(release-agent) and fails the run.

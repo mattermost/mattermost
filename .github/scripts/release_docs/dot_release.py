@@ -29,14 +29,14 @@ from check_config_changes_ci import _scan_struct_fields
 
 from . import release_docs_pr, templates, version_archive
 from .breaking import signals as breaking_signals
-from .publish import TRAILER, Target, run_url, write
-from .result import LABEL, Result
+from .publish import TRAILER, Target, run_url, skipped_label_note, write
+from .result import Result
 from .versions import Version, changelog_page
 
 TASK = "dot-release-docs"
 REPO = "mattermost/mattermost"
 BRANCH_PREFIX = "release-agent/dot-release-docs/"
-LABELS = [LABEL, "release-note-none", "Changelog/Not Needed"]
+LABELS = ["release-note-none", "Changelog/Not Needed"]
 AWAITING_LABEL = "Do Not Merge/Awaiting Next Release"
 SERVER_RELEASES = release_docs_pr.SERVER_RELEASES
 DEPLOY_PAGES = release_docs_pr.DEPLOY_PAGES
@@ -1106,9 +1106,10 @@ def run(gh, versions: list[Version], env: dict, claude, fetch, live: bool, jira_
         action = f"updated PR #{target.pr['number']}" if target.pr else f"opened a draft PR from `{target.branch}`"
         return result, f"Dry run: would have {action} in {REPO}, changing {paths}.", base_files
     message = f"{result.title}\n\n{TRAILER}: {TASK}\n"
-    action, number = write(gh, target, result.files, message, result.title, result.body, LABELS)
+    action, number, skipped = write(gh, target, result.files, message, result.title, result.body, LABELS)
     pr = target.pr or {"number": number, "labels": []}
-    return result, f"{action} PR {REPO}#{number}, changing {paths}. {sync_awaiting(gh, pr, state['order'])}", base_files
+    return result, (f"{action} PR {REPO}#{number}, changing {paths}.{skipped_label_note(skipped, REPO)} "
+                    f"{sync_awaiting(gh, pr, state['order'])}"), base_files
 
 
 def _refresh(v: Version, state: dict, severities: dict, files: dict, current, fetch, attempts, interval, sleep,

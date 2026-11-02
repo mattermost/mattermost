@@ -31,6 +31,7 @@ class FakeGitHub:
         self.path_commits = {}  # (repo, path) -> the last commit that touched it
         self.pulls_by_commit = {}  # (repo, sha) -> PRs
         self.writes = []
+        self.labels_in_repo = {"release-agent"}  # labels that exist; the workflow never creates one
         self._shas = (f"sha{n}" for n in itertools.count(1))
 
     # setup helpers
@@ -113,6 +114,9 @@ class FakeGitHub:
         self.writes.append(("update_pr", repo, number))
         pr = next(p for p in self.pulls[repo] if p["number"] == number)
         pr.update(title=title, body=body)
+
+    def label_exists(self, repo, label):
+        return label in self.labels_in_repo or label in {"release-note-none", "Changelog/Not Needed"}
 
     def add_labels(self, repo, number, labels):
         self.writes.append(("add_labels", repo, number, tuple(labels)))
