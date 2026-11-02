@@ -840,16 +840,16 @@ type API interface {
 	// posted, including mentions, push, email and followed threads. Releasing happens at most
 	// once, even across concurrent calls and cluster nodes; calling it for a post that is not,
 	// or is no longer, deferred does nothing and returns nil. In an archived channel nothing is
-	// released and nil is returned; the post stays deferred. Everything delivery needs is
-	// looked up before releasing, so an error returned before the release leaves the post
-	// deferred for a retry, but an error from sending the notifications themselves may mean the
-	// channel was only partly notified, and the post is released either way.
+	// released and nil is returned; the post stays deferred. The post's channel, author and
+	// thread are looked up before releasing, so an error from those lookups leaves the post
+	// deferred for a retry; any later error may mean the channel was only partly notified,
+	// and the post is released either way.
 	//
 	// With options.UserIDs, only those users are notified, as if each were explicitly
 	// mentioned, whether or not the post is deferred. The post's deferred state and the
 	// channel's message counts are left unchanged. Users who are not active members of the
-	// post's channel, and the post's author, are skipped. options.UserIDs must list between 1
-	// and model.DeliverPostNotificationsMaxUserIDs users; otherwise a 400 error is returned.
+	// post's channel, and the post's author, are skipped. An empty options.UserIDs returns a
+	// 400 error.
 	// Scoped delivery is additive: a later release notifies the channel as usual, so a user
 	// notified here who is also notified by the release, for example because they are
 	// mentioned, gets a second notification and a second mention count.

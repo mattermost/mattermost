@@ -1658,17 +1658,13 @@ func (o *UpdatePostOptions) Copy() *UpdatePostOptions {
 	}
 }
 
-// DeliverPostNotificationsMaxUserIDs is the most users a single scoped
-// DeliverPostNotifications call can notify.
-const DeliverPostNotificationsMaxUserIDs = 200
-
 // DeliverPostNotificationsOptions controls DeliverPostNotifications. A nil value
 // requests full delivery: the post leaves the deferred state and notifies the
 // channel as if it had just been posted.
 type DeliverPostNotificationsOptions struct {
 	// UserIDs notifies only these users, as if each were explicitly mentioned, and
 	// leaves the post's deferred state and the channel's message counts untouched. It
-	// must list between 1 and DeliverPostNotificationsMaxUserIDs users.
+	// must not be empty.
 	//
 	// Scoped delivery is additive: a later full delivery notifies the channel as usual,
 	// so a user notified here who would also be notified by the full delivery is

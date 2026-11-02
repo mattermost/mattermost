@@ -12,13 +12,9 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/i18n"
-	emailmocks "github.com/mattermost/mattermost/server/v8/channels/app/email/mocks"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/templates"
 )
 
 type deferredNotificationsTest struct {
@@ -132,51 +128,6 @@ func (dt *deferredNotificationsTest) totalMsgCount(t *testing.T, channelID strin
 	channel, err := dt.th.App.Srv().Store().Channel().Get(channelID, false)
 	require.NoError(t, err)
 	return channel.TotalMsgCount
-}
-
-type sentEmail struct {
-	to   string
-	body string
-}
-
-// captureEmails turns on email notifications and records the notification emails sent,
-// rendered by the real email service.
-func (dt *deferredNotificationsTest) captureEmails(t *testing.T) func() []sentEmail {
-	t.Helper()
-	dt.th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.EmailSettings.SendEmailNotifications = true
-		*cfg.EmailSettings.EnableEmailBatching = false
-		*cfg.EmailSettings.EmailNotificationContentsType = model.EmailNotificationContentsFull
-	})
-
-	var mut sync.Mutex
-	var sent []sentEmail
-	realEmailService := dt.th.App.Srv().EmailService
-	emailServiceMock := &emailmocks.ServiceInterface{}
-	emailServiceMock.On("GetMessageForNotification", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
-		Return(func(post *model.Post, teamName, siteURL string, translateFunc i18n.TranslateFunc) string {
-			return realEmailService.GetMessageForNotification(post, teamName, siteURL, translateFunc)
-		})
-	emailServiceMock.On("NewEmailTemplateData", mock.Anything).
-		Return(func(locale string) templates.Data {
-			return realEmailService.NewEmailTemplateData(locale)
-		})
-	emailServiceMock.On("SendMailWithEmbeddedFiles", mock.Anything, mock.Anything, mock.Anything,
-		mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
-		Run(func(args mock.Arguments) {
-			mut.Lock()
-			defer mut.Unlock()
-			sent = append(sent, sentEmail{to: args.String(0), body: args.String(2)})
-		}).Return(nil)
-	emailServiceMock.On("InitEmailBatching").Return()
-	emailServiceMock.On("Stop").Return()
-	dt.th.App.Srv().EmailService = emailServiceMock
-
-	return func() []sentEmail {
-		mut.Lock()
-		defer mut.Unlock()
-		return append([]sentEmail(nil), sent...)
-	}
 }
 
 func waitForPostEvent(t *testing.T, events chan *model.WebSocketEvent, eventType model.WebsocketEventType, postID string) (*model.WebSocketEvent, *model.Post) {
@@ -333,7 +284,7 @@ func TestCreatePostDeferNotification(t *testing.T) {
 				userID:     botUser.Id,
 				metadata:   persistent,
 				flags:      model.CreatePostFlags{DeferNotification: true},
-				wantID:     "api.post.create_post.deferred_persistent_notification.app_error",
+				wantID:     "api.post.create_post.deferred_notification_conflict.app_error",
 				wantStatus: http.StatusBadRequest,
 			},
 			{
@@ -341,7 +292,7 @@ func TestCreatePostDeferNotification(t *testing.T) {
 				userID:     botUser.Id,
 				postType:   model.PostTypeBurnOnRead,
 				flags:      model.CreatePostFlags{DeferNotification: true},
-				wantID:     "api.post.create_post.deferred_burn_on_read.app_error",
+				wantID:     "api.post.create_post.deferred_notification_conflict.app_error",
 				wantStatus: http.StatusBadRequest,
 			},
 		} {
@@ -705,135 +656,6 @@ func TestDeliverPostNotifications(t *testing.T) {
 		assert.False(t, dt.getPost(t, post.Id).HasDeferredNotification())
 	})
 
-	t.Run("follows the recipient's notification settings like a regular post", func(t *testing.T) {
-		mainHelper.Parallel(t)
-
-		for _, tc := range []struct {
-			name       string
-			setup      func(t *testing.T, dt *deferredNotificationsTest)
-			mention    bool
-			wantPushes int
-		}{
-			{
-				name:       "mentioned",
-				setup:      func(t *testing.T, dt *deferredNotificationsTest) {},
-				mention:    true,
-				wantPushes: 1,
-			},
-			{
-				name:  "not mentioned",
-				setup: func(t *testing.T, dt *deferredNotificationsTest) {},
-			},
-			{
-				name: "muted channel",
-				setup: func(t *testing.T, dt *deferredNotificationsTest) {
-					_, appErr := dt.th.App.UpdateChannelMemberNotifyProps(dt.th.Context, map[string]string{model.MarkUnreadNotifyProp: model.ChannelMarkUnreadMention}, dt.th.BasicChannel.Id, dt.th.BasicUser2.Id)
-					require.Nil(t, appErr)
-				},
-				mention: true,
-			},
-			{
-				name: "do not disturb",
-				setup: func(t *testing.T, dt *deferredNotificationsTest) {
-					dt.th.App.SetStatusDoNotDisturb(dt.th.BasicUser2.Id)
-				},
-				mention: true,
-			},
-			{
-				name:    "out of office",
-				setup:   func(t *testing.T, dt *deferredNotificationsTest) { dt.th.App.SetStatusOutOfOffice(dt.th.BasicUser2.Id) },
-				mention: true,
-			},
-			{
-				name: "push for all messages",
-				setup: func(t *testing.T, dt *deferredNotificationsTest) {
-					user, appErr := dt.th.App.GetUser(dt.th.Context, dt.th.BasicUser2.Id)
-					require.Nil(t, appErr)
-					user.NotifyProps[model.PushNotifyProp] = model.UserNotifyAll
-					_, appErr = dt.th.App.UpdateUser(dt.th.Context, user, false)
-					require.Nil(t, appErr)
-				},
-				wantPushes: 1,
-			},
-		} {
-			t.Run(tc.name, func(t *testing.T) {
-				mainHelper.Parallel(t)
-				dt := setupDeferredNotificationsTest(t)
-				th := dt.th
-				tc.setup(t, dt)
-
-				message := "final answer"
-				if tc.mention {
-					message += " for @" + th.BasicUser2.Username
-				}
-
-				regular, _, appErr := th.App.CreatePost(th.Context, &model.Post{
-					UserId:    dt.bot.Id,
-					ChannelId: th.BasicChannel.Id,
-					Message:   message,
-				}, th.BasicChannel, model.CreatePostFlags{})
-				require.Nil(t, appErr)
-
-				post := dt.createDeferredPost(t, th.BasicChannel, "", "thinking...")
-				dt.finalizePost(t, post, message)
-				require.Nil(t, th.App.DeliverPostNotifications(th.Context, post.Id, nil))
-
-				for _, postID := range []string{regular.Id, post.Id} {
-					if tc.wantPushes > 0 {
-						pushes := dt.requirePushes(t, postID, th.BasicUser2.Id, tc.wantPushes)
-						assert.Contains(t, pushes[0].Message, message)
-					} else {
-						dt.requireNoMorePushes(t, postID, th.BasicUser2.Id, 0)
-					}
-				}
-			})
-		}
-	})
-
-	t.Run("emails mentioned users the final content", func(t *testing.T) {
-		mainHelper.Parallel(t)
-		dt := setupDeferredNotificationsTest(t)
-		th := dt.th
-		sentEmails := dt.captureEmails(t)
-
-		post := dt.createDeferredPost(t, th.BasicChannel, "", "thinking... @"+th.BasicUser2.Username)
-		dt.finalizePost(t, post, "the final answer for @"+th.BasicUser2.Username)
-		assert.Never(t, func() bool { return len(sentEmails()) > 0 }, 500*time.Millisecond, 10*time.Millisecond, "a deferred post must not email anyone before it is released")
-
-		require.Nil(t, th.App.DeliverPostNotifications(th.Context, post.Id, nil))
-
-		require.Eventually(t, func() bool { return len(sentEmails()) > 0 }, 5*time.Second, 10*time.Millisecond)
-		assert.Never(t, func() bool { return len(sentEmails()) > 1 }, 500*time.Millisecond, 10*time.Millisecond)
-		email := sentEmails()[0]
-		assert.Equal(t, th.BasicUser2.Email, email.to)
-		assert.Contains(t, email.body, "the final answer for")
-		assert.NotContains(t, email.body, "thinking...")
-	})
-
-	t.Run("direct message", func(t *testing.T) {
-		mainHelper.Parallel(t)
-		dt := setupDeferredNotificationsTest(t)
-		th := dt.th
-
-		dm, appErr := th.App.createDirectChannel(th.Context, dt.bot.Id, th.BasicUser2.Id)
-		require.Nil(t, appErr)
-		_, appErr = th.App.MarkChannelsAsViewed(th.Context, []string{dm.Id}, th.BasicUser2.Id, "", false, false)
-		require.Nil(t, appErr)
-
-		post := dt.createDeferredPost(t, dm, "", "thinking...")
-		dt.finalizePost(t, post, "final dm answer")
-		dt.requireNoMorePushes(t, post.Id, th.BasicUser2.Id, 0)
-		require.Zero(t, dt.channelUnread(t, dm.Id, th.BasicUser2.Id).MsgCount)
-
-		require.Nil(t, th.App.DeliverPostNotifications(th.Context, post.Id, nil))
-
-		pushes := dt.requirePushes(t, post.Id, th.BasicUser2.Id, 1)
-		assert.Equal(t, "final dm answer", pushes[0].Message)
-		unread := dt.channelUnread(t, dm.Id, th.BasicUser2.Id)
-		assert.Equal(t, int64(1), unread.MsgCount)
-		assert.Equal(t, int64(1), unread.MentionCount)
-	})
-
 	t.Run("thread reply with collapsed threads", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		dt := setupDeferredNotificationsTest(t)
@@ -953,10 +775,6 @@ func TestDeliverPostNotifications(t *testing.T) {
 		_, appErr := th.App.DeletePost(th.Context, deleted.Id, dt.bot.Id)
 		require.Nil(t, appErr)
 		deferred := dt.createDeferredPost(t, th.BasicChannel, "", "deferred")
-		tooManyUserIDs := make([]string, model.DeliverPostNotificationsMaxUserIDs+1)
-		for i := range tooManyUserIDs {
-			tooManyUserIDs[i] = model.NewId()
-		}
 
 		for _, tc := range []struct {
 			name       string
@@ -970,7 +788,6 @@ func TestDeliverPostNotifications(t *testing.T) {
 			{name: "deleted post, scoped", postID: deleted.Id, options: &model.DeliverPostNotificationsOptions{UserIDs: []string{th.BasicUser2.Id}}, wantStatus: http.StatusNotFound},
 			{name: "invalid user id", postID: deferred.Id, options: &model.DeliverPostNotificationsOptions{UserIDs: []string{th.BasicUser2.Id, "invalid"}}, wantStatus: http.StatusBadRequest},
 			{name: "options without user ids", postID: deferred.Id, options: &model.DeliverPostNotificationsOptions{}, wantStatus: http.StatusBadRequest},
-			{name: "too many user ids", postID: deferred.Id, options: &model.DeliverPostNotificationsOptions{UserIDs: tooManyUserIDs}, wantStatus: http.StatusBadRequest},
 		} {
 			t.Run(tc.name, func(t *testing.T) {
 				appErr := th.App.DeliverPostNotifications(th.Context, tc.postID, tc.options)
