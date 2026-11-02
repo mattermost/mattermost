@@ -312,7 +312,8 @@ describe('Selectors.Plugins', () => {
         test('filters by shouldRender(state, channelId)', () => {
             const shown = {
                 id: 'shown',
-                shouldRender: (_state: GlobalState, channelId: string) => channelId === 'channel1',
+                pluginId: 'plugin',
+                shouldRender: (_state: GlobalState, channelId: string): boolean => channelId === 'channel1',
             } as ChannelBookmarksMenuAction;
             const hidden = {
                 id: 'hidden',
