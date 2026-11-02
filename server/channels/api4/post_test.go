@@ -40,6 +40,7 @@ func enableBurnOnReadFeature(th *TestHelper) {
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.ServiceSettings.EnableBurnOnRead = new(true)
+		cfg.FeatureFlags.BurnOnRead = true
 	})
 }
 
@@ -3238,7 +3239,6 @@ func TestPatchBurnOnReadPost(t *testing.T) {
 
 	th := Setup(t).InitBasic(t)
 	enableBurnOnReadFeature(th)
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.BurnOnRead = true })
 
 	recipientClient := th.CreateClient()
 	th.LoginBasic2WithClient(t, recipientClient)
