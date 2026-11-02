@@ -162,6 +162,12 @@
     }
 }
 
+// The control column aligns to the start, so without this a short message
+// (e.g. after notifying) shrinks the banner to fit its text.
+.ChannelsResourceSettings__missingBanner {
+    align-self: stretch;
+}
+
 // Draws attention to the missing-values banner when the Required toggle is
 // clicked while blocked. Cleared via onAnimationEnd, not a timeout.
 .ChannelsResourceSettings__missingBanner--attention {

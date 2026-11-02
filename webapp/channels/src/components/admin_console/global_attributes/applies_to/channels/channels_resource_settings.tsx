@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
@@ -250,7 +251,7 @@ const ChannelsResourceSettings = ({value, onChange, ordered, disabled, channelFi
                             ref={bannerRef}
                             role='status'
                             aria-live='polite'
-                            className={attentionKey > 0 ? 'ChannelsResourceSettings__missingBanner--attention' : undefined}
+                            className={classNames('ChannelsResourceSettings__missingBanner', {'ChannelsResourceSettings__missingBanner--attention': attentionKey > 0})}
                             onAnimationEnd={() => setAttentionKey(0)}
                         >
                             {missingCount > 0 && (
