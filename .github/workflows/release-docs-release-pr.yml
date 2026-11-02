@@ -4,13 +4,19 @@ name: Release Docs - Release Docs PR
 # chart (with the next ESR), ESR/PostgreSQL rows, Desktop compatibility and the deploy pages'
 # version strings, plus marked placeholders for the sections a person writes. Opens at RC-1,
 # the same point as the changelog PR (generate-changelog.yml): when vX.Y.0-rc1 is tagged on
-# release-X.Y. A tag that isn't on release-X.Y is skipped. It can also be run by hand.
+# release-X.Y. A tag that isn't on release-X.Y is skipped. In case that event is missed, it
+# also runs every weekday for the release between its RC-1 and its final vX.Y.0 tag (the rule
+# generate-changelog.yml uses, from changelog_release.py); the task updates the PR it already
+# opened, so those runs change nothing once the PR exists. It can also be run by hand.
 # See release-docs-task.yml.
 
 on:
   push:
     tags:
       - 'v[0-9]+.[0-9]+.0-rc1'
+  schedule:
+    # Weekdays. Skips itself when no release is between its vX.Y.0-rc1 and vX.Y.0 tags.
+    - cron: '43 14 * * 1-5'
   workflow_dispatch:
     inputs:
       version:
@@ -34,13 +40,15 @@ on:
 permissions: {}
 
 concurrency:
-  group: release-docs-release-docs-${{ inputs.version || github.ref_name }}
+  # One group for the tag event, the weekday run and manual runs, so two of them never race to
+  # open the same PR.
+  group: release-docs-release-docs
   cancel-in-progress: false
 
 jobs:
   release-docs:
-    # Only the push that creates the vX.Y.0-rc1 tag; the task checks it is on release-X.Y.
-    if: github.event_name == 'workflow_dispatch' || github.event.created
+    # A push runs only when it created the vX.Y.0-rc1 tag; the task checks it is on release-X.Y.
+    if: github.event_name != 'push' || github.event.created
     uses: ./.github/workflows/release-docs-task.yml
     with:
       task: release-docs
