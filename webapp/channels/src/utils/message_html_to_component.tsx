@@ -15,6 +15,7 @@ import LatexBlock from 'components/latex_block';
 import LatexInline from 'components/latex_inline';
 import MarkdownImage from 'components/markdown_image';
 import MarkdownListOrdered from 'components/markdown_list_ordered';
+import MarkdownPhoneLink from 'components/markdown_phone_link';
 import PluginLinkTooltip from 'components/plugin_link_tooltip';
 import PostEmoji from 'components/post_emoji';
 import PostEditedIndicator from 'components/post_view/post_edited_indicator';
@@ -153,6 +154,27 @@ export default function messageHtmlToComponent(html: string, options: Options = 
                 />
             );
         },
+    });
+
+    processingInstructions.push({
+        replaceChildren: false,
+        shouldProcessNode: (node: any) =>
+            node.type === 'tag' && node.name === 'a' &&
+            typeof node.attribs?.href === 'string' &&
+            node.attribs.href.toLowerCase().startsWith('tel:'),
+        processNode: (node: any, children: any, index?: number) => (
+            <MarkdownPhoneLink
+                key={`phone-link-${index}`}
+                href={node.attribs.href}
+                className={node.attribs.class}
+                title={node.attribs.title}
+                target={node.attribs.target}
+                rel={node.attribs.rel}
+                hasPluginTooltips={options.hasPluginTooltips}
+            >
+                {children}
+            </MarkdownPhoneLink>
+        ),
     });
 
     if (options.allowInlineActions) {

@@ -748,6 +748,20 @@ type API interface {
 	// Minimum server version: 5.6
 	GetPostThread(postId string) (*model.PostList, *model.AppError)
 
+	// GetThreadFollowers gets the IDs of the active users who follow the thread of a root post.
+	//
+	// @tag Post
+	// Minimum server version: 12.2
+	GetThreadFollowers(threadID string) ([]string, *model.AppError)
+
+	// SetThreadFollowing makes a user follow, or stop following, the thread of a root post, as
+	// the user's follow button on the thread does. It does not check that the user can read the
+	// post's channel: the plugin is responsible for that.
+	//
+	// @tag Post
+	// Minimum server version: 12.2
+	SetThreadFollowing(userID, threadID string, following bool) *model.AppError
+
 	// GetPost gets a post.
 	//
 	// @tag Post
@@ -793,6 +807,21 @@ type API interface {
 	// @tag Post
 	// Minimum server version: 5.2
 	UpdatePost(post *model.Post) (*model.Post, *model.AppError)
+
+	// UpdatePostWithOptions updates a post using the supplied options.
+	// UpdatePost is the same edit with SafeUpdate false, no file creator, and
+	// AllowMmBlocksActionsUpdate set only when the post carries a valid
+	// mm_blocks_actions value. This method uses the options as given.
+	// FileCreatorID selects newly added files: a file attaches when its
+	// creator is that id, or when it was uploaded with UploadFile (creator
+	// "nouser"). A file that cannot be attached is omitted and the rest of
+	// the edit is saved. Nil options match the zero value. The plugin
+	// authorizes the edit. Permissions, hooks, and the returned post match
+	// UpdatePost: no session is created.
+	//
+	// @tag Post
+	// Minimum server version: 12.1
+	UpdatePostWithOptions(post *model.Post, options *model.UpdatePostOptions) (*model.Post, *model.AppError)
 
 	// GetProfileImage gets user's profile image.
 	//
@@ -861,6 +890,12 @@ type API interface {
 	// @tag File
 	// Minimum server version: 5.8
 	GetFile(fileId string) ([]byte, *model.AppError)
+
+	// HasPermissionToFileAction evaluates the applicable policy for a session and file.
+	//
+	// @tag File
+	// Minimum server version: 11.7
+	HasPermissionToFileAction(sessionID, fileID, action string) bool
 
 	// GetFileLink gets the public link to a file by fileId.
 	//
@@ -1001,11 +1036,28 @@ type API interface {
 	// Minimum server version: 5.6
 	KVDeleteAll() *model.AppError
 
-	// KVList lists all keys for a plugin.
+	// KVList lists all keys for a plugin, sorted by key.
+	// To list only the keys with a given prefix, use KVListWithOptions.
 	//
 	// @tag KeyValueStore
 	// Minimum server version: 5.6
 	KVList(page, perPage int) ([]string, *model.AppError)
+
+	// KVListWithOptions lists the keys for a plugin that match the given options, sorted by key.
+	// The database filters the keys before it applies page and perPage, so the pages contain
+	// only matching keys. A page with fewer than perPage keys is the last page.
+	//
+	// Options.Prefix returns only the keys that start with the prefix. All characters in the
+	// prefix match literally, including SQL wildcards such as % and _. An empty prefix returns
+	// all keys, as KVList does. Expired keys are not returned.
+	//
+	// On a server older than 12.2, the call returns an AppError with status code 501
+	// (Not Implemented). The pluginapi ListKeys method with WithPrefix uses KVListWithOptions,
+	// and on older servers it lists all keys and filters them in the plugin.
+	//
+	// @tag KeyValueStore
+	// Minimum server version: 12.2
+	KVListWithOptions(page, perPage int, options model.PluginKVListOptions) ([]string, *model.AppError)
 
 	// PublishWebSocketEvent sends an event to WebSocket connections.
 	// event is the type and will be prepended with "custom_<pluginid>_".
@@ -1113,7 +1165,12 @@ type API interface {
 	// Minimum server version: 5.10
 	PermanentDeleteBot(botUserId string) *model.AppError
 
-	// PluginHTTP allows inter-plugin requests to plugin APIs.
+	// PluginHTTP allows inter-plugin requests to plugin APIs. Deadlines and cancellation attached to
+	// request.Context() are propagated to updated destination plugins. If the context ends before
+	// response headers arrive, PluginHTTP returns nil and the caller can inspect request.Context().Err().
+	// If it ends after headers arrive, reads from the response body return the context error.
+	// Context propagation requires Mattermost server v12.0 or later.
+	// Calls to older servers retain legacy behavior and may not return promptly after cancellation.
 	//
 	// Minimum server version: 5.18
 	PluginHTTP(request *http.Request) *http.Response
@@ -1217,6 +1274,23 @@ type API interface {
 	//
 	// Minimum server version: 5.36
 	PublishPluginClusterEvent(ev model.PluginClusterEvent, opts model.PluginClusterEventSendOptions) error
+
+	// GetClusterNodeID returns the cluster ID of the node the plugin is running on, for use as
+	// PluginClusterEventSendOptions.TargetId by other nodes. It returns an empty string until
+	// the node has joined a High-Availability cluster, e.g. when clustering is disabled.
+	//
+	// @tag Cluster
+	// Minimum server version: 12.2
+	GetClusterNodeID() string
+
+	// GetClusterNodes returns the nodes connected to the High-Availability cluster, including
+	// the one the plugin is running on. Each Id can be used as
+	// PluginClusterEventSendOptions.TargetId. It returns an empty list until this node has
+	// joined a cluster. Each call may query the database, so avoid calling it on hot paths.
+	//
+	// @tag Cluster
+	// Minimum server version: 12.2
+	GetClusterNodes() ([]*model.ClusterInfo, error)
 
 	// RequestTrialLicense requests a trial license and installs it in the server
 	//
@@ -1568,6 +1642,67 @@ type API interface {
 	// Minimum server version: 11.0
 	CountPropertyFieldsForTarget(groupID, targetType, targetID string, includeDeleted bool) (int64, error)
 
+	// GetPropertyFieldOptions returns one page of a property field's options,
+	// ordered by creation time and continuing after the option the cursor names.
+	// Pass a zero cursor for the first page, then the create_at and id of the
+	// last option of the page just read. Both cursor parts or neither.
+	//
+	// The page includes the options the field inherits from the template it
+	// links to, flagged read_only, and for a field whose options form a
+	// hierarchy each option carries the names of the options directly above it.
+	// A page size is required, and at most 200 options are served at a time.
+	//
+	// A page holds the options this caller may see, which on a field whose
+	// options are access-controlled is fewer than the field has -- and on one
+	// whose options form a hierarchy the options above the caller's own are
+	// withheld along with their names, so those options carry no parents.
+	// Continue while the page's HasMore is true, passing its NextCursorCreateAt
+	// and NextCursorID back on the next call: the page length alone does not say
+	// whether the listing is over, and the cursor names the last option the page
+	// query examined rather than the last one it returned.
+	//
+	// @tag PropertyField
+	// Minimum server version: 11.10
+	GetPropertyFieldOptions(groupID, fieldID string, cursorCreateAt int64, cursorID string, perPage int) (*model.PropertyFieldOptionPage, error)
+
+	// CreatePropertyFieldOptions adds options to a property field, at most 200
+	// per call. Each option may name the options it sits under, by name, in
+	// parents; a name resolves against the field's existing options and the
+	// names in the same payload, so a hierarchy can be built in one call.
+	//
+	// Every option is created or none is: the first item that cannot be
+	// accepted fails the call, reporting its position and the reason. An
+	// option's identifier is assigned here, so supplying one is refused.
+	//
+	// @tag PropertyField
+	// Minimum server version: 11.10
+	CreatePropertyFieldOptions(groupID, fieldID string, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error)
+
+	// UpdatePropertyFieldOptions rewrites options a property field owns, at most
+	// 200 per call, each named by id. A part the payload leaves out is left as
+	// it was, so changing a name does not discard a colour or detach an option
+	// from the options above it; parents, when given, replaces that option's
+	// parent set rather than adding to it.
+	//
+	// Options the field inherits from a template cannot be changed through the
+	// field that inherits them. Every option is updated or none is.
+	//
+	// @tag PropertyField
+	// Minimum server version: 11.10
+	UpdatePropertyFieldOptions(groupID, fieldID string, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error)
+
+	// DeletePropertyFieldOptions removes options a property field owns, at most
+	// 200 per call, named by id. The set is judged as a whole, so a branch of a
+	// hierarchy can be removed in one call; an option left with something still
+	// below it is refused, because that option would become a root of its own.
+	//
+	// Values naming a removed option are left alone: a value naming an option
+	// that no longer exists is ignored wherever it is read.
+	//
+	// @tag PropertyField
+	// Minimum server version: 11.10
+	DeletePropertyFieldOptions(groupID, fieldID string, optionIDs []string) error
+
 	// CreatePropertyValue creates a new property value.
 	//
 	// @tag PropertyValue
@@ -1706,6 +1841,74 @@ type API interface {
 	// @tag Audit
 	// Minimum server version: 10.10
 	LogAuditRecWithLevel(rec *model.AuditRecord, level mlog.Level)
+
+	// EvaluateAccessControl evaluates whether userID may perform action on the
+	// plugin-owned resource (resourceType, resourceID). resourceType must be
+	// "<callingPluginID>:<type>". The reply follows the OpenID AuthZEN
+	// evaluation response: Decision plus an optional Context.
+	//
+	// AccessDecision.IsNoPolicy() reports that the server positively determined
+	// no policy governs the resource — resolved even when the access control
+	// engine is unavailable — so the caller can safely apply its own defaults
+	// instead of treating the allow as an explicit grant. Any returned error
+	// means the decision could not be computed and the plugin MUST fail closed
+	// (deny).
+	//
+	// @tag AccessControl
+	// Minimum server version: 11.10
+	EvaluateAccessControl(userID, resourceType, resourceID, action string) (*model.AccessDecision, *model.AppError)
+
+	// SaveAccessControlPolicy creates or updates a policy whose Type is
+	// "<callingPluginID>:<type>". Version is forced to v0.5 and Active to
+	// true. policy.ID must be the resource's stable 26-char ID.
+	//
+	// @tag AccessControl
+	// Minimum server version: 11.10
+	SaveAccessControlPolicy(actingUserID string, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError)
+
+	// GetAccessControlPolicy returns the policy stored under id. Returns a
+	// not-found error if no policy exists OR the stored policy's type is not
+	// owned by the calling plugin (fail closed, no existence leak).
+	//
+	// @tag AccessControl
+	// Minimum server version: 11.10
+	GetAccessControlPolicy(id string) (*model.AccessControlPolicy, *model.AppError)
+
+	// DeleteAccessControlPolicy deletes the policy stored under id after
+	// verifying the stored policy's type equals resourceType and is owned by
+	// the calling plugin. Type mismatches return a not-found error (fail closed).
+	//
+	// @tag AccessControl
+	// Minimum server version: 11.10
+	DeleteAccessControlPolicy(actingUserID, resourceType, id string) *model.AppError
+
+	// CheckAccessControlExpression compiles and lints a CEL expression; an
+	// empty slice means the expression is valid.
+	//
+	// @tag AccessControl
+	// Minimum server version: 11.10
+	CheckAccessControlExpression(actingUserID, resourceType, expression string) ([]model.CELExpressionError, *model.AppError)
+
+	// QueryUsersForAccessControlExpression returns users matching the
+	// expression (test modal support for policy editors).
+	//
+	// @tag AccessControl
+	// Minimum server version: 11.10
+	QueryUsersForAccessControlExpression(actingUserID, resourceType, expression, term, cursorID string, limit int) (*model.AccessControlPolicyTestResponse, *model.AppError)
+
+	// GetAccessControlFieldsAutocomplete returns CPA fields for editor
+	// autocomplete, filtered by the acting user's attribute visibility.
+	//
+	// @tag AccessControl
+	// Minimum server version: 11.10
+	GetAccessControlFieldsAutocomplete(actingUserID, after string, limit int) ([]*model.PropertyField, *model.AppError)
+
+	// GetAccessControlVisualAST converts a CEL expression to the visual
+	// (table) AST.
+	//
+	// @tag AccessControl
+	// Minimum server version: 11.10
+	GetAccessControlVisualAST(actingUserID, resourceType, expression string) (*model.VisualExpression, *model.AppError)
 }
 
 var handshake = plugin.HandshakeConfig{

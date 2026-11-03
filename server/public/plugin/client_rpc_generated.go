@@ -1383,6 +1383,58 @@ func (s *hooksRPCServer) OnCloudLimitsUpdated(args *Z_OnCloudLimitsUpdatedArgs, 
 }
 
 func init() {
+	hookNameToId["OnLicenseChanged"] = OnLicenseChangedID
+}
+
+type Z_OnLicenseChangedArgs struct {
+	A *model.License
+	B *model.License
+}
+
+type Z_OnLicenseChangedReturns struct {
+}
+
+func (g *hooksRPCClient) OnLicenseChanged(oldLicense, newLicense *model.License) {
+	_args := &Z_OnLicenseChangedArgs{oldLicense, newLicense}
+	_returns := &Z_OnLicenseChangedReturns{}
+	if g.implemented[OnLicenseChangedID] {
+		if err := g.client.Call("Plugin.OnLicenseChanged", _args, _returns); err != nil {
+			g.log.Error("RPC call OnLicenseChanged to plugin failed.", mlog.Err(err))
+		}
+	}
+
+}
+
+// OnLicenseChangedWithRPCErr returns the same values as OnLicenseChanged, with an additional trailing error
+// for the RPC transport — always the LAST return slot.
+func (g *hooksRPCClient) OnLicenseChangedWithRPCErr(oldLicense, newLicense *model.License) error {
+	_args := &Z_OnLicenseChangedArgs{oldLicense, newLicense}
+	_returns := &Z_OnLicenseChangedReturns{}
+	var _err error
+	if g.implemented[OnLicenseChangedID] {
+		_err = g.client.Call("Plugin.OnLicenseChanged", _args, _returns)
+		if _err != nil {
+			// Reset _returns so partial gob decoding can't leak non-zero
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
+			_returns = &Z_OnLicenseChangedReturns{}
+			g.log.Debug("RPC call OnLicenseChanged to plugin failed.", mlog.Err(_err))
+		}
+	}
+	return _err
+}
+
+func (s *hooksRPCServer) OnLicenseChanged(args *Z_OnLicenseChangedArgs, returns *Z_OnLicenseChangedReturns) error {
+	if hook, ok := s.impl.(interface {
+		OnLicenseChanged(oldLicense, newLicense *model.License)
+	}); ok {
+		hook.OnLicenseChanged(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook OnLicenseChanged called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
 	hookNameToId["ConfigurationWillBeSaved"] = ConfigurationWillBeSavedID
 }
 
@@ -2188,6 +2240,63 @@ func (s *hooksRPCServer) DraftWillBeUpserted(args *Z_DraftWillBeUpsertedArgs, re
 	return nil
 }
 
+func init() {
+	hookNameToId["PropertyValuesHaveBeenUpdated"] = PropertyValuesHaveBeenUpdatedID
+}
+
+type Z_PropertyValuesHaveBeenUpdatedArgs struct {
+	A *Context
+	B string
+	C string
+	D string
+	E string
+	F []*model.PropertyValue
+	G []*model.PropertyValue
+}
+
+type Z_PropertyValuesHaveBeenUpdatedReturns struct {
+}
+
+func (g *hooksRPCClient) PropertyValuesHaveBeenUpdated(c *Context, userID, groupID, targetType, targetID string, values, previousValues []*model.PropertyValue) {
+	_args := &Z_PropertyValuesHaveBeenUpdatedArgs{c, userID, groupID, targetType, targetID, values, previousValues}
+	_returns := &Z_PropertyValuesHaveBeenUpdatedReturns{}
+	if g.implemented[PropertyValuesHaveBeenUpdatedID] {
+		if err := g.client.Call("Plugin.PropertyValuesHaveBeenUpdated", _args, _returns); err != nil {
+			g.log.Error("RPC call PropertyValuesHaveBeenUpdated to plugin failed.", mlog.Err(err))
+		}
+	}
+
+}
+
+// PropertyValuesHaveBeenUpdatedWithRPCErr returns the same values as PropertyValuesHaveBeenUpdated, with an additional trailing error
+// for the RPC transport — always the LAST return slot.
+func (g *hooksRPCClient) PropertyValuesHaveBeenUpdatedWithRPCErr(c *Context, userID, groupID, targetType, targetID string, values, previousValues []*model.PropertyValue) error {
+	_args := &Z_PropertyValuesHaveBeenUpdatedArgs{c, userID, groupID, targetType, targetID, values, previousValues}
+	_returns := &Z_PropertyValuesHaveBeenUpdatedReturns{}
+	var _err error
+	if g.implemented[PropertyValuesHaveBeenUpdatedID] {
+		_err = g.client.Call("Plugin.PropertyValuesHaveBeenUpdated", _args, _returns)
+		if _err != nil {
+			// Reset _returns so partial gob decoding can't leak non-zero
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
+			_returns = &Z_PropertyValuesHaveBeenUpdatedReturns{}
+			g.log.Debug("RPC call PropertyValuesHaveBeenUpdated to plugin failed.", mlog.Err(_err))
+		}
+	}
+	return _err
+}
+
+func (s *hooksRPCServer) PropertyValuesHaveBeenUpdated(args *Z_PropertyValuesHaveBeenUpdatedArgs, returns *Z_PropertyValuesHaveBeenUpdatedReturns) error {
+	if hook, ok := s.impl.(interface {
+		PropertyValuesHaveBeenUpdated(c *Context, userID, groupID, targetType, targetID string, values, previousValues []*model.PropertyValue)
+	}); ok {
+		hook.PropertyValuesHaveBeenUpdated(args.A, args.B, args.C, args.D, args.E, args.F, args.G)
+	} else {
+		return encodableError(fmt.Errorf("Hook PropertyValuesHaveBeenUpdated called but not implemented."))
+	}
+	return nil
+}
+
 // HooksWithRPCErrGenerated provides a WithRPCErr variant for every generated hook. The last error return
 // is always the RPC transport error — if non-nil, the plugin's other return values are zero. For
 // hooks whose base signature already returns error, the tuple is (originalReturns..., rpcErr)
@@ -2251,6 +2360,8 @@ type HooksWithRPCErrGenerated interface {
 
 	OnCloudLimitsUpdatedWithRPCErr(limits *model.ProductLimits) error
 
+	OnLicenseChangedWithRPCErr(oldLicense, newLicense *model.License) error
+
 	ConfigurationWillBeSavedWithRPCErr(newCfg *model.Config) (*model.Config, error, error)
 
 	EmailNotificationWillBeSentWithRPCErr(emailNotification *model.EmailNotification) (*model.EmailNotificationContent, string, error)
@@ -2280,6 +2391,8 @@ type HooksWithRPCErrGenerated interface {
 	ScheduledPostWillBeCreatedWithRPCErr(c *Context, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, string, error)
 
 	DraftWillBeUpsertedWithRPCErr(c *Context, draft *model.Draft) (*model.Draft, string, error)
+
+	PropertyValuesHaveBeenUpdatedWithRPCErr(c *Context, userID, groupID, targetType, targetID string, values, previousValues []*model.PropertyValue) error
 }
 
 type Z_RegisterCommandArgs struct {
@@ -5499,6 +5612,65 @@ func (s *apiRPCServer) GetPostThread(args *Z_GetPostThreadArgs, returns *Z_GetPo
 	return nil
 }
 
+type Z_GetThreadFollowersArgs struct {
+	A string
+}
+
+type Z_GetThreadFollowersReturns struct {
+	A []string
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetThreadFollowers(threadID string) ([]string, *model.AppError) {
+	_args := &Z_GetThreadFollowersArgs{threadID}
+	_returns := &Z_GetThreadFollowersReturns{}
+	if err := g.client.Call("Plugin.GetThreadFollowers", _args, _returns); err != nil {
+		log.Printf("RPC call to GetThreadFollowers API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetThreadFollowers(args *Z_GetThreadFollowersArgs, returns *Z_GetThreadFollowersReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetThreadFollowers(threadID string) ([]string, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetThreadFollowers(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API GetThreadFollowers called but not implemented."))
+	}
+	return nil
+}
+
+type Z_SetThreadFollowingArgs struct {
+	A string
+	B string
+	C bool
+}
+
+type Z_SetThreadFollowingReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) SetThreadFollowing(userID, threadID string, following bool) *model.AppError {
+	_args := &Z_SetThreadFollowingArgs{userID, threadID, following}
+	_returns := &Z_SetThreadFollowingReturns{}
+	if err := g.client.Call("Plugin.SetThreadFollowing", _args, _returns); err != nil {
+		log.Printf("RPC call to SetThreadFollowing API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) SetThreadFollowing(args *Z_SetThreadFollowingArgs, returns *Z_SetThreadFollowingReturns) error {
+	if hook, ok := s.impl.(interface {
+		SetThreadFollowing(userID, threadID string, following bool) *model.AppError
+	}); ok {
+		returns.A = hook.SetThreadFollowing(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API SetThreadFollowing called but not implemented."))
+	}
+	return nil
+}
+
 type Z_GetPostArgs struct {
 	A string
 }
@@ -5707,6 +5879,36 @@ func (s *apiRPCServer) UpdatePost(args *Z_UpdatePostArgs, returns *Z_UpdatePostR
 		returns.A, returns.B = hook.UpdatePost(args.A)
 	} else {
 		return encodableError(fmt.Errorf("API UpdatePost called but not implemented."))
+	}
+	return nil
+}
+
+type Z_UpdatePostWithOptionsArgs struct {
+	A *model.Post
+	B *model.UpdatePostOptions
+}
+
+type Z_UpdatePostWithOptionsReturns struct {
+	A *model.Post
+	B *model.AppError
+}
+
+func (g *apiRPCClient) UpdatePostWithOptions(post *model.Post, options *model.UpdatePostOptions) (*model.Post, *model.AppError) {
+	_args := &Z_UpdatePostWithOptionsArgs{post, options}
+	_returns := &Z_UpdatePostWithOptionsReturns{}
+	if err := g.client.Call("Plugin.UpdatePostWithOptions", _args, _returns); err != nil {
+		log.Printf("RPC call to UpdatePostWithOptions API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) UpdatePostWithOptions(args *Z_UpdatePostWithOptionsArgs, returns *Z_UpdatePostWithOptionsReturns) error {
+	if hook, ok := s.impl.(interface {
+		UpdatePostWithOptions(post *model.Post, options *model.UpdatePostOptions) (*model.Post, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.UpdatePostWithOptions(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API UpdatePostWithOptions called but not implemented."))
 	}
 	return nil
 }
@@ -6002,6 +6204,36 @@ func (s *apiRPCServer) GetFile(args *Z_GetFileArgs, returns *Z_GetFileReturns) e
 		returns.A, returns.B = hook.GetFile(args.A)
 	} else {
 		return encodableError(fmt.Errorf("API GetFile called but not implemented."))
+	}
+	return nil
+}
+
+type Z_HasPermissionToFileActionArgs struct {
+	A string
+	B string
+	C string
+}
+
+type Z_HasPermissionToFileActionReturns struct {
+	A bool
+}
+
+func (g *apiRPCClient) HasPermissionToFileAction(sessionID, fileID, action string) bool {
+	_args := &Z_HasPermissionToFileActionArgs{sessionID, fileID, action}
+	_returns := &Z_HasPermissionToFileActionReturns{}
+	if err := g.client.Call("Plugin.HasPermissionToFileAction", _args, _returns); err != nil {
+		log.Printf("RPC call to HasPermissionToFileAction API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) HasPermissionToFileAction(args *Z_HasPermissionToFileActionArgs, returns *Z_HasPermissionToFileActionReturns) error {
+	if hook, ok := s.impl.(interface {
+		HasPermissionToFileAction(sessionID, fileID, action string) bool
+	}); ok {
+		returns.A = hook.HasPermissionToFileAction(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API HasPermissionToFileAction called but not implemented."))
 	}
 	return nil
 }
@@ -7353,6 +7585,62 @@ func (s *apiRPCServer) PublishPluginClusterEvent(args *Z_PublishPluginClusterEve
 		returns.A = encodableError(returns.A)
 	} else {
 		return encodableError(fmt.Errorf("API PublishPluginClusterEvent called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetClusterNodeIDArgs struct {
+}
+
+type Z_GetClusterNodeIDReturns struct {
+	A string
+}
+
+func (g *apiRPCClient) GetClusterNodeID() string {
+	_args := &Z_GetClusterNodeIDArgs{}
+	_returns := &Z_GetClusterNodeIDReturns{}
+	if err := g.client.Call("Plugin.GetClusterNodeID", _args, _returns); err != nil {
+		log.Printf("RPC call to GetClusterNodeID API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) GetClusterNodeID(args *Z_GetClusterNodeIDArgs, returns *Z_GetClusterNodeIDReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetClusterNodeID() string
+	}); ok {
+		returns.A = hook.GetClusterNodeID()
+	} else {
+		return encodableError(fmt.Errorf("API GetClusterNodeID called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetClusterNodesArgs struct {
+}
+
+type Z_GetClusterNodesReturns struct {
+	A []*model.ClusterInfo
+	B error
+}
+
+func (g *apiRPCClient) GetClusterNodes() ([]*model.ClusterInfo, error) {
+	_args := &Z_GetClusterNodesArgs{}
+	_returns := &Z_GetClusterNodesReturns{}
+	if err := g.client.Call("Plugin.GetClusterNodes", _args, _returns); err != nil {
+		log.Printf("RPC call to GetClusterNodes API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetClusterNodes(args *Z_GetClusterNodesArgs, returns *Z_GetClusterNodesReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetClusterNodes() ([]*model.ClusterInfo, error)
+	}); ok {
+		returns.A, returns.B = hook.GetClusterNodes()
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("API GetClusterNodes called but not implemented."))
 	}
 	return nil
 }
@@ -8736,6 +9024,135 @@ func (s *apiRPCServer) CountPropertyFieldsForTarget(args *Z_CountPropertyFieldsF
 	return nil
 }
 
+type Z_GetPropertyFieldOptionsArgs struct {
+	A string
+	B string
+	C int64
+	D string
+	E int
+}
+
+type Z_GetPropertyFieldOptionsReturns struct {
+	A *model.PropertyFieldOptionPage
+	B error
+}
+
+func (g *apiRPCClient) GetPropertyFieldOptions(groupID, fieldID string, cursorCreateAt int64, cursorID string, perPage int) (*model.PropertyFieldOptionPage, error) {
+	_args := &Z_GetPropertyFieldOptionsArgs{groupID, fieldID, cursorCreateAt, cursorID, perPage}
+	_returns := &Z_GetPropertyFieldOptionsReturns{}
+	if err := g.client.Call("Plugin.GetPropertyFieldOptions", _args, _returns); err != nil {
+		log.Printf("RPC call to GetPropertyFieldOptions API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetPropertyFieldOptions(args *Z_GetPropertyFieldOptionsArgs, returns *Z_GetPropertyFieldOptionsReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetPropertyFieldOptions(groupID, fieldID string, cursorCreateAt int64, cursorID string, perPage int) (*model.PropertyFieldOptionPage, error)
+	}); ok {
+		returns.A, returns.B = hook.GetPropertyFieldOptions(args.A, args.B, args.C, args.D, args.E)
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("API GetPropertyFieldOptions called but not implemented."))
+	}
+	return nil
+}
+
+type Z_CreatePropertyFieldOptionsArgs struct {
+	A string
+	B string
+	C []*model.PropertyFieldOption
+}
+
+type Z_CreatePropertyFieldOptionsReturns struct {
+	A []*model.PropertyFieldOption
+	B error
+}
+
+func (g *apiRPCClient) CreatePropertyFieldOptions(groupID, fieldID string, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error) {
+	_args := &Z_CreatePropertyFieldOptionsArgs{groupID, fieldID, options}
+	_returns := &Z_CreatePropertyFieldOptionsReturns{}
+	if err := g.client.Call("Plugin.CreatePropertyFieldOptions", _args, _returns); err != nil {
+		log.Printf("RPC call to CreatePropertyFieldOptions API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) CreatePropertyFieldOptions(args *Z_CreatePropertyFieldOptionsArgs, returns *Z_CreatePropertyFieldOptionsReturns) error {
+	if hook, ok := s.impl.(interface {
+		CreatePropertyFieldOptions(groupID, fieldID string, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error)
+	}); ok {
+		returns.A, returns.B = hook.CreatePropertyFieldOptions(args.A, args.B, args.C)
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("API CreatePropertyFieldOptions called but not implemented."))
+	}
+	return nil
+}
+
+type Z_UpdatePropertyFieldOptionsArgs struct {
+	A string
+	B string
+	C []*model.PropertyFieldOption
+}
+
+type Z_UpdatePropertyFieldOptionsReturns struct {
+	A []*model.PropertyFieldOption
+	B error
+}
+
+func (g *apiRPCClient) UpdatePropertyFieldOptions(groupID, fieldID string, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error) {
+	_args := &Z_UpdatePropertyFieldOptionsArgs{groupID, fieldID, options}
+	_returns := &Z_UpdatePropertyFieldOptionsReturns{}
+	if err := g.client.Call("Plugin.UpdatePropertyFieldOptions", _args, _returns); err != nil {
+		log.Printf("RPC call to UpdatePropertyFieldOptions API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) UpdatePropertyFieldOptions(args *Z_UpdatePropertyFieldOptionsArgs, returns *Z_UpdatePropertyFieldOptionsReturns) error {
+	if hook, ok := s.impl.(interface {
+		UpdatePropertyFieldOptions(groupID, fieldID string, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error)
+	}); ok {
+		returns.A, returns.B = hook.UpdatePropertyFieldOptions(args.A, args.B, args.C)
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("API UpdatePropertyFieldOptions called but not implemented."))
+	}
+	return nil
+}
+
+type Z_DeletePropertyFieldOptionsArgs struct {
+	A string
+	B string
+	C []string
+}
+
+type Z_DeletePropertyFieldOptionsReturns struct {
+	A error
+}
+
+func (g *apiRPCClient) DeletePropertyFieldOptions(groupID, fieldID string, optionIDs []string) error {
+	_args := &Z_DeletePropertyFieldOptionsArgs{groupID, fieldID, optionIDs}
+	_returns := &Z_DeletePropertyFieldOptionsReturns{}
+	if err := g.client.Call("Plugin.DeletePropertyFieldOptions", _args, _returns); err != nil {
+		log.Printf("RPC call to DeletePropertyFieldOptions API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) DeletePropertyFieldOptions(args *Z_DeletePropertyFieldOptionsArgs, returns *Z_DeletePropertyFieldOptionsReturns) error {
+	if hook, ok := s.impl.(interface {
+		DeletePropertyFieldOptions(groupID, fieldID string, optionIDs []string) error
+	}); ok {
+		returns.A = hook.DeletePropertyFieldOptions(args.A, args.B, args.C)
+		returns.A = encodableError(returns.A)
+	} else {
+		return encodableError(fmt.Errorf("API DeletePropertyFieldOptions called but not implemented."))
+	}
+	return nil
+}
+
 type Z_CreatePropertyValueArgs struct {
 	A *model.PropertyValue
 }
@@ -9347,6 +9764,254 @@ func (s *apiRPCServer) DeletePropertyValuesForFieldWithOptions(args *Z_DeletePro
 		returns.A = encodableError(returns.A)
 	} else {
 		return encodableError(fmt.Errorf("API DeletePropertyValuesForFieldWithOptions called but not implemented."))
+	}
+	return nil
+}
+
+type Z_EvaluateAccessControlArgs struct {
+	A string
+	B string
+	C string
+	D string
+}
+
+type Z_EvaluateAccessControlReturns struct {
+	A *model.AccessDecision
+	B *model.AppError
+}
+
+func (g *apiRPCClient) EvaluateAccessControl(userID, resourceType, resourceID, action string) (*model.AccessDecision, *model.AppError) {
+	_args := &Z_EvaluateAccessControlArgs{userID, resourceType, resourceID, action}
+	_returns := &Z_EvaluateAccessControlReturns{}
+	if err := g.client.Call("Plugin.EvaluateAccessControl", _args, _returns); err != nil {
+		log.Printf("RPC call to EvaluateAccessControl API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) EvaluateAccessControl(args *Z_EvaluateAccessControlArgs, returns *Z_EvaluateAccessControlReturns) error {
+	if hook, ok := s.impl.(interface {
+		EvaluateAccessControl(userID, resourceType, resourceID, action string) (*model.AccessDecision, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.EvaluateAccessControl(args.A, args.B, args.C, args.D)
+	} else {
+		return encodableError(fmt.Errorf("API EvaluateAccessControl called but not implemented."))
+	}
+	return nil
+}
+
+type Z_SaveAccessControlPolicyArgs struct {
+	A string
+	B *model.AccessControlPolicy
+}
+
+type Z_SaveAccessControlPolicyReturns struct {
+	A *model.AccessControlPolicy
+	B *model.AppError
+}
+
+func (g *apiRPCClient) SaveAccessControlPolicy(actingUserID string, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError) {
+	_args := &Z_SaveAccessControlPolicyArgs{actingUserID, policy}
+	_returns := &Z_SaveAccessControlPolicyReturns{}
+	if err := g.client.Call("Plugin.SaveAccessControlPolicy", _args, _returns); err != nil {
+		log.Printf("RPC call to SaveAccessControlPolicy API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) SaveAccessControlPolicy(args *Z_SaveAccessControlPolicyArgs, returns *Z_SaveAccessControlPolicyReturns) error {
+	if hook, ok := s.impl.(interface {
+		SaveAccessControlPolicy(actingUserID string, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.SaveAccessControlPolicy(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API SaveAccessControlPolicy called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetAccessControlPolicyArgs struct {
+	A string
+}
+
+type Z_GetAccessControlPolicyReturns struct {
+	A *model.AccessControlPolicy
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetAccessControlPolicy(id string) (*model.AccessControlPolicy, *model.AppError) {
+	_args := &Z_GetAccessControlPolicyArgs{id}
+	_returns := &Z_GetAccessControlPolicyReturns{}
+	if err := g.client.Call("Plugin.GetAccessControlPolicy", _args, _returns); err != nil {
+		log.Printf("RPC call to GetAccessControlPolicy API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetAccessControlPolicy(args *Z_GetAccessControlPolicyArgs, returns *Z_GetAccessControlPolicyReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetAccessControlPolicy(id string) (*model.AccessControlPolicy, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetAccessControlPolicy(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API GetAccessControlPolicy called but not implemented."))
+	}
+	return nil
+}
+
+type Z_DeleteAccessControlPolicyArgs struct {
+	A string
+	B string
+	C string
+}
+
+type Z_DeleteAccessControlPolicyReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) DeleteAccessControlPolicy(actingUserID, resourceType, id string) *model.AppError {
+	_args := &Z_DeleteAccessControlPolicyArgs{actingUserID, resourceType, id}
+	_returns := &Z_DeleteAccessControlPolicyReturns{}
+	if err := g.client.Call("Plugin.DeleteAccessControlPolicy", _args, _returns); err != nil {
+		log.Printf("RPC call to DeleteAccessControlPolicy API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) DeleteAccessControlPolicy(args *Z_DeleteAccessControlPolicyArgs, returns *Z_DeleteAccessControlPolicyReturns) error {
+	if hook, ok := s.impl.(interface {
+		DeleteAccessControlPolicy(actingUserID, resourceType, id string) *model.AppError
+	}); ok {
+		returns.A = hook.DeleteAccessControlPolicy(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API DeleteAccessControlPolicy called but not implemented."))
+	}
+	return nil
+}
+
+type Z_CheckAccessControlExpressionArgs struct {
+	A string
+	B string
+	C string
+}
+
+type Z_CheckAccessControlExpressionReturns struct {
+	A []model.CELExpressionError
+	B *model.AppError
+}
+
+func (g *apiRPCClient) CheckAccessControlExpression(actingUserID, resourceType, expression string) ([]model.CELExpressionError, *model.AppError) {
+	_args := &Z_CheckAccessControlExpressionArgs{actingUserID, resourceType, expression}
+	_returns := &Z_CheckAccessControlExpressionReturns{}
+	if err := g.client.Call("Plugin.CheckAccessControlExpression", _args, _returns); err != nil {
+		log.Printf("RPC call to CheckAccessControlExpression API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) CheckAccessControlExpression(args *Z_CheckAccessControlExpressionArgs, returns *Z_CheckAccessControlExpressionReturns) error {
+	if hook, ok := s.impl.(interface {
+		CheckAccessControlExpression(actingUserID, resourceType, expression string) ([]model.CELExpressionError, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.CheckAccessControlExpression(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API CheckAccessControlExpression called but not implemented."))
+	}
+	return nil
+}
+
+type Z_QueryUsersForAccessControlExpressionArgs struct {
+	A string
+	B string
+	C string
+	D string
+	E string
+	F int
+}
+
+type Z_QueryUsersForAccessControlExpressionReturns struct {
+	A *model.AccessControlPolicyTestResponse
+	B *model.AppError
+}
+
+func (g *apiRPCClient) QueryUsersForAccessControlExpression(actingUserID, resourceType, expression, term, cursorID string, limit int) (*model.AccessControlPolicyTestResponse, *model.AppError) {
+	_args := &Z_QueryUsersForAccessControlExpressionArgs{actingUserID, resourceType, expression, term, cursorID, limit}
+	_returns := &Z_QueryUsersForAccessControlExpressionReturns{}
+	if err := g.client.Call("Plugin.QueryUsersForAccessControlExpression", _args, _returns); err != nil {
+		log.Printf("RPC call to QueryUsersForAccessControlExpression API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) QueryUsersForAccessControlExpression(args *Z_QueryUsersForAccessControlExpressionArgs, returns *Z_QueryUsersForAccessControlExpressionReturns) error {
+	if hook, ok := s.impl.(interface {
+		QueryUsersForAccessControlExpression(actingUserID, resourceType, expression, term, cursorID string, limit int) (*model.AccessControlPolicyTestResponse, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.QueryUsersForAccessControlExpression(args.A, args.B, args.C, args.D, args.E, args.F)
+	} else {
+		return encodableError(fmt.Errorf("API QueryUsersForAccessControlExpression called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetAccessControlFieldsAutocompleteArgs struct {
+	A string
+	B string
+	C int
+}
+
+type Z_GetAccessControlFieldsAutocompleteReturns struct {
+	A []*model.PropertyField
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetAccessControlFieldsAutocomplete(actingUserID, after string, limit int) ([]*model.PropertyField, *model.AppError) {
+	_args := &Z_GetAccessControlFieldsAutocompleteArgs{actingUserID, after, limit}
+	_returns := &Z_GetAccessControlFieldsAutocompleteReturns{}
+	if err := g.client.Call("Plugin.GetAccessControlFieldsAutocomplete", _args, _returns); err != nil {
+		log.Printf("RPC call to GetAccessControlFieldsAutocomplete API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetAccessControlFieldsAutocomplete(args *Z_GetAccessControlFieldsAutocompleteArgs, returns *Z_GetAccessControlFieldsAutocompleteReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetAccessControlFieldsAutocomplete(actingUserID, after string, limit int) ([]*model.PropertyField, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetAccessControlFieldsAutocomplete(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API GetAccessControlFieldsAutocomplete called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetAccessControlVisualASTArgs struct {
+	A string
+	B string
+	C string
+}
+
+type Z_GetAccessControlVisualASTReturns struct {
+	A *model.VisualExpression
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetAccessControlVisualAST(actingUserID, resourceType, expression string) (*model.VisualExpression, *model.AppError) {
+	_args := &Z_GetAccessControlVisualASTArgs{actingUserID, resourceType, expression}
+	_returns := &Z_GetAccessControlVisualASTReturns{}
+	if err := g.client.Call("Plugin.GetAccessControlVisualAST", _args, _returns); err != nil {
+		log.Printf("RPC call to GetAccessControlVisualAST API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetAccessControlVisualAST(args *Z_GetAccessControlVisualASTArgs, returns *Z_GetAccessControlVisualASTReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetAccessControlVisualAST(actingUserID, resourceType, expression string) (*model.VisualExpression, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetAccessControlVisualAST(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API GetAccessControlVisualAST called but not implemented."))
 	}
 	return nil
 }

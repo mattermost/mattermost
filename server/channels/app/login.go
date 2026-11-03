@@ -50,8 +50,15 @@ func (a *App) AuthenticateUserForLogin(rctx request.CTX, id, loginId, password, 
 	// CWS login allow to use the one-time token to login the users when they're redirected to their
 	// installation for the first time
 	if isCWSLogin(a, cwsToken) {
+		if err = checkUserNotDisabled(user); err != nil {
+			return nil, err
+		}
 		if err = checkUserNotBot(user); err != nil {
 			return nil, err
+		}
+		if user.LastLogin > 0 {
+			return nil, model.NewAppError("AuthenticateUserForLogin",
+				"api.user.login_by_cws.invalid_token.app_error", nil, "", http.StatusBadRequest)
 		}
 		token, err := a.Srv().Store().Token().GetByToken(cwsToken)
 		if nfErr := new(store.ErrNotFound); err != nil && !errors.As(err, &nfErr) {
@@ -101,7 +108,7 @@ func (a *App) GetUserForLogin(rctx request.CTX, id, loginId string) (*model.User
 	if enableEmail || enableUsername {
 		// If we are given a userID then fail if we can't find a user with that ID
 		if id != "" {
-			user, err := a.GetUser(id)
+			user, err := a.GetUser(rctx, id)
 			if err != nil {
 				if err.Id != MissingAccountError {
 					err.StatusCode = http.StatusInternalServerError
@@ -212,6 +219,13 @@ func (a *App) DoLogin(rctx request.CTX, w http.ResponseWriter, r *http.Request, 
 	if session, err = a.CreateSession(rctx, session); err != nil {
 		err.StatusCode = http.StatusInternalServerError
 		return nil, err
+	}
+
+	if user.LastLogin == 0 && len(user.Props) > 0 && user.Props[model.UserPropsKeyImportedInactive] == "true" {
+		delete(user.Props, model.UserPropsKeyImportedInactive)
+		if _, appErr := a.UpdateUser(rctx, user, false); appErr != nil {
+			rctx.Logger().Warn("Failed to clear importedInactive prop on first login", mlog.Err(appErr))
+		}
 	}
 
 	if updateErr := a.Srv().Store().User().UpdateLastLogin(user.Id, session.CreateAt); updateErr != nil {

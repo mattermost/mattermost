@@ -383,6 +383,7 @@ func TestManifestUnmarshal(t *testing.T) {
 		SupportURL:       "https://example.com/support",
 		IconPath:         "assets/icon.svg",
 		MinServerVersion: "5.6.0",
+		RequiredAddOn:    "theaddon",
 		Server: &ManifestServer{
 			Executable: "theexecutable",
 			Executables: map[string]string{
@@ -426,6 +427,7 @@ homepage_url: https://example.com
 support_url: https://example.com/support
 icon_path: assets/icon.svg
 min_server_version: 5.6.0
+required_add_on: theaddon
 server:
     executable: theexecutable
     executables:
@@ -461,6 +463,7 @@ settings_schema:
 	"support_url": "https://example.com/support",
 	"icon_path": "assets/icon.svg",
 	"min_server_version": "5.6.0",
+	"required_add_on": "theaddon",
 	"server": {
 		"executable": "theexecutable",
 		"executables": {
@@ -556,6 +559,46 @@ func TestManifestHasClient(t *testing.T) {
 
 	manifest.Webapp = nil
 	assert.False(t, manifest.HasClient())
+}
+
+func TestManifestPreAuthClientManifest(t *testing.T) {
+	manifest := &Manifest{
+		Id:               "theid",
+		Name:             "thename",
+		Description:      "thedescription",
+		HomepageURL:      "https://example.com",
+		Version:          "0.0.1",
+		MinServerVersion: "5.6.0",
+		Server:           &ManifestServer{Executable: "theexecutable"},
+		Webapp: &ManifestWebapp{
+			BundlePath: "thebundlepath",
+			BundleHash: []byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15},
+			PreAuth:    true,
+		},
+		SettingsSchema: &PluginSettingsSchema{Header: "theheadertext"},
+		Props:          map[string]any{"key": "value"},
+	}
+
+	preAuth := manifest.PreAuthClientManifest()
+
+	assert.Equal(t, &Manifest{
+		Id:      "theid",
+		Name:    "thename",
+		Version: "0.0.1",
+		Webapp: &ManifestWebapp{
+			BundlePath: "/static/theid/theid_000102030405060708090a0b0c0d0e0f_bundle.js",
+			PreAuth:    true,
+		},
+	}, preAuth)
+	assert.Equal(t, "thebundlepath", manifest.Webapp.BundlePath, "original manifest must not be modified")
+
+	data, err := json.Marshal(preAuth)
+	require.NoError(t, err)
+	var fields map[string]any
+	require.NoError(t, json.Unmarshal(data, &fields))
+	for key := range fields {
+		assert.Contains(t, []string{"id", "name", "version", "webapp"}, key, "unexpected field %q in pre-auth manifest", key)
+	}
 }
 
 func TestManifestClientManifest(t *testing.T) {

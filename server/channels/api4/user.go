@@ -208,7 +208,7 @@ func loginSSOCodeExchange(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create session for this user
-	user, err := c.App.GetUser(userID)
+	user, err := c.App.GetUser(c.AppContext, userID)
 	if err != nil {
 		c.Err = err
 		return
@@ -319,7 +319,7 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := c.App.GetUser(c.Params.UserId)
+	user, err := c.App.GetUser(c.AppContext, c.Params.UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -541,7 +541,7 @@ func getDefaultProfileImage(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	user, err := c.App.GetUser(c.Params.UserId)
+	user, err := c.App.GetUser(c.AppContext, c.Params.UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -577,7 +577,7 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := c.App.GetUser(c.Params.UserId)
+	user, err := c.App.GetUser(c.AppContext, c.Params.UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -657,7 +657,7 @@ func setProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		model.AddEventParameterToAuditRec(auditRec, "filename", imageArray[0].Filename)
 	}
 
-	user, err := c.App.GetUser(c.Params.UserId)
+	user, err := c.App.GetUser(c.AppContext, c.Params.UserId)
 	if err != nil {
 		c.SetInvalidURLParam("user_id")
 		return
@@ -711,7 +711,7 @@ func setDefaultProfileImage(c *Context, w http.ResponseWriter, r *http.Request) 
 	model.AddEventParameterToAuditRec(auditRec, "user_id", c.Params.UserId)
 	defer c.LogAuditRec(auditRec)
 
-	user, err := c.App.GetUser(c.Params.UserId)
+	user, err := c.App.GetUser(c.AppContext, c.Params.UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -974,6 +974,13 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// The in_team scope is evaluated once here rather than per branch, since
+	// several of the filter combinations below scope their listing by it.
+	if inTeamId != "" && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), inTeamId, model.PermissionViewTeam) {
+		c.SetPermissionError(model.PermissionViewTeam)
+		return
+	}
+
 	restrictions, appErr := c.App.GetViewUsersRestrictions(c.AppContext, c.AppContext.Session().UserId)
 	if appErr != nil {
 		c.Err = appErr
@@ -1076,7 +1083,8 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		if useAbacFilter {
 			cursorId := r.URL.Query().Get("cursor_id")
-			profiles, appErr = c.App.GetUsersNotInAbacTeam(c.AppContext, notInTeamId, cursorId, c.Params.PerPage, c.IsSystemAdmin())
+			term := r.URL.Query().Get("term")
+			profiles, appErr = c.App.GetUsersNotInAbacTeam(c.AppContext, notInTeamId, term, cursorId, c.Params.PerPage, c.IsSystemAdmin())
 		} else {
 			etag = c.App.GetUsersNotInTeamEtag(inTeamId, restrictions.Hash())
 			if c.HandleEtag(etag, "Get Users Not in Team", w, r) {
@@ -1086,11 +1094,6 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			profiles, appErr = c.App.GetUsersNotInTeamPage(notInTeamId, groupConstrainedBool, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
 		}
 	} else if inTeamId != "" {
-		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), inTeamId, model.PermissionViewTeam) {
-			c.SetPermissionError(model.PermissionViewTeam)
-			return
-		}
-
 		if sort == "last_activity_at" {
 			profiles, appErr = c.App.GetRecentlyActiveUsersForTeamPage(c.AppContext, inTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
 		} else if sort == "create_at" {
@@ -1125,7 +1128,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		if sort == "display_name" {
 			var user *model.User
 
-			user, appErr = c.App.GetUser(c.AppContext.Session().UserId)
+			user, appErr = c.App.GetUser(c.AppContext, c.AppContext.Session().UserId)
 			if appErr != nil {
 				c.Err = appErr
 				return
@@ -1505,7 +1508,7 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ouser, err := c.App.GetUser(user.Id)
+	ouser, err := c.App.GetUser(c.AppContext, user.Id)
 	if err != nil {
 		c.Err = err
 		return
@@ -1546,8 +1549,7 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// If eMail update is attempted by the currently logged in user, check if correct password was provided
 	if user.Email != "" && ouser.Email != user.Email && c.AppContext.Session().UserId == c.Params.UserId {
-		err = c.App.DoubleCheckPassword(c.AppContext, ouser, user.Password)
-		if err != nil {
+		if err := c.App.DoubleCheckPassword(c.AppContext, ouser, user.Password); err != nil {
 			c.SetInvalidParam("password")
 			return
 		}
@@ -1591,7 +1593,7 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ouser, err := c.App.GetUser(c.Params.UserId)
+	ouser, err := c.App.GetUser(c.AppContext, c.Params.UserId)
 	if err != nil {
 		c.SetInvalidParam("user_id")
 		return
@@ -1636,8 +1638,8 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if err = c.App.DoubleCheckPassword(c.AppContext, ouser, *patch.Password); err != nil {
-			c.Err = err
+		if err := c.App.DoubleCheckPassword(c.AppContext, ouser, *patch.Password); err != nil {
+			c.SetError(err)
 			return
 		}
 	}
@@ -1684,7 +1686,7 @@ func deleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := c.App.GetUser(userId)
+	user, err := c.App.GetUser(c.AppContext, userId)
 	if err != nil {
 		c.Err = err
 		return
@@ -1702,7 +1704,7 @@ func deleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		if *c.App.Config().ServiceSettings.EnableAPIUserDeletion {
 			err = c.App.PermanentDeleteUser(c.AppContext, user)
 		} else {
-			loggedUser, usrErr := c.App.GetUser(c.AppContext.Session().UserId)
+			loggedUser, usrErr := c.App.GetUser(c.AppContext, c.AppContext.Session().UserId)
 			if usrErr == nil && loggedUser != nil && loggedUser.IsSystemAdmin() {
 				// More verbose error message for system admins
 				err = model.NewAppError("deleteUser", "api.user.delete_user.not_enabled.for_admin.app_error", nil, "userId="+c.Params.UserId, http.StatusUnauthorized)
@@ -1803,7 +1805,7 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := c.App.GetUser(c.Params.UserId)
+	user, err := c.App.GetUser(c.AppContext, c.Params.UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -1886,7 +1888,7 @@ func updateUserAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		userAuth.AuthService = ""
 	}
 
-	if user, err := c.App.GetUser(c.Params.UserId); err == nil {
+	if user, err := c.App.GetUser(c.AppContext, c.Params.UserId); err == nil {
 		auditRec.AddEventPriorState(user)
 	}
 
@@ -1921,17 +1923,17 @@ func updateUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
 
-	if appErr := c.App.MFARequired(c.AppContext); !c.AppContext.Session().Local && c.AppContext.Session().UserId != c.Params.UserId && appErr != nil {
+	if appErr := c.App.MFARequired(c.AppContext, r.Method); !c.AppContext.Session().Local && c.AppContext.Session().UserId != c.Params.UserId && appErr != nil {
 		c.Err = appErr
 		return
 	}
 
-	if user, appErr := c.App.GetUser(c.Params.UserId); appErr == nil {
+	if user, appErr := c.App.GetUser(c.AppContext, c.Params.UserId); appErr == nil {
 		model.AddEventParameterAuditableToAuditRec(auditRec, "user", user)
 	}
 
@@ -1977,12 +1979,12 @@ func generateMfaSecret(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
 
-	secret, err := c.App.GenerateMfaSecret(c.Params.UserId)
+	secret, err := c.App.GenerateMfaSecret(c.AppContext, c.Params.UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -2010,7 +2012,7 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("attempted")
 
 	var canUpdatePassword bool
-	if user, err := c.App.GetUser(c.Params.UserId); err == nil {
+	if user, err := c.App.GetUser(c.AppContext, c.Params.UserId); err == nil {
 		model.AddEventParameterAuditableToAuditRec(auditRec, "user", user)
 
 		if user.IsSystemAdmin() {
@@ -2028,7 +2030,7 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 	// is already hashed or not.
 	if props["already_hashed"] == "true" {
 		if canUpdatePassword {
-			err = c.App.UpdateHashedPasswordByUserId(c.Params.UserId, newPassword)
+			err = c.App.UpdateHashedPasswordByUserId(c.AppContext, c.Params.UserId, newPassword)
 		} else if c.Params.UserId == c.AppContext.Session().UserId {
 			err = model.NewAppError("updatePassword", "api.user.update_password.user_and_hashed.app_error", nil, "", http.StatusUnauthorized)
 		} else {
@@ -2106,7 +2108,7 @@ func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	sent, err := c.App.SendPasswordReset(c.AppContext, email, c.App.GetSiteURL())
 	if err != nil {
-		if *c.App.Config().ServiceSettings.ExperimentalEnableHardenedMode {
+		if *c.App.Config().ServiceSettings.EnableHardenedMode {
 			ReturnStatusOK(w)
 		} else {
 			c.Err = err
@@ -2306,7 +2308,7 @@ func loginWithDesktopToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("login_method", "desktop_token")
 	model.AddEventParameterToAuditRec(auditRec, "device_id", model.RedactDeviceId(deviceId))
 
-	user, err := c.App.ValidateDesktopToken(token, time.Now().Add(-model.DesktopTokenTTL).Unix())
+	user, err := c.App.ValidateDesktopToken(c.AppContext, token, time.Now().Add(-model.DesktopTokenTTL).Unix())
 	if err != nil {
 		c.Err = err
 		return
@@ -2431,10 +2433,11 @@ func getLoginType(c *Context, w http.ResponseWriter, r *http.Request) {
 	// For the time being, we only support getting the login type when
 	// guest magic link is enabled. We can consider adding support for other
 	// login methods in the future, and this check may be removed.
+	license := c.App.Channels().License()
 	if !*c.App.Config().GuestAccountsSettings.EnableGuestMagicLink ||
 		!*c.App.Config().GuestAccountsSettings.Enable ||
-		!*c.App.Channels().License().Features.GuestAccounts {
-		w.WriteHeader(http.StatusNotFound)
+		license == nil || !*license.Features.GuestAccounts {
+		c.Err = model.NewAppError("getLoginType", "api.user.login.guest_magic_link.disabled.error", nil, "", http.StatusNotFound)
 		return
 	}
 
@@ -2572,7 +2575,7 @@ func getSessions(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -2833,11 +2836,11 @@ func getUserAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterToAuditRec(auditRec, "user_id", c.Params.UserId)
 	defer c.LogAuditRec(auditRec)
 
-	if user, err := c.App.GetUser(c.Params.UserId); err == nil {
+	if user, err := c.App.GetUser(c.AppContext, c.Params.UserId); err == nil {
 		model.AddEventParameterAuditableToAuditRec(auditRec, "user", user)
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -2937,6 +2940,12 @@ func switchAccountType(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		if c.AppContext.Session().IsOAuth {
+			c.SetPermissionError(model.PermissionEditOtherUsers)
+			c.Err.DetailedError += ", attempted access by oauth app"
+			return
+		}
+
 		link, err = c.App.SwitchOAuthToEmail(c.AppContext, switchRequest.Email, switchRequest.NewPassword, c.AppContext.Session().UserId)
 	} else if switchRequest.EmailToLdap() {
 		link, err = c.App.SwitchEmailToLdap(c.AppContext, switchRequest.Email, switchRequest.Password, switchRequest.MfaCode, switchRequest.LdapLoginId, switchRequest.NewPassword)
@@ -2970,7 +2979,7 @@ func createUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterToAuditRec(auditRec, "user_id", c.Params.UserId)
 	defer c.LogAuditRec(auditRec)
 
-	user, err := c.App.GetUser(c.Params.UserId)
+	user, err := c.App.GetUser(c.AppContext, c.Params.UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -3235,7 +3244,7 @@ func revokeUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if user, errGet := c.App.GetUser(accessToken.UserId); errGet == nil {
+	if user, errGet := c.App.GetUser(c.AppContext, accessToken.UserId); errGet == nil {
 		model.AddEventParameterAuditableToAuditRec(auditRec, "user", user)
 	}
 
@@ -3286,7 +3295,7 @@ func disableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if user, errGet := c.App.GetUser(accessToken.UserId); errGet == nil {
+	if user, errGet := c.App.GetUser(c.AppContext, accessToken.UserId); errGet == nil {
 		model.AddEventParameterAuditableToAuditRec(auditRec, "user", user)
 	}
 
@@ -3337,7 +3346,7 @@ func enableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if user, errGet := c.App.GetUser(accessToken.UserId); errGet == nil {
+	if user, errGet := c.App.GetUser(c.AppContext, accessToken.UserId); errGet == nil {
 		model.AddEventParameterAuditableToAuditRec(auditRec, "user", user)
 	}
 
@@ -3394,7 +3403,7 @@ func rotateUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, errGet := c.App.GetUser(accessToken.UserId)
+	user, errGet := c.App.GetUser(c.AppContext, accessToken.UserId)
 	if errGet != nil {
 		c.Err = errGet
 		return
@@ -3457,7 +3466,7 @@ func saveUserTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 	model.AddEventParameterToAuditRec(auditRec, "accepted", accepted)
 
-	if user, err := c.App.GetUser(userId); err == nil {
+	if user, err := c.App.GetUser(c.AppContext, userId); err == nil {
 		model.AddEventParameterAuditableToAuditRec(auditRec, "user", user)
 	}
 
@@ -3504,7 +3513,7 @@ func promoteGuestToUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := c.App.GetUser(c.Params.UserId)
+	user, err := c.App.GetUser(c.AppContext, c.Params.UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -3562,7 +3571,7 @@ func demoteUserToGuest(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := c.App.GetUser(c.Params.UserId)
+	user, err := c.App.GetUser(c.AppContext, c.Params.UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -3625,7 +3634,7 @@ func verifyUserEmailWithoutToken(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	user, err := c.App.GetUser(c.Params.UserId)
+	user, err := c.App.GetUser(c.AppContext, c.Params.UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -3641,7 +3650,7 @@ func verifyUserEmailWithoutToken(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	if err := c.App.VerifyUserEmail(user.Id, user.Email); err != nil {
+	if err := c.App.VerifyUserEmail(c.AppContext, user.Id, user.Email); err != nil {
 		c.Err = err
 		return
 	}
@@ -3661,7 +3670,7 @@ func convertUserToBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, appErr := c.App.GetUser(c.Params.UserId)
+	user, appErr := c.App.GetUser(c.AppContext, c.Params.UserId)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -3733,7 +3742,7 @@ func getChannelMembersForUser(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -3929,7 +3938,7 @@ func getThreadForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		return
 	}
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -3953,8 +3962,11 @@ func getThreadForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Cache-Control", "no-store")
 	if err := json.NewEncoder(w).Encode(thread); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	} else {
+		c.App.RecordPostDelivery(c.AppContext, c.AppContext.Session().UserId, thread.Post, model.DeliveryMechanismProduct)
 	}
 
 	auditRec := c.MakeAuditRecord(model.AuditEventGetThreadForUser, model.AuditStatusSuccess)
@@ -3972,7 +3984,7 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -4038,9 +4050,18 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Unread state changes constantly, so intermediaries must not replay these responses.
+	w.Header().Set("Cache-Control", "no-store")
 	if err := json.NewEncoder(w).Encode(threads); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
+		return
 	}
+
+	threadPosts := make([]*model.Post, 0, len(threads.Threads))
+	for _, thread := range threads.Threads {
+		threadPosts = append(threadPosts, thread.Post)
+	}
+	c.App.RecordPostsDelivery(c.AppContext, c.AppContext.Session().UserId, threadPosts, model.DeliveryMechanismProduct)
 }
 
 func updateReadStateThreadByUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -4055,7 +4076,7 @@ func updateReadStateThreadByUser(c *Context, w http.ResponseWriter, r *http.Requ
 	model.AddEventParameterToAuditRec(auditRec, "thread_id", c.Params.ThreadId)
 	model.AddEventParameterToAuditRec(auditRec, "team_id", c.Params.TeamId)
 	model.AddEventParameterToAuditRec(auditRec, "timestamp", c.Params.Timestamp)
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -4095,7 +4116,7 @@ func setUnreadThreadByPostId(c *Context, w http.ResponseWriter, r *http.Request)
 	model.AddEventParameterToAuditRec(auditRec, "team_id", c.Params.TeamId)
 	model.AddEventParameterToAuditRec(auditRec, "post_id", c.Params.PostId)
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -4142,7 +4163,7 @@ func unfollowThreadByUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterToAuditRec(auditRec, "thread_id", c.Params.ThreadId)
 	model.AddEventParameterToAuditRec(auditRec, "team_id", c.Params.TeamId)
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -4174,7 +4195,7 @@ func followThreadByUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterToAuditRec(auditRec, "thread_id", c.Params.ThreadId)
 	model.AddEventParameterToAuditRec(auditRec, "team_id", c.Params.TeamId)
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -4205,7 +4226,7 @@ func updateReadStateAllThreadsByUser(c *Context, w http.ResponseWriter, r *http.
 	model.AddEventParameterToAuditRec(auditRec, "user_id", c.Params.UserId)
 	model.AddEventParameterToAuditRec(auditRec, "team_id", c.Params.TeamId)
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -4262,7 +4283,7 @@ func resetPasswordFailedAttempts(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	user, err := c.App.GetUser(c.Params.UserId)
+	user, err := c.App.GetUser(c.AppContext, c.Params.UserId)
 	if err != nil {
 		c.Err = err
 		return

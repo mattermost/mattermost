@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {Editor} from '@tiptap/react';
+import isEqual from 'lodash/isEqual';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -9,6 +10,7 @@ import type {Channel} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 import type {Group} from '@mattermost/types/groups';
 
+import {addMessageIntoHistory} from 'mattermost-redux/actions/posts';
 import Permissions from 'mattermost-redux/constants/permissions';
 import {getDefaultAgent} from 'mattermost-redux/selectors/entities/agents';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
@@ -31,13 +33,29 @@ import SuggestionList from 'components/suggestion/suggestion_list';
 import type {ProviderResults, SuggestionResults} from 'components/suggestion/suggestion_results';
 import {normalizeResultsFromProvider, countResults} from 'components/suggestion/suggestion_results';
 
+import Constants from 'utils/constants';
+import {getPxToSubstract} from 'utils/utils';
+
 import type {GlobalState} from 'types/store';
+
+import {parseMentionTerm} from './wysiwyg_mention';
+
+const EXECUTE_CURRENT_COMMAND_ITEM_ID = Constants.Integrations.EXECUTE_CURRENT_COMMAND_ITEM_ID;
+const OPEN_COMMAND_IN_MODAL_ITEM_ID = Constants.Integrations.OPEN_COMMAND_IN_MODAL_ITEM_ID;
 
 interface Props {
     editor: Editor | null;
     channelId: string;
     rootId?: string;
+    onSubmit?: () => void;
 }
+
+type AppsModalProvider = {
+    openAppsModalFromCommand: (command: string) => void;
+};
+
+const canOpenAppsModal = <T extends object>(provider: T): provider is T & AppsModalProvider =>
+    typeof (provider as T & AppsModalProvider).openAppsModalFromCommand === 'function';
 
 const EMPTY_RESULTS: SuggestionResults = {
     matchedPretext: '',
@@ -56,25 +74,75 @@ function getAllTerms(results: SuggestionResults): string[] {
     return [];
 }
 
+type SuggestionBoxAlgn = {
+    lineHeight?: number;
+    pixelsToMoveX?: number;
+    pixelsToMoveY?: number;
+};
+
+function getTriggerPos(editor: Editor, matchedPretext: string): number {
+    return Math.max(0, editor.state.selection.from - matchedPretext.length);
+}
+
+function getCaretAlignment(editor: Editor, matchedPretext: string, triggerPos: number): SuggestionBoxAlgn | undefined {
+    const {view} = editor;
+
+    let coords;
+    try {
+        coords = view.coordsAtPos(triggerPos);
+    } catch {
+        return undefined;
+    }
+
+    const container = (view.dom.offsetParent ?? view.dom) as HTMLElement;
+    const containerRect = container.getBoundingClientRect();
+
+    const listWidth = Math.min(containerRect.width, Constants.SUGGESTION_LIST_MAXWIDTH);
+    const maxOffsetX = Math.max(0, containerRect.width - listWidth);
+    const offsetX = coords.left - containerRect.left - getPxToSubstract(matchedPretext[0]);
+
+    return {
+        lineHeight: parseInt(getComputedStyle(view.dom).lineHeight, 10) || 0,
+        pixelsToMoveX: Math.round(Math.min(Math.max(0, offsetX), maxOffsetX)),
+        pixelsToMoveY: Math.round(coords.top - containerRect.top),
+    };
+}
+
+// One character per inline leaf (line breaks, mentions, images) keeps string offsets equal to document positions.
 function getTextBeforeCursor(editor: Editor): string {
     const {state} = editor;
     const {from} = state.selection;
-    const currentNode = state.selection.$from;
+    const startOfLine = state.selection.$from.start();
 
-    const startOfLine = currentNode.start();
-    return state.doc.textBetween(startOfLine, from, '\n');
+    return state.doc.textBetween(startOfLine, from, '\n', (node) => (node.type.name === 'hardBreak' ? '\n' : '\uFFFC'));
 }
 
-const WysiwygSuggestionList = ({editor, channelId, rootId}: Props) => {
+// Server results can arrive labelled with an earlier, shorter pretext; they still apply while the term matches what was typed since.
+function getTypedPretext(textBeforeCursor: string, matchedPretext: string, term: string): string | undefined {
+    const text = textBeforeCursor.toLowerCase();
+    const pretext = matchedPretext.toLowerCase();
+    if (text.endsWith(pretext)) {
+        return matchedPretext;
+    }
+
+    const start = text.lastIndexOf(pretext);
+    const typed = start === -1 ? '' : text.slice(start);
+    return typed && term.toLowerCase().startsWith(typed) ? typed : undefined;
+}
+
+const WysiwygSuggestionList = ({editor, channelId, rootId, onSubmit}: Props) => {
     const dispatch = useDispatch();
 
     const [results, setResults] = useState<SuggestionResults>(EMPTY_RESULTS);
     const [pretext, setPretext] = useState('');
     const [selection, setSelection] = useState('');
     const [isOpen, setIsOpen] = useState(false);
+    const [suggestionBoxAlgn, setSuggestionBoxAlgn] = useState<SuggestionBoxAlgn | undefined>(undefined);
 
     const editorDomRef = useRef<HTMLDivElement | null>(null);
+    const editorInstanceRef = useRef<Editor | null>(null);
     useEffect(() => {
+        editorInstanceRef.current = editor;
         if (editor && !editor.isDestroyed) {
             editorDomRef.current = editor.view.dom as HTMLDivElement;
         }
@@ -128,16 +196,24 @@ const WysiwygSuggestionList = ({editor, channelId, rootId}: Props) => {
     const handleReceivedSuggestions = useCallback((suggestions: ProviderResults) => {
         const normalized = normalizeResultsFromProvider(suggestions);
         const terms = getAllTerms(normalized);
+        const matchedPretext = suggestions.matchedPretext || '';
 
         setResults(normalized);
-        setPretext(suggestions.matchedPretext || '');
-        matchedPretextRef.current = suggestions.matchedPretext || '';
+        setPretext(matchedPretext);
+        matchedPretextRef.current = matchedPretext;
 
         if (countResults(normalized) > 0 && terms.length > 0) {
             setSelection(terms[0]);
+
+            const ed = editorInstanceRef.current;
+            if (ed && !ed.isDestroyed) {
+                const next = getCaretAlignment(ed, matchedPretext, getTriggerPos(ed, matchedPretext));
+                setSuggestionBoxAlgn((prev) => (isEqual(prev, next) ? prev : next));
+            }
             setIsOpen(true);
         } else {
             setIsOpen(false);
+            setSuggestionBoxAlgn(undefined);
         }
     }, []);
 
@@ -159,6 +235,7 @@ const WysiwygSuggestionList = ({editor, channelId, rootId}: Props) => {
             if (!handled) {
                 setIsOpen(false);
                 setResults(EMPTY_RESULTS);
+                setSuggestionBoxAlgn(undefined);
             }
         };
 
@@ -171,34 +248,56 @@ const WysiwygSuggestionList = ({editor, channelId, rootId}: Props) => {
         };
     }, [editor, providers, handleReceivedSuggestions]);
 
+    const closeSuggestions = useCallback(() => {
+        setIsOpen(false);
+        setResults(EMPTY_RESULTS);
+        setSuggestionBoxAlgn(undefined);
+    }, []);
+
     const handleCompleteWord = useCallback((term: string, matchedPretext: string) => {
         if (!editor || editor.isDestroyed) {
             return false;
         }
 
-        const {state} = editor;
-        const {from} = state.selection;
-        const cursorNode = state.selection.$from;
-        const startOfLine = cursorNode.start();
-        const textBeforeCursor = state.doc.textBetween(startOfLine, from, '\n');
+        if (term.endsWith(EXECUTE_CURRENT_COMMAND_ITEM_ID)) {
+            closeSuggestions();
+            editor.commands.focus();
+            onSubmit?.();
+            return true;
+        }
 
-        const matchIndex = textBeforeCursor.lastIndexOf(matchedPretext);
-        if (matchIndex === -1) {
+        if (term.endsWith(OPEN_COMMAND_IN_MODAL_ITEM_ID)) {
+            closeSuggestions();
+
+            const command = term.slice(0, -OPEN_COMMAND_IN_MODAL_ITEM_ID.length);
+            const appProvider = providers.find(canOpenAppsModal);
+            if (!appProvider) {
+                return false;
+            }
+
+            appProvider.openAppsModalFromCommand(command);
+            dispatch(addMessageIntoHistory(command));
+            editor.chain().focus().clearContent().run();
+            return false;
+        }
+
+        const typed = getTypedPretext(getTextBeforeCursor(editor), matchedPretext, term);
+        if (typed === undefined) {
             setIsOpen(false);
             return false;
         }
 
-        const deleteFrom = startOfLine + matchIndex;
-        const deleteTo = from;
+        const deleteTo = editor.state.selection.from;
+        const deleteFrom = deleteTo - typed.length;
 
-        const completedText = `${term} `;
+        const mention = parseMentionTerm(term);
+        const completedContent = mention ? [{type: 'mention', attrs: mention}, {type: 'text', text: ' '}] : `${term} `;
 
-        editor.chain().focus().deleteRange({from: deleteFrom, to: deleteTo}).insertContent(completedText).run();
+        editor.chain().focus().deleteRange({from: deleteFrom, to: deleteTo}).insertContent(completedContent).run();
 
-        setIsOpen(false);
-        setResults(EMPTY_RESULTS);
+        closeSuggestions();
         return true;
-    }, [editor]);
+    }, [editor, providers, dispatch, onSubmit, closeSuggestions]);
 
     const handleItemHover = useCallback((term: string) => {
         setSelection(term);
@@ -255,7 +354,7 @@ const WysiwygSuggestionList = ({editor, channelId, rootId}: Props) => {
                 return;
             }
 
-            if (event.key === 'Tab' || event.key === 'Enter') {
+            if (event.key === 'Tab' || (event.key === 'Enter' && !event.shiftKey)) {
                 if (selectionRef.current && matchedPretextRef.current) {
                     event.preventDefault();
                     event.stopPropagation();
@@ -268,6 +367,7 @@ const WysiwygSuggestionList = ({editor, channelId, rootId}: Props) => {
                 event.preventDefault();
                 event.stopPropagation();
                 setIsOpen(false);
+                setSuggestionBoxAlgn(undefined);
             }
         };
 
@@ -284,12 +384,13 @@ const WysiwygSuggestionList = ({editor, channelId, rootId}: Props) => {
 
     return (
         <SuggestionList
-            inputRef={editorDomRef as React.RefObject<HTMLDivElement>}
+            inputRef={editorDomRef as React.RefObject<HTMLDivElement | null>}
             open={isOpen}
             pretext={pretext}
             cleared={false}
             results={results}
             selection={selection}
+            suggestionBoxAlgn={suggestionBoxAlgn}
             onCompleteWord={handleCompleteWord}
             onItemHover={handleItemHover}
             position='top'

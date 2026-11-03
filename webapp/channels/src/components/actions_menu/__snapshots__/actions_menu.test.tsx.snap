@@ -18,32 +18,34 @@ exports[`components/actions_menu/ActionsMenu has actions - marketplace disabled 
         class="icon icon-apps"
       />
     </button>
-    <div
-      aria-label="Post extra options"
-      class="a11y__popup Menu"
-    >
-      <ul
-        class="Menu__content dropdown-menu openLeft"
-        id="center_actions_dropdown_post_id_1"
-        role="menu"
+    <div>
+      <div
+        aria-label="Post extra options"
+        class="a11y__popup Menu"
       >
-        <li
-          class="MenuItem"
-          role="menuitem"
+        <ul
+          class="Menu__content dropdown-menu openLeft"
+          id="center_actions_dropdown_post_id_1"
+          role="menu"
         >
-          <button
-            class="style--none"
-            data-testid="undefined-button"
-            id="undefined-button"
+          <li
+            class="MenuItem"
+            role="menuitem"
           >
-            <span
-              class="MenuItem__primary-text"
+            <button
+              class="style--none"
+              data-testid="undefined-button"
+              id="undefined-button"
             >
-              Some text
-            </span>
-          </button>
-        </li>
-      </ul>
+              <span
+                class="MenuItem__primary-text"
+              >
+                Some text
+              </span>
+            </button>
+          </li>
+        </ul>
+      </div>
     </div>
   </div>
 </div>
@@ -67,66 +69,68 @@ exports[`components/actions_menu/ActionsMenu has actions - marketplace enabled a
         class="icon icon-apps"
       />
     </button>
-    <div
-      aria-label="Post extra options"
-      class="a11y__popup Menu"
-    >
-      <ul
-        class="Menu__content dropdown-menu openLeft"
-        id="center_actions_dropdown_post_id_1"
-        role="menu"
+    <div>
+      <div
+        aria-label="Post extra options"
+        class="a11y__popup Menu"
       >
-        <li
-          class="MenuItem"
-          role="menuitem"
+        <ul
+          class="Menu__content dropdown-menu openLeft"
+          id="center_actions_dropdown_post_id_1"
+          role="menu"
         >
-          <button
-            class="style--none"
-            data-testid="undefined-button"
-            id="undefined-button"
+          <li
+            class="MenuItem"
+            role="menuitem"
           >
-            <span
-              class="MenuItem__primary-text"
-            >
-              Some text
-            </span>
-          </button>
-        </li>
-        <li
-          class="MenuItem__divider"
-          id="divider_post_post_id_1_marketplace"
-          role="menuitem"
-        />
-        <li
-          class="MenuItem MenuItem--with-icon"
-          id="marketplace_icon_post_id_1"
-          role="menuitem"
-        >
-          <button
-            class="style--none"
-            data-testid="marketplace_icon_post_id_1-button"
-            id="marketplace_icon_post_id_1-button"
-          >
-            <span
-              class="MenuItem__primary-text"
+            <button
+              class="style--none"
+              data-testid="undefined-button"
+              id="undefined-button"
             >
               <span
-                class="icon"
+                class="MenuItem__primary-text"
+              >
+                Some text
+              </span>
+            </button>
+          </li>
+          <li
+            class="MenuItem__divider"
+            id="divider_post_post_id_1_marketplace"
+            role="menuitem"
+          />
+          <li
+            class="MenuItem MenuItem--with-icon"
+            id="marketplace_icon_post_id_1"
+            role="menuitem"
+          >
+            <button
+              class="style--none"
+              data-testid="marketplace_icon_post_id_1-button"
+              id="marketplace_icon_post_id_1-button"
+            >
+              <span
+                class="MenuItem__primary-text"
               >
                 <span
-                  aria-hidden="true"
-                  class="icon-view-grid-plus-outline MenuItem__compass-icon"
-                />
+                  class="icon"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="icon-view-grid-plus-outline MenuItem__compass-icon"
+                  />
+                </span>
+                <div
+                  class="text"
+                >
+                  App Marketplace
+                </div>
               </span>
-              <div
-                class="text"
-              >
-                App Marketplace
-              </div>
-            </span>
-          </button>
-        </li>
-      </ul>
+            </button>
+          </li>
+        </ul>
+      </div>
     </div>
   </div>
 </div>

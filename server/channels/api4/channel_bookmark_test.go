@@ -11,6 +11,9 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	einterfacesmocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -1784,5 +1787,351 @@ func TestBoardChannelBookmarkAPIReadonly(t *testing.T) {
 		require.NotNil(t, found)
 		require.Equal(t, model.ChannelBookmarkBoard, found.Type)
 		require.Equal(t, boardTargetID, found.TargetId)
+	})
+}
+
+func TestListChannelBookmarksForChannelFileInfoABAC(t *testing.T) {
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PermissionPolicies = true
+		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+	}).InitBasic(t)
+
+	th.App.Srv().SetLicense(model.NewTestLicense())
+	th.Context.Session().UserId = th.BasicUser.Id
+
+	mockDownloadDecision := func(t *testing.T, allowed bool) {
+		t.Helper()
+
+		mockACS := &einterfacesmocks.AccessControlServiceInterface{}
+		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Action == model.AccessControlPolicyActionDownloadFileAttachment
+		})).Return(model.AccessDecision{Decision: allowed}, (*model.AppError)(nil))
+
+		original := th.App.Srv().Channels().AccessControl
+		th.App.Srv().Channels().AccessControl = mockACS
+		t.Cleanup(func() {
+			th.App.Srv().Channels().AccessControl = original
+		})
+	}
+
+	miniPreview := []byte{1, 2, 3, 4}
+	file := &model.FileInfo{
+		Id:              model.NewId(),
+		ChannelId:       th.BasicChannel.Id,
+		CreatorId:       model.BookmarkFileOwner,
+		Path:            "somepath",
+		ThumbnailPath:   "thumbpath",
+		PreviewPath:     "prevPath",
+		Name:            "bookmark-secret.png",
+		Extension:       "png",
+		MimeType:        "image/png",
+		Size:            873182,
+		Width:           3076,
+		Height:          2200,
+		HasPreviewImage: true,
+		MiniPreview:     &miniPreview,
+	}
+	_, err := th.App.Srv().Store().FileInfo().Save(th.Context, file)
+	require.NoError(t, err)
+
+	fileBookmark, appErr := th.App.CreateChannelBookmark(th.Context, &model.ChannelBookmark{
+		ChannelId:   th.BasicChannel.Id,
+		DisplayName: "File bookmark",
+		Type:        model.ChannelBookmarkFile,
+		FileId:      file.Id,
+	}, "")
+	require.Nil(t, appErr)
+
+	linkBookmark, appErr := th.App.CreateChannelBookmark(th.Context, &model.ChannelBookmark{
+		ChannelId:   th.BasicChannel.Id,
+		DisplayName: "Link bookmark",
+		Type:        model.ChannelBookmarkLink,
+		LinkUrl:     "https://mattermost.com",
+	}, "")
+	require.Nil(t, appErr)
+
+	byID := func(t *testing.T, bookmarks []*model.ChannelBookmarkWithFileInfo) map[string]*model.ChannelBookmarkWithFileInfo {
+		t.Helper()
+		out := map[string]*model.ChannelBookmarkWithFileInfo{}
+		for _, bookmark := range bookmarks {
+			out[bookmark.Id] = bookmark
+		}
+		return out
+	}
+
+	t.Run("file info is stripped when the policy denies the download action", func(t *testing.T) {
+		mockDownloadDecision(t, false)
+
+		bookmarks, resp, err := th.Client.ListChannelBookmarksForChannel(context.Background(), th.BasicChannel.Id, 0)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		indexed := byID(t, bookmarks)
+		require.Contains(t, indexed, fileBookmark.Id)
+		assert.Nil(t, indexed[fileBookmark.Id].FileInfo, "file info should be stripped")
+
+		require.Contains(t, indexed, linkBookmark.Id)
+		assert.Equal(t, "https://mattermost.com", indexed[linkBookmark.Id].LinkUrl, "link bookmarks are unaffected")
+		assert.Nil(t, indexed[linkBookmark.Id].FileInfo)
+	})
+
+	t.Run("file info is returned when the policy allows the download action", func(t *testing.T) {
+		mockDownloadDecision(t, true)
+
+		bookmarks, resp, err := th.Client.ListChannelBookmarksForChannel(context.Background(), th.BasicChannel.Id, 0)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		indexed := byID(t, bookmarks)
+		require.Contains(t, indexed, fileBookmark.Id)
+		require.NotNil(t, indexed[fileBookmark.Id].FileInfo)
+		assert.Equal(t, file.Id, indexed[fileBookmark.Id].FileInfo.Id)
+		assert.NotNil(t, indexed[fileBookmark.Id].FileInfo.MiniPreview)
+
+		require.Contains(t, indexed, linkBookmark.Id)
+		assert.Nil(t, indexed[linkBookmark.Id].FileInfo)
+	})
+
+	t.Run("file info is unaffected when ABAC is disabled", func(t *testing.T) {
+		mockDownloadDecision(t, false)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(false)
+		})
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			})
+		})
+
+		bookmarks, resp, err := th.Client.ListChannelBookmarksForChannel(context.Background(), th.BasicChannel.Id, 0)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		indexed := byID(t, bookmarks)
+		require.Contains(t, indexed, fileBookmark.Id)
+		require.NotNil(t, indexed[fileBookmark.Id].FileInfo)
+	})
+}
+
+func TestChannelBookmarkWriteEndpointsFileInfoABAC(t *testing.T) {
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PermissionPolicies = true
+		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+	}).InitBasic(t)
+
+	th.App.Srv().SetLicense(model.NewTestLicense())
+	th.Context.Session().UserId = th.BasicUser.Id
+
+	mockDownloadDecision := func(t *testing.T, allowed bool) {
+		t.Helper()
+
+		mockACS := &einterfacesmocks.AccessControlServiceInterface{}
+		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Action == model.AccessControlPolicyActionDownloadFileAttachment
+		})).Return(model.AccessDecision{Decision: allowed}, (*model.AppError)(nil))
+
+		original := th.App.Srv().Channels().AccessControl
+		th.App.Srv().Channels().AccessControl = mockACS
+		t.Cleanup(func() {
+			th.App.Srv().Channels().AccessControl = original
+		})
+	}
+
+	newBookmarkFile := func(t *testing.T) *model.FileInfo {
+		t.Helper()
+		miniPreview := []byte{1, 2, 3, 4}
+		file := &model.FileInfo{
+			Id:              model.NewId(),
+			ChannelId:       th.BasicChannel.Id,
+			CreatorId:       model.BookmarkFileOwner,
+			Path:            "somepath",
+			ThumbnailPath:   "thumbpath",
+			PreviewPath:     "prevPath",
+			Name:            "bookmark-secret.png",
+			Extension:       "png",
+			MimeType:        "image/png",
+			Size:            873182,
+			Width:           3076,
+			Height:          2200,
+			HasPreviewImage: true,
+			MiniPreview:     &miniPreview,
+		}
+		_, err := th.App.Srv().Store().FileInfo().Save(th.Context, file)
+		require.NoError(t, err)
+		return file
+	}
+
+	t.Run("createChannelBookmark strips file info when the policy denies the download action", func(t *testing.T) {
+		file := newBookmarkFile(t)
+		mockDownloadDecision(t, false)
+
+		cb, resp, err := th.Client.CreateChannelBookmark(context.Background(), &model.ChannelBookmark{
+			ChannelId:   th.BasicChannel.Id,
+			DisplayName: "File bookmark",
+			Type:        model.ChannelBookmarkFile,
+			FileId:      file.Id,
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		assert.Nil(t, cb.FileInfo, "file info should be stripped")
+	})
+
+	t.Run("createChannelBookmark returns file info when the policy allows the download action", func(t *testing.T) {
+		file := newBookmarkFile(t)
+		mockDownloadDecision(t, true)
+
+		cb, resp, err := th.Client.CreateChannelBookmark(context.Background(), &model.ChannelBookmark{
+			ChannelId:   th.BasicChannel.Id,
+			DisplayName: "File bookmark",
+			Type:        model.ChannelBookmarkFile,
+			FileId:      file.Id,
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.NotNil(t, cb.FileInfo)
+		assert.Equal(t, file.Id, cb.FileInfo.Id)
+	})
+
+	t.Run("updateChannelBookmark strips file info from the response when the policy denies the download action", func(t *testing.T) {
+		file := newBookmarkFile(t)
+		mockDownloadDecision(t, true)
+		fileBookmark, appErr := th.App.CreateChannelBookmark(th.Context, &model.ChannelBookmark{
+			ChannelId:   th.BasicChannel.Id,
+			DisplayName: "File bookmark",
+			Type:        model.ChannelBookmarkFile,
+			FileId:      file.Id,
+		}, "")
+		require.Nil(t, appErr)
+
+		mockDownloadDecision(t, false)
+		newDisplayName := "renamed file bookmark"
+		resp1, resp, err := th.Client.UpdateChannelBookmark(context.Background(), th.BasicChannel.Id, fileBookmark.Id, &model.ChannelBookmarkPatch{
+			DisplayName: &newDisplayName,
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, resp1.Updated)
+		assert.Equal(t, newDisplayName, resp1.Updated.DisplayName, "the patched field is still applied")
+		assert.Nil(t, resp1.Updated.FileInfo, "file info should be stripped")
+	})
+
+	t.Run("updateChannelBookmark returns file info in the response when the policy allows the download action", func(t *testing.T) {
+		file := newBookmarkFile(t)
+		mockDownloadDecision(t, true)
+		fileBookmark, appErr := th.App.CreateChannelBookmark(th.Context, &model.ChannelBookmark{
+			ChannelId:   th.BasicChannel.Id,
+			DisplayName: "File bookmark",
+			Type:        model.ChannelBookmarkFile,
+			FileId:      file.Id,
+		}, "")
+		require.Nil(t, appErr)
+
+		newDisplayName := "renamed file bookmark 2"
+		resp1, resp, err := th.Client.UpdateChannelBookmark(context.Background(), th.BasicChannel.Id, fileBookmark.Id, &model.ChannelBookmarkPatch{
+			DisplayName: &newDisplayName,
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, resp1.Updated)
+		require.NotNil(t, resp1.Updated.FileInfo)
+		assert.Equal(t, file.Id, resp1.Updated.FileInfo.Id)
+	})
+
+	t.Run("updateChannelBookmarkSortOrder strips file info from the response when the policy denies the download action", func(t *testing.T) {
+		file := newBookmarkFile(t)
+		mockDownloadDecision(t, true)
+		fileBookmark, appErr := th.App.CreateChannelBookmark(th.Context, &model.ChannelBookmark{
+			ChannelId:   th.BasicChannel.Id,
+			DisplayName: "File bookmark for sort",
+			Type:        model.ChannelBookmarkFile,
+			FileId:      file.Id,
+		}, "")
+		require.Nil(t, appErr)
+		_, appErr = th.App.CreateChannelBookmark(th.Context, &model.ChannelBookmark{
+			ChannelId:   th.BasicChannel.Id,
+			DisplayName: "Link bookmark for sort",
+			Type:        model.ChannelBookmarkLink,
+			LinkUrl:     "https://mattermost.com",
+		}, "")
+		require.Nil(t, appErr)
+
+		mockDownloadDecision(t, false)
+		bookmarks, resp, err := th.Client.UpdateChannelBookmarkSortOrder(context.Background(), th.BasicChannel.Id, fileBookmark.Id, 0)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		found := false
+		for _, b := range bookmarks {
+			if b.Id == fileBookmark.Id {
+				found = true
+				assert.Nil(t, b.FileInfo, "file info should be stripped")
+			}
+		}
+		assert.True(t, found, "the reordered file bookmark should be present in the response")
+	})
+
+	t.Run("updateChannelBookmarkSortOrder returns file info in the response when the policy allows the download action", func(t *testing.T) {
+		file := newBookmarkFile(t)
+		mockDownloadDecision(t, true)
+		fileBookmark, appErr := th.App.CreateChannelBookmark(th.Context, &model.ChannelBookmark{
+			ChannelId:   th.BasicChannel.Id,
+			DisplayName: "File bookmark for sort 2",
+			Type:        model.ChannelBookmarkFile,
+			FileId:      file.Id,
+		}, "")
+		require.Nil(t, appErr)
+
+		bookmarks, resp, err := th.Client.UpdateChannelBookmarkSortOrder(context.Background(), th.BasicChannel.Id, fileBookmark.Id, 0)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		found := false
+		for _, b := range bookmarks {
+			if b.Id == fileBookmark.Id {
+				found = true
+				require.NotNil(t, b.FileInfo)
+				assert.Equal(t, file.Id, b.FileInfo.Id)
+			}
+		}
+		assert.True(t, found, "the reordered file bookmark should be present in the response")
+	})
+
+	t.Run("deleteChannelBookmark strips file info from the response when the policy denies the download action", func(t *testing.T) {
+		file := newBookmarkFile(t)
+		mockDownloadDecision(t, true)
+		fileBookmark, appErr := th.App.CreateChannelBookmark(th.Context, &model.ChannelBookmark{
+			ChannelId:   th.BasicChannel.Id,
+			DisplayName: "File bookmark to delete",
+			Type:        model.ChannelBookmarkFile,
+			FileId:      file.Id,
+		}, "")
+		require.Nil(t, appErr)
+
+		mockDownloadDecision(t, false)
+		deleted, resp, err := th.Client.DeleteChannelBookmark(context.Background(), th.BasicChannel.Id, fileBookmark.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, deleted)
+		assert.Nil(t, deleted.FileInfo, "file info should be stripped")
+	})
+
+	t.Run("deleteChannelBookmark returns file info in the response when the policy allows the download action", func(t *testing.T) {
+		file := newBookmarkFile(t)
+		mockDownloadDecision(t, true)
+		fileBookmark, appErr := th.App.CreateChannelBookmark(th.Context, &model.ChannelBookmark{
+			ChannelId:   th.BasicChannel.Id,
+			DisplayName: "File bookmark to delete 2",
+			Type:        model.ChannelBookmarkFile,
+			FileId:      file.Id,
+		}, "")
+		require.Nil(t, appErr)
+
+		deleted, resp, err := th.Client.DeleteChannelBookmark(context.Background(), th.BasicChannel.Id, fileBookmark.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, deleted)
+		require.NotNil(t, deleted.FileInfo)
+		assert.Equal(t, file.Id, deleted.FileInfo.Id)
 	})
 }

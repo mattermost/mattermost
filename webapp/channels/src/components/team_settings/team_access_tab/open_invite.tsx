@@ -45,8 +45,8 @@ const OpenInvite = ({isPublic, isGroupConstrained, onChange}: Props) => {
                     defaultMessage: 'Discoverability',
                 })}
                 description={formatMessage({
-                    id: 'general_tab.openInviteDesc',
-                    defaultMessage: "When allowed, a link to this team will be included on the landing page allowing anyone with an account to join this team. Changing from 'Yes' to 'No' will regenerate the invitation code, create a new invitation link and invalidate the previous link.",
+                    id: 'team_settings.discoverability.group_constrained_description',
+                    defaultMessage: 'Public teams appear on the server landing page so anyone with an account can find and join them.',
                 })}
                 descriptionAboveContent={true}
                 content={groupConstrainedContent}
@@ -95,8 +95,8 @@ const OpenInvite = ({isPublic, isGroupConstrained, onChange}: Props) => {
                 defaultMessage: 'Discoverability',
             })}
             description={formatMessage({
-                id: 'general_tab.openInviteDesc',
-                defaultMessage: "When allowed, a link to this team will be included on the landing page allowing anyone with an account to join this team. Changing from 'Yes' to 'No' will regenerate the invitation code, create a new invitation link and invalidate the previous link.",
+                id: 'team_settings.discoverability.description',
+                defaultMessage: 'Public teams appear on the server landing page so anyone with an account can find and join them. Switching a team from Public to Private regenerates its invitation code, which creates a new invitation link and invalidates the old one.',
             })}
             descriptionAboveContent={true}
             content={selectorContent}

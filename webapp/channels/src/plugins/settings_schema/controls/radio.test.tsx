@@ -45,17 +45,15 @@ describe('radio', () => {
         props.value = '1';
         renderWithContext(<Radio {...props}/>);
 
-        const option0Radio = screen.getByText(OPTION_0_TEXT).children[0] as HTMLInputElement;
-        const option1Radio = screen.getByText(OPTION_1_TEXT).children[0] as HTMLInputElement;
-        expect(option0Radio.checked).toBeFalsy();
-        expect(option1Radio.checked).toBeTruthy();
+        expect(screen.getByRole('radio', {name: OPTION_0_TEXT})).not.toBeChecked();
+        expect(screen.getByRole('radio', {name: OPTION_1_TEXT})).toBeChecked();
     });
 
     it('calls onChange with the new value', async () => {
         const props = getBaseProps();
         renderWithContext(<Radio {...props}/>);
 
-        await userEvent.click(screen.getByText(OPTION_1_TEXT));
+        await userEvent.click(screen.getByRole('radio', {name: OPTION_1_TEXT}));
 
         expect(props.onChange).toHaveBeenCalledWith('1');
     });

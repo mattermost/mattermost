@@ -4,10 +4,10 @@
 package sqlstore
 
 import (
+	"cmp"
 	"database/sql"
 	"fmt"
 	"slices"
-	"sort"
 	"strconv"
 	"strings"
 	"unicode/utf8"
@@ -181,6 +181,7 @@ func channelSliceColumns(isSelect bool, prefix ...string) []string {
 		p + "BannerInfo",
 		p + "DefaultCategoryName",
 		p + "Discoverable",
+		p + "DisableJoinLeaveMessages",
 	}
 
 	if isSelect {
@@ -189,7 +190,11 @@ func channelSliceColumns(isSelect bool, prefix ...string) []string {
 		}
 
 		columns = append(columns, fmt.Sprintf("EXISTS (SELECT 1 FROM AccessControlPolicies acp WHERE acp.ID = %sId AND acp.Type = 'channel') AS PolicyEnforced", p))
-		columns = append(columns, fmt.Sprintf("COALESCE((SELECT acp.Active FROM AccessControlPolicies acp WHERE acp.ID = %sId AND acp.Type = 'channel' AND acp.Active = TRUE LIMIT 1), false) AS PolicyIsActive", p))
+		autoAdd := fmt.Sprintf("COALESCE((SELECT %s FROM AccessControlPolicies acp WHERE acp.ID = %sId AND acp.Type = 'channel' LIMIT 1), false)", autoAddMembersExpr("acp"), p)
+		columns = append(columns, autoAdd+" AS PolicyAutoAdd")
+		// PolicyIsActive is the deprecated alias for PolicyAutoAdd; both report
+		// whether the channel's policy auto-adds members.
+		columns = append(columns, autoAdd+" AS PolicyIsActive")
 	}
 
 	return columns
@@ -220,6 +225,7 @@ func channelToSlice(channel *model.Channel) []any {
 		channel.BannerInfo,
 		channel.DefaultCategoryName,
 		channel.Discoverable,
+		channel.DisableJoinLeaveMessages,
 	}
 }
 
@@ -898,7 +904,8 @@ func (s SqlChannelStore) updateChannelT(transaction *sqlxTxWrapper, channel *mod
 		    BannerInfo=:BannerInfo,
 			DefaultCategoryName=:DefaultCategoryName,
 			AutoTranslation=:AutoTranslation,
-			Discoverable=:Discoverable
+			Discoverable=:Discoverable,
+			DisableJoinLeaveMessages=:DisableJoinLeaveMessages
 		WHERE Id=:Id`, channel)
 	if err != nil {
 		if IsUniqueConstraintError(err, []string{"Name", "channels_name_teamid_key"}) {
@@ -2473,6 +2480,36 @@ func (s SqlChannelStore) GetMemberLastViewedAt(rctx request.CTX, channelID strin
 	return lastViewedAt, nil
 }
 
+func (s SqlChannelStore) GetMembersWithLastViewedAtSince(rctx request.CTX, channelID string, since int64, afterUserID string, limit int) ([]*model.ChannelMemberLastViewed, error) {
+	if limit <= 0 || limit > model.ChannelMemberLastViewedMaxPerPage {
+		limit = model.ChannelMemberLastViewedMaxPerPage
+	}
+
+	query := s.getQueryBuilder().
+		Select("ChannelMembers.UserId", "COALESCE(ChannelMembers.LastViewedAt, 0) AS LastViewedAt").
+		From("ChannelMembers").
+		Where(sq.Eq{"ChannelMembers.ChannelId": channelID}).
+		Where(sq.GtOrEq{"COALESCE(ChannelMembers.LastViewedAt, 0)": since}).
+		OrderBy("ChannelMembers.UserId ASC").
+		Limit(uint64(limit))
+
+	if afterUserID != "" {
+		query = query.Where(sq.Gt{"ChannelMembers.UserId": afterUserID})
+	}
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "get_members_with_last_viewed_at_since_tosql")
+	}
+
+	members := []*model.ChannelMemberLastViewed{}
+	if err := s.DBXFromContext(rctx.Context()).Select(&members, queryString, args...); err != nil {
+		return nil, errors.Wrapf(err, "failed to find channel members with channelId=%s and lastViewedAt>=%d", channelID, since)
+	}
+
+	return members, nil
+}
+
 func (s SqlChannelStore) InvalidateAllChannelMembersForUser(userId string) {
 }
 
@@ -2920,19 +2957,7 @@ func (s SqlChannelStore) CountUrgentPostsAfter(channelId string, timestamp int64
 
 // CountPostsAfter returns the number of posts in the given channel created after but not including the given timestamp. If given a non-empty user ID, only counts posts made by any other user.
 func (s SqlChannelStore) CountPostsAfter(channelId string, timestamp int64, excludedUserID string) (int, int, error) {
-	joinLeavePostTypes := []string{
-		// These types correspond to the ones checked by Post.IsJoinLeaveMessage
-		model.PostTypeJoinLeave,
-		model.PostTypeAddRemove,
-		model.PostTypeJoinChannel,
-		model.PostTypeLeaveChannel,
-		model.PostTypeJoinTeam,
-		model.PostTypeLeaveTeam,
-		model.PostTypeAddToChannel,
-		model.PostTypeRemoveFromChannel,
-		model.PostTypeAddToTeam,
-		model.PostTypeRemoveFromTeam,
-	}
+	joinLeavePostTypes := model.JoinLeaveMessagePostTypes()
 	query := s.getQueryBuilder().
 		Select("count(*)").
 		From("Posts").
@@ -3541,8 +3566,8 @@ func (s SqlChannelStore) AutocompleteInTeamForSearch(teamID string, userID strin
 
 	channels = append(channels, directChannels...)
 
-	sort.Slice(channels, func(a, b int) bool {
-		return strings.ToLower(channels[a].DisplayName) < strings.ToLower(channels[b].DisplayName)
+	slices.SortFunc(channels, func(a, b *model.Channel) int {
+		return cmp.Compare(strings.ToLower(a.DisplayName), strings.ToLower(b.DisplayName))
 	})
 
 	return channels, nil
@@ -4421,13 +4446,7 @@ func (s SqlChannelStore) GetChannelsBatchForIndexing(startTime int64, startChann
 	query := s.getQueryBuilder().
 		Select(channelSliceColumns(false)...).
 		From("Channels").
-		Where(sq.Or{
-			sq.Gt{"CreateAt": startTime},
-			sq.And{
-				sq.Eq{"CreateAt": startTime},
-				sq.Gt{"Id": startChannelID},
-			},
-		}).
+		Where("(CreateAt, Id) > (?, ?)", startTime, startChannelID).
 		Where(sq.Eq{"Type": messageChannelTypes}).
 		OrderBy("CreateAt ASC", "Id ASC").
 		Limit(uint64(limit))

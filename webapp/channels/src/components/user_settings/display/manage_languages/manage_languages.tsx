@@ -47,7 +47,7 @@ type State = {
 };
 
 export class ManageLanguage extends React.PureComponent<Props, State> {
-    reactSelectContainer: React.RefObject<HTMLDivElement>;
+    reactSelectContainer: React.RefObject<HTMLDivElement | null>;
     constructor(props: Props) {
         super(props);
         const userLocale = props.locale;
@@ -95,9 +95,14 @@ export class ManageLanguage extends React.PureComponent<Props, State> {
 
     handleKeyDown = (e: React.KeyboardEvent) => {
         const modalBody = document.querySelector('.modal-body');
-        if (isKeyPressed(e, Constants.KeyCodes.ENTER)) {
-            modalBody?.classList.add('no-scroll');
-            this.setState({openMenu: true});
+
+        // Space/Enter open the controlled menu (react-select Space alone is unreliable
+        // when menuIsOpen is controlled and the control was not focused on mount).
+        if (isKeyPressed(e, Constants.KeyCodes.ENTER) || isKeyPressed(e, Constants.KeyCodes.SPACE)) {
+            if (!this.state.openMenu) {
+                modalBody?.classList.add('no-scroll');
+                this.setState({openMenu: true});
+            }
         }
     };
 

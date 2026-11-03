@@ -2,12 +2,13 @@
 // See LICENSE.txt for license information.
 
 import React, {PureComponent} from 'react';
-import type {ChangeEventHandler, FormEvent, MouseEvent} from 'react';
+import type {ChangeEventHandler, FormEvent, JSX, MouseEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 import {Link} from 'react-router-dom';
 
-import {buttonClassNames} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 import type {IncomingWebhook} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
 
@@ -15,6 +16,8 @@ import BackstageHeader from 'components/backstage/components/backstage_header';
 import ChannelSelect from 'components/channel_select';
 import FormError from 'components/form_error';
 import SpinnerButton from 'components/spinner_button';
+
+import {usernameFromDisplayName} from 'utils/username';
 
 interface State {
     displayName: string;
@@ -82,6 +85,9 @@ interface Props {
 }
 
 export default class AbstractIncomingWebhook extends PureComponent<Props, State> {
+    // Whether the user typed their own username, which stops it from following the display name.
+    private usernameEdited = false;
+
     constructor(props: Props | Readonly<Props>) {
         super(props);
 
@@ -149,8 +155,15 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
     };
 
     updateDisplayName: ChangeEventHandler<HTMLInputElement> = (e) => {
+        const displayName = e.target.value;
+        if (this.props.initialHook || !this.props.enablePostUsernameOverride || this.usernameEdited) {
+            this.setState({displayName});
+            return;
+        }
+
         this.setState({
-            displayName: e.target.value,
+            displayName,
+            username: usernameFromDisplayName(displayName),
         });
     };
 
@@ -173,6 +186,7 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
     };
 
     updateUsername: ChangeEventHandler<HTMLInputElement> = (e) => {
+        this.usernameEdited = e.target.value !== '';
         this.setState({
             username: e.target.value,
         });
@@ -298,10 +312,10 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
                                         defaultMessage='Lock to this channel'
                                     />
                                 </label>
-                                <div className='col-md-5 col-sm-8 checkbox'>
-                                    <input
+                                <div className='col-md-5 col-sm-8'>
+                                    <Checkbox
                                         id='channelLocked'
-                                        type='checkbox'
+                                        className='backstage-form__checkbox'
                                         checked={this.state.channelLocked}
                                         onChange={this.updateChannelLocked}
                                     />
@@ -377,15 +391,17 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
                                 type='backstage'
                                 errors={[this.props.serverError, this.state.clientError]}
                             />
-                            <Link
-                                className={buttonClassNames({emphasis: 'tertiary'})}
-                                to={`/${this.props.team.name}/integrations/incoming_webhooks`}
+                            <Button
+                                asChild={true}
+                                emphasis='tertiary'
                             >
-                                <FormattedMessage
-                                    id='add_incoming_webhook.cancel'
-                                    defaultMessage='Cancel'
-                                />
-                            </Link>
+                                <Link to={`/${this.props.team.name}/integrations/incoming_webhooks`}>
+                                    <FormattedMessage
+                                        id='add_incoming_webhook.cancel'
+                                        defaultMessage='Cancel'
+                                    />
+                                </Link>
+                            </Button>
                             <SpinnerButton
                                 type='submit'
                                 spinning={this.state.saving}

@@ -57,7 +57,9 @@ const FilterList = ({
                 {option.name}
             </div>
 
-            {valuesToRender}
+            <div className='FilterList_items'>
+                {valuesToRender}
+            </div>
         </div>
     );
 };

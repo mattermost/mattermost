@@ -1,19 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect, useMemo, useCallback} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import React, {useState, useEffect, useMemo, useCallback, type JSX} from 'react';
+import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 
+import {PlusIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
 import {GenericModal} from '@mattermost/components';
-import {Button} from '@mattermost/shared/components/button';
 import type {AccessControlPolicy} from '@mattermost/types/access_control';
+import {getAutoAddFromRules} from '@mattermost/types/access_control';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import type {Row, Column} from 'components/admin_console/data_grid/data_grid';
 import DataGrid from 'components/admin_console/data_grid/data_grid';
 import * as Menu from 'components/menu';
-import SectionNotice from 'components/section_notice';
+import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
 import {getHistory} from 'utils/browser_history';
 
@@ -27,7 +31,7 @@ function policyHasMaskedValues(policy: AccessControlPolicy): boolean {
 
 type Props = {
 
-    // The second argument reports the policy's own active flag so the team
+    // The second argument reports the policy's own auto-add setting so the team
     // assignment flow can seed the team child's auto-add from the parent policy.
     // Callers that don't need it can ignore the argument.
     onPolicySelected?: (policy: AccessControlPolicy, autoAdd?: boolean) => void;
@@ -43,6 +47,21 @@ type Props = {
 };
 
 const PAGE_SIZE = 10;
+
+const panelMessages = defineMessages({
+    title: {
+        id: 'admin.access_control.policies.title',
+        defaultMessage: 'Membership Policies',
+    },
+    description: {
+        id: 'admin.access_control.policies.description',
+        defaultMessage: 'Create policies containing attribute-based membership rules and the channels they apply to.',
+    },
+    addPolicy: {
+        id: 'admin.access_control.policies.add_policy',
+        defaultMessage: 'Add policy',
+    },
+});
 
 export default function PolicyList(props: Props): JSX.Element {
     const [policies, setPolicies] = useState<AccessControlPolicy[]>([]);
@@ -274,7 +293,7 @@ export default function PolicyList(props: Props): JSX.Element {
                                         id={`policy-menu-edit-${policy.id}`}
                                         onClick={() => {
                                             if (props.onPolicySelected) {
-                                                props.onPolicySelected(policy, Boolean(policy.active));
+                                                props.onPolicySelected(policy, getAutoAddFromRules(policy.rules));
                                             } else {
                                                 history.push(`/admin_console/system_attributes/membership_policies/edit_policy/${policy.id}`);
                                             }
@@ -314,7 +333,7 @@ export default function PolicyList(props: Props): JSX.Element {
                 },
                 onClick: () => {
                     if (props.onPolicySelected) {
-                        props.onPolicySelected(policy, Boolean(policy.active));
+                        props.onPolicySelected(policy, getAutoAddFromRules(policy.rules));
                     } else {
                         history.push(`/admin_console/system_attributes/membership_policies/edit_policy/${policy.id}`);
                     }
@@ -421,112 +440,111 @@ export default function PolicyList(props: Props): JSX.Element {
         minHeight: `${rows.length * 40}px`,
     };
 
-    return (
-        <div className='PolicyTable'>
-            {!props.simpleMode && !props.hideHeader && (
-                <div className='policy-header'>
-                    <div className='policy-header-text'>
-                        <h1>
-                            <FormattedMessage
-                                id='admin.access_control.policies.title'
-                                defaultMessage='Membership Policies'
-                            />
-                        </h1>
-                        <p>
-                            <FormattedMessage
-                                id='admin.access_control.policies.description'
-                                defaultMessage='Create policies containing attribute-based membership rules and the channels they apply to.'
-                            />
-                        </p>
-                    </div>
-                    <Button
-                        emphasis='primary'
-                        onClick={() => {
-                            history.push('/admin_console/system_attributes/membership_policies/edit_policy');
-                        }}
-                    >
-                        <i className='icon icon-plus'/>
-                        <span>
-                            <FormattedMessage
-                                id='admin.access_control.policies.add_policy'
-                                defaultMessage='Add policy'
-                            />
-                        </span>
-                    </Button>
-                </div>
-            )}
-            <DataGrid
-                columns={columns}
-                rows={rows}
-                loading={loading}
-                startCount={startCount}
-                endCount={endCount}
-                total={total}
-                onSearch={onSearch}
-                term={search}
-                placeholderEmpty={placeholderEmpty}
-                rowsContainerStyles={rowsContainerStyles}
-                nextPage={nextPage}
-                previousPage={previousPage}
-                extraComponent={props.showRefreshButton ? (
-                    <button
-                        className='style--none policy-refresh-btn'
-                        onClick={() => fetchPolicies(search, '', true)}
-                        aria-label={intl.formatMessage({id: 'admin.access_control.policies.refresh', defaultMessage: 'Refresh list'})}
-                        title={intl.formatMessage({id: 'admin.access_control.policies.refresh', defaultMessage: 'Refresh list'})}
-                    >
-                        <i className='icon icon-refresh'/>
-                    </button>
-                ) : undefined}
-            />
-            {pendingDeletePolicy && (
-                <GenericModal
-                    onExited={() => {
-                        setPendingDeletePolicy(null);
-                        setDeleteError(null);
-                    }}
-                    handleConfirm={confirmDelete}
-                    handleCancel={() => {
-                        setPendingDeletePolicy(null);
-                        setDeleteError(null);
-                    }}
-                    modalHeaderText={
-                        <FormattedMessage
-                            id='admin.access_control.policy.edit_policy.delete_confirmation.title'
-                            defaultMessage='Confirm Policy Deletion'
-                        />
-                    }
-                    confirmButtonText={
-                        <FormattedMessage
-                            id='admin.access_control.policy.edit_policy.delete_confirmation.confirm_button'
-                            defaultMessage='Delete Policy'
-                        />
-                    }
-                    confirmButtonVariant='destructive'
-                    compassDesign={true}
+    const dataGrid = (
+        <DataGrid
+            columns={columns}
+            rows={rows}
+            loading={loading}
+            startCount={startCount}
+            endCount={endCount}
+            total={total}
+            onSearch={onSearch}
+            term={search}
+            placeholderEmpty={placeholderEmpty}
+            rowsContainerStyles={rowsContainerStyles}
+            nextPage={nextPage}
+            previousPage={previousPage}
+            extraComponent={props.showRefreshButton ? (
+                <button
+                    className='style--none policy-refresh-btn'
+                    onClick={() => fetchPolicies(search, '', true)}
+                    aria-label={intl.formatMessage({id: 'admin.access_control.policies.refresh', defaultMessage: 'Refresh list'})}
+                    title={intl.formatMessage({id: 'admin.access_control.policies.refresh', defaultMessage: 'Refresh list'})}
                 >
-                    <>
-                        <FormattedMessage
-                            id='admin.access_control.policy.edit_policy.delete_confirmation.message'
-                            defaultMessage='Are you sure you want to delete this policy? This action cannot be undone.'
-                        />
-                        {deleteError && (
-                            <div className='admin-console__warning-notice EditPolicy__masked-values-warning'>
-                                <SectionNotice
-                                    type='danger'
-                                    title={
-                                        <FormattedMessage
-                                            id='admin.access_control.delete_policy.error_title'
-                                            defaultMessage='Unable to delete policy'
-                                        />
-                                    }
-                                    text={deleteError}
+                    <i className='icon icon-refresh'/>
+                </button>
+            ) : undefined}
+        />
+    );
+
+    const deleteModal = pendingDeletePolicy && (
+        <GenericModal
+            onExited={() => {
+                setPendingDeletePolicy(null);
+                setDeleteError(null);
+            }}
+            handleConfirm={confirmDelete}
+            handleCancel={() => {
+                setPendingDeletePolicy(null);
+                setDeleteError(null);
+            }}
+            modalHeaderText={
+                <FormattedMessage
+                    id='admin.access_control.policy.edit_policy.delete_confirmation.title'
+                    defaultMessage='Confirm Policy Deletion'
+                />
+            }
+            confirmButtonText={
+                <FormattedMessage
+                    id='admin.access_control.policy.edit_policy.delete_confirmation.confirm_button'
+                    defaultMessage='Delete Policy'
+                />
+            }
+            destructive={true}
+            compassDesign={true}
+        >
+            <>
+                <FormattedMessage
+                    id='admin.access_control.policy.edit_policy.delete_confirmation.message'
+                    defaultMessage='Are you sure you want to delete this policy? This action cannot be undone.'
+                />
+                {deleteError && (
+                    <div className='admin-console__warning-notice EditPolicy__masked-values-warning'>
+                        <SectionNotice
+                            type='danger'
+                            title={
+                                <FormattedMessage
+                                    id='admin.access_control.delete_policy.error_title'
+                                    defaultMessage='Unable to delete policy'
                                 />
-                            </div>
-                        )}
-                    </>
-                </GenericModal>
-            )}
-        </div>
+                            }
+                            description={deleteError}
+                        />
+                    </div>
+                )}
+            </>
+        </GenericModal>
+    );
+
+    if (props.simpleMode || props.hideHeader) {
+        return (
+            <div className='PolicyTable'>
+                {dataGrid}
+                {deleteModal}
+            </div>
+        );
+    }
+
+    return (
+        <AdminPanel
+            id='membership_policies'
+            className='PolicyTable'
+            title={panelMessages.title}
+            subtitle={panelMessages.description}
+            button={
+                <Button
+                    emphasis='primary'
+                    onClick={() => {
+                        history.push('/admin_console/system_attributes/membership_policies/edit_policy');
+                    }}
+                    leadingIcon={<Icon glyph={<PlusIcon/>}/>}
+                >
+                    <FormattedMessage {...panelMessages.addPolicy}/>
+                </Button>
+            }
+        >
+            {dataGrid}
+            {deleteModal}
+        </AdminPanel>
     );
 }

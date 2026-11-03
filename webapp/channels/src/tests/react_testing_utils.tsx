@@ -42,7 +42,7 @@ export type FullContextOptions = {
 };
 
 export const renderWithContext = (
-    component: React.ReactElement,
+    component: React.ReactElement<any>,
     initialState: DeepPartial<GlobalState> = {},
     partialOptions?: FullContextOptions,
 ) => {
@@ -73,7 +73,7 @@ export const renderWithContext = (
 
     return {
         ...results,
-        rerender: (newComponent: React.ReactElement) => {
+        rerender: (newComponent: React.ReactElement<any>) => {
             renderState.component = newComponent;
 
             results.rerender(renderState.component);

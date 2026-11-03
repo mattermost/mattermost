@@ -6,6 +6,8 @@ import React from 'react';
 import SettingItemMax from 'components/setting_item_max';
 
 import {renderWithContext, userEvent} from 'tests/react_testing_utils';
+import {A11yCustomEventTypes} from 'utils/constants';
+import type {A11yFocusEventDetail} from 'utils/constants';
 
 describe('components/SettingItemMax', () => {
     const baseProps = {
@@ -100,5 +102,59 @@ describe('components/SettingItemMax', () => {
 
         await userEvent.keyboard('{enter}');
         expect(baseProps.submit).toHaveBeenCalledTimes(1);
+    });
+
+    test('should focus react-select-like tabindex control on mount, not Save/Cancel', () => {
+        const focusListener = jest.fn();
+        document.addEventListener(A11yCustomEventTypes.FOCUS, focusListener);
+
+        const props = {
+            ...baseProps,
+            inputs: (
+                <div
+                    data-testid='react-select-control'
+                    role='combobox'
+                    tabIndex={0}
+                />
+            ),
+        };
+
+        renderWithContext(<SettingItemMax {...props}/>);
+
+        expect(focusListener).toHaveBeenCalled();
+        const focusEvent = focusListener.mock.calls[0][0] as CustomEvent<A11yFocusEventDetail>;
+        expect(focusEvent.detail.target).toHaveAttribute('data-testid', 'react-select-control');
+
+        document.removeEventListener(A11yCustomEventTypes.FOCUS, focusListener);
+    });
+
+    test('should prefer checked radio over tabindex control on mount', () => {
+        const focusListener = jest.fn();
+        document.addEventListener(A11yCustomEventTypes.FOCUS, focusListener);
+
+        const props = {
+            ...baseProps,
+            inputs: (
+                <>
+                    <input
+                        data-testid='checked-radio'
+                        type='radio'
+                        defaultChecked={true}
+                    />
+                    <div
+                        data-testid='tabindex-control'
+                        tabIndex={0}
+                    />
+                </>
+            ),
+        };
+
+        renderWithContext(<SettingItemMax {...props}/>);
+
+        expect(focusListener).toHaveBeenCalled();
+        const focusEvent = focusListener.mock.calls[0][0] as CustomEvent<A11yFocusEventDetail>;
+        expect(focusEvent.detail.target).toHaveAttribute('data-testid', 'checked-radio');
+
+        document.removeEventListener(A11yCustomEventTypes.FOCUS, focusListener);
     });
 });

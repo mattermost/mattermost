@@ -14,7 +14,7 @@ import type {EmojisState} from './emojis';
 import type {FilesState} from './files';
 import type {GeneralState} from './general';
 import type {GroupsState} from './groups';
-import type {HostedCustomerState} from './hosted_customer';
+import type {HealthState} from './health';
 import type {IntegrationsState} from './integrations';
 import type {JobsState} from './jobs';
 import type {LimitsState} from './limits';
@@ -22,6 +22,7 @@ import type {PostsState} from './posts';
 import type {PreferenceType} from './preferences';
 import type {PropertiesState} from './properties';
 import type {Recap, ScheduledRecap, RecapLimitStatus} from './recaps';
+import type {RenderPermissionsState} from './render_permissions';
 import type {
     AdminRequestsStatuses, ChannelsRequestsStatuses,
     FilesRequestsStatuses, GeneralRequestsStatuses,
@@ -96,7 +97,6 @@ export type GlobalState = {
         channelCategories: ChannelCategoriesState;
         apps: AppsState;
         cloud: CloudState;
-        hostedCustomer: HostedCustomerState;
         usage: CloudUsage;
         scheduledPosts: ScheduledPostsState;
         sharedChannels?: {
@@ -105,6 +105,8 @@ export type GlobalState = {
         };
         contentFlagging: ContentFlaggingState;
         properties: PropertiesState;
+        renderPermissions: RenderPermissionsState;
+        health: HealthState;
     };
     errors: any[];
     requests: {

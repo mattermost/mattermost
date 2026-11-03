@@ -4,7 +4,6 @@
 package app
 
 import (
-	"context"
 	"fmt"
 	"testing"
 
@@ -12,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -537,7 +537,7 @@ type mokeUserStore struct {
 	store.UserStore
 }
 
-func (us *mokeUserStore) Get(_ context.Context, id string) (*model.User, error) {
+func (us *mokeUserStore) Get(_ request.CTX, id string) (*model.User, error) {
 	return nil, fmt.Errorf("some error for %s", id)
 }
 

@@ -68,6 +68,10 @@ export function getLanguageName(language: string): string {
     return '';
 }
 
+export function getLanguageFromDisplayName(displayName: string): string {
+    return Object.keys(HighlightedLanguages).find((key) => HighlightedLanguages[key].name === displayName) ?? '';
+}
+
 function getLanguageFromNameOrAlias(name: string) {
     const langName: string = name.toLowerCase();
     if (HighlightedLanguages[langName]) {
@@ -78,6 +82,10 @@ function getLanguageFromNameOrAlias(name: string) {
         const aliases = HighlightedLanguages[key].aliases;
         return aliases && aliases.find((a) => a === langName);
     });
+}
+
+export function isMarkdownLanguage(language: string): boolean {
+    return getLanguageFromNameOrAlias(language) === 'markdown';
 }
 
 async function registerLanguage(languageName: string) {

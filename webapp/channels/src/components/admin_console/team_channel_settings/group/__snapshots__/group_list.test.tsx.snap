@@ -101,7 +101,8 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
         1 - 1 of 1
       </div>
       <button
-        class="btn btn-tertiary disabled"
+        class="btn btn-quaternary btn-sm btn-icon ml-2 prev disabled"
+        data-testid="page-link-prev"
         disabled=""
         type="button"
       >
@@ -111,7 +112,7 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
         />
       </button>
       <button
-        class="btn btn-tertiary disabled"
+        class="btn btn-quaternary btn-sm btn-icon next disabled"
         data-testid="page-link-next"
         disabled=""
         type="button"
@@ -731,7 +732,8 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
         1 - 10 of 30
       </div>
       <button
-        class="btn btn-tertiary disabled"
+        class="btn btn-quaternary btn-sm btn-icon ml-2 prev disabled"
+        data-testid="page-link-prev"
         disabled=""
         type="button"
       >
@@ -741,7 +743,7 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
         />
       </button>
       <button
-        class="btn btn-tertiary"
+        class="btn btn-quaternary btn-sm btn-icon next"
         data-testid="page-link-next"
         type="button"
       >

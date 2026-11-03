@@ -8,6 +8,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 func (a *App) GenerateAndSaveDesktopToken(createAt int64, user *model.User) (*string, *model.AppError) {
@@ -24,7 +25,7 @@ func (a *App) GenerateAndSaveDesktopToken(createAt int64, user *model.User) (*st
 	return &token, nil
 }
 
-func (a *App) ValidateDesktopToken(token string, expiryTime int64) (*model.User, *model.AppError) {
+func (a *App) ValidateDesktopToken(rctx request.CTX, token string, expiryTime int64) (*model.User, *model.AppError) {
 	// Atomically consume the token: delete it and return its UserId in one operation.
 	// This prevents duplicate sessions from concurrent requests racing on the same token.
 	userId, err := a.Srv().Store().DesktopTokens().ConsumeToken(token, expiryTime)
@@ -37,7 +38,7 @@ func (a *App) ValidateDesktopToken(token string, expiryTime int64) (*model.User,
 	}
 
 	// Get the user profile
-	user, userErr := a.GetUser(*userId)
+	user, userErr := a.GetUser(rctx, *userId)
 	if userErr != nil {
 		return nil, model.NewAppError("ValidateDesktopToken", "app.desktop_token.validate.no_user", nil, "", http.StatusInternalServerError).Wrap(userErr)
 	}

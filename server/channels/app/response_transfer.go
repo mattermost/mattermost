@@ -4,11 +4,13 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 type PluginResponseWriter struct {
@@ -16,6 +18,7 @@ type PluginResponseWriter struct {
 	headers       http.Header
 	statusCode    int
 	ResponseReady chan struct{}
+	readyOnce     sync.Once
 }
 
 func NewPluginResponseWriter(pw *io.PipeWriter) *PluginResponseWriter {
@@ -33,13 +36,10 @@ func (rt *PluginResponseWriter) Header() http.Header {
 	return rt.headers
 }
 
-// markResponseReady safely closes the ResponseReady channel if not already closed
+// markResponseReady closes ResponseReady exactly once. It may be called concurrently
+// by the plugin handler and request-cancellation cleanup.
 func (rt *PluginResponseWriter) markResponseReady() {
-	select {
-	case <-rt.ResponseReady:
-	default:
-		close(rt.ResponseReady)
-	}
+	rt.readyOnce.Do(func() { close(rt.ResponseReady) })
 }
 
 func (rt *PluginResponseWriter) Write(data []byte) (int, error) {
@@ -74,14 +74,15 @@ func parseContentLength(cl string) int64 {
 	return n
 }
 
-func (rt *PluginResponseWriter) GenerateResponse(pr *io.PipeReader) *http.Response {
+func (rt *PluginResponseWriter) GenerateResponse(ctx context.Context, pr *io.PipeReader, cancel context.CancelFunc) *http.Response {
+	body := newPluginResponseBody(ctx, cancel, pr)
 	res := &http.Response{
 		Proto:      "HTTP/1.1",
 		ProtoMajor: 1,
 		ProtoMinor: 1,
 		StatusCode: rt.statusCode,
 		Header:     rt.headers.Clone(),
-		Body:       pr,
+		Body:       body,
 	}
 
 	if res.StatusCode == 0 {
@@ -96,13 +97,63 @@ func (rt *PluginResponseWriter) GenerateResponse(pr *io.PipeReader) *http.Respon
 }
 
 func (rt *PluginResponseWriter) CloseWithError(err error) error {
-	// Ensure ResponseReady is closed to prevent deadlock
 	rt.markResponseReady()
 	return rt.pipeWriter.CloseWithError(err)
 }
 
 func (rt *PluginResponseWriter) Close() error {
-	// Ensure ResponseReady is closed to prevent deadlock
 	rt.markResponseReady()
 	return rt.pipeWriter.Close()
+}
+
+// pluginResponseBody ties the request lifetime to the returned response body.
+// Context cancellation unblocks reads, while closing the body cancels any
+// remaining destination work.
+type pluginResponseBody struct {
+	ctx                 context.Context
+	cancel              context.CancelFunc
+	reader              *io.PipeReader
+	stopContextCallback func() bool
+}
+
+func newPluginResponseBody(ctx context.Context, cancel context.CancelFunc, reader *io.PipeReader) io.ReadCloser {
+	body := &pluginResponseBody{ctx: ctx, cancel: cancel, reader: reader}
+	body.stopContextCallback = context.AfterFunc(ctx, func() {
+		_ = body.closeFromContext(ctx.Err())
+	})
+	return body
+}
+
+func (b *pluginResponseBody) Read(p []byte) (int, error) {
+	if err := b.ctx.Err(); err != nil {
+		_ = b.closeFromContext(err)
+		return 0, err
+	}
+
+	n, err := b.reader.Read(p)
+	if ctxErr := b.ctx.Err(); ctxErr != nil {
+		_ = b.closeFromContext(ctxErr)
+		return 0, ctxErr
+	}
+	if err != nil {
+		_ = b.Close()
+	}
+	return n, err
+}
+
+func (b *pluginResponseBody) Close() error {
+	if b.stopContextCallback != nil {
+		b.stopContextCallback()
+	}
+	return b.closeWithError(nil)
+}
+
+func (b *pluginResponseBody) closeFromContext(err error) error {
+	return b.closeWithError(err)
+}
+
+func (b *pluginResponseBody) closeWithError(err error) error {
+	closeErr := b.reader.CloseWithError(err)
+	b.cancel()
+	return closeErr
 }

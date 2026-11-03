@@ -9,106 +9,473 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
     aria-hidden="true"
   />
   <div
-    role="none"
+    class="fade modal-backdrop in"
+  />
+  <div
+    aria-labelledby="shortcutsModalLabel"
+    aria-modal="true"
+    class="fade in modal"
+    role="dialog"
+    style="display: block; padding-right: 0px;"
+    tabindex="-1"
   >
     <div
-      class="fade modal-backdrop in"
-    />
-    <div
-      aria-labelledby="shortcutsModalLabel"
-      class="fade in modal"
-      role="dialog"
-      style="display: block; padding-right: 0px;"
-      tabindex="-1"
+      class="a11y__modal shortcuts-modal modal-dialog"
     >
       <div
-        class="a11y__modal shortcuts-modal modal-dialog"
+        class="modal-content"
+        role="document"
       >
         <div
-          class="modal-content"
-          role="document"
+          class="shortcuts-content"
         >
           <div
-            class="shortcuts-content"
+            class="divider modal-header"
+          >
+            <button
+              aria-label="Close"
+              class="close"
+              type="button"
+            >
+              <span
+                aria-hidden="true"
+              >
+                ×
+              </span>
+              <span
+                class="sr-only"
+              >
+                Close
+              </span>
+            </button>
+            <h1
+              class="modal-title"
+              id="shortcutsModalLabel"
+            >
+              <strong>
+                <div
+                  class="shortcut-line"
+                >
+                  <span>
+                    Keyboard shortcuts
+                  </span>
+                  <mark
+                    class="shortcut-key shortcut-key--shortcut-modal"
+                  >
+                    Ctrl
+                  </mark>
+                  <mark
+                    class="shortcut-key shortcut-key--shortcut-modal"
+                  >
+                    /
+                  </mark>
+                </div>
+              </strong>
+            </h1>
+          </div>
+          <div
+            class="modal-body"
+            tabindex="0"
           >
             <div
-              class="divider modal-header"
-            >
-              <button
-                aria-label="Close"
-                class="close"
-                type="button"
-              >
-                <span
-                  aria-hidden="true"
-                >
-                  ×
-                </span>
-                <span
-                  class="sr-only"
-                >
-                  Close
-                </span>
-              </button>
-              <h1
-                class="modal-title"
-                id="shortcutsModalLabel"
-              >
-                <strong>
-                  <div
-                    class="shortcut-line"
-                  >
-                    <span>
-                      Keyboard shortcuts
-                    </span>
-                    <mark
-                      class="shortcut-key shortcut-key--shortcut-modal"
-                    >
-                      Ctrl
-                    </mark>
-                    <mark
-                      class="shortcut-key shortcut-key--shortcut-modal"
-                    >
-                      /
-                    </mark>
-                  </div>
-                </strong>
-              </h1>
-            </div>
+              tabindex="-1"
+            />
             <div
-              class="modal-body"
-              tabindex="0"
+              class="row"
             >
               <div
-                tabindex="-1"
-              />
-              <div
-                class="row"
+                class="col-sm-4"
               >
                 <div
-                  class="col-sm-4"
+                  class="section"
                 >
-                  <div
-                    class="section"
-                  >
-                    <div>
-                      <h3
-                        class="section-title"
+                  <div>
+                    <h3
+                      class="section-title"
+                    >
+                      <strong>
+                        Navigation
+                      </strong>
+                    </h3>
+                    <div
+                      class="shortcut-line"
+                    >
+                      <span>
+                        Previous channel:
+                      </span>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
                       >
-                        <strong>
-                          Navigation
-                        </strong>
-                      </h3>
+                        Alt
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Up
+                      </mark>
+                    </div>
+                    <div
+                      class="shortcut-line"
+                    >
+                      <span>
+                        Next channel:
+                      </span>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Alt
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Down
+                      </mark>
+                    </div>
+                    <div
+                      class="shortcut-line"
+                    >
+                      <span>
+                        Previous unread channel:
+                      </span>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Alt
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Shift
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Up
+                      </mark>
+                    </div>
+                    <div
+                      class="shortcut-line"
+                    >
+                      <span>
+                        Next unread channel:
+                      </span>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Alt
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Shift
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Down
+                      </mark>
+                    </div>
+                    <div
+                      class="shortcut-line"
+                    >
+                      <span>
+                        Previous team:
+                      </span>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Ctrl
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Alt
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Up
+                      </mark>
+                    </div>
+                    <div
+                      class="shortcut-line"
+                    >
+                      <span>
+                        Next team:
+                      </span>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Ctrl
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Alt
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Down
+                      </mark>
+                    </div>
+                    <div
+                      class="shortcut-line"
+                    >
+                      <span>
+                        Navigate to a specific team:
+                      </span>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Ctrl
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Alt
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        [1-9]
+                      </mark>
+                    </div>
+                    <div
+                      class="shortcut-line"
+                    >
+                      <span>
+                        Quick channel navigation:
+                      </span>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Ctrl
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        K
+                      </mark>
+                    </div>
+                    <div
+                      class="shortcut-line"
+                    >
+                      <span>
+                        Direct messages menu:
+                      </span>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Ctrl
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Shift
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        K
+                      </mark>
+                    </div>
+                    <div
+                      class="shortcut-line"
+                    >
+                      <span>
+                        Settings:
+                      </span>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Ctrl
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Shift
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        A
+                      </mark>
+                    </div>
+                    <div
+                      class="shortcut-line"
+                    >
+                      <span>
+                        Recent mentions:
+                      </span>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Ctrl
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Shift
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        M
+                      </mark>
+                    </div>
+                    <div
+                      class="shortcut-line"
+                    >
+                      <span>
+                        Set focus to input field:
+                      </span>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Ctrl
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Shift
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        L
+                      </mark>
+                    </div>
+                    <div
+                      class="shortcut-line"
+                    >
+                      <span>
+                        Open or close the right sidebar:
+                      </span>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Ctrl
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        .
+                      </mark>
+                    </div>
+                    <div
+                      class="shortcut-line"
+                    >
+                      <span>
+                        Expand the right sidebar:
+                      </span>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Ctrl
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Shift
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        .
+                      </mark>
+                    </div>
+                    <div
+                      class="shortcut-line"
+                    >
+                      <span>
+                        View channel info:
+                      </span>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Ctrl
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Alt
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        I
+                      </mark>
+                    </div>
+                    <div
+                      class="shortcut-line"
+                    >
+                      <span>
+                        Toggle unread/all channels:
+                      </span>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Ctrl
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Shift
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        U
+                      </mark>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="col-sm-4"
+              >
+                <div
+                  class="section"
+                >
+                  <div>
+                    <h3
+                      class="section-title"
+                    >
+                      <strong>
+                        Messages
+                      </strong>
+                    </h3>
+                    <div
+                      class="subsection"
+                    >
+                      <h4
+                        class="subsection-title"
+                      >
+                        Works inside an empty input field
+                      </h4>
                       <div
                         class="shortcut-line"
                       >
                         <span>
-                          Previous channel:
+                          Edit last message in channel:
                         </span>
                         <mark
                           class="shortcut-key shortcut-key--shortcut-modal"
                         >
-                          Alt
+                          Up
+                        </mark>
+                      </div>
+                      <div
+                        class="shortcut-line"
+                      >
+                        <span>
+                          Reply to last message in channel:
+                        </span>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          Shift
                         </mark>
                         <mark
                           class="shortcut-key shortcut-key--shortcut-modal"
@@ -120,34 +487,34 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
                         class="shortcut-line"
                       >
                         <span>
-                          Next channel:
+                          React to last message:
                         </span>
                         <mark
                           class="shortcut-key shortcut-key--shortcut-modal"
                         >
-                          Alt
+                          Ctrl
                         </mark>
                         <mark
                           class="shortcut-key shortcut-key--shortcut-modal"
                         >
-                          Down
+                          Shift
+                        </mark>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          ⧵
                         </mark>
                       </div>
                       <div
                         class="shortcut-line"
                       >
                         <span>
-                          Previous unread channel:
+                          Reprint previous message:
                         </span>
                         <mark
                           class="shortcut-key shortcut-key--shortcut-modal"
                         >
-                          Alt
-                        </mark>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          Shift
+                          Ctrl
                         </mark>
                         <mark
                           class="shortcut-key shortcut-key--shortcut-modal"
@@ -159,17 +526,12 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
                         class="shortcut-line"
                       >
                         <span>
-                          Next unread channel:
+                          Reprint next message:
                         </span>
                         <mark
                           class="shortcut-key shortcut-key--shortcut-modal"
                         >
-                          Alt
-                        </mark>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          Shift
+                          Ctrl
                         </mark>
                         <mark
                           class="shortcut-key shortcut-key--shortcut-modal"
@@ -177,55 +539,95 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
                           Down
                         </mark>
                       </div>
+                    </div>
+                    <div
+                      class="subsection"
+                    >
+                      <h4
+                        class="subsection-title"
+                      >
+                        Autocomplete
+                      </h4>
                       <div
                         class="shortcut-line"
                       >
                         <span>
-                          Previous team:
+                          Username:
                         </span>
                         <mark
                           class="shortcut-key shortcut-key--shortcut-modal"
                         >
-                          Ctrl
+                          @
                         </mark>
                         <mark
                           class="shortcut-key shortcut-key--shortcut-modal"
                         >
-                          Alt
+                          [a-z]
                         </mark>
                         <mark
                           class="shortcut-key shortcut-key--shortcut-modal"
                         >
-                          Up
+                          Tab
                         </mark>
                       </div>
                       <div
                         class="shortcut-line"
                       >
                         <span>
-                          Next team:
+                          Channel:
                         </span>
                         <mark
                           class="shortcut-key shortcut-key--shortcut-modal"
                         >
-                          Ctrl
+                          ~
                         </mark>
                         <mark
                           class="shortcut-key shortcut-key--shortcut-modal"
                         >
-                          Alt
+                          [a-z]
                         </mark>
                         <mark
                           class="shortcut-key shortcut-key--shortcut-modal"
                         >
-                          Down
+                          Tab
                         </mark>
                       </div>
                       <div
                         class="shortcut-line"
                       >
                         <span>
-                          Navigate to a specific team:
+                          Emoji:
+                        </span>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          :
+                        </mark>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          [a-z]
+                        </mark>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          Tab
+                        </mark>
+                      </div>
+                    </div>
+                    <div
+                      class="subsection"
+                    >
+                      <h4
+                        class="subsection-title"
+                      >
+                        Formatting
+                      </h4>
+                      <div
+                        class="shortcut-line"
+                      >
+                        <span>
+                          Bold:
                         </span>
                         <mark
                           class="shortcut-key shortcut-key--shortcut-modal"
@@ -235,173 +637,19 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
                         <mark
                           class="shortcut-key shortcut-key--shortcut-modal"
                         >
-                          Alt
-                        </mark>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          [1-9]
+                          B
                         </mark>
                       </div>
                       <div
                         class="shortcut-line"
                       >
                         <span>
-                          Quick channel navigation:
+                          Italic:
                         </span>
                         <mark
                           class="shortcut-key shortcut-key--shortcut-modal"
                         >
                           Ctrl
-                        </mark>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          K
-                        </mark>
-                      </div>
-                      <div
-                        class="shortcut-line"
-                      >
-                        <span>
-                          Direct messages menu:
-                        </span>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          Ctrl
-                        </mark>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          Shift
-                        </mark>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          K
-                        </mark>
-                      </div>
-                      <div
-                        class="shortcut-line"
-                      >
-                        <span>
-                          Settings:
-                        </span>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          Ctrl
-                        </mark>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          Shift
-                        </mark>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          A
-                        </mark>
-                      </div>
-                      <div
-                        class="shortcut-line"
-                      >
-                        <span>
-                          Recent mentions:
-                        </span>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          Ctrl
-                        </mark>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          Shift
-                        </mark>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          M
-                        </mark>
-                      </div>
-                      <div
-                        class="shortcut-line"
-                      >
-                        <span>
-                          Set focus to input field:
-                        </span>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          Ctrl
-                        </mark>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          Shift
-                        </mark>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          L
-                        </mark>
-                      </div>
-                      <div
-                        class="shortcut-line"
-                      >
-                        <span>
-                          Open or close the right sidebar:
-                        </span>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          Ctrl
-                        </mark>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          .
-                        </mark>
-                      </div>
-                      <div
-                        class="shortcut-line"
-                      >
-                        <span>
-                          Expand the right sidebar:
-                        </span>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          Ctrl
-                        </mark>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          Shift
-                        </mark>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          .
-                        </mark>
-                      </div>
-                      <div
-                        class="shortcut-line"
-                      >
-                        <span>
-                          View channel info:
-                        </span>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          Ctrl
-                        </mark>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          Alt
                         </mark>
                         <mark
                           class="shortcut-key shortcut-key--shortcut-modal"
@@ -413,7 +661,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
                         class="shortcut-line"
                       >
                         <span>
-                          Toggle unread/all channels:
+                          Link:
                         </span>
                         <mark
                           class="shortcut-key shortcut-key--shortcut-modal"
@@ -423,7 +671,59 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
                         <mark
                           class="shortcut-key shortcut-key--shortcut-modal"
                         >
-                          Shift
+                          Alt
+                        </mark>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          K
+                        </mark>
+                      </div>
+                    </div>
+                    <div
+                      class="subsection"
+                    >
+                      <h4
+                        class="subsection-title"
+                      >
+                        Searching
+                      </h4>
+                      <div
+                        class="shortcut-line"
+                      >
+                        <span>
+                          In channel:
+                        </span>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          Ctrl
+                        </mark>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          F
+                        </mark>
+                      </div>
+                    </div>
+                    <div
+                      class="subsection"
+                    >
+                      <h4
+                        class="subsection-title"
+                      >
+                        Files
+                      </h4>
+                      <div
+                        class="shortcut-line"
+                      >
+                        <span>
+                          Upload files:
+                        </span>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          Ctrl
                         </mark>
                         <mark
                           class="shortcut-key shortcut-key--shortcut-modal"
@@ -434,462 +734,159 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
                     </div>
                   </div>
                 </div>
-                <div
-                  class="col-sm-4"
-                >
-                  <div
-                    class="section"
-                  >
-                    <div>
-                      <h3
-                        class="section-title"
-                      >
-                        <strong>
-                          Messages
-                        </strong>
-                      </h3>
-                      <div
-                        class="subsection"
-                      >
-                        <h4
-                          class="subsection-title"
-                        >
-                          Works inside an empty input field
-                        </h4>
-                        <div
-                          class="shortcut-line"
-                        >
-                          <span>
-                            Edit last message in channel:
-                          </span>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Up
-                          </mark>
-                        </div>
-                        <div
-                          class="shortcut-line"
-                        >
-                          <span>
-                            Reply to last message in channel:
-                          </span>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Shift
-                          </mark>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Up
-                          </mark>
-                        </div>
-                        <div
-                          class="shortcut-line"
-                        >
-                          <span>
-                            React to last message:
-                          </span>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Ctrl
-                          </mark>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Shift
-                          </mark>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            ⧵
-                          </mark>
-                        </div>
-                        <div
-                          class="shortcut-line"
-                        >
-                          <span>
-                            Reprint previous message:
-                          </span>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Ctrl
-                          </mark>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Up
-                          </mark>
-                        </div>
-                        <div
-                          class="shortcut-line"
-                        >
-                          <span>
-                            Reprint next message:
-                          </span>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Ctrl
-                          </mark>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Down
-                          </mark>
-                        </div>
-                      </div>
-                      <div
-                        class="subsection"
-                      >
-                        <h4
-                          class="subsection-title"
-                        >
-                          Autocomplete
-                        </h4>
-                        <div
-                          class="shortcut-line"
-                        >
-                          <span>
-                            Username:
-                          </span>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            @
-                          </mark>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            [a-z]
-                          </mark>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Tab
-                          </mark>
-                        </div>
-                        <div
-                          class="shortcut-line"
-                        >
-                          <span>
-                            Channel:
-                          </span>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            ~
-                          </mark>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            [a-z]
-                          </mark>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Tab
-                          </mark>
-                        </div>
-                        <div
-                          class="shortcut-line"
-                        >
-                          <span>
-                            Emoji:
-                          </span>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            :
-                          </mark>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            [a-z]
-                          </mark>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Tab
-                          </mark>
-                        </div>
-                      </div>
-                      <div
-                        class="subsection"
-                      >
-                        <h4
-                          class="subsection-title"
-                        >
-                          Formatting
-                        </h4>
-                        <div
-                          class="shortcut-line"
-                        >
-                          <span>
-                            Bold:
-                          </span>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Ctrl
-                          </mark>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            B
-                          </mark>
-                        </div>
-                        <div
-                          class="shortcut-line"
-                        >
-                          <span>
-                            Italic:
-                          </span>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Ctrl
-                          </mark>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            I
-                          </mark>
-                        </div>
-                        <div
-                          class="shortcut-line"
-                        >
-                          <span>
-                            Link:
-                          </span>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Ctrl
-                          </mark>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Alt
-                          </mark>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            K
-                          </mark>
-                        </div>
-                      </div>
-                      <div
-                        class="subsection"
-                      >
-                        <h4
-                          class="subsection-title"
-                        >
-                          Searching
-                        </h4>
-                        <div
-                          class="shortcut-line"
-                        >
-                          <span>
-                            In channel:
-                          </span>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Ctrl
-                          </mark>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            F
-                          </mark>
-                        </div>
-                      </div>
-                      <div
-                        class="subsection"
-                      >
-                        <h4
-                          class="subsection-title"
-                        >
-                          Files
-                        </h4>
-                        <div
-                          class="shortcut-line"
-                        >
-                          <span>
-                            Upload files:
-                          </span>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Ctrl
-                          </mark>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            U
-                          </mark>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div
-                  class="col-sm-4"
-                >
-                  <div
-                    class="section"
-                  >
-                    <div
-                      class="section--lower"
-                    >
-                      <h3
-                        class="section-title"
-                      >
-                        <strong>
-                          Built-in Browser Commands
-                        </strong>
-                      </h3>
-                      <div
-                        class="shortcut-line"
-                      >
-                        <span>
-                          Back in history:
-                        </span>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          Alt
-                        </mark>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          Left
-                        </mark>
-                      </div>
-                      <div
-                        class="shortcut-line"
-                      >
-                        <span>
-                          Forward in history:
-                        </span>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          Alt
-                        </mark>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          Right
-                        </mark>
-                      </div>
-                      <div
-                        class="shortcut-line"
-                      >
-                        <span>
-                          Zoom in:
-                        </span>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          Ctrl
-                        </mark>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          +
-                        </mark>
-                      </div>
-                      <div
-                        class="shortcut-line"
-                      >
-                        <span>
-                          Zoom out:
-                        </span>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          Ctrl
-                        </mark>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          -
-                        </mark>
-                      </div>
-                      <div
-                        class="subsection"
-                      >
-                        <h4
-                          class="subsection-title"
-                        >
-                          Works inside an input field
-                        </h4>
-                        <div
-                          class="shortcut-line"
-                        >
-                          <span>
-                            Highlight text to the previous line:
-                          </span>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Shift
-                          </mark>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Up
-                          </mark>
-                        </div>
-                        <div
-                          class="shortcut-line"
-                        >
-                          <span>
-                            Highlight text to the next line:
-                          </span>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Shift
-                          </mark>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Down
-                          </mark>
-                        </div>
-                        <div
-                          class="shortcut-line"
-                        >
-                          <span>
-                            Create a new line:
-                          </span>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Shift
-                          </mark>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Enter
-                          </mark>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
               </div>
               <div
-                class="info__label"
+                class="col-sm-4"
               >
-                Begin a message with / for a list of all the available slash commands.
+                <div
+                  class="section"
+                >
+                  <div
+                    class="section--lower"
+                  >
+                    <h3
+                      class="section-title"
+                    >
+                      <strong>
+                        Built-in Browser Commands
+                      </strong>
+                    </h3>
+                    <div
+                      class="shortcut-line"
+                    >
+                      <span>
+                        Back in history:
+                      </span>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Alt
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Left
+                      </mark>
+                    </div>
+                    <div
+                      class="shortcut-line"
+                    >
+                      <span>
+                        Forward in history:
+                      </span>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Alt
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Right
+                      </mark>
+                    </div>
+                    <div
+                      class="shortcut-line"
+                    >
+                      <span>
+                        Zoom in:
+                      </span>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Ctrl
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        +
+                      </mark>
+                    </div>
+                    <div
+                      class="shortcut-line"
+                    >
+                      <span>
+                        Zoom out:
+                      </span>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Ctrl
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        -
+                      </mark>
+                    </div>
+                    <div
+                      class="subsection"
+                    >
+                      <h4
+                        class="subsection-title"
+                      >
+                        Works inside an input field
+                      </h4>
+                      <div
+                        class="shortcut-line"
+                      >
+                        <span>
+                          Highlight text to the previous line:
+                        </span>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          Shift
+                        </mark>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          Up
+                        </mark>
+                      </div>
+                      <div
+                        class="shortcut-line"
+                      >
+                        <span>
+                          Highlight text to the next line:
+                        </span>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          Shift
+                        </mark>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          Down
+                        </mark>
+                      </div>
+                      <div
+                        class="shortcut-line"
+                      >
+                        <span>
+                          Create a new line:
+                        </span>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          Shift
+                        </mark>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          Enter
+                        </mark>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
+            </div>
+            <div
+              class="info__label"
+            >
+              Begin a message with / for a list of all the available slash commands.
             </div>
           </div>
         </div>
@@ -908,141 +905,830 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
     aria-hidden="true"
   />
   <div
-    role="none"
+    class="fade modal-backdrop in"
+  />
+  <div
+    aria-labelledby="shortcutsModalLabel"
+    aria-modal="true"
+    class="fade in modal"
+    role="dialog"
+    style="display: block; padding-right: 0px;"
+    tabindex="-1"
   >
     <div
-      class="fade modal-backdrop in"
-    />
-    <div
-      aria-labelledby="shortcutsModalLabel"
-      class="fade in modal"
-      role="dialog"
-      style="display: block; padding-right: 0px;"
-      tabindex="-1"
+      class="a11y__modal shortcuts-modal modal-dialog"
     >
       <div
-        class="a11y__modal shortcuts-modal modal-dialog"
+        class="modal-content"
+        role="document"
       >
         <div
-          class="modal-content"
-          role="document"
+          class="shortcuts-content"
         >
           <div
-            class="shortcuts-content"
+            class="divider modal-header"
+          >
+            <button
+              aria-label="Close"
+              class="close"
+              type="button"
+            >
+              <span
+                aria-hidden="true"
+              >
+                ×
+              </span>
+              <span
+                class="sr-only"
+              >
+                Close
+              </span>
+            </button>
+            <h1
+              class="modal-title"
+              id="shortcutsModalLabel"
+            >
+              <strong>
+                <div
+                  class="shortcut-line"
+                >
+                  <span>
+                    Keyboard shortcuts
+                  </span>
+                  <mark
+                    class="shortcut-key shortcut-key--shortcut-modal"
+                  >
+                    Ctrl
+                  </mark>
+                  <mark
+                    class="shortcut-key shortcut-key--shortcut-modal"
+                  >
+                    /
+                  </mark>
+                </div>
+              </strong>
+            </h1>
+          </div>
+          <div
+            class="modal-body"
+            tabindex="0"
           >
             <div
-              class="divider modal-header"
-            >
-              <button
-                aria-label="Close"
-                class="close"
-                type="button"
-              >
-                <span
-                  aria-hidden="true"
-                >
-                  ×
-                </span>
-                <span
-                  class="sr-only"
-                >
-                  Close
-                </span>
-              </button>
-              <h1
-                class="modal-title"
-                id="shortcutsModalLabel"
-              >
-                <strong>
-                  <div
-                    class="shortcut-line"
-                  >
-                    <span>
-                      Keyboard shortcuts
-                    </span>
-                    <mark
-                      class="shortcut-key shortcut-key--shortcut-modal"
-                    >
-                      Ctrl
-                    </mark>
-                    <mark
-                      class="shortcut-key shortcut-key--shortcut-modal"
-                    >
-                      /
-                    </mark>
-                  </div>
-                </strong>
-              </h1>
-            </div>
+              tabindex="-1"
+            />
             <div
-              class="modal-body"
-              tabindex="0"
+              class="row"
             >
               <div
-                tabindex="-1"
-              />
-              <div
-                class="row"
+                class="col-sm-4"
               >
                 <div
-                  class="col-sm-4"
+                  class="section"
+                >
+                  <div>
+                    <h3
+                      class="section-title"
+                    >
+                      <strong>
+                        Navigation
+                      </strong>
+                    </h3>
+                    <div
+                      class="shortcut-line"
+                    >
+                      <span>
+                        Previous channel:
+                      </span>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Alt
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Up
+                      </mark>
+                    </div>
+                    <div
+                      class="shortcut-line"
+                    >
+                      <span>
+                        Next channel:
+                      </span>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Alt
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Down
+                      </mark>
+                    </div>
+                    <div
+                      class="shortcut-line"
+                    >
+                      <span>
+                        Previous unread channel:
+                      </span>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Alt
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Shift
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Up
+                      </mark>
+                    </div>
+                    <div
+                      class="shortcut-line"
+                    >
+                      <span>
+                        Next unread channel:
+                      </span>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Alt
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Shift
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Down
+                      </mark>
+                    </div>
+                    <div
+                      class="shortcut-line"
+                    >
+                      <span>
+                        Previous team:
+                      </span>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Ctrl
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Alt
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Up
+                      </mark>
+                    </div>
+                    <div
+                      class="shortcut-line"
+                    >
+                      <span>
+                        Next team:
+                      </span>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Ctrl
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Alt
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Down
+                      </mark>
+                    </div>
+                    <div
+                      class="shortcut-line"
+                    >
+                      <span>
+                        Navigate to a specific team:
+                      </span>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Ctrl
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Alt
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        [1-9]
+                      </mark>
+                    </div>
+                    <div
+                      class="shortcut-line"
+                    >
+                      <span>
+                        Quick channel navigation:
+                      </span>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Ctrl
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        K
+                      </mark>
+                    </div>
+                    <div
+                      class="shortcut-line"
+                    >
+                      <span>
+                        Direct messages menu:
+                      </span>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Ctrl
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Shift
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        K
+                      </mark>
+                    </div>
+                    <div
+                      class="shortcut-line"
+                    >
+                      <span>
+                        Settings:
+                      </span>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Ctrl
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Shift
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        A
+                      </mark>
+                    </div>
+                    <div
+                      class="shortcut-line"
+                    >
+                      <span>
+                        Recent mentions:
+                      </span>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Ctrl
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Shift
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        M
+                      </mark>
+                    </div>
+                    <div
+                      class="shortcut-line"
+                    >
+                      <span>
+                        Set focus to input field:
+                      </span>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Ctrl
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Shift
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        L
+                      </mark>
+                    </div>
+                    <div
+                      class="shortcut-line"
+                    >
+                      <span>
+                        Open or close the right sidebar:
+                      </span>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Ctrl
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        .
+                      </mark>
+                    </div>
+                    <div
+                      class="shortcut-line"
+                    >
+                      <span>
+                        Expand the right sidebar:
+                      </span>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Ctrl
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Shift
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        .
+                      </mark>
+                    </div>
+                    <div
+                      class="shortcut-line"
+                    >
+                      <span>
+                        View channel info:
+                      </span>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Ctrl
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Alt
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        I
+                      </mark>
+                    </div>
+                    <div
+                      class="shortcut-line"
+                    >
+                      <span>
+                        Toggle unread/all channels:
+                      </span>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Ctrl
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Shift
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        U
+                      </mark>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="col-sm-4"
+              >
+                <div
+                  class="section"
+                >
+                  <div>
+                    <h3
+                      class="section-title"
+                    >
+                      <strong>
+                        Messages
+                      </strong>
+                    </h3>
+                    <div
+                      class="subsection"
+                    >
+                      <h4
+                        class="subsection-title"
+                      >
+                        Works inside an empty input field
+                      </h4>
+                      <div
+                        class="shortcut-line"
+                      >
+                        <span>
+                          Edit last message in channel:
+                        </span>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          Up
+                        </mark>
+                      </div>
+                      <div
+                        class="shortcut-line"
+                      >
+                        <span>
+                          Reply to last message in channel:
+                        </span>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          Shift
+                        </mark>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          Up
+                        </mark>
+                      </div>
+                      <div
+                        class="shortcut-line"
+                      >
+                        <span>
+                          React to last message:
+                        </span>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          Ctrl
+                        </mark>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          Shift
+                        </mark>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          ⧵
+                        </mark>
+                      </div>
+                      <div
+                        class="shortcut-line"
+                      >
+                        <span>
+                          Reprint previous message:
+                        </span>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          Ctrl
+                        </mark>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          Up
+                        </mark>
+                      </div>
+                      <div
+                        class="shortcut-line"
+                      >
+                        <span>
+                          Reprint next message:
+                        </span>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          Ctrl
+                        </mark>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          Down
+                        </mark>
+                      </div>
+                    </div>
+                    <div
+                      class="subsection"
+                    >
+                      <h4
+                        class="subsection-title"
+                      >
+                        Autocomplete
+                      </h4>
+                      <div
+                        class="shortcut-line"
+                      >
+                        <span>
+                          Username:
+                        </span>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          @
+                        </mark>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          [a-z]
+                        </mark>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          Tab
+                        </mark>
+                      </div>
+                      <div
+                        class="shortcut-line"
+                      >
+                        <span>
+                          Channel:
+                        </span>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          ~
+                        </mark>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          [a-z]
+                        </mark>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          Tab
+                        </mark>
+                      </div>
+                      <div
+                        class="shortcut-line"
+                      >
+                        <span>
+                          Emoji:
+                        </span>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          :
+                        </mark>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          [a-z]
+                        </mark>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          Tab
+                        </mark>
+                      </div>
+                    </div>
+                    <div
+                      class="subsection"
+                    >
+                      <h4
+                        class="subsection-title"
+                      >
+                        Formatting
+                      </h4>
+                      <div
+                        class="shortcut-line"
+                      >
+                        <span>
+                          Bold:
+                        </span>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          Ctrl
+                        </mark>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          B
+                        </mark>
+                      </div>
+                      <div
+                        class="shortcut-line"
+                      >
+                        <span>
+                          Italic:
+                        </span>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          Ctrl
+                        </mark>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          I
+                        </mark>
+                      </div>
+                      <div
+                        class="shortcut-line"
+                      >
+                        <span>
+                          Link:
+                        </span>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          Ctrl
+                        </mark>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          Alt
+                        </mark>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          K
+                        </mark>
+                      </div>
+                    </div>
+                    <div
+                      class="subsection"
+                    >
+                      <h4
+                        class="subsection-title"
+                      >
+                        Searching
+                      </h4>
+                      <div
+                        class="shortcut-line"
+                      >
+                        <span>
+                          In channel:
+                        </span>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          Ctrl
+                        </mark>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          F
+                        </mark>
+                      </div>
+                    </div>
+                    <div
+                      class="subsection"
+                    >
+                      <h4
+                        class="subsection-title"
+                      >
+                        Files
+                      </h4>
+                      <div
+                        class="shortcut-line"
+                      >
+                        <span>
+                          Upload files:
+                        </span>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          Ctrl
+                        </mark>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          U
+                        </mark>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="col-sm-4"
+              >
+                <div
+                  class="section"
                 >
                   <div
-                    class="section"
+                    class="section--lower"
                   >
-                    <div>
-                      <h3
-                        class="section-title"
+                    <h3
+                      class="section-title"
+                    >
+                      <strong>
+                        Built-in Browser Commands
+                      </strong>
+                    </h3>
+                    <div
+                      class="shortcut-line"
+                    >
+                      <span>
+                        Back in history:
+                      </span>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
                       >
-                        <strong>
-                          Navigation
-                        </strong>
-                      </h3>
+                        Alt
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Left
+                      </mark>
+                    </div>
+                    <div
+                      class="shortcut-line"
+                    >
+                      <span>
+                        Forward in history:
+                      </span>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Alt
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Right
+                      </mark>
+                    </div>
+                    <div
+                      class="shortcut-line"
+                    >
+                      <span>
+                        Zoom in:
+                      </span>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Ctrl
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        +
+                      </mark>
+                    </div>
+                    <div
+                      class="shortcut-line"
+                    >
+                      <span>
+                        Zoom out:
+                      </span>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        Ctrl
+                      </mark>
+                      <mark
+                        class="shortcut-key shortcut-key--shortcut-modal"
+                      >
+                        -
+                      </mark>
+                    </div>
+                    <div
+                      class="subsection"
+                    >
+                      <h4
+                        class="subsection-title"
+                      >
+                        Works inside an input field
+                      </h4>
                       <div
                         class="shortcut-line"
                       >
                         <span>
-                          Previous channel:
+                          Highlight text to the previous line:
                         </span>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          Alt
-                        </mark>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          Up
-                        </mark>
-                      </div>
-                      <div
-                        class="shortcut-line"
-                      >
-                        <span>
-                          Next channel:
-                        </span>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          Alt
-                        </mark>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          Down
-                        </mark>
-                      </div>
-                      <div
-                        class="shortcut-line"
-                      >
-                        <span>
-                          Previous unread channel:
-                        </span>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          Alt
-                        </mark>
                         <mark
                           class="shortcut-key shortcut-key--shortcut-modal"
                         >
@@ -1058,13 +1744,8 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                         class="shortcut-line"
                       >
                         <span>
-                          Next unread channel:
+                          Highlight text to the next line:
                         </span>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          Alt
-                        </mark>
                         <mark
                           class="shortcut-key shortcut-key--shortcut-modal"
                         >
@@ -1080,7 +1761,46 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                         class="shortcut-line"
                       >
                         <span>
-                          Previous team:
+                          Create a new line:
+                        </span>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          Shift
+                        </mark>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          Enter
+                        </mark>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="section"
+                >
+                  <div>
+                    <h3
+                      class="section-title"
+                    >
+                      <strong>
+                        Calls
+                      </strong>
+                    </h3>
+                    <div
+                      class="subsection"
+                    >
+                      <h4
+                        class="subsection-title"
+                      >
+                        Global
+                      </h4>
+                      <div
+                        class="shortcut-line"
+                      >
+                        <span>
+                          Join call in current channel:
                         </span>
                         <mark
                           class="shortcut-key shortcut-key--shortcut-modal"
@@ -1095,20 +1815,90 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                         <mark
                           class="shortcut-key shortcut-key--shortcut-modal"
                         >
-                          Up
+                          S
                         </mark>
                       </div>
+                    </div>
+                    <div
+                      class="subsection"
+                    >
+                      <h4
+                        class="subsection-title"
+                      >
+                        Call widget
+                      </h4>
                       <div
                         class="shortcut-line"
                       >
                         <span>
-                          Next team:
+                          Mute or unmute:
                         </span>
                         <mark
                           class="shortcut-key shortcut-key--shortcut-modal"
                         >
                           Ctrl
                         </mark>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          Shift
+                        </mark>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          Space
+                        </mark>
+                      </div>
+                      <div
+                        class="shortcut-line"
+                      >
+                        <span>
+                          Raise or lower hand:
+                        </span>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          Ctrl
+                        </mark>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          Shift
+                        </mark>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          Y
+                        </mark>
+                      </div>
+                      <div
+                        class="shortcut-line"
+                      >
+                        <span>
+                          Share or unshare the screen:
+                        </span>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          Ctrl
+                        </mark>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          Shift
+                        </mark>
+                        <mark
+                          class="shortcut-key shortcut-key--shortcut-modal"
+                        >
+                          E
+                        </mark>
+                      </div>
+                      <div
+                        class="shortcut-line"
+                      >
+                        <span>
+                          Show or hide participants list:
+                        </span>
                         <mark
                           class="shortcut-key shortcut-key--shortcut-modal"
                         >
@@ -1117,53 +1907,10 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                         <mark
                           class="shortcut-key shortcut-key--shortcut-modal"
                         >
-                          Down
+                          P
                         </mark>
-                      </div>
-                      <div
-                        class="shortcut-line"
-                      >
                         <span>
-                          Navigate to a specific team:
-                        </span>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          Ctrl
-                        </mark>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          Alt
-                        </mark>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          [1-9]
-                        </mark>
-                      </div>
-                      <div
-                        class="shortcut-line"
-                      >
-                        <span>
-                          Quick channel navigation:
-                        </span>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          Ctrl
-                        </mark>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          K
-                        </mark>
-                      </div>
-                      <div
-                        class="shortcut-line"
-                      >
-                        <span>
-                          Direct messages menu:
+                          	|	
                         </span>
                         <mark
                           class="shortcut-key shortcut-key--shortcut-modal"
@@ -1178,58 +1925,14 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                         <mark
                           class="shortcut-key shortcut-key--shortcut-modal"
                         >
-                          K
+                          P
                         </mark>
                       </div>
                       <div
                         class="shortcut-line"
                       >
                         <span>
-                          Settings:
-                        </span>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          Ctrl
-                        </mark>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          Shift
-                        </mark>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          A
-                        </mark>
-                      </div>
-                      <div
-                        class="shortcut-line"
-                      >
-                        <span>
-                          Recent mentions:
-                        </span>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          Ctrl
-                        </mark>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          Shift
-                        </mark>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          M
-                        </mark>
-                      </div>
-                      <div
-                        class="shortcut-line"
-                      >
-                        <span>
-                          Set focus to input field:
+                          Leave current call:
                         </span>
                         <mark
                           class="shortcut-key shortcut-key--shortcut-modal"
@@ -1247,745 +1950,36 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                           L
                         </mark>
                       </div>
-                      <div
-                        class="shortcut-line"
-                      >
-                        <span>
-                          Open or close the right sidebar:
-                        </span>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          Ctrl
-                        </mark>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          .
-                        </mark>
-                      </div>
-                      <div
-                        class="shortcut-line"
-                      >
-                        <span>
-                          Expand the right sidebar:
-                        </span>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          Ctrl
-                        </mark>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          Shift
-                        </mark>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          .
-                        </mark>
-                      </div>
-                      <div
-                        class="shortcut-line"
-                      >
-                        <span>
-                          View channel info:
-                        </span>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          Ctrl
-                        </mark>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          Alt
-                        </mark>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          I
-                        </mark>
-                      </div>
-                      <div
-                        class="shortcut-line"
-                      >
-                        <span>
-                          Toggle unread/all channels:
-                        </span>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          Ctrl
-                        </mark>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          Shift
-                        </mark>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          U
-                        </mark>
-                      </div>
                     </div>
-                  </div>
-                </div>
-                <div
-                  class="col-sm-4"
-                >
-                  <div
-                    class="section"
-                  >
-                    <div>
-                      <h3
-                        class="section-title"
-                      >
-                        <strong>
-                          Messages
-                        </strong>
-                      </h3>
-                      <div
-                        class="subsection"
-                      >
-                        <h4
-                          class="subsection-title"
-                        >
-                          Works inside an empty input field
-                        </h4>
-                        <div
-                          class="shortcut-line"
-                        >
-                          <span>
-                            Edit last message in channel:
-                          </span>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Up
-                          </mark>
-                        </div>
-                        <div
-                          class="shortcut-line"
-                        >
-                          <span>
-                            Reply to last message in channel:
-                          </span>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Shift
-                          </mark>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Up
-                          </mark>
-                        </div>
-                        <div
-                          class="shortcut-line"
-                        >
-                          <span>
-                            React to last message:
-                          </span>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Ctrl
-                          </mark>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Shift
-                          </mark>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            ⧵
-                          </mark>
-                        </div>
-                        <div
-                          class="shortcut-line"
-                        >
-                          <span>
-                            Reprint previous message:
-                          </span>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Ctrl
-                          </mark>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Up
-                          </mark>
-                        </div>
-                        <div
-                          class="shortcut-line"
-                        >
-                          <span>
-                            Reprint next message:
-                          </span>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Ctrl
-                          </mark>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Down
-                          </mark>
-                        </div>
-                      </div>
-                      <div
-                        class="subsection"
-                      >
-                        <h4
-                          class="subsection-title"
-                        >
-                          Autocomplete
-                        </h4>
-                        <div
-                          class="shortcut-line"
-                        >
-                          <span>
-                            Username:
-                          </span>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            @
-                          </mark>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            [a-z]
-                          </mark>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Tab
-                          </mark>
-                        </div>
-                        <div
-                          class="shortcut-line"
-                        >
-                          <span>
-                            Channel:
-                          </span>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            ~
-                          </mark>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            [a-z]
-                          </mark>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Tab
-                          </mark>
-                        </div>
-                        <div
-                          class="shortcut-line"
-                        >
-                          <span>
-                            Emoji:
-                          </span>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            :
-                          </mark>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            [a-z]
-                          </mark>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Tab
-                          </mark>
-                        </div>
-                      </div>
-                      <div
-                        class="subsection"
-                      >
-                        <h4
-                          class="subsection-title"
-                        >
-                          Formatting
-                        </h4>
-                        <div
-                          class="shortcut-line"
-                        >
-                          <span>
-                            Bold:
-                          </span>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Ctrl
-                          </mark>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            B
-                          </mark>
-                        </div>
-                        <div
-                          class="shortcut-line"
-                        >
-                          <span>
-                            Italic:
-                          </span>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Ctrl
-                          </mark>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            I
-                          </mark>
-                        </div>
-                        <div
-                          class="shortcut-line"
-                        >
-                          <span>
-                            Link:
-                          </span>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Ctrl
-                          </mark>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Alt
-                          </mark>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            K
-                          </mark>
-                        </div>
-                      </div>
-                      <div
-                        class="subsection"
-                      >
-                        <h4
-                          class="subsection-title"
-                        >
-                          Searching
-                        </h4>
-                        <div
-                          class="shortcut-line"
-                        >
-                          <span>
-                            In channel:
-                          </span>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Ctrl
-                          </mark>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            F
-                          </mark>
-                        </div>
-                      </div>
-                      <div
-                        class="subsection"
-                      >
-                        <h4
-                          class="subsection-title"
-                        >
-                          Files
-                        </h4>
-                        <div
-                          class="shortcut-line"
-                        >
-                          <span>
-                            Upload files:
-                          </span>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Ctrl
-                          </mark>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            U
-                          </mark>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div
-                  class="col-sm-4"
-                >
-                  <div
-                    class="section"
-                  >
                     <div
-                      class="section--lower"
+                      class="subsection"
                     >
-                      <h3
-                        class="section-title"
+                      <h4
+                        class="subsection-title"
                       >
-                        <strong>
-                          Built-in Browser Commands
-                        </strong>
-                      </h3>
+                        Expanded view (pop-out window)
+                      </h4>
                       <div
                         class="shortcut-line"
                       >
                         <span>
-                          Back in history:
+                          Hold to unmute (push to talk):
                         </span>
                         <mark
                           class="shortcut-key shortcut-key--shortcut-modal"
                         >
-                          Alt
+                          Space
                         </mark>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          Left
-                        </mark>
-                      </div>
-                      <div
-                        class="shortcut-line"
-                      >
-                        <span>
-                          Forward in history:
-                        </span>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          Alt
-                        </mark>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          Right
-                        </mark>
-                      </div>
-                      <div
-                        class="shortcut-line"
-                      >
-                        <span>
-                          Zoom in:
-                        </span>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          Ctrl
-                        </mark>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          +
-                        </mark>
-                      </div>
-                      <div
-                        class="shortcut-line"
-                      >
-                        <span>
-                          Zoom out:
-                        </span>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          Ctrl
-                        </mark>
-                        <mark
-                          class="shortcut-key shortcut-key--shortcut-modal"
-                        >
-                          -
-                        </mark>
-                      </div>
-                      <div
-                        class="subsection"
-                      >
-                        <h4
-                          class="subsection-title"
-                        >
-                          Works inside an input field
-                        </h4>
-                        <div
-                          class="shortcut-line"
-                        >
-                          <span>
-                            Highlight text to the previous line:
-                          </span>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Shift
-                          </mark>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Up
-                          </mark>
-                        </div>
-                        <div
-                          class="shortcut-line"
-                        >
-                          <span>
-                            Highlight text to the next line:
-                          </span>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Shift
-                          </mark>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Down
-                          </mark>
-                        </div>
-                        <div
-                          class="shortcut-line"
-                        >
-                          <span>
-                            Create a new line:
-                          </span>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Shift
-                          </mark>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Enter
-                          </mark>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div
-                    class="section"
-                  >
-                    <div>
-                      <h3
-                        class="section-title"
-                      >
-                        <strong>
-                          Calls
-                        </strong>
-                      </h3>
-                      <div
-                        class="subsection"
-                      >
-                        <h4
-                          class="subsection-title"
-                        >
-                          Global
-                        </h4>
-                        <div
-                          class="shortcut-line"
-                        >
-                          <span>
-                            Join call in current channel:
-                          </span>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Ctrl
-                          </mark>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Alt
-                          </mark>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            S
-                          </mark>
-                        </div>
-                      </div>
-                      <div
-                        class="subsection"
-                      >
-                        <h4
-                          class="subsection-title"
-                        >
-                          Call widget
-                        </h4>
-                        <div
-                          class="shortcut-line"
-                        >
-                          <span>
-                            Mute or unmute:
-                          </span>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Ctrl
-                          </mark>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Shift
-                          </mark>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Space
-                          </mark>
-                        </div>
-                        <div
-                          class="shortcut-line"
-                        >
-                          <span>
-                            Raise or lower hand:
-                          </span>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Ctrl
-                          </mark>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Shift
-                          </mark>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Y
-                          </mark>
-                        </div>
-                        <div
-                          class="shortcut-line"
-                        >
-                          <span>
-                            Share or unshare the screen:
-                          </span>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Ctrl
-                          </mark>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Shift
-                          </mark>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            E
-                          </mark>
-                        </div>
-                        <div
-                          class="shortcut-line"
-                        >
-                          <span>
-                            Show or hide participants list:
-                          </span>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Alt
-                          </mark>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            P
-                          </mark>
-                          <span>
-                            	|	
-                          </span>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Ctrl
-                          </mark>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Shift
-                          </mark>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            P
-                          </mark>
-                        </div>
-                        <div
-                          class="shortcut-line"
-                        >
-                          <span>
-                            Leave current call:
-                          </span>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Ctrl
-                          </mark>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Shift
-                          </mark>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            L
-                          </mark>
-                        </div>
-                      </div>
-                      <div
-                        class="subsection"
-                      >
-                        <h4
-                          class="subsection-title"
-                        >
-                          Expanded view (pop-out window)
-                        </h4>
-                        <div
-                          class="shortcut-line"
-                        >
-                          <span>
-                            Hold to unmute (push to talk):
-                          </span>
-                          <mark
-                            class="shortcut-key shortcut-key--shortcut-modal"
-                          >
-                            Space
-                          </mark>
-                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-              <div
-                class="info__label"
-              >
-                Begin a message with / for a list of all the available slash commands.
-              </div>
+            </div>
+            <div
+              class="info__label"
+            >
+              Begin a message with / for a list of all the available slash commands.
             </div>
           </div>
         </div>

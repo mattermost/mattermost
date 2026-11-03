@@ -89,8 +89,8 @@ test.describe('Team Settings Modal - Access Tab - Discoverability', {tag: ['@aba
         await teamSettings.openAccessTab();
 
         // * Public and Private cards are visible
-        await expect(teamSettings.container.getByText('Public Team')).toBeVisible();
-        await expect(teamSettings.container.getByText('Private Team')).toBeVisible();
+        await expect(teamSettings.container.getByText('Public Team', {exact: true})).toBeVisible();
+        await expect(teamSettings.container.getByText('Private Team', {exact: true})).toBeVisible();
 
         // * Old open-invite checkboxes are gone
         await expect(teamSettings.container.locator('input[name="allowOpenInvite"]')).not.toBeVisible();
@@ -499,6 +499,33 @@ test.describe('Team Settings Modal - Access Tab - Discoverability', {tag: ['@aba
         // * Team is still public
         const apiTeam = await adminClient.getTeam(team.id);
         expect(apiTeam.allow_open_invite).toBe(true);
+
+        await teamSettings.close();
+    });
+
+    test('MM-69100_45 Access tab shows the updated discoverability help text', async ({pw}) => {
+        await pw.skipIfNoLicense();
+        const {adminUser, adminClient, team} = await pw.initSetup();
+        await enableTeamMembershipABACConfig(adminClient);
+
+        const {page} = await pw.testBrowser.login(adminUser);
+        const channelsPage = new ChannelsPage(page);
+
+        // # Navigate and open Team Settings
+        await channelsPage.goto(team.name, 'town-square');
+        await channelsPage.toBeVisible();
+        const teamSettings = await channelsPage.openTeamSettings();
+        await teamSettings.openAccessTab();
+
+        // * Updated card-aligned help text is shown
+        await expect(
+            teamSettings.container.getByText(
+                /Switching a team from Public to Private regenerates its invitation code/i,
+            ),
+        ).toBeVisible();
+
+        // * Stale checkbox-era copy is gone
+        await expect(teamSettings.container.getByText(/Changing from 'Yes' to 'No'/i)).toHaveCount(0);
 
         await teamSettings.close();
     });

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ChangeEvent, FormEvent} from 'react';
+import type {ChangeEvent, FormEvent, JSX} from 'react';
 import React, {useMemo, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
@@ -9,7 +9,7 @@ import {useDispatch} from 'react-redux';
 import {Link} from 'react-router-dom';
 
 import {AlertOutlineIcon, CheckCircleOutlineIcon} from '@mattermost/compass-icons/components';
-import {Button, buttonClassNames} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {OutgoingOAuthConnection} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
 
@@ -89,7 +89,6 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [validationStatus, setValidationStatus] = useState<ValidationStatus>(ValidationStatus.INITIAL);
-    const [isEditingSecret, setIsEditingSecret] = useState(false);
 
     const [isValidationModalOpen, setIsValidationModalOpen] = useState(false);
 
@@ -123,7 +122,7 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
             return undefined;
         }
 
-        if ((isNewConnection || isEditingSecret) && !formState.clientSecret) {
+        if (!formState.clientSecret) {
             setIsSubmitting(false);
             setError(
                 <FormattedMessage
@@ -309,44 +308,8 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
         });
     };
 
-    const startEditingClientSecret = () => {
-        setIsEditingSecret(true);
-    };
-
     const headerToRender = props.header;
     const footerToRender = props.footer;
-
-    let clientSecretSection = (
-        <input
-            id='client_secret'
-            type='text'
-            autoComplete='off'
-            className='form-control'
-            value={formState.clientSecret}
-            onChange={updateClientSecret}
-        />
-    );
-
-    if (!isNewConnection && !isEditingSecret) {
-        clientSecretSection = (
-            <>
-                <input
-                    id='client_secret'
-                    disabled={true}
-                    autoComplete='off'
-                    type='text'
-                    className='form-control disabled'
-                    value={'•'.repeat(40)}
-                />
-                <span
-                    onClick={startEditingClientSecret}
-                    className='outgoing-oauth-connections-edit-secret'
-                >
-                    <i className='icon icon-pencil-outline'/>
-                </span>
-            </>
-        );
-    }
 
     return (
         <div className='backstage-content'>
@@ -428,7 +391,14 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                             />
                         </label>
                         <div className='col-md-5 col-sm-8'>
-                            {clientSecretSection}
+                            <input
+                                id='client_secret'
+                                type='password'
+                                autoComplete='off'
+                                className='form-control'
+                                value={formState.clientSecret}
+                                onChange={updateClientSecret}
+                            />
                             <div className='form__help'>
                                 <FormattedMessage
                                     id='add_outgoing_oauth_connection.client_secret.help'
@@ -501,15 +471,17 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                             type='backstage'
                             errors={[props.serverError, storedError]}
                         />
-                        <Link
-                            className={buttonClassNames({emphasis: 'tertiary'})}
-                            to={`/${props.team.name}/integrations/outgoing-oauth2-connections`}
+                        <Button
+                            asChild={true}
+                            emphasis='tertiary'
                         >
-                            <FormattedMessage
-                                id='add_outgoing_oauth_connection.cancel'
-                                defaultMessage='Cancel'
-                            />
-                        </Link>
+                            <Link to={`/${props.team.name}/integrations/outgoing-oauth2-connections`}>
+                                <FormattedMessage
+                                    id='add_outgoing_oauth_connection.cancel'
+                                    defaultMessage='Cancel'
+                                />
+                            </Link>
+                        </Button>
                         <SpinnerButton
                             type='submit'
                             spinning={isSubmitting}
@@ -617,7 +589,7 @@ const ValidateButton = ({status, onClick, setUnvalidated}: ValidateButtonProps) 
     const validateButton = (
         <Button
             emphasis='tertiary'
-            size='sm'
+            size='small'
             type='button'
             onClick={onClick}
             id='validateConnection'

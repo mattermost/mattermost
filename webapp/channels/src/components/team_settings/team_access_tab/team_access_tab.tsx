@@ -107,19 +107,15 @@ const AccessTab = ({showTabSwitchError, areThereUnsavedChanges, setShowTabSwitch
         const policyData = policyResult?.data;
         const teamExpression = getMembershipRule(policyData?.policy?.rules)?.expression;
 
-        // Parent-governed teams keep the rules in the imported policy, not here.
-        const parentIds = policyData?.policy?.imports ?? [];
-        const parentPolicies = await Promise.all(
-            parentIds.map((id) => actions.getAccessControlPolicy(id)),
-        );
+        // Resolved server-side: team admins can't fetch parent policies directly.
+        const parentIds: string[] = policyData?.policy?.imports ?? [];
+        const parentPolicies: AccessControlPolicy[] = policyData?.parent_policies ?? [];
 
         // A dropped import would understate the rule set; treat as unresolved.
-        if (parentPolicies.some((result) => result?.error || !result?.data)) {
+        if (parentPolicies.length !== parentIds.length) {
             return null;
         }
-        const parentExpressions = parentPolicies.map((result) =>
-            getMembershipRule((result.data as AccessControlPolicy).rules)?.expression,
-        );
+        const parentExpressions = parentPolicies.map((policy) => getMembershipRule(policy.rules)?.expression);
 
         return combineMembershipExpressions([teamExpression, ...parentExpressions]) || null;
     }, [actions, team.id]);

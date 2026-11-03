@@ -1,13 +1,30 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Client4} from '@mattermost/client';
+
 import {expect, test} from '@mattermost/playwright-lib';
 
+import type {CpaFieldsMap, CustomProfileAttribute} from './helpers';
 import {
-    type CustomProfileAttribute,
+    deleteCustomProfileAttributes,
     setupCustomProfileAttributeFields,
     setupCustomProfileAttributeValues,
 } from './helpers';
+
+// Custom profile attribute fields are server-wide: a field created by one test here (e.g. the
+// "Cancel Test" field below) stays visible in every user's Profile modal for the rest of the CI
+// job, breaking unrelated specs whose locators assume a generic set of sections. Track whichever
+// fields the running test owns and delete them afterward.
+let ownedFields: {adminClient: Client4; fields: CpaFieldsMap} | undefined;
+
+test.afterEach(async () => {
+    if (!ownedFields) {
+        return;
+    }
+    await deleteCustomProfileAttributes(ownedFields.adminClient, ownedFields.fields);
+    ownedFields = undefined;
+});
 
 /**
  * @objective Verify maximum-length attribute names and values display with ellipsis styling in profile settings.
@@ -18,7 +35,6 @@ test(
     async ({pw}) => {
         await pw.ensureLicense();
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('CustomProfileAttributes', true);
         const {adminClient, user, userClient} = await pw.initSetup();
         const displayName = '40_characters_allowed_000000000000000000';
         const value = '64-characters-allowed-000000000000000000123456789012345678901234';
@@ -31,6 +47,7 @@ test(
             },
         ];
         const fields = await setupCustomProfileAttributeFields(adminClient, attributes);
+        ownedFields = {adminClient, fields};
 
         await setupCustomProfileAttributeValues(userClient, attributes, fields);
         // # Open profile settings containing the maximum-length attribute
@@ -56,7 +73,6 @@ test(
     async ({pw}) => {
         await pw.ensureLicense();
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('CustomProfileAttributes', true);
         const {adminClient, user, userClient} = await pw.initSetup();
         const suffix = pw.random.id();
         const displayName = `Cancel Test ${suffix}`;
@@ -70,6 +86,7 @@ test(
             },
         ];
         const fields = await setupCustomProfileAttributeFields(adminClient, attributes);
+        ownedFields = {adminClient, fields};
         await setupCustomProfileAttributeValues(userClient, attributes, fields);
 
         const {channelsPage} = await pw.testBrowser.login(user);
@@ -97,7 +114,6 @@ test(
     async ({pw}) => {
         await pw.ensureLicense();
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('CustomProfileAttributes', true);
         const {adminClient, user, userClient} = await pw.initSetup();
         const displayName = `Favorite Color ${pw.random.id()}`;
         const attributes: CustomProfileAttribute[] = [
@@ -109,6 +125,7 @@ test(
             },
         ];
         const fields = await setupCustomProfileAttributeFields(adminClient, attributes);
+        ownedFields = {adminClient, fields};
         const fieldId = Object.keys(fields)[0];
         await setupCustomProfileAttributeValues(userClient, attributes, fields);
 

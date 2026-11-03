@@ -36,6 +36,7 @@ jest.mock('utils/performance_telemetry', () => ({
     Mark: {},
     Measure: {},
     measureAndReport: jest.fn(),
+    clearChannelSwitchMarks: jest.fn(),
 }));
 
 const actionsProp = {

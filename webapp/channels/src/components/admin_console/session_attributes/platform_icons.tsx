@@ -7,59 +7,95 @@ import {defineMessages, useIntl} from 'react-intl';
 
 import {MonitorIcon, CellphoneIcon, GlobeIcon} from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {SESSION_PLATFORMS, type SessionPlatform} from './utils';
 
 import './session_attributes.scss';
 
-const ICONS: Record<SessionPlatform, ComponentType<IconProps>> = {
+export const PLATFORM_ICONS: Record<SessionPlatform, ComponentType<IconProps>> = {
     desktop: MonitorIcon,
     mobile: CellphoneIcon,
     browser: GlobeIcon,
 };
 
+export const platformLabels = defineMessages({
+    desktop: {id: 'admin.session_attributes.platform.desktop', defaultMessage: 'Desktop'},
+    mobile: {id: 'admin.session_attributes.platform.mobile', defaultMessage: 'Mobile'},
+    browser: {id: 'admin.session_attributes.platform.browser', defaultMessage: 'Browser'},
+});
+
 type Props = {
     platforms: SessionPlatform[];
+
+    /** Show all platform slots with active/inactive styling (default), or only show active platforms */
+    variant?: 'all-slots' | 'active-only';
+
+    /** Icon size */
+    size?: number;
+
+    /** Optional className for the wrapper */
+    className?: string;
+
+    /** Optional className for individual icon wrappers */
+    iconClassName?: string;
+
+    /** Optional color override for icons */
+    iconColor?: string;
 };
 
-export default function PlatformIcons({platforms}: Props) {
+export default function PlatformIcons({
+    platforms,
+    variant = 'all-slots',
+    size = 18,
+    className = 'SessionAttributes__platforms',
+    iconClassName,
+    iconColor,
+}: Props) {
     const {formatMessage} = useIntl();
+
+    const platformsToRender = variant === 'all-slots' ? SESSION_PLATFORMS : platforms;
 
     return (
         <span
-            className='SessionAttributes__platforms'
+            className={className}
             data-testid='session-attribute-platforms'
         >
-            {SESSION_PLATFORMS.map((platform) => {
-                const Icon = ICONS[platform];
+            {platformsToRender.map((platform) => {
+                const Icon = PLATFORM_ICONS[platform];
+                if (!Icon) {
+                    return null;
+                }
+
                 const active = platforms.includes(platform);
+                const platformLabel = formatMessage(platformLabels[platform]);
+                const accessibleLabel = variant === 'all-slots' ? formatMessage(
+                    active ? platformStateLabels.active : platformStateLabels.inactive,
+                    {platform: platformLabel},
+                ) : platformLabel;
 
                 return (
-                    <span
+                    <WithTooltip
                         key={platform}
-                        className='SessionAttributes__platform-slot'
-                        data-platform={platform}
-                        data-active={active}
+                        title={platformLabel}
                     >
-                        <Icon
-                            size={18}
-                            aria-label={formatMessage(
-                                active ? platformStateLabels.active : platformStateLabels.inactive,
-                                {platform: formatMessage(platformLabels[platform])},
-                            )}
-                        />
-                    </span>
+                        <span
+                            className={variant === 'all-slots' ? 'SessionAttributes__platform-slot' : iconClassName}
+                            data-platform={platform}
+                            data-active={active}
+                        >
+                            <Icon
+                                size={size}
+                                color={iconColor}
+                                aria-label={accessibleLabel}
+                            />
+                        </span>
+                    </WithTooltip>
                 );
             })}
         </span>
     );
 }
-
-const platformLabels = defineMessages({
-    desktop: {id: 'admin.session_attributes.platform.desktop', defaultMessage: 'Desktop'},
-    mobile: {id: 'admin.session_attributes.platform.mobile', defaultMessage: 'Mobile'},
-    browser: {id: 'admin.session_attributes.platform.browser', defaultMessage: 'Browser'},
-});
 
 // Icons only differ by styling, so the active/inactive state must be spelled out
 // in the accessible name for screen-reader users.

@@ -4,11 +4,13 @@
 package teams
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 func (ts *TeamService) CreateTeam(rctx request.CTX, team *model.Team) (*model.Team, error) {
@@ -94,6 +96,16 @@ func (ts *TeamService) UpdateTeam(team *model.Team, opts UpdateOptions) (*model.
 	}
 
 	if opts.Sanitized {
+		if team.Name != "" && team.Name != oldTeam.Name && team.Name != "-" {
+			_, nErr := ts.store.GetByName(team.Name)
+			if nErr == nil {
+				return oldTeam, &NameOccupiedError{Name: team.Name}
+			}
+			if _, ok := errors.AsType[*store.ErrNotFound](nErr); !ok {
+				return oldTeam, nErr
+			}
+			oldTeam.Name = team.Name
+		}
 		oldTeam.DisplayName = team.DisplayName
 		oldTeam.Description = team.Description
 		oldTeam.AllowOpenInvite = team.AllowOpenInvite
@@ -176,7 +188,7 @@ func (ts *TeamService) JoinUserToTeam(rctx request.CTX, team *model.Team, user *
 		tm.SchemeAdmin = userShouldBeAdmin
 	}
 
-	if team.Email == user.Email {
+	if team.Email == user.Email && !user.IsGuest() {
 		tm.SchemeAdmin = true
 	}
 

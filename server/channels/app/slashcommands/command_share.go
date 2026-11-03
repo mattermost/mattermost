@@ -63,7 +63,7 @@ func (sp *ShareProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Com
 }
 
 func (sp *ShareProvider) GetAutoCompleteListItems(rctx request.CTX, a *app.App, commandArgs *model.CommandArgs, arg *model.AutocompleteArg, parsed, toBeParsed string) ([]model.AutocompleteListItem, error) {
-	if !a.HasPermissionTo(commandArgs.UserId, model.PermissionManageSharedChannels) {
+	if !a.HasPermissionTo(rctx, commandArgs.UserId, model.PermissionManageSharedChannels) {
 		return []model.AutocompleteListItem{}, nil
 	}
 
@@ -127,7 +127,7 @@ func (sp *ShareProvider) getAutoCompleteUnInviteRemote(a *app.App, _ *model.Comm
 }
 
 func (sp *ShareProvider) DoCommand(a *app.App, rctx request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
-	if !a.HasPermissionTo(args.UserId, model.PermissionManageSharedChannels) {
+	if !a.HasPermissionTo(rctx, args.UserId, model.PermissionManageSharedChannels) {
 		return response(args.T("api.command_share.permission_required", map[string]any{"Permission": "manage_shared_channels"}))
 	}
 
@@ -142,7 +142,10 @@ func (sp *ShareProvider) DoCommand(a *app.App, rctx request.CTX, args *model.Com
 		return response(args.T("api.command_remote.service_disabled"))
 	}
 
-	margs := parseNamedArgs(args.Command)
+	margs, err := parseNamedArgs(args.T, args.Command)
+	if err != nil {
+		return response(err.Error())
+	}
 	action, ok := margs[ActionKey]
 	if !ok {
 		return response(args.T("api.command_share.missing_action", map[string]any{"Actions": AvailableShareActions}))

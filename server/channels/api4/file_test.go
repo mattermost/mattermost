@@ -21,6 +21,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -29,9 +30,11 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
+	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
 var testDir = ""
@@ -962,6 +965,109 @@ func TestGetFile(t *testing.T) {
 		require.Error(t, err)
 		CheckForbiddenStatus(t, response)
 	})
+
+	t.Run("deleted file is indistinguishable from a file that never existed", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		post, fileInfo := uploadFileAndCreatePost(t, th, client)
+
+		// Soft-delete the file info directly: DeletePost does this in a background
+		// goroutine, which would make the test racy.
+		_, storeErr := th.App.Srv().Store().FileInfo().DeleteForPost(th.Context, post.Id)
+		require.NoError(t, storeErr)
+
+		// GetByIds caches per file ID, and nothing evicts those keys on delete, so a
+		// stale DeleteAt == 0 entry would otherwise make the request succeed.
+		th.App.Srv().Store().FileInfo().ClearCaches()
+
+		_, deletedResp, err := client.GetFile(context.Background(), fileInfo.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, deletedResp)
+		CheckErrorID(t, err, "api.file.get_file_info.app_error")
+
+		_, missingResp, err := client.GetFile(context.Background(), model.NewId())
+		require.Error(t, err)
+		CheckNotFoundStatus(t, missingResp)
+		CheckErrorID(t, err, "api.file.get_file_info.app_error")
+	})
+}
+
+func TestGetFileAsContentReviewer(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	if *th.App.Config().FileSettings.DriverName == "" {
+		t.Skip("skipping because no file driver is enabled")
+	}
+
+	ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	require.True(t, ok, "failed to set license")
+	defer th.RemoveLicense(t)
+
+	appErr := setBasicCommonReviewerConfig(th)
+	require.Nil(t, appErr)
+
+	owningPost, fileInfo := uploadFileAndCreatePost(t, th, th.Client)
+	flagPostViaAPI(t, th.Client, owningPost.Id)
+
+	otherFlaggedPost := th.CreatePost(t)
+	flagPostViaAPI(t, th.Client, otherFlaggedPost.Id)
+
+	unflaggedPost := th.CreatePost(t)
+
+	nonReviewer := th.CreateUser(t)
+	isReviewer, appErr := th.App.IsUserTeamContentReviewer(nonReviewer.Id, th.BasicTeam.Id)
+	require.Nil(t, appErr)
+	require.False(t, isReviewer, "test fixture is wrong: the probing user must not be a reviewer")
+
+	nonReviewerClient := th.CreateClient()
+	_, response, err := nonReviewerClient.Login(context.Background(), nonReviewer.Email, nonReviewer.Password)
+	require.NoError(t, err)
+	CheckOKStatus(t, response)
+
+	t.Run("non-reviewer cannot distinguish content flagging state", func(t *testing.T) {
+		probes := []struct {
+			name          string
+			flaggedPostId string
+		}{
+			{"file's own post, flagged", owningPost.Id},
+			{"post exists but is not flagged", unflaggedPost.Id},
+			{"post is flagged but does not own the file", otherFlaggedPost.Id},
+		}
+
+		for _, probe := range probes {
+			t.Run(probe.name, func(t *testing.T) {
+				data, response, err := nonReviewerClient.GetFileAsContentReviewer(context.Background(), fileInfo.Id, probe.flaggedPostId)
+				require.Error(t, err)
+				CheckForbiddenStatus(t, response)
+				CheckErrorID(t, err, "api.data_spillage.error.user_not_reviewer")
+				require.Empty(t, data, "no file content should be returned")
+			})
+		}
+	})
+
+	t.Run("reviewer cannot fetch a file from a DM or GM channel", func(t *testing.T) {
+		sent, err := testutils.ReadTestFile("test.png")
+		require.NoError(t, err)
+
+		dmChannel := th.CreateDmChannel(t, th.BasicUser2)
+		gmChannel, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, th.BasicUser2.Id, th.SystemAdminUser.Id}, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		for _, channel := range []*model.Channel{dmChannel, gmChannel} {
+			fileResponse, _, err := th.Client.UploadFile(context.Background(), sent, channel.Id, "test.png")
+			require.NoError(t, err)
+			require.Len(t, fileResponse.FileInfos, 1)
+
+			post := th.CreatePostInChannelWithFiles(t, channel, fileResponse.FileInfos[0])
+
+			data, response, err := th.Client.GetFileAsContentReviewer(context.Background(), fileResponse.FileInfos[0].Id, post.Id)
+			require.Error(t, err)
+			CheckBadRequestStatus(t, response)
+			CheckErrorID(t, err, "api.data_spillage.error.invalid_channel_type")
+			require.Empty(t, data, "no file content should be returned")
+		}
+	})
 }
 
 func TestGetFileAsSystemAdmin(t *testing.T) {
@@ -1774,5 +1880,124 @@ func TestHeadRequestsFileEndpoints(t *testing.T) {
 		defer resp.Body.Close()
 
 		require.Equal(t, http.StatusNotFound, resp.StatusCode)
+	})
+}
+
+const uploadFileAttachmentDeniedErrorID = "api.file.upload_file.abac_denied.app_error"
+
+// setupUploadFileAttachmentABAC returns a test helper with permission policies
+// enabled, for tests that install mockUploadFileAttachmentPolicy.
+func setupUploadFileAttachmentABAC(t *testing.T) *TestHelper {
+	t.Helper()
+
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PermissionPolicies = true
+		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+	}).InitBasic(t)
+
+	if *th.App.Config().FileSettings.DriverName == "" {
+		t.Skip("skipping because no file driver is enabled")
+	}
+
+	return th
+}
+
+// mockUploadFileAttachmentPolicy swaps in an access control service that denies
+// the upload_file_attachment action in deniedChannelIDs and allows every other
+// evaluation, so unrelated policy checks never get in the way.
+func mockUploadFileAttachmentPolicy(t *testing.T, th *TestHelper, deniedChannelIDs ...string) *mocks.AccessControlServiceInterface {
+	t.Helper()
+
+	mockACS := &mocks.AccessControlServiceInterface{}
+	original := th.App.Srv().Channels().AccessControl
+	th.App.Srv().Channels().AccessControl = mockACS
+	t.Cleanup(func() { th.App.Srv().Channels().AccessControl = original })
+
+	mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+		return req.Action == model.AccessControlPolicyActionUploadFileAttachment && slices.Contains(deniedChannelIDs, req.Resource.ID)
+	})).Return(model.AccessDecision{Decision: false}, (*model.AppError)(nil))
+	mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+		Return(model.AccessDecision{Decision: true}, (*model.AppError)(nil)).Maybe()
+
+	// Channel teardown and policy reads touch the service without being part of the
+	// behaviour under test.
+	mockACS.On("GetPolicy", mock.Anything, mock.AnythingOfType("string")).
+		Return(nil, (*model.AppError)(nil)).Maybe()
+	mockACS.On("DeletePolicy", mock.Anything, mock.AnythingOfType("string")).
+		Return((*model.AppError)(nil)).Maybe()
+
+	return mockACS
+}
+
+// uploadUnattachedFile uploads a file to channelID as th.BasicUser and returns
+// its ID, still unattached to any post.
+func uploadUnattachedFile(t *testing.T, th *TestHelper, channelID string) string {
+	t.Helper()
+
+	data, err := testutils.ReadTestFile("test.png")
+	require.NoError(t, err)
+
+	fileResp, _, err := th.Client.UploadFile(context.Background(), data, channelID, "test.png")
+	require.NoError(t, err)
+	require.Len(t, fileResp.FileInfos, 1)
+
+	return fileResp.FileInfos[0].Id
+}
+
+// disableABACForTest turns attribute-based access control off for the rest of
+// the test, so permission policies are never consulted.
+func disableABACForTest(t *testing.T, th *TestHelper) {
+	t.Helper()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(false)
+	})
+	t.Cleanup(func() {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+		})
+	})
+}
+
+func TestUploadFileABACEnforcement(t *testing.T) {
+	th := setupUploadFileAttachmentABAC(t)
+
+	sent, err := testutils.ReadTestFile("test.png")
+	require.NoError(t, err)
+
+	// UploadFileAsRequestBody drives uploadFileSimple, UploadFile drives uploadFileMultipart.
+	t.Run("simple upload is rejected when the policy denies the upload action", func(t *testing.T) {
+		mockUploadFileAttachmentPolicy(t, th, th.BasicChannel.Id)
+
+		_, resp, err := th.Client.UploadFileAsRequestBody(context.Background(), sent, th.BasicChannel.Id, "test.png")
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, uploadFileAttachmentDeniedErrorID)
+	})
+
+	t.Run("multipart upload is rejected when the policy denies the upload action", func(t *testing.T) {
+		mockUploadFileAttachmentPolicy(t, th, th.BasicChannel.Id)
+
+		_, resp, err := th.Client.UploadFile(context.Background(), sent, th.BasicChannel.Id, "test.png")
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, uploadFileAttachmentDeniedErrorID)
+	})
+
+	t.Run("upload is accepted when the policy allows the upload action", func(t *testing.T) {
+		mockUploadFileAttachmentPolicy(t, th)
+
+		fileResp, _, err := th.Client.UploadFile(context.Background(), sent, th.BasicChannel.Id, "test.png")
+		require.NoError(t, err)
+		require.Len(t, fileResp.FileInfos, 1)
+	})
+
+	t.Run("upload is unaffected when ABAC is disabled", func(t *testing.T) {
+		mockUploadFileAttachmentPolicy(t, th, th.BasicChannel.Id)
+		disableABACForTest(t, th)
+
+		fileResp, _, err := th.Client.UploadFile(context.Background(), sent, th.BasicChannel.Id, "test.png")
+		require.NoError(t, err)
+		require.Len(t, fileResp.FileInfos, 1)
 	})
 }

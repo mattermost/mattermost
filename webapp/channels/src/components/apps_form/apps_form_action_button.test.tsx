@@ -31,6 +31,7 @@ describe('AppsFormActionButton', () => {
 
         renderWithContext(
             <AppsFormActionButton
+                name='run_action'
                 label={label}
                 url={url}
             />,
@@ -39,11 +40,119 @@ describe('AppsFormActionButton', () => {
         expect(screen.getByRole('button', {name: label})).toBeVisible();
     });
 
-    it('invokes executeDialogAction with (url, context) when clicked', async () => {
+    it('renders the description beside the button when provided', () => {
         mockExecuteDialogAction.mockReturnValue(() => Promise.resolve({data: {}}));
 
         renderWithContext(
             <AppsFormActionButton
+                name='run_action'
+                label={label}
+                description='Connect your account'
+                url={url}
+            />,
+        );
+
+        expect(screen.getByText('Connect your account')).toBeVisible();
+        expect(screen.getByRole('button', {name: label})).toBeVisible();
+    });
+
+    it('links the description to the button for assistive technology', () => {
+        mockExecuteDialogAction.mockReturnValue(() => Promise.resolve({data: {}}));
+
+        renderWithContext(
+            <AppsFormActionButton
+                name='run_action'
+                label={label}
+                description='Connect your account'
+                url={url}
+            />,
+        );
+
+        expect(screen.getByRole('button', {name: label})).toHaveAccessibleDescription('Connect your account');
+    });
+
+    it('renders the description as Markdown like other field descriptions', () => {
+        mockExecuteDialogAction.mockReturnValue(() => Promise.resolve({data: {}}));
+
+        renderWithContext(
+            <AppsFormActionButton
+                name='run_action'
+                label={label}
+                description='Connect **your** account'
+                url={url}
+            />,
+        );
+
+        expect(screen.getByText('your', {selector: 'strong'})).toBeVisible();
+        expect(screen.queryByText(/\*\*/)).not.toBeInTheDocument();
+    });
+
+    it('still dispatches the action and shows errors when a description is provided', async () => {
+        mockExecuteDialogAction.mockReturnValue(() =>
+            Promise.resolve({error: {message: 'boom'}}),
+        );
+
+        renderWithContext(
+            <AppsFormActionButton
+                name='run_action'
+                label={label}
+                description='Connect your account'
+                url={url}
+                context={context}
+            />,
+        );
+
+        await userEvent.click(screen.getByRole('button', {name: label}));
+
+        expect(mockExecuteDialogAction).toHaveBeenCalledWith(url, context, undefined);
+        await waitFor(() => {
+            expect(screen.getByRole('alert')).toHaveTextContent('Action failed');
+        });
+    });
+
+    it('renders only the button when there is no description', () => {
+        mockExecuteDialogAction.mockReturnValue(() => Promise.resolve({data: {}}));
+
+        const {container} = renderWithContext(
+            <AppsFormActionButton
+                name='run_action'
+                label={label}
+                url={url}
+            />,
+        );
+
+        expect(screen.getByRole('button', {name: label})).toBeVisible();
+
+        // The Compass Button always wraps its label in a span, so assert on the
+        // description wrapper itself rather than on the absence of any span.
+        expect(container.querySelector('.apps-form-action-button__description')).toBeNull();
+    });
+
+    it('invokes executeDialogAction with (url, context, channelId) when clicked', async () => {
+        mockExecuteDialogAction.mockReturnValue(() => Promise.resolve({data: {}}));
+
+        renderWithContext(
+            <AppsFormActionButton
+                name='run_action'
+                label={label}
+                url={url}
+                context={context}
+                channelId='dialog_channel_id'
+            />,
+        );
+
+        await userEvent.click(screen.getByRole('button', {name: label}));
+
+        expect(mockExecuteDialogAction).toHaveBeenCalledTimes(1);
+        expect(mockExecuteDialogAction).toHaveBeenCalledWith(url, context, 'dialog_channel_id');
+    });
+
+    it('passes an undefined channel through so the action falls back to the current channel', async () => {
+        mockExecuteDialogAction.mockReturnValue(() => Promise.resolve({data: {}}));
+
+        renderWithContext(
+            <AppsFormActionButton
+                name='run_action'
                 label={label}
                 url={url}
                 context={context}
@@ -52,8 +161,7 @@ describe('AppsFormActionButton', () => {
 
         await userEvent.click(screen.getByRole('button', {name: label}));
 
-        expect(mockExecuteDialogAction).toHaveBeenCalledTimes(1);
-        expect(mockExecuteDialogAction).toHaveBeenCalledWith(url, context);
+        expect(mockExecuteDialogAction).toHaveBeenCalledWith(url, context, undefined);
     });
 
     it('shows loading state (disabled, aria-busy, loading label) while the dispatch is pending', async () => {
@@ -66,6 +174,7 @@ describe('AppsFormActionButton', () => {
 
         renderWithContext(
             <AppsFormActionButton
+                name='run_action'
                 label={label}
                 url={url}
             />,
@@ -95,6 +204,7 @@ describe('AppsFormActionButton', () => {
 
         renderWithContext(
             <AppsFormActionButton
+                name='run_action'
                 label={label}
                 url=''
             />,
@@ -115,6 +225,7 @@ describe('AppsFormActionButton', () => {
 
         renderWithContext(
             <AppsFormActionButton
+                name='run_action'
                 label={label}
                 url={url}
             />,
@@ -136,6 +247,7 @@ describe('AppsFormActionButton', () => {
 
         renderWithContext(
             <AppsFormActionButton
+                name='run_action'
                 label={label}
                 url={url}
             />,
@@ -162,6 +274,7 @@ describe('AppsFormActionButton', () => {
 
         const {unmount} = renderWithContext(
             <AppsFormActionButton
+                name='run_action'
                 label={label}
                 url={url}
             />,
@@ -202,6 +315,7 @@ describe('AppsFormActionButton', () => {
 
         const {unmount} = renderWithContext(
             <AppsFormActionButton
+                name='run_action'
                 label={label}
                 url={url}
             />,

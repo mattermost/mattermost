@@ -68,6 +68,13 @@ func RenderWebError(config *model.Config, w http.ResponseWriter, r *http.Request
 	}
 	destination := path.Join(subpath, "error") + "?" + queryString + "&s=" + base64.URLEncoding.EncodeToString(signature)
 
+	// A destination longer than MaximumURLLength is rejected as soon as the browser requests it,
+	// which renders another error page and loops forever, so serve the error inline instead.
+	if len(destination) > *config.ServiceSettings.MaximumURLLength {
+		renderInlineWebError(w, status, params.Get("message"))
+		return
+	}
+
 	if status >= 300 && status < 400 {
 		http.Redirect(w, r, destination, status)
 		return
@@ -80,6 +87,25 @@ func RenderWebError(config *model.Config, w http.ResponseWriter, r *http.Request
 	fmt.Fprintln(w, `<noscript><meta http-equiv="refresh" content="0; url=`+template.HTMLEscapeString(destination)+`"></noscript>`)
 	fmt.Fprintln(w, `<!-- web error message -->`)
 	fmt.Fprintln(w, `<a href="`+template.HTMLEscapeString(destination)+`" style="color: #c0c0c0;">...</a>`)
+	fmt.Fprintln(w, `</body></html>`)
+}
+
+// renderInlineWebError renders the error without sending the browser to the webapp error page.
+func renderInlineWebError(w http.ResponseWriter, status int, message string) {
+	if status >= 300 && status < 400 {
+		// The redirect can no longer be performed, so report it as a failure.
+		status = http.StatusBadRequest
+	}
+
+	w.Header().Set("Content-Type", "text/html")
+	w.WriteHeader(status)
+	fmt.Fprintln(w, `<!DOCTYPE html><html><head><meta charset="utf-8"></head>`)
+	fmt.Fprintln(w, `<body>`)
+	fmt.Fprintln(w, `<!-- web error message -->`)
+	fmt.Fprintln(w, `<h2>`+i18n.T("error")+`</h2>`)
+	if message != "" {
+		fmt.Fprintln(w, `<p>`+template.HTMLEscapeString(message)+`</p>`)
+	}
 	fmt.Fprintln(w, `</body></html>`)
 }
 

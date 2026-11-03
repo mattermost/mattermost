@@ -6,6 +6,7 @@ package app
 import (
 	"errors"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -91,6 +92,14 @@ func (a *App) CreateJob(rctx request.CTX, job *model.Job) (*model.Job, *model.Ap
 	case model.JobTypeAccessControlTeamSync:
 		// Route team ABAC jobs to specialized deduplication handler
 		return a.CreateAccessControlTeamSyncJob(rctx, job.Data)
+	case model.JobTypeElasticsearchPostIndexing:
+		if _, ok := job.Data["index_files"]; !ok {
+			if job.Data == nil {
+				job.Data = model.StringMap{}
+			}
+			job.Data["index_files"] = strconv.FormatBool(*a.Config().ElasticsearchSettings.EnableFileIndexing)
+		}
+		return a.Srv().Jobs.CreateJob(rctx, job.Type, job.Data)
 	default:
 		return a.Srv().Jobs.CreateJob(rctx, job.Type, job.Data)
 	}
@@ -356,17 +365,19 @@ func (a *App) SessionHasPermissionToManageJob(session model.Session, job *model.
 }
 
 func (a *App) SessionHasPermissionToReadJob(session model.Session, jobType string) (bool, *model.Permission) {
+	var permission *model.Permission
+
 	switch jobType {
 	case model.JobTypeDataRetention:
-		return a.SessionHasPermissionTo(session, model.PermissionReadDataRetentionJob), model.PermissionReadDataRetentionJob
+		permission = model.PermissionReadDataRetentionJob
 	case model.JobTypeMessageExport:
-		return a.SessionHasPermissionTo(session, model.PermissionReadComplianceExportJob), model.PermissionReadComplianceExportJob
+		permission = model.PermissionReadComplianceExportJob
 	case model.JobTypeElasticsearchPostIndexing:
-		return a.SessionHasPermissionTo(session, model.PermissionReadElasticsearchPostIndexingJob), model.PermissionReadElasticsearchPostIndexingJob
+		permission = model.PermissionReadElasticsearchPostIndexingJob
 	case model.JobTypeElasticsearchPostAggregation:
-		return a.SessionHasPermissionTo(session, model.PermissionReadElasticsearchPostAggregationJob), model.PermissionReadElasticsearchPostAggregationJob
+		permission = model.PermissionReadElasticsearchPostAggregationJob
 	case model.JobTypeLdapSync:
-		return a.SessionHasPermissionTo(session, model.PermissionReadLdapSyncJob), model.PermissionReadLdapSyncJob
+		permission = model.PermissionReadLdapSyncJob
 	case
 		model.JobTypeMigrations,
 		model.JobTypePlugins,
@@ -380,16 +391,22 @@ func (a *App) SessionHasPermissionToReadJob(session model.Session, jobType strin
 		model.JobTypeCloud,
 		model.JobTypeMobileSessionMetadata,
 		model.JobTypeExtractContent,
+		model.JobTypePostPersistentNotifications,
+		model.JobTypeDeleteExpiredPosts,
 		model.JobTypeCleanupExpiredAccessTokens:
-		return a.SessionHasPermissionTo(session, model.PermissionReadJobs), model.PermissionReadJobs
+		permission = model.PermissionReadJobs
 	case model.JobTypeAccessControlSync:
-		return a.SessionHasPermissionTo(session, model.PermissionManageSystem), model.PermissionManageSystem
+		permission = model.PermissionManageSystem
 	case model.JobTypeAccessControlTeamSync:
 		if a.SessionHasPermissionTo(session, model.PermissionManageSystem) {
 			return true, model.PermissionManageSystem
 		}
-		return a.SessionHasPermissionTo(session, model.PermissionManageTeamAccessRules), model.PermissionManageTeamAccessRules
+		permission = model.PermissionManageTeamAccessRules
 	}
 
-	return false, nil
+	if permission == nil {
+		return false, nil
+	}
+
+	return a.SessionHasPermissionTo(session, permission), permission
 }

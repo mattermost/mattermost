@@ -67,6 +67,7 @@ jobs:
   e2e-cypress:
     needs: validate
     permissions:
+      actions: read
       contents: read
       statuses: write
       id-token: write
@@ -93,6 +94,7 @@ jobs:
   e2e-playwright:
     needs: validate
     permissions:
+      actions: read
       contents: read
       statuses: write
       id-token: write
@@ -107,6 +109,33 @@ jobs:
       enable_reporting: true
       report_type: RELEASE_CUT
       ref_branch: ${{ needs.validate.outputs.ref_branch }}
+      run_rolling_upgrades: ${{ 'true' }}
+    secrets:
+      MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
+      REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
+
+  # Full Playwright suite against a server booted under a subpath (PW_SERVER_DEPLOY=subpath).
+  # Release-cut only — not run on PR or master/release merges.
+  e2e-playwright-subpath:
+    needs: validate
+    permissions:
+      actions: read
+      contents: read
+      statuses: write
+      id-token: write
+      pull-requests: write
+    uses: ./.github/workflows/e2e-tests-playwright.yml
+    with:
+      commit_sha: ${{ inputs.commit_sha }}
+      server_image_tag: ${{ inputs.server_image_tag }}
+      server_image_repo: mattermost
+      server_image_aliases: ${{ inputs.server_image_aliases }}
+      server: onprem
+      enable_reporting: true
+      report_type: RELEASE_CUT
+      ref_branch: ${{ needs.validate.outputs.ref_branch }}
+      server_deploy: subpath
+      playwright_project: subpath
     secrets:
       MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
       REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
@@ -117,6 +146,7 @@ jobs:
     needs: validate
     if: needs.validate.outputs.fips_supported == 'true'
     permissions:
+      actions: read
       contents: read
       statuses: write
       id-token: write
@@ -145,6 +175,7 @@ jobs:
     needs: validate
     if: needs.validate.outputs.fips_supported == 'true'
     permissions:
+      actions: read
       contents: read
       statuses: write
       id-token: write
@@ -160,6 +191,7 @@ jobs:
       enable_reporting: true
       report_type: RELEASE_CUT
       ref_branch: ${{ needs.validate.outputs.ref_branch }}
+      run_rolling_upgrades: ${{ 'true' }}
     secrets:
       MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
       REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"

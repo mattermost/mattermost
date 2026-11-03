@@ -24,7 +24,7 @@ export type Props<T extends Value> = {
         select: (value: T) => void,
     ) => React.ReactNode;
     query?: string;
-    selectedItemRef?: React.RefObject<HTMLDivElement>;
+    selectedItemRef?: React.RefObject<HTMLDivElement | null>;
     options: T[];
     customNoOptionsMessage?: React.ReactNode;
 };
@@ -139,7 +139,7 @@ export default class MultiSelectList<T extends Value> extends React.PureComponen
 
         return (
             <div
-                ref={isSelected ? this.selectedItemRef : option.value}
+                ref={isSelected ? this.selectedItemRef : undefined}
                 className={rowSelected}
                 key={'multiselectoption' + option.value}
                 onClick={() => add(option)}

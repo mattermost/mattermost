@@ -417,7 +417,7 @@ func (scs *Service) fetchMembershipsForSync(sd *syncData) error {
 
 	// Build MembershipChangeMsg entries
 	for userID, state := range byUser {
-		user, userErr := scs.server.GetStore().User().Get(context.Background(), userID)
+		user, userErr := scs.server.GetStore().User().Get(request.EmptyContext(scs.server.Log()), userID)
 		if userErr != nil {
 			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "Failed to get user for membership sync",
 				mlog.String("user_id", userID),
@@ -620,7 +620,7 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 
 		// Skip notifications for remote users unless mentioned with @username:remote format
 		for mention, userID := range mentionMap {
-			user, err := scs.server.GetStore().User().Get(context.Background(), userID)
+			user, err := scs.server.GetStore().User().Get(request.EmptyContext(scs.server.Log()), userID)
 			if err != nil {
 				continue
 			}
@@ -648,7 +648,7 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 
 	merr := merror.New()
 	for userID, v := range userIDs {
-		user, err := scs.server.GetStore().User().Get(context.Background(), userID)
+		user, err := scs.server.GetStore().User().Get(request.EmptyContext(scs.server.Log()), userID)
 		if err != nil {
 			merr.Append(fmt.Errorf("could not get user %s: %w", userID, err))
 			continue

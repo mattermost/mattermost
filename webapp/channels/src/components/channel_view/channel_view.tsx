@@ -2,10 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessage} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 
 import AdvancedCreatePost from 'components/advanced_create_post';
 import ChannelBanner from 'components/channel_banner/channel_banner';
@@ -16,8 +16,11 @@ import {DropOverlayIdCenterChannel, FileUploadOverlay} from 'components/file_upl
 import PostView from 'components/post_view';
 
 import WebSocketClient from 'client/web_websocket_client';
+import type {KindMessages} from 'utils/channel_kind';
+import {channelKindMessages} from 'utils/channel_kind_messages';
 
 import {ChannelComposerBanner} from './channel_composer_banner';
+import ChannelViewPluginComponent from './channel_view_plugin_component';
 import InputLoading from './input_loading';
 
 import type {PropsFromRedux} from './index';
@@ -25,6 +28,21 @@ import type {PropsFromRedux} from './index';
 export type Props = PropsFromRedux & RouteComponentProps<{
     postid?: string;
 }>;
+
+/* eslint-disable formatjs/enforce-placeholders -- values are passed where each message is rendered */
+const messages = {
+    archived: {
+        channel: defineMessage({
+            id: 'channelView.archivedChannel',
+            defaultMessage: 'You are viewing an <b>archived channel</b>. New messages cannot be posted.',
+        }),
+        board: defineMessage({
+            id: 'channelView.archivedChannel.board',
+            defaultMessage: 'You are viewing an <b>archived board</b>. New messages cannot be posted.',
+        }),
+    },
+} satisfies Record<string, KindMessages>;
+/* eslint-enable formatjs/enforce-placeholders */
 
 type State = {
     channelId: string;
@@ -71,7 +89,7 @@ export default class ChannelView extends React.PureComponent<Props, State> {
         return null;
     }
 
-    channelViewRef: React.RefObject<HTMLDivElement>;
+    channelViewRef: React.RefObject<HTMLDivElement | null>;
 
     constructor(props: Props) {
         super(props);
@@ -108,6 +126,20 @@ export default class ChannelView extends React.PureComponent<Props, State> {
     }
 
     render() {
+        const {channelViewPluginComponent} = this.props;
+        const {focusedPostId} = this.state;
+
+        let center: React.ReactNode;
+        if (channelViewPluginComponent) {
+            center = (
+                <ChannelViewPluginComponent
+                    registration={channelViewPluginComponent}
+                    channelId={this.props.channelId}
+                    focusedPostId={focusedPostId}
+                />
+            );
+        }
+
         let createPost;
         if (this.props.deactivatedChannel) {
             createPost = (
@@ -149,8 +181,7 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                         className='channel-archived__message'
                     >
                         <FormattedMessage
-                            id='channelView.archivedChannel'
-                            defaultMessage='You are viewing an <b>archived channel</b>. New messages cannot be posted.'
+                            {...messages.archived[this.props.channelKind]}
                             values={{
                                 b: (chunks) => <b>{chunks}</b>,
                             }}
@@ -160,10 +191,7 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                             className='channel-archived__close-btn'
                             onClick={this.onClickCloseChannel}
                         >
-                            <FormattedMessage
-                                id='center_panel.archived.closeChannel'
-                                defaultMessage='Close Channel'
-                            />
+                            <FormattedMessage {...channelKindMessages.closeChannel[this.props.channelKind]}/>
                         </Button>
                     </div>
                 </div>
@@ -210,7 +238,18 @@ export default class ChannelView extends React.PureComponent<Props, State> {
             );
         }
 
-        const DeferredPostView = this.state.deferredPostView;
+        if (!center) {
+            const DeferredPostView = this.state.deferredPostView;
+            center = (
+                <>
+                    <DeferredPostView
+                        channelId={this.props.channelId}
+                        focusedPostId={focusedPostId}
+                    />
+                    {createPost}
+                </>
+            );
+        }
 
         return (
             <div
@@ -218,18 +257,24 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                 id='app-content'
                 className='app__content'
             >
-                <FileUploadOverlay
-                    overlayType='center'
-                    id={DropOverlayIdCenterChannel}
-                />
-                <ChannelHeader/>
-                <ChannelBanner channelId={this.props.channelId}/>
-                {this.props.isChannelBookmarksEnabled && <ChannelBookmarks channelId={this.props.channelId}/>}
-                <DeferredPostView
+                {!channelViewPluginComponent && (
+                    <FileUploadOverlay
+                        overlayType='center'
+                        id={DropOverlayIdCenterChannel}
+                    />
+                )}
+                <ChannelHeader key='channelHeader'/>
+                <ChannelBanner
+                    key='channelBanner'
                     channelId={this.props.channelId}
-                    focusedPostId={this.state.focusedPostId}
                 />
-                {createPost}
+                {this.props.isChannelBookmarksEnabled && (
+                    <ChannelBookmarks
+                        key='channelBookmarks'
+                        channelId={this.props.channelId}
+                    />
+                )}
+                {center}
             </div>
         );
     }

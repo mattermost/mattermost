@@ -309,6 +309,11 @@ func (_m *PolicyAdministrationPointInterface) Init(rctx request.CTX) *model.AppE
 	return r0
 }
 
+// InvalidateAllPolicyCaches provides a mock function with given fields: rctx
+func (_m *PolicyAdministrationPointInterface) InvalidateAllPolicyCaches(rctx request.CTX) {
+	_m.Called(rctx)
+}
+
 // MaskExpressionForCaller provides a mock function with given fields: rctx, expression, resolver
 func (_m *PolicyAdministrationPointInterface) MaskExpressionForCaller(rctx request.CTX, expression string, resolver model.MaskingFieldResolver) (string, bool, *model.AppError) {
 	ret := _m.Called(rctx, expression, resolver)

@@ -329,6 +329,16 @@
             type: integer
             default: 60
             maximum: 200
+        - name: propertyGroup
+          in: query
+          description: >
+            The name of a single property group whose values should be hydrated onto each post's
+            metadata. Only **PSAv2** groups are accepted; passing a legacy v1 group, or an
+            unrecognized name, returns 404. There is no support for requesting more than one group
+            per request.
+          required: false
+          schema:
+            type: string
       responses:
         "200":
           description: Post list retrieval successful

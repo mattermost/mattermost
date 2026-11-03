@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import type {ComponentType} from 'react';
 import React, {useMemo, useState, useEffect, useCallback, useRef} from 'react';
 import {useIntl} from 'react-intl';
 
@@ -17,19 +16,23 @@ import {
     InformationOutlineIcon,
     SyncIcon,
     ShieldAlertOutlineIcon,
-    MonitorIcon,
-    CellphoneIcon,
-    GlobeIcon,
     SortAscendingIcon,
+    SitemapIcon,
 } from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import {isSessionAttributeField} from '@mattermost/types/properties_user';
 
+import {isPropertyFieldSynced} from 'mattermost-redux/utils/property_utils';
+
+import {PLATFORM_ICONS, platformLabels} from 'components/admin_console/session_attributes/platform_icons';
+import {getSessionAttrs} from 'components/admin_console/session_attributes/utils';
 import * as Menu from 'components/menu';
 
 import {getUserPropertyFieldLabel} from 'utils/properties';
+
+import {hasControlledAttributeValues} from '../shared';
 
 import './selector_menus.scss';
 
@@ -46,7 +49,7 @@ const AttributeLabel = ({displayName, name}: AttributeLabelProps) => (
 );
 
 // Define AttributeIcon outside the main component
-const AttributeIcon = (props: IconProps & {attribute?: UserPropertyField}) => {
+export const AttributeIcon = (props: IconProps & {attribute?: UserPropertyField}) => {
     const {attribute, ...iconProps} = props;
     if (attribute) {
         const valueType = attribute.attrs?.value_type;
@@ -66,6 +69,8 @@ const AttributeIcon = (props: IconProps & {attribute?: UserPropertyField}) => {
             return <ChevronDownCircleOutlineIcon {...iconProps}/>;
         case 'rank':
             return <SortAscendingIcon {...iconProps}/>;
+        case 'graph':
+            return <SitemapIcon {...iconProps}/>;
         case 'multiselect':
             return <FormatListBulletedIcon {...iconProps}/>;
         case 'text':
@@ -74,12 +79,6 @@ const AttributeIcon = (props: IconProps & {attribute?: UserPropertyField}) => {
         }
     }
     return <MenuVariantIcon {...iconProps}/>;
-};
-
-const PLATFORM_ICONS: Record<string, ComponentType<IconProps>> = {
-    desktop: MonitorIcon,
-    mobile: CellphoneIcon,
-    browser: GlobeIcon,
 };
 
 interface AttributeSelectorProps {
@@ -175,12 +174,10 @@ const AttributeSelectorMenu = ({currentAttribute, currentAttributeObjectType, av
         const isSessionAttribute = isSessionAttributeField(option);
         const isNative = option.attrs?.native;
         const isSelected = matchesSelection(option, currentAttribute, currentAttributeObjectType);
-        const isSynced = option.attrs?.ldap || option.attrs?.saml;
-        const isAdminManaged = option.attrs?.managed === 'admin';
-        const isProtected = option.attrs?.protected;
-        const allowed = isSessionAttribute || isNative || isSynced || isAdminManaged || isProtected || enableUserManagedAttributes;
+        const isSynced = isPropertyFieldSynced(option);
+        const allowed = isSessionAttribute || isNative || hasControlledAttributeValues(option) || enableUserManagedAttributes;
 
-        const platforms = isSessionAttribute ? (option.attrs?.platforms ?? []) : [];
+        const platforms = isSessionAttribute ? getSessionAttrs(option).platforms : [];
 
         const menuItem = (
             <Menu.Item
@@ -209,13 +206,24 @@ const AttributeSelectorMenu = ({currentAttribute, currentAttributeObjectType, av
                     <>
                         {platforms.map((platform) => {
                             const PlatformIcon = PLATFORM_ICONS[platform];
-                            return PlatformIcon ? (
-                                <PlatformIcon
+                            if (!PlatformIcon) {
+                                return null;
+                            }
+                            const platformLabel = formatMessage(platformLabels[platform]);
+                            return (
+                                <WithTooltip
                                     key={platform}
-                                    size={16}
-                                    color='var(--button-bg)'
-                                />
-                            ) : null;
+                                    title={platformLabel}
+                                >
+                                    <span className='attribute-selector-platform-icon'>
+                                        <PlatformIcon
+                                            size={16}
+                                            color='var(--button-bg)'
+                                            aria-label={platformLabel}
+                                        />
+                                    </span>
+                                </WithTooltip>
+                            );
                         })}
                         {hasSpaces && (
                             <InformationOutlineIcon
@@ -252,7 +260,7 @@ const AttributeSelectorMenu = ({currentAttribute, currentAttributeObjectType, av
         } else if (!allowed) {
             tooltipContent = formatMessage({
                 id: 'admin.access_control.table_editor.not_safe_to_use',
-                defaultMessage: 'Values for this attribute are managed by users and should not be used for access control. Please link attribute to AD/LDAP for use in access policies.',
+                defaultMessage: 'Values for this attribute are managed by users and should not be used for access control. Link the attribute to AD/LDAP, SAML or OpenID Connect to use it in access policies.',
             });
         } else if (isSynced) {
             tooltipContent = formatMessage({
@@ -288,7 +296,9 @@ const AttributeSelectorMenu = ({currentAttribute, currentAttributeObjectType, av
                 children: (
                     <>
                         <AttributeIcon attribute={selectedAttributeObject}/>
-                        {selectedAttributeLabel}
+                        <WithTooltip title={selectedAttributeLabel}>
+                            <span className='field-selector-menu-button__label'>{selectedAttributeLabel}</span>
+                        </WithTooltip>
                     </>
                 ),
                 dataTestId: 'attributeSelectorMenuButton',

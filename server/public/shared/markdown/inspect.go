@@ -3,18 +3,43 @@
 
 package markdown
 
-import "slices"
-
-const (
-	// Assuming 64k maxSize of a post which can be stored in DB.
-	// Allow scanning upto twice(arbitrary value) the post size.
-	maxLen = 1024 * 64 * 2
+import (
+	"slices"
+	"sync/atomic"
 )
+
+// defaultMaxPostRunes is used only if no value has been registered via
+// SetMaxPostRunes, which should not happen in practice. It assumes a post is at
+// most 64KiB in DB. Assuming four bytes per rune, it gives us 16*1024 runes.
+// If we allow scanning up to twice (arbitrary value) that value, we get:
+const defaultMaxPostRunes = 2 * 16 * 1024
+
+var maxPostRunes atomic.Int64
+
+func init() {
+	maxPostRunes.Store(defaultMaxPostRunes)
+}
+
+// SetMaxPostRunes registers the real configured maximum post size, in runes, that MaxLen uses to
+// compute the maximum markdown input length. This lets MaxLen reflect the real limit regardless
+// of which code path first parses markdown, rather than depending on that path having already
+// pushed the value in. Safe to call concurrently with MaxLen.
+func SetMaxPostRunes(size int) {
+	maxPostRunes.Store(int64(size))
+}
+
+// MaxLen returns the current maximum markdown input length, in bytes, enforced by Parse and
+// Inspect: four times the maximum post size, in runes, registered via SetMaxPostRunes (or
+// defaultMaxPostRunes if it hasn't been called yet), assuming a worst case of four bytes per
+// rune.
+func MaxLen() int {
+	return 4 * int(maxPostRunes.Load())
+}
 
 // Inspect traverses the markdown tree in depth-first order. If f returns true, Inspect invokes f
 // recursively for each child of the block or inline, followed by a call of f(nil).
 func Inspect(markdown string, f func(any) bool) {
-	if len(markdown) > maxLen {
+	if len(markdown) > MaxLen() {
 		return
 	}
 	document, referenceDefinitions := Parse(markdown)

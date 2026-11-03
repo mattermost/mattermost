@@ -70,7 +70,10 @@ function PostHeaderTranslateIcon({
         return (
             <div>
                 <i className='post__translation-icon-processing'>
-                    <LoadingSpinner text={formatMessage({id: 'post_info.translation_icon_processing', defaultMessage: 'Translating...'})}/>
+                    <LoadingSpinner
+                        size='10'
+                        text={formatMessage({id: 'post_info.translation_icon_processing', defaultMessage: 'Translating...'})}
+                    />
                 </i>
             </div>
         );

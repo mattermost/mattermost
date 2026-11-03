@@ -5,8 +5,6 @@ package slashcommands
 
 import (
 	"context"
-	"math/rand"
-	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -20,8 +18,6 @@ type TestEnvironment struct {
 }
 
 func CreateTestEnvironmentWithTeams(a *app.App, rctx request.CTX, client *model.Client4, rangeTeams utils.Range, rangeChannels utils.Range, rangeUsers utils.Range, rangePosts utils.Range, fuzzy bool) (TestEnvironment, error) {
-	rand.Seed(time.Now().UTC().UnixNano())
-
 	teamCreator := NewAutoTeamCreator(client)
 	teamCreator.Fuzzy = fuzzy
 	teams, err := teamCreator.CreateTestTeams(rangeTeams)
@@ -53,8 +49,6 @@ func CreateTestEnvironmentWithTeams(a *app.App, rctx request.CTX, client *model.
 }
 
 func CreateTestEnvironmentInTeam(a *app.App, rctx request.CTX, client *model.Client4, team *model.Team, rangeChannels utils.Range, rangeUsers utils.Range, rangePosts utils.Range, fuzzy bool) (TeamEnvironment, error) {
-	rand.Seed(time.Now().UTC().UnixNano())
-
 	// We need to create at least one user
 	if rangeUsers.Begin <= 0 {
 		rangeUsers.Begin = 1

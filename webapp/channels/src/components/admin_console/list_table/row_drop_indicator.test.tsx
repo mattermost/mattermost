@@ -68,7 +68,7 @@ describe('RowDropIndicator', () => {
         const row = document.createElement('tr');
         document.body.appendChild(row);
 
-        let rerender: (ui: React.ReactElement) => void = () => undefined;
+        let rerender: (ui: React.ReactElement<any>) => void = () => undefined;
         act(() => {
             const r = renderWithContext(
                 <RowDropIndicator

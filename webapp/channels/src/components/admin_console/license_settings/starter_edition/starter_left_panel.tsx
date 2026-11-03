@@ -2,10 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import type {RefObject} from 'react';
+import type {JSX, RefObject} from 'react';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 
@@ -16,7 +16,7 @@ export interface StarterEditionProps {
     openEELicenseModal: () => void;
     currentPlan: JSX.Element;
     upgradedFromTE: boolean;
-    fileInputRef: RefObject<HTMLInputElement>;
+    fileInputRef: RefObject<HTMLInputElement | null>;
     handleChange: () => void;
 }
 
@@ -39,7 +39,7 @@ const StarterLeftPanel: React.FC<StarterEditionProps> = ({
             id='starter_edition_view_plans'
             onClick={openPricingModal}
             emphasis='tertiary'
-            size='sm'
+            size='small'
             className='PlanDetails__viewPlansButton'
         >
             {intl.formatMessage({

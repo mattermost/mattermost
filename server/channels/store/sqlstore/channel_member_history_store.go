@@ -12,6 +12,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -54,7 +55,7 @@ func (s SqlChannelMemberHistoryStore) LogJoinEvent(userId string, channelId stri
 	return nil
 }
 
-func (s SqlChannelMemberHistoryStore) LogLeaveEvent(userId string, channelId string, leaveTime int64) error {
+func (s SqlChannelMemberHistoryStore) LogLeaveEvent(rctx request.CTX, userId string, channelId string, leaveTime int64) error {
 	query, params, err := s.getQueryBuilder().
 		Update("ChannelMemberHistory").
 		Set("LeaveTime", leaveTime).
@@ -73,7 +74,7 @@ func (s SqlChannelMemberHistoryStore) LogLeaveEvent(userId string, channelId str
 
 	if rows, err := sqlResult.RowsAffected(); err == nil && rows != 1 {
 		// there was no join event to update - this is best effort, so no need to raise an error
-		mlog.Warn("Channel join event for user and channel not found", mlog.String("user", userId), mlog.String("channel", channelId))
+		rctx.Logger().Warn("Channel join event for user and channel not found", mlog.String("user", userId), mlog.String("channel", channelId))
 	}
 	return nil
 }
@@ -376,4 +377,16 @@ func (s SqlChannelMemberHistoryStore) GetChannelsLeftSince(userID string, since 
 	}
 
 	return channelIds, nil
+}
+
+func (s SqlChannelMemberHistoryStore) PermanentDeleteByUser(userID string) error {
+	query := s.getQueryBuilder().
+		Delete("ChannelMemberHistory").
+		Where(sq.Eq{"UserId": userID})
+
+	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
+		return errors.Wrapf(err, "failed to delete ChannelMemberHistory with userId=%s", userID)
+	}
+
+	return nil
 }

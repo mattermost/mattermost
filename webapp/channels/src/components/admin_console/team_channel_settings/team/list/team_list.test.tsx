@@ -32,12 +32,10 @@ describe('admin_console/team_channel_settings/team/TeamList', () => {
         );
 
         // Wait for the component to finish loading
-        await waitFor(() => {
-            expect(actions.getData).toHaveBeenCalled();
-        });
+        const teamDisplayNames = await screen.findAllByTestId('team-display-name');
+        expect(actions.getData).toHaveBeenCalled();
 
         // Verify the team name is displayed
-        const teamDisplayNames = screen.getAllByTestId('team-display-name');
         expect(teamDisplayNames).toHaveLength(1);
         expect(teamDisplayNames[0]).toHaveTextContent('DN');
     });
@@ -65,12 +63,10 @@ describe('admin_console/team_channel_settings/team/TeamList', () => {
         );
 
         // Wait for the component to finish loading
-        await waitFor(() => {
-            expect(actions.getData).toHaveBeenCalled();
-        });
+        const teamDisplayNames = await screen.findAllByTestId('team-display-name');
+        expect(actions.getData).toHaveBeenCalled();
 
         // Verify pagination is working - only first page of teams should be displayed
-        const teamDisplayNames = screen.getAllByTestId('team-display-name');
         expect(teamDisplayNames).toHaveLength(PAGE_SIZE); // Should show exactly 10 teams (first page)
 
         // Verify first few teams from the first page are rendered correctly
@@ -255,12 +251,10 @@ describe('admin_console/team_channel_settings/team/TeamList', () => {
         );
 
         // Wait for teams to load
-        await waitFor(() => {
-            expect(actions.getData).toHaveBeenCalled();
-        });
+        const openManagement = await screen.findByTestId('openManagement');
+        expect(actions.getData).toHaveBeenCalled();
 
         // Verify management type is displayed using testid
-        const openManagement = screen.getByTestId('openManagement');
         const inviteManagement = screen.getByTestId('inviteManagement');
         const policyManagement = screen.getByTestId('policyManagement');
 
@@ -297,12 +291,10 @@ describe('admin_console/team_channel_settings/team/TeamList', () => {
         );
 
         // Wait for teams to load
-        await waitFor(() => {
-            expect(actions.getData).toHaveBeenCalled();
-        });
+        const editLink = await screen.findByRole('link', {name: /edit/i});
+        expect(actions.getData).toHaveBeenCalled();
 
         // Verify edit link is present
-        const editLink = screen.getByRole('link', {name: /edit/i});
         expect(editLink).toBeInTheDocument();
         expect(editLink).toHaveAttribute('href', '/admin_console/user_management/teams/123');
     });

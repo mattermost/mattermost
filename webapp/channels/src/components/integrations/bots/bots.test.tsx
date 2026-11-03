@@ -5,10 +5,17 @@ import React from 'react';
 
 import type {Bot} from '@mattermost/types/bots';
 
-import {renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor, within} from 'tests/react_testing_utils';
+import {getHistory} from 'utils/browser_history';
 import {TestHelper} from 'utils/test_helper';
 
+import type {BotCreateWarnings} from './bot_create_warnings';
+import {BOT_CREATE_WARNINGS_PARAM, serializeBotCreateWarnings} from './bot_create_warnings';
 import Bots from './bots';
+
+const TITLE = 'Bot account created, but some settings were not saved';
+const TOKEN = "An access token could not be created. Create one from this bot's Create New Token option, or ask a System Admin if you don't have permission.";
+const ATTRS = 'Attributes could not be saved. Edit the bot to add them again.';
 
 describe('components/integrations/bots/Bots', () => {
     const team = TestHelper.getTeamMock();
@@ -19,6 +26,7 @@ describe('components/integrations/bots/Bots', () => {
         revokeUserAccessToken: jest.fn(),
         enableUserAccessToken: jest.fn(),
         disableUserAccessToken: jest.fn(),
+        rotateUserAccessToken: jest.fn(),
         getUser: jest.fn(),
         disableBot: jest.fn(),
         enableBot: jest.fn(),
@@ -62,6 +70,7 @@ describe('components/integrations/bots/Bots', () => {
                 actions={{...actions, loadBots}}
                 appsEnabled={false}
                 appsBotIDs={[]}
+                maxLifetimeDays={0}
             />,
         );
 
@@ -92,6 +101,7 @@ describe('components/integrations/bots/Bots', () => {
                 actions={{...actions, loadBots}}
                 appsEnabled={true}
                 appsBotIDs={['3']}
+                maxLifetimeDays={0}
             />,
         );
 
@@ -131,6 +141,7 @@ describe('components/integrations/bots/Bots', () => {
                 actions={{...actions, loadBots}}
                 appsEnabled={false}
                 appsBotIDs={[]}
+                maxLifetimeDays={0}
             />,
         );
 
@@ -176,6 +187,7 @@ describe('components/integrations/bots/Bots', () => {
                 actions={{...actions, loadBots, getUser}}
                 appsEnabled={false}
                 appsBotIDs={[]}
+                maxLifetimeDays={0}
             />,
         );
 
@@ -228,6 +240,7 @@ describe('components/integrations/bots/Bots', () => {
                 actions={{...actions, loadBots, getUser}}
                 appsEnabled={false}
                 appsBotIDs={[]}
+                maxLifetimeDays={0}
             />,
         );
 
@@ -252,6 +265,7 @@ describe('components/integrations/bots/Bots', () => {
                 actions={{...actions, loadBots, getUser}}
                 appsEnabled={false}
                 appsBotIDs={[]}
+                maxLifetimeDays={0}
             />,
         );
 
@@ -294,6 +308,7 @@ describe('components/integrations/bots/Bots', () => {
                 actions={{...actions, loadBots, getUser}}
                 appsEnabled={false}
                 appsBotIDs={[]}
+                maxLifetimeDays={0}
             />,
         );
 
@@ -323,6 +338,7 @@ describe('components/integrations/bots/Bots', () => {
                 actions={{...actions, loadBots, getUser}}
                 appsEnabled={false}
                 appsBotIDs={[]}
+                maxLifetimeDays={0}
             />,
         );
 
@@ -348,6 +364,7 @@ describe('components/integrations/bots/Bots', () => {
                 actions={{...actions, loadBots, getUser}}
                 appsEnabled={false}
                 appsBotIDs={[]}
+                maxLifetimeDays={0}
             />,
         );
 
@@ -396,6 +413,7 @@ describe('components/integrations/bots/Bots', () => {
                 actions={{...actions, loadBots}}
                 appsEnabled={false}
                 appsBotIDs={[]}
+                maxLifetimeDays={0}
             />,
         );
 
@@ -407,5 +425,123 @@ describe('components/integrations/bots/Bots', () => {
         const managedByDiv = container.querySelector('.light.small');
         expect(managedByDiv).toBeInTheDocument();
         expect(managedByDiv!.textContent).toContain('owner1');
+    });
+
+    describe('create warnings', () => {
+        const LIST_PATH = `/${team.name}/integrations/bots`;
+        const withWarnings = (warnings: BotCreateWarnings) =>
+            `${BOT_CREATE_WARNINGS_PARAM}=${encodeURIComponent(serializeBotCreateWarnings(warnings) ?? '')}`;
+        const listLocation = (warnings?: BotCreateWarnings, extraSearch = '') => ({
+            pathname: LIST_PATH,
+            search: warnings ? `?${extraSearch}${extraSearch ? '&' : ''}${withWarnings(warnings)}` : '',
+        });
+        const replace = getHistory().replace as jest.Mock;
+        const listElement = (location?: {pathname: string; search: string}, loadBots = jest.fn().mockResolvedValue({data: []})) => (
+            <Bots
+                bots={{}}
+                team={team}
+                accessTokens={{}}
+                owners={{}}
+                users={{}}
+                actions={{...actions, loadBots}}
+                appsEnabled={false}
+                appsBotIDs={[]}
+                maxLifetimeDays={0}
+                location={location}
+            />
+        );
+        const renderList = (location?: {pathname: string; search: string}, loadBots?: jest.Mock) => renderWithContext(listElement(location, loadBots));
+        const waitForLoaded = () => waitFor(() => expect(screen.getByText('No bot accounts found')).toBeInTheDocument());
+
+        it('shows no banner without location', async () => {
+            renderList();
+            await waitForLoaded();
+
+            expect(screen.queryByTestId('botCreateWarnings')).toBeNull();
+            expect(replace).not.toHaveBeenCalled();
+        });
+
+        it('shows no banner when the query has no warnings', async () => {
+            const {unmount} = renderList(listLocation());
+            await waitForLoaded();
+            expect(screen.queryByTestId('botCreateWarnings')).toBeNull();
+            unmount();
+
+            renderList({pathname: LIST_PATH, search: '?foo=1'});
+            await waitForLoaded();
+            expect(screen.queryByTestId('botCreateWarnings')).toBeNull();
+            expect(replace).not.toHaveBeenCalled();
+        });
+
+        it('shows the warnings from the query in the banner', async () => {
+            renderList(listLocation({tokenFailed: true, attributesFailed: true}));
+            await waitForLoaded();
+
+            const banner = screen.getByTestId('botCreateWarnings');
+            expect(within(banner).getByText(TITLE)).toBeInTheDocument();
+            expect(within(banner).getByText(TOKEN)).toBeInTheDocument();
+            expect(within(banner).getByText(ATTRS)).toBeInTheDocument();
+        });
+
+        it('removes bot_warnings from the URL and keeps the banner', async () => {
+            renderList(listLocation({tokenFailed: true}));
+            await waitForLoaded();
+
+            expect(replace).toHaveBeenCalledTimes(1);
+            expect(replace).toHaveBeenCalledWith(LIST_PATH);
+            expect(screen.getByTestId('botCreateWarnings')).toBeInTheDocument();
+        });
+
+        it('keeps other query params when removing bot_warnings', async () => {
+            renderList(listLocation({tokenFailed: true}, 'foo=1'));
+            await waitForLoaded();
+
+            expect(replace).toHaveBeenCalledTimes(1);
+            expect(replace).toHaveBeenCalledWith(`${LIST_PATH}?foo=1`);
+        });
+
+        it('dismissing hides the banner', async () => {
+            renderList(listLocation({tokenFailed: true}));
+            await waitForLoaded();
+
+            const banner = screen.getByTestId('botCreateWarnings');
+            await userEvent.click(within(banner).getByRole('button', {name: 'Close'}));
+
+            expect(screen.queryByTestId('botCreateWarnings')).toBeNull();
+        });
+
+        it('shows the warning once: it survives the cleanup rerender but not a fresh mount', async () => {
+            const {rerender, unmount} = renderList(listLocation({tokenFailed: true}, 'foo=1'));
+            await waitForLoaded();
+            const cleanedSearch = String(replace.mock.calls[0][0]).slice(LIST_PATH.length);
+            expect(cleanedSearch).toBe('?foo=1');
+
+            rerender(listElement({pathname: LIST_PATH, search: cleanedSearch}));
+            expect(within(screen.getByTestId('botCreateWarnings')).getByText(TOKEN)).toBeInTheDocument();
+            expect(replace).toHaveBeenCalledTimes(1);
+            unmount();
+
+            renderList({pathname: LIST_PATH, search: cleanedSearch});
+            await waitForLoaded();
+            expect(screen.queryByTestId('botCreateWarnings')).toBeNull();
+            expect(replace).toHaveBeenCalledTimes(1);
+        });
+
+        it('strips an unrecognized bot_warnings value without showing a banner', async () => {
+            renderList({pathname: LIST_PATH, search: `?foo=1&${BOT_CREATE_WARNINGS_PARAM}=foo`});
+            await waitForLoaded();
+
+            expect(screen.queryByTestId('botCreateWarnings')).toBeNull();
+            expect(replace).toHaveBeenCalledTimes(1);
+            expect(replace).toHaveBeenCalledWith(`${LIST_PATH}?foo=1`);
+        });
+
+        it('shows the warning above the load error', async () => {
+            renderList(listLocation({tokenFailed: true}), jest.fn().mockResolvedValue({error: {message: 'x'}}));
+
+            const loadError = await screen.findByText('Bot accounts could not be loaded. Refresh the page to try again.');
+            const banner = screen.getByTestId('botCreateWarnings');
+            expect(banner.compareDocumentPosition(loadError) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        });
     });
 });

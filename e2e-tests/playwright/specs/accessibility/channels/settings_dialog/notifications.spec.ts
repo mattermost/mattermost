@@ -104,9 +104,10 @@ test(
             - heading "Notifications" [level=3]
             - link "Learn more about notifications":
               - /url: https://mattermost.com/pl/about-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=user_settings_notifications&uid=${user.id}&sid=${clientConfig.DiagnosticId}&edition=enterprise&server_version=${clientConfig.Version}
-              - img
             - heading "Desktop and mobile notifications Permission required" [level=4]:
+              - text: ""
               - img
+              - text: ""
             - button "Desktop and mobile notifications Permission required Edit"
             - text: Mentions, direct messages, and group messages
             - heading "Desktop notification sounds" [level=4]
@@ -114,6 +115,7 @@ test(
             - text: "\\"Bing\\" for messages"
             - heading "Email notifications" [level=4]
             - button "Email notifications Edit"
+            - text: "On"
             - heading "Auto-follow threads on channel-wide mentions" [level=4]
             - button "Auto-follow threads on channel-wide mentions Edit"
             - text: "On"
@@ -122,10 +124,11 @@ test(
             - text: "\\"@${user.username}\\", \\"@channel\\", \\"@all\\", \\"@here\\""
             - heading "Keywords that get highlighted (without notifications)" [level=4]
             - button "Keywords that get highlighted (without notifications) Edit"
+            - text: None
             - heading "Troubleshooting notifications" [level=4]
-            - paragraph: Not receiving notifications? Start by sending a test notification to all your devices to check if they’re working as expected. If issues persist, explore ways to solve them with troubleshooting steps.
+            - text: Not receiving notifications? Start by sending a test notification to all your devices to check if they’re working as expected. If issues persist, explore ways to solve them with troubleshooting steps.
             - button "Send a test notification"
-            - button "Troubleshooting docs 󰏌"
+            - button "Troubleshooting docs"
         `);
 
         // * Analyze the Notifications settings panel for accessibility issues
@@ -144,7 +147,11 @@ test(
     {tag: ['@accessibility', '@settings', '@notification_settings', '@snapshots']},
     async ({pw, axe}) => {
         // # Create and sign in a new user
-        const {user} = await pw.initSetup();
+        const {user, adminClient} = await pw.initSetup();
+
+        // # Send push notifications, without which the mobile settings in this section are replaced
+        // # by a "not enabled by your system administrator" message
+        await adminClient.patchConfig({EmailSettings: {SendPushNotifications: true}});
 
         // # Log in a user in new browser context
         const {page, channelsPage} = await pw.testBrowser.login(user);

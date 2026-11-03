@@ -7,7 +7,6 @@ import type {Post} from '@mattermost/types/posts';
 
 import {Preferences} from 'mattermost-redux/constants';
 
-import enMessages from 'i18n/en.json';
 import {makeInitialState} from 'packages/mattermost-redux/test/test_store';
 import {PostListRowListIds, Constants} from 'utils/constants';
 import EmojiMap from 'utils/emoji_map';
@@ -475,9 +474,26 @@ describe('PostUtils.shouldFocusMainTextbox', () => {
                 expected: false,
             },
         ]) {
-            const shouldFocus = PostUtils.shouldFocusMainTextbox(data.event as unknown as KeyboardEvent, data.activeElement as unknown as Element);
+            const activeElement = data.activeElement ? document.createElement(data.activeElement.tagName) : null;
+            const shouldFocus = PostUtils.shouldFocusMainTextbox(data.event as unknown as KeyboardEvent, activeElement);
             expect(shouldFocus).toEqual(data.expected);
         }
+    });
+
+    test('does not steal focus from a rich text editor', () => {
+        const event = {key: 'a'} as unknown as KeyboardEvent;
+
+        const editor = document.createElement('div');
+        editor.setAttribute('contenteditable', 'true');
+        const paragraph = document.createElement('p');
+        editor.appendChild(paragraph);
+
+        expect(PostUtils.shouldFocusMainTextbox(event, editor)).toBe(false);
+        expect(PostUtils.shouldFocusMainTextbox(event, paragraph)).toBe(false);
+
+        const readOnly = document.createElement('div');
+        readOnly.setAttribute('contenteditable', 'false');
+        expect(PostUtils.shouldFocusMainTextbox(event, readOnly)).toBe(true);
     });
 });
 
@@ -879,7 +895,7 @@ describe('PostUtils.createAriaLabelForPost', () => {
     const teammateNameDisplaySetting = 'username';
 
     test('Should show username, timestamp, message, attachments, reactions, flagged and pinned', () => {
-        const intl = createIntl({locale: 'en', messages: enMessages, defaultLocale: 'en'});
+        const intl = createIntl({locale: 'en', messages: {}, defaultLocale: 'en'});
 
         const testPost = TestHelper.getPostMock({
             message: 'test_message',
@@ -909,7 +925,7 @@ describe('PostUtils.createAriaLabelForPost', () => {
     });
 
     test('Should show that message is a reply', () => {
-        const intl = createIntl({locale: 'en', messages: enMessages, defaultLocale: 'en'});
+        const intl = createIntl({locale: 'en', messages: {}, defaultLocale: 'en'});
 
         const testPost = TestHelper.getPostMock({
             message: 'test_message',
@@ -925,7 +941,7 @@ describe('PostUtils.createAriaLabelForPost', () => {
     });
 
     test('Should translate emoji into {emoji-name} emoji', () => {
-        const intl = createIntl({locale: 'en', messages: enMessages, defaultLocale: 'en'});
+        const intl = createIntl({locale: 'en', messages: {}, defaultLocale: 'en'});
 
         const testPost = TestHelper.getPostMock({
             message: 'emoji_test :smile: :+1: :non-potable_water: :space emoji: :not_an_emoji:',
@@ -944,7 +960,7 @@ describe('PostUtils.createAriaLabelForPost', () => {
     });
 
     test('Generating aria label should not break if message is undefined', () => {
-        const intl = createIntl({locale: 'en', messages: enMessages, defaultLocale: 'en'});
+        const intl = createIntl({locale: 'en', messages: {}, defaultLocale: 'en'});
 
         const testPost = TestHelper.getPostMock({
             id: '32',
@@ -959,7 +975,7 @@ describe('PostUtils.createAriaLabelForPost', () => {
     });
 
     test('Should not mention reactions if passed an empty object', () => {
-        const intl = createIntl({locale: 'en', messages: enMessages, defaultLocale: 'en'});
+        const intl = createIntl({locale: 'en', messages: {}, defaultLocale: 'en'});
 
         const testPost = TestHelper.getPostMock({
             message: 'test_message',
@@ -975,7 +991,7 @@ describe('PostUtils.createAriaLabelForPost', () => {
     });
 
     test('Should show the username as mention name in the message', () => {
-        const intl = createIntl({locale: 'en', messages: enMessages, defaultLocale: 'en'});
+        const intl = createIntl({locale: 'en', messages: {}, defaultLocale: 'en'});
 
         const testPost = TestHelper.getPostMock({
             message: 'test_message @benjamin.cooke',
@@ -991,7 +1007,7 @@ describe('PostUtils.createAriaLabelForPost', () => {
     });
 
     test('Should show the nickname as mention name in the message', () => {
-        const intl = createIntl({locale: 'en', messages: enMessages, defaultLocale: 'en'});
+        const intl = createIntl({locale: 'en', messages: {}, defaultLocale: 'en'});
 
         const testPost = TestHelper.getPostMock({
             message: 'test_message @benjamin.cooke',
@@ -1007,7 +1023,7 @@ describe('PostUtils.createAriaLabelForPost', () => {
     });
 
     test('Should show translated message', () => {
-        const intl = createIntl({locale: 'en', messages: enMessages, defaultLocale: 'en'});
+        const intl = createIntl({locale: 'en', messages: {}, defaultLocale: 'en'});
 
         const testPost = TestHelper.getPostMock({
             message: 'test_message in Spanish',
@@ -1034,7 +1050,7 @@ describe('PostUtils.createAriaLabelForPost', () => {
     });
 
     test('Should show original message if translation is not ready', () => {
-        const intl = createIntl({locale: 'en', messages: enMessages, defaultLocale: 'en'});
+        const intl = createIntl({locale: 'en', messages: {}, defaultLocale: 'en'});
 
         const testPost = TestHelper.getPostMock({
             message: 'test_message in Spanish',
@@ -1061,7 +1077,7 @@ describe('PostUtils.createAriaLabelForPost', () => {
     });
 
     test('Should show original message if there is no translation for the current language', () => {
-        const intl = createIntl({locale: 'en', messages: enMessages, defaultLocale: 'en'});
+        const intl = createIntl({locale: 'en', messages: {}, defaultLocale: 'en'});
 
         const testPost = TestHelper.getPostMock({
             message: 'test_message in Spanish',
@@ -1088,7 +1104,7 @@ describe('PostUtils.createAriaLabelForPost', () => {
     });
 
     test('Should show original message if we pass autotranslated as false', () => {
-        const intl = createIntl({locale: 'en', messages: enMessages, defaultLocale: 'en'});
+        const intl = createIntl({locale: 'en', messages: {}, defaultLocale: 'en'});
 
         const testPost = TestHelper.getPostMock({
             message: 'test_message in Spanish',
@@ -1115,7 +1131,7 @@ describe('PostUtils.createAriaLabelForPost', () => {
     });
 
     test('Should show original message if the post type is not empty', () => {
-        const intl = createIntl({locale: 'en', messages: enMessages, defaultLocale: 'en'});
+        const intl = createIntl({locale: 'en', messages: {}, defaultLocale: 'en'});
 
         const testPost = TestHelper.getPostMock({
             message: 'test_message in Spanish',

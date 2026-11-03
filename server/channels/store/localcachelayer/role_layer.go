@@ -5,12 +5,12 @@ package localcachelayer
 
 import (
 	"bytes"
-	"context"
-	"sort"
+	"slices"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 )
@@ -52,13 +52,13 @@ func (s LocalCacheRoleStore) SavePreservingUnknownPermissions(role *model.Role) 
 	return s.RoleStore.SavePreservingUnknownPermissions(role)
 }
 
-func (s LocalCacheRoleStore) GetByName(ctx context.Context, name string) (*model.Role, error) {
+func (s LocalCacheRoleStore) GetByName(rctx request.CTX, name string) (*model.Role, error) {
 	var role *model.Role
 	if err := s.rootStore.doStandardReadCache(s.rootStore.roleCache, name, &role); err == nil {
 		return role, nil
 	}
 
-	role, err := s.RoleStore.GetByName(ctx, name)
+	role, err := s.RoleStore.GetByName(rctx, name)
 	if err != nil {
 		return nil, err
 	}
@@ -123,7 +123,7 @@ func (s LocalCacheRoleStore) PermanentDeleteAll() error {
 }
 
 func (s LocalCacheRoleStore) ChannelHigherScopedPermissions(roleNames []string) (map[string]*model.RolePermissions, error) {
-	sort.Strings(roleNames)
+	slices.Sort(roleNames)
 	cacheKey := strings.Join(roleNames, "/")
 	var rolePermissionsMap map[string]*model.RolePermissions
 	if err := s.rootStore.doStandardReadCache(s.rootStore.rolePermissionsCache, cacheKey, &rolePermissionsMap); err == nil {

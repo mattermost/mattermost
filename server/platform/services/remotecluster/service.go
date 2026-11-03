@@ -27,14 +27,16 @@ const (
 	SendTimeout                   = time.Minute
 	SendFileTimeout               = time.Minute * 5
 	PingURL                       = "api/v4/remotecluster/ping"
-	PingFreq                      = time.Minute
-	PingTimeout                   = time.Second * 15
-	ConfirmInviteURL              = "api/v4/remotecluster/confirm_invite"
-	InvitationTopic               = "invitation"
-	PingTopic                     = "ping"
-	ResponseStatusOK              = model.StatusOk
-	ResponseStatusFail            = model.StatusFail
-	InviteExpiresAfter            = time.Hour * 48
+	// Raising PingFreq also raises the transport's IdleConnTimeout (PingFreq / 2),
+	// which must stay below peer idle timeouts (60s default). See MM-69982.
+	PingFreq           = time.Minute
+	PingTimeout        = time.Second * 15
+	ConfirmInviteURL   = "api/v4/remotecluster/confirm_invite"
+	InvitationTopic    = "invitation"
+	PingTopic          = "ping"
+	ResponseStatusOK   = model.StatusOk
+	ResponseStatusFail = model.StatusFail
+	InviteExpiresAfter = time.Hour * 48
 )
 
 type ServerIface interface {
@@ -65,7 +67,7 @@ type RemoteClusterServiceIFace interface {
 	SendMsg(ctx context.Context, msg model.RemoteClusterMsg, rc *model.RemoteCluster, f SendMsgResultFunc) error
 	SendFile(ctx context.Context, us *model.UploadSession, fi *model.FileInfo, rc *model.RemoteCluster, rp ReaderProvider, f SendFileResultFunc) error
 	SendProfileImage(ctx context.Context, userID string, rc *model.RemoteCluster, provider ProfileImageProvider, f SendProfileImageResultFunc) error
-	AcceptInvitation(invite *model.RemoteClusterInvite, name string, displayName string, creatorId string, siteURL string, defaultTeamId string) (*model.RemoteCluster, error)
+	AcceptInvitation(invite *model.RemoteClusterInvite, name string, displayName string, creatorId string, siteURL string, defaultTeamId string) (*model.RemoteCluster, *model.AppError)
 	ReceiveIncomingMsg(rc *model.RemoteCluster, msg model.RemoteClusterMsg) Response
 	ReceiveInviteConfirmation(invite model.RemoteClusterInvite) (*model.RemoteCluster, error)
 	PingNow(rc *model.RemoteCluster)

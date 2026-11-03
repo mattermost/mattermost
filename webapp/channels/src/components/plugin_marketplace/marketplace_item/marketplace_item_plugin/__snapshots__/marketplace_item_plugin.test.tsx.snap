@@ -50,9 +50,14 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render 1`] = `
       class="more-modal__actions"
     >
       <button
-        class="plugin-install always-show-enabled"
+        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 plugin-install"
+        type="button"
       >
-        Install
+        <span
+          class="_button__label_we8pe_31"
+        >
+          Install
+        </span>
       </button>
     </div>
   </div>
@@ -109,13 +114,14 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render installe
       class="more-modal__actions"
     >
       <a
+        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64 plugin-configure"
         href="/admin_console/plugins/plugin_id"
       >
-        <button
-          class="plugin-configure"
+        <span
+          class="_button__label_we8pe_31"
         >
           Configure
-        </button>
+        </span>
       </a>
     </div>
   </div>
@@ -172,9 +178,14 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with emp
       class="more-modal__actions"
     >
       <button
-        class="plugin-install always-show-enabled"
+        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 plugin-install"
+        type="button"
       >
-        Install
+        <span
+          class="_button__label_we8pe_31"
+        >
+          Install
+        </span>
       </button>
     </div>
   </div>
@@ -223,9 +234,14 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with no 
       class="more-modal__actions"
     >
       <button
-        class="plugin-install always-show-enabled"
+        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 plugin-install"
+        type="button"
       >
-        Install
+        <span
+          class="_button__label_we8pe_31"
+        >
+          Install
+        </span>
       </button>
     </div>
   </div>
@@ -280,9 +296,14 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with no 
       class="more-modal__actions"
     >
       <button
-        class="plugin-install always-show-enabled"
+        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 plugin-install"
+        type="button"
       >
-        Install
+        <span
+          class="_button__label_we8pe_31"
+        >
+          Install
+        </span>
       </button>
     </div>
   </div>
@@ -371,9 +392,14 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with no 
       class="more-modal__actions"
     >
       <button
-        class="plugin-install always-show-enabled"
+        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 plugin-install"
+        type="button"
       >
-        Install
+        <span
+          class="_button__label_we8pe_31"
+        >
+          Install
+        </span>
       </button>
     </div>
   </div>
@@ -420,10 +446,10 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with one
         target="_blank"
       >
         <div
-          class="TagWrapper-kezsCu cA-dXXM Tag Tag--sm"
+          class="TagWrapper-fyxyxN doEirW Tag Tag--sm"
         >
           <span
-            class="TagText-bWoQAI beIloY"
+            class="TagText-hckUNX ldIWSD"
           >
             someName
           </span>
@@ -448,9 +474,14 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with one
       class="more-modal__actions"
     >
       <button
-        class="plugin-install always-show-enabled"
+        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 plugin-install"
+        type="button"
       >
-        Install
+        <span
+          class="_button__label_we8pe_31"
+        >
+          Install
+        </span>
       </button>
     </div>
   </div>
@@ -507,9 +538,14 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with plu
       class="more-modal__actions"
     >
       <button
-        class="plugin-install always-show-enabled"
+        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 plugin-install"
+        type="button"
       >
-        Install
+        <span
+          class="_button__label_we8pe_31"
+        >
+          Install
+        </span>
       </button>
     </div>
   </div>
@@ -566,9 +602,14 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with ser
       class="more-modal__actions"
     >
       <button
-        class="plugin-install always-show-enabled"
+        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 plugin-install"
+        type="button"
       >
-        Try Again
+        <span
+          class="_button__label_we8pe_31"
+        >
+          Try Again
+        </span>
       </button>
     </div>
   </div>
@@ -615,10 +656,10 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with two
         target="_blank"
       >
         <div
-          class="TagWrapper-kezsCu cA-dXXM Tag Tag--sm"
+          class="TagWrapper-fyxyxN doEirW Tag Tag--sm"
         >
           <span
-            class="TagText-bWoQAI beIloY"
+            class="TagText-hckUNX ldIWSD"
           >
             someName
           </span>
@@ -633,10 +674,10 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with two
         target="_blank"
       >
         <div
-          class="TagWrapper-kezsCu cA-dXXM Tag Tag--sm"
+          class="TagWrapper-fyxyxN doEirW Tag Tag--sm"
         >
           <span
-            class="TagText-bWoQAI beIloY"
+            class="TagText-hckUNX ldIWSD"
           >
             someName2
           </span>
@@ -661,9 +702,14 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with two
       class="more-modal__actions"
     >
       <button
-        class="plugin-install always-show-enabled"
+        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 plugin-install"
+        type="button"
       >
-        Install
+        <span
+          class="_button__label_we8pe_31"
+        >
+          Install
+        </span>
       </button>
     </div>
   </div>
@@ -740,13 +786,14 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with upd
       class="more-modal__actions"
     >
       <a
+        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64 plugin-configure"
         href="/admin_console/plugins/plugin_id"
       >
-        <button
-          class="plugin-configure"
+        <span
+          class="_button__label_we8pe_31"
         >
           Configure
-        </button>
+        </span>
       </a>
     </div>
   </div>
@@ -818,13 +865,14 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with upd
       class="more-modal__actions"
     >
       <a
+        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64 plugin-configure"
         href="/admin_console/plugins/plugin_id"
       >
-        <button
-          class="plugin-configure"
+        <span
+          class="_button__label_we8pe_31"
         >
           Configure
-        </button>
+        </span>
       </a>
     </div>
   </div>
