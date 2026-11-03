@@ -9,7 +9,7 @@ Work through the [troubleshooting steps](#troubleshooting-steps) for any desktop
 1.  **Try it in a browser.** Sign in to the same server in a web browser, including a private window. If the problem happens there too, it's a server or web app issue. See [Deployment troubleshooting](/deployment-guide/server/troubleshooting). If the server doesn't load at all in the desktop app, check for errors in **View \> Developer Tools \> Developer Tools for Current Tab**.
 2.  **Reload.** Press <kbd>Ctrl</kbd> <kbd>R</kbd> (<kbd>⌘</kbd> <kbd>R</kbd> on macOS). If that doesn't help, clear the cache with **View \> Clear Cache and Reload**, or <kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>R</kbd> (<kbd>⌘</kbd> <kbd>⇧</kbd> <kbd>R</kbd> on macOS).
 3.  **Restart.** Quit and reopen the app, then restart the computer if needed.
-4.  **Reset.** Select **View \> Clear Data for Current Server**. If that doesn't help, select **View \> Clear All Data**, which erases session, cache, cookie, and storage data for all servers and signs the user out. If the app won't start, delete the [app data folder](/deployment-guide/desktop/desktop-troubleshooting#where-the-app-stores-data), which also removes the user's servers and settings.
+4.  **Reset.** Select **View \> Clear Data for Current Server**. If that doesn't help, select **View \> Clear All Data**, which erases session, cache, cookie, and storage data for all servers and signs the user out. If the app won't start, delete the [app data folder](/deployment-guide/desktop/desktop-troubleshooting#where-the-app-stores-data), which also removes the user's servers and settings. On Windows and Linux, the folder contains the app's logs, so copy them first if you need them for [debugging](#collect-debugging-information).
 5.  **Check known issues.** Search the [changelog](/product-overview/desktop-app-changelog) and [GitHub issues](https://github.com/mattermost/desktop/issues?q=is%3Aissue), and try the latest release.
 6.  **Collect information and contact support.** See [Collect debugging information](#collect-debugging-information).
 
@@ -18,9 +18,9 @@ Work through the [troubleshooting steps](#troubleshooting-steps) for any desktop
 - **Debug logs**: In **Settings \> Advanced**, set **Logging level** to **Debug**, reproduce the problem, then select **Help \> Show logs** to find the log file. We recommend setting the logging level back afterwards, because debug logging slows the app down.
 - **Diagnostics**: Select **Help \> Run diagnostics**.
 - **Console logs**: Select **View \> Developer Tools \> Developer Tools for Current Tab**, open the **Console** tab, then right-click a log entry and select **Save As**.
-- **Memory usage**: If the app uses a lot of memory or is slow, take a [heap snapshot](https://developer.chrome.com/docs/devtools/memory-problems/heap-snapshots) from **Developer Tools for Current Tab**.
+- **Memory usage**: If the app uses a lot of memory or is slow, take a [heap snapshot](https://developer.chrome.com/docs/devtools/memory-problems/heap-snapshots) from **Developer Tools for Current Tab**. A heap snapshot can contain message content from the signed-in workspace, so share it only through an approved process.
 
-Attach these to a [support ticket](https://support.mattermost.com/hc/en-us/articles/360060662492-Opening-a-Support-Ticket-for-Self-Managed-Deployments).
+Review these files with your administrator and remove any sensitive data before attaching them to a [support ticket](https://support.mattermost.com/hc/en-us/articles/360060662492-Opening-a-Support-Ticket-for-Self-Managed-Deployments).
 
 ## Installation and updates
 
@@ -123,7 +123,9 @@ On Windows and Linux, the app downloads dictionaries, which your network may blo
 
 ### Where the app stores data
 
-Each user's `config.json`, sign-ins, caches, and logs are stored in their app data folder:
+Each user's `config.json`, sign-ins, and caches are stored in their app data folder. Logs are stored there on Windows and Linux. On macOS, logs are in `~/Library/Logs/Mattermost` for DMG installations, or in `~/Library/Containers/Mattermost.Desktop/Data/Library/Logs/Mattermost` for Mac App Store installations.
+
+The app data folder for each platform is:
 
 | Platform | App data folder |
 |---|---|

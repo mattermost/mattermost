@@ -28,7 +28,7 @@ defaultServers: [
 
 ## `helpLink`
 
-The URL opened by **Help \> Learn More**. If it's empty, the menu item is hidden. Expects a string.
+The URL opened by **Help \> User guide**. If the active server provides its own help link, that link takes precedence over this value. If neither is set, the menu item is hidden. Expects a string.
 
 ``` text
 helpLink: 'https://docs.mattermost.com/messaging/managing-desktop-app-servers.html'
@@ -52,4 +52,4 @@ managedResources: ['trusted', 'video'],
 
 For a server at `https://mattermost.my.org`, `https://mattermost.my.org/video` is a valid managed resource. `http://mattermost.my.org/video` (different protocol) and `https://conference.my.org` (different origin) aren't.
 
-For a server at `https://my.org/mattermost`, `https://my.org/video` is a valid managed resource.
+For a server at `https://my.org/mattermost`, `https://my.org/mattermost/video` is a valid managed resource.

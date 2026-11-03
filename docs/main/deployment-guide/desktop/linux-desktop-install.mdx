@@ -12,7 +12,7 @@ Install the desktop app from the package for your distribution. How the app is u
 <Tabs>
 <TabItem value="ubuntu-debian" label="Ubuntu/Debian">
 
-Both a `.deb` package and an official APT repository are available for Debian and for Ubuntu LTS releases 22.04 or later. Automatic app updates are supported and enabled. When a new version of the desktop app is released, your app updates automatically.
+Both a `.deb` package and an official APT repository are available for Debian and for Ubuntu LTS releases 22.04 or later. A standalone `.deb` package doesn't update itself, so install new versions manually. If you install from the APT repository, new versions arrive with your normal `apt upgrade`. They install automatically only if you've configured unattended upgrades to include the Mattermost repository.
 
 <Important>
 
@@ -110,7 +110,7 @@ Flatpak packages are available for:
 An AppImage runs on most Linux distributions without being installed. To update it, download the new AppImage and replace the old one.
 
 1.  Download the AppImage for your architecture from the [GitHub releases page](https://github.com/mattermost/desktop/releases/latest), either `linux-x86_64` or `linux-arm64`.
-2.  Make it executable:
+2.  Make it executable, replacing `<version>` with the version in the downloaded filename:
 
     ``` sh
     chmod +x mattermost-desktop-<version>-linux-x86_64.AppImage

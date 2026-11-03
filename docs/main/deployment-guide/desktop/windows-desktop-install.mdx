@@ -12,7 +12,7 @@ The rest of this page covers the MSI.
 
 ## Install the MSI
 
-1.  Download the MSI that matches your devices' processor architecture from the [GitHub releases page](https://github.com/mattermost/desktop/releases/latest), either `win-x64` or `win-arm64`. To check a device's architecture, go to **Windows Settings \> System \> About**, and look at **System type**.
+1.  Download the MSI that matches your devices' processor architecture from the [GitHub releases page](https://github.com/mattermost/desktop/releases/latest), either `win-x64` or `win-arm64`. To check a device's architecture, go to **Windows Settings \> System \> About**, and look at **System type**. In the commands on this page, replace `<version>` with the version in the downloaded MSI filename.
 2.  If Mattermost is already installed, close the app, and make sure it isn't also running in the system tray.
 3.  Install the MSI:
     - **Interactively**: Double-click the MSI and accept the administrator prompt. If Mattermost is still running, the installer asks you to close it. After closing it, select **Retry** rather than **Ignore**.
@@ -47,11 +47,13 @@ You can set the [desktop app policies](/deployment-guide/desktop/desktop-app-pol
 
     ![In the Group Policy editor, go to Computer Configuration, Administrative Templates, Mattermost.](/images/desktop/msi_gpo/msi_gpo_installation_test_00010.png)
 
-4.  Open a policy and select **Enabled**. For `DefaultServerList`, select **Show…** and add each server with a display name as the **Value name** and the server URL as the **Value**.
+4.  Open a policy and set it:
+    - For `EnableAutoUpdater` and `EnableServerManagement`, select **Enabled** to turn the feature on, or **Disabled** to turn it off.
+    - For `DefaultServerList`, select **Enabled**, then select **Show…** and add each server with a display name as the **Value name** and the server URL as the **Value**.
 
     ![In the DefaultServerList window, select Enabled, then select Show to add servers.](/images/desktop/msi_gpo/msi_gpo_installation_test_00011.png)
 
-    For `TrustedEmbeddedMediaOrigins`, use a unique **Value name**, and a JSON object as the **Value**, for example `{"serverOrigin":"https://chat.example.com","embeddedOrigin":"https://meet.example.com"}`.
+    For `TrustedEmbeddedMediaOrigins`, select **Enabled**, then use a unique **Value name**, and a JSON object as the **Value**, for example `{"serverOrigin":"https://chat.example.com","embeddedOrigin":"https://meet.example.com"}`.
 
 5.  Select **OK**, then restart Mattermost on a client device. To confirm the policy reached the device, check `HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Mattermost` in the Registry Editor.
 

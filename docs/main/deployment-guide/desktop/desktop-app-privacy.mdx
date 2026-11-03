@@ -10,7 +10,8 @@ The desktop app can send error reports to Mattermost and session attributes to y
 From Mattermost Desktop v6.1, the desktop app sends automatic error reports to help identify and fix crashes and stability issues.
 
 - **Sent**: crash information and stack traces, app version and platform details, and error messages.
-- **Not sent**: message content, credentials or authentication tokens, personally identifiable information, and server URLs or team names.
+- **Not sent**: message content, credentials or authentication tokens, and server URLs or team names.
+- **May include**: local file paths in error messages. A path can include the user's operating system username.
 
 Error reporting is enabled by default. Users can turn it off in **Settings \> Advanced \> Send error reports to help improve the app**, then restart the app. If you [build the app from source](/deployment-guide/desktop/distribute-a-custom-desktop-app), omit the `MM_DESKTOP_BUILD_SENTRYDSN` environment variable to turn error reporting off at build time.
 
@@ -26,7 +27,7 @@ Session attribute reporting is enabled by default. Users can turn it off by clea
 
 <Important>
 
-If a user turns off session attributes, they're **denied** any permission, like file upload or file download, governed by a policy that depends on a client-reported session attribute. You may want to let users know this before you roll out those policies.
+If a user turns off session attributes, they're **denied** any permission, like file upload or file download, governed by a policy that depends on a client-reported session attribute. Values the app already reported can stay in use until their time to live (TTL) and grace period expire, so the denial can be delayed. You may want to let users know this before you roll out those policies.
 
 </Important>
 

@@ -7,9 +7,9 @@ Policies let you set servers for your users, and control server management, upda
 
 | Policy | What it does | Available from |
 |---|---|---|
-| `DefaultServerList` | Adds one or more permanent servers that users can't edit or remove. These servers are trusted, so users aren't asked to grant them permissions such as notifications, camera, and microphone. The operating system's own permissions still apply. | Windows v4.3, macOS v6.2 |
+| `DefaultServerList` | Adds one or more permanent servers that users can't edit or remove. These servers are trusted, so users aren't asked to grant them permissions such as notifications, camera, and microphone, including for content embedded in them. This means these servers don't need a `TrustedEmbeddedMediaOrigins` entry. The operating system's own permissions still apply. | Windows v4.3, macOS v6.2 |
 | `EnableServerManagement` | When disabled, users can't add, edit, or remove servers, so set at least one server with `DefaultServerList`. | Windows v4.3, macOS v6.2 |
 | `EnableAutoUpdater` | When disabled, the app doesn't check for updates or show update notifications. | Windows v5.1, macOS v6.2 |
-| `TrustedEmbeddedMediaOrigins` | Lets embedded content from another origin, such as a meeting service embedded in Mattermost, use the camera and microphone permission granted to a Mattermost server. | v6.3 |
+| `TrustedEmbeddedMediaOrigins` | Lets embedded content from another origin, such as a meeting service embedded in Mattermost, use the camera and microphone permission granted to a Mattermost server. It isn't needed for servers set with `DefaultServerList`. | v6.3 |
 
 The app reads policies when it starts, so changes take effect after Mattermost restarts.
