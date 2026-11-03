@@ -416,17 +416,10 @@ func (env *Environment) Reattach(manifest *model.Manifest, pluginReattachConfig 
 	rp := newRegisteredPlugin(pluginInfo)
 	env.registeredPlugins.Store(id, rp)
 
-	// The failure paths below return nil, so notify only once the server
-	// component has actually started.
-	started := false
-	defer func() {
-		if started {
-			env.notifyPluginActivated(manifest)
-		}
-	}()
 	defer func() {
 		if reterr == nil {
 			env.setPluginState(id, model.PluginStateRunning)
+			env.notifyPluginActivated(manifest)
 		} else {
 			env.setPluginState(id, model.PluginStateFailedToStart)
 		}
@@ -434,7 +427,7 @@ func (env *Environment) Reattach(manifest *model.Manifest, pluginReattachConfig 
 
 	err := checkMinServerVersion(pluginInfo)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	if !pluginInfo.Manifest.HasServer() {
@@ -447,12 +440,11 @@ func (env *Environment) Reattach(manifest *model.Manifest, pluginReattachConfig 
 
 	err = env.startPluginServer(pluginInfo, WithReattachConfig(pluginReattachConfig))
 	if err != nil {
-		return nil
+		return err
 	}
 
 	mlog.Debug("Plugin reattached", mlog.String("plugin_id", pluginInfo.Manifest.Id), mlog.String("version", pluginInfo.Manifest.Version))
 
-	started = true
 	return nil
 }
 

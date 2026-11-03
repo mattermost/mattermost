@@ -1706,6 +1706,19 @@ func TestHookOnPluginActivatedAndDeactivated(t *testing.T) {
 		require.True(t, env.Deactivate(webappID))
 		require.Equal(t, targetID+","+targetID+","+webappID, getKey("deactivated"))
 	})
+
+	t.Run("failed reattach", func(t *testing.T) {
+		activatedBefore := getKey("activated")
+		manifest := &model.Manifest{
+			Id:               model.NewId(),
+			MinServerVersion: "99.0.0",
+			Server:           &model.ManifestServer{Executable: "backend.exe"},
+		}
+
+		require.Error(t, env.Reattach(manifest, &model.PluginReattachConfig{}))
+		require.False(t, env.IsActive(manifest.Id))
+		require.Equal(t, activatedBefore, getKey("activated"))
+	})
 }
 
 //go:embed test_templates/hook_notification_will_be_pushed.tmpl
