@@ -21,12 +21,14 @@ Platform and OS scope reflects reported and tested environments and may not repr
 ### Upgrade Impact
 
 #### Database Schema Changes
+ - The following schema changes are included in the v12.1 release. No database downtime is expected for this upgrade.
   - Added the ``creator`` value to the ``permission_level`` enum type to support the new creator permission level for property fields; an enum value addition with no table rewrite and negligible impact on running systems.
   - Added the ``healthfindings`` table, which stores the findings raised by the Built-in Health Dashboard keyed by a finding fingerprint; a new table with no impact on existing tables or queries.
   - Added the index ``idx_healthfindings_lastseenat`` on ``healthfindings (lastseenat)`` using ``CONCURRENTLY``, so the build doesn't block reads or writes; no downtime expected.
   - Added the partial index ``idx_propertyvalues_groupid_fieldid`` on ``PropertyValues (GroupID, FieldID)`` for rows where ``DeleteAt`` is 0, using ``CONCURRENTLY``, to speed up lookups that filter by group and field; no downtime expected.
   - Upgrading no longer resizes the ``message`` column on ``posts``, ``drafts``, ``scheduledposts``, and ``temporaryposts``, avoiding a long rebuild of the post message search index (``idx_posts_message_txt``) on large installations. New installations still support messages of up to 262,144 characters. Existing installations keep their current maximum post size, which is determined by the existing ``posts.message`` column size. Installations that already applied the resize in v12.0 keep the larger limit.
   - Servers still running 11.10 that use attribute-based access control can again upload and download files and join policy-protected channels and teams against a database upgraded to 12.x, for example during a rolling upgrade: the upgrade no longer drops the ``AttributeView`` materialized view, and a temporary migration rebuilds it from the 12.x attribute options. While any server still runs 11.10, make attribute option changes from a 12.x server.
+ - Rebuilt the ``AttributeView`` materialized view as a rolling-upgrade compatibility shim for pre-000216 servers, resolving option names from ``PropertyOptions`` instead of the stale ``Attrs`` blob; old-node reads block briefly during population.
 
 #### config.json
 New setting options were added to ``config.json``. Below is a list of the additions and their default values on install. The settings can be modified in ``config.json``, or the System Console when available.
@@ -39,6 +41,12 @@ New setting options were added to ``config.json``. Below is a list of the additi
 
 #### Compatibility
   - Updated minimum supported Firefox version to 153+.
+
+<Important>
+
+If you upgrade from a release earlier than v12.0, please read the other [Important Upgrade Notes](https://docs.mattermost.com/administration-guide/upgrade/important-upgrade-notes.html). In case of an upgrade failure, please check the [Downgrade Guide](https://docs.mattermost.com/administration-guide/upgrade/downgrading-mattermost-server.html) and the [Recovery Guide](https://docs.mattermost.com/deployment-guide/backup-disaster-recovery.html) for rollback steps and interim mitigation strategy.
+
+</Important>
 
 ### Improvements
 
@@ -187,25 +195,26 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-1-is-now-availab
 ### Upgrade Impact
 
 #### Database Schema Changes
- - Dropped the partial index ``idx_channelmembers_autotranslation_enabled`` from ``channelmembers`` non-blocking using ``CONCURRENTLY``; no downtime or query correctness impact expected.
- - Migration 000215 removed the long-deprecated ``autotranslation`` column from ``channelmembers`` via a fast catalog-only operation with no table rewrite and minimal locking impact.
- - Split the ``AttributeView`` materialized view into ``UserAttributeView`` and ``ChannelAttributeView`` for independent ABAC attribute querying; no performance impact expected as tables are feature-flagged and empty in production.
- - Increased the ``message`` column limit from 65,535 to 1,048,576 characters on ``posts``, ``drafts``, ``scheduledposts``, and ``temporaryposts``, which raises the maximum message length from 16,383 to 262,144 characters; expect a brief ``ACCESS EXCLUSIVE`` lock on each table during migration. Acquiring this lock can be delayed by active or idle-in-transaction database sessions and may temporarily block reads and writes. The full-text index ``idx_posts_message_txt`` is dropped before ``posts.message`` is widened, so that Postgres does not rebuild it while holding the lock.
- - Migration 000234 recreates the full-text index ``idx_posts_message_txt`` on ``posts`` using ``CREATE INDEX CONCURRENTLY``, without blocking reads or writes. Database full-text search of posts runs without the index until the build completes.
- - Added new ``PostDeliveryTrackingChannels`` table with a unique index on ``ChannelId`` to support post-delivery tracking; no impact on existing tables or queries.
- - Added composite index ``idx_fileinfo_create_at_id`` on ``Fileinfo(CreateAt, Id)`` using ``CONCURRENTLY`` to improve file query performance with no downtime impact.
- - Added composite index ``idx_channels_create_at_id`` on ``Channels (CreateAt, Id)`` to accelerate cursor-based pagination; no downtime expected, minimal impact on concurrent operations.
- - Added ``DisableJoinLeaveMessages`` boolean column to ``Channels`` table to support per-channel suppression of join/leave messages; metadata-only change with no table rewrite and negligible downtime impact.
- - Added ``graph`` value to the ``property_field_type`` enum to support a new property field variant; no user tables are affected and impact on running systems is negligible.
- - Migration 000223 extracted property field options from a JSON blob in ``PropertyFields`` into new ``PropertyOptions`` and ``PropertyOptionEdges`` tables and rebuilt ``UserAttributeView`` and ``ChannelAttributeView``; deployments with large ``PropertyValues`` tables may experience brief query stalls on those views during migration.
- - Added partial composite index ``idx_propertyoptions_fieldid_createat_id`` on ``PropertyOptions(FieldID, CreateAt, ID) WHERE DeleteAt = 0`` to accelerate keyset pagination of live property options with no read/write impact.
- - Added partial composite index ``idx_propertyoptions_fieldid_name`` on ``PropertyOptions(FieldID, Name) WHERE DeleteAt = 0`` to speed up name-resolution lookups within the properties system; no downtime required.
- - Added a non-blocking composite index on ``PropertyOptionEdges (FieldID, ParentOptionID, ChildOptionID)`` to accelerate field-scoped property option hierarchy traversal with no read/write impact.
- - Backfilled ``auto_add: "always"`` metadata into ``AccessControlPolicies`` membership rules, migrating automatic-member behavior from the ``Active`` column to per-rule metadata with no performance impact.
- - Added GIN index ``idx_access_control_policies_rules`` on ``AccessControlPolicies(Data -> 'rules')`` to speed up access-control policy membership lookups with no downtime or locking impact.
- - Added a GIN index on ``AccessControlPolicies(Data -> 'imports')`` using ``jsonb_path_ops``, eliminating sequential scans on imports containment queries with no downtime or lock impact on normal traffic.
- - Removed stale ``ldap`` and ``saml`` keys from the ``Attrs JSONB`` column in ``PropertyFields`` for all non-user, non-template rows; irreversible data cleanup with no expected downtime but potential full-table scan on unindexed deployments.
- - Added GIN full-text ``index idx_posts_message_txt`` on ``posts(message)`` using ``CREATE INDEX CONCURRENTLY``; large deployments should expect an extended, I/O-intensive build with no downtime.
+ - The following schema changes are included in the v12.0 release. No database downtime is expected for this upgrade.
+  - Dropped the partial index ``idx_channelmembers_autotranslation_enabled`` from ``channelmembers`` non-blocking using ``CONCURRENTLY``; no downtime or query correctness impact expected.
+  - Migration 000215 removed the long-deprecated ``autotranslation`` column from ``channelmembers`` via a fast catalog-only operation with no table rewrite and minimal locking impact.
+  - Split the ``AttributeView`` materialized view into ``UserAttributeView`` and ``ChannelAttributeView`` for independent ABAC attribute querying; no performance impact expected as tables are feature-flagged and empty in production.
+  - Increased the ``message`` column limit from 65,535 to 1,048,576 characters on ``posts``, ``drafts``, ``scheduledposts``, and ``temporaryposts``, which raises the maximum message length from 16,383 to 262,144 characters; expect a brief ``ACCESS EXCLUSIVE`` lock on each table during migration. Acquiring this lock can be delayed by active or idle-in-transaction database sessions and may temporarily block reads and writes. The full-text index ``idx_posts_message_txt`` is dropped before ``posts.message`` is widened, so that Postgres does not rebuild it while holding the lock.
+  - Migration 000234 recreates the full-text index ``idx_posts_message_txt`` on ``posts`` using ``CREATE INDEX CONCURRENTLY``, without blocking reads or writes. Database full-text search of posts runs without the index until the build completes.
+  - Added new ``PostDeliveryTrackingChannels`` table with a unique index on ``ChannelId`` to support post-delivery tracking; no impact on existing tables or queries.
+  - Added composite index ``idx_fileinfo_create_at_id`` on ``Fileinfo(CreateAt, Id)`` using ``CONCURRENTLY`` to improve file query performance with no downtime impact.
+  - Added composite index ``idx_channels_create_at_id`` on ``Channels (CreateAt, Id)`` to accelerate cursor-based pagination; no downtime expected, minimal impact on concurrent operations.
+  - Added ``DisableJoinLeaveMessages`` boolean column to ``Channels`` table to support per-channel suppression of join/leave messages; metadata-only change with no table rewrite and negligible downtime impact.
+  - Added ``graph`` value to the ``property_field_type`` enum to support a new property field variant; no user tables are affected and impact on running systems is negligible.
+  - Migration 000223 extracted property field options from a JSON blob in ``PropertyFields`` into new ``PropertyOptions`` and ``PropertyOptionEdges`` tables and rebuilt ``UserAttributeView`` and ``ChannelAttributeView``; deployments with large ``PropertyValues`` tables may experience brief query stalls on those views during migration.
+  - Added partial composite index ``idx_propertyoptions_fieldid_createat_id`` on ``PropertyOptions(FieldID, CreateAt, ID) WHERE DeleteAt = 0`` to accelerate keyset pagination of live property options with no read/write impact.
+  - Added partial composite index ``idx_propertyoptions_fieldid_name`` on ``PropertyOptions(FieldID, Name) WHERE DeleteAt = 0`` to speed up name-resolution lookups within the properties system; no downtime required.
+  - Added a non-blocking composite index on ``PropertyOptionEdges (FieldID, ParentOptionID, ChildOptionID)`` to accelerate field-scoped property option hierarchy traversal with no read/write impact.
+  - Backfilled ``auto_add: "always"`` metadata into ``AccessControlPolicies`` membership rules, migrating automatic-member behavior from the ``Active`` column to per-rule metadata with no performance impact.
+  - Added GIN index ``idx_access_control_policies_rules`` on ``AccessControlPolicies(Data -> 'rules')`` to speed up access-control policy membership lookups with no downtime or locking impact.
+  - Added a GIN index on ``AccessControlPolicies(Data -> 'imports')`` using ``jsonb_path_ops``, eliminating sequential scans on imports containment queries with no downtime or lock impact on normal traffic.
+  - Removed stale ``ldap`` and ``saml`` keys from the ``Attrs JSONB`` column in ``PropertyFields`` for all non-user, non-template rows; irreversible data cleanup with no expected downtime but potential full-table scan on unindexed deployments.
+  - Added GIN full-text ``index idx_posts_message_txt`` on ``posts(message)`` using ``CREATE INDEX CONCURRENTLY``; large deployments should expect an extended, I/O-intensive build with no downtime.
 
 #### config.json
 New setting options were added to ``config.json``. Below is a list of the additions and their default values on install. The settings can be modified in ``config.json``, or the System Console when available.
@@ -248,6 +257,12 @@ New setting options were added to ``config.json``. Below is a list of the additi
 
 #### Compatibility
  - Updated the minimum supported macOS version to 15+ and the minimum supported Safari version to 27+. Earlier versions are no longer supported for the desktop and web apps. See the [software and hardware requirements](https://docs.mattermost.com/deployment-guide/software-hardware-requirements.html) documentation for details.
+
+<Important>
+
+If you upgrade from a release earlier than v11.11, please read the other [Important Upgrade Notes](https://docs.mattermost.com/administration-guide/upgrade/important-upgrade-notes.html). In case of an upgrade failure, please check the [Downgrade Guide](https://docs.mattermost.com/administration-guide/upgrade/downgrading-mattermost-server.html) and the [Recovery Guide](https://docs.mattermost.com/deployment-guide/backup-disaster-recovery.html) for rollback steps and interim mitigation strategy.
+
+</Important>
 
 ### Improvements
 
