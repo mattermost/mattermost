@@ -631,8 +631,10 @@ func TestHealthCheckRun(t *testing.T) {
 	})
 
 	t.Run("the generic jobs API still refuses to create one", func(t *testing.T) {
+		// SessionHasPermissionToCreateJob doesn't list health_check, so the jobs API refuses it
+		// as an incorrect job type rather than a permission error.
 		_, resp, err := client.CreateJob(context.Background(), &model.Job{Type: model.JobTypeHealthCheck})
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, "api.job.unable_to_create_job.incorrect_job_type")
+		CheckBadRequestStatus(t, resp)
 	})
 }
