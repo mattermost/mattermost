@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessage} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
 
 import {Button} from '@mattermost/compass-ui/components/button';
@@ -16,6 +16,8 @@ import {DropOverlayIdCenterChannel, FileUploadOverlay} from 'components/file_upl
 import PostView from 'components/post_view';
 
 import WebSocketClient from 'client/web_websocket_client';
+import type {KindMessages} from 'utils/channel_kind';
+import {channelKindMessages} from 'utils/channel_kind_messages';
 
 import {ChannelComposerBanner} from './channel_composer_banner';
 import ChannelViewPluginComponent from './channel_view_plugin_component';
@@ -26,6 +28,21 @@ import type {PropsFromRedux} from './index';
 export type Props = PropsFromRedux & RouteComponentProps<{
     postid?: string;
 }>;
+
+/* eslint-disable formatjs/enforce-placeholders -- values are passed where each message is rendered */
+const messages = {
+    archived: {
+        channel: defineMessage({
+            id: 'channelView.archivedChannel',
+            defaultMessage: 'You are viewing an <b>archived channel</b>. New messages cannot be posted.',
+        }),
+        board: defineMessage({
+            id: 'channelView.archivedChannel.board',
+            defaultMessage: 'You are viewing an <b>archived board</b>. New messages cannot be posted.',
+        }),
+    },
+} satisfies Record<string, KindMessages>;
+/* eslint-enable formatjs/enforce-placeholders */
 
 type State = {
     channelId: string;
@@ -164,8 +181,7 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                         className='channel-archived__message'
                     >
                         <FormattedMessage
-                            id='channelView.archivedChannel'
-                            defaultMessage='You are viewing an <b>archived channel</b>. New messages cannot be posted.'
+                            {...messages.archived[this.props.channelKind]}
                             values={{
                                 b: (chunks) => <b>{chunks}</b>,
                             }}
@@ -175,10 +191,7 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                             className='channel-archived__close-btn'
                             onClick={this.onClickCloseChannel}
                         >
-                            <FormattedMessage
-                                id='center_panel.archived.closeChannel'
-                                defaultMessage='Close Channel'
-                            />
+                            <FormattedMessage {...channelKindMessages.closeChannel[this.props.channelKind]}/>
                         </Button>
                     </div>
                 </div>

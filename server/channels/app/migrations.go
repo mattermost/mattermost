@@ -20,24 +20,25 @@ import (
 )
 
 const (
-	EmojisPermissionsMigrationKey                  = "EmojisPermissionsMigrationComplete"
-	GuestRolesCreationMigrationKey                 = "GuestRolesCreationMigrationComplete"
-	SystemConsoleRolesCreationMigrationKey         = "SystemConsoleRolesCreationMigrationComplete"
-	CustomGroupAdminRoleCreationMigrationKey       = "CustomGroupAdminRoleCreationMigrationComplete"
-	SharedChannelManagerRoleCreationMigrationKey   = "SystemSharedChannelManagerRoleCreationMigrationComplete"
-	ContentExtractionConfigDefaultTrueMigrationKey = "ContentExtractionConfigDefaultTrueMigrationComplete"
-	PlaybookRolesCreationMigrationKey              = "PlaybookRolesCreationMigrationComplete"
-	FirstAdminSetupCompleteKey                     = model.SystemFirstAdminSetupComplete
-	remainingSchemaMigrationsKey                   = "RemainingSchemaMigrations"
-	postPriorityConfigDefaultTrueMigrationKey      = "PostPriorityConfigDefaultTrueMigrationComplete"
-	contentFlaggingSetupDoneKey                    = "content_flagging_setup_done"
-	contentFlaggingMigrationVersion                = "v5"
-	managedCategorySetupDoneKey                    = "managed_category_setup_done"
-	managedCategoryMigrationVersion                = "v2"
-	boardsPropertySetupDoneKey                     = "boards_property_setup_done"
-	boardsPropertyMigrationVersion                 = "v2"
-	cpaDisplayNameBackfillKey                      = "cpa_display_name_backfill_done"
-	cpaToGlobalAttributesMigrationKey              = "cpa_to_global_attributes_migration_done"
+	EmojisPermissionsMigrationKey                    = "EmojisPermissionsMigrationComplete"
+	GuestRolesCreationMigrationKey                   = "GuestRolesCreationMigrationComplete"
+	SystemConsoleRolesCreationMigrationKey           = "SystemConsoleRolesCreationMigrationComplete"
+	CustomGroupAdminRoleCreationMigrationKey         = "CustomGroupAdminRoleCreationMigrationComplete"
+	SharedChannelManagerRoleCreationMigrationKey     = "SystemSharedChannelManagerRoleCreationMigrationComplete"
+	ContentExtractionConfigDefaultTrueMigrationKey   = "ContentExtractionConfigDefaultTrueMigrationComplete"
+	PlaybookRolesCreationMigrationKey                = "PlaybookRolesCreationMigrationComplete"
+	FirstAdminSetupCompleteKey                       = model.SystemFirstAdminSetupComplete
+	remainingSchemaMigrationsKey                     = "RemainingSchemaMigrations"
+	postPriorityConfigDefaultTrueMigrationKey        = "PostPriorityConfigDefaultTrueMigrationComplete"
+	restrictUnauthenticatedWebappPluginsMigrationKey = "RestrictUnauthenticatedWebappPluginsMigrationComplete"
+	contentFlaggingSetupDoneKey                      = "content_flagging_setup_done"
+	contentFlaggingMigrationVersion                  = "v5"
+	managedCategorySetupDoneKey                      = "managed_category_setup_done"
+	managedCategoryMigrationVersion                  = "v2"
+	boardsPropertySetupDoneKey                       = "boards_property_setup_done"
+	boardsPropertyMigrationVersion                   = "v2"
+	cpaDisplayNameBackfillKey                        = "cpa_display_name_backfill_done"
+	cpaToGlobalAttributesMigrationKey                = "cpa_to_global_attributes_migration_done"
 
 	contentFlaggingPropertyNameFlaggedPostId       = "flagged_post_id"
 	ContentFlaggingPropertyNameStatus              = "status"
@@ -609,6 +610,40 @@ func (s *Server) doPostPriorityConfigDefaultTrueMigration() error {
 
 	if err := s.Store().System().SaveOrUpdate(&system); err != nil {
 		return fmt.Errorf("failed to mark post priority config migration as completed: %w", err)
+	}
+
+	return nil
+}
+
+// doRestrictUnauthenticatedWebappPluginsConfigMigration keeps upgraded installations exposing all
+// webapp plugins to unauthenticated clients, so plugins relying on running before login keep
+// working. New installations keep the restrictive default.
+func (s *Server) doRestrictUnauthenticatedWebappPluginsConfigMigration() error {
+	// If the migration is already marked as completed, don't do it again.
+	if _, err := s.Store().System().GetByName(restrictUnauthenticatedWebappPluginsMigrationKey); err == nil {
+		return nil
+	} else if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
+		return fmt.Errorf("could not query migration: %w", err)
+	}
+
+	userCount, err := s.Store().User().Count(model.UserCountOptions{IncludeDeleted: true, IncludeBotAccounts: true})
+	if err != nil {
+		return fmt.Errorf("could not count users: %w", err)
+	}
+
+	if userCount > 0 {
+		s.platform.UpdateConfig(func(config *model.Config) {
+			config.PluginSettings.RestrictUnauthenticatedWebappPlugins = new(false)
+		})
+	}
+
+	system := model.System{
+		Name:  restrictUnauthenticatedWebappPluginsMigrationKey,
+		Value: "true",
+	}
+
+	if err := s.Store().System().SaveOrUpdate(&system); err != nil {
+		return fmt.Errorf("failed to mark restrict unauthenticated webapp plugins config migration as completed: %w", err)
 	}
 
 	return nil
@@ -1501,6 +1536,7 @@ func (s *Server) doAppMigrations() {
 		{"First Admin Setup Complete Migration", s.doFirstAdminSetupCompleteMigration},
 		{"Remaining Schema Migrations", s.doRemainingSchemaMigrations},
 		{"Post Priority Config Default True Migration", s.doPostPriorityConfigDefaultTrueMigration},
+		{"Restrict Unauthenticated Webapp Plugins Config Migration", s.doRestrictUnauthenticatedWebappPluginsConfigMigration},
 		{"Content Flagging Properties Setup", s.doSetupContentFlaggingProperties},
 		{"Boards Properties Setup", s.doSetupBoardsProperties},
 		{"Managed Category Properties Setup", s.doSetupManagedCategoryProperties},

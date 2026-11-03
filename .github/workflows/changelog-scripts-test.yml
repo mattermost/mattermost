@@ -1,0 +1,36 @@
+name: Changelog Scripts Test
+
+on:
+  pull_request:
+    paths:
+      - '.github/scripts/generate_changelog.py'
+      - '.github/scripts/changelog_release.py'
+      - '.github/scripts/test_generate_changelog.py'
+      - '.github/scripts/test_changelog_release.py'
+      - '.github/workflows/generate-changelog.yml'
+      - '.github/workflows/changelog-scripts-test.yml'
+
+permissions: {}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests==2.32.3 --quiet
+
+      - name: Unit tests
+        working-directory: .github/scripts
+        run: python3 -m unittest test_changelog_release test_generate_changelog -v

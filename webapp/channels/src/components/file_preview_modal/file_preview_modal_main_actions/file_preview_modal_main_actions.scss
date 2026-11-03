@@ -5,34 +5,11 @@
         flex-direction: row;
         align-items: center;
         justify-content: flex-end;
+        gap: 8px;
 
-        i {
-            font-size: 2.4rem;
-        }
-    }
-
-    &__action-item {
-        display: flex;
-        overflow: hidden;
-        width: 40px;
-        height: 40px;
-        align-items: center;
-        justify-content: center;
-        border: unset;
-        border-radius: 4px;
-        margin-left: 8px;
-        background: transparent;
-
-        &:hover {
-            background: rgba(255, 255, 255, 0.16);
-        }
-
-        &.active {
-            background: rgba(255, 255, 255, 0.16);
-        }
-
-        &:first-child {
-            margin-left: unset;
+        // The modal paints every link white; keep the download link on the same IconButton color as the buttons beside it
+        a.file-preview-modal-main-actions__download.file-preview-modal-main-actions__download:any-link {
+            color: var(--icon-button-fg);
         }
     }
 }
