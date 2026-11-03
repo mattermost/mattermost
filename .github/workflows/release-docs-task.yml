@@ -17,7 +17,8 @@ name: Release Docs Task
 #                                              write app. Every write (branches, commits, PRs, labels, the
 #                                              release description) uses its token, limited to the one repo
 #                                              the task writes to: mattermost/mattermost, mattermost/notices
-#                                              (upgrade-notice) or mattermost/docker (docker-env). Required
+#                                              (upgrade-notice) or mattermost/docker (docker-env); esr-comms
+#                                              also gets one for mattermost/mattermost-mobile. Required
 #                                              for live runs: PRs opened with GITHUB_TOKEN start no CI. If
 #                                              the app is not installed on notices or docker, that task
 #                                              fails with a message saying so; other tasks are not affected.
@@ -187,6 +188,27 @@ jobs:
           echo "::error title=Write token for ${REPO}::Could not get a token from the changelog write app (CHANGELOG_WRITE_CLIENT_ID / CHANGELOG_WRITE_PRIVATE_KEY) for ${REPO}. Check that the app is installed on ${REPO} with contents and pull requests write access, and that the settings are correct. Nothing was written."
           exit 1
 
+      # esr-comms also opens the mobile ESR PR in mattermost/mattermost-mobile, with its own token
+      # limited to that repo. Without one, this step fails naming the repo, the run goes on, and
+      # the PR's exact changes are posted in Hub instead.
+      - name: Get write token for mattermost-mobile
+        id: mobile_write
+        if: steps.resolve.outputs.run == 'true' && steps.resolve.outputs.mode == 'live' && inputs.task == 'esr-comms'
+        continue-on-error: true
+        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
+        with:
+          client-id: ${{ vars.CHANGELOG_WRITE_CLIENT_ID }}
+          private-key: ${{ secrets.CHANGELOG_WRITE_PRIVATE_KEY }}
+          owner: mattermost
+          repositories: mattermost-mobile
+
+      - name: Explain a failed mattermost-mobile write token
+        if: steps.mobile_write.outcome == 'failure'
+        continue-on-error: true
+        run: |
+          echo "::error title=Write token for mattermost/mattermost-mobile::Could not get a token from the changelog write app (CHANGELOG_WRITE_CLIENT_ID / CHANGELOG_WRITE_PRIVATE_KEY) for mattermost/mattermost-mobile. Check that the app is installed on mattermost/mattermost-mobile with contents and pull requests write access. The mobile ESR PR is not opened; its changes are posted in Hub instead."
+          exit 1
+
       - name: Install dependencies
         if: steps.resolve.outputs.run == 'true'
         run: pip install requests==2.32.3 cryptography==44.0.2 --quiet
@@ -202,6 +224,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           READ_TOKEN: ${{ steps.read.outputs.token }}
           WRITE_TOKEN: ${{ steps.write.outputs.token }}
+          MOBILE_WRITE_TOKEN: ${{ steps.mobile_write.outputs.token }}
           COMMIT_USER_NAME: ${{ vars.CHANGELOG_GIT_USERNAME }}
           COMMIT_USER_EMAIL: ${{ vars.CHANGELOG_GIT_EMAIL }}
           REPOS: ${{ steps.read.outputs.token && 'mattermost/mattermost,mattermost/enterprise' || 'mattermost/mattermost' }}

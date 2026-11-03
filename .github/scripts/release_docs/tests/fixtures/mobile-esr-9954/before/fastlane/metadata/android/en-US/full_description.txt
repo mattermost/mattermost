@@ -1,0 +1,19 @@
+Requires Mattermost Server v10.11.0+. Older servers may not be able to connect or have unexpected behavior.
+
+-------
+
+Mattermost is secure workplace messaging from behind your firewall.
+
+- Discuss topics in private groups, one-to-one or team-wide
+- Easily share and view image files 
+- Connect in-house systems with webhooks and Slack-compatible integrations
+
+To use this app, you need a URL for a Mattermost server. 
+
+-------
+
+Host your own server: https://about.mattermost.com/download 
+
+Terms of Service: http://about.mattermost.com/terms/ 
+
+Contribute to the project: https://github.com/mattermost/mattermost-mobile

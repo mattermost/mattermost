@@ -5,8 +5,11 @@
 - On each of the two days (or the next working day) a weekday run:
   - opens one draft docs PR for the ESR support snippets, the release policy and the
     upgrade page (``docs_changes``);
-  - creates Jira tickets for the mobile team (the mobile ESR prompt) and, when support
-    ends, for removing the feature flags enabled up to that ESR. Ticket keys go to Hub only.
+  - three months before: opens a draft PR in mattermost/mattermost-mobile that makes the new
+    ESR the minimum supported server (the mobile ESR prompt), as mattermost-mobile#9954 did
+    (``mobile_result``);
+  - when support ends: creates a Jira ticket for removing the feature flags enabled up to
+    that ESR. Ticket keys go to Hub only.
 - The forum post is a draft in the Marketing thread (``forum_post``); there's no forum access.
 
 Support ends come from ``versions.support_end`` and each ESR's Release Day from the server
@@ -25,8 +28,20 @@ from .versions import Version, esr_comms_dates, esr_lines, long_date, support_en
 BEFORE, ENDED = "before", "ended"
 TASK = "esr-comms"
 DOCS_TASK = "esr-docs"
+MOBILE_TASK = "mobile-esr"
+MOBILE_REPO = "mattermost/mattermost-mobile"
+MOBILE_CONSTANTS = "app/constants/supported_server.ts"
+# The four files mattermost-mobile#9954 changed, each with the pattern of the version it sets.
+MOBILE_TEXT = {
+    "README.md": (re.compile(r"Current ESR version \(\d+\.\d+\.\d+\+\)"), "Current ESR version ({version}+)"),
+    "fastlane/metadata/android/en-US/full_description.txt": (re.compile(r"Requires Mattermost Server v\d+\.\d+\.\d+\+"),
+                                                             "Requires Mattermost Server v{version}+"),
+    "fastlane/metadata/changelog": (re.compile(r"compatible with Mattermost servers v\d+\.\d+\.\d+\+"),
+                                    "compatible with Mattermost servers v{version}+"),
+}
+MOBILE_FILES = (MOBILE_CONSTANTS, *MOBILE_TEXT)
+MAY = 5
 JIRA_LABEL = "release-agent-esr"
-MOBILE_EXAMPLE = "https://github.com/mattermost/mattermost-mobile/pull/9954"
 RECENT = timedelta(days=14)
 RELEASE_ROW = re.compile(r"^\| v(\d+)\.(\d+) .*?\| (\d{4}-\d{2}-\d{2}) \|")
 
@@ -217,22 +232,100 @@ def docs_result(esr: Esr, kind: str, files: dict, desktop: dict) -> Result:
 
 
 def tickets(esr: Esr, kind: str) -> list[tuple[str, str]]:
-    """(summary, description) of the Jira tickets for this day."""
-    found = []
-    if kind == BEFORE and esr.new:
-        description = [f"Server {esr.old.short} ESR support ends {long_date(esr.end)}. Add the mobile ESR prompt for "
-                       f"servers on {esr.old.short}, telling users to upgrade to {esr.new.short} or later.",
-                       f"Example PR: {MOBILE_EXAMPLE}"]
-        if esr.dates[BEFORE].month == 5:
-            description.append(f"For the May ESR, also set MIN_REQUIRED_VERSION to the trailing ESR: "
-                               f"'{esr.old.short.lstrip('v')}.0'.")
-        found.append((f"Mobile: ESR prompt for server {esr.old.short} end of support ({long_date(esr.end)})",
-                      "\n".join(description)))
-    if kind == ENDED:
-        found.append((f"Remove feature flags enabled up to {esr.old.short} ({esr.old.short} ESR out of support)",
-                      f"Server {esr.old.short} ESR went out of support on {long_date(esr.end)}. Remove the feature flags "
-                      f"that are enabled by default in every release up to {esr.old.short}."))
-    return found
+    """(summary, description) of the Jira tickets for this day: the feature-flag cleanup."""
+    if kind != ENDED:
+        return []
+    return [(f"Remove feature flags enabled up to {esr.old.short} ({esr.old.short} ESR out of support)",
+             f"Server {esr.old.short} ESR went out of support on {long_date(esr.end)}. Remove the feature flags "
+             f"that are enabled by default in every release up to {esr.old.short}.")]
+
+
+# ── The mobile ESR prompt PR (mattermost-mobile#9954) ───────────────────────────────
+
+def _constant(text: str, name: str, value: str, quoted: bool, result: Result) -> str:
+    """``text`` with ``export const <name> = <value>;`` set, keeping the file's quote style."""
+    value_pattern = r"""(['"])[^'"]*\2""" if quoted else r"\d+"
+    pattern = re.compile(rf"^(export const {name} = ){value_pattern};$", re.M)
+    if not pattern.search(text):
+        result.todo(f"{MOBILE_CONSTANTS} has no `export const {name} = …;` line to set")
+        return text
+    if quoted:
+        return pattern.sub(lambda m: f"{m.group(1)}{m.group(2)}{value}{m.group(2)};", text)
+    return pattern.sub(lambda m: f"{m.group(1)}{value};", text)
+
+
+def min_required(text: str, esr: Esr, esr_versions: str, result: Result) -> str:
+    """The May ESR also moves MIN_REQUIRED_VERSION to the trailing ESR, the one going out of
+    support. Only when the file's value is clearly the ESR before it: an ``X.Y.0`` whose
+    ``vX.Y`` is in CHANGELOG_ESR_VERSIONS and older. Anything else is a TODO, never a guess:
+    #9954 (the v11.7 PR, a May case) left '9.11.0' as it was."""
+    trailing = f"{esr.old.short.lstrip('v')}.0"
+    match = re.search(r"^export const MIN_REQUIRED_VERSION = '(\d+)\.(\d+)\.(\d+)';$", text, re.M)
+    current = tuple(int(g) for g in match.groups()) if match else None
+    if current == (esr.old.major, esr.old.minor, 0):
+        result.notes.append(f"MIN_REQUIRED_VERSION is already {trailing}.")
+        return text
+    listed = {line.line for line in esr_lines(esr_versions)}
+    if not current or current[2] != 0 or current[:2] not in listed or current[:2] >= esr.old.line:
+        shown = ".".join(map(str, current)) if current else "not a plain 'X.Y.Z' value"
+        result.todo(f"{MOBILE_CONSTANTS}: MIN_REQUIRED_VERSION is {shown}, which isn't clearly the ESR before "
+                    f"{esr.old.short}, so it wasn't set to the trailing ESR ({trailing}); decide and set it by hand")
+        return text
+    return _constant(text, "MIN_REQUIRED_VERSION", trailing, True, result)
+
+
+def mobile_changes(esr: Esr, files: dict, esr_versions: str, result: Result) -> dict:
+    """The new ESR as the minimum supported server, in the four files #9954 changed."""
+    new = esr.new
+    changed = {}
+    text = files.get(MOBILE_CONSTANTS) or ""
+    updated = _constant(text, "FULL_VERSION", new.plain, True, result)
+    updated = _constant(updated, "MAJOR_VERSION", str(new.major), False, result)
+    updated = _constant(updated, "MIN_VERSION", str(new.minor), False, result)
+    updated = _constant(updated, "PATCH_VERSION", "0", False, result)
+    if esr.dates[BEFORE].month == MAY:
+        updated = min_required(updated, esr, esr_versions, result)
+    if updated != text:
+        changed[MOBILE_CONSTANTS] = updated
+    for path, (pattern, replacement) in MOBILE_TEXT.items():
+        text = files.get(path) or ""
+        if not pattern.search(text):
+            result.todo(f"{path} has no minimum server version to set")
+            continue
+        updated = pattern.sub(replacement.format(version=new.plain), text, count=1)
+        if updated != text:
+            changed[path] = updated
+    return changed
+
+
+def mobile_body(esr: Esr) -> str:
+    new = esr.new
+    lower = f"v{new.major}.{new.minor - 1}" if new.minor else f"v{new.major - 1}.x"
+    return "\n".join([
+        "QA Test Steps:",
+        f"1. Connect to a server with a version lower than ESR (e.g. {lower}). Expected: Prompt to upgrade the server "
+        "is received.",
+        f"2. Connect to a server with a version equal to ESR ({new.short}). Expected: Prompt to upgrade the server is "
+        "not received.",
+        f"3. Connect to a server with a version greater than ESR (e.g. v{new.major}.{new.minor + 1}). Expected: Prompt "
+        "to upgrade the server is not received.",
+        "",
+        f"Merge on {long_date(esr.end)}, when {esr.old.short} goes out of support.",
+        "",
+        "```release-note",
+        f"Updated minimum supported version to {new.tag}.",
+        "```",
+    ]) + "\n"
+
+
+def mobile_result(esr: Esr, files: dict, esr_versions: str) -> Result:
+    """The draft PR on ``release-agent/<new ESR>-before/mobile-esr``; ``esr.new`` must be known."""
+    result = Result(MOBILE_TASK, f"{esr.new.tag}-before")
+    result.repo = MOBILE_REPO
+    result.title = f"Update supported ESR version to {esr.new.tag}"
+    result.files = mobile_changes(esr, files, esr_versions, result)
+    result.body = mobile_body(esr)
+    return result
 
 
 def forum_post(esr: Esr, kind: str, desktop: dict, result: Result) -> str:
