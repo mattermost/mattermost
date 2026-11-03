@@ -3857,10 +3857,21 @@ func (a *App) CleanUpAfterPostDeletion(rctx request.CTX, post *model.Post, delet
 	}
 	a.Publish(userMessage)
 
+	// Burn-on-read uses the same cleared payload. The hook above restores the author copy.
+	adminPostJSON := string(postJSON)
+	if post.Type == model.PostTypeBurnOnRead {
+		adminPostJSON = sanitizedPostJSON
+	}
+
 	adminMessage := model.NewWebSocketEvent(model.WebsocketEventPostDeleted, "", post.ChannelId, "", nil, "")
-	adminMessage.Add("post", string(postJSON))
+	adminMessage.Add("post", adminPostJSON)
 	adminMessage.Add("delete_by", deleteByID)
 	adminMessage.GetBroadcast().ContainsSensitiveData = true
+	if post.Type == model.PostTypeBurnOnRead {
+		if appErr = a.processBroadcastHookForBurnOnRead(rctx, sanitizedPostJSON, post, adminMessage); appErr != nil {
+			return appErr
+		}
+	}
 	a.Publish(adminMessage)
 
 	a.Srv().Go(func() {
