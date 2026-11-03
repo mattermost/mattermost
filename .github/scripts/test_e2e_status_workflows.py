@@ -193,7 +193,7 @@ class StatusPublicationContract(unittest.TestCase):
         self.assertIn('inputs.execution_success', triage['with']['mode'])
         self.assertIn("steps.result.outputs.reports-complete == 'true'", triage['with']['mode'])
         self.assertTrue(triage['with']['mode'].endswith("|| 'report-only' }}"))
-        self.assertIn("vars.E2E_TRIAGE_MODE || 'report-only'", triage['with']['mode'])
+        self.assertIn("vars.E2E_TRIAGE_MODE || 'enforce'", triage['with']['mode'])
         self.assertIn("steps.result.outputs.state != 'success'", triage['if'])
         self.assertEqual(triage['with']['triage-lanes'], '${{ steps.lanes.outputs.triage-lanes }}')
         self.assertEqual(triage['with']['triage-status-context'], '${{ steps.lanes.outputs.triage-context }}')
