@@ -21,6 +21,7 @@ import (
 	"github.com/mattermost/logr/v2"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"golang.org/x/term"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
@@ -59,7 +60,9 @@ var LogsCmd = &cobra.Command{
 	Short: "Display logs in a human-readable format",
 	Long: `Display logs in a human-readable format. As the logs format depends on the server, the "--format" flag cannot be used with this command.
 
-The logs are read from every node of the cluster, and filtered on each node. This needs the server to write its log file in JSON format (LogSettings.FileJson). Use "--plain" to read the raw log lines instead, as earlier versions of mmctl did.`,
+The logs are read from every node of the cluster, and filtered on each node. This needs the server to write its log file in JSON format (LogSettings.FileJson). Use "--plain" to read the raw log lines instead, as earlier versions of mmctl did.
+
+Entries are colored when printed to a terminal. Set NO_COLOR to turn the colors off, or CLICOLOR_FORCE to keep them when the output is piped.`,
 	Example: `  # print the last 200 entries of each node
   $ mmctl logs
 
@@ -77,12 +80,14 @@ The logs are read from every node of the cluster, and filtered on each node. Thi
 
 func init() {
 	LogsCmd.Flags().IntP("number", "n", DefaultPageSize, fmt.Sprintf("Number of log entries to retrieve initially, per node. At most %d.", logsMaxPerPage))
+	// The logrus format is the only one left, so the flag is only kept for existing scripts
 	LogsCmd.Flags().BoolP("logrus", "l", false, "Use logrus for formatting.")
+	_ = LogsCmd.Flags().MarkDeprecated("logrus", "the logrus format is now the default")
 	LogsCmd.Flags().BoolP("follow", "f", false, "Keep polling the server and print new log entries until interrupted.")
 	LogsCmd.Flags().Duration("interval", 5*time.Second, fmt.Sprintf("How often to poll for new log entries with --follow. At least %s.", logsMinInterval))
 	LogsCmd.Flags().StringSlice("level", nil, "Only show entries of these level groups: "+strings.Join(logLevelGroupNames, ", ")+".")
 	LogsCmd.Flags().StringArray("node", nil, "Only show the logs of this cluster node. Can be repeated.")
-	LogsCmd.Flags().String("search", "", "Only show entries with a value, other than the level and timestamp, that contains this text, ignoring case.")
+	LogsCmd.Flags().StringP("search", "s", "", "Only show entries with a value, other than the level and timestamp, that contains this text, ignoring case.")
 	LogsCmd.Flags().Duration("since", 0, "Only show entries logged within this duration, e.g. 15m.")
 	LogsCmd.Flags().Bool("plain", false, "Print the raw log lines of every node. Supports none of --follow, --level, --node, --search and --since.")
 	RootCmd.AddCommand(LogsCmd)
@@ -90,7 +95,6 @@ func init() {
 
 type logsOptions struct {
 	number   int
-	logrus   bool
 	plain    bool
 	follow   bool
 	interval time.Duration
@@ -99,6 +103,8 @@ type logsOptions struct {
 	nodes  []string
 	search string
 	since  time.Duration
+	// colors colors the level of each entry
+	colors bool
 }
 
 func logsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
@@ -112,6 +118,8 @@ func logsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+
+	opts.colors = logsUseColors(term.IsTerminal(int(os.Stdout.Fd())))
 
 	ctx := cmd.Context()
 	if ctx == nil {
@@ -128,7 +136,6 @@ func logsOptionsFromFlags(cmd *cobra.Command) (*logsOptions, error) {
 	// A flag that isn't defined, as on a bare command in tests, reads as its zero value
 	opts := &logsOptions{}
 	opts.number, _ = cmd.Flags().GetInt("number")
-	opts.logrus, _ = cmd.Flags().GetBool("logrus")
 	opts.plain, _ = cmd.Flags().GetBool("plain")
 	opts.follow, _ = cmd.Flags().GetBool("follow")
 	opts.interval, _ = cmd.Flags().GetDuration("interval")
@@ -179,10 +186,23 @@ func (o *logsOptions) needsQuery() bool {
 }
 
 func (o *logsOptions) newWriter(out io.Writer) human.LogWriter {
-	if o.logrus {
-		return human.NewLogrusWriter(out)
+	return human.NewLogrusWriter(out, o.colors)
+}
+
+// logsUseColors reports whether to color the output, following https://no-color.org and
+// https://bixense.com/clicolors. mmctl decides once, as logrus can't tell the output is a
+// terminal once the node prefix wraps it.
+func logsUseColors(isTerminal bool) bool {
+	if os.Getenv("NO_COLOR") != "" {
+		return false
 	}
-	return human.NewSimpleWriter(out)
+	if force := os.Getenv("CLICOLOR_FORCE"); force != "" && force != "0" {
+		return true
+	}
+	if os.Getenv("CLICOLOR") == "0" {
+		return false
+	}
+	return isTerminal
 }
 
 // printPlainLogs prints the raw log lines of every node, as returned by GET /api/v4/logs.

@@ -13,6 +13,8 @@ Display logs in a human-readable format. As the logs format depends on the serve
 
 The logs are read from every node of the cluster, and filtered on each node. This needs the server to write its log file in JSON format (LogSettings.FileJson). Use "--plain" to read the raw log lines instead, as earlier versions of mmctl did.
 
+Entries are colored when printed to a terminal. Set NO_COLOR to turn the colors off, or CLICOLOR_FORCE to keep them when the output is piped.
+
 ::
 
   mmctl logs [flags]
@@ -43,11 +45,10 @@ Options
   -h, --help                help for logs
       --interval duration   How often to poll for new log entries with --follow. At least 2s. (default 5s)
       --level strings       Only show entries of these level groups: error, warn, info, debug.
-  -l, --logrus              Use logrus for formatting.
       --node stringArray    Only show the logs of this cluster node. Can be repeated.
   -n, --number int          Number of log entries to retrieve initially, per node. At most 10000. (default 200)
       --plain               Print the raw log lines of every node. Supports none of --follow, --level, --node, --search and --since.
-      --search string       Only show entries with a value, other than the level and timestamp, that contains this text, ignoring case.
+  -s, --search string       Only show entries with a value, other than the level and timestamp, that contains this text, ignoring case.
       --since duration      Only show entries logged within this duration, e.g. 15m.
 
 Options inherited from parent commands

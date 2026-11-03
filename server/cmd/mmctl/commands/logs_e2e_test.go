@@ -68,18 +68,24 @@ func (s *MmctlE2ETestSuite) TestlogsCmdF() {
 		s.Contains(data[0], marker)
 	})
 
-	s.RunForSystemAdminAndLocal("Display in logrus for formatting", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("Display entries in logrus format", func(c client.Client) {
 		marker := logMarker()
 		cmd := newTestCmd(s.T(), LogsCmd)
-		s.Require().NoError(cmd.Flags().Set("logrus", "true"))
 		s.Require().NoError(cmd.Flags().Set("search", marker))
 
+		before := time.Now()
 		data, _, err := testLogsCmdF(c, cmd, []string{})
 		s.Require().NoError(err)
 		s.Require().Len(data, 1)
-		s.Contains(data[0], "time=")
 		s.Contains(data[0], "level=info")
 		s.Contains(data[0], "msg="+marker)
+		s.NotContains(data[0], "timestamp=")
+
+		// The time is when the server logged the entry, not when mmctl printed it
+		s.Require().True(strings.HasPrefix(data[0], `time="`))
+		logged, err := time.Parse(time.RFC3339Nano, strings.SplitN(data[0], `"`, 3)[1])
+		s.Require().NoError(err)
+		s.False(logged.After(before), "logged at %s, printed after %s", logged, before)
 	})
 
 	s.RunForSystemAdminAndLocal("Display plain logs", func(c client.Client) {

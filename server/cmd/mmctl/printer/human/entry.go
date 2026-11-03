@@ -20,7 +20,7 @@ type LogEntry struct {
 	Fields  []mlog.Field
 }
 
-// Provide default string representation. Used by SimpleWriter
+// String renders the entry as plain text, with escape sequences removed.
 func (f LogEntry) String() string {
 	var sb strings.Builder
 	if !f.Time.IsZero() {

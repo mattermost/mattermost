@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
+
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 )
 
 type LogrusWriter struct {
@@ -16,8 +18,10 @@ type LogrusWriter struct {
 }
 
 func (w *LogrusWriter) Write(e LogEntry) {
+	// Log entries are user-controlled, so escape sequences in them mustn't reach the terminal
+	message := printer.SanitizeForTerminal(e.Message)
 	if e.Level == "" {
-		fmt.Fprintln(w.logger.Out, e.Message)
+		fmt.Fprintln(w.logger.Out, message)
 		return
 	}
 
@@ -31,11 +35,15 @@ func (w *LogrusWriter) Write(e LogEntry) {
 
 	if e.Caller != "" {
 		// logrus has a system of reporting the caller, but there's no easy way to override it
-		logger = logger.WithField("caller", e.Caller)
+		logger = logger.WithField("caller", printer.SanitizeForTerminal(e.Caller))
 	}
 
 	for _, field := range e.Fields {
-		logger = logger.WithField(field.Key, field.Interface)
+		value := field.Interface
+		if s, ok := value.(string); ok {
+			value = printer.SanitizeForTerminal(s)
+		}
+		logger = logger.WithField(printer.SanitizeForTerminal(field.Key), value)
 	}
 
 	switch lvl {
@@ -44,25 +52,28 @@ func (w *LogrusWriter) Write(e LogEntry) {
 		defer func() {
 			_ = recover()
 		}()
-		logger.Panic(e.Message)
+		logger.Panic(message)
 	case logrus.FatalLevel:
-		logger.Fatal(e.Message)
+		logger.Fatal(message)
 	case logrus.ErrorLevel:
-		logger.Error(e.Message)
+		logger.Error(message)
 	case logrus.WarnLevel:
-		logger.Warn(e.Message)
+		logger.Warn(message)
 	case logrus.InfoLevel:
-		logger.Info(e.Message)
+		logger.Info(message)
 	case logrus.DebugLevel:
-		logger.Debug(e.Message)
+		logger.Debug(message)
 	case logrus.TraceLevel:
-		logger.Trace(e.Message)
+		logger.Trace(message)
 	default:
-		logger.Println(e.Message)
+		logger.Println(message)
 	}
 }
 
-func NewLogrusWriter(output io.Writer) *LogrusWriter {
+// NewLogrusWriter returns a writer that formats entries with logrus. With colors, it writes
+// "LEVEL[time] message  key=value" lines with the level colored, otherwise
+// key=value pairs only.
+func NewLogrusWriter(output io.Writer, colors bool) *LogrusWriter {
 	w := new(LogrusWriter)
 	w.logger = logrus.New()
 	w.logger.SetLevel(logrus.TraceLevel) // don't filter any logs
@@ -72,6 +83,9 @@ func NewLogrusWriter(output io.Writer) *LogrusWriter {
 	var tf logrus.TextFormatter
 	tf.FullTimestamp = true
 	tf.TimestampFormat = time.RFC3339Nano
+	// Decided by the caller rather than by logrus, which only colors output written straight to a terminal
+	tf.ForceColors = colors
+	tf.DisableColors = !colors
 	w.logger.SetFormatter(&tf)
 	return w
 }

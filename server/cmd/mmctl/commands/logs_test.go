@@ -28,9 +28,11 @@ import (
 
 func (s *MmctlUnitTestSuite) TestLogsCmd() {
 	const (
+		// testLogMlog is a line as the server writes it, testLogInfo one in an older format
+		testLogMlog       = `{"timestamp":"2026-11-03 08:54:08.903 Z","level":"info","msg":"Server is listening on [::]:8065","caller":"app/server.go:490"}`
+		testLogMlogStdout = `time="2026-11-03T08:54:08.903Z" level=info msg="Server is listening on [::]:8065" caller="app/server.go:490"`
 		testLogInfo       = `{"level":"info","ts":1573516747,"caller":"app/server.go:490","msg":"Server is listening on [::]:8065"}`
-		testLogInfoStdout = "info app/server.go:490 Server is listening on [::]:8065"
-		testLogrusStdout  = "level=info msg=\"Server is listening on [::]:8065\" caller=\"app/server.go:490\""
+		testLogInfoStdout = "level=info msg=\"Server is listening on [::]:8065\" caller=\"app/server.go:490\""
 	)
 
 	s.Run("Display single log line", func() {
@@ -40,32 +42,53 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 		s.client.
 			EXPECT().
 			QueryLogs(gomock.Any(), 0, 1, gomock.Any()).
-			Return(map[string][]json.RawMessage{"default": {json.RawMessage(testLogInfo)}}, &model.Response{}, nil).
+			Return(map[string][]json.RawMessage{"default": {json.RawMessage(testLogMlog)}}, &model.Response{}, nil).
 			Times(1)
 
 		data, _, err := testLogsCmdF(s.client, cmd, []string{})
 
 		s.Require().NoError(err)
-		s.Require().Len(data, 1)
-		s.Contains(data[0], testLogInfoStdout)
+		s.Require().Equal([]string{testLogMlogStdout}, data)
 	})
 
-	s.Run("Display logs logrus format", func() {
+	s.Run("Accept the deprecated logrus flag", func() {
 		cmd := newTestCmd(s.T(), LogsCmd)
 		s.Require().NoError(cmd.Flags().Set("number", "1"))
 		s.Require().NoError(cmd.Flags().Set("logrus", "true"))
 
+		flag := cmd.Flags().Lookup("logrus")
+		s.True(flag.Hidden)
+		s.Equal("the logrus format is now the default", flag.Deprecated)
+
 		s.client.
 			EXPECT().
 			QueryLogs(gomock.Any(), 0, 1, gomock.Any()).
-			Return(map[string][]json.RawMessage{"default": {json.RawMessage(testLogInfo)}}, &model.Response{}, nil).
+			Return(map[string][]json.RawMessage{"default": {json.RawMessage(testLogMlog)}}, &model.Response{}, nil).
+			Times(1)
+
+		data, _, err := testLogsCmdF(s.client, cmd, []string{})
+
+		s.Require().NoError(err)
+		s.Require().Equal([]string{testLogMlogStdout}, data)
+	})
+
+	s.Run("Color the output when forced", func() {
+		s.T().Setenv("NO_COLOR", "")
+		s.T().Setenv("CLICOLOR_FORCE", "1")
+		cmd := newTestCmd(s.T(), LogsCmd)
+		s.Require().NoError(cmd.Flags().Set("number", "1"))
+
+		s.client.
+			EXPECT().
+			QueryLogs(gomock.Any(), 0, 1, gomock.Any()).
+			Return(map[string][]json.RawMessage{"default": {json.RawMessage(testLogMlog)}}, &model.Response{}, nil).
 			Times(1)
 
 		data, _, err := testLogsCmdF(s.client, cmd, []string{})
 
 		s.Require().NoError(err)
 		s.Require().Len(data, 1)
-		s.Contains(data[0], testLogrusStdout)
+		s.Contains(data[0], "\x1b[36mINFO\x1b[0m[2026-11-03T08:54:08.903Z] Server is listening on [::]:8065")
 	})
 
 	s.Run("Map flags to the query", func() {
@@ -76,6 +99,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 		s.Require().NoError(cmd.Flags().Set("node", "node-1"))
 		s.Require().NoError(cmd.Flags().Set("node", "node-2"))
 		s.Require().NoError(cmd.Flags().Set("search", "8xyz7gqnfjb1jrkpd5xnqk5mbo"))
+		s.Equal("search", cmd.Flags().ShorthandLookup("s").Name)
 		s.Require().NoError(cmd.Flags().Set("since", "15m"))
 
 		before := time.Now()
@@ -439,6 +463,30 @@ func (s *MmctlUnitTestSuite) TestLogFollower() {
 
 		s.Equal([]string{"has the marker", "has the level"}, testLogMessages(stdout))
 	})
+}
+
+func (s *MmctlUnitTestSuite) TestLogsUseColors() {
+	for _, tc := range []struct {
+		name       string
+		env        map[string]string
+		isTerminal bool
+		want       bool
+	}{
+		{"terminal", nil, true, true},
+		{"pipe", nil, false, false},
+		{"NO_COLOR on a terminal", map[string]string{"NO_COLOR": "1"}, true, false},
+		{"NO_COLOR wins over CLICOLOR_FORCE", map[string]string{"NO_COLOR": "1", "CLICOLOR_FORCE": "1"}, true, false},
+		{"CLICOLOR_FORCE on a pipe", map[string]string{"CLICOLOR_FORCE": "1"}, false, true},
+		{"CLICOLOR_FORCE=0 on a pipe", map[string]string{"CLICOLOR_FORCE": "0"}, false, false},
+		{"CLICOLOR=0 on a terminal", map[string]string{"CLICOLOR": "0"}, true, false},
+	} {
+		s.Run(tc.name, func() {
+			for _, name := range []string{"NO_COLOR", "CLICOLOR_FORCE", "CLICOLOR"} {
+				s.T().Setenv(name, tc.env[name])
+			}
+			s.Equal(tc.want, logsUseColors(tc.isTerminal))
+		})
+	}
 }
 
 func (s *MmctlUnitTestSuite) TestSeenLogs() {
