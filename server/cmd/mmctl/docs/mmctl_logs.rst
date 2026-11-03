@@ -11,18 +11,45 @@ Synopsis
 
 Display logs in a human-readable format. As the logs format depends on the server, the "--format" flag cannot be used with this command.
 
+The logs are read from every node of the cluster, and filtered on each node. This needs the server to write its log file in JSON format (LogSettings.FileJson). Use "--plain" to read the raw log lines instead, as earlier versions of mmctl did.
+
 ::
 
   mmctl logs [flags]
+
+Examples
+~~~~~~~~
+
+::
+
+    # print the last 200 entries of each node
+    $ mmctl logs
+
+    # keep printing new error and warning entries until interrupted
+    $ mmctl logs --follow --level error,warn
+
+    # follow the entries of a single request
+    $ mmctl logs -f --request-id 8xyz7gqnfjb1jrkpd5xnqk5mbo
+
+    # print what a node logged in the last 15 minutes
+    $ mmctl logs --node node-1 --since 15m
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help         help for logs
-  -l, --logrus       Use logrus for formatting.
-  -n, --number int   Number of log lines to retrieve. (default 200)
+  -f, --follow              Keep polling the server and print new log entries until interrupted.
+  -h, --help                help for logs
+      --interval duration   How often to poll for new log entries with --follow. At least 2s. (default 5s)
+      --level strings       Only show entries of these level groups: error, warn, info, debug.
+  -l, --logrus              Use logrus for formatting.
+      --node stringArray    Only show the logs of this cluster node. Can be repeated.
+  -n, --number int          Number of log entries to retrieve initially, per node. At most 10000. (default 200)
+      --plain               Print the raw log lines of every node. Supports none of --follow, --level, --node, --search, --request-id and --since.
+      --request-id string   Only show the entries of this request. A shorthand for --search.
+      --search string       Only show entries with a value, other than the level and timestamp, that contains this text, ignoring case.
+      --since duration      Only show entries logged within this duration, e.g. 15m.
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

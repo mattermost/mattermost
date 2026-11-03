@@ -612,6 +612,14 @@ func TestQueryLogs(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 	})
 
+	t.Run("local mode returns matching entries", func(t *testing.T) {
+		filter := &model.LogFilter{Search: "querylogs_verify_" + testID}
+		require.Eventually(t, func() bool {
+			nodes, _, err := th.LocalClient.QueryLogs(context.Background(), 0, 200, filter)
+			return err == nil && len(nodes["default"]) == len(expectedMessages)
+		}, 5*time.Second, 25*time.Millisecond, "expected the local API to return the logged messages")
+	})
+
 	t.Run("non-admin is forbidden", func(t *testing.T) {
 		_, resp, err := th.Client.QueryLogs(context.Background(), 0, 200, &model.LogFilter{})
 		require.Error(t, err)

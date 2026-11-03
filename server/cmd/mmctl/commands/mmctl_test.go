@@ -6,6 +6,7 @@ package commands
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -43,7 +44,16 @@ func newTestCmd(t *testing.T, base *cobra.Command) *cobra.Command {
 		// real dispatch gets a fresh context instead of this test's.
 		base.SetContext(nil) //nolint:staticcheck
 		base.Flags().VisitAll(func(f *pflag.Flag) {
-			_ = f.Value.Set(f.DefValue)
+			// Set would add the printed default, e.g. "[]", to a slice flag's values
+			if slice, ok := f.Value.(pflag.SliceValue); ok {
+				var values []string
+				if def := strings.Trim(f.DefValue, "[]"); def != "" {
+					values = strings.Split(def, ",")
+				}
+				_ = slice.Replace(values)
+			} else {
+				_ = f.Value.Set(f.DefValue)
+			}
 			f.Changed = false
 		})
 	})
