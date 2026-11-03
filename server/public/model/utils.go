@@ -684,13 +684,13 @@ func IsValidEmail(input string) bool {
 	} else if addr.Address != input {
 		// mail.ParseAddress accepts input of the form "Billy Bob <billy@example.com>" or "<billy@example.com>",
 		// which we don't allow. We compare the user input with the parsed addr.Address to ensure we only
-		// accept plain addresses like "billy@example.com"
+		// accept plain addresses like "billy@example.com".
 
-		// Log a warning for admins in case pre-existing users with emails like <billy@example.com>, which used
-		// to be valid before https://github.com/mattermost/mattermost/pull/29661, know how to deal with this
-		// error. We don't need to check for the case addr.Name != "", since that has always been rejected
+		// Addresses of the form "<billy@example.com>" used to be valid before
+		// https://github.com/mattermost/mattermost/pull/29661. The message avoids angle brackets so a
+		// JSON log line stays copy-pasteable, and names the real mmctl subcommand.
 		if addr.Name == "" {
-			mlog.Warn("email seems to be enclosed in angle brackets, which is not valid; if this relates to an existing user, use the following mmctl command to modify their email: `mmctl user email \"<affecteduser@domain.com>\" affecteduser@domain.com`", mlog.String("email", input))
+			mlog.Warn("email is wrapped in angle brackets and is not valid. Look the user up by username or id, then run `mmctl user edit email USERNAME_OR_ID user@domain.com`. Deactivation by username or id also works.", mlog.String("email", input))
 		}
 		return false
 	}
@@ -702,6 +702,37 @@ func IsValidEmail(input string) bool {
 		return false
 	}
 	return true
+}
+
+// UnwrapLegacyBracketedEmail reports whether input is an address of the form
+// "<user@example.com>" that mail.ParseAddress accepts and IsValidEmail rejects.
+// The boolean is false for display-name forms such as "Name <user@example.com>".
+// The returned address is lowercase. Callers use this to keep operating on rows
+// stored before stricter validation, without accepting the form for new values.
+func UnwrapLegacyBracketedEmail(input string) (string, bool) {
+	normalized := strings.ToLower(input)
+	if len(normalized) < 3 || normalized[0] != '<' || normalized[len(normalized)-1] != '>' {
+		return "", false
+	}
+
+	inner := normalized[1 : len(normalized)-1]
+	if !IsValidEmail(inner) {
+		return "", false
+	}
+
+	addr, err := mail.ParseAddress(normalized)
+	if err != nil || addr.Name != "" || addr.Address != inner {
+		return "", false
+	}
+
+	return inner, true
+}
+
+// IsLegacyBracketedEmail reports whether input is a stored angle-bracket address.
+// It does not log; IsValidEmail logs when a write is rejected.
+func IsLegacyBracketedEmail(input string) bool {
+	_, ok := UnwrapLegacyBracketedEmail(input)
+	return ok
 }
 
 var reservedName = []string{

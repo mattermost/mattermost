@@ -2141,6 +2141,27 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
+	s.Run("Deactivate an existing user using a legacy angle-bracket email", func() {
+		printer.Clean()
+		emailArg := "<example@example.com>"
+		mockUser := model.User{Id: "userId1", Username: "ExampleUser", Email: emailArg}
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(context.TODO(), emailArg, "").
+			Return(&mockUser, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			UpdateUserActive(context.TODO(), mockUser.Id, false).
+			Return(&model.Response{StatusCode: http.StatusOK}, nil).
+			Times(1)
+
+		err := userDeactivateCmdF(s.client, &cobra.Command{}, []string{emailArg})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
 	s.Run("Deactivate an existing user by username", func() {
 		printer.Clean()
 		emailArg := "example@exam.com"
