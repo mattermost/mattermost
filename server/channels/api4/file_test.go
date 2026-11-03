@@ -982,15 +982,20 @@ func TestGetFile(t *testing.T) {
 			require.NoError(t, storeErr)
 		}
 
+		memberClient := th.CreateClient()
+		th.LoginBasic2WithClient(t, memberClient)
+
 		testCases := []struct {
 			name           string
 			withCacheLayer bool
 			remove         func(*testing.T, *model.Post, *model.FileInfo)
+			reader         *model.Client4
 		}{
-			{name: "with cache layer, deleted with its post", withCacheLayer: true, remove: removeWithPost},
-			{name: "with cache layer, detached from its post", withCacheLayer: true, remove: removeFromPost},
-			{name: "without cache layer, deleted with its post", withCacheLayer: false, remove: removeWithPost},
-			{name: "without cache layer, detached from its post", withCacheLayer: false, remove: removeFromPost},
+			{name: "with cache layer, deleted with its post", withCacheLayer: true, remove: removeWithPost, reader: client},
+			{name: "with cache layer, detached from its post", withCacheLayer: true, remove: removeFromPost, reader: client},
+			{name: "without cache layer, deleted with its post", withCacheLayer: false, remove: removeWithPost, reader: client},
+			{name: "without cache layer, detached from its post", withCacheLayer: false, remove: removeFromPost, reader: client},
+			{name: "with cache layer, deleted with its post, another channel member", withCacheLayer: true, remove: removeWithPost, reader: memberClient},
 		}
 
 		for _, tc := range testCases {
@@ -1008,19 +1013,19 @@ func TestGetFile(t *testing.T) {
 
 				post, fileInfo := uploadFileAndCreatePost(t, th, client)
 
-				data, _, err := client.GetFile(context.Background(), fileInfo.Id)
+				data, _, err := tc.reader.GetFile(context.Background(), fileInfo.Id)
 				require.NoError(t, err)
 				require.NotEmpty(t, data)
 
 				tc.remove(t, post, fileInfo)
 
 				// A removed file is reported with the same status and error as a file id that was never created.
-				_, deletedResp, err := client.GetFile(context.Background(), fileInfo.Id)
+				_, deletedResp, err := tc.reader.GetFile(context.Background(), fileInfo.Id)
 				require.Error(t, err)
 				CheckNotFoundStatus(t, deletedResp)
 				CheckErrorID(t, err, "api.file.get_file_info.app_error")
 
-				_, missingResp, err := client.GetFile(context.Background(), model.NewId())
+				_, missingResp, err := tc.reader.GetFile(context.Background(), model.NewId())
 				require.Error(t, err)
 				CheckNotFoundStatus(t, missingResp)
 				CheckErrorID(t, err, "api.file.get_file_info.app_error")
@@ -1043,16 +1048,46 @@ func TestGetFile(t *testing.T) {
 		sent, err := testutils.ReadTestFile("test.png")
 		require.NoError(t, err)
 
-		post, fileInfo := uploadFileAndCreatePost(t, th, client)
-		flagPostViaAPI(t, client, post.Id)
+		removeWithPost := func(t *testing.T, post *model.Post, _ *model.FileInfo) {
+			t.Helper()
+			_, storeErr := th.App.Srv().Store().FileInfo().DeleteForPost(th.Context, post.Id)
+			require.NoError(t, storeErr)
+		}
+		removeFromPost := func(t *testing.T, post *model.Post, fileInfo *model.FileInfo) {
+			t.Helper()
+			storeErr := th.App.Srv().Store().FileInfo().DeleteForPostByIds(th.Context, post.Id, []string{fileInfo.Id})
+			require.NoError(t, storeErr)
+		}
 
-		_, storeErr := th.App.Srv().Store().FileInfo().DeleteForPost(th.Context, post.Id)
-		require.NoError(t, storeErr)
+		testCases := []struct {
+			name      string
+			priorRead bool
+			remove    func(*testing.T, *model.Post, *model.FileInfo)
+		}{
+			{name: "deleted with its post", priorRead: false, remove: removeWithPost},
+			{name: "deleted with its post after it was read", priorRead: true, remove: removeWithPost},
+			{name: "detached from its post after it was read", priorRead: true, remove: removeFromPost},
+		}
 
-		data, response, err := client.GetFileAsContentReviewer(context.Background(), fileInfo.Id, post.Id)
-		require.NoError(t, err)
-		CheckOKStatus(t, response)
-		require.Equal(t, sent, data)
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				post, fileInfo := uploadFileAndCreatePost(t, th, client)
+
+				if tc.priorRead {
+					data, _, readErr := client.GetFile(context.Background(), fileInfo.Id)
+					require.NoError(t, readErr)
+					require.Equal(t, sent, data)
+				}
+
+				flagPostViaAPI(t, client, post.Id)
+				tc.remove(t, post, fileInfo)
+
+				data, response, getErr := client.GetFileAsContentReviewer(context.Background(), fileInfo.Id, post.Id)
+				require.NoError(t, getErr)
+				CheckOKStatus(t, response)
+				require.Equal(t, sent, data)
+			})
+		}
 	})
 }
 
