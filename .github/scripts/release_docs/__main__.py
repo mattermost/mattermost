@@ -584,7 +584,42 @@ def report_in_hub(hub, channel_id: str, marker: str, message: str, live: bool) -
     return "reported in Hub"
 
 
-def run_esr_comms(raw: str, env: dict, gh, hub, jira_client, holidays, today: date, live: bool) -> Result:
+def mobile_hub_message(built: Result, target, base_files: dict) -> str:
+    """The mobile ESR PR's exact changes, for a person to make when the bot can't open the PR."""
+    changes = "".join("".join(difflib.unified_diff((base_files.get(p) or "").splitlines(True), text.splitlines(True),
+                                                   f"a/{p}", f"b/{p}")) for p, text in built.files.items())
+    todos = "".join(f"\n- {TODO_MARKER}: {t}" for t in built.todos)
+    return (f"The mobile ESR PR could not be opened in {esr.MOBILE_REPO}: the changelog write app has no token there "
+            f"(check that it is installed on {esr.MOBILE_REPO}). Please make these changes on a branch "
+            f"`{target.branch}` from `{target.base}` and open a draft PR titled \"{built.title}\":\n\n"
+            f"```diff\n{changes.rstrip()}\n```\n{todos}\n\nPR description:\n\n{built.body}")
+
+
+def mobile_esr_pr(item, env: dict, gh, mobile_gh, hub, live: bool, result: Result) -> str:
+    """The draft PR in mattermost-mobile making the new ESR the minimum server, as #9954 did.
+
+    Written with ``mobile_gh`` (the changelog write app, limited to mattermost-mobile). In a
+    live run without it, nothing is written there and the exact changes are posted in Hub."""
+    if item.new is None:
+        result.todo(f"CHANGELOG_ESR_VERSIONS lists no ESR after {item.old.short}, so no mobile ESR PR was opened")
+        return "not opened"
+    target = publish.locate(gh, esr.MOBILE_REPO, f"{item.new.tag}-before", esr.MOBILE_TASK)
+    base_files = {p: gh.file(esr.MOBILE_REPO, p, target.ref) or "" for p in esr.MOBILE_FILES}
+    built = esr.mobile_result(item, base_files, env.get("ESR_VERSIONS", ""))
+    result.todos += [t for t in built.todos if t not in result.todos]
+    result.notes += built.notes
+    if live and mobile_gh is None and built.files and not target.blocked:
+        result.todo(f"no changelog write app token for {esr.MOBILE_REPO}, so the mobile ESR PR was not opened; "
+                    "its changes are posted in Hub")
+        marker = f"release-docs:mobile-esr:{built.version}"
+        posted = report_in_hub(hub, env.get("REVIEW_CHANNEL_ID", ""), marker,
+                               mobile_hub_message(built, target, base_files), live)
+        return f"not opened (no write token for {esr.MOBILE_REPO}); the changes were {posted}"
+    return publish.apply(mobile_gh or gh, built, target, live)
+
+
+def run_esr_comms(raw: str, env: dict, gh, hub, jira_client, holidays, today: date, live: bool,
+                  mobile_gh=None) -> Result:
     result = Result(esr.TASK, raw)
     server_releases = gh.file(SERVER_REPO, release_docs_pr.SERVER_RELEASES, gh.default_branch(SERVER_REPO)) or ""
     all_esrs = esr.esrs(env.get("ESR_VERSIONS", ""), server_releases)
@@ -611,6 +646,10 @@ def run_esr_comms(raw: str, env: dict, gh, hub, jira_client, holidays, today: da
         lines.append(f"- {label}: docs PR: {outcome}")
         result.todos += [t for t in docs.todos if t not in result.todos]
         result.notes += docs.notes
+        if stage == esr.BEFORE:
+            lines.append(f"- {label}: mobile ESR PR: {mobile_esr_pr(item, env, gh, mobile_gh, hub, live, result)}")
+        if not esr.tickets(item, stage):
+            continue
         if jira_client is None:
             result.todo("RELEASE_AGENT_JIRA_EMAIL / RELEASE_AGENT_JIRA_TOKEN are not set, so no Jira tickets were created")
             continue
@@ -648,7 +687,9 @@ def run_hub_task(task: str, raw: str, env: dict, gh, read_gh, claude, fetch) -> 
     label = raw if raw != SCHEDULED else f"{today} (scheduled)"
     try:
         if task == esr.TASK:
-            result = run_esr_comms(raw, env, gh, hub, jira_client, holidays, today, live)
+            mobile_gh = GitHub(env.get("READ_TOKEN") or env.get("GITHUB_TOKEN", ""), write_token=env["MOBILE_WRITE_TOKEN"],
+                               committer=getattr(gh, "committer", None)) if env.get("MOBILE_WRITE_TOKEN") else None
+            result = run_esr_comms(raw, env, gh, hub, jira_client, holidays, today, live, mobile_gh)
             if holidays_problem and raw == SCHEDULED:
                 result.todo(holidays_problem)
             return Run(result, "ESR comms." if result.text else "Nothing done.")

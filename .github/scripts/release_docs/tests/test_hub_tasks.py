@@ -312,38 +312,123 @@ class EsrTest(unittest.TestCase):
         self.assertIn("has come to the end of its life cycle on May 15, 2027",
                       changed["docs/main/administration-guide/upgrade/prepare-to-upgrade-mattermost.mdx"])
 
-    def test_weekday_run_opens_the_docs_pr_and_creates_the_tickets_once(self):
-        gh = FakeGitHub()
-        docs = real_docs()
-        gh.add_repo(cli.SERVER_REPO, {**{p: docs[p] for p in esr.DOCS_FILES},
-                                      cli.release_docs_pr.SERVER_RELEASES: SERVER_RELEASES})
+    def test_weekday_run_opens_the_docs_and_mobile_prs_and_the_ticket_once(self):
+        gh = esr_github(mobile_side="after")  # mattermost-mobile as #9954 left it: v11.7
         hub, jira = FakeHub([RELEASE_CHANNEL]), FakeJira()
         env = {"ESR_VERSIONS": ESR, "DESKTOP_ESR_VERSIONS": DESKTOP, "REVIEW_CHANNEL_ID": "review"}
-        for _ in range(2):
-            result = cli.run_esr_comms(cli.SCHEDULED, env, gh, hub, jira, holidays(), date(2027, 2, 16), True)
-        self.assertEqual([w[1] for w in jira.writes], ["Mobile: ESR prompt for server v11.7 end of support (May 15, 2027)"])
+        # Three months before v11.7's support ends (Feb 15 is a holiday), twice.
+        first = cli.run_esr_comms(cli.SCHEDULED, env, gh, hub, jira, holidays(), date(2027, 2, 16), True, gh)
+        self.assertIn("mobile ESR PR: Opened draft PR mattermost/mattermost-mobile#", first.text)
+        result = cli.run_esr_comms(cli.SCHEDULED, env, gh, hub, jira, holidays(), date(2027, 2, 16), True, gh)
+        self.assertIn("mobile ESR PR: PR #101 is already up to date.", result.text)
         self.assertEqual(len(gh.pulls[cli.SERVER_REPO]), 1)
         self.assertIn("release-agent/v11.7.0-before/esr-docs", gh.repos[cli.SERVER_REPO]["branches"])
+        self.assertEqual([p["head"] for p in gh.pulls[esr.MOBILE_REPO]], ["release-agent/v12.4.0-before/mobile-esr"])
+        self.assertEqual(gh.pulls[esr.MOBILE_REPO][0]["base"], "main")
+        self.assertEqual(jira.writes, [])  # the mobile ESR prompt is a PR now, not a ticket
+        result = cli.run_esr_comms(cli.SCHEDULED, env, gh, hub, jira, holidays(), date(2027, 5, 17), True, gh)
+        self.assertEqual([w[1] for w in jira.writes], ["Remove feature flags enabled up to v11.7 (v11.7 ESR out of support)"])
         self.assertNotIn("MM-9000", result.text)  # keys go to Hub only
         self.assertIn("MM-9000", hub.posts_in("review")[0]["message"])
-        self.assertEqual(len(hub.posts_in("review")), 1)
-        result = cli.run_esr_comms(cli.SCHEDULED, env, gh, hub, jira, holidays(), date(2027, 5, 17), True)
-        self.assertEqual(jira.writes[-1][1], "Remove feature flags enabled up to v11.7 (v11.7 ESR out of support)")
-
-    def test_may_esr_mobile_ticket_moves_min_required_version(self):
-        (summary, description), = esr.tickets(esr_list()[0], esr.BEFORE)  # v10.11: three months before is May 2026
-        self.assertIn("MIN_REQUIRED_VERSION to the trailing ESR: '10.11.0'", description)
-        self.assertIn("mattermost-mobile/pull/9954", description)
-        self.assertNotIn("MIN_REQUIRED_VERSION", esr.tickets(esr_list()[1], esr.BEFORE)[0][1])  # February
+        self.assertEqual(len(gh.pulls[esr.MOBILE_REPO]), 1)  # no mobile PR when support ends
 
     def test_dry_run_writes_nothing(self):
-        gh = FakeGitHub()
-        gh.add_repo(cli.SERVER_REPO, {**{p: real_docs()[p] for p in esr.DOCS_FILES},
-                                      cli.release_docs_pr.SERVER_RELEASES: SERVER_RELEASES})
+        gh = esr_github()
         hub, jira = FakeHub(), FakeJira()
         env = {"ESR_VERSIONS": ESR, "DESKTOP_ESR_VERSIONS": DESKTOP, "REVIEW_CHANNEL_ID": "review"}
-        cli.run_esr_comms(cli.SCHEDULED, env, gh, hub, jira, holidays(), date(2027, 2, 16), False)
+        result = cli.run_esr_comms("v10.11", {**env, "ESR_STAGE": "before"}, gh, hub, jira, holidays(), date(2026, 5, 15),
+                                   False, gh)
+        self.assertIn("Dry run: would have opened a draft PR from `release-agent/v11.7.0-before/mobile-esr` in "
+                      "mattermost/mattermost-mobile", result.text)
         self.assertEqual((gh.writes, hub.writes, jira.writes), ([], [], []))
+
+
+V10_11 = esr.Esr(Version(10, 11), date(2025, 8, 15), Version(11, 7), date(2026, 5, 15))  # #9954's ESRs
+
+
+def mobile_files(side: str) -> dict:
+    """The four files #9954 changed, before (v10.11) or after (v11.7) it."""
+    files = {}
+    for path in esr.MOBILE_FILES:
+        with open(os.path.join(os.path.dirname(__file__), "fixtures", "mobile-esr-9954", side, path), encoding="utf-8") as f:
+            files[path] = f.read()
+    return files
+
+
+def esr_github(mobile_side: str = "before") -> FakeGitHub:
+    gh = FakeGitHub()
+    docs = real_docs()
+    gh.add_repo(cli.SERVER_REPO, {**{p: docs[p] for p in esr.DOCS_FILES},
+                                  cli.release_docs_pr.SERVER_RELEASES: SERVER_RELEASES})
+    gh.add_repo(esr.MOBILE_REPO, mobile_files(mobile_side), default="main")
+    return gh
+
+
+class MobileEsrPrTest(unittest.TestCase):
+    def test_v11_7_edits_match_9954(self):
+        result = esr.mobile_result(V10_11, mobile_files("before"), ESR)
+        self.assertEqual(result.files, mobile_files("after"))  # the four files, byte for byte
+        self.assertEqual(result.branch, "release-agent/v11.7.0-before/mobile-esr")
+        self.assertEqual(result.body, (
+            "QA Test Steps:\n"
+            "1. Connect to a server with a version lower than ESR (e.g. v11.6). Expected: Prompt to upgrade the server is received.\n"
+            "2. Connect to a server with a version equal to ESR (v11.7). Expected: Prompt to upgrade the server is not received.\n"
+            "3. Connect to a server with a version greater than ESR (e.g. v11.8). Expected: Prompt to upgrade the server is not "
+            "received.\n\n"
+            "Merge on August 15, 2026, when v10.11 goes out of support.\n\n"
+            "```release-note\nUpdated minimum supported version to v11.7.0.\n```\n"))
+        # Three months before v10.11 ended is May 2026, but '9.11.0' isn't clearly the ESR before
+        # v10.11 (it isn't in CHANGELOG_ESR_VERSIONS), and #9954 left it: a TODO, never a guess.
+        self.assertEqual(len(result.todos), 1)
+        self.assertIn("MIN_REQUIRED_VERSION is 9.11.0, which isn't clearly the ESR before v10.11", result.todos[0])
+
+    def test_may_sets_min_required_version_to_the_trailing_esr(self):
+        result = esr.mobile_result(V10_11, mobile_files("before"), "v9.11," + ESR)
+        self.assertEqual(result.todos, [])
+        self.assertIn("export const MIN_REQUIRED_VERSION = '10.11.0';", result.files[esr.MOBILE_CONSTANTS])
+        # Not May: v11.7 -> v12.4, three months before is February 2027. MIN_REQUIRED_VERSION stays.
+        february = esr.mobile_result(esr_list()[1], mobile_files("after"), "v9.11," + ESR)
+        self.assertIn("export const MIN_REQUIRED_VERSION = '9.11.0';", february.files[esr.MOBILE_CONSTANTS])
+        self.assertIn("export const FULL_VERSION = '12.4.0';\nexport const MAJOR_VERSION = 12;\n"
+                      "export const MIN_VERSION = 4;\nexport const PATCH_VERSION = 0;", february.files[esr.MOBILE_CONSTANTS])
+        self.assertEqual(february.todos, [])
+
+    def test_a_rerun_updates_the_same_pr(self):
+        gh = esr_github()
+        env = {"ESR_VERSIONS": ESR, "DESKTOP_ESR_VERSIONS": DESKTOP, "ESR_STAGE": "before"}
+        cli.run_esr_comms("v10.11", env, gh, None, FakeJira(), holidays(), date(2026, 5, 15), True, gh)
+        branch = "release-agent/v11.7.0-before/mobile-esr"
+        self.assertEqual(gh.head_files(esr.MOBILE_REPO, branch), mobile_files("after"))
+        # Once the trailing ESR is clear, the rerun commits it on the same branch and updates the same PR.
+        result = cli.run_esr_comms("v10.11", {**env, "ESR_VERSIONS": "v9.11," + ESR}, gh, None, FakeJira(), holidays(),
+                                   date(2026, 5, 15), True, gh)
+        self.assertEqual(len(gh.pulls[esr.MOBILE_REPO]), 1)
+        self.assertIn("mobile ESR PR: Updated PR mattermost/mattermost-mobile#", result.text)
+        self.assertIn("MIN_REQUIRED_VERSION = '10.11.0'", gh.head_files(esr.MOBILE_REPO, branch)[esr.MOBILE_CONSTANTS])
+        self.assertEqual(len(gh.repos[esr.MOBILE_REPO]["branches"][branch]), 3)  # base, then two commits on top
+        self.assertNotIn("MIN_REQUIRED_VERSION", gh.pulls[esr.MOBILE_REPO][0]["body"].split("#### Missing inputs")[-1]
+                         if "#### Missing inputs" in gh.pulls[esr.MOBILE_REPO][0]["body"] else "")
+        # A person's commit on the branch stops the bot writing there.
+        gh.push(esr.MOBILE_REPO, branch, {"README.md": "edited"})
+        result = cli.run_esr_comms("v10.11", env, gh, None, FakeJira(), holidays(), date(2026, 5, 15), True, gh)
+        self.assertIn("mobile ESR PR: Nothing written:", result.text)
+
+    def test_without_a_mobile_token_the_changes_go_to_hub(self):
+        gh, hub = esr_github(), FakeHub([RELEASE_CHANNEL])
+        env = {"ESR_VERSIONS": ESR, "DESKTOP_ESR_VERSIONS": DESKTOP, "ESR_STAGE": "before", "REVIEW_CHANNEL_ID": "review"}
+        result = cli.run_esr_comms("v10.11", env, gh, hub, FakeJira(), holidays(), date(2026, 5, 15), True, None)
+        self.assertEqual(gh.pulls[esr.MOBILE_REPO], [])  # nothing written there
+        self.assertFalse([w for w in gh.writes if w[1] == esr.MOBILE_REPO])
+        self.assertIn("no changelog write app token for mattermost/mattermost-mobile", " ".join(result.todos))
+        message = hub.posts_in("review")[0]["message"]
+        self.assertIn("could not be opened in mattermost/mattermost-mobile", message)
+        self.assertIn("-export const FULL_VERSION = '10.11.0';\n-export const MAJOR_VERSION = 10;\n"
+                      "-export const MIN_VERSION = 11;\n+export const FULL_VERSION = '11.7.0';\n"
+                      "+export const MAJOR_VERSION = 11;\n+export const MIN_VERSION = 7;\n", message)  # as in #9954
+        self.assertIn("+- **Minimum Server versions:** Current ESR version (11.7.0+)", message)
+        self.assertIn("Updated minimum supported version to v11.7.0.", message)
+        cli.run_esr_comms("v10.11", env, gh, hub, FakeJira(), holidays(), date(2026, 5, 15), True, None)
+        self.assertEqual(len(hub.posts_in("review")), 1)  # posted once
 
 
 # ── The monthly email ───────────────────────────────────────────────────────────────

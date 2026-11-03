@@ -18,10 +18,13 @@ name: Release Docs - Hub and Calendar
 #                   and the social post, in Staff: Marketing. Ticks the social item; "Queue the
 #                   email for the Marketing team" stays with the release manager.
 #   esr-comms       Three months before an ESR goes out of support, and the day it does (or the
-#                   next working day): one draft docs PR and Jira tickets for the mobile team and
-#                   for removing feature flags. The blog and email section is in the drafts task.
+#                   next working day): one draft docs PR. Three months before, also a draft PR in
+#                   mattermost/mattermost-mobile making the new ESR the minimum supported server
+#                   (as mattermost-mobile#9954); when support ends, a Jira ticket for removing
+#                   feature flags. The blog and email section is in the drafts task.
 #   feature-review  The working day after Feature Complete until Release Day: the description of
-#                   the next "Feature Ready Review" occurrence on the Release Dates calendar.
+#                   the release's "Feature Ready Review" occurrence (after its Feature Complete,
+#                   before its Release Day) on the Release Dates calendar.
 #
 # By hand, leave the version empty to do today's work, or give one to run it for that release
 # now (esr-comms: the ESR, e.g. v11.7, with esr_stage).
