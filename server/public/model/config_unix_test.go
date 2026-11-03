@@ -39,7 +39,7 @@ func TestAdvancedLoggingJSONCertPathIsNotRead(t *testing.T) {
 			case <-returned:
 			case <-time.After(2 * time.Second):
 				// Unblock the reader so the test process can exit.
-				writer, err := os.OpenFile(fifo, os.O_WRONLY, 0)
+				writer, err := os.OpenFile(fifo, os.O_WRONLY|syscall.O_NONBLOCK, 0)
 				if err == nil {
 					_ = writer.Close()
 				}
