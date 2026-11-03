@@ -348,13 +348,13 @@ exports[`components/admin_console/access_control/PolicyList should match snapsho
                   aria-expanded="false"
                   aria-haspopup="true"
                   aria-label="Policy actions menu"
-                  class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
+                  class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77"
                   id="policy-menu-policy1"
                   type="button"
                 >
                   <span
                     aria-hidden="true"
-                    class="_icon-button__icon-slot_13ryy_41"
+                    class="_icon-button__icon-slot_ft92e_41"
                   >
                     <div
                       aria-hidden="true"
@@ -423,13 +423,13 @@ exports[`components/admin_console/access_control/PolicyList should match snapsho
                   aria-expanded="false"
                   aria-haspopup="true"
                   aria-label="Policy actions menu"
-                  class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
+                  class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77"
                   id="policy-menu-policy2"
                   type="button"
                 >
                   <span
                     aria-hidden="true"
-                    class="_icon-button__icon-slot_13ryy_41"
+                    class="_icon-button__icon-slot_ft92e_41"
                   >
                     <div
                       aria-hidden="true"
@@ -472,13 +472,13 @@ exports[`components/admin_console/access_control/PolicyList should match snapsho
             </span>
             <button
               aria-label="Previous page"
-              class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 ml-2 prev"
+              class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 ml-2 prev"
               disabled=""
               type="button"
             >
               <span
                 aria-hidden="true"
-                class="_icon-button__icon-slot_13ryy_41"
+                class="_icon-button__icon-slot_ft92e_41"
               >
                 <div
                   aria-hidden="true"
@@ -505,13 +505,13 @@ exports[`components/admin_console/access_control/PolicyList should match snapsho
             </button>
             <button
               aria-label="Next page"
-              class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 next"
+              class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 next"
               disabled=""
               type="button"
             >
               <span
                 aria-hidden="true"
-                class="_icon-button__icon-slot_13ryy_41"
+                class="_icon-button__icon-slot_ft92e_41"
               >
                 <div
                   aria-hidden="true"
