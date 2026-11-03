@@ -11,4 +11,15 @@
     padding: 0 4px 0 4px;
     color: rgba(var(--sidebar-text-rgb), 0.64);
     gap: 12px;
+
+    // Temporary until a compass-ui release fixes the IconButton fade: header buttons switched
+    // state instantly before the migration, and Compass's default background/color fade makes
+    // toggling between them (e.g. Recent mentions -> Saved messages) flash. Only the outline
+    // transitions are kept, so the focus ring still animates. Remove once Compass no longer
+    // crossfades toggled IconButtons.
+    button[class*='_icon-button_'] {
+        transition:
+            outline-color var(--duration-quick) var(--ease-transition),
+            outline-offset var(--duration-quick) var(--ease-transition);
+    }
 }
