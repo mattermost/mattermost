@@ -4,12 +4,14 @@
 package docextractor
 
 import (
+	"archive/zip"
 	"bytes"
 	"context"
 	"errors"
 	"io"
 	"runtime"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -564,4 +566,322 @@ func TestExtractConcurrency(t *testing.T) {
 			require.FailNow(t, "detached extraction did not finish within the deadline")
 		}
 	})
+}
+
+// documentPartTextBytes is the plain-text size of one document part.
+// documentPartListings is how many times that same part is listed.
+// documentAllocRatioLimit is how far allocations for the longer listing may
+// exceed a single listing. The margin leaves room for a larger package
+// listing when each distinct part is handled once and retained text stays
+// within maxArchiveExtractedText.
+const (
+	documentPartTextBytes   = 256 * 1024
+	documentPartListings    = 12
+	documentAllocRatioLimit = 4
+	documentConcurrentCalls = 20
+	documentExtractLimit    = 10 * 1024 * 1024
+)
+
+func repeatedDocumentPayload() []byte {
+	const word = "lorem "
+	return bytes.Repeat([]byte(word), documentPartTextBytes/len(word))
+}
+
+type repeatedDocumentCase struct {
+	name string
+	ext  string
+}
+
+func repeatedDocumentCases() []repeatedDocumentCase {
+	return []repeatedDocumentCase{
+		{name: "docx", ext: "docx"},
+		{name: "pptx", ext: "pptx"},
+		{name: "odt", ext: "odt"},
+	}
+}
+
+func writeStoredOrDeflated(t *testing.T, zw *zip.Writer, name string, data []byte, method uint16) {
+	t.Helper()
+	w, err := zw.CreateHeader(&zip.FileHeader{Name: name, Method: method})
+	require.NoError(t, err)
+	_, err = w.Write(data)
+	require.NoError(t, err)
+}
+
+func contentTypesListing(partName, contentType string, listings int) []byte {
+	var b bytes.Buffer
+	b.WriteString(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>`)
+	b.WriteString(`<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">`)
+	for i := 0; i < listings; i++ {
+		b.WriteString(`<Override PartName="`)
+		b.WriteString(partName)
+		b.WriteString(`" ContentType="`)
+		b.WriteString(contentType)
+		b.WriteString(`"/>`)
+	}
+	b.WriteString(`</Types>`)
+	return b.Bytes()
+}
+
+func wordDocumentXML(payload []byte) []byte {
+	var b bytes.Buffer
+	b.WriteString(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>`)
+	b.WriteString(`<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body><w:p><w:r><w:t>`)
+	b.Write(payload)
+	b.WriteString(`</w:t></w:r></w:p></w:body></w:document>`)
+	return b.Bytes()
+}
+
+func slideDocumentXML(payload []byte) []byte {
+	var b bytes.Buffer
+	b.WriteString(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>`)
+	b.WriteString(`<p:sld xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"><p:cSld><p:spTree><p:sp><p:txBody><a:p><a:r><a:t>`)
+	b.Write(payload)
+	b.WriteString(`</a:t></a:r></a:p></p:txBody></p:sp></p:spTree></p:cSld></p:sld>`)
+	return b.Bytes()
+}
+
+func odtContentXML(payload []byte) []byte {
+	var b bytes.Buffer
+	b.WriteString(`<?xml version="1.0" encoding="UTF-8"?>`)
+	b.WriteString(`<office:document-content xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0"><office:body><office:text><text:p>`)
+	b.Write(payload)
+	b.WriteString(`</text:p></office:text></office:body></office:document-content>`)
+	return b.Bytes()
+}
+
+// buildRepeatedDocumentPackage builds a docx, pptx, or odt zip whose text
+// part is listed listings times. The zip is compressed; listings repeat the
+// part reference (docx/pptx) or the zip entry (odt).
+func buildRepeatedDocumentPackage(t *testing.T, ext string, listings int, payload []byte) []byte {
+	t.Helper()
+	var buf bytes.Buffer
+	zw := zip.NewWriter(&buf)
+	switch ext {
+	case "docx":
+		writeStoredOrDeflated(t, zw, "[Content_Types].xml", contentTypesListing(
+			"/word/document.xml",
+			"application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml",
+			listings,
+		), zip.Deflate)
+		writeStoredOrDeflated(t, zw, "word/document.xml", wordDocumentXML(payload), zip.Deflate)
+	case "pptx":
+		writeStoredOrDeflated(t, zw, "[Content_Types].xml", contentTypesListing(
+			"/ppt/slides/slide1.xml",
+			"application/vnd.openxmlformats-officedocument.presentationml.slide+xml",
+			listings,
+		), zip.Deflate)
+		writeStoredOrDeflated(t, zw, "ppt/slides/slide1.xml", slideDocumentXML(payload), zip.Deflate)
+	case "odt":
+		body := odtContentXML(payload)
+		for i := 0; i < listings; i++ {
+			writeStoredOrDeflated(t, zw, "content.xml", body, zip.Deflate)
+		}
+	default:
+		require.FailNow(t, "unknown document extension", ext)
+	}
+	require.NoError(t, zw.Close())
+	return buf.Bytes()
+}
+
+func extractDocumentMeasured(t *testing.T, logger mlog.LoggerIFace, filename string, data []byte) (string, uint64) {
+	t.Helper()
+	runtime.GC()
+	var before, after runtime.MemStats
+	runtime.ReadMemStats(&before)
+	text, err := Extract(logger, filename, bytes.NewReader(data), ExtractSettings{MaxFileSize: documentExtractLimit})
+	runtime.ReadMemStats(&after)
+	require.NoError(t, err)
+	return text, after.TotalAlloc - before.TotalAlloc
+}
+
+// TestDocumentRepeatedPartBounds checks that listing the same document part
+// many times keeps returned text within the retained size and keeps
+// in-extraction allocations from scaling with that listing.
+func TestDocumentRepeatedPartBounds(t *testing.T) {
+	logger := mlog.CreateConsoleTestLogger(t)
+	payload := repeatedDocumentPayload()
+
+	for _, tc := range repeatedDocumentCases() {
+		t.Run(tc.name, func(t *testing.T) {
+			filename := "part." + tc.ext
+			oncePkg := buildRepeatedDocumentPackage(t, tc.ext, 1, payload)
+			manyPkg := buildRepeatedDocumentPackage(t, tc.ext, documentPartListings, payload)
+
+			warmText, err := Extract(logger, filename, bytes.NewReader(oncePkg), ExtractSettings{MaxFileSize: documentExtractLimit})
+			require.NoError(t, err)
+			require.Contains(t, warmText, "lorem")
+
+			onceText, onceAlloc := extractDocumentMeasured(t, logger, filename, oncePkg)
+			manyText, manyAlloc := extractDocumentMeasured(t, logger, filename, manyPkg)
+			require.Contains(t, onceText, "lorem")
+			require.Contains(t, manyText, "lorem")
+			require.Greater(t, onceAlloc, uint64(0))
+
+			ratio := float64(manyAlloc) / float64(onceAlloc)
+			textOK := len(manyText) <= int(maxArchiveExtractedText)
+			allocOK := manyAlloc <= onceAlloc*uint64(documentAllocRatioLimit)
+			if !textOK || !allocOK {
+				t.Fatalf("part listed %d times: textOnce=%d textMany=%d retained=%d allocOnce=%d allocMany=%d ratio=%.2f allocLimit=%d zipOnce=%d zipMany=%d",
+					documentPartListings, len(onceText), len(manyText), maxArchiveExtractedText, onceAlloc, manyAlloc, ratio, documentAllocRatioLimit, len(oncePkg), len(manyPkg))
+			}
+		})
+	}
+}
+
+// TestDocumentRepeatedPartConcurrent checks that concurrent extraction of a
+// document whose part is listed many times stays within the same retained
+// text size and allocation bound as one listing of that part.
+func TestDocumentRepeatedPartConcurrent(t *testing.T) {
+	logger := mlog.CreateConsoleTestLogger(t)
+	resetExtractionConcurrencyForTest(documentConcurrentCalls)
+	t.Cleanup(func() { resetExtractionConcurrencyForTest(runtime.NumCPU()) })
+
+	payload := repeatedDocumentPayload()
+
+	for _, tc := range repeatedDocumentCases() {
+		t.Run(tc.name, func(t *testing.T) {
+			filename := "part." + tc.ext
+			oncePkg := buildRepeatedDocumentPackage(t, tc.ext, 1, payload)
+			manyPkg := buildRepeatedDocumentPackage(t, tc.ext, documentPartListings, payload)
+
+			warmText, err := Extract(logger, filename, bytes.NewReader(oncePkg), ExtractSettings{MaxFileSize: documentExtractLimit})
+			require.NoError(t, err)
+			require.Contains(t, warmText, "lorem")
+
+			_, onceAlloc := extractDocumentMeasured(t, logger, filename, oncePkg)
+			require.Greater(t, onceAlloc, uint64(0))
+
+			lengths := make([]int, documentConcurrentCalls)
+			errMsgs := make([]string, documentConcurrentCalls)
+
+			runtime.GC()
+			var before, after runtime.MemStats
+			runtime.ReadMemStats(&before)
+
+			var wg sync.WaitGroup
+			wg.Add(documentConcurrentCalls)
+			for i := 0; i < documentConcurrentCalls; i++ {
+				go func(i int) {
+					defer wg.Done()
+					text, extractErr := Extract(logger, filename, bytes.NewReader(manyPkg), ExtractSettings{MaxFileSize: documentExtractLimit})
+					if !assert.NoError(t, extractErr) {
+						errMsgs[i] = extractErr.Error()
+						return
+					}
+					lengths[i] = len(text)
+					assert.Contains(t, text, "lorem")
+					assert.LessOrEqual(t, len(text), int(maxArchiveExtractedText))
+					if len(text) > int(maxArchiveExtractedText) {
+						errMsgs[i] = "over retained size"
+					}
+				}(i)
+			}
+			wg.Wait()
+			runtime.ReadMemStats(&after)
+
+			batchAlloc := after.TotalAlloc - before.TotalAlloc
+			allocLimit := onceAlloc * uint64(documentAllocRatioLimit) * uint64(documentConcurrentCalls)
+			perCallRatio := float64(batchAlloc) / float64(onceAlloc) / float64(documentConcurrentCalls)
+
+			var failed int
+			for _, msg := range errMsgs {
+				if msg != "" {
+					failed++
+				}
+			}
+			textOK := failed == 0
+			allocOK := batchAlloc <= allocLimit
+			if !textOK || !allocOK {
+				t.Fatalf("concurrent calls=%d failedCalls=%d textLens=%v batchAlloc=%d onceAlloc=%d perCallRatio=%.2f allocLimit=%d allocRatioLimit=%d errs=%q",
+					documentConcurrentCalls, failed, lengths, batchAlloc, onceAlloc, perCallRatio, allocLimit, documentAllocRatioLimit, errMsgs)
+			}
+		})
+	}
+}
+
+// pacedReadSeeker sleeps on each Read and limits how many bytes one Read
+// returns, so a caller can observe whether reading continues.
+type pacedReadSeeker struct {
+	r     *bytes.Reader
+	delay time.Duration
+	chunk int
+	reads atomic.Int64
+}
+
+func (p *pacedReadSeeker) Read(b []byte) (int, error) {
+	p.reads.Add(1)
+	time.Sleep(p.delay)
+	if p.chunk > 0 && len(b) > p.chunk {
+		b = b[:p.chunk]
+	}
+	return p.r.Read(b)
+}
+
+func (p *pacedReadSeeker) Seek(offset int64, whence int) (int64, error) {
+	return p.r.Seek(offset, whence)
+}
+
+// TestDocumentExtractionContext checks that once the caller has returned
+// because the extraction context ended, the document is not read further.
+func TestDocumentExtractionContext(t *testing.T) {
+	logger := mlog.CreateConsoleTestLogger(t)
+	const readDelay = 80 * time.Millisecond
+	const readChunk = 2048
+
+	payload := bytes.Repeat([]byte("lorem "), (48*1024)/len("lorem "))
+	var buf bytes.Buffer
+	zw := zip.NewWriter(&buf)
+	writeStoredOrDeflated(t, zw, "[Content_Types].xml", contentTypesListing(
+		"/word/document.xml",
+		"application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml",
+		1,
+	), zip.Store)
+	writeStoredOrDeflated(t, zw, "word/document.xml", wordDocumentXML(payload), zip.Store)
+	require.NoError(t, zw.Close())
+	pkg := buf.Bytes()
+	require.Greater(t, len(pkg), readChunk*4, "document must take several reads")
+
+	paced := &pacedReadSeeker{
+		r:     bytes.NewReader(pkg),
+		delay: readDelay,
+		chunk: readChunk,
+	}
+	t.Cleanup(func() {
+		deadline := time.Now().Add(5 * time.Second)
+		var last int64 = -1
+		stable := 0
+		for time.Now().Before(deadline) {
+			cur := paced.reads.Load()
+			if cur == last {
+				stable++
+				if stable >= 2 {
+					return
+				}
+			} else {
+				stable = 0
+				last = cur
+			}
+			time.Sleep(readDelay)
+		}
+	})
+
+	text, err := Extract(logger, "part.docx", paced, ExtractSettings{
+		MaxFileSize: documentExtractLimit,
+		Timeout:     25 * time.Millisecond,
+	})
+	require.Error(t, err)
+	require.Empty(t, text)
+	require.Contains(t, err.Error(), "timed out")
+
+	require.Eventually(t, func() bool {
+		return paced.reads.Load() > 0
+	}, time.Second, 5*time.Millisecond, "extraction did not start reading")
+
+	atReturn := paced.reads.Load()
+	time.Sleep(3 * readDelay)
+	later := paced.reads.Load()
+	if later != atReturn {
+		t.Fatalf("extraction kept reading after the caller returned: reads=%d then %d", atReturn, later)
+	}
 }
