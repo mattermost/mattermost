@@ -616,7 +616,6 @@ describe('AttributeCombobox', () => {
             const styled = document.querySelectorAll('.custom');
 
             expect(styled).toHaveLength(1);
-            expect(styled[0]).toHaveAttribute('role', 'presentation');
             expect(styled[0]).toContainElement(screen.getByRole('combobox', {name: 'Department'}));
 
             rerender(
@@ -628,7 +627,7 @@ describe('AttributeCombobox', () => {
                 />,
             );
 
-            expect(screen.getByRole('combobox', {name: 'Department'}).closest('[role="presentation"]')).not.toHaveAttribute('class');
+            expect(document.querySelector('.custom')).not.toBeInTheDocument();
         });
 
         test('puts aria-describedby on the input, and omits it without the prop', () => {

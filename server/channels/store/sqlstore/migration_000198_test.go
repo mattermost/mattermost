@@ -59,8 +59,8 @@ func TestMigration000198(t *testing.T) {
 		t.Helper()
 		_, insErr := master.Exec(
 			`INSERT INTO PropertyFields
-				(ID, GroupID, Name, Type, Attrs, TargetID, TargetType, ObjectType, CreateAt, UpdateAt, DeleteAt, Protected)
-			VALUES (?, ?, ?, 'select', ?::jsonb, '', '', ?, ?, ?, 0, false)`,
+				(ID, GroupID, Name, Type, Attrs, TargetID, TargetType, ObjectType, CreateAt, UpdateAt, DeleteAt)
+			VALUES (?, ?, ?, 'select', ?::jsonb, '', '', ?, ?, ?, 0)`,
 			id, grpID, name, attrs, objectType, now, now,
 		)
 		require.NoError(t, insErr, "inserting field %s", name)

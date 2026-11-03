@@ -107,6 +107,33 @@ describe('components/SettingItemMax', () => {
         expect(baseProps.submit).toHaveBeenCalledTimes(1);
     });
 
+    test('should not submit on ENTER pressed on a multiple Combobox chip', async () => {
+        const submit = jest.fn();
+        const props = {
+            ...baseProps,
+            submit,
+            inputs: [
+                <Combobox
+                    key={0}
+                    aria-label='Skills'
+                    multiple={true}
+                    options={[{value: 'a', label: 'Alpha'}]}
+                    value={['a']}
+                    selectedOptions={[{value: 'a', label: 'Alpha'}]}
+                    onChange={jest.fn()}
+                />,
+            ],
+        };
+
+        renderWithContext(<SettingItemMax {...props}/>);
+
+        const chip = screen.getByRole('button', {name: /Alpha/});
+        chip.focus();
+        await userEvent.keyboard('{Enter}');
+
+        expect(submit).not.toHaveBeenCalled();
+    });
+
     test('should focus react-select-like tabindex control on mount, not Save/Cancel', () => {
         const focusListener = jest.fn();
         document.addEventListener(A11yCustomEventTypes.FOCUS, focusListener);

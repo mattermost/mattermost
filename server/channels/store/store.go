@@ -761,6 +761,7 @@ type TokenStore interface {
 
 type DesktopTokensStore interface {
 	GetUserId(token string, minCreatedAt int64) (*string, error)
+	ConsumeToken(token string, minCreateAt int64) (*string, error)
 	Insert(token string, createAt int64, userID string) error
 	Delete(token string) error
 	DeleteByUserId(userID string) error
@@ -815,8 +816,6 @@ type FileInfoStore interface {
 	GetFilesBatchForIndexing(startTime int64, startFileID string, includeDeleted bool, limit int) ([]*model.FileForIndexing, error)
 	ClearCaches()
 	GetStorageUsage(allowFromCache, includeDeleted bool) (int64, error)
-	// GetUptoNSizeFileTime returns the CreateAt time of the last accessible file with a running-total size upto n bytes.
-	GetUptoNSizeFileTime(n int64) (int64, error)
 	// RefreshFileStats recomputes the fileinfo materialized views.
 	RefreshFileStats() error
 }
@@ -902,6 +901,7 @@ type PluginStore interface {
 	DeleteAllForPlugin(PluginID string) error
 	DeleteAllExpired() error
 	List(pluginID string, page, perPage int) ([]string, error)
+	ListWithOptions(pluginID string, options model.PluginKVListOptions, page, perPage int) ([]string, error)
 }
 
 type RoleStore interface {
@@ -1209,7 +1209,7 @@ type ScheduledPostStore interface {
 
 type PropertyGroupStore interface {
 	Register(group *model.PropertyGroup) (*model.PropertyGroup, error)
-	IncrementVersion(name string) error
+	SetVersion(name string, version int) error
 	Get(name string) (*model.PropertyGroup, error)
 	GetByID(id string) (*model.PropertyGroup, error)
 }
@@ -1217,6 +1217,7 @@ type PropertyGroupStore interface {
 type PropertyFieldStore interface {
 	Create(field *model.PropertyField) (*model.PropertyField, error)
 	Get(rctx request.CTX, groupID, id string) (*model.PropertyField, error)
+	ValidateMaskByFieldID(rctx request.CTX, groupID, fieldID, maskByFieldID string) error
 	GetMany(rctx request.CTX, groupID string, ids []string) ([]*model.PropertyField, error)
 	GetFieldByName(rctx request.CTX, groupID, targetID, name string) (*model.PropertyField, error)
 	GetFieldByNameForObjectType(rctx request.CTX, groupID, targetID, objectType, name string) (*model.PropertyField, error)
@@ -1243,9 +1244,16 @@ type PropertyFieldStore interface {
 	GetOptionDescendantsOrSelf(field *model.PropertyField, optionIDs []string) (map[string][]string, error)
 	GetOptionChildren(field *model.PropertyField, optionIDs []string) (map[string][]string, error)
 	SearchPropertyFields(rctx request.CTX, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error)
+	// GetFieldsMissingPermissions returns one page, in (CreateAt, Id) order
+	// after cursor, of the live PSAv2 fields in version 2 and 3 groups that
+	// have no permissions object: the fields the permissions backfill converts.
+	GetFieldsMissingPermissions(rctx request.CTX, cursor model.PropertyFieldSearchCursor, perPage int) ([]*model.PropertyField, error)
 	Update(groupID string, fields []*model.PropertyField, expectedUpdateAts map[string]int64) ([]*model.PropertyField, error)
 	Delete(groupID string, id string) error
 	CheckPropertyNameConflict(field *model.PropertyField, excludeID string) (model.PropertyFieldTargetLevel, error)
+	GetFieldsByGrant(rctx request.CTX, ownerType, ownerID, action string) ([]string, error)
+	GetGrantsForField(rctx request.CTX, fieldID string) ([]model.Grant, error)
+	HasGrantForIdentity(rctx request.CTX, ownerType, ownerID string) (bool, error)
 }
 
 type PropertyValueStore interface {

@@ -6,6 +6,7 @@ import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 
 import {PlusIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 
 import Input from 'components/widgets/inputs/input/input';
 
@@ -91,8 +92,8 @@ export const AddTopLevelForm = ({
                 onClick={onCommit}
                 disabled={!canAdd}
                 data-testid={`${testIdPrefix}__addButton`}
+                leadingIcon={<Icon glyph={<PlusIcon/>}/>}
             >
-                <PlusIcon size={16}/>
                 <FormattedMessage {...messages.addValue}/>
             </Button>
         </div>

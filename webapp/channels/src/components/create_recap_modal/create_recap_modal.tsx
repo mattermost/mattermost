@@ -8,6 +8,7 @@ import {useHistory} from 'react-router-dom';
 
 import {ChevronLeftIcon, ChevronRightIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {GenericModal} from '@mattermost/components';
 import type {Channel} from '@mattermost/types/channels';
 import type {ScheduledRecap, ScheduledRecapInput, ScheduledRecapTimePeriod} from '@mattermost/types/recaps';
@@ -447,8 +448,8 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
                         emphasis='tertiary'
                         onClick={handlePrevious}
                         disabled={isSubmitting}
+                        leadingIcon={<Icon glyph={<ChevronLeftIcon/>}/>}
                     >
-                        <ChevronLeftIcon size={16}/>
                         {formatMessage({id: 'generic_modal.previous', defaultMessage: 'Previous'})}
                     </Button>
                 )}
@@ -458,9 +459,9 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
                     onClick={handleConfirmClick}
                     disabled={!canProceed() || isSubmitting}
                     title={currentStep === 3 && runOnce && manualLimitBlockMessage ? manualLimitBlockMessage : undefined}
+                    trailingIcon={currentStep < 3 ? <Icon glyph={<ChevronRightIcon/>}/> : undefined}
                 >
                     {confirmButtonText}
-                    {currentStep < 3 && <ChevronRightIcon size={16}/>}
                 </Button>
             </div>
         </div>

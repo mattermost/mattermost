@@ -263,7 +263,7 @@ describe('UserAttributeFields', () => {
             expect(labels[0]).toHaveTextContent('department');
 
             const wrapper = input.closest('.UserAttributeField__combobox');
-            expect(wrapper).toHaveAttribute('role', 'presentation');
+            expect(wrapper).toContainElement(input);
             expect(root.children[0]).toBe(labels[0]);
             expect(root.children[1]).toBe(wrapper);
         });

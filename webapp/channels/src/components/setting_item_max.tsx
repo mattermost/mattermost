@@ -103,6 +103,8 @@ const SettingItemMax = ({
                 (/button--emphasis-(tertiary|quaternary|link)/).test(closestButton.className),
             );
 
+            const isChip = Boolean(target.closest('[data-chip]'));
+
             if (disableEnterSubmit !== true &&
                 isKeyPressed(e, Constants.KeyCodes.ENTER) &&
                 submitFromProps &&
@@ -111,6 +113,7 @@ const SettingItemMax = ({
                 target.parentElement.className !== 'react-select__input' &&
                 !isFooterNonSaveButton &&
                 !isNonPrimaryContentButton &&
+                !isChip &&
                 target.id !== 'cancelSetting' &&
                 settingList.current &&
                 settingList.current.contains(target)) {
