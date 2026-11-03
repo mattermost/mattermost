@@ -1406,6 +1406,10 @@ func (a *App) setupBroadcastHookForChannelMentions(rctx request.CTX, post *model
 func (a *App) processBroadcastHookForBurnOnRead(rctx request.CTX, postJSON string, post *model.Post, message *model.WebSocketEvent) *model.AppError {
 	tmpPost, appErr := a.getBurnOnReadPost(rctx, post)
 	if appErr != nil {
+		var nfErr *store.ErrNotFound
+		if message.EventType() == model.WebsocketEventPostDeleted && errors.As(appErr, &nfErr) {
+			return nil
+		}
 		return appErr
 	}
 
