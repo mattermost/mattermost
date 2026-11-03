@@ -9587,6 +9587,10 @@
     "defaultMessage": "Copy log line",
     "description": "Button label in an expanded log entry on the System Console Server Logs page; copies the raw log line to the clipboard."
   },
+  "admin.logs.copyLink": {
+    "defaultMessage": "Copy link",
+    "description": "Button label next to Reload on the System Console Server Logs page; copies a link to the page with the current search, levels, node and time range filters."
+  },
   "admin.logs.copyToClipboard": {
     "defaultMessage": "Copy to clipboard",
     "description": "Accessible label for the icon button that copies a field value of a log entry on the System Console Server Logs page."

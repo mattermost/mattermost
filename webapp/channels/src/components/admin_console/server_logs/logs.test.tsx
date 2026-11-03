@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {createMemoryHistory} from 'history';
 import React from 'react';
 
 import {LogLevelEnum, LogNodeKey} from '@mattermost/types/admin';
@@ -10,6 +11,14 @@ import {act, renderWithContext, userEvent, screen, waitFor, within} from 'tests/
 
 import Logs from './logs';
 import type {LogObjectWithAdditionalInfo} from './types';
+
+// The real router history, in place of the global mock, so the URL the viewer writes can be read back
+jest.mock('react-router-dom', () => jest.requireActual('react-router-dom'));
+
+// The viewer mirrors its filters into the URL, which jsdom keeps from one test to the next
+beforeEach(() => {
+    window.history.replaceState(null, '', '/');
+});
 
 function nodeLog(node: string, msg: string): LogObjectWithAdditionalInfo {
     return {
@@ -858,5 +867,222 @@ describe('components/admin_console/server_logs/Logs live tail', () => {
 
         await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(2));
         expect(getNewLogs).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe('components/admin_console/server_logs/Logs URL filters', () => {
+    const PAGE = '/admin_console/reporting/server_logs';
+    const ERROR_AND_WARN = ['panic', 'fatal', 'critical', 'error', 'warn'];
+
+    beforeEach(() => {
+        localStorage.clear();
+    });
+
+    afterEach(() => {
+        jest.useRealTimers();
+    });
+
+    function renderLogs(url: string, {getLogs = jest.fn().mockResolvedValue({}), isPlainLogs = false} = {}) {
+        const history = createMemoryHistory({initialEntries: [url]});
+        const getPlainLogs = jest.fn().mockResolvedValue({});
+        renderWithContext(
+            <Logs
+                logs={[nodeLog('node-a', 'a'), nodeLog('node-b', 'b')]}
+                logNodes={['node-a', 'node-b']}
+                truncatedLogNodes={[]}
+                plainLogs={[]}
+                isPlainLogs={isPlainLogs}
+                actions={{getLogs, getNewLogs: jest.fn().mockResolvedValue({}), getPlainLogs}}
+            />,
+            {},
+            {history},
+        );
+        return {history, getLogs, getPlainLogs};
+    }
+
+    async function pickMenuItem(menuLabel: string, item: string, role: 'menuitemradio' | 'menuitemcheckbox' = 'menuitemradio') {
+        await userEvent.click(screen.getByLabelText(menuLabel));
+        await userEvent.click(screen.getByRole(role, {name: new RegExp(`^${item}`)}));
+    }
+
+    function urlParams(history: ReturnType<typeof createMemoryHistory>) {
+        return Object.fromEntries(new URLSearchParams(history.location.search));
+    }
+
+    test('should load the filters from the URL and send them with the first query', async () => {
+        fakeNow('2026-10-20T12:00:00Z');
+        const {getLogs} = renderLogs(`${PAGE}?search=timeout&levels=error,warn&node=node-b&range=60`);
+
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
+        expect(getLogs).toHaveBeenCalledWith({
+            search: 'timeout',
+            logLevels: ERROR_AND_WARN,
+            serverNames: ['node-b'],
+            dateFrom: '2026-10-20 11:00:00.000 +00:00',
+            dateTo: '',
+        });
+        expect(screen.getByLabelText('Search logs')).toHaveValue('timeout');
+        expect(screen.getByLabelText('Levels')).toHaveValue('2 selected');
+        expect(screen.getByLabelText('Node')).toHaveValue('node-b');
+        expect(screen.getByLabelText('Duration')).toHaveValue('Last hour');
+    });
+
+    test('should load a custom range from the URL', async () => {
+        const {getLogs} = renderLogs(`${PAGE}?from=2026-10-20T11:12:00.000Z&to=2026-10-20T12:00:59.999Z`);
+
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
+        expect(getLogs).toHaveBeenCalledWith(expect.objectContaining({
+            dateFrom: '2026-10-20 11:12:00.000 +00:00',
+            dateTo: '2026-10-20 12:00:59.999 +00:00',
+        }));
+        expect((screen.getByLabelText('Duration') as HTMLInputElement).value.replace(/\s/g, ' ')).toBe('Oct 20, 11:12 AM – 12:00 PM');
+    });
+
+    test('should prefer the URL over saved prefs, and use the saved prefs the URL leaves out', async () => {
+        localStorage.setItem('mm_admin_logs_prefs', JSON.stringify({node: 'node-a', enabledLevels: ['debug']}));
+        const {getLogs} = renderLogs(`${PAGE}?levels=error,warn`);
+
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
+        expect(getLogs).toHaveBeenCalledWith(expect.objectContaining({logLevels: ERROR_AND_WARN, serverNames: ['node-a']}));
+    });
+
+    test('should remember the levels and node of an opened link as the last used ones', async () => {
+        localStorage.setItem('mm_admin_logs_prefs', JSON.stringify({node: 'node-a', enabledLevels: ['debug']}));
+        renderLogs(`${PAGE}?levels=error&node=node-b`);
+
+        await waitFor(() => expect(JSON.parse(localStorage.getItem('mm_admin_logs_prefs')!)).toMatchObject({node: 'node-b', enabledLevels: ['error']}));
+    });
+
+    test('should open a link with filters in the structured viewer over a saved plain format', async () => {
+        localStorage.setItem('mm_admin_logs_format', 'plain');
+        const {getLogs, getPlainLogs} = renderLogs(`${PAGE}?search=timeout`);
+
+        await waitFor(() => expect(getLogs).toHaveBeenCalledWith(expect.objectContaining({search: 'timeout'})));
+        expect(getPlainLogs).not.toHaveBeenCalled();
+    });
+
+    test('should ignore invalid values and drop them from the URL', async () => {
+        localStorage.setItem('mm_admin_logs_prefs', JSON.stringify({enabledLevels: ['debug']}));
+        const {getLogs, history} = renderLogs(`${PAGE}?search=${'a'.repeat(257)}&levels=bogus,warn&range=7&from=2026-10-20T11:00:00Z&to=yesterday&tab=1`);
+
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
+        expect(getLogs).toHaveBeenCalledWith({search: '', logLevels: ['warn'], serverNames: [], dateFrom: '', dateTo: ''});
+        expect(screen.getByLabelText('Duration')).toHaveValue('All time');
+
+        // Parameters that aren't filters are left alone
+        await waitFor(() => expect(urlParams(history)).toEqual({levels: 'warn', tab: '1'}));
+    });
+
+    test.each([
+        ['levels with no known level fall back to the saved ones', 'levels=bogus', {logLevels: ['panic', 'fatal', 'critical', 'error']}],
+        ['a range that ends before it starts', 'from=2026-10-20T12:00:00Z&to=2026-10-20T11:00:00Z', {dateFrom: '', dateTo: ''}],
+        ['a range that ends when it starts', 'from=2026-10-20T12:00:00Z&to=2026-10-20T12:00:00Z', {dateFrom: '', dateTo: ''}],
+        ['dates without a timezone offset', 'from=2026-10-20T11:00:00&to=2026-10-20T12:00:00', {dateFrom: '', dateTo: ''}],
+        ['an invalid custom range in favor of a valid preset', 'range=60&from=bad&to=2026-10-20T12:00:00Z', {dateFrom: '2026-10-20 11:00:00.000 +00:00', dateTo: ''}],
+    ])('should ignore %s', async (_, query, expected) => {
+        fakeNow('2026-10-20T12:00:00Z');
+        localStorage.setItem('mm_admin_logs_prefs', JSON.stringify({enabledLevels: ['error']}));
+        const {getLogs} = renderLogs(`${PAGE}?${query}`);
+
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
+        expect(getLogs).toHaveBeenCalledWith(expect.objectContaining(expected));
+    });
+
+    test('should mirror the filters in the URL as they change, without adding history entries', async () => {
+        const {history} = renderLogs(PAGE);
+        await screen.findByText('a');
+        expect(history.location.search).toBe('');
+
+        await pickMenuItem('Open menu to select which log levels to show', 'Debug', 'menuitemcheckbox');
+        await pickMenuItem('Open menu to select which log levels to show', 'Info', 'menuitemcheckbox');
+        await pickMenuItem('Open menu to select a node', 'node-b');
+        await pickMenuItem('Open menu to select a time range', 'Last 15 minutes');
+
+        await waitFor(() => expect(history.location.search).toBe('?levels=error,warn&node=node-b&range=15'));
+        expect(history.length).toBe(1);
+
+        await pickMenuItem('Open menu to select a time range', 'Custom range');
+        await userEvent.click(screen.getByRole('button', {name: 'Apply'}));
+        await waitFor(() => expect(urlParams(history)).toEqual({
+            levels: 'error,warn',
+            node: 'node-b',
+            from: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:00\.000Z$/),
+            to: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:59\.999Z$/),
+        }));
+
+        await pickMenuItem('Open menu to select a time range', 'All time');
+        await pickMenuItem('Open menu to select a node', 'All nodes');
+        await userEvent.click(screen.getByLabelText('Open menu to select which log levels to show'));
+        await userEvent.click(screen.getByRole('menuitem', {name: 'Select all levels'}));
+
+        await waitFor(() => expect(history.location.search).toBe(''));
+        expect(history.length).toBe(1);
+    });
+
+    test('should put the search in the URL once it is debounced, not on every keystroke', async () => {
+        const {history, getLogs} = renderLogs(PAGE);
+        const searches: string[] = [];
+        history.listen((location) => searches.push(new URLSearchParams(location.search).get('search') ?? ''));
+
+        await userEvent.type(screen.getByLabelText('Search logs'), 'WebSocket');
+
+        await waitFor(() => expect(urlParams(history)).toEqual({search: 'WebSocket'}));
+        expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({search: 'WebSocket'}));
+        expect(searches).toEqual(['WebSocket']);
+    });
+
+    test('should take the filters out of the URL in the plain viewer and restore them in the structured one', async () => {
+        const {history} = renderLogs(`${PAGE}?search=timeout`);
+        await waitFor(() => expect(urlParams(history)).toEqual({search: 'timeout'}));
+
+        await pickMenuItem('Open menu to select the log format', 'Plain text');
+        await waitFor(() => expect(history.location.search).toBe(''));
+
+        await pickMenuItem('Open menu to select the log format', 'Structured');
+        await waitFor(() => expect(urlParams(history)).toEqual({search: 'timeout'}));
+    });
+
+    test('should keep the URL free of filters when the server only writes plain logs', async () => {
+        const {history, getPlainLogs} = renderLogs(`${PAGE}?search=timeout`, {isPlainLogs: true});
+
+        await waitFor(() => expect(getPlainLogs).toHaveBeenCalled());
+        expect(history.location.search).toBe('');
+    });
+
+    // The default browser history, so the copied link is the page's own URL
+    function renderWithBrowserHistory() {
+        renderWithContext(
+            <Logs
+                logs={[nodeLog('node-a', 'a')]}
+                logNodes={['node-a']}
+                truncatedLogNodes={[]}
+                plainLogs={[]}
+                isPlainLogs={false}
+                actions={{getLogs: jest.fn().mockResolvedValue({}), getNewLogs: jest.fn().mockResolvedValue({}), getPlainLogs: jest.fn()}}
+            />,
+        );
+    }
+
+    test('should copy a link to the current view', async () => {
+        const writeText = jest.fn().mockResolvedValue(undefined);
+        Object.defineProperty(navigator, 'clipboard', {configurable: true, value: {writeText}});
+
+        renderWithBrowserHistory();
+        await pickMenuItem('Open menu to select a time range', 'Last 5 minutes');
+        await waitFor(() => expect(window.location.search).toBe('?range=5'));
+
+        await userEvent.click(screen.getByRole('button', {name: 'Copy link'}));
+
+        expect(writeText).toHaveBeenCalledWith(`${window.location.origin}/?range=5`);
+        expect(await screen.findByRole('button', {name: 'Copied!'})).toBeInTheDocument();
+    });
+
+    test('should say when the link could not be copied', async () => {
+        Object.defineProperty(navigator, 'clipboard', {configurable: true, value: {writeText: jest.fn().mockRejectedValue(new Error('denied'))}});
+
+        renderWithBrowserHistory();
+        await userEvent.click(screen.getByRole('button', {name: 'Copy link'}));
+
+        expect(await screen.findByRole('button', {name: 'Copy failed'})).toBeInTheDocument();
     });
 });

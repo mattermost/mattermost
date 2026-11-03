@@ -3,6 +3,7 @@
 
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
+import {useHistory} from 'react-router-dom';
 
 import type {
     LogFilter,
@@ -18,6 +19,7 @@ import LogFormatMenu from './log_format_menu';
 import LogList, {loadPrefs} from './log_list';
 import PlainLogList from './plain_log_list';
 import type {CustomTimeRange, LogObjectWithAdditionalInfo, TimeRange} from './types';
+import {parseUrlFilters, withUrlFilters} from './url_filters';
 import useLogPolling from './use_log_polling';
 import {LEVEL_GROUPS, groupLevels, presetStartMs} from './utils';
 
@@ -84,9 +86,15 @@ const ALL_SERVER_NAMES: LogServerNames = [];
 
 const PLAIN_LOGS_PER_PAGE = 1000;
 
-function getInitialFormat(configIsPlainLogs: boolean): boolean {
+const PRESET_MINUTES = TIME_PRESETS.map((preset) => preset.minutes);
+
+// A shared link's filters only apply to the structured viewer, so it opens there over a saved plain format
+function getInitialFormat(configIsPlainLogs: boolean, hasUrlFilters: boolean): boolean {
     if (configIsPlainLogs) {
         return true;
+    }
+    if (hasUrlFilters) {
+        return false;
     }
     try {
         const saved = localStorage.getItem(LOG_FORMAT_PREF_KEY);
@@ -103,13 +111,26 @@ function getInitialFormat(configIsPlainLogs: boolean): boolean {
 }
 
 export default function Logs({logs, logNodes, truncatedLogNodes, plainLogs, isPlainLogs: configIsPlainLogs, actions}: Props) {
-    const [isPlainLogs, setIsPlainLogs] = useState(() => getInitialFormat(configIsPlainLogs));
+    const history = useHistory();
+    const [urlFilters] = useState(() => parseUrlFilters(history.location.search, PRESET_MINUTES));
+    const [isPlainLogs, setIsPlainLogs] = useState(() => getInitialFormat(configIsPlainLogs, Object.keys(urlFilters).length > 0));
     const [loading, setLoading] = useState(true);
-    const [search, setSearch] = useState('');
+    const [search, setSearch] = useState(urlFilters.search ?? '');
     const [initialPrefs] = useState(loadPrefs);
-    const [enabledLevels, setEnabledLevels] = useState(() => new Set(initialPrefs.enabledLevels));
-    const [selectedNode, setSelectedNode] = useState(initialPrefs.node);
-    const [timeRange, setTimeRange] = useState<TimeRange>(null);
+    const [enabledLevels, setEnabledLevels] = useState(() => urlFilters.enabledLevels ?? new Set(initialPrefs.enabledLevels));
+    const [selectedNode, setSelectedNode] = useState(urlFilters.node ?? initialPrefs.node);
+    const [timeRange, setTimeRange] = useState<TimeRange>(urlFilters.timeRange ?? null);
+
+    // Replaced rather than pushed, so changing filters doesn't fill the back button's history.
+    // The search is mirrored once debounced, and the plain viewer has no filters to share
+    useEffect(() => {
+        const {location} = history;
+        const query = withUrlFilters(location.search, isPlainLogs ? null : {search, enabledLevels, node: selectedNode, timeRange});
+        if (query !== location.search) {
+            history.replace({...location, search: query});
+        }
+    }, [history, isPlainLogs, search, enabledLevels, selectedNode, timeRange]);
+
     const [plainPage, setPlainPage] = useState(0);
     const [liveTailEnabled, setLiveTailEnabled] = useState(false);
     const [pollInterval, setPollInterval] = useState(30000);
