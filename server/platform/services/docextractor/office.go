@@ -138,7 +138,7 @@ func extractOOXMLText(ctx context.Context, extension string, zr *zip.Reader, lim
 	}
 
 	files := zipFilesByName(zr.File)
-	seen := make(map[string]struct{})
+	seen := make(map[*zip.File]struct{})
 	var b strings.Builder
 	for _, ov := range overrides {
 		if contextErr(ctx) != nil {
@@ -147,11 +147,6 @@ func extractOOXMLText(ctx context.Context, extension string, zr *zip.Reader, lim
 		if !officeContentTypeIsText(extension, ov.ContentType) {
 			continue
 		}
-		key := strings.TrimPrefix(ov.PartName, "/")
-		if _, ok := seen[key]; ok {
-			continue
-		}
-		seen[key] = struct{}{}
 		if b.Len() >= limit {
 			break
 		}
@@ -159,6 +154,10 @@ func extractOOXMLText(ctx context.Context, extension string, zr *zip.Reader, lim
 		if f == nil {
 			continue
 		}
+		if _, ok := seen[f]; ok {
+			continue
+		}
+		seen[f] = struct{}{}
 		text, err := readOfficePart(ctx, f, docconv.DocxXMLToText)
 		if contextErr(ctx) != nil {
 			return b.String(), nil

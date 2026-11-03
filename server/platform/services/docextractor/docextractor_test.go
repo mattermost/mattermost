@@ -612,7 +612,7 @@ func contentTypesListing(partName, contentType string, listings int) []byte {
 	var b bytes.Buffer
 	b.WriteString(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>`)
 	b.WriteString(`<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">`)
-	for i := 0; i < listings; i++ {
+	for range listings {
 		b.WriteString(`<Override PartName="`)
 		b.WriteString(partName)
 		b.WriteString(`" ContentType="`)
@@ -674,7 +674,7 @@ func buildRepeatedDocumentPackage(t *testing.T, ext string, listings int, payloa
 		writeStoredOrDeflated(t, zw, "ppt/slides/slide1.xml", slideDocumentXML(payload), zip.Deflate)
 	case "odt":
 		body := odtContentXML(payload)
-		for i := 0; i < listings; i++ {
+		for range listings {
 			writeStoredOrDeflated(t, zw, "content.xml", body, zip.Deflate)
 		}
 	default:
@@ -737,7 +737,7 @@ func contentTypesFromListings(parts []listedOverride) []byte {
 		if n <= 0 {
 			n = 1
 		}
-		for i := 0; i < n; i++ {
+		for range n {
 			b.WriteString(`<Override PartName="`)
 			b.WriteString(p.partName)
 			b.WriteString(`" ContentType="`)
@@ -985,8 +985,8 @@ func TestDocumentRepeatedPartBounds(t *testing.T) {
 					text, err := Extract(logger, "part."+spec.ext, bytes.NewReader(pkg), ExtractSettings{MaxFileSize: documentExtractLimit})
 					require.NoError(t, err)
 					require.Contains(t, text, "lorem")
-					// Repeating one stored part must not append it once per listing.
-					if !textFitsCopies(text, payload, 2) {
+					// Repeating one stored part must not append it more than once.
+					if !textFitsCopies(text, payload, 1) {
 						t.Fatalf("retained %d bytes for payload %d", len(text), len(payload))
 					}
 				})
@@ -1054,7 +1054,7 @@ func TestDocumentRepeatedPartBounds(t *testing.T) {
 		decoy := odtContentXML([]byte("DECOY"))
 		entries := []zipPackageEntry{{name: "content.xml", data: body, method: zip.Deflate}}
 		for _, name := range []string{"/content.xml", "./content.xml", "content.xml ", "Content.xml", "meta.xml"} {
-			for i := 0; i < documentPartListings; i++ {
+			for range documentPartListings {
 				entries = append(entries, zipPackageEntry{name: name, data: decoy, method: zip.Deflate})
 			}
 		}
@@ -1101,7 +1101,7 @@ func TestDocumentRepeatedPartConcurrent(t *testing.T) {
 
 			var wg sync.WaitGroup
 			wg.Add(documentConcurrentCalls)
-			for i := 0; i < documentConcurrentCalls; i++ {
+			for i := range documentConcurrentCalls {
 				go func(i int) {
 					defer wg.Done()
 					text, extractErr := Extract(logger, filename, bytes.NewReader(manyPkg), ExtractSettings{MaxFileSize: documentExtractLimit})
