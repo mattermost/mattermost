@@ -6,9 +6,10 @@
 // Shared by the structured and plain text viewers so both read as the same page
 
 $level-column-width: 56px;
-// The time column reads this so it can widen when rows show the date. Set on .LogViewer
-$timestamp-column-width: var(--log-timestamp-column-width);
 $timestamp-time-width: 96px;
+
+// The time column reads this so it can widen when rows show the date. Set on .LogViewer
+$timestamp-column-width: var(--log-timestamp-column-width, #{$timestamp-time-width});
 
 // Fits "YYYY-MM-DD HH:mm:ss.SSS" in the monospace font
 $timestamp-date-time-width: 184px;

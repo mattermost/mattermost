@@ -83,16 +83,47 @@ describe('components/admin_console/server_logs/LogRow', () => {
             expect(screen.getByText('12:34:56.789')).toHaveAttribute('title', baseLog.timestamp);
         });
 
-        test('should fall back to the raw timestamp when no time can be extracted', () => {
+        test('should fall back to the raw timestamp when it does not parse', () => {
             renderLogRow({log: {...baseLog, timestamp: 'not a timestamp'}});
 
             expect(screen.getByText('not a timestamp')).toBeInTheDocument();
         });
 
-        test('should fall back to the raw timestamp when it does not parse, even with the date shown', () => {
+        test('should fall back to the raw timestamp, even with the date shown', () => {
             renderLogRow({log: {...baseLog, timestamp: 'not a timestamp'}, timezone: 'Europe/Berlin', showDate: true});
 
             expect(document.querySelector('.LogRow__timestamp')).toHaveTextContent(/^not a timestamp$/);
+        });
+
+        test.each([
+            [LogLevelEnum.ERROR, 'Error'],
+            [LogLevelEnum.WARN, 'Warn'],
+            [LogLevelEnum.INFO, 'Info'],
+            [LogLevelEnum.DEBUG, 'Debug'],
+        ])('should render the %s level as %s', (level, label) => {
+            renderLogRow({log: {...baseLog, level}});
+
+            expect(screen.getByText(label)).toHaveClass(`LogRow__level--${level}`);
+        });
+
+        test.each([
+            [LogLevelEnum.PANIC, 'error'],
+            [LogLevelEnum.FATAL, 'error'],
+            [LogLevelEnum.CRITICAL, 'error'],
+            [LogLevelEnum.STDLOG, 'info'],
+            [LogLevelEnum.TRACE, 'debug'],
+        ])('should show the %s level by name in its group\'s color', (level, group) => {
+            renderLogRow({log: {...baseLog, level}});
+
+            expect(screen.getByText(level)).toHaveClass(`LogRow__level--${group}`);
+        });
+
+        test('should fall back to the raw level for levels without a config entry', () => {
+            renderLogRow({log: {...baseLog, level: LogLevelEnum.SILLY}});
+
+            const level = screen.getByText('silly');
+            expect(level).toBeInTheDocument();
+            expect(level).toHaveClass('LogRow__level--debug');
         });
     });
 
@@ -134,37 +165,6 @@ describe('components/admin_console/server_logs/LogRow', () => {
             renderLogRow({isExpanded: true, timezone: 'Europe/Berlin', showDate: true});
 
             expect(screen.getByText(baseLog.timestamp)).toHaveClass('LogRow__detail-value');
-        });
-
-        test.each([
-            [LogLevelEnum.ERROR, 'Error'],
-            [LogLevelEnum.WARN, 'Warn'],
-            [LogLevelEnum.INFO, 'Info'],
-            [LogLevelEnum.DEBUG, 'Debug'],
-        ])('should render the %s level as %s', (level, label) => {
-            renderLogRow({log: {...baseLog, level}});
-
-            expect(screen.getByText(label)).toHaveClass(`LogRow__level--${level}`);
-        });
-
-        test.each([
-            [LogLevelEnum.PANIC, 'error'],
-            [LogLevelEnum.FATAL, 'error'],
-            [LogLevelEnum.CRITICAL, 'error'],
-            [LogLevelEnum.STDLOG, 'info'],
-            [LogLevelEnum.TRACE, 'debug'],
-        ])('should show the %s level by name in its group\'s color', (level, group) => {
-            renderLogRow({log: {...baseLog, level}});
-
-            expect(screen.getByText(level)).toHaveClass(`LogRow__level--${group}`);
-        });
-
-        test('should fall back to the raw level for levels without a config entry', () => {
-            renderLogRow({log: {...baseLog, level: LogLevelEnum.SILLY}});
-
-            const level = screen.getByText('silly');
-            expect(level).toBeInTheDocument();
-            expect(level).toHaveClass('LogRow__level--debug');
         });
     });
 
