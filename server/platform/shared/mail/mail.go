@@ -169,16 +169,16 @@ func NewSMTPClientAdvanced(ctx context.Context, conn net.Conn, config *SMTPConfi
 		greeted <- greeting{client: c, err: err}
 	}()
 
-	var c *smtp.Client
+	var g greeting
 	select {
 	case <-ctx.Done():
 		return nil, errors.Wrap(ctx.Err(), "unable to connect to the SMTP server")
-	case g := <-greeted:
-		if g.err != nil {
-			return nil, errors.Wrap(g.err, "unable to connect to the SMTP server")
-		}
-		c = g.client
+	case g = <-greeted:
 	}
+	if g.err != nil {
+		return nil, errors.Wrap(g.err, "unable to connect to the SMTP server")
+	}
+	c := g.client
 
 	if config.Hostname != "" {
 		err := c.Hello(config.Hostname)
