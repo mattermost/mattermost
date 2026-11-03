@@ -48,8 +48,8 @@ var samlProbeFailed = healthcheck.Rule{
 }
 
 // An empty or disabled status means the node never ran the probe, so it is left out. Probe
-// section errors are ignored: the collector sets them only when LDAP vendor info fails after a
-// passing test.
+// section errors are ignored: the collector sets them when LDAP vendor info fails after a passing
+// test, or when a probe does not finish in time, which leaves its status empty.
 func ldapProbe(n *healthcheck.NodeSnapshot) (status, probeErr string) {
 	diag, ok := n.Diag()
 	if !ok {
