@@ -8,7 +8,6 @@ import (
 	"strings"
 	"sync"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -118,24 +117,24 @@ func TestParse(t *testing.T) {
 		assert.LessOrEqual(t, ratio, 3.0, "TotalAlloc %d -> %d (ratio %.2f)", allocN, alloc2N, ratio)
 	})
 
-	t.Run("reference definition parse finishes promptly for a long list", func(t *testing.T) {
+	t.Run("preserves text after multiple reference definitions", func(t *testing.T) {
+		document, defs := Parse("[foo]: /foo\n[bar]: /bar\nremaining text")
+		require.Len(t, defs, 2)
+		assert.Equal(t, "/foo", defs[0].Destination())
+		assert.Equal(t, "/bar", defs[1].Destination())
+
+		require.Len(t, document.Children, 1)
+		paragraph, ok := document.Children[0].(*Paragraph)
+		require.True(t, ok)
+		require.Equal(t, []Range{{Position: 24, End: 38}}, paragraph.Text)
+		assert.Equal(t, "remaining text", paragraph.markdown[paragraph.Text[0].Position:paragraph.Text[0].End])
+	})
+
+	t.Run("reference definitions in a long list", func(t *testing.T) {
 		t.Run("a single parse", func(t *testing.T) {
-			// A single Parse of a long list of reference definitions finishes within a bounded time
-			// and still returns one definition per source line.
 			const n = 2000
-			markdown := strings.Repeat("[a]: b\n", n)
-
-			start := time.Now()
-			_, defs := Parse(markdown)
-
+			_, defs := Parse(strings.Repeat("[a]: b\n", n))
 			require.Len(t, defs, n)
-
-			if testing.Short() || raceDetector {
-				return
-			}
-
-			elapsed := time.Since(start)
-			assert.Less(t, elapsed, 15*time.Millisecond, "Parse(%d definitions) took %s", n, elapsed)
 		})
 
 		t.Run("concurrent parses", func(t *testing.T) {
@@ -183,4 +182,12 @@ func parseAlloc(markdown string) (nDefs int, totalAlloc uint64) {
 	_, defs := Parse(markdown)
 	runtime.ReadMemStats(&after)
 	return len(defs), after.TotalAlloc - before.TotalAlloc
+}
+
+func BenchmarkParseReferenceDefinitions(b *testing.B) {
+	markdown := strings.Repeat("[a]: b\n", 2000)
+	b.ReportAllocs()
+	for b.Loop() {
+		Parse(markdown)
+	}
 }

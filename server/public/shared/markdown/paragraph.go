@@ -32,16 +32,8 @@ func (b *Paragraph) Continuation(indentation int, r Range) *continuation {
 }
 
 func (b *Paragraph) Close() {
-	rawSize := 0
-	for _, r := range b.Text {
-		rawSize += r.End - r.Position
-	}
-	var rawSb strings.Builder
-	rawSb.Grow(rawSize)
-	for _, r := range b.Text {
-		rawSb.WriteString(b.markdown[r.Position:r.End])
-	}
-	raw := rawSb.String()
+	var raw string
+	joined := false
 	offset := 0
 
 	for {
@@ -54,7 +46,16 @@ func (b *Paragraph) Close() {
 			}
 		}
 
-		if len(b.Text) == 0 || offset > len(raw) || b.Text[0].Position < b.Text[0].End && b.markdown[b.Text[0].Position] != '[' {
+		if len(b.Text) == 0 || b.Text[0].Position < b.Text[0].End && b.markdown[b.Text[0].Position] != '[' {
+			break
+		}
+
+		if !joined {
+			raw = joinRanges(b.markdown, b.Text)
+			offset = 0
+			joined = true
+		}
+		if offset > len(raw) {
 			break
 		}
 

@@ -132,6 +132,20 @@ func relativeToAbsolutePosition(ranges []Range, position int) int {
 	return ranges[len(ranges)-1].End
 }
 
+func joinRanges(markdown string, ranges []Range) string {
+	length := 0
+	for _, r := range ranges {
+		length += r.End - r.Position
+	}
+
+	var sb strings.Builder
+	sb.Grow(length)
+	for _, r := range ranges {
+		sb.WriteString(markdown[r.Position:r.End])
+	}
+	return sb.String()
+}
+
 func trimBytesFromRanges(ranges []Range, bytes int) []Range {
 	rem := bytes
 	for i := range ranges {
