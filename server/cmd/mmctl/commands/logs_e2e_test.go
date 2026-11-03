@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"strings"
 	"sync"
 	"time"
@@ -86,6 +87,29 @@ func (s *MmctlE2ETestSuite) TestlogsCmdF() {
 		logged, err := time.Parse(time.RFC3339Nano, strings.SplitN(data[0], `"`, 3)[1])
 		s.Require().NoError(err)
 		s.False(logged.After(before), "logged at %s, printed after %s", logged, before)
+	})
+
+	s.RunForSystemAdminAndLocal("Print every entry of a full first page, oldest first", func(c client.Client) {
+		// The floor of a full first page is its first entry, which relies on the server
+		// returning each node's entries oldest first
+		prefix := "mmctl_logs_page_" + model.NewId()
+		for i := range 3 {
+			s.th.TestLogger.Info(fmt.Sprintf("%s_%d", prefix, i))
+			// Timestamps have millisecond precision, and the entries need distinct ones
+			time.Sleep(5 * time.Millisecond)
+		}
+		s.Require().NoError(s.th.TestLogger.Flush())
+
+		cmd := newTestCmd(s.T(), LogsCmd)
+		s.Require().NoError(cmd.Flags().Set("number", "3"))
+		s.Require().NoError(cmd.Flags().Set("search", prefix))
+
+		data, _, err := testLogsCmdF(c, cmd, []string{})
+		s.Require().NoError(err)
+		s.Require().Len(data, 3)
+		for i, line := range data {
+			s.Contains(line, fmt.Sprintf("%s_%d", prefix, i))
+		}
 	})
 
 	s.RunForSystemAdminAndLocal("Ignore the deprecated plain flag", func(c client.Client) {
