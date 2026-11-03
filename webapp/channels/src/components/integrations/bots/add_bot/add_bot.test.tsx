@@ -3,7 +3,10 @@
 
 import React from 'react';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {takePendingBotToken} from 'components/integrations/bots/bot_pending_token';
+
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {getHistory} from 'utils/browser_history';
 import {TestHelper} from 'utils/test_helper';
 
 import AddBot from './add_bot';
@@ -65,5 +68,35 @@ describe('components/integrations/bots/AddBot', () => {
         expect(displayNameInput.value).toBe(bot.display_name);
         expect(descriptionInput).toBeInTheDocument();
         expect(descriptionInput.value).toBe(bot.description);
+    });
+
+    it('create bot hands the token over in memory instead of the URL', async () => {
+        const token = 'jb6oyqh95irpbx8fo9zmndkp1r';
+        const userId = 'b5tpgt4iepf45jt768jz84djhd';
+        const push = getHistory().push as jest.Mock;
+        const createActions = {
+            ...actions,
+            createBot: jest.fn().mockResolvedValue({data: {user_id: userId}}),
+            setDefaultProfileImage: jest.fn().mockResolvedValue({}),
+            createUserAccessToken: jest.fn().mockResolvedValue({data: {token}}),
+        };
+
+        const {container} = renderWithContext(
+            <AddBot
+                maxFileSize={100}
+                team={team}
+                editingUserHasManageSystem={true}
+                actions={createActions}
+            />,
+        );
+
+        await userEvent.type(container.querySelector('#username') as HTMLInputElement, 'newbot');
+        await userEvent.click(screen.getByRole('button', {name: 'Create Bot Account'}));
+
+        await waitFor(() => expect(push).toHaveBeenCalled());
+        const url = String(push.mock.calls[0][0]);
+        expect(url).toBe(`/${team.name}/integrations/confirm?type=bots&id=${userId}`);
+        expect(url).not.toContain(token);
+        expect(takePendingBotToken(userId)).toBe(token);
     });
 });
