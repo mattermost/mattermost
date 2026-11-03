@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"image"
 	"image/png"
@@ -4096,6 +4097,143 @@ func TestSanitizeChannelMentionsForUser(t *testing.T) {
 
 		// The same post resolves the same mentions every time it is read.
 		assert.Equal(t, resolved, resolveMentions(t))
+	})
+
+	t.Run("resolves mentions shared across the posts of a list for each post", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		archived := th.CreateChannel(t, th.BasicTeam)
+		appErr := th.App.DeleteChannel(th.Context, archived, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		private, nErr := th.App.Srv().Store().Channel().Save(th.Context, &model.Channel{
+			TeamId:      th.BasicTeam.Id,
+			Name:        "private-" + model.NewId(),
+			DisplayName: "Private Channel",
+			Type:        model.ChannelTypePrivate,
+		}, 1000000)
+		require.NoError(t, nErr)
+
+		otherTeam := th.CreateTeam(t)
+		otherTeamChannel, appErr := th.App.CreateChannel(th.Context, &model.Channel{
+			TeamId:      otherTeam.Id,
+			Name:        "other-" + model.NewId(),
+			DisplayName: "Other Team Channel",
+			Type:        model.ChannelTypeOpen,
+		}, false)
+		require.Nil(t, appErr)
+
+		mention := func(teamName string) map[string]any {
+			return map[string]any{
+				"display_name": "Stale Display Name",
+				"team_name":    teamName,
+			}
+		}
+		newPost := func(mentions map[string]any) *model.Post {
+			post := &model.Post{Id: model.NewId(), Message: "post with channel mentions"}
+			post.AddProp(model.PostPropsChannelMentions, mentions)
+			return post
+		}
+
+		postList := model.NewPostList()
+		for range 3 {
+			postList.AddPost(newPost(map[string]any{
+				th.BasicChannel.Name:  mention(th.BasicTeam.Name),
+				archived.Name:         mention(th.BasicTeam.Name),
+				private.Name:          mention(th.BasicTeam.Name),
+				otherTeamChannel.Name: mention(otherTeam.Name),
+				"missing-channel":     mention(th.BasicTeam.Name),
+				"off-topic":           mention("missing-team"),
+				"no-team":             map[string]any{"display_name": "No Team"},
+			}))
+		}
+
+		result, _, err := th.App.SanitizePostListMetadataForUser(th.Context, postList, th.BasicUser.Id)
+		require.Nil(t, err)
+		require.Len(t, result.Posts, 3)
+
+		expected := map[string]any{
+			th.BasicChannel.Name: map[string]any{
+				"display_name": th.BasicChannel.DisplayName,
+				"team_name":    th.BasicTeam.Name,
+			},
+			archived.Name: map[string]any{
+				"display_name": archived.DisplayName,
+				"team_name":    th.BasicTeam.Name,
+			},
+		}
+		for _, post := range result.Posts {
+			assert.Equal(t, expected, post.GetProp(model.PostPropsChannelMentions))
+		}
+	})
+}
+
+func TestChannelMentionResolver(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	team := &model.Team{Id: model.NewId(), Name: "team-name"}
+	channelA := &model.Channel{Id: model.NewId(), TeamId: team.Id, Name: "channel-a"}
+	channelB := &model.Channel{Id: model.NewId(), TeamId: team.Id, Name: "channel-b"}
+	channelC := &model.Channel{Id: model.NewId(), TeamId: team.Id, Name: "channel-c"}
+
+	t.Run("looks up each team and channel name once", func(t *testing.T) {
+		teamStore := &mocks.TeamStore{}
+		teamStore.On("GetByName", team.Name).Return(team, nil).Once()
+		teamStore.On("GetByName", "missing-team").Return(nil, store.NewErrNotFound("Team", "missing-team")).Once()
+
+		channelStore := &mocks.ChannelStore{}
+		channelStore.On("GetByNamesIncludeDeleted", team.Id, []string{"channel-a", "channel-b", "missing"}, false).
+			Return([]*model.Channel{channelA, channelB}, nil).Once()
+		channelStore.On("GetByNamesIncludeDeleted", team.Id, []string{"channel-c"}, false).
+			Return([]*model.Channel{channelC}, nil).Once()
+
+		mockStore := &mocks.Store{}
+		mockStore.On("Team").Return(teamStore)
+		mockStore.On("Channel").Return(channelStore)
+
+		rctx := request.TestContext(t)
+		resolver := newChannelMentionResolver(mockStore)
+
+		channels := resolver.channelsForTeam(rctx, team.Name, []string{"channel-a", "channel-b", "missing"})
+		assert.Equal(t, channelA, channels["channel-a"])
+		assert.Equal(t, channelB, channels["channel-b"])
+		assert.Nil(t, channels["missing"])
+
+		channels = resolver.channelsForTeam(rctx, team.Name, []string{"channel-a", "channel-c", "missing"})
+		assert.Equal(t, channelA, channels["channel-a"])
+		assert.Equal(t, channelC, channels["channel-c"])
+		assert.Nil(t, channels["missing"])
+
+		channels = resolver.channelsForTeam(rctx, team.Name, []string{"channel-b", "channel-c"})
+		assert.Equal(t, channelB, channels["channel-b"])
+		assert.Equal(t, channelC, channels["channel-c"])
+
+		assert.Nil(t, resolver.channelsForTeam(rctx, "missing-team", []string{"channel-a"}))
+		assert.Nil(t, resolver.channelsForTeam(rctx, "missing-team", []string{"channel-a"}))
+
+		teamStore.AssertExpectations(t)
+		channelStore.AssertExpectations(t)
+	})
+
+	t.Run("does not retry names whose lookup failed", func(t *testing.T) {
+		teamStore := &mocks.TeamStore{}
+		teamStore.On("GetByName", team.Name).Return(team, nil).Once()
+
+		channelStore := &mocks.ChannelStore{}
+		channelStore.On("GetByNamesIncludeDeleted", team.Id, []string{"channel-a"}, false).
+			Return(nil, errors.New("lookup failed")).Once()
+
+		mockStore := &mocks.Store{}
+		mockStore.On("Team").Return(teamStore)
+		mockStore.On("Channel").Return(channelStore)
+
+		rctx := request.TestContext(t)
+		resolver := newChannelMentionResolver(mockStore)
+
+		assert.Nil(t, resolver.channelsForTeam(rctx, team.Name, []string{"channel-a"})["channel-a"])
+		assert.Nil(t, resolver.channelsForTeam(rctx, team.Name, []string{"channel-a"})["channel-a"])
+
+		channelStore.AssertExpectations(t)
 	})
 }
 
