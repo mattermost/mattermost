@@ -5,7 +5,6 @@
 package probes
 
 import (
-	"cmp"
 	"slices"
 	"strings"
 
@@ -21,12 +20,9 @@ type Read func(n *healthcheck.NodeSnapshot) (status, probeErr string)
 // messageID when every such node fails and with partialID when only some do. The details name
 // the failing nodes and their error, or each node's error when they differ.
 func Eval(s *healthcheck.Snapshot, read Read, messageID, partialID string) healthcheck.Result {
-	nodes := s.Nodes()
-	slices.SortFunc(nodes, func(a, b *healthcheck.NodeSnapshot) int { return cmp.Compare(a.Hostname, b.Hostname) })
-
 	reported := 0
 	var hostnames, errs, nodeErrs []string
-	for _, node := range nodes {
+	for _, node := range s.Nodes() {
 		status, probeErr := read(node)
 		switch status {
 		case model.StatusOk:
