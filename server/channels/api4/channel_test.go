@@ -1298,6 +1298,251 @@ func TestPatchChannelGroupConstrained(t *testing.T) {
 	})
 }
 
+func TestChannelGroupConstrainedMember(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	memberUser := th.CreateUser(t)
+	require.False(t, memberUser.IsGuest())
+	require.False(t, memberUser.IsSystemAdmin())
+	th.LinkUserToTeam(t, memberUser, th.BasicTeam)
+
+	memberClient := th.CreateClient()
+	_, _, err := memberClient.Login(context.Background(), memberUser.Email, memberUser.Password)
+	require.NoError(t, err)
+
+	const (
+		callPatch  = "patch"
+		callUpdate = "update"
+	)
+
+	testCases := []struct {
+		name              string
+		channelType       model.ChannelType
+		call              string
+		asSystemAdmin     bool
+		presetConstrained bool
+		groupConstrained  *bool
+		displayNameOnly   bool
+		expectForbidden   bool
+	}{
+		{
+			name:             "open channel patch true",
+			channelType:      model.ChannelTypeOpen,
+			call:             callPatch,
+			groupConstrained: new(true),
+			expectForbidden:  true,
+		},
+		{
+			name:              "open channel patch false",
+			channelType:       model.ChannelTypeOpen,
+			call:              callPatch,
+			presetConstrained: true,
+			groupConstrained:  new(false),
+			expectForbidden:   true,
+		},
+		{
+			name:             "private channel patch true",
+			channelType:      model.ChannelTypePrivate,
+			call:             callPatch,
+			groupConstrained: new(true),
+			expectForbidden:  true,
+		},
+		{
+			name:              "private channel patch false",
+			channelType:       model.ChannelTypePrivate,
+			call:              callPatch,
+			presetConstrained: true,
+			groupConstrained:  new(false),
+			expectForbidden:   true,
+		},
+		{
+			name:             "open channel update true",
+			channelType:      model.ChannelTypeOpen,
+			call:             callUpdate,
+			groupConstrained: new(true),
+			expectForbidden:  true,
+		},
+		{
+			name:              "open channel update false",
+			channelType:       model.ChannelTypeOpen,
+			call:              callUpdate,
+			presetConstrained: true,
+			groupConstrained:  new(false),
+			expectForbidden:   true,
+		},
+		{
+			name:             "private channel update true",
+			channelType:      model.ChannelTypePrivate,
+			call:             callUpdate,
+			groupConstrained: new(true),
+			expectForbidden:  true,
+		},
+		{
+			name:              "private channel update false",
+			channelType:       model.ChannelTypePrivate,
+			call:              callUpdate,
+			presetConstrained: true,
+			groupConstrained:  new(false),
+			expectForbidden:   true,
+		},
+		{
+			name:            "open channel patch display name",
+			channelType:     model.ChannelTypeOpen,
+			call:            callPatch,
+			displayNameOnly: true,
+		},
+		{
+			name:            "open channel update display name",
+			channelType:     model.ChannelTypeOpen,
+			call:            callUpdate,
+			displayNameOnly: true,
+		},
+		{
+			name:             "system admin update open channel true",
+			channelType:      model.ChannelTypeOpen,
+			call:             callUpdate,
+			asSystemAdmin:    true,
+			groupConstrained: new(true),
+		},
+		{
+			name:              "system admin update open channel false",
+			channelType:       model.ChannelTypeOpen,
+			call:              callUpdate,
+			asSystemAdmin:     true,
+			presetConstrained: true,
+			groupConstrained:  new(false),
+		},
+		{
+			name:             "system admin update private channel true",
+			channelType:      model.ChannelTypePrivate,
+			call:             callUpdate,
+			asSystemAdmin:    true,
+			groupConstrained: new(true),
+		},
+		{
+			name:              "system admin update private channel false",
+			channelType:       model.ChannelTypePrivate,
+			call:              callUpdate,
+			asSystemAdmin:     true,
+			presetConstrained: true,
+			groupConstrained:  new(false),
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			var channel *model.Channel
+			if tc.channelType == model.ChannelTypePrivate {
+				channel = th.CreatePrivateChannel(t)
+			} else {
+				channel = th.CreatePublicChannel(t)
+			}
+
+			added := th.AddUserToChannel(t, memberUser, channel)
+			require.Equal(t, channel.Id, added.ChannelId)
+			require.Equal(t, memberUser.Id, added.UserId)
+			require.False(t, added.SchemeAdmin)
+			require.False(t, added.SchemeGuest)
+			require.True(t, added.SchemeUser)
+
+			if tc.presetConstrained {
+				current, resp, getErr := th.SystemAdminClient.GetChannel(context.Background(), channel.Id)
+				require.NoError(t, getErr)
+				CheckOKStatus(t, resp)
+
+				body := current.DeepCopy()
+				body.GroupConstrained = new(true)
+				updated, resp, updateErr := th.SystemAdminClient.UpdateChannel(context.Background(), body)
+				require.NoError(t, updateErr)
+				CheckOKStatus(t, resp)
+				require.NotNil(t, updated.GroupConstrained)
+				require.True(t, *updated.GroupConstrained)
+			}
+
+			membership, resp, getErr := th.SystemAdminClient.GetChannelMember(context.Background(), channel.Id, memberUser.Id, "")
+			require.NoError(t, getErr)
+			CheckOKStatus(t, resp)
+			require.Equal(t, memberUser.Id, membership.UserId)
+			require.False(t, membership.SchemeAdmin)
+			require.False(t, membership.SchemeGuest)
+			require.True(t, membership.SchemeUser)
+			require.False(t, memberUser.IsGuest())
+
+			before, resp, getErr := th.SystemAdminClient.GetChannel(context.Background(), channel.Id)
+			require.NoError(t, getErr)
+			CheckOKStatus(t, resp)
+
+			client := memberClient
+			if tc.asSystemAdmin {
+				client = th.SystemAdminClient
+			}
+
+			displayName := ""
+			if tc.displayNameOnly {
+				displayName = "Name " + model.NewId()
+			}
+
+			var updated *model.Channel
+			var callResp *model.Response
+			var callErr error
+			switch tc.call {
+			case callPatch:
+				patch := &model.ChannelPatch{}
+				if tc.displayNameOnly {
+					patch.DisplayName = &displayName
+				}
+				if tc.groupConstrained != nil {
+					patch.GroupConstrained = tc.groupConstrained
+				}
+				updated, callResp, callErr = client.PatchChannel(context.Background(), channel.Id, patch)
+			case callUpdate:
+				body := before.DeepCopy()
+				if tc.displayNameOnly {
+					body.DisplayName = displayName
+				}
+				if tc.groupConstrained != nil {
+					body.GroupConstrained = tc.groupConstrained
+				}
+				updated, callResp, callErr = client.UpdateChannel(context.Background(), body)
+			default:
+				require.FailNow(t, "unknown call "+tc.call)
+			}
+
+			if tc.expectForbidden {
+				// The call returns forbidden and the stored group_constrained value is unchanged.
+				CheckForbiddenStatus(t, callResp)
+				require.Error(t, callErr)
+
+				stored, storedResp, storedErr := th.SystemAdminClient.GetChannel(context.Background(), channel.Id)
+				require.NoError(t, storedErr)
+				CheckOKStatus(t, storedResp)
+				require.Equal(t, before.GroupConstrained, stored.GroupConstrained)
+				return
+			}
+
+			// The call returns OK. A display name change is stored, and a submitted group_constrained value is stored.
+			require.NoError(t, callErr)
+			CheckOKStatus(t, callResp)
+
+			stored, storedResp, storedErr := th.SystemAdminClient.GetChannel(context.Background(), channel.Id)
+			require.NoError(t, storedErr)
+			CheckOKStatus(t, storedResp)
+
+			if tc.displayNameOnly {
+				require.Equal(t, displayName, updated.DisplayName)
+				require.Equal(t, displayName, stored.DisplayName)
+			}
+			if tc.groupConstrained != nil {
+				require.NotNil(t, updated.GroupConstrained)
+				require.Equal(t, *tc.groupConstrained, *updated.GroupConstrained)
+				require.NotNil(t, stored.GroupConstrained)
+				require.Equal(t, *tc.groupConstrained, *stored.GroupConstrained)
+			}
+		})
+	}
+}
+
 func TestPatchChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
