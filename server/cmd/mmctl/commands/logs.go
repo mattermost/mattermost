@@ -353,13 +353,27 @@ func (f *logFollower) fetch(ctx context.Context, from time.Time, perPage int) (m
 // skips. It's only called when a query returned no entries, as that's the only way plain-text
 // logs show.
 func (f *logFollower) hasPlainTextLogs(ctx context.Context) bool {
-	// The first line is the last one the node handling the request logged
+	// Each node returns its last line. On a cluster, a separator comes before each node's line:
+	// two rules, the node's name, and two more rules
 	lines, _, err := f.c.GetLogs(ctx, 0, 1)
-	if err != nil || len(lines) == 0 {
+	if err != nil {
 		return false
 	}
-	line := strings.TrimSpace(lines[0])
-	return line != "" && !strings.HasPrefix(line, "{")
+	isRule := func(i int) bool {
+		if i < 0 || i >= len(lines) {
+			return false
+		}
+		line := strings.TrimSpace(lines[i])
+		return line != "" && strings.Trim(line, "-") == ""
+	}
+	for i, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" || isRule(i) || (isRule(i-1) && isRule(i+1)) {
+			continue
+		}
+		return !strings.HasPrefix(line, "{")
+	}
+	return false
 }
 
 type pendingLog struct {

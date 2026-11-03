@@ -188,6 +188,49 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 		s.Contains(err.Error(), "LogSettings.FileJson")
 	})
 
+	s.Run("Detect the log format behind cluster separators", func() {
+		// GET /api/v4/logs on a cluster, as the server builds it, with one line per node
+		rule := strings.Repeat("-", 107)
+		clusterLines := func(local, remote string) []string {
+			return []string{rule, rule, "node-1", rule, rule, local, "", "", rule, rule, "node-2", rule, rule, remote}
+		}
+
+		for _, tc := range []struct {
+			name      string
+			local     string
+			remote    string
+			plainText bool
+		}{
+			{"JSON log files", string(testLogLine(time.Now(), "info", "local")), "\n" + string(testLogLine(time.Now(), "info", "remote")), false},
+			{"JSON log files, without a local file", "", string(testLogLine(time.Now(), "info", "remote")), false},
+			{"plain-text log files", "2026-11-03 08:00:00.000 Z info local", "\n2026-11-03 08:00:00.000 Z info remote", true},
+		} {
+			s.Run(tc.name, func() {
+				cmd := newTestCmd(s.T(), LogsCmd)
+				s.Require().NoError(cmd.Flags().Set("search", "nothing"))
+
+				s.client.
+					EXPECT().
+					QueryLogs(gomock.Any(), 0, DefaultPageSize, gomock.Any()).
+					Return(map[string][]json.RawMessage{"node-1": {}, "node-2": {}}, &model.Response{}, nil).
+					Times(1)
+				s.client.
+					EXPECT().
+					GetLogs(gomock.Any(), 0, 1).
+					Return(clusterLines(tc.local, tc.remote), &model.Response{}, nil).
+					Times(1)
+
+				data, _, err := testLogsCmdF(s.client, cmd, []string{})
+				if tc.plainText {
+					s.Require().ErrorIs(err, errPlainTextLogs)
+					return
+				}
+				s.Require().NoError(err)
+				s.Empty(data)
+			})
+		}
+	})
+
 	s.Run("Print nothing when no JSON entry matches", func() {
 		cmd := newTestCmd(s.T(), LogsCmd)
 		s.Require().NoError(cmd.Flags().Set("search", "nothing"))
