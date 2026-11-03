@@ -174,8 +174,10 @@ jobs:
           support-paths: ${{ inputs.support_paths }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
-          # Infrastructure/report failures remain red; triage still supplies diagnostics.
-          mode: ${{ inputs.execution_success && steps.result.outputs.reports-complete == 'true' && (vars.E2E_TRIAGE_MODE || 'report-only') || 'report-only' }}
+          # Enforce by default: a lane whose every failure is cleared turns green. Infrastructure/report
+          # failures remain red (report-only); triage still supplies diagnostics. E2E_TRIAGE_MODE=report-only
+          # turns enforcement off without a code change.
+          mode: ${{ inputs.execution_success && steps.result.outputs.reports-complete == 'true' && (vars.E2E_TRIAGE_MODE || 'enforce') || 'report-only' }}
           use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
           answers-cache: e2e-triage-answers.json
           # A lane red only on infrastructure (a dead worker, missing reports) asks for one automatic
