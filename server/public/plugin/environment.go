@@ -339,16 +339,10 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 	rp := newRegisteredPlugin(pluginInfo)
 	env.registeredPlugins.Store(id, rp)
 
-	// Deferred before the state update so it runs after it: other plugins are
-	// only notified once this plugin is running and reachable.
-	defer func() {
-		if reterr == nil {
-			env.notifyPluginActivated(pluginInfo.Manifest)
-		}
-	}()
 	defer func() {
 		if reterr == nil {
 			env.setPluginState(id, model.PluginStateRunning)
+			env.notifyPluginActivated(pluginInfo.Manifest)
 		} else {
 			env.setPluginState(id, model.PluginStateFailedToStart)
 		}
