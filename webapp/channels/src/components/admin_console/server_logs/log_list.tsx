@@ -15,7 +15,6 @@ import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import {LogNodeKey} from '@mattermost/types/admin';
 
-import {General} from 'mattermost-redux/constants';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {logEntryKey, logEntryTime, parseLogTimestamp} from 'mattermost-redux/utils/log_utils';
 
@@ -45,7 +44,7 @@ type Props = {
     loading: boolean;
     logs: LogObjectWithAdditionalInfo[];
 
-    // Nodes that returned a full page, leaving out their older entries
+    // Nodes that returned a full page, leaving out their older entries, so the total is a lower bound
     truncatedNodes: string[];
 
     // Nodes whose search stopped at the server's time or size limit
@@ -908,39 +907,6 @@ export default function LogList({
         >
             {filters}
 
-            {truncated && (
-                <SectionNotice
-                    className='LogViewer__notice'
-                    type='info'
-                    title={showNodes && !selectedNode ? (
-                        <FormattedMessage
-                            id='admin.logs.truncated.titleNodes'
-                            defaultMessage='Only the latest {limit, number} entries from each node are shown'
-                            values={{limit: General.LOGS_PAGE_SIZE_DEFAULT}}
-                        />
-                    ) : (
-                        <FormattedMessage
-                            id='admin.logs.truncated.title'
-                            defaultMessage='Only the latest {limit, number} entries are shown'
-                            values={{limit: General.LOGS_PAGE_SIZE_DEFAULT}}
-                        />
-                    )}
-                    description={showNodes ? (
-                        <FormattedMessage
-                            id='admin.logs.truncated.descriptionNodes'
-                            defaultMessage="Older entries aren't loaded or counted."
-                        />
-                    ) : (
-
-                        // Download saves the log file of the node serving the request, so it's only offered with a single node
-                        <FormattedMessage
-                            id='admin.logs.truncated.description'
-                            defaultMessage="Older entries aren't loaded or counted. Download the log file to see them."
-                        />
-                    )}
-                />
-            )}
-
             {scanLimited.length > 0 && (
                 <SectionNotice
                     className='LogViewer__notice'
@@ -1112,7 +1078,7 @@ export default function LogList({
                             defaultMessage='Refreshing…'
                         />
                     )}
-                    {!loading && matchCount !== null && (
+                    {!loading && matchCount !== null && !truncated && (
                         <FormattedMessage
                             id='admin.logs.showingMatches'
                             defaultMessage='Showing {start, number} - {end, number} of {matches, number} entries matching your filters'
@@ -1123,10 +1089,34 @@ export default function LogList({
                             }}
                         />
                     )}
-                    {!loading && matchCount === null && (
+
+                    {/* A node in view returned a full page, so older entries weren't loaded and the total is a lower bound */}
+                    {!loading && matchCount !== null && truncated && (
+                        <FormattedMessage
+                            id='admin.logs.showingMatchesCapped'
+                            defaultMessage='Showing {start, number} - {end, number} of {matches, number}+ entries matching your filters'
+                            values={{
+                                start: processedLogs.length > 0 ? startIndex + 1 : 0,
+                                end: endIndex,
+                                matches: matchCount,
+                            }}
+                        />
+                    )}
+                    {!loading && matchCount === null && !truncated && (
                         <FormattedMessage
                             id='admin.logs.showing'
                             defaultMessage='Showing {start, number} - {end, number} of {total, number}'
+                            values={{
+                                start: processedLogs.length > 0 ? startIndex + 1 : 0,
+                                end: endIndex,
+                                total: processedLogs.length,
+                            }}
+                        />
+                    )}
+                    {!loading && matchCount === null && truncated && (
+                        <FormattedMessage
+                            id='admin.logs.showingCapped'
+                            defaultMessage='Showing {start, number} - {end, number} of {total, number}+'
                             values={{
                                 start: processedLogs.length > 0 ? startIndex + 1 : 0,
                                 end: endIndex,

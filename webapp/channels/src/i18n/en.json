@@ -9915,9 +9915,17 @@
     "defaultMessage": "Showing {start, number} - {end, number} of {total, number}",
     "description": "Pagination summary on the System Console Server Logs page, e.g. \"Showing 1 - 50 of 1,200\"."
   },
+  "admin.logs.showingCapped": {
+    "defaultMessage": "Showing {start, number} - {end, number} of {total, number}+",
+    "description": "Pagination summary on the System Console Server Logs page when a node returned the maximum number of entries, so the total is a lower bound, e.g. \"Showing 1 - 50 of 10,000+\"."
+  },
   "admin.logs.showingMatches": {
     "defaultMessage": "Showing {start, number} - {end, number} of {matches, number} entries matching your filters",
     "description": "Pagination summary on the System Console Server Logs page when a search is applied; shows the range and the number of matching entries."
+  },
+  "admin.logs.showingMatchesCapped": {
+    "defaultMessage": "Showing {start, number} - {end, number} of {matches, number}+ entries matching your filters",
+    "description": "Pagination summary on the System Console Server Logs page when a search is applied and a node returned the maximum number of entries, so the number of matching entries is a lower bound, e.g. \"Showing 1 - 50 of 10,000+ entries matching your filters\"."
   },
   "admin.logs.sortNewestFirst": {
     "defaultMessage": "Sort newest first",
@@ -9954,22 +9962,6 @@
   "admin.logs.title": {
     "defaultMessage": "Server Logs",
     "description": "Page title of the Server Logs page in the System Console."
-  },
-  "admin.logs.truncated.description": {
-    "defaultMessage": "Older entries aren't loaded or counted. Download the log file to see them.",
-    "description": "Body of the notice on the System Console Server Logs page shown when a server returned the maximum number of log entries. \"Download\" refers to the page's Download button, which saves the full log file."
-  },
-  "admin.logs.truncated.descriptionNodes": {
-    "defaultMessage": "Older entries aren't loaded or counted.",
-    "description": "Body of the notice on the System Console Server Logs page shown when a node returned the maximum number of log entries and logs from several nodes are listed. A node is a server in the cluster."
-  },
-  "admin.logs.truncated.title": {
-    "defaultMessage": "Only the latest {limit, number} entries are shown",
-    "description": "Title of the notice on the System Console Server Logs page shown when the server returned the maximum number of log entries. {limit} is that maximum, e.g. 10,000."
-  },
-  "admin.logs.truncated.titleNodes": {
-    "defaultMessage": "Only the latest {limit, number} entries from each node are shown",
-    "description": "Title of the notice on the System Console Server Logs page shown when a node returned the maximum number of log entries and logs from several nodes are listed. {limit} is that maximum, e.g. 10,000. A node is a server in the cluster."
   },
   "admin.logs.viewInAdmin": {
     "defaultMessage": "View in admin console",

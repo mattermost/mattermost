@@ -383,45 +383,48 @@ describe('components/admin_console/server_logs/LogList', () => {
         });
     });
 
-    describe('truncation notice', () => {
-        test('should not show the notice when every node returned less than the limit', () => {
+    describe('capped total', () => {
+        const footer = () => document.querySelector('.LogViewer__footer-info');
+        const twoNodes = {logs: [makeNodeLog('node-a', 'a'), makeNodeLog('node-b', 'b')], nodes: ['node-a', 'node-b'], truncatedNodes: ['node-b']};
+
+        test('should show the exact total when every node returned less than the limit', () => {
             renderListWith({logs: [first]});
 
+            expect(footer()).toHaveTextContent(/^Showing 1 - 1 of 1$/);
             expect(screen.queryByText(/Only the latest/)).not.toBeInTheDocument();
         });
 
-        test('should show the limit when the server returned a full page', () => {
+        test('should mark the total as capped when the only node returned a full page', () => {
             renderListWith({logs: [makeNodeLog('default', 'a')], nodes: ['default'], truncatedNodes: ['default']});
 
-            expect(screen.getByText('Only the latest 10,000 entries are shown')).toBeInTheDocument();
-            expect(screen.getByText(/Download the log file to see them/)).toBeInTheDocument();
-        });
-
-        test('should name the limit per node when several nodes are listed', () => {
-            renderListWith({
-                logs: [makeNodeLog('node-a', 'a'), makeNodeLog('node-b', 'b')],
-                nodes: ['node-a', 'node-b'],
-                truncatedNodes: ['node-b'],
-            });
-
-            expect(screen.getByText('Only the latest 10,000 entries from each node are shown')).toBeInTheDocument();
-            expect(screen.getByText("Older entries aren't loaded or counted.")).toBeInTheDocument();
-        });
-
-        test('should only show the notice for the selected node, and name its limit', () => {
-            const props = {logs: [makeNodeLog('node-a', 'a'), makeNodeLog('node-b', 'b')], nodes: ['node-a', 'node-b'], truncatedNodes: ['node-b']};
-
-            const {rerender} = renderListWith({...props, selectedNode: 'node-a'});
+            expect(footer()).toHaveTextContent(/^Showing 1 - 1 of 1\+$/);
             expect(screen.queryByText(/Only the latest/)).not.toBeInTheDocument();
+        });
 
-            rerender(
+        test('should mark the matches as capped when a search is active', () => {
+            renderListWith({logs: [makeNodeLog('default', 'a')], nodes: ['default'], truncatedNodes: ['default'], search: 'a'});
+
+            expect(footer()).toHaveTextContent(/^Showing 1 - 1 of 1\+ entries matching your filters$/);
+        });
+
+        test('should only mark the total as capped when a truncated node is in view', () => {
+            const {rerender} = renderListWith(twoNodes);
+            expect(footer()).toHaveTextContent(/^Showing 1 - 2 of 2\+$/);
+
+            const renderSelected = (node: string) => rerender(
                 <StatefulLogList
                     {...baseProps}
-                    {...props}
-                    selectedNode='node-b'
+                    {...twoNodes}
+                    selectedNode={node}
                 />,
             );
-            expect(screen.getByText('Only the latest 10,000 entries are shown')).toBeInTheDocument();
+
+            renderSelected('node-a');
+            expect(footer()).toHaveTextContent(/^Showing 1 - 1 of 1$/);
+
+            renderSelected('node-b');
+            expect(footer()).toHaveTextContent(/^Showing 1 - 1 of 1\+$/);
+            expect(screen.queryByText(/Only the latest/)).not.toBeInTheDocument();
         });
     });
 

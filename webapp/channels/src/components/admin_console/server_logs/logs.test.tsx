@@ -623,7 +623,7 @@ describe('components/admin_console/server_logs/Logs nodes', () => {
         expect(document.querySelector('.LogRow__node')).toBeNull();
     });
 
-    test('should show the truncation notice for a node that returned a full page', async () => {
+    test('should mark the total as capped for a node that returned a full page', async () => {
         renderWithContext(
             <Logs
                 logs={[nodeLog('node-a', 'a'), nodeLog('node-b', 'b')]}
@@ -635,7 +635,9 @@ describe('components/admin_console/server_logs/Logs nodes', () => {
             />,
         );
 
-        expect(await screen.findByText('Only the latest 10,000 entries from each node are shown')).toBeInTheDocument();
+        expect(await screen.findByText('a')).toBeInTheDocument();
+        expect(document.querySelector('.LogViewer__footer-info')).toHaveTextContent(/^Showing 1 - 2 of 2\+$/);
+        expect(screen.queryByText(/Only the latest/)).not.toBeInTheDocument();
     });
 
     test('should send the picked node with the query', async () => {
