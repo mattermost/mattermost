@@ -20,6 +20,7 @@ import (
 	"github.com/goccy/go-yaml"
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
+	"golang.org/x/sync/singleflight"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -443,12 +444,13 @@ func (ps *PlatformService) startNetworkProbes(rctx request.CTX) *networkProbes {
 	probes := &networkProbes{}
 
 	// Takes no context; S3 and Azure are bounded by their own request timeout.
-	probes.fileStore = startProbe(ctx, func(context.Context) probeOutcome {
+	probes.fileStore = startSharedProbe(ctx, &ps.sharedProbes, string(model.SectionFilestoreConn), func() probeOutcome {
 		return probeOutcomeOf(ps.FileBackend().TestConnection())
 	})
 
+	// Takes no context and, against a server that stops responding, may never return.
 	if ldap := ps.LdapDiagnostic(); ldap != nil && (model.SafeDereference(cfg.LdapSettings.Enable) || model.SafeDereference(cfg.LdapSettings.EnableSync)) {
-		probes.ldap = startProbe(ctx, func(context.Context) ldapProbeOutcome {
+		probes.ldap = startSharedProbe(ctx, &ps.sharedProbes, string(model.SectionLDAPProbe), func() ldapProbeOutcome {
 			result := ldapProbeOutcome{serverName: unknownDataPoint, serverVersion: unknownDataPoint}
 			if appErr := ldap.RunTest(rctx); appErr != nil {
 				result.probeOutcome = probeOutcomeOf(appErr)
@@ -536,34 +538,85 @@ type probeResult[T any] struct {
 }
 
 // startProbe runs fn in its own goroutine and returns a function that waits for its result. The wait
-// gives up when ctx ends and returns why; fn is then abandoned and must stop on its own. A panic in fn
-// is returned as an error, since it no longer runs on the caller's goroutine.
+// gives up when ctx ends and returns why; fn is then abandoned and must stop on its own.
 func startProbe[T any](ctx context.Context, fn func(context.Context) T) func() (T, error) {
+	if ctx.Err() != nil {
+		return abandonedProbe[T](ctx)
+	}
+
 	// Buffered so an abandoned probe can still deliver its result and exit.
 	done := make(chan probeResult[T], 1)
 	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				done <- probeResult[T]{err: fmt.Errorf("probe panicked: %v", r)}
-			}
-		}()
-		done <- probeResult[T]{value: fn(ctx)}
+		value, err := callProbe(func() T { return fn(ctx) })
+		done <- probeResult[T]{value: value, err: err}
 	}()
 
 	return func() (T, error) {
+		result, ok := awaitProbe(ctx, done)
+		if !ok {
+			return abandonedProbe[T](ctx)()
+		}
+		return result.value, result.err
+	}
+}
+
+// startSharedProbe is startProbe for a probe that cannot be cancelled. While one is running under
+// key, later collections wait for it instead of starting another, so a stalled service holds one
+// abandoned probe rather than one per collection.
+func startSharedProbe[T any](ctx context.Context, group *singleflight.Group, key string, fn func() T) func() (T, error) {
+	if ctx.Err() != nil {
+		return abandonedProbe[T](ctx)
+	}
+
+	done := group.DoChan(key, func() (any, error) {
+		value, err := callProbe(fn)
+		return value, err
+	})
+
+	return func() (T, error) {
+		result, ok := awaitProbe(ctx, done)
+		if !ok {
+			return abandonedProbe[T](ctx)()
+		}
+		if result.Err != nil {
+			var zero T
+			return zero, result.Err
+		}
+		return result.Val.(T), nil
+	}
+}
+
+// callProbe returns a panic in fn as an error, since probes do not run on the caller's goroutine.
+func callProbe[T any](fn func() T) (value T, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("probe panicked: %v", r)
+		}
+	}()
+	return fn(), nil
+}
+
+// awaitProbe receives a probe's result from done, or reports false once ctx ends. A result that
+// arrives together with the end of ctx is still returned.
+func awaitProbe[R any](ctx context.Context, done <-chan R) (R, bool) {
+	select {
+	case result := <-done:
+		return result, true
+	case <-ctx.Done():
 		select {
 		case result := <-done:
-			return result.value, result.err
-		case <-ctx.Done():
-			// Prefer a result that arrived together with the deadline.
-			select {
-			case result := <-done:
-				return result.value, result.err
-			default:
-			}
-			var zero T
-			return zero, errors.Wrap(context.Cause(ctx), "probe did not complete")
+			return result, true
+		default:
+			var zero R
+			return zero, false
 		}
+	}
+}
+
+func abandonedProbe[T any](ctx context.Context) func() (T, error) {
+	return func() (T, error) {
+		var zero T
+		return zero, errors.Wrap(context.Cause(ctx), "probe did not complete")
 	}
 }
 

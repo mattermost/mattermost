@@ -19,12 +19,14 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/sync/singleflight"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -1482,7 +1484,20 @@ func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {
 
 	t.Run("probe still running at the deadline", func(t *testing.T) {
 		release := make(chan struct{})
-		t.Cleanup(func() { close(release) })
+		t.Cleanup(func() {
+			close(release)
+			// Wait for the abandoned probe so that later subtests start their own instead of joining it.
+			_, _, _ = th.Service.sharedProbes.Do(string(model.SectionLDAPProbe), func() (any, error) { return nil, nil })
+		})
+		// The push probe reaches the real push proxy by default, which could outlast the short deadline.
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.EmailSettings.SendPushNotifications = model.NewPointer(false)
+		})
+		t.Cleanup(func() {
+			th.Service.UpdateConfig(func(cfg *model.Config) {
+				cfg.EmailSettings.SendPushNotifications = model.NewPointer(true)
+			})
+		})
 		ldapMock := &emocks.LdapDiagnosticInterface{}
 		ldapMock.On("RunTest", mock.AnythingOfType("*request.Context")).
 			Run(func(mock.Arguments) { <-release }).
@@ -1574,20 +1589,81 @@ func TestStartProbe(t *testing.T) {
 
 	t.Run("passes the context to the probe", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
-		wait := startProbe(ctx, func(ctx context.Context) error {
-			<-ctx.Done()
-			return ctx.Err()
+		defer cancel()
+		got := make(chan context.Context, 1)
+		wait := startProbe(ctx, func(ctx context.Context) int {
+			got <- ctx
+			return 0
 		})
-		cancel()
+		_, err := wait()
+		require.NoError(t, err)
 
-		// Either the wait or the probe notices the cancellation first; both report it.
-		value, err := wait()
-		require.True(t, errors.Is(err, context.Canceled) || errors.Is(value, context.Canceled))
+		probeCtx := <-got
+		require.NoError(t, probeCtx.Err())
+		cancel()
+		require.ErrorIs(t, probeCtx.Err(), context.Canceled)
+	})
+
+	t.Run("does not start once the context has ended", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+		started := false
+		wait := startProbe(ctx, func(context.Context) int {
+			started = true
+			return 42
+		})
+
+		_, err := wait()
+		require.ErrorIs(t, err, context.Canceled)
+		assert.False(t, started)
 	})
 
 	t.Run("returns a panic as an error", func(t *testing.T) {
 		wait := startProbe(context.Background(), func(context.Context) int { panic("boom") })
 		_, err := wait()
+		assert.ErrorContains(t, err, "probe panicked: boom")
+	})
+}
+
+func TestStartSharedProbe(t *testing.T) {
+	t.Run("collections share a probe that is still running", func(t *testing.T) {
+		var (
+			group   singleflight.Group
+			calls   atomic.Int32
+			release = make(chan struct{})
+		)
+		probe := func() int {
+			calls.Add(1)
+			<-release
+			return 42
+		}
+
+		for range 3 {
+			ctx, cancel := context.WithCancel(context.Background())
+			wait := startSharedProbe(ctx, &group, "key", probe)
+			cancel()
+			_, err := wait()
+			require.ErrorIs(t, err, context.Canceled)
+		}
+
+		// A collection that starts while the probe is still running receives its result.
+		wait := startSharedProbe(context.Background(), &group, "key", probe)
+		close(release)
+		value, err := wait()
+		require.NoError(t, err)
+		assert.Equal(t, 42, value)
+		assert.EqualValues(t, 1, calls.Load())
+
+		// Once it has finished, the next collection runs the probe again.
+		value, err = startSharedProbe(context.Background(), &group, "key", probe)()
+		require.NoError(t, err)
+		assert.Equal(t, 42, value)
+		assert.EqualValues(t, 2, calls.Load())
+	})
+
+	t.Run("returns a panic as an error", func(t *testing.T) {
+		var group singleflight.Group
+		_, err := startSharedProbe(context.Background(), &group, "key", func() int { panic("boom") })()
 		assert.ErrorContains(t, err, "probe panicked: boom")
 	})
 }

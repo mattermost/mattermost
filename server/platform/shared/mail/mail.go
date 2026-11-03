@@ -229,7 +229,8 @@ func TestConnection(ctx context.Context, config *SMTPConfig) error {
 
 	c, err := NewSMTPClient(ctx, conn, config)
 	if err != nil {
-		if ctxErr := ctx.Err(); ctxErr != nil {
+		// Closing the connection surfaces as a network error; report the deadline or cancellation behind it.
+		if ctxErr := ctx.Err(); ctxErr != nil && !errors.Is(err, ctxErr) {
 			return errors.Wrapf(ctxErr, "unable to connect: %v", err)
 		}
 		return errors.Wrap(err, "unable to connect")
