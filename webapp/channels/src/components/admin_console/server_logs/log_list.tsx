@@ -8,7 +8,7 @@ import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import {AlertOutlineIcon, ArrowDownIcon, ArrowUpIcon, CheckIcon, DownloadOutlineIcon, LinkVariantIcon, RefreshIcon} from '@mattermost/compass-icons/components';
+import {ArrowDownIcon, ArrowUpIcon, DownloadOutlineIcon, RefreshIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/compass-ui/components/button';
 import {Icon} from '@mattermost/compass-ui/components/icon';
 import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
@@ -32,7 +32,6 @@ import CustomRangeModal from './custom_range_modal';
 import KeyboardHints from './keyboard_hints';
 import LogRow from './log_row';
 import type {CustomTimeRange, LogObjectWithAdditionalInfo, TimeRange} from './types';
-import useClipboardCopy from './use_clipboard_copy';
 import {LEVEL_GROUPS, SEARCH_MAX_LENGTH, levelGroup, newestLogTimes} from './utils';
 
 import './log_list.scss';
@@ -236,7 +235,6 @@ export default function LogList({
     const timezone = useSelector(getCurrentTimezone);
     const isMilitaryTime = useSelector(isUseMilitaryTime);
     const [showCustomRangeModal, setShowCustomRangeModal] = useState(false);
-    const [copyLinkStatus, copyLink] = useClipboardCopy();
     const initialPrefs = useMemo(() => loadPrefs(), []);
 
     const [page, setPage] = useState(0);
@@ -543,31 +541,6 @@ export default function LogList({
         }
     };
 
-    let copyLinkIcon = <LinkVariantIcon/>;
-    let copyLinkLabel = (
-        <FormattedMessage
-            id='admin.logs.copyLink'
-            defaultMessage='Copy link'
-        />
-    );
-    if (copyLinkStatus === 'copied') {
-        copyLinkIcon = <CheckIcon/>;
-        copyLinkLabel = (
-            <FormattedMessage
-                id='admin.logs.copied'
-                defaultMessage='Copied!'
-            />
-        );
-    } else if (copyLinkStatus === 'failed') {
-        copyLinkIcon = <AlertOutlineIcon/>;
-        copyLinkLabel = (
-            <FormattedMessage
-                id='admin.logs.copyFailed'
-                defaultMessage='Copy failed'
-            />
-        );
-    }
-
     const filters = (
         <div className='LogViewer__filters admin-console__filters-rows'>
             <Input
@@ -841,14 +814,6 @@ export default function LogList({
                     id='admin.logs.ReloadLogs'
                     defaultMessage='Reload'
                 />
-            </Button>
-            <Button
-                emphasis='tertiary'
-                size='medium'
-                onClick={() => copyLink(window.location.href)}
-                leadingIcon={<Icon glyph={copyLinkIcon}/>}
-            >
-                {copyLinkLabel}
             </Button>
             <Button
                 asChild={true}

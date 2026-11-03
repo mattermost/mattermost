@@ -1097,41 +1097,4 @@ describe('components/admin_console/server_logs/Logs URL filters', () => {
         await waitFor(() => expect(getPlainLogs).toHaveBeenCalled());
         expect(history.location.search).toBe('');
     });
-
-    // The default browser history, so the copied link is the page's own URL
-    function renderWithBrowserHistory() {
-        renderWithContext(
-            <Logs
-                logs={[nodeLog('node-a', 'a')]}
-                logNodes={['node-a']}
-                truncatedLogNodes={[]}
-                plainLogs={[]}
-                isPlainLogs={false}
-                actions={{getLogs: jest.fn().mockResolvedValue({}), getNewLogs: jest.fn().mockResolvedValue({}), getPlainLogs: jest.fn()}}
-            />,
-        );
-    }
-
-    test('should copy a link to the current view', async () => {
-        const writeText = jest.fn().mockResolvedValue(undefined);
-        Object.defineProperty(navigator, 'clipboard', {configurable: true, value: {writeText}});
-
-        renderWithBrowserHistory();
-        await pickMenuItem('Open menu to select a time range', 'Last 5 minutes');
-        await waitFor(() => expect(window.location.search).toBe('?range=5'));
-
-        await userEvent.click(screen.getByRole('button', {name: 'Copy link'}));
-
-        expect(writeText).toHaveBeenCalledWith(`${window.location.origin}/?range=5`);
-        expect(await screen.findByRole('button', {name: 'Copied!'})).toBeInTheDocument();
-    });
-
-    test('should say when the link could not be copied', async () => {
-        Object.defineProperty(navigator, 'clipboard', {configurable: true, value: {writeText: jest.fn().mockRejectedValue(new Error('denied'))}});
-
-        renderWithBrowserHistory();
-        await userEvent.click(screen.getByRole('button', {name: 'Copy link'}));
-
-        expect(await screen.findByRole('button', {name: 'Copy failed'})).toBeInTheDocument();
-    });
 });
