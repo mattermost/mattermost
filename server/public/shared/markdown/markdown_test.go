@@ -174,6 +174,15 @@ func TestParse(t *testing.T) {
 				costName: "bytes allocated",
 			},
 			{
+				name: "one definition repeated in one paragraph, with no uses",
+				document: func(n int) string {
+					return strings.Repeat("[a]: b\n", n)
+				},
+				n:        2000,
+				cost:     func(_, bytes uint64) uint64 { return bytes },
+				costName: "bytes allocated",
+			},
+			{
 				// Definitions a container block holds reach the document the same way top level
 				// ones do, and a definition continued on a second line covers two of a
 				// paragraph's line ranges rather than one.
@@ -238,6 +247,89 @@ func TestParse(t *testing.T) {
 		elapsed := time.Since(start)
 		assert.Lessf(t, elapsed, time.Second,
 			"%d concurrent parses of a %d byte document took %v", parses, len(markdown), elapsed)
+	})
+
+	t.Run("a long list of reference definitions parses in bounded time", func(t *testing.T) {
+		const n = 2000
+		markdown := strings.Repeat("[a]: b\n", n)
+
+		start := time.Now()
+		_, definitions := Parse(markdown)
+		elapsed := time.Since(start)
+
+		require.Len(t, definitions, n)
+
+		if testing.Short() || raceDetector {
+			return
+		}
+		assert.Lessf(t, elapsed, 15*time.Millisecond, "Parse(%d definitions) took %v", n, elapsed)
+	})
+
+	t.Run("concurrent parses of a list of reference definitions keep a bounded allocation total", func(t *testing.T) {
+		const n = 1000
+		markdown := strings.Repeat("[a]: b\n", n)
+		parses := max(20, 4*runtime.GOMAXPROCS(0))
+
+		runtime.GC()
+		var before, after runtime.MemStats
+		runtime.ReadMemStats(&before)
+
+		counts := make([]int, parses)
+		var wg sync.WaitGroup
+		for i := range counts {
+			wg.Go(func() {
+				_, definitions := Parse(markdown)
+				counts[i] = len(definitions)
+			})
+		}
+		wg.Wait()
+
+		runtime.ReadMemStats(&after)
+
+		for i, count := range counts {
+			require.Equal(t, n, count, "parse %d", i)
+		}
+		const maxBytesPerParse = 16 * 1024 * 1024
+		allocated := after.TotalAlloc - before.TotalAlloc
+		assert.LessOrEqualf(t, allocated, uint64(parses)*maxBytesPerParse,
+			"%d concurrent parses allocated %d bytes", parses, allocated)
+	})
+
+	t.Run("a short list of reference definitions keeps each label, destination and title", func(t *testing.T) {
+		for _, tc := range []struct {
+			name     string
+			markdown string
+		}{
+			{
+				name:     "LF line endings",
+				markdown: "[foo]: /url \"title\"\n[bar]: /dest 'other'\n[baz]: /path\n",
+			},
+			{
+				name:     "CRLF line endings",
+				markdown: "[foo]: /url \"title\"\r\n[bar]: /dest 'other'\r\n[baz]: /path\r\n",
+			},
+			{
+				name:     "last line without a newline",
+				markdown: "[foo]: /url \"title\"\n[bar]: /dest 'other'\n[baz]: /path",
+			},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				_, definitions := Parse(tc.markdown)
+				require.Len(t, definitions, 3)
+
+				assert.Equal(t, "foo", definitions[0].Label())
+				assert.Equal(t, "/url", definitions[0].Destination())
+				assert.Equal(t, "title", definitions[0].Title())
+
+				assert.Equal(t, "bar", definitions[1].Label())
+				assert.Equal(t, "/dest", definitions[1].Destination())
+				assert.Equal(t, "other", definitions[1].Title())
+
+				assert.Equal(t, "baz", definitions[2].Label())
+				assert.Equal(t, "/path", definitions[2].Destination())
+				assert.Empty(t, definitions[2].Title())
+			})
+		}
 	})
 
 	t.Run("reference links resolve against the definition their label names", func(t *testing.T) {

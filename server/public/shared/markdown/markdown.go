@@ -152,16 +152,18 @@ func joinRanges(markdown string, ranges []Range) string {
 // rather than its own view of the slice, and gets a trim that never allocates in return.
 func trimBytesFromRanges(ranges []Range, bytes int) []Range {
 	rem := bytes
-	for len(ranges) > 0 {
-		l := ranges[0].End - ranges[0].Position
+	for i := range ranges {
+		if rem == 0 {
+			return ranges[i:]
+		}
+		l := ranges[i].End - ranges[i].Position
 		if rem < l {
-			ranges[0].Position += rem
-			break
+			ranges[i].Position += rem
+			return ranges[i:]
 		}
 		rem -= l
-		ranges = ranges[1:]
 	}
-	return ranges
+	return ranges[len(ranges):]
 }
 
 func Parse(markdown string) (*Document, []*ReferenceDefinition) {

@@ -35,18 +35,14 @@ func (b *Paragraph) Close() {
 	// What a reference definition leaves behind is the tail of the text it was read from, so the
 	// text is joined once and read from a growing offset. Joining it again for each definition
 	// would make the work a paragraph of definitions costs grow with the square of its length.
-	var raw string
+	raw := joinRanges(b.markdown, b.Text)
 	rawOffset := 0
-	hasRaw := false
 
 	for {
 		for i := range b.Text {
-			if trimmed := trimLeftSpace(b.markdown, b.Text[i]); trimmed != b.Text[i] {
-				b.Text[i] = trimmed
-				// Trimming shortens the text the ranges cover, so what was joined no longer
-				// describes them.
-				hasRaw = false
-			}
+			length := b.Text[i].End - b.Text[i].Position
+			b.Text[i] = trimLeftSpace(b.markdown, b.Text[i])
+			rawOffset += length - (b.Text[i].End - b.Text[i].Position)
 			if b.Text[i].Position < b.Text[i].End {
 				break
 			}
@@ -54,12 +50,6 @@ func (b *Paragraph) Close() {
 
 		if len(b.Text) == 0 || b.Text[0].Position < b.Text[0].End && b.markdown[b.Text[0].Position] != '[' {
 			break
-		}
-
-		if !hasRaw {
-			raw = joinRanges(b.markdown, b.Text)
-			rawOffset = 0
-			hasRaw = true
 		}
 
 		definition, length := parseReferenceDefinition(b.markdown, raw[rawOffset:], b.Text)
