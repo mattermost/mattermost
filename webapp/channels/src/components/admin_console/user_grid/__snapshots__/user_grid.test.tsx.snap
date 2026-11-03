@@ -10,99 +10,103 @@ exports[`components/admin_console/user_grid/UserGrid should match snapshot with 
       class="DataGrid_search"
     >
       <div
-        class="DataGrid_searchBar"
+        class="DataGrid_searchControls"
       >
-        <span
-          aria-hidden="true"
-          class="DataGrid_searchIcon"
-        >
-          <i
-            class="fa fa-search"
-            title="Search Icon"
-          />
-        </span>
-        <input
-          data-testid="searchInput"
-          placeholder="Search"
-          type="text"
-          value=""
-        />
-        <i
-          class="DataGrid_clearButton fa fa-times-circle hidden"
-          data-testid="clear-search"
-        />
-      </div>
-      <div
-        class="Filter"
-      >
-        <button
-          aria-expanded="false"
-          class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-small_we8pe_53 Filter_button"
-          type="button"
-        >
-          <span
-            class="_button__icon-slot_we8pe_35"
-          >
-            <div
-              aria-hidden="true"
-              class="_icon_1i355_2 _icon--size-12_1i355_30"
-            >
-              <div
-                class="_icon__glyph-area_1i355_9"
-              >
-                <svg
-                  fill="currentColor"
-                  height="14"
-                  version="1.1"
-                  viewBox="0 0 24 24"
-                  width="14"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M6,13H18V11H6M3,6V8H21V6M10,18H14V16H10V18Z"
-                  />
-                </svg>
-              </div>
-            </div>
-          </span>
-          <span
-            class="_button__label_we8pe_31"
-          >
-            Filters
-          </span>
-        </button>
         <div
-          class="Filter_content"
+          class="DataGrid_searchBar"
         >
-          <div
-            class="Filter_header"
+          <span
+            aria-hidden="true"
+            class="DataGrid_searchIcon"
           >
-            <div
-              class="Filter_title"
-            >
-              Filter by
-            </div>
-            <a
-              class="Filter_reset"
-            >
-              Reset filters
-            </a>
-          </div>
-          <hr />
-          <div
-            class="Filter_lists"
+            <i
+              class="fa fa-search"
+              title="Search Icon"
+            />
+          </span>
+          <input
+            data-testid="searchInput"
+            placeholder="Search"
+            type="text"
+            value=""
           />
+          <i
+            class="DataGrid_clearButton fa fa-times-circle hidden"
+            data-testid="clear-search"
+          />
+        </div>
+        <div
+          class="Filter"
+        >
           <button
-            class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-small_we8pe_53 Filter_apply"
-            disabled=""
+            aria-expanded="false"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-small_we8pe_53 Filter_button"
             type="button"
           >
             <span
+              class="_button__icon-slot_we8pe_35"
+            >
+              <div
+                aria-hidden="true"
+                class="_icon_1i355_2 _icon--size-12_1i355_30"
+              >
+                <div
+                  class="_icon__glyph-area_1i355_9"
+                >
+                  <svg
+                    fill="currentColor"
+                    height="14"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="14"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M6,13H18V11H6M3,6V8H21V6M10,18H14V16H10V18Z"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </span>
+            <span
               class="_button__label_we8pe_31"
             >
-              Apply
+              Filters
             </span>
           </button>
+          <div
+            class="Filter_content"
+          >
+            <div
+              class="Filter_header"
+            >
+              <div
+                class="Filter_title"
+              >
+                Filter by
+              </div>
+              <a
+                class="Filter_reset"
+              >
+                Reset filters
+              </a>
+            </div>
+            <hr />
+            <div
+              class="Filter_lists"
+            />
+            <button
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-small_we8pe_53 Filter_apply"
+              disabled=""
+              type="button"
+            >
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Apply
+              </span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -309,99 +313,103 @@ exports[`components/admin_console/user_grid/UserGrid should match snapshot with 
       class="DataGrid_search"
     >
       <div
-        class="DataGrid_searchBar"
+        class="DataGrid_searchControls"
       >
-        <span
-          aria-hidden="true"
-          class="DataGrid_searchIcon"
-        >
-          <i
-            class="fa fa-search"
-            title="Search Icon"
-          />
-        </span>
-        <input
-          data-testid="searchInput"
-          placeholder="Search"
-          type="text"
-          value=""
-        />
-        <i
-          class="DataGrid_clearButton fa fa-times-circle hidden"
-          data-testid="clear-search"
-        />
-      </div>
-      <div
-        class="Filter"
-      >
-        <button
-          aria-expanded="false"
-          class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-small_we8pe_53 Filter_button"
-          type="button"
-        >
-          <span
-            class="_button__icon-slot_we8pe_35"
-          >
-            <div
-              aria-hidden="true"
-              class="_icon_1i355_2 _icon--size-12_1i355_30"
-            >
-              <div
-                class="_icon__glyph-area_1i355_9"
-              >
-                <svg
-                  fill="currentColor"
-                  height="14"
-                  version="1.1"
-                  viewBox="0 0 24 24"
-                  width="14"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M6,13H18V11H6M3,6V8H21V6M10,18H14V16H10V18Z"
-                  />
-                </svg>
-              </div>
-            </div>
-          </span>
-          <span
-            class="_button__label_we8pe_31"
-          >
-            Filters
-          </span>
-        </button>
         <div
-          class="Filter_content"
+          class="DataGrid_searchBar"
         >
-          <div
-            class="Filter_header"
+          <span
+            aria-hidden="true"
+            class="DataGrid_searchIcon"
           >
-            <div
-              class="Filter_title"
-            >
-              Filter by
-            </div>
-            <a
-              class="Filter_reset"
-            >
-              Reset filters
-            </a>
-          </div>
-          <hr />
-          <div
-            class="Filter_lists"
+            <i
+              class="fa fa-search"
+              title="Search Icon"
+            />
+          </span>
+          <input
+            data-testid="searchInput"
+            placeholder="Search"
+            type="text"
+            value=""
           />
+          <i
+            class="DataGrid_clearButton fa fa-times-circle hidden"
+            data-testid="clear-search"
+          />
+        </div>
+        <div
+          class="Filter"
+        >
           <button
-            class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-small_we8pe_53 Filter_apply"
-            disabled=""
+            aria-expanded="false"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-small_we8pe_53 Filter_button"
             type="button"
           >
             <span
+              class="_button__icon-slot_we8pe_35"
+            >
+              <div
+                aria-hidden="true"
+                class="_icon_1i355_2 _icon--size-12_1i355_30"
+              >
+                <div
+                  class="_icon__glyph-area_1i355_9"
+                >
+                  <svg
+                    fill="currentColor"
+                    height="14"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="14"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M6,13H18V11H6M3,6V8H21V6M10,18H14V16H10V18Z"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </span>
+            <span
               class="_button__label_we8pe_31"
             >
-              Apply
+              Filters
             </span>
           </button>
+          <div
+            class="Filter_content"
+          >
+            <div
+              class="Filter_header"
+            >
+              <div
+                class="Filter_title"
+              >
+                Filter by
+              </div>
+              <a
+                class="Filter_reset"
+              >
+                Reset filters
+              </a>
+            </div>
+            <hr />
+            <div
+              class="Filter_lists"
+            />
+            <button
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-small_we8pe_53 Filter_apply"
+              disabled=""
+              type="button"
+            >
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Apply
+              </span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -683,99 +691,103 @@ exports[`components/admin_console/user_grid/UserGrid should match snapshot with 
       class="DataGrid_search"
     >
       <div
-        class="DataGrid_searchBar"
+        class="DataGrid_searchControls"
       >
-        <span
-          aria-hidden="true"
-          class="DataGrid_searchIcon"
-        >
-          <i
-            class="fa fa-search"
-            title="Search Icon"
-          />
-        </span>
-        <input
-          data-testid="searchInput"
-          placeholder="Search"
-          type="text"
-          value=""
-        />
-        <i
-          class="DataGrid_clearButton fa fa-times-circle hidden"
-          data-testid="clear-search"
-        />
-      </div>
-      <div
-        class="Filter"
-      >
-        <button
-          aria-expanded="false"
-          class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-small_we8pe_53 Filter_button"
-          type="button"
-        >
-          <span
-            class="_button__icon-slot_we8pe_35"
-          >
-            <div
-              aria-hidden="true"
-              class="_icon_1i355_2 _icon--size-12_1i355_30"
-            >
-              <div
-                class="_icon__glyph-area_1i355_9"
-              >
-                <svg
-                  fill="currentColor"
-                  height="14"
-                  version="1.1"
-                  viewBox="0 0 24 24"
-                  width="14"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M6,13H18V11H6M3,6V8H21V6M10,18H14V16H10V18Z"
-                  />
-                </svg>
-              </div>
-            </div>
-          </span>
-          <span
-            class="_button__label_we8pe_31"
-          >
-            Filters
-          </span>
-        </button>
         <div
-          class="Filter_content"
+          class="DataGrid_searchBar"
         >
-          <div
-            class="Filter_header"
+          <span
+            aria-hidden="true"
+            class="DataGrid_searchIcon"
           >
-            <div
-              class="Filter_title"
-            >
-              Filter by
-            </div>
-            <a
-              class="Filter_reset"
-            >
-              Reset filters
-            </a>
-          </div>
-          <hr />
-          <div
-            class="Filter_lists"
+            <i
+              class="fa fa-search"
+              title="Search Icon"
+            />
+          </span>
+          <input
+            data-testid="searchInput"
+            placeholder="Search"
+            type="text"
+            value=""
           />
+          <i
+            class="DataGrid_clearButton fa fa-times-circle hidden"
+            data-testid="clear-search"
+          />
+        </div>
+        <div
+          class="Filter"
+        >
           <button
-            class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-small_we8pe_53 Filter_apply"
-            disabled=""
+            aria-expanded="false"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-small_we8pe_53 Filter_button"
             type="button"
           >
             <span
+              class="_button__icon-slot_we8pe_35"
+            >
+              <div
+                aria-hidden="true"
+                class="_icon_1i355_2 _icon--size-12_1i355_30"
+              >
+                <div
+                  class="_icon__glyph-area_1i355_9"
+                >
+                  <svg
+                    fill="currentColor"
+                    height="14"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="14"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M6,13H18V11H6M3,6V8H21V6M10,18H14V16H10V18Z"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </span>
+            <span
               class="_button__label_we8pe_31"
             >
-              Apply
+              Filters
             </span>
           </button>
+          <div
+            class="Filter_content"
+          >
+            <div
+              class="Filter_header"
+            >
+              <div
+                class="Filter_title"
+              >
+                Filter by
+              </div>
+              <a
+                class="Filter_reset"
+              >
+                Reset filters
+              </a>
+            </div>
+            <hr />
+            <div
+              class="Filter_lists"
+            />
+            <button
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-small_we8pe_53 Filter_apply"
+              disabled=""
+              type="button"
+            >
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Apply
+              </span>
+            </button>
+          </div>
         </div>
       </div>
     </div>

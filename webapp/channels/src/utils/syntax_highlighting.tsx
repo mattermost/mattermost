@@ -84,6 +84,10 @@ function getLanguageFromNameOrAlias(name: string) {
     });
 }
 
+export function isMarkdownLanguage(language: string): boolean {
+    return getLanguageFromNameOrAlias(language) === 'markdown';
+}
+
 async function registerLanguage(languageName: string) {
     const languageImports: {
         [key: string]: any;

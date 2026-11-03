@@ -2115,6 +2115,18 @@
     "defaultMessage": "Enforce device ID consistency",
     "description": "Label of a true/false toggle in System Console > System Attributes > Attribute-Based Access > Session Attributes. 'Enforce' is a verb; 'device ID' is the session attribute being checked."
   },
+  "admin.accesscontrol.sections.session_attributes.description": {
+    "defaultMessage": "Configure how device identity is trusted and validated for session attributes.",
+    "description": "Subtitle under the Session Attributes AdminPanel on System Console > System Attributes > Attribute-Based Access."
+  },
+  "admin.accesscontrol.sections.settings.description": {
+    "defaultMessage": "Enable attribute-based access control and related membership policy settings.",
+    "description": "Subtitle under the Access Control AdminPanel on System Console > System Attributes > Attribute-Based Access."
+  },
+  "admin.accesscontrol.sections.settings.title": {
+    "defaultMessage": "Access Control",
+    "description": "Title of the Access Control AdminPanel on System Console > System Attributes > Attribute-Based Access, grouping the ABAC enable, audit logging, and channel indicator toggles."
+  },
   "admin.accesscontrol.session_attributes": {
     "defaultMessage": "Session Attributes",
     "description": "Heading of the 'Session Attributes' subsection in System Console > System Attributes > Attribute-Based Access. Groups the settings that control device-identity session attributes."
@@ -8267,6 +8279,14 @@
     "defaultMessage": "Are you sure you want to apply these IP filter changes? There are currently no filters added, so <strong>all IP addresses will have access to the workspace.</strong>",
     "description": "Body of the confirmation modal when applying IP filtering with no rules defined; <strong> wraps the warning that all IPs will be allowed."
   },
+  "admin.ip_filtering.off": {
+    "defaultMessage": "Off",
+    "description": ""
+  },
+  "admin.ip_filtering.on": {
+    "defaultMessage": "On",
+    "description": ""
+  },
   "admin.ip_filtering.rule_name_placeholder": {
     "defaultMessage": "Enter a name for this rule",
     "description": "Placeholder of the rule name input in the add/edit IP filter modal."
@@ -9731,6 +9751,30 @@
     "defaultMessage": "Copy to clipboard",
     "description": "Accessible label for the icon button that copies a field value of a log entry on the System Console Server Logs page."
   },
+  "admin.logs.customRange.apply": {
+    "defaultMessage": "Apply",
+    "description": "Confirm button of the custom time range dialog on the System Console Server Logs page; applies the selected start and end as the log filter."
+  },
+  "admin.logs.customRange.errorOrder": {
+    "defaultMessage": "The start must be before the end.",
+    "description": "Error in the custom time range dialog on the System Console Server Logs page when the selected start is not before the selected end."
+  },
+  "admin.logs.customRange.from": {
+    "defaultMessage": "From",
+    "description": "Heading above the start date and time pickers in the custom time range dialog on the System Console Server Logs page; the range starts here."
+  },
+  "admin.logs.customRange.timezone": {
+    "defaultMessage": "Times are in your timezone: {timezone}",
+    "description": "Subheading of the custom time range dialog on the System Console Server Logs page. {timezone} is the timezone from the user display settings, e.g. \"(UTC-05:00) Eastern Time (US & Canada)\"."
+  },
+  "admin.logs.customRange.title": {
+    "defaultMessage": "Custom time range",
+    "description": "Title of the dialog for picking a start and end date and time to filter the System Console Server Logs page."
+  },
+  "admin.logs.customRange.to": {
+    "defaultMessage": "To",
+    "description": "Heading above the end date and time pickers in the custom time range dialog on the System Console Server Logs page; the range ends here."
+  },
   "admin.logs.detail.caller": {
     "defaultMessage": "Caller",
     "description": "Field label in an expanded log entry on the System Console Server Logs page; the source file and line that wrote the log follows."
@@ -9862,6 +9906,10 @@
   "admin.logs.liveTail": {
     "defaultMessage": "Live tail",
     "description": "Label of the live tail selector on the System Console Server Logs page; when on, new log entries are fetched automatically."
+  },
+  "admin.logs.liveTail.customRange": {
+    "defaultMessage": "Not available with a custom time range",
+    "description": "Explanation in the live tail menu on the System Console Server Logs page for why automatic refresh intervals are disabled while a custom time range with a fixed end is selected."
   },
   "admin.logs.liveTail.dropdownAriaLabel": {
     "defaultMessage": "Live tail menu",
@@ -10030,6 +10078,10 @@
   "admin.logs.time.allTime": {
     "defaultMessage": "All time",
     "description": "Option in the time range filter on the System Console Server Logs page; shows entries regardless of age."
+  },
+  "admin.logs.time.custom": {
+    "defaultMessage": "Custom range…",
+    "description": "Option in the time range filter on the System Console Server Logs page; opens a dialog to pick a start and end date and time."
   },
   "admin.logs.title": {
     "defaultMessage": "Server Logs",
@@ -10519,14 +10571,6 @@
     "defaultMessage": "User API Endpoint:",
     "description": "Setting label for a text field in the Entra ID (Office 365) OAuth admin settings; the API endpoint used to fetch the user profile. Ends with a colon."
   },
-  "admin.openid_custom_feature_discovery.copy": {
-    "defaultMessage": "Use OpenID Connect for authentication and single sign-on (SSO) with any service that supports the OIDC specification such as Apple, Okta, OneLogin, and more.",
-    "description": "Body copy on the feature discovery (upsell) page for custom OpenID Connect providers; lists provider product names."
-  },
-  "admin.openid_custom_feature_discovery.title": {
-    "defaultMessage": "Integrate OpenID Connect with Mattermost Professional",
-    "description": "Headline on the feature discovery (upsell) page for custom OpenID Connect providers; mentions the required plan."
-  },
   "admin.openid_feature_discovery.copy": {
     "defaultMessage": "Use OpenID Connect for authentication and single sign-on (SSO) with any service that supports the OIDC specification such as Google, Entra ID, Apple, Okta, OneLogin, and more.",
     "description": "Body copy on the feature discovery (upsell) page for OpenID Connect SSO; lists provider product names that should not be translated."
@@ -10646,6 +10690,18 @@
   "admin.openIdConvert.text": {
     "defaultMessage": "Convert to OpenID Connect",
     "description": "Button in the System Console that converts the existing OAuth 2.0 configuration to OpenID Connect."
+  },
+  "admin.panel.collapse": {
+    "defaultMessage": "Collapse section",
+    "description": "Accessible label for the control that collapses an expandable System Console admin settings panel."
+  },
+  "admin.panel.expand": {
+    "defaultMessage": "Expand section",
+    "description": "Accessible label for the control that expands a collapsed System Console admin settings panel."
+  },
+  "admin.panel.untitled": {
+    "defaultMessage": "Settings",
+    "description": ""
   },
   "admin.password.enableForgotLink.description": {
     "defaultMessage": "When true, “Forgot password” link appears on the Mattermost login page, which allows users to reset their password. When false, the link is hidden from users. This link can be customized to redirect to a URL of your choice from <a>Site Configuration > Customization.</a>",
@@ -12926,6 +12982,14 @@
   "admin.plugins.settings.requirePluginSignatureDesc": {
     "defaultMessage": "When true, uploading plugins is disabled and may only be installed through the Marketplace. Plugins are always verified during Mattermost server startup and initialization. See <link>documentation</link> to learn more.",
     "description": "Help text for the Require Plugin Signature setting in System Console Plugin Management; <link> wraps a documentation link."
+  },
+  "admin.plugins.settings.restrictUnauthenticatedWebappPlugins": {
+    "defaultMessage": "Restrict Plugins Available Before Login:",
+    "description": "Label for a true/false setting in System Console Plugin Management that limits which plugins are sent to visitors who are not logged in."
+  },
+  "admin.plugins.settings.restrictUnauthenticatedWebappPluginsDesc": {
+    "defaultMessage": "When true, only plugins that declare <code>webapp.pre_auth</code> in their manifest are listed and loaded for visitors who are not logged in, such as on the login page. All other plugins load after the user logs in. When false, all enabled plugins are listed to visitors who are not logged in.",
+    "description": "Help text for the Restrict Plugins Available Before Login setting in System Console Plugin Management; <code> wraps the manifest field name webapp.pre_auth, which should not be translated."
   },
   "admin.posts.burnOnRead.duration.10min": {
     "defaultMessage": "10 minutes",
@@ -24487,14 +24551,6 @@
     "defaultMessage": "Your trial is active until {trialEndDay}. Discover our top Enterprise features.",
     "description": "Second line of the trial item in the product menu on Cloud workspaces during a free trial. {trialEndDay} is the trial end date formatted in the user's locale, for example 'March 05, 2026'. Clicking opens trial benefits (admins) or pricing (others)."
   },
-  "globalHeader.productSwitcherMenu.trialMenuItem.noFreeTrial.primaryLabel": {
-    "defaultMessage": "Interested in a limitless plan with high-security features?",
-    "description": "First line of a product menu item shown to admins of Cloud workspaces on the free plan, promoting an upgrade."
-  },
-  "globalHeader.productSwitcherMenu.trialMenuItem.noFreeTrial.secondaryLabel": {
-    "defaultMessage": "See plans",
-    "description": "Second line of the upgrade item in the product menu for Cloud free-plan admins. Clicking the item opens the pricing dialog. 'See' is an imperative verb."
-  },
   "globalHeader.productSwitcherMenu.userGroupsMenuItem.label": {
     "defaultMessage": "User Groups",
     "description": "Menu item in the product menu at the top left of the global header. It opens the User Groups dialog for custom groups of users that can be mentioned. Feature name."
@@ -26803,6 +26859,18 @@
     "defaultMessage": "Click to call {phoneNumber}",
     "description": "Tooltip shown when hovering a phone number link in a message."
   },
+  "markdown_view_toggle.group": {
+    "defaultMessage": "Markdown view",
+    "description": "Accessible name of the segmented control that switches Markdown content between rendered output and raw source."
+  },
+  "markdown_view_toggle.raw": {
+    "defaultMessage": "Code",
+    "description": "Label and tooltip of the segment that shows Markdown content as raw source text."
+  },
+  "markdown_view_toggle.rendered": {
+    "defaultMessage": "Preview",
+    "description": "Label and tooltip of the segment that shows Markdown content as rendered output."
+  },
   "marketplace_command.disabled": {
     "defaultMessage": "The marketplace is disabled. Please contact your System Administrator for details.",
     "description": "Error returned when a user runs the /marketplace slash command but the marketplace feature is turned off."
@@ -26938,10 +27006,6 @@
   "menu.cloudFree.enterpriseTrialTitle": {
     "defaultMessage": "Enterprise Advanced Trial",
     "description": "Title of the main menu item shown while an Enterprise Advanced trial is active; plan name, do not translate 'Enterprise Advanced'."
-  },
-  "menu.cloudFree.postTrial.tryEnterprise": {
-    "defaultMessage": "Interested in a limitless plan with high-security features? <openModalLink>See plans</openModalLink>",
-    "description": "Main menu text shown after a trial ends encouraging viewing paid plans; <openModalLink> wraps the 'See plans' link."
   },
   "message_submit_error.invalidCommand": {
     "defaultMessage": "Command with a trigger of ''{command}'' not found. ",

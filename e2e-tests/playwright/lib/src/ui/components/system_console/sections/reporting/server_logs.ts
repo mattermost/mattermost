@@ -25,6 +25,7 @@ export default class ServerLogs {
     readonly nodeMenuButton: Locator;
     readonly nodeValue: Locator;
     readonly levelsMenuButton: Locator;
+    readonly levelsValue: Locator;
     readonly durationMenuButton: Locator;
     readonly durationValue: Locator;
     readonly liveTailMenuButton: Locator;
@@ -50,6 +51,7 @@ export default class ServerLogs {
         this.nodeMenuButton = container.getByLabel('Open menu to select a node');
         this.nodeValue = container.getByLabel('Node', {exact: true});
         this.levelsMenuButton = container.getByLabel('Open menu to select which log levels to show');
+        this.levelsValue = container.getByLabel('Levels', {exact: true});
         this.durationMenuButton = container.getByLabel('Open menu to select a time range');
         this.durationValue = container.getByLabel('Duration', {exact: true});
         this.liveTailMenuButton = container.getByLabel('Open menu to turn live tail on or off');
@@ -124,6 +126,18 @@ export default class ServerLogs {
     async selectDuration(duration: string) {
         await this.durationMenuButton.click();
         await this.page().getByRole('menuitemradio', {name: duration, exact: true}).click();
+    }
+
+    /**
+     * Open the custom range dialog from the Duration menu and apply the range it
+     * starts with, the last hour.
+     */
+    async applyDefaultCustomRange() {
+        await this.selectDuration('Custom range…');
+        const dialog = this.page().getByRole('dialog', {name: 'Custom time range'});
+        await expect(dialog).toBeVisible();
+        await dialog.getByRole('button', {name: 'Apply'}).click();
+        await expect(dialog).not.toBeVisible();
     }
 
     async selectStructuredFormat() {

@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Editor} from '@tiptap/react';
 import React from 'react';
 
 import type {PostType} from '@mattermost/types/posts';
@@ -16,7 +17,7 @@ import type Textbox from 'components/textbox/textbox';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {renderWithContext, userEvent, screen, act, createEvent, fireEvent} from 'tests/react_testing_utils';
-import Constants, {Locations, PostTypes, StoragePrefixes} from 'utils/constants';
+import Constants, {Locations, PostTypes, Preferences, StoragePrefixes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import type {PostDraft} from 'types/store/draft';
@@ -565,6 +566,89 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             }),
             expect.anything(),
         );
+    });
+
+    describe('with the rich text editor', () => {
+        // jsdom doesn't lay out ranges, which the editor measures to scroll on focus.
+        beforeAll(() => {
+            Range.prototype.getClientRects = () => [] as unknown as DOMRectList;
+            Range.prototype.getBoundingClientRect = () => ({top: 0, right: 0, bottom: 0, left: 0, width: 0, height: 0}) as DOMRect;
+        });
+
+        afterAll(() => {
+            delete (Range.prototype as Partial<Range>).getClientRects;
+            delete (Range.prototype as Partial<Range>).getBoundingClientRect;
+        });
+
+        const renderRichTextEditor = () => {
+            const result = renderWithContext(
+                <AdvancedTextEditor {...baseProps}/>,
+                mergeObjects(initialState, {
+                    entities: {
+                        general: {config: {FeatureFlagWysiwygEditor: 'true'}},
+                        preferences: {
+                            myPreferences: {
+                                [`${Preferences.CATEGORY_DISPLAY_SETTINGS}--${Preferences.WYSIWYG_EDITOR}`]: {
+                                    category: Preferences.CATEGORY_DISPLAY_SETTINGS,
+                                    name: Preferences.WYSIWYG_EDITOR,
+                                    user_id: currentUserId,
+                                    value: 'true',
+                                },
+                            },
+                        },
+                    },
+                }),
+            );
+            const typeInEditor = (text: string) => act(() => {
+                const editor = (result.container.querySelector('.ProseMirror') as HTMLElement & {editor: Editor}).editor;
+                editor.view.dispatch(editor.state.tr.insertText(text));
+            });
+            return {...result, typeInEditor};
+        };
+
+        it('should save and show rich text typed right before a channel switch without waiting', () => {
+            jest.useFakeTimers();
+            const {rerender, typeInEditor} = renderRichTextEditor();
+
+            typeInEditor('typed before leaving');
+            rerender(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    channelId={otherChannelId}
+                />,
+            );
+
+            expect(mockedUpdateDraft).toHaveBeenCalledWith(
+                StoragePrefixes.DRAFT + channelId,
+                expect.objectContaining({message: 'typed before leaving', show: true}),
+                '',
+                true,
+            );
+        });
+
+        it('should save rich text typed right before a channel switch when the next channel changes too', () => {
+            jest.useFakeTimers();
+            const {rerender, typeInEditor} = renderRichTextEditor();
+
+            typeInEditor('typed in the first channel');
+            rerender(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    channelId={otherChannelId}
+                />,
+            );
+            typeInEditor('typed in the next channel');
+            act(() => {
+                jest.advanceTimersByTime(Constants.SAVE_DRAFT_TIMEOUT + 50);
+            });
+
+            expect(mockedUpdateDraft).toHaveBeenCalledWith(
+                StoragePrefixes.DRAFT + channelId,
+                expect.objectContaining({message: 'typed in the first channel'}),
+                '',
+                true,
+            );
+        });
     });
 
     it('should save a new draft when changing channels', async () => {
