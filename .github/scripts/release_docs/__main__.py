@@ -547,6 +547,16 @@ def load_holidays(env: dict, client) -> tuple[schedule.Holidays | None, str | No
     return (holidays, None) if holidays.years else (None, "the holidays page has no holiday lists")
 
 
+def jira_versions(client) -> tuple[schedule.JiraVersions, str | None]:
+    """Each month's server and mobile fix versions, or none (and why) when Jira can't be read."""
+    if client is None:
+        return schedule.JiraVersions(), "Jira was not read, so every version was worked out from the month before"
+    try:
+        return schedule.JiraVersions(client.versions()), None
+    except Exception as err:  # noqa: BLE001 - only the error type is public
+        return schedule.JiraVersions(), f"Jira's fix versions could not be read ({type(err).__name__}), so every version was worked out"
+
+
 def due_release(task: str, events: list, today: date, holidays) -> tuple[Version | None, date | None]:
     """The release a scheduled run acts on today, and its Release Day, from the calendar."""
     for line, found in sorted(calendar.milestones(events or []).items()):
@@ -687,10 +697,12 @@ def run_hub_task(task: str, raw: str, env: dict, gh, read_gh, claude, fetch) -> 
                 result.todo(f"{holidays_problem}: no key dates written")
                 return Run(result, "Nothing written.")
             client, calendar_problem = gcal.from_env(env)
-            month = (day.year, day.month) if day else schedule.release_month(version)
-            result = key_dates.run(version, month, holidays, client, hub, env, live)
-            if calendar_problem and client is None:
-                result.notes.append(calendar_problem)
+            versions, versions_problem = jira_versions(jira_client)
+            month = (day.year, day.month) if day else schedule.release_month(version, versions)
+            result = key_dates.run(version, month, holidays, client, hub, env, live, versions)
+            for problem in (calendar_problem if client is None else None, versions_problem):
+                if problem:
+                    result.notes.append(problem)
             return Run(result, "Key dates on the Release Dates calendar.")
 
         if task == marketing.TASK:

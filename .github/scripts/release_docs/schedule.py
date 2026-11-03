@@ -7,8 +7,12 @@ Rules from the Release Timeline section of the Release Processes Overview page
 - T-N counts N working days back from Release Day.
 - The release branch is cut the working day after the previous release's Final Release
   Build Cut.
-- Mobile releases on the 16th, or the Thursday before when the 16th is a weekend. The
-  mobile minor version goes up by one every month.
+- Mobile releases on the 16th, or the Thursday before when the 16th is a weekend.
+
+Each month's versions come from Jira's fix versions (``JiraVersions``): the server's
+``vX.Y (Month Year)`` and the mobile ``v2.NN Mobile (Month Year)``, so a major version bump
+(v13.0 after v12.11, Mobile v3.0) is taken as Jira has it. A month with no fix version yet
+falls back to counting one minor version a month, with a note to check it.
 
 Working days are Monday to Friday, except every day off in the US or Canada listed on the
 same page's "Holidays" section. A year that isn't on the page yet is never guessed: the
@@ -40,9 +44,9 @@ T_OFFSETS = {
     "cloud_enterprise": 3,
 }
 
-# One month whose server and mobile versions are known; every other month counts from it.
-# v12.2 (December 2026) shipped with Mobile v2.47. A major version bump on either side
-# needs this anchor moved.
+# The fallback when Jira has no fix version for a month: one month whose server and mobile
+# versions are known, counted from one minor version a month. v12.2 (December 2026) shipped
+# with Mobile v2.47.
 ANCHOR_MONTH = (2026, 12)
 ANCHOR_SERVER = (12, 2)
 ANCHOR_MOBILE = (2, 47)
@@ -125,14 +129,76 @@ def add_month(month: tuple[int, int], count: int = 1) -> tuple[int, int]:
     return year, index + 1
 
 
-def mobile_version(month: tuple[int, int]) -> str:
-    return f"v{ANCHOR_MOBILE[0]}.{ANCHOR_MOBILE[1] + months_between(ANCHOR_MONTH, month)}"
+MONTH_NAMES = ("January", "February", "March", "April", "May", "June", "July", "August", "September",
+               "October", "November", "December")
+_IN_MONTH = r"\((%s) (\d{4})\)$" % "|".join(MONTH_NAMES)
+# The names highlights.py reads: "v12.2 (December 2026)" and "v2.47 Mobile (December 2026)".
+SERVER_FIX_VERSION = re.compile(r"^v(\d+)\.(\d+) " + _IN_MONTH)
+MOBILE_FIX_VERSION = re.compile(r"^v(\d+)\.(\d+)(?:\.\d+)? Mobile " + _IN_MONTH, re.IGNORECASE)
 
 
-def release_month(version: Version) -> tuple[int, int]:
-    """The month ``version`` ships in, counted from the anchor (same major version only)."""
+def month_name(month: tuple[int, int]) -> str:
+    return f"{MONTH_NAMES[month[1] - 1]} {month[0]}"
+
+
+class JiraVersions:
+    """Server and mobile fix versions by release month, from the Jira versions API
+    (``jira.Jira.versions()``). A month named by two fix versions of a kind is left out."""
+
+    def __init__(self, versions: list[dict] | None = None):
+        self.server, self.mobile = {}, {}
+        ambiguous = set()
+        for item in versions or []:
+            name = " ".join((item.get("name") or "").split())
+            for pattern, found, kind in ((SERVER_FIX_VERSION, self.server, "server"),
+                                         (MOBILE_FIX_VERSION, self.mobile, "mobile")):
+                match = pattern.match(name)
+                if not match:
+                    continue
+                month = (int(match.group(4)), MONTH_NAMES.index(match.group(3).capitalize()) + 1)
+                version = Version(int(match.group(1)), int(match.group(2)))
+                if found.get(month, version) != version:
+                    ambiguous.add((kind, month))
+                found[month] = version
+        for kind, month in ambiguous:
+            (self.server if kind == "server" else self.mobile).pop(month, None)
+
+    def month_of(self, version: Version) -> tuple[int, int] | None:
+        return next((month for month, v in self.server.items() if v.line == version.line), None)
+
+
+def _pick(kind: str, month: tuple[int, int], from_jira: Version | None, worked_out: Version,
+          notes: list | None) -> Version:
+    """Jira's version for ``month`` if it has one, else ``worked_out``; notes say which and why."""
+    label = "fix version" if kind == "server" else "mobile fix version"
+    if from_jira is None:
+        if notes is not None:
+            notes.append(f"No Jira {label} for {month_name(month)}, so the version was worked out: "
+                         f"{worked_out.short}. Check it.")
+        return worked_out
+    if from_jira != worked_out and notes is not None:
+        notes.append(f"Jira's {label} for {month_name(month)} is {from_jira.short}, not {worked_out.short} as worked "
+                     "out from the month before; Jira's is used.")
+    return from_jira
+
+
+def _anchor_mobile(month: tuple[int, int]) -> Version:
+    return Version(ANCHOR_MOBILE[0], ANCHOR_MOBILE[1] + months_between(ANCHOR_MONTH, month))
+
+
+def mobile_version(month: tuple[int, int], jira: JiraVersions | None = None, notes: list | None = None) -> str:
+    """The mobile version released in ``month``: Jira's, else counted from the anchor."""
+    return _pick("mobile", month, (jira or JiraVersions()).mobile.get(month), _anchor_mobile(month), notes).short
+
+
+def release_month(version: Version, jira: JiraVersions | None = None) -> tuple[int, int]:
+    """The month ``version`` ships in: its Jira fix version's, else counted from the anchor
+    (same major version only)."""
+    month = jira.month_of(version) if jira else None
+    if month:
+        return month
     if version.major != ANCHOR_SERVER[0]:
-        raise ValueError(f"{version.short} is not v{ANCHOR_SERVER[0]}.x: move schedule.ANCHOR_* to its major version")
+        raise ValueError(f"{version.short} has no Jira fix version, and isn't v{ANCHOR_SERVER[0]}.x to work its month out")
     return add_month(ANCHOR_MONTH, version.minor - ANCHOR_SERVER[1])
 
 
@@ -200,14 +266,24 @@ def compute(version: Version, month: tuple[int, int], previous_final_build: date
     return Schedule(version, mobile or mobile_version(month), month, day, mobile_release_day(month), branch_cut, dates)
 
 
-def following(version: Version, month: tuple[int, int], holidays: Holidays, count: int = 2) -> list[Schedule]:
-    """The ``count`` releases after ``version`` (released in ``month``), each one minor
-    version and one month later. Raises MissingHolidays when a year isn't on the page."""
+def following(version: Version, month: tuple[int, int], holidays: Holidays, count: int = 2,
+              jira: JiraVersions | None = None, notes: list | None = None) -> list[Schedule]:
+    """The ``count`` releases after ``version`` (released in ``month``), one a month.
+
+    Each month's server and mobile versions are Jira's fix versions. A month with none falls
+    back to one minor version after the month before, and ``notes`` says so; ``notes`` also
+    says when Jira's version isn't that. Raises MissingHolidays when a year isn't on the page.
+    """
+    jira = jira or JiraVersions()
     previous_final = add_working_days(release_day(month, holidays), -T_OFFSETS["final_build"], holidays)
+    server = version
+    mobile = Version.parse(mobile_version(month, jira))
     found = []
     for step in range(1, count + 1):
         next_month = add_month(month, step)
-        release = compute(Version(version.major, version.minor + step), next_month, previous_final, holidays)
+        server = _pick("server", next_month, jira.server.get(next_month), Version(server.major, server.minor + 1), notes)
+        mobile = _pick("mobile", next_month, jira.mobile.get(next_month), Version(mobile.major, mobile.minor + 1), notes)
+        release = compute(server, next_month, previous_final, holidays, mobile.short)
         found.append(release)
         previous_final = release.final_build
     return found
