@@ -186,7 +186,15 @@ func (ps *PlatformService) GetLogsSkipSend(rctx request.CTX, page, perPage int, 
 		hasDateFrom := err == nil
 		var olderEntries int
 
-		reader := newReverseLineReader(file, size, logReadBlockSize)
+		// Entries newer than DateTo can't match, so the scan starts at the first of them rather
+		// than at the end of the file. A later page skips lines counted from the end of the file,
+		// so it still starts there.
+		end := size
+		if dateTo, err := time.Parse(model.LogFilterDateLayout, logFilter.DateTo); err == nil && page == 0 {
+			end = logScanEnd(file, size, dateTo, logReadBlockSize)
+		}
+
+		reader := newReverseLineReader(file, end, logReadBlockSize)
 		toSkip := page * perPage
 		for len(lines) < perPage {
 			line, err := reader.Next()
