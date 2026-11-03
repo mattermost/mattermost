@@ -143,10 +143,14 @@ def all_day(title, day):
 class FakeJira:
     base_url = "https://jira.example.com"
 
-    def __init__(self, page=""):
+    def __init__(self, page="", versions=()):
         self.page = page
+        self.fix_versions = list(versions)
         self.issues = []
         self.writes = []
+
+    def versions(self, project="MM"):
+        return list(self.fix_versions)
 
     def confluence_page(self, page_id):
         return self.page

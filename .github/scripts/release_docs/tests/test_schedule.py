@@ -67,10 +67,60 @@ class ScheduleTest(unittest.TestCase):
         self.assertIn(("v12.2 & Mobile v2.47 Release Day", date(2026, 12, 16)), v12_2.events())
         self.assertEqual(len(v12_2.events()), 8)
 
-    def test_release_month_from_the_anchor(self):
-        self.assertEqual(schedule.release_month(Version(12, 4)), (2027, 2))
+    def test_release_month_from_jira_then_the_anchor(self):
+        jira = schedule.JiraVersions(FIX_VERSIONS)
+        self.assertEqual(schedule.release_month(Version(13, 0), jira), (2027, 10))  # v13.x from Jira
+        self.assertEqual(schedule.release_month(Version(12, 4), jira), (2027, 2))  # not in Jira: the anchor
+        with self.assertRaises(ValueError):
+            schedule.release_month(Version(13, 5), jira)  # neither knows it
         with self.assertRaises(ValueError):
             schedule.release_month(Version(13, 0))
+
+
+# The Jira versions API's names around a server and a mobile major version bump.
+FIX_VERSIONS = [{"id": str(n), "name": name} for n, name in enumerate((
+    "v12.11 (September 2027)", "v2.56 Mobile (September 2027)",
+    "v13.0 (October 2027)", "v3.0 Mobile (October 2027)",
+    "v13.1 (November 2027)", "v3.1 Mobile (November 2027)",
+    "v12.11.1", "v13.0.1",  # dot releases are not months' fix versions
+))]
+
+
+class JiraVersionsTest(unittest.TestCase):
+    def test_v13_0_after_v12_11_comes_from_jira_and_the_difference_is_noted(self):
+        notes = []
+        releases = schedule.following(Version(12, 11), (2027, 9), holidays(), jira=schedule.JiraVersions(FIX_VERSIONS),
+                                      notes=notes)
+        self.assertEqual([r.version.short for r in releases], ["v13.0", "v13.1"])
+        self.assertIn("v13.0 & Mobile v3.0 Release Branch Cut", [title for title, _ in releases[0].events()])
+        self.assertEqual(notes, [
+            "Jira's fix version for October 2027 is v13.0, not v12.12 as worked out from the month before; Jira's is used.",
+            "Jira's mobile fix version for October 2027 is v3.0, not v2.57 as worked out from the month before; "
+            "Jira's is used.",
+        ])  # November follows on from Jira's October, so it isn't noted
+
+    def test_mobile_major_bump(self):
+        jira = schedule.JiraVersions(FIX_VERSIONS)
+        self.assertEqual(schedule.mobile_version((2027, 10), jira), "v3.0")
+        self.assertEqual(schedule.mobile_version((2027, 11), jira), "v3.1")
+        releases = schedule.following(Version(12, 11), (2027, 9), holidays(), jira=jira)
+        self.assertEqual([r.mobile for r in releases], ["v3.0", "v3.1"])
+        self.assertIn("Mobile v3.1 Release Day", " ".join(title for title, _ in releases[1].events()))
+
+    def test_a_month_without_a_fix_version_is_worked_out_with_a_note(self):
+        jira = schedule.JiraVersions([{"name": "v12.2 (December 2026)"}, {"name": "v2.47 Mobile (December 2026)"},
+                                      {"name": "v12.3 (January 2027)"}, {"name": "v2.48 Mobile (January 2027)"}])
+        notes = []
+        releases = schedule.following(Version(12, 2), (2026, 12), holidays(), jira=jira, notes=notes)
+        self.assertEqual([(r.version.short, r.mobile) for r in releases], [("v12.3", "v2.48"), ("v12.4", "v2.49")])
+        self.assertEqual(notes, [
+            "No Jira fix version for February 2027, so the version was worked out: v12.4. Check it.",
+            "No Jira mobile fix version for February 2027, so the version was worked out: v2.49. Check it.",
+        ])
+
+    def test_two_fix_versions_for_one_month_are_not_trusted(self):
+        jira = schedule.JiraVersions([{"name": "v13.0 (October 2027)"}, {"name": "v12.12 (October 2027)"}])
+        self.assertNotIn((2027, 10), jira.server)
 
 
 if __name__ == "__main__":

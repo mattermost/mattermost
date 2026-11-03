@@ -100,6 +100,15 @@ class KeyDatesTest(unittest.TestCase):
         self.assertTrue(result.failed)
         self.assertIn("2027", result.todos[0])
 
+    def test_titles_use_jira_fix_versions(self):
+        calendar = FakeCalendar(RELEASE_DATES)
+        versions = schedule.JiraVersions([{"name": "v13.0 (February 2027)"}, {"name": "v3.0 Mobile (February 2027)"}])
+        result = key_dates.run(V12_2, (2026, 12), holidays(), calendar, None, {}, True, versions)
+        created = [title for _, title, _ in calendar.writes]
+        self.assertIn("v13.0 & Mobile v3.0 Release Day", created)
+        self.assertIn("Jira's fix version for February 2027 is v13.0, not v12.4 as worked out from the month before; "
+                      "Jira's is used.", result.notes)
+
     def test_ticks_the_playbook_item(self):
         run = playbook_run("release", "Add key dates for the next two releases to the Release Dates calendar.")
         hub = FakeHub([RELEASE_CHANNEL], run)

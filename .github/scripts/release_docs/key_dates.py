@@ -76,10 +76,12 @@ def plan(release: schedule.Schedule, existing: list[dict]) -> tuple[list, list]:
     return create, differences
 
 
-def run(version, month, holidays: schedule.Holidays, calendar, hub, env: dict, live: bool) -> Result:
+def run(version, month, holidays: schedule.Holidays, calendar, hub, env: dict, live: bool,
+        versions: schedule.JiraVersions | None = None) -> Result:
+    """``versions``: the Jira fix versions that name each month's server and mobile versions."""
     result = Result(TASK, version.tag)
     try:
-        releases = schedule.following(version, month, holidays)
+        releases = schedule.following(version, month, holidays, jira=versions, notes=result.notes)
     except schedule.MissingHolidays as err:
         result.todo(f"{err}: no key dates written. Add the year's holidays to the Release Processes Overview page")
         return result
