@@ -89,6 +89,17 @@ func TestScheduleJob(t *testing.T) {
 		require.NotNil(t, job)
 	})
 
+	t.Run("skips when the framework reports a pending job", func(t *testing.T) {
+		// The newest pending or in-progress job can be a stale in-progress one hiding an older
+		// pending job, so pendingJobs is checked first and no store call is expected.
+		jobServer := jobs.NewJobServer(&testutils.StaticConfigService{Cfg: &model.Config{}}, &storetest.Store{}, nil, mlog.CreateConsoleTestLogger(t), nil)
+		scheduler := MakeScheduler(jobServer, enterpriseLicense)
+
+		job, appErr := scheduler.ScheduleJob(rctx, nil, true, nil)
+		require.Nil(t, appErr)
+		assert.Nil(t, job)
+	})
+
 	t.Run("skips below an Enterprise license", func(t *testing.T) {
 		for name, license := range map[string]*model.License{
 			"no license":   nil,

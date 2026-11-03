@@ -73,3 +73,19 @@ func TestWorkers(t *testing.T) {
 	assert.Equal(t, int32(1), runs.Load())
 	mockStore.JobStore.AssertCalled(t, "GetAllByTypeAndStatus", mock.Anything, model.JobTypeHealthCheck, model.JobStatusPending)
 }
+
+func TestWorkersWatcherSkipsPollingWhileDisabled(t *testing.T) {
+	cfg := &model.Config{}
+	cfg.SetDefaults()
+	cfg.FeatureFlags.HealthDashboard = false
+	configService := &testutils.StaticConfigService{Cfg: cfg}
+
+	// The mock has no expectations, so any job query fails the test.
+	mockStore := &storetest.Store{}
+	jobServer := jobs.NewJobServer(configService, mockStore, nil, mlog.CreateConsoleTestLogger(t), nil)
+	worker := MakeWorker(jobServer, func(request.CTX) error { return nil })
+	workers := MakeWorkers(jobServer, configService, worker)
+
+	workers.Watcher.PollAndNotify()
+	mockStore.JobStore.AssertNotCalled(t, "GetAllByTypeAndStatus", mock.Anything, mock.Anything, mock.Anything)
+}

@@ -42,10 +42,11 @@ func MakeScheduler(jobServer *jobs.JobServer, licenseFunc func() *model.License)
 // succeed and report the server as evaluated. The license is checked here rather than in
 // Enabled, which the framework only re-reads on config changes, so a license added later still
 // gets the next hourly run. It also skips while a health_check job is pending or in progress,
-// so runs never overlap. The framework passes pendingJobs but PeriodicScheduler ignores it,
-// creating a job every period whatever is pending or running.
+// so runs never overlap: the framework passes pendingJobs but PeriodicScheduler ignores it,
+// creating a job every period whatever is pending or running. pendingJobs is checked as well
+// as the newest job, which can be a newer stale in-progress job hiding an older pending one.
 func (s *Scheduler) ScheduleJob(rctx request.CTX, cfg *model.Config, pendingJobs bool, lastSuccessfulJob *model.Job) (*model.Job, *model.AppError) {
-	if !model.MinimumEnterpriseLicense(s.licenseFunc()) {
+	if !model.MinimumEnterpriseLicense(s.licenseFunc()) || pendingJobs {
 		return nil, nil
 	}
 

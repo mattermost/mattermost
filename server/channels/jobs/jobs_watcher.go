@@ -24,7 +24,8 @@ type Watcher struct {
 	stopped         chan struct{}
 	pollingInterval int
 
-	// jobType, when set, limits polling to pending jobs of that type.
+	// jobType, when set, limits polling to pending jobs of that type, and skips polling while
+	// that type's worker is disabled.
 	jobType string
 }
 
@@ -84,6 +85,10 @@ func (watcher *Watcher) PollAndNotify() {
 		err  error
 	)
 	if watcher.jobType != "" {
+		// Nothing could run the jobs while the worker is disabled, so don't query for them.
+		if worker := watcher.workers.Get(watcher.jobType); worker == nil || !worker.IsEnabled(watcher.srv.Config()) {
+			return
+		}
 		jobs, err = watcher.srv.Store.Job().GetAllByTypeAndStatus(rctx, watcher.jobType, model.JobStatusPending)
 	} else {
 		jobs, err = watcher.srv.Store.Job().GetAllByStatus(rctx, model.JobStatusPending)
