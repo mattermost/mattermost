@@ -11,8 +11,11 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -1355,6 +1358,267 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 		_, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
 		require.Nil(t, err)
 	})
+}
+
+// TestDoPostActionPluginRouteAuthor checks which stored attachment actions call a plugin route.
+// The plugin records each ServeHTTP call. Rows differ by the post author and the action URL.
+func TestDoPostActionPluginRouteAuthor(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+	})
+
+	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
+	canRead, isMember := th.App.HasPermissionToChannel(th.Context, th.BasicUser2.Id, th.BasicChannel.Id, model.PermissionReadChannelContent)
+	require.True(t, canRead)
+	require.True(t, isMember)
+
+	clickerSession, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser2.Id})
+	require.Nil(t, appErr)
+	require.NotEmpty(t, clickerSession.Token)
+	require.Equal(t, th.BasicUser2.Id, clickerSession.UserId)
+
+	counterPath := filepath.Join(t.TempDir(), "plugin-route-hits")
+	setupPluginAPITest(t,
+		fmt.Sprintf(`
+		package main
+
+		import (
+			"fmt"
+			"net/http"
+			"os"
+
+			"github.com/mattermost/mattermost/server/public/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
+			f, openErr := os.OpenFile(%q, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
+			if openErr != nil {
+				http.Error(w, "record", http.StatusInternalServerError)
+				return
+			}
+			_, _ = fmt.Fprintf(f, "%%s %%s\n", r.Header.Get("Mattermost-User-Id"), r.URL.RawQuery)
+			_ = f.Close()
+
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte("{}"))
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+		`, counterPath),
+		`{"id": "myplugin", "server": {"executable": "backend.exe"}}`,
+		"myplugin",
+		th.App,
+		th.Context,
+	)
+
+	hooks, hooksErr := th.App.GetPluginsEnvironment().HooksForPlugin("myplugin")
+	require.NoError(t, hooksErr)
+	require.NotNil(t, hooks)
+
+	var httpHits atomic.Int32
+	var authValue atomic.Value
+	authValue.Store("")
+	recorder := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		httpHits.Add(1)
+		authValue.Store(r.Header.Get(model.HeaderAuth))
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("{}"))
+	}))
+	t.Cleanup(recorder.Close)
+
+	readHits := func(t *testing.T) []string {
+		t.Helper()
+		data, err := os.ReadFile(counterPath)
+		if os.IsNotExist(err) {
+			return nil
+		}
+		require.NoError(t, err)
+		text := strings.TrimSpace(string(data))
+		if text == "" {
+			return nil
+		}
+		return strings.Split(text, "\n")
+	}
+
+	// storeAttachmentAction writes the action onto the already-saved post so the
+	// click reads the stored URL rather than a value that only existed at create time.
+	storeAttachmentAction := func(t *testing.T, postID, actionURL string) string {
+		t.Helper()
+		stored, err := th.App.Srv().Store().Post().GetSingle(th.Context, postID, false)
+		require.NoError(t, err)
+
+		actionID := model.NewId()
+		stored.AddProp(model.PostPropsAttachments, []*model.MessageAttachment{{
+			Text: "hello",
+			Actions: []*model.PostAction{{
+				Id:   actionID,
+				Type: model.PostActionTypeButton,
+				Name: "action",
+				Integration: &model.PostActionIntegration{
+					URL: actionURL,
+				},
+			}},
+		}})
+		_, err = th.App.Srv().Store().Post().Overwrite(th.Context, stored)
+		require.NoError(t, err)
+
+		reloaded, err := th.App.Srv().Store().Post().GetSingle(th.Context, postID, false)
+		require.NoError(t, err)
+		action := reloaded.GetAction(actionID)
+		require.NotNil(t, action)
+		require.NotNil(t, action.Integration)
+		require.Equal(t, actionURL, action.Integration.URL)
+		return actionID
+	}
+
+	testCases := []struct {
+		name          string
+		author        string
+		siteURLPlugin bool
+		expectCall    bool
+	}{
+		{
+			name:       "ordinary user relative plugin route",
+			author:     "user",
+			expectCall: false,
+		},
+		{
+			name:          "ordinary user siteurl plugin route",
+			author:        "user",
+			siteURLPlugin: true,
+			expectCall:    false,
+		},
+		{
+			name:       "bot relative plugin route",
+			author:     "bot",
+			expectCall: true,
+		},
+		{
+			name:       "incoming webhook relative plugin route",
+			author:     "webhook",
+			expectCall: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			require.NoError(t, os.WriteFile(counterPath, nil, 0600))
+			httpHits.Store(0)
+			authValue.Store("")
+
+			var postID string
+			switch tc.author {
+			case "user":
+				require.False(t, th.BasicUser.IsBot)
+				created, _, createErr := th.App.CreatePostAsUser(th.Context, &model.Post{
+					Message:   "interactive",
+					ChannelId: th.BasicChannel.Id,
+					UserId:    th.BasicUser.Id,
+				}, "", true)
+				require.Nil(t, createErr)
+				postID = created.Id
+			case "bot":
+				botUser := setupBotInChannel(t, th)
+				require.True(t, botUser.IsBot)
+				created, _, createErr := th.App.CreatePostAsUser(th.Context, &model.Post{
+					Message:   "interactive",
+					ChannelId: th.BasicChannel.Id,
+					UserId:    botUser.Id,
+				}, "", true)
+				require.Nil(t, createErr)
+				require.Equal(t, "true", created.GetProp(model.PostPropsFromBot))
+				postID = created.Id
+			case "webhook":
+				th.App.UpdateConfig(func(cfg *model.Config) {
+					*cfg.ServiceSettings.EnableIncomingWebhooks = true
+				})
+				hook, hookErr := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{
+					ChannelId: th.BasicChannel.Id,
+				})
+				require.Nil(t, hookErr)
+				created, createErr := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "interactive",
+					"", "", "", nil, "", "", nil, false)
+				require.Nil(t, createErr)
+				require.Equal(t, "true", created.GetProp(model.PostPropsFromWebhook))
+				require.False(t, th.BasicUser.IsBot)
+				postID = created.Id
+			default:
+				t.Fatalf("unknown author %q", tc.author)
+			}
+
+			actionURL := "/plugins/myplugin/myaction?source=button"
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.ServiceSettings.SiteURL = ""
+			})
+			if tc.siteURLPlugin {
+				actionURL = recorder.URL + "/plugins/myplugin/myaction"
+				th.App.UpdateConfig(func(cfg *model.Config) {
+					*cfg.ServiceSettings.SiteURL = recorder.URL
+				})
+			}
+
+			actionID := storeAttachmentAction(t, postID, actionURL)
+
+			reloaded, err := th.App.Srv().Store().Post().GetSingle(th.Context, postID, false)
+			require.NoError(t, err)
+			require.NotEqual(t, th.BasicUser2.Id, reloaded.UserId)
+			switch tc.author {
+			case "user":
+				require.Nil(t, reloaded.GetProp(model.PostPropsFromBot))
+				require.Nil(t, reloaded.GetProp(model.PostPropsFromWebhook))
+				require.Nil(t, reloaded.GetProp(model.PostPropsFromPlugin))
+				require.Nil(t, reloaded.GetProp(model.PostPropsFromOAuthApp))
+			case "bot":
+				require.Equal(t, "true", reloaded.GetProp(model.PostPropsFromBot))
+			case "webhook":
+				require.Equal(t, "true", reloaded.GetProp(model.PostPropsFromWebhook))
+			}
+
+			clickCtx := th.Context.WithSession(clickerSession)
+			_, _, appErr := th.App.DoPostActionWithCookie(clickCtx, postID, actionID, th.BasicUser2.Id, "", nil, nil, nil, model.PostActionIntegrationFormatAttachment)
+
+			hits := readHits(t)
+			for _, line := range hits {
+				recordedUser, _, _ := strings.Cut(line, " ")
+				assert.Equal(t, th.BasicUser2.Id, recordedUser, "user id recorded by the plugin route")
+			}
+
+			if tc.expectCall {
+				require.Nil(t, appErr)
+				require.Len(t, hits, 1, "plugin route calls")
+				_, recordedQuery, _ := strings.Cut(hits[0], " ")
+				assert.Equal(t, "source=button", recordedQuery, "query recorded by the plugin route")
+				assert.Zero(t, httpHits.Load(), "outbound requests")
+				return
+			}
+
+			// The plugin route is not called, and a SiteURL plugin path is not requested.
+			if n := httpHits.Load(); n != 0 {
+				t.Errorf("siteurl plugin route requests = %d, want 0", n)
+			}
+			gotAuth, _ := authValue.Load().(string)
+			if strings.Contains(gotAuth, clickerSession.Token) {
+				t.Errorf("siteurl plugin route request included the clicking user's session token")
+			}
+			if len(hits) != 0 {
+				t.Errorf("plugin route calls = %d, want 0; recorded %q", len(hits), hits)
+			}
+			if appErr == nil {
+				t.Errorf("DoPostActionWithCookie returned no error")
+			}
+		})
+	}
 }
 
 func TestLookupInteractiveDialog(t *testing.T) {
