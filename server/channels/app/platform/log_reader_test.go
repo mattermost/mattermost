@@ -433,26 +433,58 @@ func TestLogScanEnd(t *testing.T) {
 		assert.Equal(t, int64(len(small)), logScanEnd(strings.NewReader(small), int64(len(small)), start, logReadBlockSize))
 	})
 
-	t.Run("unparseable lines at a probe point", func(t *testing.T) {
-		for _, junk := range []string{
-			strings.Repeat("not json\n", logSeekProbeSize),
-			logLine("bad timestamp", "info", strings.Repeat("x", 100)) + "\n",
-			strings.Repeat("y", 2*logSeekProbeSize) + "\n",
-		} {
-			var sb strings.Builder
-			inserted := false
-			for _, line := range lines {
-				// the first probe lands in the middle of the file, and reads nothing but junk
-				if !inserted && sb.Len() >= int(size/2)-logSeekProbeSize {
-					sb.WriteString(strings.Repeat(junk, 4*logSeekProbeSize/len(junk)+1))
-					inserted = true
-				}
-				sb.WriteString(line)
-				sb.WriteByte('\n')
+	// withJunkAtProbe returns content with junk, repeated to about junkSize bytes, inserted in the
+	// middle of the file. That moves the middle, where the first probe of logScanEnd lands, to
+	// halfway through the junk.
+	withJunkAtProbe := func(junk string, junkSize int) string {
+		var sb strings.Builder
+		inserted := false
+		for _, line := range lines {
+			if !inserted && sb.Len() >= int(size/2) {
+				sb.WriteString(strings.Repeat(junk, junkSize/len(junk)+1))
+				inserted = true
 			}
-			withJunk := strings.TrimSuffix(sb.String(), "\n")
+			sb.WriteString(line)
+			sb.WriteByte('\n')
+		}
+		return strings.TrimSuffix(sb.String(), "\n")
+	}
+
+	t.Run("unparseable lines at a probe point", func(t *testing.T) {
+		// more than a block after the probe, so it reads nothing but junk
+		for _, junk := range []string{
+			"not json\n",
+			logLine("bad timestamp", "info", strings.Repeat("x", 100)) + "\n",
+			strings.Repeat("y", 2*logReadBlockSize) + "\n",
+			logLine("2026-10-21 00:00:00.000 Z", "info", strings.Repeat("x", 2*logReadBlockSize)) + "\n",
+		} {
+			withJunk := withJunkAtProbe(junk, 3*logReadBlockSize)
 
 			assert.Equal(t, int64(len(withJunk)), logScanEnd(strings.NewReader(withJunk), int64(len(withJunk)), start.Add(time.Hour), logReadBlockSize), "junk %.20q", junk)
+		}
+	})
+
+	t.Run("long or unparseable lines within a block of a probe point are read past", func(t *testing.T) {
+		dateTo := start.Add(time.Hour)
+		for _, junk := range []string{
+			"not json\n",
+			logLine("bad timestamp", "info", strings.Repeat("x", 100)) + "\n",
+			strings.Repeat("y", logReadBlockSize/2) + "\n",
+			// a long entry in order, as a large error might log
+			logLine(start.Add(10000*time.Second).Format(logr.DefTimestampFormat), "error", strings.Repeat("x", logReadBlockSize/2)) + "\n",
+		} {
+			withJunk := withJunkAtProbe(junk, logReadBlockSize/2)
+			reader := &countingReaderAt{r: strings.NewReader(withJunk)}
+
+			end := logScanEnd(reader, int64(len(withJunk)), dateTo, logReadBlockSize)
+
+			// the junk is after line 3601, which ends the range
+			assert.Greater(t, end, offsets[3601]+int64(len(lines[3601])), "junk %.20q", junk)
+			if !assert.Less(t, end, int64(len(withJunk))/2, "junk %.20q", junk) {
+				continue
+			}
+			assert.Equal(t, byte('\n'), withJunk[end], "junk %.20q", junk)
+			assert.Less(t, reader.read, int64(4*logReadBlockSize), "junk %.20q", junk)
 		}
 	})
 
@@ -551,7 +583,8 @@ func TestGetLogsSkipSendDateTo(t *testing.T) {
 
 	t.Run("unparseable lines at a probe point", func(t *testing.T) {
 		lines := dateToTestLogFile(start, 20000)
-		lines = slices.Insert(lines, 10000, slices.Repeat([]string{"not json"}, logSeekProbeSize)...)
+		// more than a block, so the probe that lands on them falls back to reading every line
+		lines = slices.Insert(lines, 10000, slices.Repeat([]string{"not json"}, logReadBlockSize/4)...)
 		content := strings.Join(lines, "\n")
 		all := referenceLogLines(content)
 		ps := newGetLogsTestService(t, []byte(content))
@@ -562,6 +595,30 @@ func TestGetLogsSkipSendDateTo(t *testing.T) {
 		require.Nil(t, appErr)
 		assert.Equal(t, referenceFilteredLogs(rctx, all, 100, filter), result)
 		assert.Equal(t, "\nnot json", result[len(result)-1])
+	})
+
+	t.Run("long entries", func(t *testing.T) {
+		lines := dateToTestLogFile(start, 20000)
+		for i := 0; i < len(lines); i += 97 {
+			lines[i] = logLine(start.Add(time.Duration(i)*time.Second).Format(logr.DefTimestampFormat), "error", strings.Repeat("z", 5*logSeekProbeSize+i%logSeekProbeSize))
+		}
+		content := strings.Join(lines, "\n")
+		all := referenceLogLines(content)
+		ps := newGetLogsTestService(t, []byte(content))
+
+		for _, filter := range []model.LogFilter{
+			{DateTo: at(2000)},
+			{DateTo: at(9700.5)},
+			{DateFrom: at(5000), DateTo: at(6000), LogLevels: []string{"error"}},
+		} {
+			dateTo, err := time.Parse(model.LogFilterDateLayout, filter.DateTo)
+			require.NoError(t, err)
+			assert.Less(t, logScanEnd(strings.NewReader(content), int64(len(content)), dateTo, logReadBlockSize), int64(len(content)), "filter %+v", filter)
+
+			result, appErr := ps.GetLogsSkipSend(rctx, 0, 1000, &filter)
+			require.Nil(t, appErr)
+			assert.Equal(t, referenceFilteredLogs(rctx, all, 1000, &filter), result, "filter %+v", filter)
+		}
 	})
 
 	t.Run("a later page counts lines from the end of the file", func(t *testing.T) {
