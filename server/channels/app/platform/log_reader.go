@@ -10,6 +10,8 @@ import (
 	"time"
 
 	"github.com/mattermost/logr/v2"
+
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 // logReadBlockSize is how much of the log file is read per call when scanning it backwards.
@@ -139,8 +141,10 @@ func logScanEnd(r io.ReaderAt, size int64, dateTo time.Time, blockSize int) int6
 	return size
 }
 
-// probeLogTimestamp returns the timestamp of the first entry that starts at or after offset, in the
-// first size bytes of r, and parses within the logSeekProbeSize bytes read into buf.
+// probeLogTimestamp returns the timestamp of the first entry that starts after offset (or at it, when
+// offset is 0), in the first size bytes of r, and parses within the logSeekProbeSize bytes read
+// into buf. A line that starts exactly at a non-zero offset is skipped, as it can't be told apart
+// from one that started before it.
 func probeLogTimestamp(r io.ReaderAt, size, offset int64, buf []byte) (time.Time, bool) {
 	n := int(min(int64(len(buf)), size-offset))
 	data := buf[:n]
@@ -169,9 +173,8 @@ func probeLogTimestamp(r io.ReaderAt, size, offset int64, buf []byte) (time.Time
 			break
 		}
 
-		var entry struct {
-			Timestamp string `json:"timestamp"`
-		}
+		// decoded as GetLogsSkipSend decodes it, so that both agree on an entry's timestamp
+		var entry model.LogEntry
 		if json.Unmarshal(line, &entry) != nil {
 			continue
 		}

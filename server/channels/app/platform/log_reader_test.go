@@ -732,21 +732,22 @@ func BenchmarkGetLogsSkipSend(b *testing.B) {
 			}
 		})
 	}
+}
 
-	b.Run("past date range", func(b *testing.B) {
-		// a range in the first 10% of a 100 MiB file, which a scan from the end reads about 90 MiB to reach
-		content, first, last := benchmarkLogFile(b, 100<<20)
-		ps := newGetLogsTestService(b, content)
-		span := last.Sub(first)
-		filter := &model.LogFilter{
-			DateFrom: first.Add(span / 20).Format(model.LogFilterDateLayout),
-			DateTo:   first.Add(span / 10).Format(model.LogFilterDateLayout),
-		}
+func BenchmarkGetLogsSkipSendPastDateRange(b *testing.B) {
+	// a range in the first 10% of a 100 MiB file, which a scan from the end reads about 90 MiB to reach
+	content, first, last := benchmarkLogFile(b, 100<<20)
+	ps := newGetLogsTestService(b, content)
+	rctx := request.TestContext(b)
+	span := last.Sub(first)
+	filter := &model.LogFilter{
+		DateFrom: first.Add(span / 20).Format(model.LogFilterDateLayout),
+		DateTo:   first.Add(span / 10).Format(model.LogFilterDateLayout),
+	}
 
-		b.ReportAllocs()
-		for b.Loop() {
-			_, appErr := ps.GetLogsSkipSend(rctx, 0, 10000, filter)
-			require.Nil(b, appErr)
-		}
-	})
+	b.ReportAllocs()
+	for b.Loop() {
+		_, appErr := ps.GetLogsSkipSend(rctx, 0, 10000, filter)
+		require.Nil(b, appErr)
+	}
 }
