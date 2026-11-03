@@ -11,7 +11,6 @@ From Mattermost Desktop v6.1, the desktop app sends automatic error reports to h
 
 - **Sent**: crash information and stack traces, app version and platform details, and error messages.
 - **Not sent**: message content, credentials or authentication tokens, and server URLs or team names.
-- **May include**: local file paths in error messages. A path can include the user's operating system username.
 
 Error reporting is enabled by default. Users can turn it off in **Settings \> Advanced \> Send error reports to help improve the app**, then restart the app. If you [build the app from source](/deployment-guide/desktop/distribute-a-custom-desktop-app), omit the `MM_DESKTOP_BUILD_SENTRYDSN` environment variable to turn error reporting off at build time.
 
