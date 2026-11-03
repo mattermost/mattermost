@@ -7611,6 +7611,10 @@
     "defaultMessage": "The health check failed.",
     "description": "Error banner on the System Console Site health page when a health check run failed and the server gave no reason."
   },
+  "admin.health_dashboard.run.reload_error": {
+    "defaultMessage": "The health check finished, but its findings could not be loaded. Reload the page to see them.",
+    "description": "Error banner on the System Console Site health page when a health check run succeeded but its new findings could not be fetched."
+  },
   "admin.health_dashboard.run.running": {
     "defaultMessage": "Running checks…",
     "description": "Label of the disabled Re-run checks button on the System Console Site health page while a health check run is in progress."

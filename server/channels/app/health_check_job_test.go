@@ -146,6 +146,34 @@ func TestGetLatestHealthCheckRun(t *testing.T) {
 	require.Nil(t, appErr)
 	assert.Equal(t, model.JobStatusError, latest.Status)
 	assert.Equal(t, now-1000, latest.CreateAt)
+
+	t.Run("a run left in progress by a node that died is closed as failed", func(t *testing.T) {
+		stale := &model.Job{Id: model.NewId(), Type: model.JobTypeHealthCheck, Status: model.JobStatusInProgress,
+			CreateAt: now + 1000, LastActivityAt: time.Now().Add(-health_check.StaleInProgressAfter - time.Minute).UnixMilli()}
+		_, err := th.App.Srv().Store().Job().Save(stale)
+		require.NoError(t, err)
+
+		latest, appErr := th.App.GetLatestHealthCheckRun(th.Context)
+		require.Nil(t, appErr)
+		assert.Equal(t, stale.Id, latest.Id)
+		assert.Equal(t, model.JobStatusError, latest.Status)
+
+		stored, err := th.App.Srv().Store().Job().Get(th.Context, stale.Id)
+		require.NoError(t, err)
+		assert.Equal(t, model.JobStatusError, stored.Status)
+	})
+
+	t.Run("a run in progress with recent activity is returned as is", func(t *testing.T) {
+		running := &model.Job{Id: model.NewId(), Type: model.JobTypeHealthCheck, Status: model.JobStatusInProgress,
+			CreateAt: now + 2000, LastActivityAt: model.GetMillis()}
+		_, err := th.App.Srv().Store().Job().Save(running)
+		require.NoError(t, err)
+
+		latest, appErr := th.App.GetLatestHealthCheckRun(th.Context)
+		require.Nil(t, appErr)
+		assert.Equal(t, running.Id, latest.Id)
+		assert.Equal(t, model.JobStatusInProgress, latest.Status)
+	})
 }
 
 // Not parallel: it uses the process-wide latest-version cache that BuildHealthSnapshot reads.

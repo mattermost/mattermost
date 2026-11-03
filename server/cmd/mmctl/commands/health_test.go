@@ -298,6 +298,26 @@ func (s *MmctlUnitTestSuite) TestHealthCheckRun() {
 		s.Empty(printer.GetLines())
 	})
 
+	s.Run("a run being canceled is followed until it is canceled", func() {
+		printer.Clean()
+
+		started := healthTestJob(model.JobStatusInProgress, 100)
+		cancelRequested := *started
+		cancelRequested.Status = model.JobStatusCancelRequested
+		canceled := *started
+		canceled.Status = model.JobStatusCanceled
+
+		gomock.InOrder(
+			s.client.EXPECT().StartHealthCheckRun(gomock.Any()).Return(started, &model.Response{}, nil).Times(1),
+			s.client.EXPECT().GetHealthCheckRun(gomock.Any()).Return(&cancelRequested, &model.Response{}, nil).Times(1),
+			s.client.EXPECT().GetHealthCheckRun(gomock.Any()).Return(&canceled, &model.Response{}, nil).Times(1),
+		)
+
+		err := healthCheckCmdF(s.client, s.healthRunTestCommand(time.Minute), []string{})
+		s.Require().EqualError(err, "health check run "+started.Id+" was canceled")
+		s.Empty(printer.GetLines())
+	})
+
 	s.Run("timeout", func() {
 		printer.Clean()
 
@@ -330,6 +350,23 @@ func (s *MmctlUnitTestSuite) TestHealthCheckRun() {
 
 		err := healthCheckRunE(cmd, []string{})
 		s.Require().EqualError(err, "--run cannot be used with --packet: a Support Packet is evaluated offline")
+	})
+
+	s.Run("--timeout without --run", func() {
+		cmd := newTestCmd(s.T(), HealthCheckCmd)
+		s.Require().NoError(cmd.Flags().Set("timeout", "10m"))
+
+		err := healthCheckRunE(cmd, []string{})
+		s.Require().EqualError(err, "--timeout can only be used with --run")
+	})
+
+	s.Run("--timeout with --packet and no --run", func() {
+		cmd := newTestCmd(s.T(), HealthCheckCmd)
+		s.Require().NoError(cmd.Flags().Set("timeout", "10m"))
+		s.Require().NoError(cmd.Flags().Set("packet", "packet.zip"))
+
+		err := healthCheckRunE(cmd, []string{})
+		s.Require().EqualError(err, "--timeout can only be used with --run")
 	})
 }
 

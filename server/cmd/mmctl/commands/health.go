@@ -63,8 +63,12 @@ func init() {
 // healthCheckRunE dispatches before any client is built: withClient connects eagerly, and
 // --packet must work with no server.
 func healthCheckRunE(cmd *cobra.Command, args []string) error {
+	run, _ := cmd.Flags().GetBool("run")
+	if !run && cmd.Flags().Changed("timeout") {
+		return errors.New("--timeout can only be used with --run")
+	}
 	if packetPath, _ := cmd.Flags().GetString("packet"); packetPath != "" {
-		if run, _ := cmd.Flags().GetBool("run"); run {
+		if run {
 			return errors.New("--run cannot be used with --packet: a Support Packet is evaluated offline")
 		}
 		return healthCheckPacketCmdF(cmd, args)
@@ -122,7 +126,7 @@ func runHealthCheckAndWait(c client.Client, timeout time.Duration) error {
 				return fmt.Errorf("health check run %s failed: %s", job.Id, msg)
 			}
 			return fmt.Errorf("health check run %s failed", job.Id)
-		case model.JobStatusCanceled, model.JobStatusCancelRequested:
+		case model.JobStatusCanceled:
 			return fmt.Errorf("health check run %s was canceled", job.Id)
 		}
 

@@ -159,6 +159,7 @@ func (a *App) newestHealthCheckJob(statuses ...string) (*model.Job, *model.AppEr
 
 // GetLatestHealthCheckRun returns the newest health_check job, whatever its status and whether
 // it was started on demand or by the scheduler. It returns a 404 error if there has never been one.
+// A stale in-progress run is closed as failed first (see health_check.RunningJob).
 func (a *App) GetLatestHealthCheckRun(rctx request.CTX) (*model.Job, *model.AppError) {
 	jobs, err := a.Srv().Store().Job().GetAllByTypePage(rctx, model.JobTypeHealthCheck, 0, 1)
 	if err != nil {
@@ -168,7 +169,17 @@ func (a *App) GetLatestHealthCheckRun(rctx request.CTX) (*model.Job, *model.AppE
 		return nil, model.NewAppError("GetLatestHealthCheckRun", "app.health_check.get_latest_run.not_found.app_error", nil, "", http.StatusNotFound)
 	}
 
-	return jobs[0], nil
+	// A run left in progress by a node that died would otherwise show as running until the next
+	// scheduled run closes it, up to an hour, and keep clients polling it. Close it now instead.
+	latest := jobs[0]
+	if health_check.IsStale(latest) {
+		if _, appErr := health_check.RunningJob(rctx, a.Srv().Jobs); appErr != nil {
+			return nil, appErr
+		}
+		latest.Status = model.JobStatusError
+	}
+
+	return latest, nil
 }
 
 func (a *App) MuteHealthFinding(rctx request.CTX, fingerprint string, userID string) *model.AppError {

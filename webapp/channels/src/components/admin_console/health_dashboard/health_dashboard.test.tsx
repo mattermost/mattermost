@@ -639,6 +639,22 @@ describe('components/admin_console/health_dashboard', () => {
             expect(await screen.findByText('The health check failed.')).toBeVisible();
         });
 
+        test('keeps the findings on screen when they cannot be reloaded after a successful run', async () => {
+            const user = setupUser();
+            await renderDashboard(stale);
+            jest.spyOn(Client4, 'getHealthFindings').mockRejectedValue(new Error('boom'));
+            jest.spyOn(Client4, 'startHealthCheckRun').mockResolvedValue(makeRun('pending'));
+            jest.spyOn(Client4, 'getHealthCheckRun').mockResolvedValueOnce(makeRun('success'));
+
+            await user.click(runButton());
+            await nextPoll();
+
+            expect(await screen.findByText('The health check finished, but its findings could not be loaded. Reload the page to see them.')).toBeVisible();
+            expect(screen.queryByText('Health findings could not be loaded')).not.toBeInTheDocument();
+            expect(screen.getByText('Stale finding')).toBeInTheDocument();
+            expect(runButton()).toBeEnabled();
+        });
+
         test('shows an error when the run cannot be started', async () => {
             const user = setupUser();
             await renderDashboard(stale);

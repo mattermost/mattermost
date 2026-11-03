@@ -81,6 +81,11 @@ const runStatusErrorMessage = defineMessage({
     defaultMessage: 'The health check is running, but its progress could not be checked. Reload the page to see its results.',
 });
 
+const runReloadErrorMessage = defineMessage({
+    id: 'admin.health_dashboard.run.reload_error',
+    defaultMessage: 'The health check finished, but its findings could not be loaded. Reload the page to see them.',
+});
+
 const runFailedMessage = defineMessage({
     id: 'admin.health_dashboard.run.failed',
     // eslint-disable-next-line formatjs/enforce-placeholders -- error is provided where the banner renders it
@@ -151,8 +156,14 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, actions}: Pr
     // Reports a finished run: fresh findings on success, the job's error otherwise.
     const finishRun = useCallback(async (job: Job) => {
         if (isRunSuccessful(job)) {
+            // Keep the findings already on screen if the reload fails, rather than replacing the
+            // whole page with the load error: the run itself succeeded.
             const {error} = await actions.getHealthFindings();
-            setFailed(Boolean(error));
+            if (error) {
+                setRunError({message: runReloadErrorMessage});
+                return;
+            }
+            setFailed(false);
             setNow(Date.now());
         } else {
             setRunError(runErrorFor(job));
