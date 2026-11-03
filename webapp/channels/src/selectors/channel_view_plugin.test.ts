@@ -67,6 +67,13 @@ describe('selectors/getChannelViewPluginComponent', () => {
         expect(getChannelViewPluginComponent(makeState([reg]), makeChannel())).toBe(reg);
     });
 
+    it('returns the matching registration with its sub-path flag', () => {
+        const reg = makeRegistration({handlesSubpaths: true});
+        const result = getChannelViewPluginComponent(makeState([makeRegistration({matcher: () => false}), reg]), makeChannel());
+        expect(result).toBe(reg);
+        expect(result?.handlesSubpaths).toBe(true);
+    });
+
     it('returns null when matcher returns false or a truthy non-boolean', () => {
         const channel = makeChannel();
         expect(getChannelViewPluginComponent(makeState([makeRegistration({matcher: () => false})]), channel)).toBeNull();

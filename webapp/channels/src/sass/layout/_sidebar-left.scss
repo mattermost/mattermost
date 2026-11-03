@@ -983,6 +983,23 @@ $sidebarOpacityAnimationDuration: 0.15s;
             transform: none !important;
         }
 
+        &.hasSubItems {
+            flex-direction: column;
+            align-items: stretch;
+
+            &.expanded {
+                height: auto;
+            }
+        }
+
+        .SidebarChannel__dragHandle {
+            display: flex;
+            width: 100%;
+            min-width: 0;
+            flex: 0 0 auto;
+            align-items: center;
+        }
+
         &.selectedDragging {
             opacity: 0.25;
             transition: all cubic-bezier(0.2, 1, 0.1, 1) 0.33s;
@@ -1147,6 +1164,10 @@ $sidebarOpacityAnimationDuration: 0.15s;
             margin-right: 11px;
         }
 
+        .SidebarChannelLink__subItemsToggle {
+            margin-right: 11px;
+        }
+
         .SidebarMenu {
             display: block;
         }
@@ -1168,7 +1189,8 @@ $sidebarOpacityAnimationDuration: 0.15s;
     }
 
     .SidebarChannel > .active.SidebarLink,
-    .SidebarChannel.active .SidebarLink {
+    .SidebarChannel__dragHandle > .active.SidebarLink,
+    .SidebarChannel.active:not(.hasActiveSubItem) .SidebarLink {
         background: rgba(var(--sidebar-text-rgb), 0.08);
 
         .DirectChannel__profile-picture .DirectChannel__status-icon {
@@ -1198,7 +1220,8 @@ $sidebarOpacityAnimationDuration: 0.15s;
     }
 
     .SidebarLink.active::before,
-    .SidebarChannel.active .SidebarLink::before {
+    .SidebarChannel.active:not(.hasActiveSubItem) .SidebarLink::before,
+    .SidebarChannelSubItem.active > .SidebarChannelSubItem__row > .SidebarChannelSubItem__link::before {
         position: absolute;
         top: 0;
         left: -2px;
@@ -1223,6 +1246,233 @@ $sidebarOpacityAnimationDuration: 0.15s;
         display: flex;
         margin: 0 6px 0 -2px;
         font-size: 18px;
+    }
+
+    .SidebarChannel.hasSubItems .SidebarLink:hover .SidebarMenu_menuButton,
+    .SidebarChannel.hasSubItems .SidebarLink.menuOpen .SidebarMenu_menuButton {
+        margin-right: 0;
+    }
+
+    .SidebarChannelLink__subItemsToggle {
+        display: flex;
+        width: 24px;
+        height: 24px;
+        flex: 0 0 24px;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border: none;
+        border-radius: 4px;
+        margin-left: 4px;
+        background: transparent;
+        color: rgba(var(--sidebar-text-rgb), 0.64);
+        font-size: 16px;
+        line-height: 16px;
+
+        &:hover,
+        &:focus-visible {
+            background: rgba(var(--sidebar-text-rgb), 0.08);
+            color: var(--sidebar-text);
+            cursor: pointer;
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--sidebar-text-active-border);
+            outline-offset: -2px;
+        }
+    }
+
+    .SidebarChannelSubItems {
+        width: 100%;
+        padding: 0;
+        margin: 0;
+        list-style: none;
+    }
+
+    .SidebarChannelSubItem {
+        list-style: none;
+
+        &__row {
+            --sub-item-indent: 16px;
+
+            position: relative;
+            display: flex;
+            width: 100%;
+            height: 28px;
+            align-items: center;
+
+            &:hover,
+            &:focus-within,
+            &.menuOpen {
+                background: rgba(var(--sidebar-text-rgb), 0.08);
+            }
+        }
+
+        &__link {
+            position: relative;
+            display: flex;
+            min-width: 0;
+            height: 100%;
+            flex: 1 1 auto;
+            align-items: center;
+            padding: 0 16px 0 calc(44px + var(--sub-item-depth, 0) * var(--sub-item-indent, 16px));
+            color: rgba(var(--sidebar-text-rgb), 0.72);
+            font-size: 14px;
+            line-height: 20px;
+            text-decoration: none;
+
+            &:hover {
+                color: var(--sidebar-text);
+                text-decoration: none;
+            }
+
+            &:focus {
+                outline: none;
+            }
+
+            &:focus-visible {
+                outline: 2px solid var(--sidebar-text-active-border);
+                outline-offset: -2px;
+            }
+        }
+
+        &.active > .SidebarChannelSubItem__row > .SidebarChannelSubItem__link {
+            color: var(--sidebar-text);
+        }
+
+        &.active > .SidebarChannelSubItem__row {
+            background: rgba(var(--sidebar-text-rgb), 0.08);
+        }
+
+        &.containsActive > .SidebarChannelSubItem__row > .SidebarChannelSubItem__link {
+            color: var(--sidebar-text);
+        }
+
+        &.containsActive > .SidebarChannelSubItem__row {
+            background: rgba(var(--sidebar-text-rgb), 0.04);
+        }
+
+        &__row.dragging {
+            opacity: 0.4;
+        }
+
+        &__row.dropBefore::before,
+        &__row.dropAfter::after {
+            position: absolute;
+            z-index: 2;
+            right: 8px;
+            left: calc(44px + var(--sub-item-depth, 0) * var(--sub-item-indent, 16px) - 4px);
+            height: 2px;
+            border-radius: 1px;
+            background: var(--sidebar-text-active-border);
+            content: '';
+            pointer-events: none;
+        }
+
+        &__row.dropBefore::before {
+            top: -1px;
+        }
+
+        &__row.dropAfter::after {
+            bottom: -1px;
+        }
+
+        &__row.dropInside {
+            background: rgba(var(--sidebar-text-active-border-rgb), 0.32);
+            box-shadow: inset 0 0 0 1px var(--sidebar-text-active-border);
+        }
+
+        &__toggle {
+            position: absolute;
+            z-index: 1;
+            top: 2px;
+            left: calc(44px + var(--sub-item-depth, 0) * var(--sub-item-indent, 16px) - 22px);
+            display: flex;
+            width: 24px;
+            height: 24px;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            border: none;
+            border-radius: 4px;
+            background: transparent;
+            color: rgba(var(--sidebar-text-rgb), 0.64);
+            font-size: 16px;
+            line-height: 16px;
+
+            &:hover,
+            &:focus-visible {
+                background: rgba(var(--sidebar-text-rgb), 0.08);
+                color: var(--sidebar-text);
+                cursor: pointer;
+            }
+
+            &:focus-visible {
+                outline: 2px solid var(--sidebar-text-active-border);
+                outline-offset: -2px;
+            }
+        }
+
+        &__menu {
+            position: absolute;
+            z-index: 1;
+            top: 2px;
+            right: 4px;
+            opacity: 0;
+        }
+
+        &__menuButton {
+            display: flex;
+            width: 24px;
+            height: 24px;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            border: none;
+            border-radius: 4px;
+            background: transparent;
+            color: rgba(var(--sidebar-text-rgb), 0.64);
+            font-size: 16px;
+            line-height: 16px;
+
+            &:hover,
+            &:focus-visible {
+                background: rgba(var(--sidebar-text-rgb), 0.08);
+                color: var(--sidebar-text);
+                cursor: pointer;
+            }
+
+            &:focus-visible {
+                outline: 2px solid var(--sidebar-text-active-border);
+                outline-offset: -2px;
+            }
+        }
+
+        &__row:hover > .SidebarChannelSubItem__menu,
+        &__row:focus-within > .SidebarChannelSubItem__menu,
+        &__row.menuOpen > .SidebarChannelSubItem__menu {
+            opacity: 1;
+        }
+
+        &__row.hasMenu:hover > .SidebarChannelSubItem__link,
+        &__row.hasMenu:focus-within > .SidebarChannelSubItem__link,
+        &__row.hasMenu.menuOpen > .SidebarChannelSubItem__link {
+            padding-right: 32px;
+        }
+
+        &__icon {
+            display: flex;
+            flex-shrink: 0;
+            margin-right: 4px;
+            font-size: 16px;
+        }
+
+        &__label {
+            overflow: hidden;
+            min-width: 0;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
     }
 
     .SidebarChannelLinkLabel_wrapper,

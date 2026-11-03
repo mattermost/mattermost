@@ -18,9 +18,10 @@ type Props = {
     registration: ChannelViewRegistration;
     channelId: string;
     focusedPostId?: string;
+    subpath?: string;
 };
 
-export default function ChannelViewPluginComponent({registration, channelId, focusedPostId}: Props) {
+export default function ChannelViewPluginComponent({registration, channelId, focusedPostId, subpath}: Props) {
     const dispatch = useDispatch();
     const channel = useSelector((state: GlobalState) => getChannel(state, channelId));
     const teamId = useSelector(getCurrentTeamId);
@@ -54,6 +55,7 @@ export default function ChannelViewPluginComponent({registration, channelId, foc
                     channelId={channel.id}
                     teamId={teamId}
                     focusedPostId={focusedPostId}
+                    subpath={subpath}
                 />
             </PluggableErrorBoundary>
         </div>
