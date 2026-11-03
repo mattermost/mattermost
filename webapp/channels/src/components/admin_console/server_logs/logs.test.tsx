@@ -1071,6 +1071,18 @@ describe('components/admin_console/server_logs/Logs URL filters', () => {
         await waitFor(() => expect(urlParams(history)).toEqual({search: 'second', levels: 'warn', node: 'node-b', range: '60'}));
     });
 
+    test('should turn off live tail when a link followed while the viewer is open has a custom range', async () => {
+        const {history} = renderLogs(PAGE);
+        await pickMenuItem('Open menu to turn live tail on or off', 'Every 10 seconds');
+
+        act(() => history.push(`${PAGE}?range=60`));
+        await waitFor(() => expect(screen.getByLabelText('Duration')).toHaveValue('Last hour'));
+        expect(screen.getByLabelText('Live tail')).toHaveValue('Every 10 seconds');
+
+        act(() => history.push(`${PAGE}?from=2026-10-20T11:00:00.000Z&to=2026-10-20T12:00:59.999Z`));
+        await waitFor(() => expect(screen.getByLabelText('Live tail')).toHaveValue('Off'));
+    });
+
     test('should apply the saved prefs when a link followed while the viewer is open has no filters', async () => {
         const {history, getLogs} = renderLogs(`${PAGE}?search=first&range=15`);
         await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));

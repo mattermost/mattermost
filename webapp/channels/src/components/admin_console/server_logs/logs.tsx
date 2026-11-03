@@ -120,6 +120,8 @@ export default function Logs({logs, logNodes, truncatedLogNodes, plainLogs, isPl
     const [enabledLevels, setEnabledLevels] = useState(() => urlFilters.enabledLevels ?? new Set(initialPrefs.enabledLevels));
     const [selectedNode, setSelectedNode] = useState(urlFilters.node ?? initialPrefs.node);
     const [timeRange, setTimeRange] = useState<TimeRange>(urlFilters.timeRange ?? null);
+    const [liveTailEnabled, setLiveTailEnabled] = useState(false);
+    const [pollInterval, setPollInterval] = useState(30000);
 
     // The query this viewer last wrote, so a different one arriving is a navigation to a new view
     const writtenSearchRef = useRef(history.location.search);
@@ -151,6 +153,11 @@ export default function Logs({logs, logNodes, truncatedLogNodes, plainLogs, isPl
             setEnabledLevels(filters.enabledLevels ?? new Set(prefs.enabledLevels));
             setSelectedNode(filters.node ?? prefs.node);
             setTimeRange(filters.timeRange ?? null);
+
+            // A range that ends in the past has nothing new to tail
+            if (filters.timeRange && typeof filters.timeRange !== 'number') {
+                setLiveTailEnabled(false);
+            }
             if (!configIsPlainLogs && Object.keys(filters).length > 0) {
                 setIsPlainLogs(false);
             }
@@ -159,8 +166,6 @@ export default function Logs({logs, logNodes, truncatedLogNodes, plainLogs, isPl
     }, [history, configIsPlainLogs]);
 
     const [plainPage, setPlainPage] = useState(0);
-    const [liveTailEnabled, setLiveTailEnabled] = useState(false);
-    const [pollInterval, setPollInterval] = useState(30000);
 
     // Moved on by every fetch, so entries age out of the range even when a poll brings nothing new
     const [timeRangeStart, setTimeRangeStart] = useState<number | null>(null);
