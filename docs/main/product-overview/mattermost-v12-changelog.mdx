@@ -17,7 +17,7 @@ Platform and OS scope reflects reported and tested environments and may not repr
 ## Release v12.0 - [Major Release](https://docs.mattermost.com/product-overview/release-policy.html#release-types) \{#release-v12-0-major-release}
 
 - **12.0.2, released TBD**
-  - Mattermost v12.0.2 contains TBD severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
+  - Mattermost v12.0.2 contains Medium to High severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
   - Updated sign-in token handling for Cloud workspaces.
   - Updated API client request path segment handling.
   - Updated how responses from connected remote clusters are read.
@@ -25,6 +25,7 @@ Platform and OS scope reflects reported and tested environments and may not repr
   - Fixed an issue where pre-packaged plugins failed to start in the FIPS Docker image.
   - Mattermost v12.0.2 contains the following database changes:
      - Upgrading no longer resizes the ``Posts``, ``Drafts``, ``ScheduledPosts`` and ``TemporaryPosts`` message columns, avoiding a long rebuild of the post message search index on large installations. New installations still support messages of up to 262,144 characters. Existing installations keep their current maximum post size, which is determined by the existing ``Posts.Message`` column size. Installations that already applied the resize in v12.0.0 or v12.0.1 keep the larger limit.
+     - Rebuilt the ``AttributeView`` materialized view as a rolling-upgrade compatibility shim for pre-000216 servers, resolving option names from ``PropertyOptions`` instead of the stale ``Attrs`` blob; old-node reads block briefly during population.
 - **12.0.1, released 2026-10-22**
   - Mattermost v12.0.1 contains Medium severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
   - Go runtime was updated from 1.26.7 to 1.26.10.
