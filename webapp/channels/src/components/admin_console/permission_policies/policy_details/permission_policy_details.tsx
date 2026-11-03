@@ -21,13 +21,12 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import SimulateAccessModal from 'components/admin_console/access_control/modals/simulate_access/simulate_access_modal';
 import BlockableLink from 'components/admin_console/blockable_link';
-import Card from 'components/card/card';
-import TitleAndButtonCardHeader from 'components/card/title_and_button_card_header/title_and_button_card_header';
 import Markdown from 'components/markdown';
 import * as Menu from 'components/menu';
 import type {MenuButtonComponentProps} from 'components/menu';
 import SaveButton from 'components/save_button';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
+import AdminPanel from 'components/widgets/admin_console/admin_panel';
 import TextSetting from 'components/widgets/settings/text_setting';
 
 import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
@@ -98,6 +97,15 @@ const hiddenNativeBotMessages = defineMessages({
         id: 'admin.permission_policies.edit.error.hidden_native_bot',
         defaultMessage: 'Remove {attributes} from the rules. Bot accounts policies can\'t use {count, plural, one {this attribute} other {these attributes}}.',
     },
+});
+
+const panelMessages = defineMessages({
+    whoTitle: {id: 'admin.permission_policies.edit.who.title', defaultMessage: 'Who this policy applies to'},
+    permissionsTitle: {id: 'admin.permission_policies.edit.permissions.title', defaultMessage: 'What permissions are modified'},
+    permissionsSubtitle: {id: 'admin.permission_policies.edit.permissions.subtitle', defaultMessage: 'These permissions override the default system permission scheme when policy conditions are met'},
+    deleteTitle: {id: 'admin.permission_policies.edit.delete.title', defaultMessage: 'Delete policy'},
+    deleteSubtitle: {id: 'admin.permission_policies.edit.delete.subtitle', defaultMessage: 'This policy will be deleted and cannot be recovered.'},
+    deleteButton: {id: 'admin.permission_policies.edit.delete.button', defaultMessage: 'Delete'},
 });
 
 const AVAILABLE_PERMISSIONS: PermissionDefinition[] = [
@@ -526,73 +534,60 @@ function PermissionPolicyDetails({
                             )}
 
                             {/* "Who this policy applies to" */}
-                            <Card
-                                expanded={true}
-                                disableExpandAnimation={true}
-                                className={'console'}
+                            <AdminPanel
+                                id='permission_policy_who'
+                                title={panelMessages.whoTitle}
+                                subtitle={whoSubtitleMessages[scope]}
                             >
-                                <Card.Header>
-                                    <TitleAndButtonCardHeader
-                                        title={
-                                            <FormattedMessage
-                                                id='admin.permission_policies.edit.who.title'
-                                                defaultMessage='Who this policy applies to'
-                                            />
-                                        }
-                                        subtitle={<FormattedMessage {...whoSubtitleMessages[scope]}/>}
-                                    />
-                                </Card.Header>
-                                <Card.Body>
-                                    <div className='pp-role-selector'>
-                                        <span className='pp-role-selector-label'>
-                                            <FormattedMessage
-                                                id='admin.permission_policies.edit.who.role_label'
-                                                defaultMessage='Select a role from the predefined list of system roles'
-                                            />
-                                        </span>
-                                        <Menu.Container
-                                            menuButton={{
-                                                id: 'pp-role-selector-btn',
-                                                class: 'pp-role-dropdown-button',
-                                                children: (
+                                <div className='pp-role-selector'>
+                                    <span className='pp-role-selector-label'>
+                                        <FormattedMessage
+                                            id='admin.permission_policies.edit.who.role_label'
+                                            defaultMessage='Select a role from the predefined list of system roles'
+                                        />
+                                    </span>
+                                    <Menu.Container
+                                        menuButton={{
+                                            id: 'pp-role-selector-btn',
+                                            class: 'pp-role-dropdown-button',
+                                            children: (
+                                                <>
+                                                    <span>{(() => {
+                                                        const found = AVAILABLE_ROLES.find((r) => r.value === selectedRole);
+                                                        return found ? formatMessage(found.label) : formatMessage(roleMessages.selectRole);
+                                                    })()}</span>
+                                                    <i className='icon icon-chevron-down'/>
+                                                </>
+                                            ),
+                                        }}
+                                        menu={{
+                                            id: 'pp-role-selector-menu',
+                                            'aria-label': formatMessage({
+                                                id: 'admin.permission_policies.edit.who.role_menu_aria',
+                                                defaultMessage: 'Role selection menu',
+                                            }),
+                                        }}
+                                    >
+                                        {AVAILABLE_ROLES.map((role) => (
+                                            <Menu.Item
+                                                key={role.value}
+                                                id={`pp-role-option-${role.value}`}
+                                                onClick={() => {
+                                                    setSelectedRole(role.value);
+                                                    markDirty();
+                                                }}
+                                                labels={
                                                     <>
-                                                        <span>{(() => {
-                                                            const found = AVAILABLE_ROLES.find((r) => r.value === selectedRole);
-                                                            return found ? formatMessage(found.label) : formatMessage(roleMessages.selectRole);
-                                                        })()}</span>
-                                                        <i className='icon icon-chevron-down'/>
+                                                        <span>{formatMessage(role.label)}</span>
+                                                        <span>{formatMessage(role.description)}</span>
                                                     </>
-                                                ),
-                                            }}
-                                            menu={{
-                                                id: 'pp-role-selector-menu',
-                                                'aria-label': formatMessage({
-                                                    id: 'admin.permission_policies.edit.who.role_menu_aria',
-                                                    defaultMessage: 'Role selection menu',
-                                                }),
-                                            }}
-                                        >
-                                            {AVAILABLE_ROLES.map((role) => (
-                                                <Menu.Item
-                                                    key={role.value}
-                                                    id={`pp-role-option-${role.value}`}
-                                                    onClick={() => {
-                                                        setSelectedRole(role.value);
-                                                        markDirty();
-                                                    }}
-                                                    labels={
-                                                        <>
-                                                            <span>{formatMessage(role.label)}</span>
-                                                            <span>{formatMessage(role.description)}</span>
-                                                        </>
-                                                    }
-                                                    trailingElements={selectedRole === role.value ? <i className='icon icon-check'/> : undefined}
-                                                />
-                                            ))}
-                                        </Menu.Container>
-                                    </div>
-                                </Card.Body>
-                            </Card>
+                                                }
+                                                trailingElements={selectedRole === role.value ? <i className='icon icon-check'/> : undefined}
+                                            />
+                                        ))}
+                                    </Menu.Container>
+                                </div>
+                            </AdminPanel>
 
                             {syncedRefs.length > 0 && (
                                 <div className='admin-console__warning-notice'>
@@ -647,139 +642,106 @@ function PermissionPolicyDetails({
                             />
 
                             {/* "What permissions are modified" */}
-                            <Card
-                                expanded={true}
-                                disableExpandAnimation={true}
-                                className={'console'}
+                            <AdminPanel
+                                id='permission_policy_permissions'
+                                title={panelMessages.permissionsTitle}
+                                subtitle={panelMessages.permissionsSubtitle}
                             >
-                                <Card.Header>
-                                    <TitleAndButtonCardHeader
-                                        title={
+                                <div className='pp-permissions-table'>
+                                    <div className='pp-permissions-table-header'>
+                                        <FormattedMessage
+                                            id='admin.permission_policies.edit.permissions.column_header'
+                                            defaultMessage='Permission'
+                                        />
+                                    </div>
+                                    {selectedPermissions.length === 0 ? (
+                                        <div className='pp-permissions-table-empty'>
                                             <FormattedMessage
-                                                id='admin.permission_policies.edit.permissions.title'
-                                                defaultMessage='What permissions are modified'
-                                            />
-                                        }
-                                        subtitle={
-                                            <FormattedMessage
-                                                id='admin.permission_policies.edit.permissions.subtitle'
-                                                defaultMessage='These permissions override the default system permission scheme when policy conditions are met'
-                                            />
-                                        }
-                                    />
-                                </Card.Header>
-                                <Card.Body>
-                                    <div className='pp-permissions-table'>
-                                        <div className='pp-permissions-table-header'>
-                                            <FormattedMessage
-                                                id='admin.permission_policies.edit.permissions.column_header'
-                                                defaultMessage='Permission'
+                                                id='admin.permission_policies.edit.permissions.empty'
+                                                defaultMessage='Add a permission to this policy'
                                             />
                                         </div>
-                                        {selectedPermissions.length === 0 ? (
-                                            <div className='pp-permissions-table-empty'>
-                                                <FormattedMessage
-                                                    id='admin.permission_policies.edit.permissions.empty'
-                                                    defaultMessage='Add a permission to this policy'
-                                                />
-                                            </div>
-                                        ) : (
-                                            selectedPermissions.map((permValue) => {
-                                                const permDef = AVAILABLE_PERMISSIONS.find((p) => p.value === permValue);
-                                                return (
-                                                    <div
-                                                        key={permValue}
-                                                        className='pp-permissions-table-row'
+                                    ) : (
+                                        selectedPermissions.map((permValue) => {
+                                            const permDef = AVAILABLE_PERMISSIONS.find((p) => p.value === permValue);
+                                            return (
+                                                <div
+                                                    key={permValue}
+                                                    className='pp-permissions-table-row'
+                                                >
+                                                    <span className='pp-permission-label'>
+                                                        {permDef ? formatMessage(permDef.label) : permValue}
+                                                    </span>
+                                                    <button
+                                                        className='pp-permission-remove'
+                                                        onClick={() => removePermission(permValue)}
+                                                        aria-label={formatMessage({
+                                                            id: 'admin.permission_policies.edit.permissions.remove_aria',
+                                                            defaultMessage: 'Remove permission',
+                                                        })}
                                                     >
-                                                        <span className='pp-permission-label'>
-                                                            {permDef ? formatMessage(permDef.label) : permValue}
-                                                        </span>
-                                                        <button
-                                                            className='pp-permission-remove'
-                                                            onClick={() => removePermission(permValue)}
-                                                            aria-label={formatMessage({
-                                                                id: 'admin.permission_policies.edit.permissions.remove_aria',
-                                                                defaultMessage: 'Remove permission',
-                                                            })}
-                                                        >
-                                                            <i className='icon icon-trash-can-outline'/>
-                                                        </button>
-                                                    </div>
-                                                );
-                                            })
-                                        )}
-                                    </div>
-
-                                    {availableToAdd.length > 0 && (
-                                        <Menu.Container
-                                            menuButton={{
-                                                id: 'pp-add-permission-btn',
-                                                as: AddPermissionMenuTrigger,
-                                                children: (
-                                                    <FormattedMessage
-                                                        id='admin.permission_policies.edit.permissions.add'
-                                                        defaultMessage='Add permission'
-                                                    />
-                                                ),
-                                            }}
-                                            menu={{
-                                                id: 'pp-add-permission-menu',
-                                                'aria-label': formatMessage({
-                                                    id: 'admin.permission_policies.edit.permissions.menu_aria',
-                                                    defaultMessage: 'Add permission menu',
-                                                }),
-                                            }}
-                                        >
-                                            {availableToAdd.map((perm) => (
-                                                <Menu.Item
-                                                    key={perm.value}
-                                                    id={`pp-add-permission-${perm.value}`}
-                                                    onClick={() => addPermission(perm.value)}
-                                                    labels={
-                                                        <>
-                                                            <span>{formatMessage(perm.label)}</span>
-                                                            <span>{formatMessage(perm.description)}</span>
-                                                        </>
-                                                    }
-                                                />
-                                            ))}
-                                        </Menu.Container>
+                                                        <i className='icon icon-trash-can-outline'/>
+                                                    </button>
+                                                </div>
+                                            );
+                                        })
                                     )}
-                                </Card.Body>
-                            </Card>
+                                </div>
+
+                                {availableToAdd.length > 0 && (
+                                    <Menu.Container
+                                        menuButton={{
+                                            id: 'pp-add-permission-btn',
+                                            as: AddPermissionMenuTrigger,
+                                            children: (
+                                                <FormattedMessage
+                                                    id='admin.permission_policies.edit.permissions.add'
+                                                    defaultMessage='Add permission'
+                                                />
+                                            ),
+                                        }}
+                                        menu={{
+                                            id: 'pp-add-permission-menu',
+                                            'aria-label': formatMessage({
+                                                id: 'admin.permission_policies.edit.permissions.menu_aria',
+                                                defaultMessage: 'Add permission menu',
+                                            }),
+                                        }}
+                                    >
+                                        {availableToAdd.map((perm) => (
+                                            <Menu.Item
+                                                key={perm.value}
+                                                id={`pp-add-permission-${perm.value}`}
+                                                onClick={() => addPermission(perm.value)}
+                                                labels={
+                                                    <>
+                                                        <span>{formatMessage(perm.label)}</span>
+                                                        <span>{formatMessage(perm.description)}</span>
+                                                    </>
+                                                }
+                                            />
+                                        ))}
+                                    </Menu.Container>
+                                )}
+                            </AdminPanel>
 
                             {/* Delete Section */}
                             {policyId && (
-                                <Card
-                                    expanded={true}
-                                    disableExpandAnimation={true}
-                                    className={'console delete-policy'}
-                                >
-                                    <Card.Header>
-                                        <TitleAndButtonCardHeader
-                                            title={
-                                                <FormattedMessage
-                                                    id='admin.permission_policies.edit.delete.title'
-                                                    defaultMessage='Delete policy'
-                                                />
-                                            }
-                                            subtitle={
-                                                <FormattedMessage
-                                                    id='admin.permission_policies.edit.delete.subtitle'
-                                                    defaultMessage='This policy will be deleted and cannot be recovered.'
-                                                />
-                                            }
-                                            buttonText={
-                                                <FormattedMessage
-                                                    id='admin.permission_policies.edit.delete.button'
-                                                    defaultMessage='Delete'
-                                                />
-                                            }
+                                <AdminPanel
+                                    id='permission_policy_delete'
+                                    className='delete-policy'
+                                    title={panelMessages.deleteTitle}
+                                    subtitle={panelMessages.deleteSubtitle}
+                                    button={
+                                        <Button
+                                            emphasis='primary'
                                             destructive={true}
                                             onClick={() => setShowDeleteConfirmationModal(true)}
-                                        />
-                                    </Card.Header>
-                                </Card>
+                                        >
+                                            <FormattedMessage {...panelMessages.deleteButton}/>
+                                        </Button>
+                                    }
+                                />
                             )}
                         </div>
                     </div>

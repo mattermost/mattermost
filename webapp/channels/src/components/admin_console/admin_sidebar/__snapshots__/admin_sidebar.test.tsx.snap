@@ -2349,25 +2349,6 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                           </li>
                           <li
                             class="sidebar-section"
-                            data-testid="billing.billing_history"
-                          >
-                            <a
-                              class="sidebar-section-title"
-                              href="/admin_console/billing/billing_history"
-                              id="billing/billing_history"
-                            >
-                              <span
-                                class="sidebar-section-title__text"
-                              >
-                                Billing History
-                              </span>
-                            </a>
-                            <ul
-                              class="nav nav__sub-menu subsections"
-                            />
-                          </li>
-                          <li
-                            class="sidebar-section"
                             data-testid="billing.company_info"
                           >
                             <a
@@ -4202,25 +4183,6 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                                 class="sidebar-section-title__text"
                               >
                                 Subscription
-                              </span>
-                            </a>
-                            <ul
-                              class="nav nav__sub-menu subsections"
-                            />
-                          </li>
-                          <li
-                            class="sidebar-section"
-                            data-testid="billing.billing_history"
-                          >
-                            <a
-                              class="sidebar-section-title"
-                              href="/admin_console/billing/billing_history"
-                              id="billing/billing_history"
-                            >
-                              <span
-                                class="sidebar-section-title__text"
-                              >
-                                Billing History
                               </span>
                             </a>
                             <ul

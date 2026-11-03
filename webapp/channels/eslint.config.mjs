@@ -34,7 +34,7 @@ export default defineConfig([
                 },
             ],
             'react/style-prop-object': [2, {
-                allow: ['Timestamp'],
+                allow: ['Timestamp', 'IconButton'],
             }],
             'formatjs/enforce-default-message': 2,
             'formatjs/enforce-id': 2,

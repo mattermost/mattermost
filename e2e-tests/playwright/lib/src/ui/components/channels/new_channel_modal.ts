@@ -4,6 +4,8 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import Switch from '../switch';
+
 export default class NewChannelModal {
     readonly container: Locator;
 
@@ -14,6 +16,7 @@ export default class NewChannelModal {
     readonly privateTypeButton: Locator;
     readonly createButton: Locator;
     readonly cancelButton: Locator;
+    readonly classificationSwitch: Switch;
 
     constructor(container: Locator) {
         this.container = container;
@@ -25,6 +28,7 @@ export default class NewChannelModal {
         this.privateTypeButton = container.locator('#public-private-selector-button-P');
         this.createButton = container.getByRole('button', {name: 'Create channel'});
         this.cancelButton = container.getByRole('button', {name: 'Cancel'});
+        this.classificationSwitch = new Switch(container, 'channelClassificationToggle-button');
     }
 
     async toBeVisible() {
@@ -34,6 +38,10 @@ export default class NewChannelModal {
     async fillDisplayName(name: string) {
         await this.displayNameInput.fill(name);
         await this.displayNameInput.press('Tab');
+    }
+
+    async enableClassification() {
+        await this.classificationSwitch.check();
     }
 
     async create() {

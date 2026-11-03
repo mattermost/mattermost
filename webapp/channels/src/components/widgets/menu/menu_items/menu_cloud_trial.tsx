@@ -6,7 +6,7 @@ import React, {type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
-import {getCloudSubscription, getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
+import {getCloudSubscription} from 'mattermost-redux/selectors/entities/cloud';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
@@ -15,7 +15,7 @@ import {openModal} from 'actions/views/modals';
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 import TrialBenefitsModal from 'components/trial_benefits_modal/trial_benefits_modal';
 
-import {ModalIdentifiers, CloudProducts} from 'utils/constants';
+import {ModalIdentifiers} from 'utils/constants';
 
 import './menu_item.scss';
 
@@ -24,7 +24,6 @@ type Props = {
 };
 const MenuCloudTrial = ({id}: Props): JSX.Element | null => {
     const subscription = useSelector(getCloudSubscription);
-    const subscriptionProduct = useSelector(getSubscriptionProduct);
     const license = useSelector(getLicense);
     const dispatch = useDispatch();
 
@@ -41,18 +40,7 @@ const MenuCloudTrial = ({id}: Props): JSX.Element | null => {
         }));
     };
 
-    if (!isCloud) {
-        return null;
-    }
-
-    const isStarter = subscriptionProduct?.sku === CloudProducts.STARTER;
-
-    if (!isStarter && !isFreeTrial) {
-        return null;
-    }
-
-    // for end users only display the trial information
-    if (!isAdmin && !isFreeTrial) {
+    if (!isCloud || !isFreeTrial) {
         return null;
     }
 
@@ -94,33 +82,13 @@ const MenuCloudTrial = ({id}: Props): JSX.Element | null => {
         </div>
     );
 
-    // menu option displayed when the workspace is not running any trial
-    const noFreeTrialContent = (
-        <FormattedMessage
-            id='menu.cloudFree.postTrial.tryEnterprise'
-            defaultMessage='Interested in a limitless plan with high-security features? <openModalLink>See plans</openModalLink>'
-            values={
-                {
-                    openModalLink: (msg) => (
-                        <a
-                            className='open-see-plans-modal style-link'
-                            onClick={() => openPricingModal()}
-                        >
-                            {msg}
-                        </a>
-                    ),
-                }
-            }
-        />
-    );
-
     return (
         <li
             className='MenuCloudTrial'
             role='menuitem'
             id={id}
         >
-            {isFreeTrial ? freeTrialContent : noFreeTrialContent}
+            {freeTrialContent}
         </li>
     );
 };

@@ -3741,6 +3741,9 @@ type PluginSettings struct {
 	RequirePluginSignature      *bool                     `access:"plugins,write_restrictable,cloud_restrictable"`
 	MarketplaceURL              *string                   `access:"plugins,write_restrictable,cloud_restrictable"`
 	SignaturePublicKeyFiles     []string                  `access:"plugins,write_restrictable,cloud_restrictable"`
+	// RestrictUnauthenticatedWebappPlugins limits the webapp plugins exposed to clients without a
+	// session to those whose manifest sets webapp.pre_auth.
+	RestrictUnauthenticatedWebappPlugins *bool `access:"plugins,write_restrictable,cloud_restrictable"`
 }
 
 func (s *PluginSettings) SetDefaults(ls LogSettings, ms MetricsSettings) {
@@ -3823,6 +3826,11 @@ func (s *PluginSettings) SetDefaults(ls LogSettings, ms MetricsSettings) {
 
 	if s.SignaturePublicKeyFiles == nil {
 		s.SignaturePublicKeyFiles = []string{}
+	}
+
+	// Existing installations are reset to false by an app migration on upgrade.
+	if s.RestrictUnauthenticatedWebappPlugins == nil {
+		s.RestrictUnauthenticatedWebappPlugins = new(true)
 	}
 }
 

@@ -5,10 +5,11 @@ import React, {useMemo} from 'react';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 
+import {Button} from '@mattermost/compass-ui/components/button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
-import Card from 'components/card/card';
-import TitleAndButtonCardHeader from 'components/card/title_and_button_card_header/title_and_button_card_header';
+import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
 import {BOT_SCOPE_HIDDEN_NATIVE} from '../../access_control/bot_scope';
 import CELEditor from '../../access_control/editors/cel_editor/editor';
@@ -46,6 +47,11 @@ const SCOPE_TEXT: Record<PolicyScope, ScopeText> = {
 const SIMULATE_BLOCKED_TOOLTIP: Record<SimulateBlockedReason, MessageDescriptor> = defineMessages({
     simulation_disabled: {id: 'admin.permission_policies.edit.simulate_disabled_tooltip', defaultMessage: 'Rule simulation isn\'t enabled on this server.'},
     no_permissions: {id: 'admin.permission_policies.edit.simulate_no_permissions_tooltip', defaultMessage: 'Add a permission to this policy to simulate it.'},
+});
+
+const modeMessages = defineMessages({
+    advanced: {id: 'admin.permission_policies.edit.switch_to_advanced', defaultMessage: 'Switch to Advanced Mode'},
+    simple: {id: 'admin.permission_policies.edit.switch_to_simple', defaultMessage: 'Switch to Simple Mode'},
 });
 
 type Props = {
@@ -109,6 +115,23 @@ function RuleEditorCard({
         });
     }
 
+    let editorModeButton = (
+        <Button
+            disabled={noUsableAttributes || complexInCEL}
+            emphasis='primary'
+            onClick={() => onEditorModeChange(editorMode === 'table' ? 'cel' : 'table')}
+        >
+            <FormattedMessage {...(editorMode === 'table' ? modeMessages.advanced : modeMessages.simple)}/>
+        </Button>
+    );
+    if (toggleTooltip) {
+        editorModeButton = (
+            <WithTooltip title={toggleTooltip}>
+                {editorModeButton}
+            </WithTooltip>
+        );
+    }
+
     // Always override the editors' own test: it matches the bare expression
     // against every user, ignoring the policy's role, so it would list e.g.
     // guests under a Members policy or non-bot users under a Bot accounts policy.
@@ -125,58 +148,37 @@ function RuleEditorCard({
     };
 
     return (
-        <Card
-            expanded={true}
-            disableExpandAnimation={true}
-            className={'console'}
+        <AdminPanel
+            id='permission_policy_attributes'
+            title={text.attributesTitle}
+            subtitle={text.attributesSubtitle}
+            button={editorModeButton}
         >
-            <Card.Header>
-                <TitleAndButtonCardHeader
-                    title={<FormattedMessage {...text.attributesTitle}/>}
-                    subtitle={<FormattedMessage {...text.attributesSubtitle}/>}
-                    buttonText={editorMode === 'table' ? (
-                        <FormattedMessage
-                            id='admin.permission_policies.edit.switch_to_advanced'
-                            defaultMessage='Switch to Advanced Mode'
-                        />
-                    ) : (
-                        <FormattedMessage
-                            id='admin.permission_policies.edit.switch_to_simple'
-                            defaultMessage='Switch to Simple Mode'
-                        />
-                    )}
-                    onClick={() => onEditorModeChange(editorMode === 'table' ? 'cel' : 'table')}
-                    isDisabled={noUsableAttributes || complexInCEL}
-                    tooltipText={toggleTooltip}
+            {editorMode === 'cel' ? (
+                <CELEditor
+                    value={expression}
+                    onChange={onExpressionChange}
+                    disabled={editorDisabled}
+                    userAttributes={celUserAttributes}
+                    resourceAttributes={resourceFields.map((attr) => ({attribute: attr.name}))}
+                    {...testButtonProps}
                 />
-            </Card.Header>
-            <Card.Body>
-                {editorMode === 'cel' ? (
-                    <CELEditor
-                        value={expression}
-                        onChange={onExpressionChange}
-                        disabled={editorDisabled}
-                        userAttributes={celUserAttributes}
-                        resourceAttributes={resourceFields.map((attr) => ({attribute: attr.name}))}
-                        {...testButtonProps}
-                    />
-                ) : (
-                    <TableEditor
-                        value={expression}
-                        onChange={onExpressionChange}
-                        disabled={editorDisabled}
-                        userAttributes={mergedAttributes}
-                        onParseError={() => onEditorModeChange('cel')}
-                        enableUserManagedAttributes={enableUserManagedAttributes}
-                        actions={abacActions}
-                        helpText={text.tableHelp && formatMessage(text.tableHelp)}
-                        emptyStateText={text.tableEmpty && formatMessage(text.tableEmpty)}
-                        hiddenPickerAttributeNames={hiddenNativeNames}
-                        {...testButtonProps}
-                    />
-                )}
-            </Card.Body>
-        </Card>
+            ) : (
+                <TableEditor
+                    value={expression}
+                    onChange={onExpressionChange}
+                    disabled={editorDisabled}
+                    userAttributes={mergedAttributes}
+                    onParseError={() => onEditorModeChange('cel')}
+                    enableUserManagedAttributes={enableUserManagedAttributes}
+                    actions={abacActions}
+                    helpText={text.tableHelp && formatMessage(text.tableHelp)}
+                    emptyStateText={text.tableEmpty && formatMessage(text.tableEmpty)}
+                    hiddenPickerAttributeNames={hiddenNativeNames}
+                    {...testButtonProps}
+                />
+            )}
+        </AdminPanel>
     );
 }
 

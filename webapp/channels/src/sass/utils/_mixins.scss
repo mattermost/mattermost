@@ -1,3 +1,16 @@
+// Compass's IconButton hover and active rules carry several :not() selectors, so a plain class can't override them
+// whatever order the stylesheets load in. Repeating the class adds the specificity needed without !important:
+// `#{mixins.outrank('.my-button', 2)}` gives `.my-button.my-button`.
+@function outrank($class, $times: 2) {
+    $selector: '';
+
+    @for $i from 1 through $times {
+        $selector: $selector + $class;
+    }
+
+    @return $selector;
+}
+
 @mixin file-icon($path) {
     background-image: url($path);
     background-position: center;

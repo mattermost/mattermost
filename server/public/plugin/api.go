@@ -1036,11 +1036,28 @@ type API interface {
 	// Minimum server version: 5.6
 	KVDeleteAll() *model.AppError
 
-	// KVList lists all keys for a plugin.
+	// KVList lists all keys for a plugin, sorted by key.
+	// To list only the keys with a given prefix, use KVListWithOptions.
 	//
 	// @tag KeyValueStore
 	// Minimum server version: 5.6
 	KVList(page, perPage int) ([]string, *model.AppError)
+
+	// KVListWithOptions lists the keys for a plugin that match the given options, sorted by key.
+	// The database filters the keys before it applies page and perPage, so the pages contain
+	// only matching keys. A page with fewer than perPage keys is the last page.
+	//
+	// Options.Prefix returns only the keys that start with the prefix. All characters in the
+	// prefix match literally, including SQL wildcards such as % and _. An empty prefix returns
+	// all keys, as KVList does. Expired keys are not returned.
+	//
+	// On a server older than 12.2, the call returns an AppError with status code 501
+	// (Not Implemented). The pluginapi ListKeys method with WithPrefix uses KVListWithOptions,
+	// and on older servers it lists all keys and filters them in the plugin.
+	//
+	// @tag KeyValueStore
+	// Minimum server version: 12.2
+	KVListWithOptions(page, perPage int, options model.PluginKVListOptions) ([]string, *model.AppError)
 
 	// PublishWebSocketEvent sends an event to WebSocket connections.
 	// event is the type and will be prepended with "custom_<pluginid>_".

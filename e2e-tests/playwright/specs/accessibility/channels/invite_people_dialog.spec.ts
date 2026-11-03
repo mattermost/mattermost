@@ -43,8 +43,8 @@ test(
         await expect(modalTitle).toContainText('Invite people to');
 
         // # Get the close button and verify accessibility
-        const closeButton = inviteModal.locator('button.icon-close');
-        await expect(closeButton).toHaveAttribute('aria-label', 'Close');
+        const closeButton = inviteModal.getByRole('button', {name: 'Close'});
+        await expect(closeButton).toBeVisible();
 
         // # Focus on close button and verify tab navigation works
         await closeButton.focus();

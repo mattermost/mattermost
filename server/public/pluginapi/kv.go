@@ -3,6 +3,7 @@ package pluginapi
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"strings"
 	"time"
 
@@ -198,6 +199,8 @@ type ListKeysOption func(*listKeysOptions)
 
 // listKeysOptions holds configurations of a ListKeys() operation.
 type listKeysOptions struct {
+	prefix   string
+	noMatch  bool
 	checkers []func(key string) (keep bool, err error)
 }
 
@@ -217,22 +220,36 @@ func (o *listKeysOptions) checkAll(key string) (keep bool, err error) {
 }
 
 // WithPrefix only return keys that start with the given string.
+// All prefixes must match. They are combined into one prefix that the server
+// filters on, so page and count apply to the matching keys.
 func WithPrefix(prefix string) ListKeysOption {
-	return WithChecker(func(key string) (keep bool, err error) {
-		return strings.HasPrefix(key, prefix), nil
-	})
+	return func(args *listKeysOptions) {
+		switch {
+		case strings.HasPrefix(prefix, args.prefix):
+			args.prefix = prefix
+		case !strings.HasPrefix(args.prefix, prefix):
+			args.noMatch = true
+		}
+	}
 }
 
 // WithChecker allows for a custom filter function to determine which keys to return.
 // Returning true will keep the key and false will filter it out. Returning an error
-// will halt KVListWithOptions immediately and pass the error up (with no other results).
+// will halt ListKeys immediately and pass the error up (with no other results).
 func WithChecker(f func(key string) (keep bool, err error)) ListKeysOption {
 	return func(args *listKeysOptions) {
 		args.checkers = append(args.checkers, f)
 	}
 }
 
-// ListKeys lists all keys that match the given options. If no options are provided then all keys are returned.
+// ListKeys lists all keys that match the given options, sorted by key. If no options are provided then all keys are returned.
+//
+// With WithPrefix, page and count apply to the keys with the prefix, so a page with fewer than
+// count keys is the last page. The server filters on the prefix through KVListWithOptions, from
+// server version 12.2. On older servers, ListKeys lists all keys and filters them in the plugin.
+//
+// WithChecker runs after page and count are applied, so a page can contain fewer than count keys
+// before the last page.
 //
 // Minimum server version: 5.6
 func (k *KVService) ListKeys(page, count int, options ...ListKeysOption) ([]string, error) {
@@ -243,11 +260,23 @@ func (k *KVService) ListKeys(page, count int, options ...ListKeysOption) ([]stri
 	for _, opt := range options {
 		opt(args)
 	}
+	if args.noMatch {
+		return []string{}, nil
+	}
 
 	// get our keys a batch at a time, filter out the ones we don't want based on our args
 	// any errors will hault the whole process and return the error raw
 
-	keys, appErr := k.api.KVList(page, count)
+	var keys []string
+	var appErr *model.AppError
+	if args.prefix != "" {
+		keys, appErr = k.api.KVListWithOptions(page, count, model.PluginKVListOptions{Prefix: args.prefix})
+		if appErr != nil && appErr.StatusCode == http.StatusNotImplemented {
+			keys, appErr = k.listKeysWithPrefixFallback(page, count, args.prefix)
+		}
+	} else {
+		keys, appErr = k.api.KVList(page, count)
+	}
 	if appErr != nil {
 		return nil, normalizeAppErr(appErr)
 	}
@@ -275,4 +304,45 @@ func (k *KVService) ListKeys(page, count int, options ...ListKeysOption) ([]stri
 	}
 
 	return ret, nil
+}
+
+// fallbackScanBatchSize is the number of keys each KVList call reads during the
+// fallback scan, independent of the page size the caller asks for.
+const fallbackScanBatchSize = 1000
+
+// listKeysWithPrefixFallback emulates KVListWithOptions on servers that lack it:
+// page and count apply to the prefix-filtered keys, as they do server-side.
+//
+// ponytail: scans from the first key on every call, O(total keys) per page;
+// delete when the minimum supported server version is 12.2 or later.
+func (k *KVService) listKeysWithPrefixFallback(page, count int, prefix string) ([]string, *model.AppError) {
+	// Mirrors the store: a negative offset becomes 0, a non-positive limit becomes 10.
+	skip := max(page*count, 0)
+	if count <= 0 {
+		count = 10
+	}
+
+	matched := make([]string, 0, min(count, fallbackScanBatchSize))
+	for rawPage := 0; ; rawPage++ {
+		keys, appErr := k.api.KVList(rawPage, fallbackScanBatchSize)
+		if appErr != nil {
+			return nil, appErr
+		}
+		for _, key := range keys {
+			if !strings.HasPrefix(key, prefix) {
+				continue
+			}
+			if skip > 0 {
+				skip--
+				continue
+			}
+			matched = append(matched, key)
+			if len(matched) == count {
+				return matched, nil
+			}
+		}
+		if len(keys) < fallbackScanBatchSize {
+			return matched, nil
+		}
+	}
 }
