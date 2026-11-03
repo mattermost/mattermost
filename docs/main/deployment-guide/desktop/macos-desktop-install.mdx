@@ -1,0 +1,64 @@
+---
+title: "Deploy the desktop app on macOS"
+---
+<PlanAvailability slug="all-commercial" />
+
+The desktop app is available for macOS in two ways:
+
+- **[Mac App Store](https://apps.apple.com/us/app/mattermost-desktop/id1614666244?mt=12)**: Recommended for most users. It updates itself.
+- **DMG**: A self-contained download for admins and power users who want to control which version is installed and when.
+
+The rest of this page covers the DMG.
+
+## Install the DMG
+
+1.  Download the DMG for your devices from the [GitHub releases page](https://github.com/mattermost/desktop/releases/latest): `mattermost-desktop-<version>-mac-universal.dmg` for any Mac, or `mac-arm64` for Apple silicon and `mac-x64` for Intel Macs.
+2.  Open the DMG, and drag **Mattermost** to the **Applications** folder.
+3.  Optionally, [configure policies](#configure-policies).
+
+The first time users start a call, share their screen, or receive a notification, macOS asks them to allow it. See [Notifications, calls, and permissions](/deployment-guide/desktop/desktop-troubleshooting#notifications-calls-and-permissions) if something doesn't work.
+
+## Configure policies
+
+You can set the [desktop app policies](/deployment-guide/desktop/desktop-app-policies) with a configuration profile deployed through your MDM solution. The profile sets keys in the `Mattermost.Desktop` preference domain:
+
+| Key | Type | Value |
+|---|---|---|
+| `DefaultServerList` | Array of dictionaries | Each dictionary has a `name` string and a `url` string. |
+| `EnableServerManagement` | Boolean | `false` disables server management. |
+| `EnableAutoUpdater` | Boolean | `false` disables update checks and notifications. |
+| `TrustedEmbeddedMediaOrigins` | Array of dictionaries | Each dictionary has a `serverOrigin` string and an `embeddedOrigin` string. |
+
+**Example settings:**
+
+``` xml
+<dict>
+  <key>DefaultServerList</key>
+  <array>
+    <dict>
+      <key>name</key>
+      <string>Example</string>
+      <key>url</key>
+      <string>https://chat.example.com</string>
+    </dict>
+  </array>
+  <key>EnableServerManagement</key>
+  <false/>
+  <key>EnableAutoUpdater</key>
+  <false/>
+</dict>
+```
+
+## Frequently asked questions
+
+### How do I upgrade?
+
+Quit Mattermost, then replace the app in the **Applications** folder with the new version.
+
+### Can I downgrade to an older version?
+
+Downgrading the desktop app isn't supported. An older version may not be able to read configuration written by a newer version, which can cause user settings to be overwritten and data to be lost.
+
+### Does uninstalling remove users' data?
+
+No. To remove it as well, you can delete the [app data folder](/deployment-guide/desktop/desktop-troubleshooting#where-the-app-stores-data).
