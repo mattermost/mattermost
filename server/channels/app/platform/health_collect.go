@@ -9,32 +9,20 @@ import (
 	"errors"
 	"fmt"
 	"sync"
-	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
 )
 
-// healthCollectTimeout bounds a run whose context has no deadline. It must cover the probes'
-// own timeouts: OAuth and push are 10 s each, the pg_stat queries 10 s each, plus SMTP, LDAP,
-// Elasticsearch and S3.
-const healthCollectTimeout = 3 * time.Minute
-
 // CollectHealthNodes collects every connected node's diagnostics for a health check run and
 // returns the snapshot's nodes. Without a cluster it returns the local node only.
 //
 // The other nodes are asked through ClusterInterface.CollectHealthDiagnostics, which waits for
-// every connected node until the context's deadline, or healthCollectTimeout if the context has
-// none. Nodes that have not replied by then are marked with healthcheck.ErrNodeNoReply.
-// Cancelling the context aborts the run with an error.
+// every connected node until the context is done, so the caller must set a deadline. Nodes that
+// have not replied by then are marked with healthcheck.ErrNodeNoReply. Cancelling the context
+// aborts the run with an error.
 func (ps *PlatformService) CollectHealthNodes(rctx request.CTX) ([]*healthcheck.NodeSnapshot, error) {
-	if _, ok := rctx.Context().Deadline(); !ok {
-		ctx, cancel := context.WithTimeout(rctx.Context(), healthCollectTimeout)
-		defer cancel()
-		rctx = rctx.WithContext(ctx)
-	}
-
 	var (
 		localID string
 		infos   []*model.ClusterInfo

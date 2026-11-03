@@ -21,6 +21,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/packet"
@@ -52,10 +53,16 @@ func TestBuildHealthSnapshotStandaloneLeaderDiagnostics(t *testing.T) {
 	assert.Equal(t, hostname, nodes[0].Hostname)
 }
 
-// threeNodeCluster reports this node as id-2 of three. None of the nodes is connected, so a
-// run does not wait for the other two.
+// threeNodeCluster reports this node as id-2 of three. The other two do not reply; deadline
+// records the deadline of the context the collection was given.
 type threeNodeCluster struct {
 	captureClusterMock
+	deadline time.Time
+}
+
+func (c *threeNodeCluster) CollectHealthDiagnostics(rctx request.CTX) map[string]*model.NodeDiagnostics {
+	c.deadline, _ = rctx.Context().Deadline()
+	return nil
 }
 
 func (c *threeNodeCluster) GetClusterId() string { return "id-2" }
@@ -70,14 +77,19 @@ func (c *threeNodeCluster) GetClusterInfos() ([]*model.ClusterInfo, error) {
 
 // Not parallel: it clears the latest-version cache that TestGetLatestVersion also uses.
 func TestBuildHealthSnapshotMarksNodesThatDidNotReply(t *testing.T) {
-	th := SetupWithClusterMock(t, &threeNodeCluster{})
+	cluster := &threeNodeCluster{}
+	th := SetupWithClusterMock(t, cluster)
 
 	err := th.App.clearLatestVersionCache()
 	require.NoError(t, err)
 
+	start := time.Now()
 	snapshot, buildErr := th.App.buildHealthSnapshotWithLatestVersionURL(th.Context, latestVersionServer(t).URL)
 	require.NoError(t, buildErr)
 	require.NotNil(t, snapshot)
+
+	// The collection is bounded even though th.Context has no deadline.
+	assert.WithinRange(t, cluster.deadline, start.Add(healthCollectTimeout), time.Now().Add(healthCollectTimeout))
 
 	nodes := snapshot.Nodes()
 	require.Len(t, nodes, 3)

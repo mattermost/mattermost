@@ -122,21 +122,7 @@ func TestCollectHealthNodes(t *testing.T) {
 		assert.ErrorIs(t, byID["node-3"].CollectErr, healthcheck.ErrNodeNoReply)
 	})
 
-	t.Run("the cluster gets a deadline when the caller sets none", func(t *testing.T) {
-		th, cluster := setupHealthCollect(t, connectedInfos("node-2"))
-		var deadline time.Time
-		cluster.collect = func(rctx request.CTX) map[string]*model.NodeDiagnostics {
-			deadline, _ = rctx.Context().Deadline()
-			return nil
-		}
-
-		start := time.Now()
-		_, err := th.Service.CollectHealthNodes(th.Context)
-		require.NoError(t, err)
-		assert.WithinRange(t, deadline, start.Add(healthCollectTimeout), time.Now().Add(healthCollectTimeout))
-	})
-
-	t.Run("the caller's deadline is kept and nodes that replied by then are used", func(t *testing.T) {
+	t.Run("nodes that replied by the caller's deadline are used", func(t *testing.T) {
 		th, cluster := setupHealthCollect(t, connectedInfos("node-2", "node-3"))
 		ctx, cancel := context.WithTimeout(th.Context.Context(), 200*time.Millisecond)
 		defer cancel()
