@@ -1232,9 +1232,16 @@ func (a *App) sessionMayUpdateMmBlocksActions(rctx request.CTX, oldPost *model.P
 }
 
 func (a *App) publishWebsocketEventForPost(rctx request.CTX, post *model.Post, message *model.WebSocketEvent) *model.AppError {
+	// The author copy is built from this post after the broadcast payload is serialized.
+	var burnOnReadHashtags string
 	if post.Type == model.PostTypeBurnOnRead {
+		burnOnReadHashtags = post.Hashtags
 		post.Message = ""
 		post.FileIds = []string{}
+		post.Hashtags = ""
+		defer func() {
+			post.Hashtags = burnOnReadHashtags
+		}()
 	}
 
 	// Extract metadata that needs per-recipient filtering before serialization
@@ -1277,6 +1284,7 @@ func (a *App) publishWebsocketEventForPost(rctx request.CTX, post *model.Post, m
 	}
 
 	if post.Type == model.PostTypeBurnOnRead {
+		post.Hashtags = burnOnReadHashtags
 		appErr = a.processBroadcastHookForBurnOnRead(rctx, postJSON, post, message)
 		if appErr != nil {
 			return appErr
@@ -4485,6 +4493,8 @@ func (a *App) setUnrevealedPost(postList *model.PostList, postID string) {
 	unrevealedPost.Metadata.Images = map[string]*model.PostImage{}
 	unrevealedPost.Metadata.Acknowledgements = []*model.PostAcknowledgement{}
 	unrevealedPost.Message = ""
+	unrevealedPost.Hashtags = ""
+	unrevealedPost.DelProp(model.PostPropsChannelMentions)
 	postList.Posts[postID] = unrevealedPost
 }
 
