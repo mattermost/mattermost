@@ -197,7 +197,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 		s.Require().NoError(err)
 		s.Require().Len(data, 1)
 		s.Contains(data[0], testLogInfoStdout)
-		s.Contains(stderr, "printing the raw log lines instead")
+		s.Contains(stderr, "printing them unfiltered instead")
 	})
 
 	s.Run("Fail when the server can't query the logs and the flags need it", func() {

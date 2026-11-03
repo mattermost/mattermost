@@ -11,7 +11,7 @@ Synopsis
 
 Display logs in a human-readable format. As the logs format depends on the server, the "--format" flag cannot be used with this command.
 
-The logs are read from every node of the cluster, and filtered on each node. This needs the server to write its log file in JSON format (LogSettings.FileJson). Use "--plain" to read the raw log lines instead, as earlier versions of mmctl did.
+The logs are read from every node of the cluster, and filtered on each node. This needs the server to write its log file in JSON format (LogSettings.FileJson). Use "--plain" to print them unfiltered instead, as earlier versions of mmctl did.
 
 Entries are colored when printed to a terminal. Set NO_COLOR to turn the colors off, or CLICOLOR_FORCE to keep them when the output is piped.
 
@@ -33,8 +33,8 @@ Examples
     # follow the entries of a single request, by its request ID
     $ mmctl logs -f --search 8xyz7gqnfjb1jrkpd5xnqk5mbo
 
-    # print what a node logged in the last 15 minutes
-    $ mmctl logs --node node-1 --since 15m
+    # print up to 10000 entries a node logged in the last 15 minutes
+    $ mmctl logs --node node-1 --since 15m -n 10000
 
 Options
 ~~~~~~~
@@ -47,7 +47,7 @@ Options
       --level strings       Only show entries of these level groups: error, warn, info, debug.
       --node stringArray    Only show the logs of this cluster node. Can be repeated.
   -n, --number int          Number of log entries to retrieve initially, per node. At most 10000. (default 200)
-      --plain               Print the raw log lines of every node. Supports none of --follow, --level, --node, --search and --since.
+      --plain               Print the log lines of every node unfiltered, as earlier versions of mmctl did. Works with plain-text log files, but supports none of --follow, --level, --node, --search and --since.
   -s, --search string       Only show entries with a value, other than the level and timestamp, that contains this text, ignoring case.
       --since duration      Only show entries logged within this duration, e.g. 15m.
 
