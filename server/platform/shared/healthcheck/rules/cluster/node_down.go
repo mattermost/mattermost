@@ -4,8 +4,6 @@
 package cluster
 
 import (
-	"errors"
-
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
 )
@@ -31,12 +29,9 @@ var nodeNotResponding = healthcheck.Rule{
 }
 
 func evalNodeNotResponding(_ *healthcheck.Snapshot, n *healthcheck.NodeSnapshot) healthcheck.Result {
-	switch {
-	case n.CollectErr == nil:
+	if n.CollectErr == nil {
 		return healthcheck.Resolved()
-	case errors.Is(n.CollectErr, healthcheck.ErrNodeOlderVersion):
-		return healthcheck.Unknown(healthcheck.TranslationId("health.rule.node_not_responding.message.older_version"))
-	default:
-		return healthcheck.Firing(healthcheck.TranslationId("health.rule.node_not_responding.message")).WithUnreachableNode(n.Hostname)
 	}
+
+	return healthcheck.Firing(healthcheck.TranslationId("health.rule.node_not_responding.message")).WithUnreachableNode(n.Hostname)
 }
