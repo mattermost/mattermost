@@ -220,11 +220,11 @@ func (ps *PlatformService) getLogsSkipSend(rctx request.CTX, page, perPage int, 
 		defer cancel()
 
 		reader := newReverseLineReader(file, size, logReadBlockSize)
-		reader.limit = func(read int64) error {
+		reader.limit = func(read int64) (int64, error) {
 			if read >= budget.bytes || ctx.Err() != nil {
-				return errLogScanLimited
+				return 0, errLogScanLimited
 			}
-			return nil
+			return budget.bytes - read, nil
 		}
 
 		// oldest is the last line the reader returned. The reader leaves it intact when it stops

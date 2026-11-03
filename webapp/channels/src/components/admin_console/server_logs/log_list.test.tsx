@@ -426,6 +426,10 @@ describe('components/admin_console/server_logs/LogList', () => {
     });
 
     describe('scan limit notice', () => {
+        afterEach(() => {
+            jest.useRealTimers();
+        });
+
         test('should not show the notice when no scan stopped at its limit', () => {
             renderListWith({logs: [first]});
 

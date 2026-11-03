@@ -25,9 +25,10 @@ type reverseLineReader struct {
 	size   int64
 
 	// limit, when set, is called before each block is read with the number of bytes read so far.
-	// An error it returns is returned by Next. Nothing is read in that case, so the line Next last
+	// It returns how many more bytes may be read, at least one, and the block is cut to that. An
+	// error it returns is returned by Next. Nothing is read in that case, so the line Next last
 	// returned stays valid.
-	limit func(read int64) error
+	limit func(read int64) (allowed int64, err error)
 }
 
 // newReverseLineReader returns a reader for the lines in the first size bytes of r.
@@ -73,13 +74,16 @@ func (lr *reverseLineReader) Next() ([]byte, error) {
 // readBlock prepends the block that precedes data in the file to data and returns its length.
 // Blocks grow with data so that a line spanning many blocks is not moved once per block.
 func (lr *reverseLineReader) readBlock() (int, error) {
+	n := int(min(int64(max(lr.blockSize, len(lr.data))), lr.offset))
 	if lr.limit != nil {
-		if err := lr.limit(lr.size - lr.offset); err != nil {
+		allowed, err := lr.limit(lr.size - lr.offset)
+		if err != nil {
 			return 0, err
 		}
+		// A block grown for a long line could otherwise read about as much again as was read so far
+		n = int(min(int64(n), max(allowed, 1)))
 	}
 
-	n := int(min(int64(max(lr.blockSize, len(lr.data))), lr.offset))
 	size := n + len(lr.data)
 	if size > cap(lr.buf) {
 		lr.buf = make([]byte, max(size, 2*lr.blockSize, 2*cap(lr.buf)))

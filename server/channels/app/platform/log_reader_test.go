@@ -421,12 +421,12 @@ func TestReverseLineReaderLimit(t *testing.T) {
 
 	var reads []int64
 	stop := errors.New("stop")
-	reader.limit = func(read int64) error {
+	reader.limit = func(read int64) (int64, error) {
 		reads = append(reads, read)
 		if read >= 6 {
-			return stop
+			return 0, stop
 		}
-		return nil
+		return 100, nil
 	}
 
 	line, err := reader.Next()
@@ -441,6 +441,64 @@ func TestReverseLineReaderLimit(t *testing.T) {
 	// the line returned before the limit stays valid
 	assert.Equal(t, "\ncc", string(line))
 	assert.Equal(t, []int64{0, 3, 6}, reads)
+}
+
+// countingReaderAt counts the bytes read through it.
+type countingReaderAt struct {
+	r    io.ReaderAt
+	read int64
+}
+
+func (c *countingReaderAt) ReadAt(p []byte, off int64) (int, error) {
+	n, err := c.r.ReadAt(p, off)
+	c.read += int64(n)
+	return n, err
+}
+
+func TestReverseLineReaderLimitCutsBlocks(t *testing.T) {
+	// The long line makes blocks grow past the block size
+	content := "ab\n" + strings.Repeat("x", 200) + "\ncd"
+	const budget = 50
+	counter := &countingReaderAt{r: strings.NewReader(content)}
+	reader := newReverseLineReader(counter, int64(len(content)), 4)
+
+	stop := errors.New("stop")
+	reader.limit = func(read int64) (int64, error) {
+		if read >= budget {
+			return 0, stop
+		}
+		return budget - read, nil
+	}
+
+	line, err := reader.Next()
+	require.NoError(t, err)
+	assert.Equal(t, "\ncd", string(line))
+
+	_, err = reader.Next()
+	assert.Equal(t, stop, err)
+	assert.Equal(t, int64(budget), counter.read)
+
+	t.Run("lines within the cut block are still returned", func(t *testing.T) {
+		content := strings.Repeat("x", 100) + "\nab\ncd"
+		reader := newReverseLineReader(strings.NewReader(content), int64(len(content)), 64)
+		reader.limit = func(read int64) (int64, error) {
+			if read >= 6 {
+				return 0, stop
+			}
+			return 6 - read, nil
+		}
+
+		var lines []string
+		for {
+			line, err := reader.Next()
+			if err != nil {
+				assert.Equal(t, stop, err)
+				break
+			}
+			lines = append(lines, string(line))
+		}
+		assert.Equal(t, []string{"\ncd", "\nab"}, lines)
+	})
 }
 
 // scanLimitMarker returns the fields of lines' last line if it is a scan limit marker, or nil.
