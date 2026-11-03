@@ -26,6 +26,7 @@ Platform and OS scope reflects reported and tested environments and may not repr
   - Added the index ``idx_healthfindings_lastseenat`` on ``healthfindings (lastseenat)`` using ``CONCURRENTLY``, so the build doesn't block reads or writes; no downtime expected.
   - Added the partial index ``idx_propertyvalues_groupid_fieldid`` on ``PropertyValues (GroupID, FieldID)`` for rows where ``DeleteAt`` is 0, using ``CONCURRENTLY``, to speed up lookups that filter by group and field; no downtime expected.
   - Upgrading no longer resizes the ``message`` column on ``posts``, ``drafts``, ``scheduledposts``, and ``temporaryposts``, avoiding a long rebuild of the post message search index (``idx_posts_message_txt``) on large installations. New installations still support messages of up to 262,144 characters. Existing installations keep their current maximum post size, which is determined by the existing ``posts.message`` column size. Installations that already applied the resize in v12.0 keep the larger limit.
+  - Servers still running 11.10 that use attribute-based access control can again upload and download files and join policy-protected channels and teams against a database upgraded to 12.x, for example during a rolling upgrade: the upgrade no longer drops the ``AttributeView`` materialized view, and a temporary migration rebuilds it from the 12.x attribute options. While any server still runs 11.10, make attribute option changes from a 12.x server.
 
 #### config.json
 New setting options were added to ``config.json``. Below is a list of the additions and their default values on install. The settings can be modified in ``config.json``, or the System Console when available.
@@ -67,10 +68,12 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-1-is-now-availab
   - Completed the missing Brazilian Portuguese web translations, and localized interface and accessibility labels that were English-only.
   - Translated the corrected and newly added English strings into all supported languages.
   - Renamed the help menu's Mattermost user guide link to Mattermost documentation, opening the server's bundled documentation on root installs and https://docs.mattermost.com on subpath installs.
+  - Updated the bot account confirmation page after creating a bot.
 
 #### Plugins/Integrations
   - Added the ``pluginapi/testhelper`` package to the public module, enabling plugin authors to write integration tests using real Mattermost containers via testcontainers-go.
   - Added the ``UpdatePostWithOptions`` plugin API so a plugin can update a post with explicit update options, including attaching files uploaded by a specific user.
+  - Updated API client request path segment handling.
 
 #### Administration
   - Updated sign-in token handling for Cloud workspaces.
