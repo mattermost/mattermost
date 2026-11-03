@@ -684,6 +684,99 @@ func buildRepeatedDocumentPackage(t *testing.T, ext string, listings int, payloa
 	return buf.Bytes()
 }
 
+type officePartSpec struct {
+	ext         string
+	zipName     string
+	partName    string
+	contentType string
+	body        func([]byte) []byte
+}
+
+func officePartSpecs() []officePartSpec {
+	return []officePartSpec{
+		{
+			ext:         "docx",
+			zipName:     "word/document.xml",
+			partName:    "/word/document.xml",
+			contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml",
+			body:        wordDocumentXML,
+		},
+		{
+			ext:         "pptx",
+			zipName:     "ppt/slides/slide1.xml",
+			partName:    "/ppt/slides/slide1.xml",
+			contentType: "application/vnd.openxmlformats-officedocument.presentationml.slide+xml",
+			body:        slideDocumentXML,
+		},
+		{
+			ext:      "odt",
+			zipName:  "content.xml",
+			partName: "content.xml",
+			body:     odtContentXML,
+		},
+	}
+}
+
+func ooxmlPartSpecs() []officePartSpec {
+	specs := officePartSpecs()
+	return specs[:2]
+}
+
+type listedOverride struct {
+	partName    string
+	contentType string
+	listings    int
+}
+
+func contentTypesFromListings(parts []listedOverride) []byte {
+	var b bytes.Buffer
+	b.WriteString(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>`)
+	b.WriteString(`<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">`)
+	for _, p := range parts {
+		n := p.listings
+		if n <= 0 {
+			n = 1
+		}
+		for i := 0; i < n; i++ {
+			b.WriteString(`<Override PartName="`)
+			b.WriteString(p.partName)
+			b.WriteString(`" ContentType="`)
+			b.WriteString(p.contentType)
+			b.WriteString(`"/>`)
+		}
+	}
+	b.WriteString(`</Types>`)
+	return b.Bytes()
+}
+
+type zipPackageEntry struct {
+	name   string
+	data   []byte
+	method uint16
+}
+
+func buildZipPackage(t *testing.T, entries []zipPackageEntry) []byte {
+	t.Helper()
+	var buf bytes.Buffer
+	zw := zip.NewWriter(&buf)
+	for _, entry := range entries {
+		writeStoredOrDeflated(t, zw, entry.name, entry.data, entry.method)
+	}
+	require.NoError(t, zw.Close())
+	return buf.Bytes()
+}
+
+// textFitsCopies checks that text is at most copies of payload, plus a small
+// allowance for separators inserted between parts.
+func textFitsCopies(text string, payload []byte, copies int) bool {
+	return len(text) <= copies*len(payload)+256
+}
+
+func overRetainPayload() []byte {
+	n := (int(maxArchiveExtractedText) + documentPartTextBytes) / len("lorem ")
+	return bytes.Repeat([]byte("lorem "), n)
+}
+
 func extractDocumentMeasured(t *testing.T, logger mlog.LoggerIFace, filename string, data []byte) (string, uint64) {
 	t.Helper()
 	runtime.GC()
@@ -727,6 +820,253 @@ func TestDocumentRepeatedPartBounds(t *testing.T) {
 			}
 		})
 	}
+
+	// Rows below cover empty inputs, a zero remaining budget, one part whose
+	// text is larger than the retained size, and listings that spell one
+	// stored part in more than one way.
+	small := []byte("lorem")
+
+	t.Run("empty package", func(t *testing.T) {
+		for _, spec := range officePartSpecs() {
+			t.Run(spec.ext, func(t *testing.T) {
+				pkg := buildZipPackage(t, nil)
+				text, err := extractOfficeText(context.Background(), spec.ext, bytes.NewReader(pkg), documentExtractLimit, testBudget())
+				if spec.ext == "odt" {
+					require.NoError(t, err)
+				}
+				require.Empty(t, text)
+			})
+		}
+	})
+
+	t.Run("missing content types", func(t *testing.T) {
+		for _, spec := range ooxmlPartSpecs() {
+			t.Run(spec.ext, func(t *testing.T) {
+				pkg := buildZipPackage(t, []zipPackageEntry{{
+					name: spec.zipName, data: spec.body(small), method: zip.Deflate,
+				}})
+				text, _ := extractOfficeText(context.Background(), spec.ext, bytes.NewReader(pkg), documentExtractLimit, testBudget())
+				require.Empty(t, text)
+			})
+		}
+	})
+
+	t.Run("no overrides", func(t *testing.T) {
+		for _, spec := range ooxmlPartSpecs() {
+			t.Run(spec.ext, func(t *testing.T) {
+				pkg := buildZipPackage(t, []zipPackageEntry{
+					{name: "[Content_Types].xml", data: contentTypesFromListings(nil), method: zip.Deflate},
+					{name: spec.zipName, data: spec.body(small), method: zip.Deflate},
+				})
+				text, err := extractOfficeText(context.Background(), spec.ext, bytes.NewReader(pkg), documentExtractLimit, testBudget())
+				require.NoError(t, err)
+				require.Empty(t, text)
+			})
+		}
+	})
+
+	t.Run("listed part missing", func(t *testing.T) {
+		for _, spec := range ooxmlPartSpecs() {
+			t.Run(spec.ext, func(t *testing.T) {
+				missing := strings.TrimSuffix(spec.partName, ".xml") + "-missing.xml"
+				pkg := buildZipPackage(t, []zipPackageEntry{
+					{name: "[Content_Types].xml", data: contentTypesFromListings([]listedOverride{{
+						partName: missing, contentType: spec.contentType, listings: documentPartListings,
+					}}), method: zip.Deflate},
+					{name: spec.zipName, data: spec.body(small), method: zip.Deflate},
+				})
+				text, err := extractOfficeText(context.Background(), spec.ext, bytes.NewReader(pkg), documentExtractLimit, testBudget())
+				require.NoError(t, err)
+				require.Empty(t, text)
+			})
+		}
+	})
+
+	t.Run("no remaining budget", func(t *testing.T) {
+		budgets := []struct {
+			name   string
+			budget *ExtractionBudget
+		}{
+			{name: "zero", budget: func() *ExtractionBudget {
+				b := testBudget()
+				b.Exhaust()
+				return b
+			}()},
+			{name: "negative", budget: func() *ExtractionBudget {
+				b := testBudget()
+				b.Deduct(b.Remaining() + 1)
+				return b
+			}()},
+		}
+		for _, spec := range officePartSpecs() {
+			pkg := buildRepeatedDocumentPackage(t, spec.ext, documentPartListings, payload)
+			for _, bc := range budgets {
+				t.Run(spec.ext+"/"+bc.name, func(t *testing.T) {
+					counter := &countingReadSeeker{r: bytes.NewReader(pkg)}
+					text, err := (&documentExtractor{}).Extract(context.Background(), "part."+spec.ext, counter, documentExtractLimit, bc.budget)
+					require.NoError(t, err)
+					require.Empty(t, text)
+					require.Zero(t, counter.bytesRead)
+				})
+			}
+		}
+	})
+
+	t.Run("nil budget", func(t *testing.T) {
+		for _, spec := range officePartSpecs() {
+			t.Run(spec.ext, func(t *testing.T) {
+				pkg := buildRepeatedDocumentPackage(t, spec.ext, 1, small)
+				text, err := (&documentExtractor{}).Extract(context.Background(), "part."+spec.ext, bytes.NewReader(pkg), documentExtractLimit, nil)
+				require.NoError(t, err)
+				require.Contains(t, text, "lorem")
+				require.LessOrEqual(t, len(text), int(maxArchiveExtractedText))
+			})
+		}
+	})
+
+	t.Run("retained text", func(t *testing.T) {
+		large := overRetainPayload()
+		require.Greater(t, len(large), int(maxArchiveExtractedText))
+		for _, spec := range officePartSpecs() {
+			pkg := buildRepeatedDocumentPackage(t, spec.ext, 1, large)
+			filename := "part." + spec.ext
+			calls := []struct {
+				name string
+				run  func() (string, error)
+			}{
+				{name: "budget", run: func() (string, error) {
+					return Extract(logger, filename, bytes.NewReader(pkg), ExtractSettings{MaxFileSize: documentExtractLimit})
+				}},
+				{name: "nil budget", run: func() (string, error) {
+					return (&documentExtractor{}).Extract(context.Background(), filename, bytes.NewReader(pkg), documentExtractLimit, nil)
+				}},
+			}
+			for _, call := range calls {
+				t.Run(spec.ext+"/"+call.name, func(t *testing.T) {
+					text, err := call.run()
+					require.NoError(t, err)
+					require.Contains(t, text, "lorem")
+					// One part larger than the retained size stops at that size.
+					require.Equal(t, int(maxArchiveExtractedText), len(text))
+				})
+			}
+		}
+	})
+
+	partNameCases := []struct {
+		name    string
+		rewrite func(partName string) string
+	}{
+		{name: "extra leading slash", rewrite: func(partName string) string { return "/" + partName }},
+		{name: "three leading slashes", rewrite: func(partName string) string { return "//" + partName }},
+		{name: "dot segment", rewrite: func(partName string) string {
+			i := strings.LastIndex(partName, "/")
+			return partName[:i] + "/." + partName[i:]
+		}},
+		{name: "backslash", rewrite: func(partName string) string { return strings.ReplaceAll(partName, "/", `\`) }},
+		{name: "percent encoding", rewrite: func(partName string) string { return strings.ReplaceAll(partName, "/", "%2F") }},
+		{name: "trailing space", rewrite: func(partName string) string { return partName + " " }},
+		{name: "case", rewrite: strings.ToUpper},
+		{name: "empty part name", rewrite: func(string) string { return "" }},
+		{name: "unslashed part name", rewrite: func(partName string) string { return strings.TrimPrefix(partName, "/") }},
+	}
+	for _, tc := range partNameCases {
+		t.Run(tc.name, func(t *testing.T) {
+			for _, spec := range ooxmlPartSpecs() {
+				t.Run(spec.ext, func(t *testing.T) {
+					alt := tc.rewrite(spec.partName)
+					pkg := buildZipPackage(t, []zipPackageEntry{
+						{name: "[Content_Types].xml", data: contentTypesFromListings([]listedOverride{
+							{partName: spec.partName, contentType: spec.contentType, listings: 1},
+							{partName: alt, contentType: spec.contentType, listings: documentPartListings},
+						}), method: zip.Deflate},
+						{name: spec.zipName, data: spec.body(payload), method: zip.Deflate},
+					})
+					text, err := Extract(logger, "part."+spec.ext, bytes.NewReader(pkg), ExtractSettings{MaxFileSize: documentExtractLimit})
+					require.NoError(t, err)
+					require.Contains(t, text, "lorem")
+					// Repeating one stored part must not append it once per listing.
+					if !textFitsCopies(text, payload, 2) {
+						t.Fatalf("retained %d bytes for payload %d", len(text), len(payload))
+					}
+				})
+			}
+		})
+	}
+
+	t.Run("content type prefix and suffix", func(t *testing.T) {
+		for _, spec := range ooxmlPartSpecs() {
+			t.Run(spec.ext, func(t *testing.T) {
+				prefixBody := spec.body([]byte("PRETYPE"))
+				suffixBody := spec.body([]byte("SUFTYPE"))
+				caseBody := spec.body([]byte("CASETYPE"))
+				pkg := buildZipPackage(t, []zipPackageEntry{
+					{name: "[Content_Types].xml", data: contentTypesFromListings([]listedOverride{
+						{partName: spec.partName, contentType: spec.contentType, listings: 1},
+						{partName: spec.partName + "-prefix", contentType: strings.TrimSuffix(spec.contentType, "+xml"), listings: documentPartListings},
+						{partName: spec.partName + "-suffix", contentType: strings.TrimPrefix(spec.contentType, "application/"), listings: documentPartListings},
+						{partName: spec.partName + "-case", contentType: strings.ToUpper(spec.contentType), listings: documentPartListings},
+					}), method: zip.Deflate},
+					{name: spec.zipName, data: spec.body(payload), method: zip.Deflate},
+					{name: strings.TrimPrefix(spec.partName, "/") + "-prefix", data: prefixBody, method: zip.Deflate},
+					{name: strings.TrimPrefix(spec.partName, "/") + "-suffix", data: suffixBody, method: zip.Deflate},
+					{name: strings.TrimPrefix(spec.partName, "/") + "-case", data: caseBody, method: zip.Deflate},
+				})
+				text, err := Extract(logger, "part."+spec.ext, bytes.NewReader(pkg), ExtractSettings{MaxFileSize: documentExtractLimit})
+				require.NoError(t, err)
+				require.Contains(t, text, "lorem")
+				require.NotContains(t, text, "PRETYPE")
+				require.NotContains(t, text, "SUFTYPE")
+				require.NotContains(t, text, "CASETYPE")
+				if !textFitsCopies(text, payload, 2) {
+					t.Fatalf("retained %d bytes for payload %d", len(text), len(payload))
+				}
+			})
+		}
+	})
+
+	t.Run("duplicate content types", func(t *testing.T) {
+		for _, spec := range ooxmlPartSpecs() {
+			t.Run(spec.ext, func(t *testing.T) {
+				first := contentTypesFromListings([]listedOverride{{
+					partName: spec.partName, contentType: spec.contentType, listings: 1,
+				}})
+				second := contentTypesFromListings([]listedOverride{{
+					partName: "/" + spec.partName, contentType: spec.contentType, listings: documentPartListings,
+				}})
+				pkg := buildZipPackage(t, []zipPackageEntry{
+					{name: "[Content_Types].xml", data: first, method: zip.Deflate},
+					{name: "[Content_Types].xml", data: second, method: zip.Deflate},
+					{name: spec.zipName, data: spec.body(payload), method: zip.Deflate},
+				})
+				text, err := Extract(logger, "part."+spec.ext, bytes.NewReader(pkg), ExtractSettings{MaxFileSize: documentExtractLimit})
+				require.NoError(t, err)
+				require.Contains(t, text, "lorem")
+				if !textFitsCopies(text, payload, 2) {
+					t.Fatalf("retained %d bytes for payload %d", len(text), len(payload))
+				}
+			})
+		}
+	})
+
+	t.Run("odt entry name", func(t *testing.T) {
+		body := odtContentXML(payload)
+		decoy := odtContentXML([]byte("DECOY"))
+		entries := []zipPackageEntry{{name: "content.xml", data: body, method: zip.Deflate}}
+		for _, name := range []string{"/content.xml", "./content.xml", "content.xml ", "Content.xml", "meta.xml"} {
+			for i := 0; i < documentPartListings; i++ {
+				entries = append(entries, zipPackageEntry{name: name, data: decoy, method: zip.Deflate})
+			}
+		}
+		pkg := buildZipPackage(t, entries)
+		text, err := Extract(logger, "part.odt", bytes.NewReader(pkg), ExtractSettings{MaxFileSize: documentExtractLimit})
+		require.NoError(t, err)
+		require.Contains(t, text, "lorem")
+		require.NotContains(t, text, "DECOY")
+		if !textFitsCopies(text, payload, 2) {
+			t.Fatalf("retained %d bytes for payload %d", len(text), len(payload))
+		}
+	})
 }
 
 // TestDocumentRepeatedPartConcurrent checks that concurrent extraction of a
@@ -842,46 +1182,77 @@ func TestDocumentExtractionContext(t *testing.T) {
 	pkg := buf.Bytes()
 	require.Greater(t, len(pkg), readChunk*4, "document must take several reads")
 
-	paced := &pacedReadSeeker{
-		r:     bytes.NewReader(pkg),
-		delay: readDelay,
-		chunk: readChunk,
+	// Timeout and a cancelled caller context are separate return paths.
+	// Both should leave the caller-supplied reader idle after return.
+	cases := []struct {
+		name    string
+		errText string
+		setup   func(t *testing.T) ExtractSettings
+	}{
+		{
+			name:    "timeout",
+			errText: "timed out",
+			setup: func(t *testing.T) ExtractSettings {
+				t.Helper()
+				return ExtractSettings{MaxFileSize: documentExtractLimit, Timeout: 25 * time.Millisecond}
+			},
+		},
+		{
+			name:    "caller context",
+			errText: "cancelled",
+			setup: func(t *testing.T) ExtractSettings {
+				ctx, cancel := context.WithCancel(context.Background())
+				t.Cleanup(cancel)
+				go func() {
+					time.Sleep(25 * time.Millisecond)
+					cancel()
+				}()
+				return ExtractSettings{MaxFileSize: documentExtractLimit, Ctx: ctx}
+			},
+		},
 	}
-	t.Cleanup(func() {
-		deadline := time.Now().Add(5 * time.Second)
-		var last int64 = -1
-		stable := 0
-		for time.Now().Before(deadline) {
-			cur := paced.reads.Load()
-			if cur == last {
-				stable++
-				if stable >= 2 {
-					return
-				}
-			} else {
-				stable = 0
-				last = cur
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			paced := &pacedReadSeeker{
+				r:     bytes.NewReader(pkg),
+				delay: readDelay,
+				chunk: readChunk,
 			}
-			time.Sleep(readDelay)
-		}
-	})
+			t.Cleanup(func() {
+				deadline := time.Now().Add(5 * time.Second)
+				var last int64 = -1
+				stable := 0
+				for time.Now().Before(deadline) {
+					cur := paced.reads.Load()
+					if cur == last {
+						stable++
+						if stable >= 2 {
+							return
+						}
+					} else {
+						stable = 0
+						last = cur
+					}
+					time.Sleep(readDelay)
+				}
+			})
 
-	text, err := Extract(logger, "part.docx", paced, ExtractSettings{
-		MaxFileSize: documentExtractLimit,
-		Timeout:     25 * time.Millisecond,
-	})
-	require.Error(t, err)
-	require.Empty(t, text)
-	require.Contains(t, err.Error(), "timed out")
+			text, err := Extract(logger, "part.docx", paced, tc.setup(t))
+			require.Error(t, err)
+			require.Empty(t, text)
+			require.Contains(t, err.Error(), tc.errText)
 
-	require.Eventually(t, func() bool {
-		return paced.reads.Load() > 0
-	}, time.Second, 5*time.Millisecond, "extraction did not start reading")
+			require.Eventually(t, func() bool {
+				return paced.reads.Load() > 0
+			}, time.Second, 5*time.Millisecond, "extraction did not start reading")
 
-	atReturn := paced.reads.Load()
-	time.Sleep(3 * readDelay)
-	later := paced.reads.Load()
-	if later != atReturn {
-		t.Fatalf("extraction kept reading after the caller returned: reads=%d then %d", atReturn, later)
+			atReturn := paced.reads.Load()
+			time.Sleep(3 * readDelay)
+			later := paced.reads.Load()
+			if later != atReturn {
+				t.Fatalf("extraction kept reading after the caller returned: reads=%d then %d", atReturn, later)
+			}
+		})
 	}
 }
