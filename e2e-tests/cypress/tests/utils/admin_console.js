@@ -16,12 +16,6 @@ export const adminConsoleNavigation = [
     },
     {
         type: ['cloud_enterprise'],
-        header: 'Billing History',
-        sidebar: 'Billing History',
-        url: 'admin_console/billing/billing_history',
-    },
-    {
-        type: ['cloud_enterprise'],
         header: 'Company Information',
         sidebar: 'Company Information',
         url: 'admin_console/billing/company_info',

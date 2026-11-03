@@ -184,6 +184,7 @@ func TestQueryLogs(t *testing.T) {
 				LogLevels:   []string{"error"},
 				DateFrom:    "2026-01-01 00:00:00.000 +00:00",
 				DateTo:      "2026-01-02 00:00:00.000 +00:00",
+				Search:      "websocket",
 			}
 			_, appErr := th.App.QueryLogs(th.Context, 0, 10, filter)
 			require.Nil(t, appErr)
