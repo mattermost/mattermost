@@ -59,7 +59,7 @@ var LogsCmd = &cobra.Command{
 	Short: "Display logs in a human-readable format",
 	Long: `Display logs in a human-readable format. As the logs format depends on the server, the "--format" flag cannot be used with this command.
 
-The logs are read from every node of the cluster, and filtered on each node. This needs the server to write its log file in JSON format (LogSettings.FileJson). Use "--plain" to print them unfiltered instead, as earlier versions of mmctl did.
+The logs are read from every node of the cluster, and filtered on each node. This needs the server to write its log file in JSON format (LogSettings.FileJson). Use "--plain" to print them unfiltered instead.
 
 Entries are colored when printed to a terminal. Set NO_COLOR to turn the colors off, or CLICOLOR_FORCE to keep them when the output is piped.`,
 	Example: `  # print the last 200 entries of each node
@@ -88,7 +88,7 @@ func init() {
 	LogsCmd.Flags().StringArray("node", nil, "Only show the logs of this cluster node. Can be repeated.")
 	LogsCmd.Flags().StringP("search", "s", "", "Only show entries with a value, other than the level and timestamp, that contains this text, ignoring case.")
 	LogsCmd.Flags().Duration("since", 0, "Only show entries logged within this duration, e.g. 15m.")
-	LogsCmd.Flags().Bool("plain", false, "Print the log lines of every node unfiltered, as earlier versions of mmctl did. Works with plain-text log files, but supports none of --follow, --level, --node, --search and --since.")
+	LogsCmd.Flags().Bool("plain", false, "Print the log lines of every node unfiltered. Works with plain-text log files, but supports none of --follow, --level, --node, --search and --since.")
 	RootCmd.AddCommand(LogsCmd)
 }
 
