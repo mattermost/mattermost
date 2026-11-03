@@ -8573,6 +8573,8 @@ func TestBurnOnReadPostedEventFields(t *testing.T) {
 	authorClient := th.Client
 	memberClient := th.CreateClient()
 	th.LoginBasic2WithClient(t, memberClient)
+	th.LinkUserToTeam(t, th.SystemAdminUser, th.BasicTeam)
+	th.AddUserToChannel(t, th.SystemAdminUser, th.BasicChannel)
 
 	const hashtag = "#borreadtag"
 	mention := th.BasicChannel.Name
@@ -8649,6 +8651,12 @@ func TestBurnOnReadPostedEventFields(t *testing.T) {
 		{
 			name:       "unrevealed member, deleted event",
 			client:     memberClient,
+			eventType:  model.WebsocketEventPostDeleted,
+			deletePost: true,
+		},
+		{
+			name:       "unrevealed system admin channel member, deleted event",
+			client:     th.SystemAdminClient,
 			eventType:  model.WebsocketEventPostDeleted,
 			deletePost: true,
 		},
