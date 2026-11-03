@@ -14,17 +14,17 @@ type AttributesInterface struct {
 	mock.Mock
 }
 
-// IsComplete provides a mock function with no fields
-func (_m *AttributesInterface) IsComplete() bool {
-	ret := _m.Called()
+// IsComplete provides a mock function with given fields: objectType
+func (_m *AttributesInterface) IsComplete(objectType string) bool {
+	ret := _m.Called(objectType)
 
 	if len(ret) == 0 {
 		panic("no return value specified for IsComplete")
 	}
 
 	var r0 bool
-	if rf, ok := ret.Get(0).(func() bool); ok {
-		r0 = rf()
+	if rf, ok := ret.Get(0).(func(string) bool); ok {
+		r0 = rf(objectType)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
@@ -32,9 +32,19 @@ func (_m *AttributesInterface) IsComplete() bool {
 	return r0
 }
 
+// ObserveAllAttributesChanged provides a mock function with given fields: objectType
+func (_m *AttributesInterface) ObserveAllAttributesChanged(objectType string) {
+	_m.Called(objectType)
+}
+
 // ObserveAllSessionsRevoked provides a mock function with no fields
 func (_m *AttributesInterface) ObserveAllSessionsRevoked() {
 	_m.Called()
+}
+
+// ObserveAttributesChanged provides a mock function with given fields: objectType, targetIDs
+func (_m *AttributesInterface) ObserveAttributesChanged(objectType string, targetIDs []string) {
+	_m.Called(objectType, targetIDs)
 }
 
 // ObservePeerSessionAttributes provides a mock function with given fields: payload
