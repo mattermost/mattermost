@@ -738,14 +738,10 @@ describe('ClassificationMarkings component', () => {
     test('should show informational notice when loaded', async () => {
         mockFieldsByObjectType({});
 
-        const {container} = renderWithContext(<ClassificationMarkings/>, BASE_STATE);
+        renderWithContext(<ClassificationMarkings/>, BASE_STATE);
 
         await screen.findByText('True');
 
-        // Enable sits outside AdminPanel (Content Flagging / Data Spillage pattern);
-        // settings panel only mounts once classification is enabled.
-        expect(container.querySelector('#classificationEnabled')?.closest('.admin-console__setting-group')).toBeInTheDocument();
-        expect(container.querySelector('#classification_markings_settings.AdminPanel')).not.toBeInTheDocument();
         expect(screen.getByRole('heading', {name: 'Classification markings are informational only'})).toBeInTheDocument();
         expect(
             screen.getByText('Markings are not tied to access control decisions at this time and are for display purposes only.'),
@@ -1085,15 +1081,8 @@ describe('GlobalClassificationIndicators section', () => {
         const {container} = renderWithContext(<ClassificationMarkings/>, BASE_STATE);
         await screen.findByText('Global Classification Indicators');
 
-        const enableFieldset = container.querySelector('#classificationEnabled');
-        expect(enableFieldset?.closest('.admin-console__setting-group')).toBeInTheDocument();
-        expect(enableFieldset?.closest('#classification_markings_settings')).not.toBeInTheDocument();
-
-        const settingsPanel = container.querySelector('#classification_markings_settings.AdminPanel');
-        expect(settingsPanel).toBeInTheDocument();
-
-        // Compass AdminPanel body-only variant (no title) — no header heading.
-        expect(settingsPanel?.querySelector('h2')).not.toBeInTheDocument();
+        // Preset and clearance settings sit in the enable form, not in a panel.
+        expect(container.querySelector('#classification_markings_settings')).not.toBeInTheDocument();
 
         expect(container.querySelector('#classification_levels.AdminPanel')).toBeInTheDocument();
         expect(container.querySelector('#global_classification_indicators.AdminPanel')).toBeInTheDocument();

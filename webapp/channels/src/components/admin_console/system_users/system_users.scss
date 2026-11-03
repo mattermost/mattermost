@@ -15,6 +15,12 @@
     [class*='admin-panel__body'] {
         padding: 0;
     }
+
+    // Sits directly above the table, so it takes less bottom padding than the
+    // shared 24px on other filter rows.
+    .admin-console__filters-rows {
+        padding-block-end: var(--spacing-xs);
+    }
 }
 
 table.systemUsersTable {

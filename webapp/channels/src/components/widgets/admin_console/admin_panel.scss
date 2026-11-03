@@ -35,6 +35,13 @@ section.AdminPanel {
         padding: 0;
     }
 
+    // The panel body already supplies most of the bottom spacing, so the last
+    // form-group in a form gets a small margin instead of the usual 25px.
+    // Specificity is kept above `.admin-console .form-horizontal .form-group`.
+    form.form-horizontal .form-group:last-child {
+        margin-bottom: 8px;
+    }
+
     .AdminPanel__table {
         width: 100%;
 

@@ -73,8 +73,6 @@ import {PENDING_LEVEL_PREFIX, PRESET_CUSTOM, PRESET_EMPTY, presets} from './util
 import SaveChangesPanel from '../save_changes_panel';
 import {AdminWrapper, DangerText} from '../system_properties/controls';
 
-import './classification_markings.scss';
-
 const MEMBERSHIP_POLICIES_URL = '/admin_console/system_attributes/membership_policies';
 
 const msg = defineMessages({
@@ -706,7 +704,7 @@ export default function ClassificationMarkings({disabled}: Props) {
     const readOnly = disabled || fieldConflict !== null;
 
     return (
-        <div className='wrapper--fixed ClassificationMarkings'>
+        <div className='wrapper--fixed'>
             <AdminHeader>
                 <FormattedMessage {...msg.pageTitle}/>
             </AdminHeader>
@@ -734,7 +732,7 @@ export default function ClassificationMarkings({disabled}: Props) {
                     </InformationNoticeWrapper>
                 )}
                 <form
-                    className='admin-console__setting-group form-horizontal'
+                    className='form-horizontal'
                     onSubmit={(e) => e.preventDefault()}
                 >
                     <BooleanSetting
@@ -758,80 +756,73 @@ export default function ClassificationMarkings({disabled}: Props) {
                             />
                         )}
                     />
-                </form>
-                {enabled && (
-                    <AdminPanel id='classification_markings_settings'>
-                        <form
-                            className='form-horizontal'
-                            onSubmit={(e) => e.preventDefault()}
+                    {enabled && (
+                        <Setting
+                            inputId='DropdownInput_classificationPreset'
+                            label={<FormattedMessage {...msg.presetTitle}/>}
+                            helpText={<FormattedMessage {...msg.presetDescription}/>}
+                            setByEnv={false}
                         >
-                            <Setting
-                                inputId='DropdownInput_classificationPreset'
-                                label={<FormattedMessage {...msg.presetTitle}/>}
-                                helpText={<FormattedMessage {...msg.presetDescription}/>}
-                                setByEnv={false}
+                            <PresetDropdownWrapper>
+                                <DropdownInput
+                                    className='classificationPresetDropdownFieldset'
+                                    name='classificationPreset'
+                                    testId='classificationPreset'
+                                    options={presetDropdownOptions}
+                                    value={presetDropdownValue}
+                                    onChange={handlePresetDropdownChange}
+                                    isDisabled={readOnly}
+                                    isClearable={false}
+                                    menuPortalTarget={document.body}
+                                    styles={classificationPresetDropdownStyles}
+                                />
+                            </PresetDropdownWrapper>
+                        </Setting>
+                    )}
+                    {enabled && abacEnabled && (
+                        <Setting
+                            inputId='clearanceAttribute'
+                            label={<FormattedMessage {...msg.clearanceTitle}/>}
+                            helpText={
+                                <FormattedMessage
+                                    {...msg.clearanceHelp}
+                                    values={{link: membershipPolicyLink}}
+                                />
+                            }
+                            setByEnv={false}
+                        >
+                            <Checkbox
+                                data-testid='clearanceAttributeCheckbox'
+                                checked={clearanceEnabled}
+                                onChange={handleClearanceChange}
+                                disabled={readOnly || clearanceConflict !== null}
                             >
-                                <PresetDropdownWrapper>
-                                    <DropdownInput
-                                        className='classificationPresetDropdownFieldset'
-                                        name='classificationPreset'
-                                        testId='classificationPreset'
-                                        options={presetDropdownOptions}
-                                        value={presetDropdownValue}
-                                        onChange={handlePresetDropdownChange}
-                                        isDisabled={readOnly}
-                                        isClearable={false}
-                                        menuPortalTarget={document.body}
-                                        styles={classificationPresetDropdownStyles}
+                                <FormattedMessage {...msg.clearanceCheckbox}/>
+                            </Checkbox>
+                            {clearanceConflict && (
+                                <InformationNoticeWrapper>
+                                    <SectionNotice
+                                        type='danger'
+                                        title={<FormattedMessage {...msg.conflictClearanceTitle}/>}
+                                        description={formatMessage(msg.conflictClearance, {name: clearanceConflict.name})}
                                     />
-                                </PresetDropdownWrapper>
-                            </Setting>
-                            {abacEnabled && (
-                                <Setting
-                                    inputId='clearanceAttribute'
-                                    label={<FormattedMessage {...msg.clearanceTitle}/>}
-                                    helpText={
-                                        <FormattedMessage
-                                            {...msg.clearanceHelp}
-                                            values={{link: membershipPolicyLink}}
-                                        />
-                                    }
-                                    setByEnv={false}
-                                >
-                                    <Checkbox
-                                        data-testid='clearanceAttributeCheckbox'
-                                        checked={clearanceEnabled}
-                                        onChange={handleClearanceChange}
-                                        disabled={readOnly || clearanceConflict !== null}
-                                    >
-                                        <FormattedMessage {...msg.clearanceCheckbox}/>
-                                    </Checkbox>
-                                    {clearanceConflict && (
-                                        <InformationNoticeWrapper>
-                                            <SectionNotice
-                                                type='danger'
-                                                title={<FormattedMessage {...msg.conflictClearanceTitle}/>}
-                                                description={formatMessage(msg.conflictClearance, {name: clearanceConflict.name})}
-                                            />
-                                        </InformationNoticeWrapper>
-                                    )}
-                                    {/* Suppressed while the blocking conflict above is showing: the
-                                        checkbox is disabled then, so nothing would be created and
-                                        this notice would describe an outcome that cannot happen. */}
-                                    {!clearanceConflict && clearanceTemplateConflict && (
-                                        <InformationNoticeWrapper>
-                                            <SectionNotice
-                                                type='warning'
-                                                title={<FormattedMessage {...msg.clearanceTemplateWarningTitle}/>}
-                                                description={formatMessage(msg.clearanceTemplateWarning, {name: clearanceTemplateConflict.name})}
-                                            />
-                                        </InformationNoticeWrapper>
-                                    )}
-                                </Setting>
+                                </InformationNoticeWrapper>
                             )}
-                        </form>
-                    </AdminPanel>
-                )}
+                            {/* Suppressed while the blocking conflict above is showing: the
+                                checkbox is disabled then, so nothing would be created and
+                                this notice would describe an outcome that cannot happen. */}
+                            {!clearanceConflict && clearanceTemplateConflict && (
+                                <InformationNoticeWrapper>
+                                    <SectionNotice
+                                        type='warning'
+                                        title={<FormattedMessage {...msg.clearanceTemplateWarningTitle}/>}
+                                        description={formatMessage(msg.clearanceTemplateWarning, {name: clearanceTemplateConflict.name})}
+                                    />
+                                </InformationNoticeWrapper>
+                            )}
+                        </Setting>
+                    )}
+                </form>
 
                 {enabled && (
                     <AdminPanel

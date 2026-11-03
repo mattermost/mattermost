@@ -80,10 +80,7 @@
             display: flex;
             flex-wrap: wrap;
             align-items: center;
-            padding-block-end: 12px;
-            padding-block-start: 24px;
-            padding-inline-end: 24px;
-            padding-inline-start: 24px;
+            padding: var(--spacing-xxl);
             row-gap: 12px;
         }
 
