@@ -740,8 +740,10 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.App.Srv().Go(func() {
 			_, count, groupErr := c.App.GetGroupsByChannel(channelID, model.GroupSearchOpts{})
 			if groupErr != nil {
-				c.Logger.Warn("Error listing channel groups", mlog.Err(groupErr))
-			} else if count == 0 {
+				c.Logger.Warn("Error listing channel groups, skipping group-constrained membership cleanup", mlog.Err(groupErr))
+				return
+			}
+			if count == 0 {
 				return
 			}
 			if err := c.App.DeleteGroupConstrainedChannelMemberships(c.AppContext, &channelID); err != nil {
