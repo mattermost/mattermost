@@ -1,21 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect} from 'react';
+import React, {useEffect, type JSX} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {getCloudProducts, getCloudSubscription} from 'mattermost-redux/actions/cloud';
-import {getCloudSubscription as selectCloudSubscription, getSubscriptionProduct as selectSubscriptionProduct, isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
+import {getCloudSubscription as selectCloudSubscription, isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
-
-import {CloudProducts} from 'utils/constants';
 
 const PlanUpgradeButton = (): JSX.Element | null => {
     const dispatch = useDispatch();
@@ -33,13 +31,10 @@ const PlanUpgradeButton = (): JSX.Element | null => {
 
     const isAdmin = useSelector(isCurrentUserSystemAdmin);
     const subscription = useSelector(selectCloudSubscription);
-    const product = useSelector(selectSubscriptionProduct);
     const config = useSelector(getConfig);
     const license = useSelector(getLicense);
 
     const isEnterpriseTrial = subscription?.is_free_trial === 'true';
-
-    const isCloudFree = product?.sku === CloudProducts.STARTER;
 
     const isSelfHostedEnterpriseTrial = !isCloud && license.IsTrial === 'true';
     const isSelfHostedStarter = license.IsLicensed === 'false';
@@ -54,8 +49,8 @@ const PlanUpgradeButton = (): JSX.Element | null => {
         return null;
     }
 
-    // for cloud, only show when subscribed to free or enterprise trial plans
-    if (isCloud && !(isCloudFree || isEnterpriseTrial)) {
+    // for cloud, only show when on the enterprise trial
+    if (isCloud && !isEnterpriseTrial) {
         return null;
     }
 
@@ -78,7 +73,7 @@ const PlanUpgradeButton = (): JSX.Element | null => {
                 aria-haspopup='dialog'
                 onClick={() => openPricingModal()}
                 emphasis='primary'
-                size='xs'
+                size='x-small'
             >
                 {formatMessage({id: 'pricing_modal.btn.viewPlans', defaultMessage: 'View plans'})}
             </Button>

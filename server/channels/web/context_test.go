@@ -4,6 +4,7 @@
 package web
 
 import (
+	"errors"
 	"net/http"
 	"testing"
 
@@ -14,6 +15,99 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
+
+func TestMakeAuditRecord(t *testing.T) {
+	t.Run("PAT session includes token ID in meta", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+
+		tokenID := model.NewId()
+		th.Context = th.Context.WithSession(&model.Session{
+			Id:     model.NewId(),
+			UserId: model.NewId(),
+			Props: model.StringMap{
+				model.SessionPropType:              model.SessionTypeUserAccessToken,
+				model.SessionPropUserAccessTokenId: tokenID,
+			},
+		})
+
+		c := &Context{App: th.App, AppContext: th.Context}
+		rec := c.MakeAuditRecord("test_event", model.AuditStatusAttempt)
+
+		require.NotNil(t, rec)
+		assert.Equal(t, tokenID, rec.Meta[model.SessionPropUserAccessTokenId])
+	})
+
+	t.Run("non-PAT session omits token ID from meta", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+
+		th.Context = th.Context.WithSession(&model.Session{
+			Id:     model.NewId(),
+			UserId: model.NewId(),
+		})
+
+		c := &Context{App: th.App, AppContext: th.Context}
+		rec := c.MakeAuditRecord("test_event", model.AuditStatusAttempt)
+
+		require.NotNil(t, rec)
+		_, exists := rec.Meta[model.SessionPropUserAccessTokenId]
+		assert.False(t, exists, "token ID key should be absent from Meta for non-PAT sessions")
+	})
+}
+
+func TestLogAuditRec(t *testing.T) {
+	t.Run("late-fills token ID for PAT session", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+
+		tokenID := model.NewId()
+		th.Context = th.Context.WithSession(&model.Session{
+			Id:     model.NewId(),
+			UserId: model.NewId(),
+			Props: model.StringMap{
+				model.SessionPropType:              model.SessionTypeUserAccessToken,
+				model.SessionPropUserAccessTokenId: tokenID,
+			},
+		})
+
+		c := &Context{App: th.App, AppContext: th.Context}
+
+		// Simulate a record created before the session was established (e.g., login flow)
+		rec := &model.AuditRecord{
+			EventName: "test_event",
+			Status:    model.AuditStatusAttempt,
+			Actor:     model.AuditEventActor{},
+			Meta:      map[string]any{},
+			EventData: model.AuditEventData{},
+		}
+
+		c.LogAuditRec(rec)
+
+		assert.Equal(t, tokenID, rec.Meta[model.SessionPropUserAccessTokenId])
+	})
+
+	t.Run("does not add token ID for non-PAT session", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+
+		th.Context = th.Context.WithSession(&model.Session{
+			Id:     model.NewId(),
+			UserId: model.NewId(),
+		})
+
+		c := &Context{App: th.App, AppContext: th.Context}
+
+		rec := &model.AuditRecord{
+			EventName: "test_event",
+			Status:    model.AuditStatusAttempt,
+			Actor:     model.AuditEventActor{},
+			Meta:      map[string]any{},
+			EventData: model.AuditEventData{},
+		}
+
+		c.LogAuditRec(rec)
+
+		_, exists := rec.Meta[model.SessionPropUserAccessTokenId]
+		assert.False(t, exists, "token ID key should be absent from Meta for non-PAT sessions")
+	})
+}
 
 func TestRequireHookId(t *testing.T) {
 	c := &Context{}
@@ -56,7 +150,7 @@ func TestMfaRequired(t *testing.T) {
 	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
 	mockUserStore.On("Get", mock.Anything, "userid").Return(nil, model.NewAppError("Userstore.Get", "storeerror", nil, "store error", http.StatusInternalServerError))
 	mockPostStore := mocks.PostStore{}
-	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
+	mockPostStore.On("GetMaxPostSize").Return(model.PostMessageMaxBytesV2, nil)
 	mockSystemStore := mocks.SystemStore{}
 	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
@@ -82,7 +176,31 @@ func TestMfaRequired(t *testing.T) {
 		AppContext: th.Context,
 	}
 
-	c.MfaRequired()
+	c.MfaRequired(http.MethodGet)
 
 	assert.Equal(t, c.Err.Id, "api.context.get_user.app_error")
+}
+
+func TestSetError(t *testing.T) {
+	t.Run("nil", func(t *testing.T) {
+		c := &Context{}
+		c.SetError(nil)
+		assert.Nil(t, c.Err)
+	})
+
+	t.Run("AppError", func(t *testing.T) {
+		appErr := model.NewAppError("TestSetError", "message", nil, "", http.StatusNotFound)
+
+		c := &Context{}
+		c.SetError(appErr)
+		assert.Same(t, appErr, c.Err)
+	})
+
+	t.Run("plain error", func(t *testing.T) {
+		c := &Context{}
+		c.SetError(errors.New("plain"))
+		require.NotNil(t, c.Err)
+		assert.Equal(t, "model.app_error.internal_error", c.Err.Id)
+		assert.Equal(t, http.StatusInternalServerError, c.Err.StatusCode)
+	})
 }

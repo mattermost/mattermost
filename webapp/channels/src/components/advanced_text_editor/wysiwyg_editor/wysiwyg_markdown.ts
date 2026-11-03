@@ -2,6 +2,51 @@
 // See LICENSE.txt for license information.
 
 import type {Editor, JSONContent} from '@tiptap/core';
+import {MarkdownManager} from '@tiptap/markdown';
+
+type MarkedToken = {type: string; raw: string; text?: string; tokens?: MarkedToken[]};
+
+type MarkdownManagerInternals = {
+    lexer: {lex: (markdown: string) => MarkedToken[]};
+    instance: {
+        Lexer: new (options: unknown) => MarkdownManagerInternals['lexer'];
+        defaults: unknown;
+        walkTokens: (tokens: MarkedToken[], callback: (token: MarkedToken) => void) => unknown;
+    };
+    parseTokens: (tokens: MarkedToken[]) => JSONContent[];
+};
+
+// The editor has no task list node, so `[ ]` / `[x]` stay as text and still post as checkboxes.
+const keepTaskMarkerAsText = (token: MarkedToken) => {
+    const tokens = token.tokens;
+    if (tokens?.[0]?.type !== 'checkbox') {
+        return;
+    }
+
+    const [checkbox, next] = tokens;
+    const marker = {type: 'text', raw: checkbox.raw, text: checkbox.raw};
+    if (next?.tokens) {
+        tokens.shift();
+        next.tokens.unshift(marker);
+    } else {
+        tokens[0] = marker;
+    }
+};
+
+// Extension tokenizers (ordered lists, underline) run on the manager's lexer, so the
+// document must be lexed by that same lexer or later blocks lose their inline content.
+MarkdownManager.prototype.parse = function parse(markdown: string): JSONContent {
+    const manager = this as unknown as MarkdownManagerInternals;
+    manager.lexer = new manager.instance.Lexer(manager.instance.defaults);
+    const tokens = manager.lexer.lex(markdown);
+    manager.instance.walkTokens(tokens, keepTaskMarkerAsText);
+    return {type: 'doc', content: manager.parseTokens(tokens)};
+};
+
+// Text typed into a paragraph is markdown source: `[label](url)`, an unclosed ``` that
+// keeps Enter from sending, `- [ ]` task markers. The serializer's backslash escaping
+// would post those characters literally, so text is written out unchanged.
+(MarkdownManager.prototype as unknown as {escapeMarkdownSyntax: (text: string) => string}).escapeMarkdownSyntax = (text) => text;
 
 export const isRedundantLinkText = (text: string, href: string): boolean => {
     if (!text || !href) {
@@ -56,6 +101,35 @@ export const stripRedundantLinkMarks = (node: JSONContent): JSONContent => {
 
     return {...node, content: next};
 };
+
+export const parseMarkdownContent = (editor: Editor, markdown: string): JSONContent | undefined => {
+    const doc = editor.markdown?.parse(markdown);
+    if (!doc?.content) {
+        return undefined;
+    }
+
+    return {
+        ...doc,
+        content: doc.content.map((node) => {
+            const type = node.type ? editor.schema.nodes[node.type] : undefined;
+            return type?.isInline ? {type: 'paragraph', content: [node]} : node;
+        }),
+    };
+};
+
+export const insertMarkdown = (editor: Editor, markdown: string): boolean => {
+    try {
+        const content = parseMarkdownContent(editor, markdown);
+        return Boolean(content) && editor.commands.insertContent(content!);
+    } catch {
+        return false;
+    }
+};
+
+export const plainTextContent = (text: string): JSONContent[] => text.split(/\r?\n/).map((line) => ({
+    type: 'paragraph',
+    content: line ? [{type: 'text', text: line}] : [],
+}));
 
 export const serializeToMarkdown = (editor: Editor): string => {
     const markdown = editor.markdown ?

@@ -74,8 +74,10 @@ export type PluginsState = {
         SidebarBrowseOrAddChannelMenu: SidebarBrowseOrAddChannelMenuAction[];
         ChannelTypeOption: ChannelTypeOptionComponent[];
         ChannelIconOverride: ChannelIconOverrideRegistration[];
+        ChannelKind: ChannelKindRegistration[];
         ChannelComposerBanner: ChannelComposerBannerComponent[];
         ChannelIntro: ChannelIntroRegistration[];
+        ChannelView: ChannelViewRegistration[];
         PostHeader: PostHeaderComponent[];
         ComposerPlaceholder: ComposerPlaceholderRegistration[];
         ProductSwitcherMenuItem: ProductSwitcherMenuItemRegistration[];
@@ -148,7 +150,9 @@ type BasePluggableProps = {
 
 export type PluggableText = string | React.ReactNode;
 
-export type AppBarChannelAction = (channel: Channel, member: ChannelMembership) => void;
+// The App Bar is rendered outside of channels too, such as in Threads and Drafts,
+// so these actions can run with no channel in context.
+export type AppBarChannelAction = (channel?: Channel, member?: ChannelMembership) => void;
 export type AppBarAction = PluginComponent & {
     iconUrl: string;
     supportedProductIds: ProductScope;
@@ -184,7 +188,7 @@ export type ChannelHeaderButtonAction = PluginComponent & {
     icon: React.ReactNode;
     dropdownText: PluggableText;
     tooltipText: PluggableText;
-    action: (channel: Channel, member?: ChannelMembership) => void;
+    action: AppBarChannelAction;
 };
 
 export type ChannelHeaderIconComponent = PluginComponent & {
@@ -235,10 +239,18 @@ export type UserGuideDropdownAction = PluginComponent & {
     action: (fileInfo: FileInfo) => void;
 };
 
+export type PhoneCallRequest = {
+    number: string;
+    userId: string;
+    label: string;
+    fieldId: string;
+};
+
 export type CallButtonAction = PluginComponent & {
     button: React.ReactNode;
     dropdownButton: React.ReactNode;
     action: (channel?: Channel | null, member?: ChannelMembership) => void;
+    phoneAction?: (call: PhoneCallRequest) => void;
 };
 
 export type MobileChannelHeaderButtonAction = PluginComponent & {
@@ -456,11 +468,26 @@ export type SidebarBrowseOrAddChannelMenuAction = PluginComponent & {
     text: PluggableText;
     action: (teamId: string) => void;
     icon: React.ReactNode;
+
+    /** Where the item sits: 'afterCreateChannel' puts it right below "Create new channel"; by default it follows the built-in items. */
+    placement?: 'default' | 'afterCreateChannel';
 };
 
 export type ChannelIconOverrideRegistration = PluginComponent & {
     matcher: (state: GlobalState, channel: Channel) => boolean;
     iconName: IconGlyphTypes;
+};
+
+/** The kinds a plugin can register a channel as (registerChannelKind), each with its own wording. */
+export const CHANNEL_KINDS = ['board'] as const;
+export type RegisteredChannelKind = typeof CHANNEL_KINDS[number];
+
+/** The kind of a channel, which picks the words the webapp names it with: a registered kind, or 'channel'. */
+export type ChannelKind = 'channel' | RegisteredChannelKind;
+
+export type ChannelKindRegistration = PluginComponent & {
+    matcher: (state: GlobalState, channel: Channel) => boolean;
+    kind: RegisteredChannelKind;
 };
 
 export type ChannelComposerBannerComponent = PluginComponent & {
@@ -470,6 +497,25 @@ export type ChannelComposerBannerComponent = PluginComponent & {
 export type ChannelIntroRegistration = PluginComponent & {
     matcher: (state: GlobalState, channel: Channel) => boolean;
     component: React.ComponentType<{channel: Channel}>;
+};
+
+export type ChannelViewPluginComponentProps = {
+    channel: Channel;
+    channelId: string;
+
+    /** The current team's id. Differs from channel.team_id, which is empty for DMs and GMs. */
+    teamId: string;
+
+    /**
+     * Post id the channel was opened focused on via a permalink. Stays set after that id is
+     * removed from the URL, until the user switches channels. The component shows that post.
+     */
+    focusedPostId?: string;
+};
+
+export type ChannelViewRegistration = PluginComponent & {
+    matcher: (state: GlobalState, channel: Channel) => boolean;
+    component: React.ComponentType<ChannelViewPluginComponentProps>;
 };
 
 export type PostHeaderComponent = PluginComponent & {
@@ -492,6 +538,13 @@ export type ChannelTypeOptionComponent = PluginComponent & {
     description: PluggableText;
     icon: React.ReactNode;
     createButtonText?: PluggableText;
+
+    /**
+     * Whether "Create a new channel" lists the option; true when unset. An option that is not listed
+     * is offered only when the plugin opens the modal for its own channel types (new_channel_modal
+     * with channelTypePluginId).
+     */
+    showInNewChannelModal?: boolean;
 
     /** Called with the full Redux state so plugins can read their own plugin-scoped state. */
     isAvailable: (state: GlobalState) => boolean;

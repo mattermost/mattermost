@@ -8,6 +8,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 func (a *App) GenerateAndSaveDesktopToken(createAt int64, user *model.User) (*string, *model.AppError) {
@@ -24,7 +25,7 @@ func (a *App) GenerateAndSaveDesktopToken(createAt int64, user *model.User) (*st
 	return &token, nil
 }
 
-func (a *App) ValidateDesktopToken(token string, expiryTime int64) (*model.User, *model.AppError) {
+func (a *App) ValidateDesktopToken(rctx request.CTX, token string, expiryTime int64) (*model.User, *model.AppError) {
 	// Check if token is valid
 	userId, err := a.Srv().Store().DesktopTokens().GetUserId(token, expiryTime)
 	if err != nil {
@@ -36,7 +37,7 @@ func (a *App) ValidateDesktopToken(token string, expiryTime int64) (*model.User,
 	}
 
 	// Get the user profile
-	user, userErr := a.GetUser(*userId)
+	user, userErr := a.GetUser(rctx, *userId)
 	if userErr != nil {
 		// Delete the token if the user is invalid somehow
 		if deleteErr := a.Srv().Store().DesktopTokens().Delete(token); deleteErr != nil {

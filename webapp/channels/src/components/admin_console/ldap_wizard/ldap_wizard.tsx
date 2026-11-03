@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useState, useMemo} from 'react';
+import React, {useCallback, useState, useMemo, type JSX} from 'react';
 import type {MessageDescriptor, WrappedComponentProps} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 
@@ -430,13 +430,7 @@ const LDAPWizard = (props: Props) => {
     };
 
     const handleChange = (id: string, value: unknown, confirm = false, shouldSubmit = false, warning = false) => {
-        let saveNeeded: State['saveNeeded'] = state.saveNeeded === 'permissions' ? 'both' : 'config';
-
-        // Exception: Since OpenId-Custom is treated as feature discovery for Cloud Starter licenses, save button is disabled.
-        const isCloudStarter = props.license.Cloud === 'true' && props.license.SkuShortName === 'starter';
-        if (id === 'openidType' && value === 'openid' && isCloudStarter) {
-            saveNeeded = false;
-        }
+        const saveNeeded: State['saveNeeded'] = state.saveNeeded === 'permissions' ? 'both' : 'config';
 
         const clientWarning = warning === false ? state.clientWarning : warning;
 

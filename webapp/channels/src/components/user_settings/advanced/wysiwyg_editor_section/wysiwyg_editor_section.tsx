@@ -5,6 +5,7 @@ import React, {useCallback, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import {Radio} from '@mattermost/compass-ui/components/radio';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -95,28 +96,23 @@ const WysiwygEditorSection: React.FC<Props> = ({active, areAllSectionsInactive, 
                         defaultMessage='Rich text editing (Beta)'
                     />
                 </legend>
-                {options.map(({option, inputId, messageId, defaultMessage}) => (
-                    <div
-                        className='radio'
-                        key={option}
-                    >
-                        <label>
-                            <input
-                                id={inputId}
-                                type='radio'
-                                name='wysiwygEditor'
-                                value={option}
-                                checked={value === option}
-                                onChange={handleChange}
-                            />
+                <div className='settings-radio-group'>
+                    {options.map(({option, inputId, messageId, defaultMessage}) => (
+                        <Radio
+                            key={option}
+                            id={inputId}
+                            name='wysiwygEditor'
+                            value={option}
+                            checked={value === option}
+                            onChange={handleChange}
+                        >
                             <FormattedMessage
                                 id={messageId}
                                 defaultMessage={defaultMessage}
                             />
-                        </label>
-                        <br/>
-                    </div>
-                ))}
+                        </Radio>
+                    ))}
+                </div>
                 <div className='mt-5'>
                     <FormattedMessage
                         id='user.settings.display.wysiwygEditorDesc'

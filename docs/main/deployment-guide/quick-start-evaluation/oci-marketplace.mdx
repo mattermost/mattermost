@@ -1,0 +1,90 @@
+---
+title: "OCI Marketplace"
+sidebar_label: "OCI Marketplace"
+sidebar_position: 4
+description: "Try Mattermost with the Oracle Cloud Marketplace evaluation stack. For evaluation only, not production."
+---
+
+Mattermost is published as an **Oracle Cloud Marketplace** stack that deploys a single Linux virtual machine with Mattermost, PostgreSQL, NGINX, and automated TLS. This quick start evaluation option is preferred for customers already using Oracle Cloud Infrastructure (OCI), as it deploys through Resource Manager within your tenancy. It is for evaluation only, not production.
+
+Prefer a hosted sandbox with no local install? Start a [1-hour cloud preview](/deployment-guide/quick-start-evaluation/one-hour-cloud-preview). Prefer to run locally? Use the [Docker preview](/deployment-guide/quick-start-evaluation/docker-preview). Already on Azure? Use the [Azure Marketplace](/deployment-guide/quick-start-evaluation/azure-marketplace) evaluation VM.
+
+## Prerequisites
+
+- An active **OCI tenancy** with permission to create compute, networking, and public IP resources in a compartment.
+- An **SSH public key** for the instance (password login is not enabled).
+- Outbound internet access from the subnet (required for Let's Encrypt and first-boot setup).
+
+## What gets deployed
+
+The stack provisions a small, self-contained environment in the compartment you select, including:
+
+1.  **Compute instance (Linux):** Runs Mattermost, PostgreSQL, and NGINX from the Mattermost Marketplace image.
+2.  **Reserved public IP:** Provides a stable address for HTTPS access to your workspace.
+3.  **Network security group:** Allows inbound HTTP/HTTPS (TCP 80/443) only. The stack NSG does **not** open SSH from the internet.
+4.  **Virtual cloud network (optional):** Creates a new VCN and public subnet with an internet gateway, or uses an existing public subnet you select.
+5.  **Boot volume:** Persistent storage for the operating system, Mattermost data, and configuration.
+
+## Step 1: Launch the stack
+
+Go to the [Mattermost - Quick Start Evaluation](https://marketplace.oracle.com/listings/mattermost-all-in-one-terraform-stack/ocid1.mktpublisting.oc1.iad.amaaaaaaqkzek7yad3vzkclskdwdghx5fk6fnwxrs6oawu4cxu2zkeqhd6da) Oracle Cloud Marketplace listing and select **Launch Stack**.
+
+On the **Create stack** page, choose a name and the target compartment, accept any Marketplace terms, then continue to configure variables.
+
+## Step 2: Virtual Machine Settings
+
+Configure the following:
+
+1.  **Compartment:** Where the compute and network resources will be created.
+2.  **Availability Domain:** Select an availability domain in your region.
+3.  **Admin Email (Let's Encrypt):** Used when the instance requests a TLS certificate. Use a mailbox you can access.
+4.  **Support Email:** Contact email shown to end users for troubleshooting.
+5.  **SSH Public Key:** Paste your public key for Linux access to the instance.
+6.  **Compute Shape:** For trials, the default **VM.Standard3.Flex** with **2 OCPUs** and **8 GB** memory is a good starting point.
+
+Leave **Show Advanced Settings** off unless you need a custom instance name, boot volume size, or VCN CIDR.
+
+## Step 3: Network and Domain Configuration
+
+Configure the following:
+
+1.  **Network Strategy:** Prefer **Create New VCN and Subnet** for evaluation so the stack owns networking end to end. If you choose an existing public subnet, it must allow public IP assignment and inbound TCP 80/443 from the internet. Before you deploy, review that subnet's **security lists**: OCI evaluates security lists and the stack NSG together, so a security list that allows SSH (TCP 22) still opens SSH even though the stack NSG does not.
+2.  **Domain Strategy:** For the fastest trial with no DNS setup, select **Evaluation Domain (sslip.io)**. The stack assigns a hostname derived from the public IP (for example, `https://0-0-0-0.sslip.io`) and obtains a TLS certificate automatically.
+3.  **Mattermost Domain (FQDN):** Required only when using **Bring Your Own Domain**. Enter your hostname (for example, `mattermost.example.com`). After apply, create a DNS **A** record pointing that name to the stack's **Public IP Address** output; TLS bootstrap retries until DNS resolves correctly.
+
+## Step 4: Review and apply
+
+Review the plan, then run **Apply** in Resource Manager. Infrastructure provisioning usually takes a few minutes. First-boot configuration (TLS and Mattermost startup) can take **5–15 minutes** more before HTTPS works reliably.
+
+**After the apply completes:**
+
+- Open the stack **Outputs**.
+- Use **Open Mattermost** (`mattermost_url`), or build the URL from **Mattermost FQDN**:
+
+  `https://<mattermost-fqdn>`
+
+  Evaluation example: `https://0-0-0-0.sslip.io`
+
+- If you chose **Bring Your Own Domain**, follow the **DNS Setup** output: create the **A** record to the **Public IP Address**, then wait for bootstrap to finish.
+
+Use **https**; the deployment is intended to serve Mattermost over TLS.
+
+## Step 5: Open Mattermost and create your administrator
+
+In a browser, go to your **HTTPS** URL. Mattermost will prompt you to **create the first user**, which becomes the **System Administrator**. That account is different from the Linux identity associated with the SSH public key you configured in Step 2.
+
+Congratulations! You've successfully deployed Mattermost for evaluation.
+
+For a high-availability OCI deployment, see [Deploy Mattermost on Oracle Kubernetes Engine (OKE)](/deployment-guide/server/kubernetes/deploy-k8s-oke).
+
+## Next steps
+
+After setting up your Mattermost instance:
+
+- Create your first team and channels
+- Invite users to join your workspace
+- Explore Mattermost features and integrations
+- Review the [Application architecture](/deployment-guide/application-architecture) to understand the system better
+- [Plan your deployment](/deployment-guide/server/server-deployment-planning) before moving to production
+
+For additional help, visit the [Mattermost community forums](https://forum.mattermost.com/) or the [Deployment troubleshooting](/deployment-guide/server/troubleshooting) guide.

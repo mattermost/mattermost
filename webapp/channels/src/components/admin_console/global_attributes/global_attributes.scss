@@ -23,13 +23,30 @@
     }
 }
 
+.GlobalAttributes__newAttribute {
+    flex-shrink: 0;
+    margin-inline-start: 16px;
+}
+
 .GlobalAttributes__actions {
     display: flex;
-    justify-content: flex-end;
+    align-items: center;
     padding: 24px;
 }
 
+.GlobalAttributes__search {
+    min-width: 0;
+    max-width: 420px;
+    flex: 1 1 120px;
+
+    .Input_fieldset {
+        min-height: 40px;
+    }
+}
+
 .GlobalAttributes__headerGroup {
+    min-width: 0;
+
     h1 {
         margin: 0;
         color: var(--center-channel-color);

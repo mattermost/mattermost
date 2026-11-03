@@ -190,6 +190,15 @@ func TestCheckLine(t *testing.T) {
 			wantMsg: diagDropIndex,
 		},
 		{
+			name: "ignore comment suppresses statement",
+			line: "-- concurrentIndex:ignore lock is taken anyway\nDROP INDEX IF EXISTS idx_foo;",
+		},
+		{
+			name:    "ignore comment only applies to its own statement",
+			line:    "-- concurrentIndex:ignore lock is taken anyway\nDROP INDEX IF EXISTS idx_a; DROP INDEX IF EXISTS idx_b;",
+			wantMsg: diagDropIndex,
+		},
+		{
 			name: "multi-statement all safe",
 			line: "CREATE INDEX CONCURRENTLY idx_a ON t (c); DROP INDEX CONCURRENTLY IF EXISTS idx_b;",
 		},

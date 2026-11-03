@@ -820,7 +820,7 @@ func BenchmarkTrimTrailingCharactersFromLink_UnmatchedClosingParens(b *testing.B
 			expectedEnd := len("https://example.com/")
 
 			b.ReportAllocs()
-			for i := 0; i < b.N; i++ {
+			for range b.N {
 				if end := trimTrailingCharactersFromLink(input, 0, len(input)); end != expectedEnd {
 					b.Fatalf("expected end %d, got %d", expectedEnd, end)
 				}

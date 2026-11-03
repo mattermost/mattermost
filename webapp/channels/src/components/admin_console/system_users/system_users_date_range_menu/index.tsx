@@ -88,7 +88,7 @@ export function SystemUsersDateRangeMenu(props: Props) {
                     'aria-label': formatMessage({
                         id: 'admin.system_users.date_range_selector.menuButtonAriaLabel',
                         defaultMessage:
-                            'Open menu to select columns to display',
+                            'Open menu to select a date range',
                     }),
                     as: 'div',
                     children: (

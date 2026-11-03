@@ -4,6 +4,7 @@
 package app
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -502,6 +503,53 @@ func TestCreateChannelDisplayNameTrimsWhitespace(t *testing.T) {
 	}()
 	require.Nil(t, appErr)
 	require.Equal(t, channel.DisplayName, "Public 1")
+}
+
+// TestCreateChannelWithUserIgnoresRequiredAttributesWithNoValues documents that
+// "required" is enforced only by the api4 handler that builds propertyValues
+// for the public create-channel endpoint, not by this app-layer entry point.
+// Every trusted caller (plugins, import, local API, shared channels, slash
+// commands) reaches CreateChannel/CreateChannelWithUser with no propertyValues
+// at all, and that must keep working even when a required channel attribute
+// exists.
+func TestCreateChannelWithUserIgnoresRequiredAttributesWithNoValues(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.ChannelAttributes = true
+		cfg.FeatureFlags.ChannelAttributesRequired = true
+	}).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	memberLevel := model.PermissionLevelMember
+	field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+		Name:              "f_" + model.NewId(),
+		Type:              model.PropertyFieldTypeText,
+		GroupID:           group.ID,
+		ObjectType:        "channel",
+		TargetType:        "system",
+		PermissionField:   &memberLevel,
+		PermissionValues:  &memberLevel,
+		PermissionOptions: &memberLevel,
+		Attrs: model.StringInterface{
+			model.PropertyFieldAttrRequired: true,
+		},
+	}, false, "")
+	require.Nil(t, appErr)
+	t.Cleanup(func() {
+		require.Nil(t, th.App.DeletePropertyField(th.Context, group.ID, field.ID, true, ""))
+	})
+
+	channel, appErr := th.App.CreateChannelWithUser(th.Context, &model.Channel{
+		DisplayName: "No Values Trusted Path",
+		Name:        "no-values-" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+		TeamId:      th.BasicTeam.Id,
+	}, th.BasicUser.Id)
+	require.Nil(t, appErr)
+	require.NotNil(t, channel)
 }
 
 func TestCreateChannelSpaceRequiresEnableDocs(t *testing.T) {
@@ -2164,7 +2212,7 @@ func TestAddUserToChannel(t *testing.T) {
 		require.Nil(t, appErr)
 	}()
 	bot := th.CreateBot(t)
-	botUser, _ := th.App.GetUser(bot.UserId)
+	botUser, _ := th.App.GetUser(th.Context, bot.UserId)
 	defer func() {
 		appErr := th.App.PermanentDeleteBot(th.Context, botUser.Id)
 		require.Nil(t, appErr)
@@ -2259,7 +2307,7 @@ func TestRemoveUserFromChannel(t *testing.T) {
 	}()
 
 	bot := th.CreateBot(t)
-	botUser, _ := th.App.GetUser(bot.UserId)
+	botUser, _ := th.App.GetUser(th.Context, bot.UserId)
 	defer func() {
 		appErr := th.App.PermanentDeleteBot(th.Context, botUser.Id)
 		require.Nil(t, appErr)
@@ -3024,6 +3072,80 @@ func TestMarkChannelAsUnreadFromPostCollapsedThreadsTurnedOff(t *testing.T) {
 		require.Equal(t, int64(7), channelUnread.MsgCount)
 		require.Equal(t, int64(3), channelUnread.MsgCountRoot)
 	})
+}
+
+func TestMarkChannelAsUnreadFromPostStripsActionIntegrations(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.ThreadAutoFollow = true
+		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
+	})
+
+	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
+
+	rootPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: th.BasicChannel.Id,
+		Message:   "interactive root",
+		Props: model.StringInterface{
+			model.PostPropsAttachments: []*model.MessageAttachment{
+				{
+					Text: "hello",
+					Actions: []*model.PostAction{
+						{
+							Type: model.PostActionTypeButton,
+							Name: "action",
+							Integration: &model.PostActionIntegration{
+								URL:     "http://localhost:8065/secret-endpoint",
+								Context: map[string]any{"secret_marker": "s3cr3t"},
+							},
+						},
+					},
+				},
+			},
+		},
+	}, th.BasicChannel, model.CreatePostFlags{})
+	require.Nil(t, appErr)
+
+	replyPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser2.Id,
+		ChannelId: th.BasicChannel.Id,
+		RootId:    rootPost.Id,
+		Message:   "reply",
+	}, th.BasicChannel, model.CreatePostFlags{})
+	require.Nil(t, appErr)
+
+	_, appErr = th.App.MarkChannelsAsViewed(th.Context, []string{th.BasicChannel.Id}, th.BasicUser2.Id, "", false, false)
+	require.Nil(t, appErr)
+
+	// collapsedThreadsSupported=false routes to markChannelAsUnreadFromPostCRTUnsupported;
+	// CollapsedThreads=DefaultOn means IsCRTEnabledForUser=true so thread_updated fires.
+	messages, closeWS := connectFakeWebSocket(t, th, th.BasicUser2.Id, "", []model.WebsocketEventType{model.WebsocketEventThreadUpdated})
+	defer closeWS()
+
+	_, appErr = th.App.MarkChannelAsUnreadFromPost(th.Context, replyPost.Id, th.BasicUser2.Id, false)
+	require.Nil(t, appErr)
+
+	select {
+	case event := <-messages:
+		threadJSON, ok := event.GetData()["thread"].(string)
+		require.True(t, ok)
+		assert.NotContains(t, threadJSON, "secret-endpoint")
+		assert.NotContains(t, threadJSON, "secret_marker")
+
+		var thread model.ThreadResponse
+		require.NoError(t, json.Unmarshal([]byte(threadJSON), &thread))
+		require.NotNil(t, thread.Post)
+		attachments := thread.Post.Attachments()
+		require.Len(t, attachments, 1)
+		require.Len(t, attachments[0].Actions, 1)
+		assert.Equal(t, "action", attachments[0].Actions[0].Name, "non-secret attachment data must be preserved")
+		assert.Nil(t, attachments[0].Actions[0].Integration)
+	case <-time.After(10 * time.Second):
+		require.Fail(t, "Did not receive websocket message in time")
+	}
 }
 
 func TestMarkUnreadCRTOffUpdatesThreads(t *testing.T) {

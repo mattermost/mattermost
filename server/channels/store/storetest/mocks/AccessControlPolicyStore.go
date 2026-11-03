@@ -15,6 +15,11 @@ type AccessControlPolicyStore struct {
 	mock.Mock
 }
 
+// ClearEtagCache provides a mock function with no fields
+func (_m *AccessControlPolicyStore) ClearEtagCache() {
+	_m.Called()
+}
+
 // Delete provides a mock function with given fields: rctx, id
 func (_m *AccessControlPolicyStore) Delete(rctx request.CTX, id string) error {
 	ret := _m.Called(rctx, id)
@@ -123,6 +128,34 @@ func (_m *AccessControlPolicyStore) GetActionsForPolicy(rctx request.CTX, policy
 	return r0, r1
 }
 
+// GetEtagEpoch provides a mock function with given fields: rctx, channelID
+func (_m *AccessControlPolicyStore) GetEtagEpoch(rctx request.CTX, channelID string) (string, error) {
+	ret := _m.Called(rctx, channelID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetEtagEpoch")
+	}
+
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string) (string, error)); ok {
+		return rf(rctx, channelID)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string) string); ok {
+		r0 = rf(rctx, channelID)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {
+		r1 = rf(rctx, channelID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetPoliciesByFieldID provides a mock function with given fields: rctx, fieldID
 func (_m *AccessControlPolicyStore) GetPoliciesByFieldID(rctx request.CTX, fieldID string) ([]*model.AccessControlPolicy, error) {
 	ret := _m.Called(rctx, fieldID)
@@ -151,6 +184,11 @@ func (_m *AccessControlPolicyStore) GetPoliciesByFieldID(rctx request.CTX, field
 	}
 
 	return r0, r1
+}
+
+// InvalidateEtagForChannel provides a mock function with given fields: channelID
+func (_m *AccessControlPolicyStore) InvalidateEtagForChannel(channelID string) {
+	_m.Called(channelID)
 }
 
 // Save provides a mock function with given fields: rctx, policy
@@ -220,50 +258,20 @@ func (_m *AccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts model.
 	return r0, r1, r2
 }
 
-// SetActiveStatus provides a mock function with given fields: rctx, id, active
-func (_m *AccessControlPolicyStore) SetActiveStatus(rctx request.CTX, id string, active bool) (*model.AccessControlPolicy, error) {
-	ret := _m.Called(rctx, id, active)
-
-	if len(ret) == 0 {
-		panic("no return value specified for SetActiveStatus")
-	}
-
-	var r0 *model.AccessControlPolicy
-	var r1 error
-	if rf, ok := ret.Get(0).(func(request.CTX, string, bool) (*model.AccessControlPolicy, error)); ok {
-		return rf(rctx, id, active)
-	}
-	if rf, ok := ret.Get(0).(func(request.CTX, string, bool) *model.AccessControlPolicy); ok {
-		r0 = rf(rctx, id, active)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AccessControlPolicy)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(request.CTX, string, bool) error); ok {
-		r1 = rf(rctx, id, active)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// SetActiveStatusMultiple provides a mock function with given fields: rctx, list
-func (_m *AccessControlPolicyStore) SetActiveStatusMultiple(rctx request.CTX, list []model.AccessControlPolicyActiveUpdate) ([]*model.AccessControlPolicy, error) {
+// SetMembershipAutoAdd provides a mock function with given fields: rctx, list
+func (_m *AccessControlPolicyStore) SetMembershipAutoAdd(rctx request.CTX, list []model.AccessControlPolicyAutoAddUpdate) ([]*model.AccessControlPolicy, error) {
 	ret := _m.Called(rctx, list)
 
 	if len(ret) == 0 {
-		panic("no return value specified for SetActiveStatusMultiple")
+		panic("no return value specified for SetMembershipAutoAdd")
 	}
 
 	var r0 []*model.AccessControlPolicy
 	var r1 error
-	if rf, ok := ret.Get(0).(func(request.CTX, []model.AccessControlPolicyActiveUpdate) ([]*model.AccessControlPolicy, error)); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, []model.AccessControlPolicyAutoAddUpdate) ([]*model.AccessControlPolicy, error)); ok {
 		return rf(rctx, list)
 	}
-	if rf, ok := ret.Get(0).(func(request.CTX, []model.AccessControlPolicyActiveUpdate) []*model.AccessControlPolicy); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, []model.AccessControlPolicyAutoAddUpdate) []*model.AccessControlPolicy); ok {
 		r0 = rf(rctx, list)
 	} else {
 		if ret.Get(0) != nil {
@@ -271,7 +279,7 @@ func (_m *AccessControlPolicyStore) SetActiveStatusMultiple(rctx request.CTX, li
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(request.CTX, []model.AccessControlPolicyActiveUpdate) error); ok {
+	if rf, ok := ret.Get(1).(func(request.CTX, []model.AccessControlPolicyAutoAddUpdate) error); ok {
 		r1 = rf(rctx, list)
 	} else {
 		r1 = ret.Error(1)

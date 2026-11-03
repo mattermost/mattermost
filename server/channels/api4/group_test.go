@@ -5,6 +5,7 @@ package api4
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -176,6 +177,44 @@ func TestCreateGroup(t *testing.T) {
 	_, response, err = th.SystemAdminClient.CreateGroup(context.Background(), g)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, response)
+}
+
+func TestCreateGroupWithUserIdsNotifiesMembers(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+
+	webSocketClient := th.CreateConnectedWebSocketClient(t)
+
+	id := model.NewId()
+	group, appErr := th.App.CreateGroupWithUserIds(&model.GroupWithUserIds{
+		Group: model.Group{
+			DisplayName:    "dn_" + id,
+			Name:           new("name" + id),
+			Source:         model.GroupSourceCustom,
+			AllowReference: true,
+		},
+		UserIds: []string{th.BasicUser.Id},
+	})
+	require.Nil(t, appErr)
+
+	timeout := time.After(5 * time.Second)
+	for {
+		select {
+		case event := <-webSocketClient.EventChannel:
+			if event.EventType() != model.WebsocketEventGroupMemberAdd {
+				continue
+			}
+			var groupMember model.GroupMember
+			require.NoError(t, json.Unmarshal([]byte(event.GetData()["group_member"].(string)), &groupMember))
+			require.Equal(t, group.Id, groupMember.GroupId)
+			require.Equal(t, th.BasicUser.Id, groupMember.UserId)
+			return
+		case <-timeout:
+			require.Fail(t, "expected a group member added event for the initial member")
+		}
+	}
 }
 
 func TestDeleteGroup(t *testing.T) {
@@ -2007,6 +2046,16 @@ func TestGetGroups(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		assert.Len(t, groups, 3)
+	})
+
+	t.Run("search with Q parameter written as a mention", func(t *testing.T) {
+		opts := baseOpts
+		opts.Q = "@" + *groupWithRef.Name
+		groups, resp, err := th.SystemAdminClient.GetGroups(context.Background(), opts)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, groups, 1)
+		assert.Equal(t, groupWithRef.Id, groups[0].Id)
 	})
 
 	t.Run("test FilterAllowReference for non-admin user", func(t *testing.T) {

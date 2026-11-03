@@ -262,6 +262,12 @@ func (hooks *hooksTimerLayer) OnCloudLimitsUpdated(limits *model.ProductLimits) 
 	hooks.recordTime(startTime, "OnCloudLimitsUpdated", true)
 }
 
+func (hooks *hooksTimerLayer) OnLicenseChanged(oldLicense, newLicense *model.License) {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.OnLicenseChanged(oldLicense, newLicense)
+	hooks.recordTime(startTime, "OnLicenseChanged", true)
+}
+
 func (hooks *hooksTimerLayer) ConfigurationWillBeSaved(newCfg *model.Config) (*model.Config, error) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := hooks.hooksImpl.ConfigurationWillBeSaved(newCfg)
@@ -369,6 +375,12 @@ func (hooks *hooksTimerLayer) DraftWillBeUpserted(c *Context, draft *model.Draft
 	_returnsA, _returnsB := hooks.hooksImpl.DraftWillBeUpserted(c, draft)
 	hooks.recordTime(startTime, "DraftWillBeUpserted", true)
 	return _returnsA, _returnsB
+}
+
+func (hooks *hooksTimerLayer) PropertyValuesHaveBeenUpdated(c *Context, userID, groupID, targetType, targetID string, values, previousValues []*model.PropertyValue) {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.PropertyValuesHaveBeenUpdated(c, userID, groupID, targetType, targetID, values, previousValues)
+	hooks.recordTime(startTime, "PropertyValuesHaveBeenUpdated", true)
 }
 
 func (hooks *hooksTimerLayer) OnDeactivateWithRPCErr() (error, error) {
@@ -553,6 +565,13 @@ func (hooks *hooksTimerLayer) OnCloudLimitsUpdatedWithRPCErr(limits *model.Produ
 	return _returnsRPCErr
 }
 
+func (hooks *hooksTimerLayer) OnLicenseChangedWithRPCErr(oldLicense, newLicense *model.License) error {
+	startTime := timePkg.Now()
+	_returnsRPCErr := hooks.hooksWithRPCErrImpl.OnLicenseChangedWithRPCErr(oldLicense, newLicense)
+	hooks.recordTime(startTime, "OnLicenseChangedWithRPCErr", _returnsRPCErr == nil)
+	return _returnsRPCErr
+}
+
 func (hooks *hooksTimerLayer) ConfigurationWillBeSavedWithRPCErr(newCfg *model.Config) (*model.Config, error, error) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB, _returnsRPCErr := hooks.hooksWithRPCErrImpl.ConfigurationWillBeSavedWithRPCErr(newCfg)
@@ -656,4 +675,11 @@ func (hooks *hooksTimerLayer) DraftWillBeUpsertedWithRPCErr(c *Context, draft *m
 	_returnsA, _returnsB, _returnsRPCErr := hooks.hooksWithRPCErrImpl.DraftWillBeUpsertedWithRPCErr(c, draft)
 	hooks.recordTime(startTime, "DraftWillBeUpsertedWithRPCErr", _returnsRPCErr == nil)
 	return _returnsA, _returnsB, _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) PropertyValuesHaveBeenUpdatedWithRPCErr(c *Context, userID, groupID, targetType, targetID string, values, previousValues []*model.PropertyValue) error {
+	startTime := timePkg.Now()
+	_returnsRPCErr := hooks.hooksWithRPCErrImpl.PropertyValuesHaveBeenUpdatedWithRPCErr(c, userID, groupID, targetType, targetID, values, previousValues)
+	hooks.recordTime(startTime, "PropertyValuesHaveBeenUpdatedWithRPCErr", _returnsRPCErr == nil)
+	return _returnsRPCErr
 }

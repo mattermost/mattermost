@@ -48,9 +48,25 @@ jobs:
         working-directory: docs/site
         run: npm run typecheck
 
+      - name: Egress-check unit tests
+        working-directory: docs/site
+        run: npm run test:egress
+
       - name: Build docs site (includes OpenAPI prebuild)
         working-directory: docs/site
         run: npm run build
         env:
           ALGOLIA_APP_ID: ${{ vars.ALGOLIA_APP_ID }}
           ALGOLIA_SEARCH_API_KEY: ${{ vars.ALGOLIA_SEARCH_API_KEY }}
+
+      # Hosted Algolia injects SearchBar preconnects; do not scan that artifact.
+      # Rebuild without ALGOLIA_* (prebuild already ran) for the offline shape.
+      - name: Rebuild without Algolia for egress scan
+        working-directory: docs/site
+        run: npx docusaurus build && npm run postbuild
+        env:
+          BASE_URL: /
+
+      - name: Scan built site for egress
+        working-directory: docs/site
+        run: npm run check:egress

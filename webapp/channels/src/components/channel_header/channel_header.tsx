@@ -4,11 +4,13 @@
 import classNames from 'classnames';
 import React from 'react';
 import type {MouseEvent, ReactNode, RefObject} from 'react';
-import {defineMessages, FormattedMessage, injectIntl} from 'react-intl';
+import {defineMessage, defineMessages, FormattedMessage, injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
+import ChannelAttributeLabels from 'components/channel_attributes/channel_attribute_labels';
+import {ChannelLabelSurface} from 'components/common/hooks/useChannelLabels';
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import CustomStatusText from 'components/custom_status/custom_status_text';
 import PopoutButton from 'components/popout_button';
@@ -18,6 +20,7 @@ import Tag from 'components/widgets/tag/tag';
 import CallButton from 'plugins/call_button';
 import ChannelHeaderPlug from 'plugins/channel_header_plug';
 import Pluggable from 'plugins/pluggable';
+import type {KindMessages} from 'utils/channel_kind';
 import {getChannelRoutePathAndIdentifier} from 'utils/channel_utils';
 import {
     Constants,
@@ -40,10 +43,29 @@ const membersTooltipMessages = defineMessages({
     membersPendingRequests: {id: 'channel_header.channelMembersPendingRequests', defaultMessage: 'Members — pending join requests'},
 });
 
+const messages = {
+    headerRegion: {
+        channel: defineMessage({id: 'accessibility.sections.channelHeader', defaultMessage: 'channel header region'}),
+        board: defineMessage({id: 'accessibility.sections.channelHeader.board', defaultMessage: 'board header region'}),
+    },
+    hasGuests: {
+        channel: defineMessage({id: 'channel_header.channelHasGuests', defaultMessage: 'Channel has guests'}),
+        board: defineMessage({id: 'channel_header.channelHasGuests.board', defaultMessage: 'Board has guests'}),
+    },
+    autotranslationHint: {
+        channel: defineMessage({id: 'channel_header.autotranslationMessage.tooltip.hint', defaultMessage: 'This channel is being automatically translated to your language'}),
+        board: defineMessage({id: 'channel_header.autotranslationMessage.tooltip.hint.board', defaultMessage: 'This board is being automatically translated to your language'}),
+    },
+    files: {
+        channel: defineMessage({id: 'channel_header.channelFiles', defaultMessage: 'Channel files'}),
+        board: defineMessage({id: 'channel_header.channelFiles.board', defaultMessage: 'Board files'}),
+    },
+} satisfies Record<string, KindMessages>;
+
 export type Props = WrappedComponentProps & PropsFromRedux;
 
 class ChannelHeader extends React.PureComponent<Props> {
-    toggleFavoriteRef: RefObject<HTMLButtonElement>;
+    toggleFavoriteRef: RefObject<HTMLButtonElement | null>;
 
     constructor(props: Props) {
         super(props);
@@ -160,22 +182,20 @@ class ChannelHeader extends React.PureComponent<Props> {
             rhsState,
             hasGuests,
             hideGuestTags,
+            channelKind,
         } = this.props;
         if (!channel) {
             return null;
         }
 
-        const ariaLabelChannelHeader = this.props.intl.formatMessage({id: 'accessibility.sections.channelHeader', defaultMessage: 'channel header region'});
+        const ariaLabelChannelHeader = this.props.intl.formatMessage(messages.headerRegion[channelKind]);
 
         let hasGuestsText: ReactNode = '';
         if (hasGuests && !hideGuestTags) {
             hasGuestsText = (
                 <span className='has-guest-header'>
                     <span tabIndex={0}>
-                        <FormattedMessage
-                            id='channel_header.channelHasGuests'
-                            defaultMessage='Channel has guests'
-                        />
+                        <FormattedMessage {...messages.hasGuests[channelKind]}/>
                     </span>
                 </span>
             );
@@ -186,7 +206,7 @@ class ChannelHeader extends React.PureComponent<Props> {
             autotranslationMessage = (
                 <WithTooltip
                     title={this.props.intl.formatMessage({id: 'channel_header.autotranslationMessage.tooltip.title', defaultMessage: 'Auto-translation is enabled'})}
-                    hint={this.props.intl.formatMessage({id: 'channel_header.autotranslationMessage.tooltip.hint', defaultMessage: 'This channel is being automatically translated to your language'})}
+                    hint={this.props.intl.formatMessage(messages.autotranslationHint[channelKind])}
                 >
                     <div
                         className='autotranslation-header'
@@ -405,12 +425,12 @@ class ChannelHeader extends React.PureComponent<Props> {
                                     {muteTrigger}
                                     {memberListButton}
                                     {pinnedButton}
-                                    {this.props.isFileAttachmentsEnabled &&
+                                    {this.props.canSearchFiles &&
                                         <HeaderIconWrapper
                                             buttonClass={channelFilesIconClass}
                                             buttonId={'channelHeaderFilesButton'}
                                             onClick={this.showChannelFiles}
-                                            tooltip={this.props.intl.formatMessage({id: 'channel_header.channelFiles', defaultMessage: 'Channel files'})}
+                                            tooltip={this.props.intl.formatMessage(messages.files[channelKind])}
                                         >
                                             {channelFilesIcon}
                                         </HeaderIconWrapper>
@@ -420,6 +440,12 @@ class ChannelHeader extends React.PureComponent<Props> {
                                         channel={channel}
                                         channelMember={channelMember!}
                                     />
+                                    {!isDirect && !isGroup && (
+                                        <ChannelAttributeLabels
+                                            channelId={channel.id}
+                                            surface={[ChannelLabelSurface.INFO, ChannelLabelSurface.HEADER]}
+                                        />
+                                    )}
                                 </div>
                                 <div
                                     id='channelHeaderDescription'

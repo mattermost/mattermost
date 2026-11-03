@@ -4,9 +4,8 @@
 import React from 'react';
 import {useIntl} from 'react-intl';
 
+import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
 import type {AdminConfig, ClientLicense} from '@mattermost/types/config';
-
-import SectionNotice from 'components/section_notice';
 
 import type {AdminDefinitionSetting} from './types';
 
@@ -36,7 +35,7 @@ const ProductionWarning = ({setting, config, state, license, isDisabled}: Props)
             <SectionNotice
                 type='danger'
                 title={intl.formatMessage(warning.title)}
-                text={intl.formatMessage(warning.text)}
+                description={intl.formatMessage(warning.text)}
             />
         </div>
     );

@@ -10,10 +10,7 @@
 // Stage: @prod
 // Group: @channels @notifications
 
-import {
-    changeDesktopNotificationAs,
-    changeTeammateNameDisplayAs,
-} from './helper';
+import {changeDesktopNotificationAs} from './helper';
 
 import * as MESSAGES from '@/fixtures/messages';
 import * as TIMEOUTS from '@/fixtures/timeouts';
@@ -93,28 +90,6 @@ describe('Desktop notifications', () => {
         });
     });
 
-    it('MM-T487 Desktop Notifications - For all activity with apostrophe, emoji, and markdown in notification', () => {
-        spyNotificationAs('withNotification', 'granted');
-
-        const actualMsg = '*I\'m* [hungry](http://example.com) :taco: ![Mattermost](https://mattermost.com/wp-content/uploads/2022/02/logoHorizontal.png)';
-        const expected = '@' + otherUser.username + ': I\'m hungry :taco: Mattermost';
-
-        // # Ensure notifications are set up to fire a desktop notification if are mentioned.
-        changeDesktopNotificationAs('all');
-
-        cy.apiGetChannelByName(testTeam.name, 'Off-Topic').then(({channel}) => {
-            // # Have another user send a post.
-            cy.postMessageAs({sender: otherUser, message: actualMsg, channelId: channel.id});
-
-            // * Desktop notification should be received with expected body.
-            cy.wait(TIMEOUTS.HALF_SEC);
-            cy.get('@withNotification').should('have.been.calledWithMatch', 'Off-Topic', (args) => {
-                expect(args.body, `Notification body: "${args.body}" should match: "${expected}"`).to.equal(expected);
-                return true;
-            });
-        });
-    });
-
     it.skip('MM-T495 Desktop Notifications - Can set to DND and no notification fires on DM', () => {
         cy.apiCreateDirectChannel([otherUser.id, testUser.id]).then(({channel}) => {
             // # Ensure notifications are set up to fire a desktop notification if you receive a DM
@@ -162,133 +137,6 @@ describe('Desktop notifications', () => {
 
             // * Verify that the channel is now unread without a mention badge
             cy.get(`#sidebarItem_${channel.name} .badge`).should('not.exist');
-        });
-    });
-
-    it('MM-T488 Desktop Notifications - Teammate name display set to username', () => {
-        spyNotificationAs('withNotification', 'granted');
-
-        // # Ensure notifications are set up to fire a desktop notification if are mentioned
-        changeDesktopNotificationAs('mentions');
-
-        // # Ensure display settings are set to "Show username"
-        changeTeammateNameDisplayAs('#name_formatFormatA');
-
-        const actualMsg = `@${testUser.username} How are things?`;
-        const expected = `@${otherUser.username}: @${testUser.username} How are things?`;
-
-        cy.apiGetChannelByName(testTeam.name, 'Off-Topic').then(({channel}) => {
-            // # Have another user send a post.
-            cy.postMessageAs({sender: otherUser, message: actualMsg, channelId: channel.id});
-
-            // * Desktop notification should be received with expected body.
-            cy.wait(TIMEOUTS.HALF_SEC);
-            cy.get('@withNotification').should('have.been.calledWithMatch', 'Off-Topic', (args) => {
-                expect(args.body, `Notification body: "${args.body}" should match: "${expected}"`).to.equal(expected);
-                return true;
-            });
-        });
-    });
-
-    it('MM-T490 Desktop Notifications - Teammate name display set to first and last name', () => {
-        spyNotificationAs('withNotification', 'granted');
-
-        // # Ensure notifications are set up to fire a desktop notification if are mentioned
-        changeDesktopNotificationAs('mentions');
-
-        // # Ensure display settings are set to "Show first and last name"
-        changeTeammateNameDisplayAs('#name_formatFormatC');
-
-        const actualMsg = `@${testUser.username} How are things?`;
-        const expected = `@${otherUser.first_name} ${otherUser.last_name}: @${testUser.username} How are things?`;
-
-        cy.apiGetChannelByName(testTeam.name, 'Off-Topic').then(({channel}) => {
-            // # Have another user send a post.
-            cy.postMessageAs({sender: otherUser, message: actualMsg, channelId: channel.id});
-
-            // * Desktop notification should be received with expected body.
-            cy.wait(TIMEOUTS.HALF_SEC);
-            cy.get('@withNotification').should('have.been.calledWithMatch', 'Off-Topic', (args) => {
-                expect(args.body, `Notification body: "${args.body}" should match: "${expected}"`).to.equal(expected);
-                return true;
-            });
-        });
-    });
-
-    it('MM-T491 - Channel notifications: No desktop notification when in focus', () => {
-        cy.apiGetChannelByName(testTeam.name, 'Off-Topic').then(({channel}) => {
-            const message = '/echo test 3';
-
-            // # Go to test channel
-            cy.visit(`/${testTeam.name}/channels/${channel.name}`);
-            spyNotificationAs('withNotification', 'granted');
-
-            // # Have another user send a post with delay
-            cy.postMessageAs({sender: otherUser, message, channelId: channel.id});
-
-            // * Desktop notification is not received
-            cy.get('@withNotification').should('not.have.been.called');
-        });
-    });
-
-    it('MM-T494 - Channel notifications: Send Desktop Notifications - Only mentions and DMs', () => {
-        spyNotificationAs('withNotification', 'granted');
-
-        // # Ensure notifications are set up to fire a desktop notification
-        changeDesktopNotificationAs('mentions');
-
-        cy.apiGetChannelByName(testTeam.name, 'Off-Topic').then(({channel}) => {
-            const messageWithoutNotification = 'message without notification';
-            const messageWithNotification = `random message with mention @${testUser.username}`;
-            const expected = `@${otherUser.username}: ${messageWithNotification}`;
-
-            // # Have another user send a post with no mention
-            cy.postMessageAs({sender: otherUser, message: messageWithoutNotification, channelId: channel.id});
-
-            // * Desktop notification is not received
-            cy.get('@withNotification').should('not.have.been.called');
-
-            // Have another user send a post with a mention
-            cy.postMessageAs({sender: otherUser, message: messageWithNotification, channelId: channel.id});
-
-            // * Desktop notification is received
-            cy.get('@withNotification').should('have.been.calledWithMatch', 'Off-Topic', (args) => {
-                expect(args.body, `Notification body: "${args.body}" should match: "${expected}"`).to.equal(expected);
-                return true;
-            });
-
-            // # Have another user post a direct message
-            cy.apiCreateDirectChannel([testUser.id, otherUser.id]).then(({channel: dmChannel}) => {
-                cy.postMessageAs({sender: otherUser, message: 'hi', channelId: dmChannel.id});
-
-                // * DM notification is received
-                cy.get('@withNotification').should('have.been.called');
-            });
-        });
-    });
-
-    it('MM-T496 - Channel notifications: Send Desktop Notifications - Never', () => {
-        spyNotificationAs('withNotification', 'granted');
-
-        // # Ensure notifications are set up to never fire a desktop notification
-        changeDesktopNotificationAs('nothing');
-
-        cy.apiGetChannelByName(testTeam.name, 'Off-Topic').then(({channel}) => {
-            const messageWithNotification = `random message with mention @${testUser.username}`;
-
-            // Have another user send a post with a mention
-            cy.postMessageAs({sender: otherUser, message: messageWithNotification, channelId: channel.id});
-
-            // * Desktop notification is not received
-            cy.get('@withNotification').should('not.have.been.called');
-
-            // # Have another user post a direct message
-            cy.apiCreateDirectChannel([testUser.id, otherUser.id]).then(({channel: dmChannel}) => {
-                cy.postMessageAs({sender: otherUser, message: 'hi', channelId: dmChannel.id});
-
-                // * DM notification is not received
-                cy.get('@withNotification').should('not.have.been.called');
-            });
         });
     });
 

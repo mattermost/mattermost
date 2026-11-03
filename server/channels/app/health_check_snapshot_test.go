@@ -1,0 +1,451 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+package app
+
+import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"errors"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"slices"
+	"strconv"
+	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
+	emocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/packet"
+)
+
+// Not parallel: it clears the latest-version cache that TestGetLatestVersion also uses.
+func TestBuildHealthSnapshotStandaloneLeaderDiagnostics(t *testing.T) {
+	th := Setup(t)
+
+	err := th.App.clearLatestVersionCache()
+	require.NoError(t, err)
+
+	snapshot, buildErr := th.App.buildHealthSnapshotWithLatestVersionURL(th.Context, latestVersionServer(t).URL)
+	require.NoError(t, buildErr)
+	require.NotNil(t, snapshot)
+
+	nodes := snapshot.Nodes()
+	require.Len(t, nodes, 1)
+	require.True(t, nodes[0].IsLeader)
+	require.Nil(t, nodes[0].ClusterInfo)
+	require.NotNil(t, nodes[0].Diagnostics)
+	require.NotNil(t, nodes[0].Diagnostics.Diagnostics)
+	for _, section := range model.AllNodeSections() {
+		assert.True(t, nodes[0].Has(section), "section %q", section)
+	}
+
+	hostname, err := os.Hostname()
+	require.NoError(t, err)
+	assert.Equal(t, hostname, nodes[0].Hostname)
+}
+
+// threeNodeCluster reports this node as id-2 of three.
+type threeNodeCluster struct {
+	captureClusterMock
+}
+
+func (c *threeNodeCluster) GetClusterId() string { return "id-2" }
+
+func (c *threeNodeCluster) GetClusterInfos() ([]*model.ClusterInfo, error) {
+	return []*model.ClusterInfo{
+		{Id: "id-1", Hostname: "node-1"},
+		{Id: "id-2", Hostname: "node-2"},
+		{Id: "id-3", Hostname: "node-3"},
+	}, nil
+}
+
+// Not parallel: it clears the latest-version cache that TestGetLatestVersion also uses.
+func TestBuildHealthSnapshotOnlyLeaderHasDiagnostics(t *testing.T) {
+	th := SetupWithClusterMock(t, &threeNodeCluster{})
+
+	err := th.App.clearLatestVersionCache()
+	require.NoError(t, err)
+
+	snapshot, buildErr := th.App.buildHealthSnapshotWithLatestVersionURL(th.Context, latestVersionServer(t).URL)
+	require.NoError(t, buildErr)
+	require.NotNil(t, snapshot)
+
+	nodes := snapshot.Nodes()
+	require.Len(t, nodes, 3)
+	for _, node := range nodes {
+		if node.IsLeader {
+			assert.Equal(t, "id-2", node.ClusterInfo.Id)
+			require.NotNil(t, node.Diagnostics)
+			require.NotNil(t, node.Diagnostics.Diagnostics.Cluster.NumberOfNodes)
+			assert.Equal(t, 3, *node.Diagnostics.Diagnostics.Cluster.NumberOfNodes)
+		} else {
+			assert.Nil(t, node.Diagnostics, "follower %q", node.ClusterInfo.Id)
+		}
+	}
+	leader, ok := snapshot.Leader()
+	require.True(t, ok)
+	assert.Equal(t, "id-2", leader.ClusterInfo.Id)
+}
+
+// Not parallel: it clears the latest-version cache that TestGetLatestVersion also uses.
+func TestBuildHealthSnapshotSectionFailureIsolationWithPartialStats(t *testing.T) {
+	th := Setup(t)
+
+	err := th.App.clearLatestVersionCache()
+	require.NoError(t, err)
+
+	storeMock := mocks.Store{}
+	channelStore := &mocks.ChannelStore{}
+	channelStore.On("AnalyticsTypeCount", "", model.ChannelTypeOpen).Return(int64(2), nil)
+	channelStore.On("AnalyticsTypeCount", "", model.ChannelTypePrivate).Return(int64(0), errors.New("private query failed"))
+
+	originalStore := th.App.Srv().Store()
+	t.Cleanup(func() {
+		th.App.Srv().SetStore(originalStore)
+	})
+
+	storeMock.On("User").Return(originalStore.User())
+	storeMock.On("Post").Return(originalStore.Post())
+	storeMock.On("Channel").Return(channelStore)
+	storeMock.On("Team").Return(originalStore.Team())
+	storeMock.On("Command").Return(originalStore.Command())
+	storeMock.On("Webhook").Return(originalStore.Webhook())
+	storeMock.On("Job").Return(originalStore.Job())
+	storeMock.On("GetDBSchemaVersion").Return(originalStore.GetDBSchemaVersion())
+	storeMock.On("GetDbVersion", false).Return(originalStore.GetDbVersion(false))
+	storeMock.On("TotalMasterDbConnections").Return(originalStore.TotalMasterDbConnections())
+	storeMock.On("TotalReadDbConnections").Return(originalStore.TotalReadDbConnections())
+	storeMock.On("TotalSearchDbConnections").Return(originalStore.TotalSearchDbConnections())
+	storeMock.On("GetDiagnostics", mock.Anything).Return(originalStore.GetDiagnostics(th.Context))
+	storeMock.On("ClearCaches")
+	storeMock.On("Close").Return(nil)
+
+	th.App.Srv().SetStore(&storeMock)
+
+	snapshot, buildErr := th.App.buildHealthSnapshotWithLatestVersionURL(th.Context, latestVersionServer(t).URL)
+	require.NoError(t, buildErr)
+	require.NotNil(t, snapshot)
+
+	ok, sectionErr := snapshot.SectionErr(model.SectionStats)
+	require.True(t, ok)
+	require.ErrorContains(t, sectionErr, "failed to get channel count")
+
+	require.NotNil(t, snapshot.Stats)
+	assert.Nil(t, snapshot.Stats.Channels)
+	assert.NotNil(t, snapshot.Stats.Posts)
+
+	require.NotNil(t, snapshot.Config)
+	require.NotNil(t, snapshot.Jobs)
+	require.NotNil(t, snapshot.Plugins)
+	ok, sectionErr = snapshot.SectionErr(model.SectionConfig)
+	require.True(t, ok)
+	require.NoError(t, sectionErr)
+	ok, sectionErr = snapshot.SectionErr(model.SectionJobs)
+	require.True(t, ok)
+	require.NoError(t, sectionErr)
+	ok, sectionErr = snapshot.SectionErr(model.SectionPlugins)
+	require.True(t, ok)
+	require.NoError(t, sectionErr)
+}
+
+// Not parallel: it clears the latest-version cache that TestGetLatestVersion also uses.
+func TestBuildHealthSnapshotLatestVersionTimeout(t *testing.T) {
+	th := Setup(t)
+
+	err := th.App.clearLatestVersionCache()
+	require.NoError(t, err)
+
+	stalled := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		<-r.Context().Done()
+	}))
+	t.Cleanup(stalled.Close)
+
+	ctx, cancel := context.WithTimeout(th.Context.Context(), 150*time.Millisecond)
+	t.Cleanup(cancel)
+
+	start := time.Now()
+	snapshot, buildErr := th.App.buildHealthSnapshotWithLatestVersionURL(th.Context.WithContext(ctx), stalled.URL)
+	elapsed := time.Since(start)
+
+	require.NoError(t, buildErr)
+	require.NotNil(t, snapshot)
+	assert.Less(t, elapsed, 2*time.Second)
+	assert.Empty(t, snapshot.Version.Latest)
+
+	ok, sectionErr := snapshot.SectionErr(model.SectionVersion)
+	require.True(t, ok)
+	require.Error(t, sectionErr)
+}
+
+// Not parallel: it clears the latest-version cache that TestGetLatestVersion also uses.
+func TestBuildHealthSnapshotLatestVersionDropsTagPrefix(t *testing.T) {
+	th := Setup(t)
+
+	err := th.App.clearLatestVersionCache()
+	require.NoError(t, err)
+
+	body, err := json.Marshal(&model.GithubReleaseInfo{Id: 1, TagName: "v11.11.1", Name: "v11.11.1", Url: "https://github.com/mattermost/mattermost/releases/tag/v11.11.1"})
+	require.NoError(t, err)
+	release := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, writeErr := w.Write(body)
+		assert.NoError(t, writeErr)
+	}))
+	t.Cleanup(release.Close)
+
+	snapshot, err := th.App.buildHealthSnapshotWithLatestVersionURL(th.Context, release.URL)
+	require.NoError(t, err)
+	assert.Equal(t, "11.11.1", snapshot.Version.Latest)
+}
+
+// Not parallel: it clears the latest-version cache that TestGetLatestVersion also uses.
+func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.ServiceSettings.SiteURL = model.NewPointer("http://chat.example.com")
+		cfg.EmailSettings.SendPushNotifications = model.NewPointer(true)
+		cfg.EmailSettings.PushNotificationServer = model.NewPointer("http://push.example.com")
+		// The live and packet collections each probe SMTP and could disagree.
+		cfg.EmailSettings.SendEmailNotifications = model.NewPointer(false)
+		cfg.EmailSettings.EnableSignInWithEmail = model.NewPointer(false)
+		cfg.EmailSettings.EnableSignInWithUsername = model.NewPointer(false)
+		cfg.SqlSettings.QueryTimeout = model.NewPointer(60)
+		cfg.ComplianceSettings.Enable = model.NewPointer(true)
+		cfg.ComplianceSettings.Directory = model.NewPointer("")
+		cfg.MetricsSettings.Enable = model.NewPointer(true)
+	})
+	// Without it the permissions collector fails and the packet carries a warning.txt.
+	err := th.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		_, deleteErr := th.App.Srv().Store().System().PermanentDeleteByName(model.MigrationKeyAdvancedPermissionsPhase2)
+		require.NoError(t, deleteErr)
+	})
+
+	license := model.NewTestLicense()
+	license.Id = model.NewId()
+	license.Customer.Id = model.NewId()
+	// Half a day past a whole day count keeps both snapshots, taken moments apart, on the same count.
+	license.ExpiresAt = time.Now().Add(10*24*time.Hour + 12*time.Hour).UnixMilli()
+	license.IsTrial = true
+	license.IsSeatCountEnforced = true
+	license.ExtraUsers = model.NewPointer(5)
+	license.Features.Users = model.NewPointer(1_000_000)
+	require.True(t, th.App.Srv().SetLicense(license))
+	t.Cleanup(func() { th.App.Srv().SetLicense(nil) })
+
+	// Half an hour off the hour boundary, so the reported idle hours match although the packet is generated later.
+	stale := time.Now().Add(-30*time.Hour - 30*time.Minute).UnixMilli()
+	for _, job := range []*model.Job{
+		{Id: model.NewId(), Type: model.JobTypeDataRetention, CreateAt: stale - 1000, LastActivityAt: stale - 1000, Status: model.JobStatusError, Data: model.StringMap{"error": "driver: bad connection"}},
+		{Id: model.NewId(), Type: model.JobTypeDataRetention, CreateAt: stale, StartAt: stale, LastActivityAt: stale, Status: model.JobStatusInProgress},
+	} {
+		_, err = th.App.Srv().Store().Job().Save(job)
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			_, deleteErr := th.App.Srv().Store().Job().Delete(job.Id)
+			require.NoError(t, deleteErr)
+		})
+	}
+
+	err = th.App.clearLatestVersionCache()
+	require.NoError(t, err)
+
+	live, err := th.App.buildHealthSnapshotWithLatestVersionURL(th.Context, latestVersionServer(t).URL)
+	require.NoError(t, err)
+
+	var noCPUProfile time.Duration
+	files := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{CPUProfileDuration: &noCPUProfile})
+	readPacket := func(t *testing.T, files []model.FileData) *packet.Packet {
+		t.Helper()
+
+		var zipped bytes.Buffer
+		require.NoError(t, th.App.WriteZipFile(&zipped, files))
+		p, readErr := packet.Read(bytes.NewReader(zipped.Bytes()), int64(zipped.Len()))
+		require.NoError(t, readErr)
+		assert.Empty(t, p.Warnings)
+		return p
+	}
+	offline := readPacket(t, files)
+
+	// Offline has no feed; align it so only the rules are compared.
+	offline.Snapshot.Version.Latest = live.Version.Latest
+
+	evaluatedAt := time.Now()
+	engine := healthcheck.NewEngine(healthcheck.EngineOpts{
+		Registry: healthcheck.Builtin(),
+		Now:      func() time.Time { return evaluatedAt },
+	})
+	evaluate := func(t *testing.T, snapshot *healthcheck.Snapshot) []healthcheck.Evaluation {
+		t.Helper()
+
+		evaluations := engine.Evaluate(snapshot)
+		// Each collection samples the open file descriptor count separately.
+		for i := range evaluations {
+			if evaluations[i].Code == "NODE_FD_EXHAUSTION" {
+				require.NotNil(t, evaluations[i].Result.Value)
+				evaluations[i].Result.Value = nil
+			}
+		}
+		return evaluations
+	}
+	liveEvaluations := evaluate(t, live)
+
+	require.NotEmpty(t, liveEvaluations)
+	assert.Equal(t, liveEvaluations, evaluate(t, offline.Snapshot))
+
+	states := map[string]healthcheck.State{}
+	for _, evaluation := range liveEvaluations {
+		// Job rules report one subject per job type; any firing subject makes the code firing.
+		if states[evaluation.Code] != healthcheck.StateFiring {
+			states[evaluation.Code] = evaluation.Result.State
+		}
+		if evaluation.Code == "LICENSE_EXPIRING" {
+			assert.Equal(t, "health.rule.license_expiring.message.trial", evaluation.Result.MessageID)
+		}
+	}
+	for code, want := range map[string]healthcheck.State{
+		"COMPLIANCE_NO_DIR":     healthcheck.StateFiring,
+		"DB_QUERY_TIMEOUT_HIGH": healthcheck.StateFiring,
+		"JOB_FAILED":            healthcheck.StateFiring,
+		"JOB_STUCK":             healthcheck.StateFiring,
+		"PUSH_BAD_SCHEME":       healthcheck.StateFiring,
+		"PUSH_ID_ONLY":          healthcheck.StateFiring,
+		"SITE_URL_HTTP":         healthcheck.StateFiring,
+		"LICENSE_EXPIRED":       healthcheck.StateResolved,
+		"LICENSE_EXPIRING":      healthcheck.StateFiring,
+		"SEATS_OVER_DEPLOYED":   healthcheck.StateResolved,
+		"SEATS_LIMIT_REACHED":   healthcheck.StateResolved,
+		"SEATS_NEAR_CAPACITY":   healthcheck.StateResolved,
+	} {
+		assert.Equal(t, want, states[code], code)
+	}
+
+	t.Run("a packet without the license expiry differs only in the codes that need it", func(t *testing.T) {
+		olderFiles := slices.Clone(files)
+		stripped := false
+		for i, file := range olderFiles {
+			if file.Filename == model.SupportPacketDiagnosticsFileName {
+				expiresAt := []byte("  expires_at: " + strconv.FormatInt(license.ExpiresAt, 10) + "\n")
+				require.Contains(t, string(file.Body), string(expiresAt))
+				olderFiles[i].Body = bytes.Replace(file.Body, expiresAt, nil, 1)
+				stripped = true
+			}
+		}
+		require.True(t, stripped)
+
+		needsExpiry := []string{"LICENSE_EXPIRED", "LICENSE_EXPIRING", "SEATS_LIMIT_REACHED"}
+		older := readPacket(t, olderFiles)
+		older.Snapshot.Version.Latest = live.Version.Latest
+		olderEvaluations := evaluate(t, older.Snapshot)
+		require.Len(t, olderEvaluations, len(liveEvaluations))
+		for i, evaluation := range olderEvaluations {
+			if slices.Contains(needsExpiry, evaluation.Code) {
+				assert.Equal(t, healthcheck.StateUnknown, evaluation.Result.State, evaluation.Code)
+				assert.Equal(t, healthcheck.ReasonLicenseUnavailable, evaluation.Result.MessageID, evaluation.Code)
+			} else {
+				assert.Equal(t, liveEvaluations[i], evaluation, evaluation.Code)
+			}
+		}
+	})
+}
+
+func TestClusterNodes(t *testing.T) {
+	t.Parallel()
+
+	t.Run("nil cluster creates standalone leader", func(t *testing.T) {
+		nodes, err := clusterNodes(nil)
+		require.NoError(t, err)
+		require.Len(t, nodes, 1)
+		require.True(t, nodes[0].IsLeader)
+		require.Nil(t, nodes[0].ClusterInfo)
+		require.Nil(t, nodes[0].Diagnostics)
+	})
+
+	t.Run("empty cluster infos creates standalone leader", func(t *testing.T) {
+		cluster := emocks.NewClusterInterface(t)
+		cluster.On("GetClusterInfos").Return([]*model.ClusterInfo{}, nil)
+
+		nodes, err := clusterNodes(cluster)
+		require.NoError(t, err)
+		require.Len(t, nodes, 1)
+		require.True(t, nodes[0].IsLeader)
+		require.Nil(t, nodes[0].ClusterInfo)
+		require.Nil(t, nodes[0].Diagnostics)
+	})
+
+	t.Run("leader selection and db-only entry", func(t *testing.T) {
+		cluster := emocks.NewClusterInterface(t)
+		cluster.On("GetClusterId").Return("id-2")
+		cluster.On("GetClusterInfos").Return([]*model.ClusterInfo{
+			{Id: "id-1", Hostname: "node-1", Version: "10.0.0"},
+			{Id: "id-2", Hostname: "node-2", Version: "10.0.0"},
+			{Id: "id-3", Hostname: "node-3"},
+		}, nil)
+
+		nodes, err := clusterNodes(cluster)
+		require.NoError(t, err)
+		require.Len(t, nodes, 3)
+		require.Nil(t, nodes[0].Diagnostics)
+		require.Nil(t, nodes[1].Diagnostics)
+		require.Nil(t, nodes[2].Diagnostics)
+
+		leaders := 0
+		var dbOnlyNode *model.ClusterInfo
+		for _, node := range nodes {
+			if node.IsLeader {
+				leaders++
+				assert.Equal(t, "id-2", node.ClusterInfo.Id)
+			}
+			if node.ClusterInfo != nil && node.ClusterInfo.Id == "id-3" {
+				dbOnlyNode = node.ClusterInfo
+				_, ok := node.NodeVersion()
+				require.False(t, ok)
+			}
+		}
+		require.Equal(t, 1, leaders)
+		require.NotNil(t, dbOnlyNode)
+	})
+
+	t.Run("cluster info failure returns error", func(t *testing.T) {
+		cluster := emocks.NewClusterInterface(t)
+		cluster.On("GetClusterInfos").Return(nil, assert.AnError)
+
+		nodes, err := clusterNodes(cluster)
+		require.Error(t, err)
+		require.Nil(t, nodes)
+	})
+}
+
+func latestVersionServer(t *testing.T) *httptest.Server {
+	t.Helper()
+
+	release := &model.GithubReleaseInfo{
+		Id:          1,
+		TagName:     "v11.0.0",
+		Name:        "v11.0.0",
+		CreatedAt:   "2022-01-13T14:19:44Z",
+		PublishedAt: "2022-01-14T13:45:09Z",
+		Body:        "Mattermost Platform Release",
+		Url:         "https://github.com/mattermost/mattermost-server/releases/tag/v11.0.0",
+	}
+
+	body, err := json.Marshal(release)
+	require.NoError(t, err)
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, writeErr := w.Write(body)
+		assert.NoError(t, writeErr)
+	}))
+	t.Cleanup(server.Close)
+
+	return server
+}

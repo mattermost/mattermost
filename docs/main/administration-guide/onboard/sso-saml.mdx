@@ -25,7 +25,7 @@ The SAML Single sign-on integration offers the following benefits:
 - If an ID attribute that doesn't change, such as employeeID, is configured, then Mattermost can use this consistent ID to recognize and match the user account. This allows for updates to other attributes, such as email, without creating a new account. The user details are updated based on the non-changing ID attribute, ensuring continuity and correct user identification without duplicate accounts.
 - If configuring Mattermost to use the EU-Login system for authentication, please be aware that their <code>issuerURI</code> field is what Mattermost calls "Service Provider Identifier".
 - For more information about SAML, see [this article from Varonis](https://www.varonis.com/blog/what-is-saml/), and [this conceptual example from DUO](https://duo.com/blog/the-beer-drinkers-guide-to-saml).
-- See the encryption options documentation for details on what [encryption methods](/deployment-guide/encryption-options#saml-encryption-support) Mattermost supports for SAML.
+- See the [supported SAML encryption methods](/administration-guide/configure/authentication-configuration-settings#supported-saml-encryption-methods) in the authentication configuration settings documentation.
 
 </Important>
 
@@ -72,6 +72,8 @@ Existing members that are identified by this attribute will be promoted from mem
 <Note>
 
 If the `admin` attribute is set to `false` the member's role as system admin is retained. However if the attribute is removed/changed, system admins that were promoted via the attribute will be demoted to members and will not retain access to the System Console. When this attribute is not in use, system admins can be manually promoted/demoted in **System Console \> User Management**.
+
+Aside from manually promoting users in **System Console \> User Management**, the Admin Attribute is the only way to designate system admins for SAML-authenticated users. The AD/LDAP [Admin Filter](/administration-guide/onboard/ad-ldap#admin-filter) doesn't apply to them, even when **Enable Synchronizing SAML Accounts With AD/LDAP** is enabled.
 
 </Note>
 

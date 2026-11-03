@@ -3,7 +3,29 @@
 
 import {defineConfig, devices} from '@playwright/test';
 
-import {duration, testConfig} from '@mattermost/playwright-lib';
+import {
+    assertUpgradeFromFreshStart,
+    assertUpgradeToRequiresPriorFromRun,
+    duration,
+    exportUpgradePathProjectSelection,
+    isUpgradeFromProjectSelected,
+    isUpgradeToPhaseProjectSelected,
+    logUpgradeFromServerImage,
+    logUpgradeToServerImage,
+    testConfig,
+} from '@mattermost/playwright-lib';
+
+if (isUpgradeFromProjectSelected()) {
+    assertUpgradeFromFreshStart();
+    logUpgradeFromServerImage();
+}
+
+if (isUpgradeToPhaseProjectSelected()) {
+    assertUpgradeToRequiresPriorFromRun();
+    logUpgradeToServerImage();
+}
+
+exportUpgradePathProjectSelection();
 
 const chromeUse = {
     browserName: 'chromium' as const,
@@ -60,11 +82,13 @@ export default defineConfig({
                 permissions: ['notifications', 'clipboard-read', 'clipboard-write'],
             },
             dependencies: ['setup'],
+            testIgnore: /functional\/subpath\//,
         },
         {
             name: 'chrome',
             use: chromeUse,
             dependencies: ['setup'],
+            testIgnore: /functional\/subpath\//,
         },
         {
             name: 'firefox',
@@ -74,6 +98,32 @@ export default defineConfig({
                 viewport: {width: 1280, height: 1024},
             },
             dependencies: ['setup'],
+            testIgnore: /functional\/subpath\//,
+        },
+        // Runs the full suite (not just specs/functional/subpath) against a server booted under
+        // PW_SERVER_DEPLOY=subpath — setup's "ensure server deployment" step, and every
+        // specs/functional/subpath spec's requireSubpathServer(), both fail fast otherwise.
+        {
+            name: 'subpath',
+            use: chromeUse,
+            dependencies: ['setup'],
+        },
+        // Upgrade-path specs live under upgrade-specs/ (outside testDir) so Test System IO
+        // dispatch-begin does not register them in the full Playwright queue.
+        {
+            name: 'upgrade-from',
+            testDir: 'upgrade-specs/from',
+            dependencies: ['setup'],
+            fullyParallel: false,
+            workers: 1,
+        },
+        {name: 'upgrade-swap-to', testDir: 'upgrade-specs', testMatch: /upgrade_swap_to\.ts/},
+        {
+            name: 'upgrade-to',
+            testDir: 'upgrade-specs/to',
+            dependencies: ['upgrade-swap-to'],
+            fullyParallel: false,
+            workers: 1,
         },
     ],
     reporter: [

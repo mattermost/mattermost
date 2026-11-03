@@ -3,10 +3,14 @@
 exports[`RemoveFromTeamButton should match snapshot init 1`] = `
 <div>
   <button
-    class="btn btn-danger"
+    class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 _button--destructive_we8pe_176"
     type="button"
   >
-    Remove from Team
+    <span
+      class="_button__label_we8pe_31"
+    >
+      Remove from Team
+    </span>
   </button>
 </div>
 `;

@@ -43,7 +43,8 @@ import {
 import {getRhsState} from 'selectors/rhs';
 import {makeGetCustomStatus, isCustomStatusEnabled, isCustomStatusExpired} from 'selectors/views/custom_status';
 
-import {isFileAttachmentsEnabled} from 'utils/file_utils';
+import {getChannelKind} from 'utils/channel_kind';
+import {canSearchFiles} from 'utils/file_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -109,12 +110,13 @@ function makeMapStateToProps() {
             isCustomStatusEnabled: isCustomStatusEnabled(state),
             isCustomStatusExpired: isCustomStatusExpired(state, customStatus),
             lastActivityTimestamp,
-            isFileAttachmentsEnabled: isFileAttachmentsEnabled(config),
+            canSearchFiles: canSearchFiles(config),
             isLastActiveEnabled,
             timestampUnits,
             hideGuestTags: config.HideGuestTags === 'true',
             isChannelAutotranslated: channel ? isMyChannelAutotranslated(state, channel.id) : false,
             hasPendingJoinRequests,
+            channelKind: getChannelKind(state, channel),
         };
     };
 }

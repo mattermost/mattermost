@@ -1,12 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useState} from 'react';
-import {useIntl} from 'react-intl';
+import React, {useEffect, useState, type JSX} from 'react';
+import {defineMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import styled from 'styled-components';
 
 import type {Channel, ChannelStats} from '@mattermost/types/channels';
+
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import {openModal} from 'actions/views/modals';
 import {canAccessChannelSettings} from 'selectors/views/channel_settings';
@@ -14,7 +16,11 @@ import {canAccessChannelSettings} from 'selectors/views/channel_settings';
 import ChannelSettingsModal from 'components/channel_settings_modal/channel_settings_modal';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
+import {useChannelKind} from 'hooks/useChannelKind';
+import type {KindMessages} from 'utils/channel_kind';
+import {channelKindMessages} from 'utils/channel_kind_messages';
 import {Constants, ModalIdentifiers} from 'utils/constants';
+import {canSearchFiles} from 'utils/file_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -105,6 +111,19 @@ function MenuItem(props: MenuItemProps) {
     );
 }
 
+const messages = {
+    title: {
+        channel: defineMessage({
+            id: 'channel_info_rhs.menu.title',
+            defaultMessage: 'Channel Info Actions',
+        }),
+        board: defineMessage({
+            id: 'channel_info_rhs.menu.title.board',
+            defaultMessage: 'Board Info Actions',
+        }),
+    },
+} satisfies Record<string, KindMessages>;
+
 interface MenuProps {
     channel: Channel;
     channelStats: ChannelStats;
@@ -132,6 +151,7 @@ export default function Menu(props: MenuProps) {
         actions,
     } = props;
 
+    const channelKind = useChannelKind(channel);
     const [loadingStats, setLoadingStats] = useState(true);
 
     const showNotificationPreferences = channel.type !== Constants.DM_CHANNEL && !isArchived;
@@ -139,6 +159,7 @@ export default function Menu(props: MenuProps) {
     const showChannelSettings = channel.type !== Constants.DM_CHANNEL && channel.type !== Constants.GM_CHANNEL && !isArchived;
     const fileCount = channelStats?.files_count >= 0 ? channelStats?.files_count : 0;
     const canAccessSettings = useSelector((state: GlobalState) => canAccessChannelSettings(state, channel.id));
+    const showFiles = useSelector((state: GlobalState) => canSearchFiles(getConfig(state)));
 
     useEffect(() => {
         actions.getChannelStats(channel.id, true).then(() => {
@@ -167,19 +188,13 @@ export default function Menu(props: MenuProps) {
         <MenuContainer
             className={className}
             data-testid='channel_info_rhs-menu'
-            aria-label={formatMessage({
-                id: 'channel_info_rhs.menu.title',
-                defaultMessage: 'Channel Info Actions',
-            })}
+            aria-label={formatMessage(messages.title[channelKind])}
         >
             {showChannelSettings && canAccessSettings && (
                 <MenuItem
                     id='channelInfoRHSChannelSettings'
                     icon={<i className='icon icon-cog-outline'/>}
-                    text={formatMessage({
-                        id: 'channel_header.channel_settings',
-                        defaultMessage: 'Channel Settings',
-                    })}
+                    text={formatMessage(channelKindMessages.channelSettings[channelKind])}
                     onClick={openChannelSettings}
                 />
             )}
@@ -216,16 +231,18 @@ export default function Menu(props: MenuProps) {
                 badge={channelStats?.pinnedpost_count}
                 onClick={() => actions.showPinnedPosts(channel.id)}
             />
-            <MenuItem
-                icon={<i className='icon icon-file-text-outline'/>}
-                text={formatMessage({
-                    id: 'channel_info_rhs.menu.files',
-                    defaultMessage: 'Files',
-                })}
-                opensSubpanel={true}
-                badge={loadingStats ? <LoadingSpinner/> : fileCount}
-                onClick={() => actions.showChannelFiles(channel.id)}
-            />
+            {showFiles && (
+                <MenuItem
+                    icon={<i className='icon icon-file-text-outline'/>}
+                    text={formatMessage({
+                        id: 'channel_info_rhs.menu.files',
+                        defaultMessage: 'Files',
+                    })}
+                    opensSubpanel={true}
+                    badge={loadingStats ? <LoadingSpinner/> : fileCount}
+                    onClick={() => actions.showChannelFiles(channel.id)}
+                />
+            )}
         </MenuContainer>
     );
 }

@@ -7,6 +7,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"slices"
+	"strings"
 	"time"
 )
 
@@ -94,6 +96,10 @@ type License struct {
 	ExtraUsers *int           `json:"extra_users"`
 	SignupJWT  *string        `json:"signup_jwt"`
 	Limits     *LicenseLimits `json:"limits"`
+	// AddOns names products purchased alongside the license that are not part of
+	// any SKU tier. Unrecognized names are ignored, so a license issued for a newer
+	// add-on still validates here. Read it through HasAddOn.
+	AddOns []string `json:"add_ons"`
 }
 
 func (l *License) IsMattermostEntry() bool {
@@ -162,40 +168,40 @@ func (tlr *TrialLicenseRequest) IsValid() bool {
 }
 
 type Features struct {
-	Users                     *int  `json:"users"`
-	LDAP                      *bool `json:"ldap"`
-	LDAPGroups                *bool `json:"ldap_groups"`
-	MFA                       *bool `json:"mfa"`
-	GoogleOAuth               *bool `json:"google_oauth"`
-	Office365OAuth            *bool `json:"office365_oauth"`
-	OpenId                    *bool `json:"openid"`
-	Compliance                *bool `json:"compliance"`
-	Cluster                   *bool `json:"cluster"`
-	Metrics                   *bool `json:"metrics"`
-	MHPNS                     *bool `json:"mhpns"`
-	SAML                      *bool `json:"saml"`
-	Elasticsearch             *bool `json:"elastic_search"`
-	Announcement              *bool `json:"announcement"`
-	ThemeManagement           *bool `json:"theme_management"`
-	EmailNotificationContents *bool `json:"email_notification_contents"`
-	DataRetention             *bool `json:"data_retention"`
-	MessageExport             *bool `json:"message_export"`
-	CustomPermissionsSchemes  *bool `json:"custom_permissions_schemes"`
-	CustomTermsOfService      *bool `json:"custom_terms_of_service"`
-	GuestAccounts             *bool `json:"guest_accounts"`
-	GuestAccountsPermissions  *bool `json:"guest_accounts_permissions"`
-	IDLoadedPushNotifications *bool `json:"id_loaded"`
-	LockTeammateNameDisplay   *bool `json:"lock_teammate_name_display"`
-	EnterprisePlugins         *bool `json:"enterprise_plugins"`
-	AdvancedLogging           *bool `json:"advanced_logging"`
-	Cloud                     *bool `json:"cloud"`
-	SharedChannels            *bool `json:"shared_channels"`
-	RemoteClusterService      *bool `json:"remote_cluster_service"`
-	OutgoingOAuthConnections  *bool `json:"outgoing_oauth_connections"`
-	AutoTranslation           *bool `json:"auto_translation"`
+	Users                     *int  `json:"users" yaml:"users,omitempty"`
+	LDAP                      *bool `json:"ldap" yaml:"ldap,omitempty"`
+	LDAPGroups                *bool `json:"ldap_groups" yaml:"ldap_groups,omitempty"`
+	MFA                       *bool `json:"mfa" yaml:"mfa,omitempty"`
+	GoogleOAuth               *bool `json:"google_oauth" yaml:"google_oauth,omitempty"`
+	Office365OAuth            *bool `json:"office365_oauth" yaml:"office365_oauth,omitempty"`
+	OpenId                    *bool `json:"openid" yaml:"openid,omitempty"`
+	Compliance                *bool `json:"compliance" yaml:"compliance,omitempty"`
+	Cluster                   *bool `json:"cluster" yaml:"cluster,omitempty"`
+	Metrics                   *bool `json:"metrics" yaml:"metrics,omitempty"`
+	MHPNS                     *bool `json:"mhpns" yaml:"mhpns,omitempty"`
+	SAML                      *bool `json:"saml" yaml:"saml,omitempty"`
+	Elasticsearch             *bool `json:"elastic_search" yaml:"elastic_search,omitempty"`
+	Announcement              *bool `json:"announcement" yaml:"announcement,omitempty"`
+	ThemeManagement           *bool `json:"theme_management" yaml:"theme_management,omitempty"`
+	EmailNotificationContents *bool `json:"email_notification_contents" yaml:"email_notification_contents,omitempty"`
+	DataRetention             *bool `json:"data_retention" yaml:"data_retention,omitempty"`
+	MessageExport             *bool `json:"message_export" yaml:"message_export,omitempty"`
+	CustomPermissionsSchemes  *bool `json:"custom_permissions_schemes" yaml:"custom_permissions_schemes,omitempty"`
+	CustomTermsOfService      *bool `json:"custom_terms_of_service" yaml:"custom_terms_of_service,omitempty"`
+	GuestAccounts             *bool `json:"guest_accounts" yaml:"guest_accounts,omitempty"`
+	GuestAccountsPermissions  *bool `json:"guest_accounts_permissions" yaml:"guest_accounts_permissions,omitempty"`
+	IDLoadedPushNotifications *bool `json:"id_loaded" yaml:"id_loaded,omitempty"`
+	LockTeammateNameDisplay   *bool `json:"lock_teammate_name_display" yaml:"lock_teammate_name_display,omitempty"`
+	EnterprisePlugins         *bool `json:"enterprise_plugins" yaml:"enterprise_plugins,omitempty"`
+	AdvancedLogging           *bool `json:"advanced_logging" yaml:"advanced_logging,omitempty"`
+	Cloud                     *bool `json:"cloud" yaml:"cloud,omitempty"`
+	SharedChannels            *bool `json:"shared_channels" yaml:"shared_channels,omitempty"`
+	RemoteClusterService      *bool `json:"remote_cluster_service" yaml:"remote_cluster_service,omitempty"`
+	OutgoingOAuthConnections  *bool `json:"outgoing_oauth_connections" yaml:"outgoing_oauth_connections,omitempty"`
+	AutoTranslation           *bool `json:"auto_translation" yaml:"auto_translation,omitempty"`
 
 	// after we enabled more features we'll need to control them with this
-	FutureFeatures *bool `json:"future_features"`
+	FutureFeatures *bool `json:"future_features" yaml:"future_features,omitempty"`
 }
 
 func (f *Features) ToMap() map[string]any {
@@ -430,6 +436,29 @@ func (l *License) HasSharedChannels() bool {
 		MinimumProfessionalLicense(l)
 }
 
+// HasMHPNS reports whether the license grants access to the Mattermost hosted push notification service.
+func (l *License) HasMHPNS() bool {
+	return l != nil && l.Features != nil && l.Features.MHPNS != nil && *l.Features.MHPNS
+}
+
+// HasAdvancedLogging reports whether the license allows advanced log and audit targets.
+func (l *License) HasAdvancedLogging() bool {
+	return l != nil && l.Features != nil && l.Features.AdvancedLogging != nil && *l.Features.AdvancedLogging
+}
+
+// HasAddOn reports whether the license grants the named add-on. Unlike the
+// SKU-derived helpers above, this deliberately has no minimum-license fallback:
+// an add-on is bought separately from the tier.
+func (l *License) HasAddOn(addOn string) bool {
+	if l == nil {
+		return false
+	}
+
+	return slices.ContainsFunc(l.AddOns, func(a string) bool {
+		return strings.EqualFold(a, addOn)
+	})
+}
+
 // NewTestLicense returns a license that expires in the future and has the given features.
 func NewTestLicense(features ...string) *License {
 	ret := &License{
@@ -470,6 +499,13 @@ func NewTestLicenseWithFalseDefaults(features ...string) *License {
 	featureJson, _ := json.Marshal(featureMap)
 	json.Unmarshal(featureJson, &ret.Features)
 
+	return ret
+}
+
+// NewTestLicenseWithAddOns returns a test license granting the given add-ons.
+func NewTestLicenseWithAddOns(addOns ...string) *License {
+	ret := NewTestLicense()
+	ret.AddOns = addOns
 	return ret
 }
 

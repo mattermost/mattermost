@@ -3,7 +3,7 @@
 
 import classnames from 'classnames';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import type {ReactNode} from 'react';
+import type {JSX, ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import type {Emoji} from '@mattermost/types/emojis';
@@ -236,7 +236,9 @@ const PostOptions = (props: Props): JSX.Element => {
     }
 
     const dotMenu = (
-        <li>
+
+        // Use a key to keep the DotMenu mounted even if it changes position below
+        <li key='dotMenu'>
             <DotMenu
                 post={props.post}
                 location={props.location}

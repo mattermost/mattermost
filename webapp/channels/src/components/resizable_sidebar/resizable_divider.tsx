@@ -24,7 +24,7 @@ type Props = {
     defaultWidth: number;
     globalCssVar: CssVarKeyForResizable;
     dir: ResizeDirection;
-    containerRef: RefObject<HTMLElement>;
+    containerRef: RefObject<HTMLElement | null>;
     onResizeStart?: (startWidth: number) => void;
     onResize?: (width: number, cssVarProperty: string, cssVarValue: string) => void;
     onResizeEnd?: (finalWidth: number, cssVarProperty: string, cssVarValue: string) => void;

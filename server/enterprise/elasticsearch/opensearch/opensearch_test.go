@@ -7,16 +7,27 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"strings"
+	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/opensearch-project/opensearch-go/v4"
 	"github.com/opensearch-project/opensearch-go/v4/opensearchapi"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/api4"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/enterprise/elasticsearch/common"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore/mocks"
@@ -36,6 +47,301 @@ func TestOpensearchInterfaceTestSuite(t *testing.T) {
 		CommonTestSuite: common.CommonTestSuite{},
 	}
 	suite.Run(t, testSuite)
+}
+
+func TestStartTemplateFailureDoesNotCreateBulkProcessors(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case r.URL.Path == "/":
+			_, _ = fmt.Fprint(w, `{"version":{"number":"2.11.0"}}`)
+		case r.URL.Path == "/_cat/plugins":
+			// Plugin inventory is optional and must not prevent the real template check.
+			w.WriteHeader(http.StatusInternalServerError)
+		case strings.HasPrefix(r.URL.Path, "/_index_template/") && strings.HasSuffix(r.URL.Path, "posts"):
+			w.WriteHeader(http.StatusBadRequest)
+			_, _ = fmt.Fprint(w, `{"error":{"type":"illegal_argument_exception","reason":"failed to parse template","caused_by":{"type":"illegal_argument_exception","reason":"Custom Analyzer [mm_lowercaser] failed to find tokenizer under name [icu_tokenizer]"}},"status":400}`)
+		case strings.HasPrefix(r.URL.Path, "/_index_template/"):
+			_, _ = fmt.Fprint(w, `{"acknowledged":true}`)
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	defer server.Close()
+	t.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", server.URL)
+	t.Setenv("MM_ELASTICSEARCHSETTINGS_BACKEND", model.ElasticsearchSettingsOSBackend)
+
+	th := api4.SetupEnterprise(t)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ElasticsearchSettings.ConnectionURL = server.URL
+		*cfg.ElasticsearchSettings.Backend = model.ElasticsearchSettingsOSBackend
+		*cfg.ElasticsearchSettings.EnableIndexing = true
+		*cfg.ElasticsearchSettings.LiveIndexingBatchSize = 2
+	})
+	th.App.Srv().SetLicense(model.NewTestLicense())
+
+	impl := &OpensearchInterfaceImpl{Platform: th.Server.Platform()}
+	appErr := impl.Start(context.Background())
+	require.NotNil(t, appErr)
+	require.Contains(t, appErr.Error(), "icu_tokenizer")
+	require.Contains(t, appErr.Error(), "Verify that the required analysis-icu plugin is installed on every opensearch node")
+	require.Equal(t, int32(0), impl.ready.Load())
+	require.Nil(t, impl.bulkProcessor)
+	require.Nil(t, impl.syncBulkProcessor)
+
+	require.Nil(t, impl.Stop())
+}
+
+func TestStartWithoutPluginInventoryUsesTemplateValidation(t *testing.T) {
+	templateRequested := make(chan string, 4)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case r.URL.Path == "/":
+			_, _ = fmt.Fprint(w, `{"version":{"number":"2.11.0"}}`)
+		case r.URL.Path == "/_cat/plugins":
+			_, _ = fmt.Fprint(w, `[]`)
+		case strings.HasPrefix(r.URL.Path, "/_index_template/"):
+			templateRequested <- strings.TrimPrefix(r.URL.Path, "/_index_template/")
+			_, _ = fmt.Fprint(w, `{"acknowledged":true}`)
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	defer server.Close()
+	t.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", server.URL)
+	t.Setenv("MM_ELASTICSEARCHSETTINGS_BACKEND", model.ElasticsearchSettingsOSBackend)
+
+	th := api4.SetupEnterprise(t)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ElasticsearchSettings.ConnectionURL = server.URL
+		*cfg.ElasticsearchSettings.Backend = model.ElasticsearchSettingsOSBackend
+		*cfg.ElasticsearchSettings.EnableIndexing = true
+	})
+	th.App.Srv().SetLicense(model.NewTestLicense())
+
+	impl := &OpensearchInterfaceImpl{Platform: th.Server.Platform()}
+	defer func() { require.Nil(t, impl.Stop()) }()
+	appErr := impl.Start(context.Background())
+	require.Nil(t, appErr)
+	require.Equal(t, int32(1), impl.ready.Load())
+	require.Len(t, templateRequested, 4)
+	requestedTemplates := make([]string, 0, 4)
+	for range 4 {
+		requestedTemplates = append(requestedTemplates, <-templateRequested)
+	}
+	require.ElementsMatch(t, []string{common.IndexBasePosts, common.IndexBaseChannels, common.IndexBaseUsers, common.IndexBaseFiles}, requestedTemplates)
+}
+
+func TestSearchPostsReturnsHitsWithUnparseableHighlights(t *testing.T) {
+	goodPostID, badPostID := model.NewId(), model.NewId()
+	searchResponse := fmt.Sprintf(`{"took":1,"timed_out":false,"hits":{"total":{"value":2,"relation":"eq"},"max_score":1,"hits":[
+		{"_index":"posts","_id":%[1]q,"_score":1,"_source":{"id":%[1]q},"highlight":{"message":["<em>deployment</em> done"]}},
+		{"_index":"posts","_id":%[2]q,"_score":1,"_source":{"id":%[2]q},"highlight":{"message":["<em>deployment</b> broken"]}}
+	]}}`, goodPostID, badPostID)
+
+	cluster := pluginsHandler(t, &common.ClusterRecorder{})
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.HasSuffix(r.URL.Path, "/_search") {
+			_, _ = fmt.Fprint(w, searchResponse)
+			return
+		}
+		cluster(w, r)
+	}))
+	defer server.Close()
+	t.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", server.URL)
+	t.Setenv("MM_ELASTICSEARCHSETTINGS_BACKEND", model.ElasticsearchSettingsOSBackend)
+
+	th := api4.SetupEnterprise(t)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ElasticsearchSettings.ConnectionURL = server.URL
+		*cfg.ElasticsearchSettings.Backend = model.ElasticsearchSettingsOSBackend
+		*cfg.ElasticsearchSettings.EnableIndexing = true
+		*cfg.ElasticsearchSettings.EnableSearching = true
+	})
+	th.App.Srv().SetLicense(model.NewTestLicense())
+
+	impl := &OpensearchInterfaceImpl{Platform: th.Server.Platform()}
+	defer func() { require.Nil(t, impl.Stop()) }()
+	require.Nil(t, impl.Start(context.Background()))
+
+	channels := model.ChannelList{{Id: model.NewId(), TeamId: model.NewId(), Type: model.ChannelTypeOpen}}
+	ids, matches, appErr := impl.SearchPosts(channels, model.ParseSearchParams("deployment", 0), 0, 20)
+	require.Nil(t, appErr)
+	require.Equal(t, []string{goodPostID, badPostID}, ids)
+	require.Equal(t, []string{"deployment"}, matches[goodPostID])
+	require.Empty(t, matches[badPostID])
+
+	require.NoError(t, th.TestLogger.Flush())
+	testlib.AssertLog(t, th.LogBuffer, mlog.LvlWarn.Name, "Failed to parse search result highlights, returning post without highlights")
+}
+
+// missingCJKPluginsWarning mirrors the warning Start logs when no CJK analyzer plugin is detected.
+const missingCJKPluginsWarning = "EnableCJKAnalyzers is set but no CJK analyzer plugins found installed. Please review opensearch settings."
+
+// pluginsHandler serves the endpoints Start and SearchPosts need, reporting one node per given list
+// of plugin names and recording the posts template and search request bodies.
+func pluginsHandler(t *testing.T, recorder *common.ClusterRecorder, nodePlugins ...[]string) http.HandlerFunc {
+	info := infoHandler("2.11.0")
+	catPlugins := common.CatPluginsResponse(nodePlugins...)
+
+	readBody := func(w http.ResponseWriter, r *http.Request) ([]byte, bool) {
+		body, err := io.ReadAll(r.Body)
+		if !assert.NoError(t, err) {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return nil, false
+		}
+		return body, true
+	}
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case r.URL.Path == "/":
+			info(w, r)
+		case r.URL.Path == "/_cat/plugins":
+			_, _ = fmt.Fprint(w, catPlugins)
+		case strings.HasPrefix(r.URL.Path, "/_index_template/"):
+			body, ok := readBody(w, r)
+			if !ok {
+				return
+			}
+			if strings.HasSuffix(r.URL.Path, common.IndexBasePosts) {
+				recorder.RecordPostsTemplate(body)
+			}
+			_, _ = fmt.Fprint(w, `{"acknowledged":true}`)
+		case strings.HasSuffix(r.URL.Path, "/_search"):
+			body, ok := readBody(w, r)
+			if !ok {
+				return
+			}
+			recorder.RecordSearch(body)
+			_, _ = fmt.Fprint(w, `{"took":1,"timed_out":false,"hits":{"total":{"value":0,"relation":"eq"},"max_score":0,"hits":[]}}`)
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}
+}
+
+func setupCJKCluster(t *testing.T, recorder *common.ClusterRecorder, nodePlugins ...[]string) (*api4.TestHelper, *OpensearchInterfaceImpl) {
+	server := httptest.NewServer(pluginsHandler(t, recorder, nodePlugins...))
+	t.Cleanup(server.Close)
+
+	t.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", server.URL)
+	t.Setenv("MM_ELASTICSEARCHSETTINGS_BACKEND", model.ElasticsearchSettingsOSBackend)
+
+	th := api4.SetupEnterprise(t)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ElasticsearchSettings.ConnectionURL = server.URL
+		*cfg.ElasticsearchSettings.Backend = model.ElasticsearchSettingsOSBackend
+		*cfg.ElasticsearchSettings.EnableIndexing = true
+		*cfg.ElasticsearchSettings.EnableSearching = true
+		*cfg.ElasticsearchSettings.EnableCJKAnalyzers = true
+	})
+	th.App.Srv().SetLicense(model.NewTestLicense())
+
+	impl := &OpensearchInterfaceImpl{Platform: th.Server.Platform()}
+	t.Cleanup(func() { require.Nil(t, impl.Stop()) })
+
+	return th, impl
+}
+
+// TestCJKAnalyzersWithPrefixedPluginNames covers a cluster that reports analysis plugins under the
+// prefixed component name a managed service assigns to plugins it does not bundle. AWS OpenSearch
+// Service reports the Korean analyzer installed through associate-package as
+// "opensearch-analysis-nori" while its bundled analyzers keep their unprefixed names.
+func TestCJKAnalyzersWithPrefixedPluginNames(t *testing.T) {
+	namings := []struct {
+		Name    string
+		Plugins []string
+	}{
+		{"only nori prefixed", []string{"analysis-icu", "opensearch-analysis-nori", "analysis-kuromoji", "analysis-smartcn"}},
+		{"every analysis plugin prefixed", []string{"opensearch-analysis-icu", "opensearch-analysis-nori", "opensearch-analysis-kuromoji", "opensearch-analysis-smartcn"}},
+	}
+
+	for _, naming := range namings {
+		t.Run(naming.Name, func(t *testing.T) {
+			recorder := &common.ClusterRecorder{}
+			th, impl := setupCJKCluster(t, recorder, naming.Plugins)
+			require.Nil(t, impl.Start(context.Background()))
+
+			expectedSubFields := map[string]string{
+				"nori":     "mm_nori",
+				"kuromoji": "mm_kuromoji",
+				"smartcn":  "mm_smartcn",
+			}
+
+			t.Run("the posts index template maps every CJK sub-field", func(t *testing.T) {
+				template := recorder.PostsTemplate()
+				require.NotEmpty(t, template, "no posts index template was created")
+
+				require.Equal(t, expectedSubFields, common.TemplatePropertyFields(t, template, "message"))
+				require.Equal(t, expectedSubFields, common.TemplatePropertyFields(t, template, "attachments"))
+				require.Subset(t, common.TemplateAnalyzers(t, template), []string{"mm_nori", "mm_kuromoji", "mm_smartcn"})
+			})
+
+			t.Run("no missing plugin warning is logged", func(t *testing.T) {
+				require.NoError(t, th.TestLogger.Flush())
+				testlib.AssertNoLog(t, th.LogBuffer, mlog.LvlWarn.Name, missingCJKPluginsWarning)
+			})
+
+			channels := model.ChannelList{{Id: model.NewId(), TeamId: model.NewId(), Type: model.ChannelTypeOpen}}
+
+			searchFields := func(t *testing.T, terms string) [][]string {
+				t.Helper()
+
+				recorder.ResetSearches()
+				_, _, appErr := impl.SearchPosts(channels, model.ParseSearchParams(terms, 0), 0, 20)
+				require.Nil(t, appErr)
+
+				bodies := recorder.SearchBodies()
+				require.Len(t, bodies, 1)
+
+				return common.SimpleQueryStringFields(t, bodies[0])
+			}
+
+			t.Run("a CJK query searches the CJK sub-fields", func(t *testing.T) {
+				fields := searchFields(t, "검색")
+				require.Contains(t, fields, []string{"message", "message.nori", "message.kuromoji", "message.smartcn"})
+				require.Contains(t, fields, []string{"attachments", "attachments.nori", "attachments.kuromoji", "attachments.smartcn"})
+			})
+
+			t.Run("a non-CJK query only searches the base fields", func(t *testing.T) {
+				common.RequireOnlyBaseFields(t, searchFields(t, "search"))
+			})
+
+			t.Run("a CJK query only searches the base fields when CJK analyzers are disabled", func(t *testing.T) {
+				th.App.UpdateConfig(func(cfg *model.Config) {
+					*cfg.ElasticsearchSettings.EnableCJKAnalyzers = false
+				})
+				defer th.App.UpdateConfig(func(cfg *model.Config) {
+					*cfg.ElasticsearchSettings.EnableCJKAnalyzers = true
+				})
+
+				common.RequireOnlyBaseFields(t, searchFields(t, "검색"))
+			})
+		})
+	}
+}
+
+// TestCJKAnalyzersWithoutAnyCJKPlugin covers the diagnostic that made this failure mode hard to
+// spot: the warning only fires when no CJK analyzer plugin is detected at all.
+func TestCJKAnalyzersWithoutAnyCJKPlugin(t *testing.T) {
+	recorder := &common.ClusterRecorder{}
+	th, impl := setupCJKCluster(t, recorder, []string{"analysis-icu"})
+	require.Nil(t, impl.Start(context.Background()))
+
+	template := recorder.PostsTemplate()
+	require.NotEmpty(t, template, "no posts index template was created")
+	require.Empty(t, common.TemplatePropertyFields(t, template, "message"))
+
+	channels := model.ChannelList{{Id: model.NewId(), TeamId: model.NewId(), Type: model.ChannelTypeOpen}}
+	_, _, appErr := impl.SearchPosts(channels, model.ParseSearchParams("검색", 0), 0, 20)
+	require.Nil(t, appErr)
+
+	bodies := recorder.SearchBodies()
+	require.Len(t, bodies, 1)
+	common.RequireOnlyBaseFields(t, common.SimpleQueryStringFields(t, bodies[0]))
+
+	require.NoError(t, th.TestLogger.Flush())
+	testlib.AssertLog(t, th.LogBuffer, mlog.LvlWarn.Name, missingCJKPluginsWarning)
 }
 
 func (s *OpensearchInterfaceTestSuite) SetupSuite() {
@@ -74,7 +380,7 @@ func (s *OpensearchInterfaceTestSuite) SetupSuite() {
 			return nil, err
 		}
 		var names []string
-		for name := range res.Indices {
+		for name := range *res.IndicesGetRespData {
 			names = append(names, name)
 		}
 		return names, nil
@@ -137,6 +443,87 @@ func (s *OpensearchInterfaceTestSuite) SetupTest() {
 
 	s.Nil(s.CommonTestSuite.ESImpl.PurgeIndexes(s.th.Context))
 	s.NoError(s.RefreshIndexFn())
+}
+
+func (s *OpensearchInterfaceTestSuite) newBulk(client *opensearchapi.Client) *Bulk {
+	return NewBulk(
+		common.BulkSettings{
+			FlushBytes:    0,
+			FlushInterval: 0,
+			FlushNumReqs:  0,
+		},
+		client,
+		time.Second,
+		s.th.Server.Platform().Log())
+}
+
+func (s *OpensearchInterfaceTestSuite) TestStopReleasesBothBulkProcessors() {
+	impl := s.CommonTestSuite.ESImpl.(*OpensearchInterfaceImpl)
+	impl.bulkProcessor = s.newBulk(s.client)
+	impl.syncBulkProcessor = s.newBulk(s.client)
+	impl.ready.Store(1)
+	impl.healthy.Store(1)
+
+	s.Require().Nil(impl.Stop())
+	s.Require().Nil(impl.bulkProcessor)
+	s.Require().Nil(impl.syncBulkProcessor)
+	s.Require().Nil(impl.client)
+	s.Require().Equal(int32(0), impl.ready.Load())
+	s.Require().Equal(int32(0), impl.healthy.Load())
+
+	// Stop is idempotent after all resources have been detached.
+	s.Require().Nil(impl.Stop())
+}
+
+type failingRoundTripper struct {
+	calls atomic.Int32
+}
+
+func (t *failingRoundTripper) RoundTrip(_ *http.Request) (*http.Response, error) {
+	t.calls.Add(1)
+	return nil, errors.New("bulk request failed")
+}
+
+func (s *OpensearchInterfaceTestSuite) TestStopAttemptsBothBulkProcessorsAfterError() {
+	transport := &failingRoundTripper{}
+	client, err := opensearchapi.NewClient(opensearchapi.Config{
+		Client: opensearch.Config{
+			Addresses:    []string{"http://localhost:9201"},
+			DisableRetry: true,
+			Transport:    transport,
+		},
+	})
+	s.Require().NoError(err)
+
+	impl := s.CommonTestSuite.ESImpl.(*OpensearchInterfaceImpl)
+	impl.client = client
+	impl.bulkProcessor = s.newBulk(client)
+	impl.bulkProcessor.pendingRequests = 1
+	impl.syncBulkProcessor = s.newBulk(client)
+	impl.syncBulkProcessor.pendingRequests = 1
+	impl.ready.Store(1)
+	impl.healthy.Store(1)
+
+	s.Require().Nil(impl.Stop())
+	s.Require().Equal(int32(2), transport.calls.Load())
+	s.Require().Nil(impl.bulkProcessor)
+	s.Require().Nil(impl.syncBulkProcessor)
+}
+
+func (s *OpensearchInterfaceTestSuite) TestStopCleansPartiallyInitializedEngine() {
+	impl := s.CommonTestSuite.ESImpl.(*OpensearchInterfaceImpl)
+	impl.client = s.client
+	impl.bulkProcessor = s.newBulk(s.client)
+	impl.syncBulkProcessor = s.newBulk(s.client)
+	impl.ready.Store(0)
+	impl.healthy.Store(1)
+
+	s.Require().Nil(impl.Stop())
+	s.Require().Nil(impl.bulkProcessor)
+	s.Require().Nil(impl.syncBulkProcessor)
+	s.Require().Nil(impl.client)
+	s.Require().Equal(int32(0), impl.ready.Load())
+	s.Require().Equal(int32(0), impl.healthy.Load())
 }
 
 func (s *OpensearchInterfaceTestSuite) TestSyncBulkIndexChannels() {
@@ -304,4 +691,144 @@ func (s *OpensearchInterfaceTestSuite) TestTemplateCreationClientError() {
 			IndexTemplate: "test-invalid-template",
 		})
 	})
+}
+
+// TestTestConfigLeavesEngineStateUnchanged checks that TestConfig only probes the cluster: it must
+// not start a stopped engine, nor change what a running engine reports when given a candidate
+// config that points at another cluster.
+func TestTestConfigLeavesEngineStateUnchanged(t *testing.T) {
+	th, impl := setupCJKCluster(t, &common.ClusterRecorder{}, []string{"analysis-nori"})
+
+	require.Nil(t, impl.TestConfig(th.Context, th.App.Config()))
+	require.False(t, impl.IsActive())
+	require.Nil(t, impl.client)
+	require.Nil(t, impl.syncBulkProcessor)
+	require.Zero(t, impl.GetVersion())
+	require.Empty(t, impl.GetFullVersion())
+	require.Empty(t, impl.GetPlugins())
+
+	require.Nil(t, impl.Start(context.Background()))
+	client := impl.client
+
+	otherCluster := httptest.NewServer(infoHandler("3.0.0"))
+	t.Cleanup(otherCluster.Close)
+	candidate := th.App.Config().Clone()
+	*candidate.ElasticsearchSettings.ConnectionURL = otherCluster.URL
+
+	require.Nil(t, impl.TestConfig(th.Context, candidate))
+	require.True(t, impl.IsActive())
+	require.Same(t, client, impl.client)
+	require.Equal(t, 2, impl.GetVersion())
+	require.Equal(t, "2.11.0", impl.GetFullVersion())
+	require.Equal(t, []string{"analysis-nori"}, impl.GetPlugins())
+}
+
+// lifecycleCluster serves a fake cluster for the watcher lifecycle tests. While
+// down is set it fails every request with a status the client doesn't retry,
+// and counts the failed version requests so a test can tell Start() failed.
+func lifecycleCluster(t *testing.T, down *atomic.Bool, failedVersionRequests *atomic.Int32) *httptest.Server {
+	cluster := pluginsHandler(t, &common.ClusterRecorder{}, []string{"analysis-icu"})
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if down.Load() {
+			w.WriteHeader(http.StatusInternalServerError)
+			if r.Method == http.MethodGet && r.URL.Path == "/" {
+				failedVersionRequests.Add(1)
+			}
+			return
+		}
+		if r.URL.Path == "/_cluster/health" {
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = fmt.Fprint(w, `{"cluster_name":"test","status":"green"}`)
+			return
+		}
+		cluster(w, r)
+	}))
+	t.Cleanup(server.Close)
+	return server
+}
+
+// setupWatchedEngine registers a fresh engine with the platform and starts the
+// search engine watcher on it, so tests go through the real Start() path.
+func setupWatchedEngine(t *testing.T, serverURL string, enableIndexing bool) (*api4.TestHelper, *OpensearchInterfaceImpl) {
+	t.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", serverURL)
+	t.Setenv("MM_ELASTICSEARCHSETTINGS_BACKEND", model.ElasticsearchSettingsOSBackend)
+
+	th := api4.SetupEnterpriseWithServerOptions(t, nil)
+	ps := th.Server.Platform()
+	ps.StopSearchEngine()
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ElasticsearchSettings.ConnectionURL = serverURL
+		*cfg.ElasticsearchSettings.Backend = model.ElasticsearchSettingsOSBackend
+		*cfg.ElasticsearchSettings.EnableIndexing = enableIndexing
+		*cfg.ElasticsearchSettings.LiveIndexingBatchSize = 1
+	})
+	th.App.Srv().SetLicense(model.NewTestLicense())
+
+	impl := &OpensearchInterfaceImpl{Platform: ps}
+	th.App.SearchEngine().RegisterElasticsearchEngine(impl)
+	configListenerID, licenseListenerID := ps.StartSearchEngine()
+	t.Cleanup(func() {
+		ps.StopSearchEngine()
+		ps.RemoveConfigListener(configListenerID)
+		ps.RemoveLicenseListener(licenseListenerID)
+	})
+
+	return th, impl
+}
+
+func hasSyncBulkProcessor(engine *OpensearchInterfaceImpl) bool {
+	engine.mutex.RLock()
+	defer engine.mutex.RUnlock()
+	return engine.syncBulkProcessor != nil
+}
+
+// TestTestConfigThenSavingConfigStartsEngine follows TestConfig, then saving the
+// tested config, through the watcher to a full Start().
+func TestTestConfigThenSavingConfigStartsEngine(t *testing.T) {
+	var down atomic.Bool
+	var failedVersionRequests atomic.Int32
+	server := lifecycleCluster(t, &down, &failedVersionRequests)
+	th, impl := setupWatchedEngine(t, server.URL, false)
+	require.False(t, impl.IsActive())
+
+	submittedConfig := th.App.Config().Clone()
+	*submittedConfig.ElasticsearchSettings.EnableIndexing = true
+	require.Nil(t, impl.TestConfig(th.Context, submittedConfig))
+	require.False(t, impl.IsActive())
+	require.Nil(t, impl.client)
+	require.False(t, hasSyncBulkProcessor(impl))
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ElasticsearchSettings.EnableIndexing = true
+	})
+
+	require.Eventually(t, func() bool {
+		return impl.IsActive() && hasSyncBulkProcessor(impl)
+	}, 5*time.Second, 10*time.Millisecond)
+	require.Equal(t, "2.11.0", impl.GetFullVersion())
+	require.Equal(t, []string{"analysis-icu"}, impl.GetPlugins())
+}
+
+// TestTestElasticsearchStartsEngineWithoutWaitingForBackoff covers a saved
+// cluster that comes back while the watcher waits out its retry backoff: a
+// successful connection test starts the engine through the watcher right away.
+func TestTestElasticsearchStartsEngineWithoutWaitingForBackoff(t *testing.T) {
+	var down atomic.Bool
+	var failedVersionRequests atomic.Int32
+	down.Store(true)
+	server := lifecycleCluster(t, &down, &failedVersionRequests)
+	th, impl := setupWatchedEngine(t, server.URL, true)
+
+	// Wait for the watcher's first Start() to fail; it then backs off for 15s.
+	require.Eventually(t, func() bool {
+		return failedVersionRequests.Load() >= 1
+	}, 5*time.Second, 10*time.Millisecond)
+	require.Never(t, impl.IsActive, 200*time.Millisecond, 10*time.Millisecond)
+
+	down.Store(false)
+	require.Nil(t, th.App.TestElasticsearch(th.Context, th.App.Config().Clone()))
+
+	require.Eventually(t, func() bool {
+		return impl.IsActive() && hasSyncBulkProcessor(impl)
+	}, 5*time.Second, 10*time.Millisecond)
 }

@@ -13,9 +13,22 @@ const externals = [
     ...Object.keys(packagejson.peerDependencies || {}),
     'lodash/throttle',
     'react',
+
+    // react-dom is only a devDependency here, so without this it gets bundled into dist and the
+    // web app ends up running two copies of the renderer.
+    'react-dom',
     'mattermost-redux',
     'reselect',
 ];
+
+function isExternal(id) {
+    if (externals.includes(id)) {
+        return true;
+    }
+
+    // Peer packages are often imported via subpaths (e.g. @mattermost/compass-ui/components/button).
+    return externals.some((external) => id === external || id.startsWith(`${external}/`));
+}
 
 export default [
     {
@@ -42,7 +55,7 @@ export default [
                 outputToFilesystem: true,
             }),
         ],
-        external: externals,
+        external: isExternal,
         watch: {
             clearScreen: false,
         },

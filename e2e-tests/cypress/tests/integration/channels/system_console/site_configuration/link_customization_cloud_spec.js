@@ -27,7 +27,7 @@ describe('SupportSettings', () => {
             // * Verify links changed
             [
                 {text: 'Ask the community', link: SupportSettings.ASK_COMMUNITY_LINK},
-                {text: 'Mattermost user guide', link: SupportSettings.MATTERMOST_USER_GUIDE},
+                {text: 'Mattermost documentation', link: SupportSettings.MATTERMOST_DOCUMENTATION},
                 {text: 'Report a problem', link: 'mailto:reportaproblem@mattermost.com'},
                 {text: 'Keyboard shortcuts'},
             ].forEach(({text, link}) => {

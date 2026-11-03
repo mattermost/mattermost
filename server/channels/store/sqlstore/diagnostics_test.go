@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"database/sql"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -44,6 +45,20 @@ func TestGetDiagnostics(t *testing.T) {
 		require.NotNil(t, diagnostics.LongestQueryDurationSeconds)
 		require.NotNil(t, diagnostics.WaitingForLockCount)
 	})
+}
+
+func TestOnlineReplicas(t *testing.T) {
+	replica := func(online bool) *atomic.Pointer[sqlxDBWrapper] {
+		w := &sqlxDBWrapper{isOnline: &atomic.Bool{}}
+		w.isOnline.Store(online)
+		r := &atomic.Pointer[sqlxDBWrapper]{}
+		r.Store(w)
+		return r
+	}
+
+	assert.Equal(t, 0, onlineReplicas(nil))
+	assert.Equal(t, 0, onlineReplicas([]*atomic.Pointer[sqlxDBWrapper]{replica(false)}))
+	assert.Equal(t, 2, onlineReplicas([]*atomic.Pointer[sqlxDBWrapper]{replica(true), replica(false), replica(true)}))
 }
 
 func TestApplyDBPoolStats(t *testing.T) {

@@ -9,7 +9,7 @@ import {getChannelByName} from 'mattermost-redux/selectors/entities/channels';
 import {getIsCrossTeamSearchEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
-import {showChannelFiles, showFlaggedPosts, showMentions, showPinnedPosts, showSearchResults, updateRhsState, updateSearchTeam, updateSearchTerms, updateSearchType} from 'actions/views/rhs';
+import {showChannelFiles, showFlaggedPosts, showPinnedPosts, showSearchResults, updateMentionFilters, updateRhsState, updateSearchTeam, updateSearchTerms, updateSearchType} from 'actions/views/rhs';
 import {getIsRhsExpanded, getRhsState} from 'selectors/rhs';
 
 import useSearchResultsActions from 'components/common/hooks/use_search_results_actions';
@@ -17,6 +17,7 @@ import SearchResults from 'components/search_results';
 
 import {getHistory} from 'utils/browser_history';
 import {RHSStates} from 'utils/constants';
+import {mentionFiltersFromSearchParams} from 'utils/mention_search';
 import usePopoutTitle from 'utils/popouts/use_popout_title';
 
 import type {GlobalState} from 'types/store';
@@ -37,6 +38,7 @@ export default function RhsSearchPopout() {
         const mode = queryParams.get('mode') as NonNullable<RhsState>;
         const channelIdentifier = queryParams.get('channel') ?? '';
         const searchTeamId = queryParams.get('searchTeamId');
+        const mentionFilters = mentionFiltersFromSearchParams(queryParams);
 
         return {
             mode,
@@ -44,6 +46,7 @@ export default function RhsSearchPopout() {
             searchType,
             channelIdentifier,
             searchTeamId,
+            mentionFilters,
         };
     }, [location.search]);
 
@@ -81,11 +84,11 @@ export default function RhsSearchPopout() {
             }
             break;
         case RHSStates.MENTION:
-            if (query.searchTerms.trim()) {
-                dispatch(showSearchResults(true));
-            } else {
-                dispatch(showMentions());
-            }
+
+            // Recent mentions are rebuilt from their filters rather than from the terms, and an
+            // empty searchTeamId means the search spans every team rather than the team this
+            // window happens to be opened on.
+            dispatch(updateMentionFilters(query.mentionFilters, query.searchTeamId || null));
             return;
         case RHSStates.FLAG:
             dispatch(showFlaggedPosts());

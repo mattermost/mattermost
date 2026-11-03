@@ -2,37 +2,16 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedDate, FormattedMessage, FormattedNumber, defineMessages} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import {FormattedMessage} from 'react-intl';
 
-import {CheckCircleOutlineIcon} from '@mattermost/compass-icons/components';
-import {buttonClassNames} from '@mattermost/shared/components/button';
-import {WithTooltip} from '@mattermost/shared/components/tooltip';
-import type {Invoice, InvoiceLineItem, Product} from '@mattermost/types/cloud';
+import {Button} from '@mattermost/compass-ui/components/button';
 
-import {Client4} from 'mattermost-redux/client';
-
-import {openModal} from 'actions/views/modals';
-
-import BlockableLink from 'components/admin_console/blockable_link';
-import CloudInvoicePreview from 'components/cloud_invoice_preview';
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import EmptyBillingHistorySvg from 'components/common/svg_images_components/empty_billing_history_svg';
 import UpgradeSvg from 'components/common/svg_images_components/upgrade_svg';
 import ExternalLink from 'components/external_link';
 
-import {BillingSchemes, CloudLinks, TrialPeriodDays, ModalIdentifiers} from 'utils/constants';
-
-const messages = defineMessages({
-    partialChargesTooltipTitle: {
-        id: 'admin.billing.subscriptions.billing_summary.lastInvoice.whatArePartialCharges',
-        defaultMessage: 'What are partial charges?',
-    },
-    partialChargesTooltipText: {
-        id: 'admin.billing.subscriptions.billing_summary.lastInvoice.whatArePartialCharges.message',
-        defaultMessage: 'Users who have not been enabled for the full duration of the month are charged at a prorated monthly rate.',
-    },
-});
+import {CloudLinks, TrialPeriodDays} from 'utils/constants';
 
 export const noBillingHistory = (
     <div className='BillingSummary__noBillingHistory'>
@@ -52,16 +31,21 @@ export const noBillingHistory = (
                 defaultMessage='In the future, this is where your most recent bill summary will show.'
             />
         </div>
-        <ExternalLink
-            location='billing_summary'
-            href={CloudLinks.BILLING_DOCS}
-            className={buttonClassNames({emphasis: 'primary'}, 'BillingSummary__noBillingHistory-link')}
+        <Button
+            asChild={true}
+            emphasis='primary'
+            className='BillingSummary__noBillingHistory-link'
         >
-            <FormattedMessage
-                id='admin.billing.subscriptions.billing_summary.noBillingHistory.link'
-                defaultMessage='See how billing works'
-            />
-        </ExternalLink>
+            <ExternalLink
+                location='billing_summary'
+                href={CloudLinks.BILLING_DOCS}
+            >
+                <FormattedMessage
+                    id='admin.billing.subscriptions.billing_summary.noBillingHistory.link'
+                    defaultMessage='See how billing works'
+                />
+            </ExternalLink>
+        </Button>
     </div>
 );
 
@@ -115,248 +99,16 @@ export const FreeTrial = ({daysLeftOnTrial}: FreeTrialProps) => {
                     />
                 }
             </div>
-            <button
+            <Button
                 type='button'
+                emphasis='primary'
+                className='UpgradeMattermostCloud__upgradeButton'
                 onClick={() => openSalesLink()}
-                className={buttonClassNames({emphasis: 'primary'}, 'UpgradeMattermostCloud__upgradeButton')}
             >
                 <FormattedMessage
                     id='admin.billing.subscription.privateCloudCard.contactSales'
                     defaultMessage='Contact Sales'
                 />
-
-            </button>
+            </Button>
         </div>);
-};
-
-export const getPaymentStatus = () => {
-    return (
-        <div className='BillingSummary__lastInvoice-headerStatus paid'>
-            <CheckCircleOutlineIcon/> {' '}
-            <FormattedMessage
-                id='admin.billing.subscriptions.billing_summary.lastInvoice.paid'
-                defaultMessage='Paid'
-            />
-        </div>
-    );
-};
-
-type InvoiceInfoProps = {
-    invoice: Invoice;
-    product?: Product;
-    fullCharges: InvoiceLineItem[];
-    partialCharges: InvoiceLineItem[];
-    hasMore?: number;
-};
-
-export const InvoiceInfo = ({invoice, product, fullCharges, partialCharges, hasMore}: InvoiceInfoProps) => {
-    const dispatch = useDispatch();
-
-    const isUpcomingInvoice = invoice?.status.toLowerCase() === 'upcoming';
-    const openInvoicePreview = () => {
-        dispatch(
-            openModal({
-                modalId: ModalIdentifiers.CLOUD_INVOICE_PREVIEW,
-                dialogType: CloudInvoicePreview,
-                dialogProps: {
-                    url: Client4.getInvoicePdfUrl(invoice.id),
-                },
-            }),
-        );
-    };
-    const title = () => {
-        if (isUpcomingInvoice) {
-            return (
-                <FormattedMessage
-                    id='admin.billing.subscription.invoice.next'
-                    defaultMessage='Next Invoice'
-                />
-            );
-        }
-        return (
-            <FormattedMessage
-                id='admin.billing.subscriptions.billing_summary.lastInvoice.title'
-                defaultMessage='Last Invoice'
-            />
-        );
-    };
-    return (
-        <div className='BillingSummary__lastInvoice'>
-            <div className='BillingSummary__lastInvoice-header'>
-                <div className='BillingSummary__lastInvoice-headerTitle'>
-                    {title()}
-                </div>
-                {getPaymentStatus()}
-            </div>
-            <div className='BillingSummary__lastInvoice-date'>
-                <FormattedDate
-                    value={new Date(invoice.period_start)}
-                    month='short'
-                    year='numeric'
-                    day='numeric'
-                    timeZone='UTC'
-                />
-            </div>
-            <div className='BillingSummary__lastInvoice-productName'>
-                {product?.name}
-            </div>
-            <hr/>
-            {fullCharges.map((charge: any) => (
-                <div
-                    key={charge.price_id}
-                    className='BillingSummary__lastInvoice-charge'
-                >
-                    <div className='BillingSummary__lastInvoice-chargeDescription'>
-                        {product?.billing_scheme === BillingSchemes.FLAT_FEE ? (
-                            <FormattedMessage
-                                id='admin.billing.subscriptions.billing_summary.lastInvoice.monthlyFlatFee'
-                                defaultMessage='Monthly Flat Fee'
-                            />
-                        ) : (
-                            <>
-                                <FormattedNumber
-                                    value={charge.price_per_unit / 100.0}
-                                    // eslint-disable-next-line react/style-prop-object
-                                    style='currency'
-                                    currency='USD'
-                                />
-                                <FormattedMessage
-                                    id='admin.billing.subscriptions.billing_summary.lastInvoice.seatCount'
-                                    defaultMessage=' x {seats} seats'
-                                    values={{seats: charge.quantity}}
-                                />
-                            </>
-                        )}
-                    </div>
-                    <div className='BillingSummary__lastInvoice-chargeAmount'>
-                        <FormattedNumber
-                            value={charge.total / 100.0}
-                            // eslint-disable-next-line react/style-prop-object
-                            style='currency'
-                            currency='USD'
-                        />
-                    </div>
-                </div>
-            ))}
-            {Boolean(hasMore) && (
-                <div
-                    className='BillingSummary__lastInvoice-hasMoreItems'
-                >
-                    <div
-                        onClick={openInvoicePreview}
-                        className='BillingSummary__lastInvoice-chargeDescription'
-                    >
-                        {product?.billing_scheme === BillingSchemes.FLAT_FEE ? (
-                            <FormattedMessage
-                                id='admin.billing.subscriptions.billing_summary.lastInvoice.monthlyFlatFee'
-                                defaultMessage='Monthly Flat Fee'
-                            />
-                        ) : (
-                            <>
-                                <FormattedMessage
-                                    id='admin.billing.subscriptions.billing_summary.upcomingInvoice.has_more_line_items'
-                                    defaultMessage='And {count} more items'
-                                    values={{count: hasMore}}
-                                />
-                            </>
-                        )}
-                    </div>
-                </div>
-            )}
-            {Boolean(partialCharges.length) && (
-                <>
-                    <div className='BillingSummary__lastInvoice-partialCharges'>
-                        <FormattedMessage
-                            id='admin.billing.subscriptions.billing_summary.lastInvoice.partialCharges'
-                            defaultMessage='Partial charges'
-                        />
-                        <WithTooltip
-                            title={messages.partialChargesTooltipTitle}
-                            hint={messages.partialChargesTooltipText}
-                        >
-                            <i className='icon-information-outline'/>
-                        </WithTooltip>
-                    </div>
-                    {partialCharges.map((charge: any) => (
-                        <div
-                            key={charge.price_id}
-                            className='BillingSummary__lastInvoice-charge'
-                        >
-                            <div className='BillingSummary__lastInvoice-chargeDescription'>
-                                <FormattedMessage
-                                    id='admin.billing.subscriptions.billing_summary.lastInvoice.seatCountPartial'
-                                    defaultMessage='{seats} seats'
-                                    values={{seats: charge.quantity}}
-                                />
-                            </div>
-                            <div className='BillingSummary__lastInvoice-chargeAmount'>
-                                <FormattedNumber
-                                    value={charge.total / 100.0}
-                                    // eslint-disable-next-line react/style-prop-object
-                                    style='currency'
-                                    currency='USD'
-                                />
-                            </div>
-                        </div>
-                    ))}
-                </>
-            )}
-            {Boolean(invoice.tax) && (
-                <div className='BillingSummary__lastInvoice-charge'>
-                    <div className='BillingSummary__lastInvoice-chargeDescription'>
-                        <FormattedMessage
-                            id='admin.billing.subscriptions.billing_summary.lastInvoice.taxes'
-                            defaultMessage='Taxes'
-                        />
-                    </div>
-                    <div className='BillingSummary__lastInvoice-chargeAmount'>
-                        <FormattedNumber
-                            value={invoice.tax / 100.0}
-                            // eslint-disable-next-line react/style-prop-object
-                            style='currency'
-                            currency='USD'
-                        />
-                    </div>
-                </div>
-            )}
-            <hr/>
-            <div className='BillingSummary__lastInvoice-charge total'>
-                <div className='BillingSummary__lastInvoice-chargeDescription'>
-                    <FormattedMessage
-                        id='admin.billing.subscriptions.billing_summary.lastInvoice.total'
-                        defaultMessage='Total'
-                    />
-                </div>
-                <div className='BillingSummary__lastInvoice-chargeAmount'>
-                    <FormattedNumber
-                        value={invoice.total / 100.0}
-                        // eslint-disable-next-line react/style-prop-object
-                        style='currency'
-                        currency='USD'
-                    />
-                </div>
-            </div>
-            <div className='BillingSummary__lastInvoice-download'>
-                <button
-                    onClick={openInvoicePreview}
-                    className={buttonClassNames({emphasis: 'primary'}, 'BillingSummary__lastInvoice-downloadButton')}
-                >
-                    <i className='icon icon-file-pdf-outline'/>
-                    <FormattedMessage
-                        id='admin.billing.subscriptions.billing_summary.lastInvoice.viewInvoice'
-                        defaultMessage='View Invoice'
-                    />
-                </button>
-            </div>
-            <BlockableLink
-                to='/admin_console/billing/billing_history'
-                className='BillingSummary__lastInvoice-billingHistory'
-            >
-                <FormattedMessage
-                    id='admin.billing.subscriptions.billing_summary.lastInvoice.seeBillingHistory'
-                    defaultMessage='See Billing History'
-                />
-            </BlockableLink>
-        </div>
-    );
 };

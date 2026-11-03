@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ReactNode} from 'react';
+import type {ComponentProps, ReactNode} from 'react';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import styled, {css} from 'styled-components';
 
-import {Button as MmButton} from '@mattermost/shared/components/button';
+import {Button as MmButton} from '@mattermost/compass-ui/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {RemoteCluster} from '@mattermost/types/remote_clusters';
 
@@ -190,18 +190,28 @@ export const ModalNoticeWrapper = styled.div`
     margin: 15px 0 25px 0;
 `;
 
-export const Button = styled(MmButton).attrs({emphasis: 'secondary'})`
-    margin: -1px -2px;
-`;
+type CompassButtonProps = ComponentProps<typeof MmButton>;
 
-export const LinkButton = styled.button.attrs({className: 'btn btn-link'})<{$destructive?: boolean}>`
-    font-weight: normal;
-    ${({$destructive}) => $destructive && css`
-        && {
-            color: #D24B4E;
-        }
-    `};
-`;
+export const Button = ({style, ...props}: CompassButtonProps) => (
+    <MmButton
+        emphasis='secondary'
+        style={{alignSelf: 'center', marginRight: 'var(--spacing-xxxs)', ...style}}
+        {...props}
+    />
+);
+
+export const LinkButton = ({
+    $destructive,
+    style,
+    ...props
+}: CompassButtonProps & {$destructive?: boolean}) => (
+    <MmButton
+        emphasis='link'
+        destructive={Boolean($destructive)}
+        style={{fontWeight: 'normal', ...style}}
+        {...props}
+    />
+);
 
 export const ConnectionStatusLabel = ({rc}: {rc: RemoteCluster}) => {
     if (!isConfirmed(rc)) {

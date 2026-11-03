@@ -1,16 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect, useCallback, useMemo} from 'react';
+import React, {forwardRef, useState, useEffect, useCallback, useMemo, type JSX} from 'react';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import {PlusIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
 import {GenericModal} from '@mattermost/components';
-import {buttonClassNames} from '@mattermost/shared/components/button';
-import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/types/access_control';
+import {ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ, type AccessControlPolicy, type AccessControlPolicyRule} from '@mattermost/types/access_control';
 import type {AccessControlSettings} from '@mattermost/types/config';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
+import {CHANNEL_ATTRIBUTES_OBJECT_TYPE} from '@mattermost/types/properties_user';
 
 import {isPolicySimulationEnabled} from 'mattermost-redux/selectors/entities/general';
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -20,8 +24,8 @@ import BlockableLink from 'components/admin_console/blockable_link';
 import Card from 'components/card/card';
 import TitleAndButtonCardHeader from 'components/card/title_and_button_card_header/title_and_button_card_header';
 import * as Menu from 'components/menu';
+import type {MenuButtonComponentProps} from 'components/menu';
 import SaveButton from 'components/save_button';
-import SectionNotice from 'components/section_notice';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import TextSetting from 'components/widgets/settings/text_setting';
 
@@ -34,6 +38,23 @@ import {hasUsableAttributes, isSimpleExpression, mergeSessionAttributes, toCELEd
 import TableEditor from '../../access_control/editors/table_editor/table_editor';
 
 import './permission_policy_details.scss';
+
+const AddPermissionMenuTrigger = forwardRef<HTMLButtonElement, MenuButtonComponentProps>((props, ref) => {
+    const {children, ...rest} = props;
+    return (
+        <Button
+            {...rest}
+            ref={ref}
+            emphasis='tertiary'
+            size='small'
+            className='pp-add-permission-button'
+            leadingIcon={<Icon glyph={<PlusIcon/>}/>}
+        >
+            {children}
+        </Button>
+    );
+});
+AddPermissionMenuTrigger.displayName = 'AddPermissionMenuTrigger';
 
 const roleMessages = defineMessages({
     guestLabel: {id: 'admin.permission_policies.role.system_guest.label', defaultMessage: 'Guest users'},
@@ -56,6 +77,8 @@ const permissionMessages = defineMessages({
     downloadDescription: {id: 'admin.permission_policies.permission.download_file.description', defaultMessage: 'Allow users to download files to their device'},
     uploadLabel: {id: 'admin.permission_policies.permission.upload_file.label', defaultMessage: 'Upload Files'},
     uploadDescription: {id: 'admin.permission_policies.permission.upload_file.description', defaultMessage: 'Allow users to upload files while sending a message'},
+    createBorLabel: {id: 'admin.permission_policies.permission.create_bor.label', defaultMessage: 'Create Burn-on-Read Message'},
+    createBorDescription: {id: 'admin.permission_policies.permission.create_bor.description', defaultMessage: 'Allow users to send burn-on-read messages'},
 });
 
 const AVAILABLE_PERMISSIONS: PermissionDefinition[] = [
@@ -68,6 +91,11 @@ const AVAILABLE_PERMISSIONS: PermissionDefinition[] = [
         value: 'upload_file_attachment',
         label: permissionMessages.uploadLabel,
         description: permissionMessages.uploadDescription,
+    },
+    {
+        value: ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ,
+        label: permissionMessages.createBorLabel,
+        description: permissionMessages.createBorDescription,
     },
 ];
 
@@ -118,7 +146,13 @@ function PermissionPolicyDetails({
     sessionAttributesEnabled,
 }: PermissionPolicyDetailsProps): JSX.Element {
     const [policyName, setPolicyName] = useState(policy?.name || '');
-    const [expression, setExpression] = useState(policy?.rules?.[0]?.expression || '');
+
+    // Not seeded from `policy`: the list leaves the search endpoint's copy in the
+    // store, and search returns rules in their stored form — a rank comparison is
+    // stored desugared as `_rank_ge(...)`, which /cel/visual_ast rejects, so the
+    // editor would fire a doomed parse on mount. fetchPolicy below is the only
+    // source; it also sets the name, role and permissions seeded here.
+    const [expression, setExpression] = useState('');
     const [selectedRole, setSelectedRole] = useState(policy?.roles?.[0] || 'system_user');
     const [selectedPermissions, setSelectedPermissions] = useState<string[]>(
         getPermissionActions(policy?.rules || []),
@@ -131,6 +165,7 @@ function PermissionPolicyDetails({
     const [attributesLoaded, setAttributesLoaded] = useState(false);
     const [showDeleteConfirmationModal, setShowDeleteConfirmationModal] = useState(false);
     const [pageLoaded, setPageLoaded] = useState(false);
+    const [loadFailed, setLoadFailed] = useState(false);
     const [showTest, setShowTest] = useState(false);
 
     const {formatMessage} = useIntl();
@@ -143,9 +178,27 @@ function PermissionPolicyDetails({
     // the channel-settings Permissions Policy tab.
     const policySimulationEnabled = useSelector(isPolicySimulationEnabled);
 
+    // The autocomplete mixes the requesting user's attributes (user.attributes.*)
+    // and the accessed channel's attributes (resource.attributes.*), tagged by
+    // object_type. Permission policies are channel-scoped, so they may reference
+    // resource.attributes.*; split so user fields drive rules and channel fields
+    // are comparison targets.
+    const {userFields, resourceFields} = useMemo(() => {
+        const uf: UserPropertyField[] = [];
+        const rf: UserPropertyField[] = [];
+        for (const f of autocompleteResult) {
+            if (f.object_type === CHANNEL_ATTRIBUTES_OBJECT_TYPE) {
+                rf.push(f);
+            } else {
+                uf.push(f);
+            }
+        }
+        return {userFields: uf, resourceFields: rf};
+    }, [autocompleteResult]);
+
     // Permission policies can reference session attributes (e.g. user.session.ip_address),
     // so the editor stays usable even without any configured user attributes when SessionAttributes is on.
-    const noUsableAttributes = attributesLoaded && !sessionAttributesEnabled && !hasUsableAttributes(autocompleteResult, accessControlSettings.EnableUserManagedAttributes);
+    const noUsableAttributes = attributesLoaded && !sessionAttributesEnabled && !hasUsableAttributes(userFields, accessControlSettings.EnableUserManagedAttributes);
 
     const sessionFields = useEnabledSessionAttributeFields(sessionAttributesEnabled);
     const mergedAttributes = useMemo(
@@ -162,7 +215,11 @@ function PermissionPolicyDetails({
     // are recognized as simple and open in table mode.
 
     const loadPage = async (): Promise<void> => {
-        const fieldsPromise = abacActions.getAccessControlFields('', 100).then((result) => {
+        setLoadFailed(false);
+
+        // Permission policies can reference resource.attributes.* (the accessed
+        // channel), so request channel fields too.
+        const fieldsPromise = abacActions.getAccessControlFields('', 100, true).then((result) => {
             if (result.data) {
                 setAutocompleteResult(result.data);
             }
@@ -172,6 +229,7 @@ function PermissionPolicyDetails({
         if (policyId) {
             const policyPromise = actions.fetchPolicy(policyId).then((result: ActionResult) => {
                 if (result.error) {
+                    setLoadFailed(true);
                     setServerError(result.error.message || formatMessage({
                         id: 'admin.permission_policies.edit.error.load',
                         defaultMessage: 'Failed to load policy',
@@ -312,11 +370,27 @@ function PermissionPolicyDetails({
                     />
                     <FormattedMessage
                         id='admin.permission_policies.edit.title'
-                        defaultMessage='Attribute Based Permission Policy'
+                        defaultMessage='Attribute-Based Permission Policy'
                     />
                 </div>
             </AdminHeader>
-            {pageLoaded ? (
+            {pageLoaded && loadFailed && (
+                <div className='admin-console__wrapper'>
+                    <div className='admin-console__content'>
+                        <div className='admin-console__warning-notice'>
+                            <SectionNotice
+                                type='danger'
+                                title={formatMessage({
+                                    id: 'admin.permission_policies.edit.error.load',
+                                    defaultMessage: 'Failed to load policy',
+                                })}
+                                description={serverError}
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
+            {pageLoaded && !loadFailed && (
                 <>
                     <div className='admin-console__wrapper'>
                         <div className='admin-console__content'>
@@ -345,20 +419,16 @@ function PermissionPolicyDetails({
                                 />
                             </div>
 
-                            {/* Info Banner */}
-                            <div className='pp-info-banner'>
-                                <i className='icon icon-information-outline'/>
-                                <div className='pp-info-banner-content'>
-                                    <span className='pp-info-banner-title'>
+                            <div className='pp-info-notice'>
+                                <SectionNotice
+                                    type='info'
+                                    title={
                                         <FormattedMessage
                                             id='admin.permission_policies.edit.info_banner.title'
                                             defaultMessage='The permissions defined in this policy override the {link} when its conditions are met'
                                             values={{
                                                 link: (
-                                                    <BlockableLink
-                                                        to='/admin_console/user_management/permissions'
-                                                        className='pp-info-banner-link'
-                                                    >
+                                                    <BlockableLink to='/admin_console/user_management/permissions'>
                                                         <FormattedMessage
                                                             id='admin.permission_policies.edit.info_banner.link'
                                                             defaultMessage='system permission schemes'
@@ -367,14 +437,14 @@ function PermissionPolicyDetails({
                                                 ),
                                             }}
                                         />
-                                    </span>
-                                    <span className='pp-info-banner-subtitle'>
+                                    }
+                                    description={
                                         <FormattedMessage
                                             id='admin.permission_policies.edit.info_banner.evaluation_order'
                                             defaultMessage='Permissions evaluation order: Permission policies (evaluated first) → System scheme / Team override scheme (fallback when no policy applies).'
                                         />
-                                    </span>
-                                </div>
+                                    }
+                                />
                             </div>
 
                             {noUsableAttributes && (
@@ -387,18 +457,16 @@ function PermissionPolicyDetails({
                                                 defaultMessage='Please add user attributes and values to use Attribute-Based Access Control'
                                             />
                                         }
-                                        text={formatMessage({
+                                        description={formatMessage({
                                             id: 'admin.permission_policies.edit.notice.text',
                                             defaultMessage: 'You haven\'t configured any user attributes yet. Attribute-Based Access Control requires user attributes that are either synced from an external system (like LDAP or SAML) or manually configured and enabled on this server.',
                                         })}
-                                        primaryButton={{
-                                            text: formatMessage({
-                                                id: 'admin.permission_policies.edit.notice.button',
-                                                defaultMessage: 'Configure user attributes',
-                                            }),
-                                            onClick: () => {
-                                                getHistory().push('/admin_console/system_attributes/user_attributes');
-                                            },
+                                        primaryButtonLabel={formatMessage({
+                                            id: 'admin.permission_policies.edit.notice.button',
+                                            defaultMessage: 'Configure user attributes',
+                                        })}
+                                        onPrimaryAction={() => {
+                                            getHistory().push('/admin_console/system_attributes/manage_attributes');
                                         }}
                                     />
                                 </div>
@@ -407,6 +475,7 @@ function PermissionPolicyDetails({
                             {/* "Who this policy applies to" */}
                             <Card
                                 expanded={true}
+                                disableExpandAnimation={true}
                                 className={'console'}
                             >
                                 <Card.Header>
@@ -480,6 +549,7 @@ function PermissionPolicyDetails({
                             {/* Attribute-based access rules */}
                             <Card
                                 expanded={true}
+                                disableExpandAnimation={true}
                                 className={'console'}
                             >
                                 <Card.Header>
@@ -538,7 +608,10 @@ function PermissionPolicyDetails({
                                             }}
                                             onValidate={() => {}}
                                             disabled={noUsableAttributes}
-                                            userAttributes={toCELEditorAttributes(mergedAttributes, accessControlSettings.EnableUserManagedAttributes)}
+                                            userAttributes={toCELEditorAttributes(mergeSessionAttributes(userFields, sessionFields), accessControlSettings.EnableUserManagedAttributes)}
+                                            resourceAttributes={resourceFields.map((attr) => ({
+                                                attribute: attr.name,
+                                            }))}
 
                                             // Both editor modes route the test
                                             // button through SimulateAccessModal:
@@ -613,6 +686,7 @@ function PermissionPolicyDetails({
                             {/* "What permissions are modified" */}
                             <Card
                                 expanded={true}
+                                disableExpandAnimation={true}
                                 className={'console'}
                             >
                                 <Card.Header>
@@ -677,15 +751,12 @@ function PermissionPolicyDetails({
                                         <Menu.Container
                                             menuButton={{
                                                 id: 'pp-add-permission-btn',
-                                                class: 'pp-add-permission-button',
+                                                as: AddPermissionMenuTrigger,
                                                 children: (
-                                                    <>
-                                                        <i className='icon icon-plus'/>
-                                                        <FormattedMessage
-                                                            id='admin.permission_policies.edit.permissions.add'
-                                                            defaultMessage='Add permission'
-                                                        />
-                                                    </>
+                                                    <FormattedMessage
+                                                        id='admin.permission_policies.edit.permissions.add'
+                                                        defaultMessage='Add permission'
+                                                    />
                                                 ),
                                             }}
                                             menu={{
@@ -718,6 +789,7 @@ function PermissionPolicyDetails({
                             {policyId && (
                                 <Card
                                     expanded={true}
+                                    disableExpandAnimation={true}
                                     className={'console delete-policy'}
                                 >
                                     <Card.Header>
@@ -740,6 +812,7 @@ function PermissionPolicyDetails({
                                                     defaultMessage='Delete'
                                                 />
                                             }
+                                            destructive={true}
                                             onClick={() => setShowDeleteConfirmationModal(true)}
                                         />
                                     </Card.Header>
@@ -765,7 +838,7 @@ function PermissionPolicyDetails({
                                     defaultMessage='Delete Policy'
                                 />
                             }
-                            confirmButtonVariant='destructive'
+                            destructive={true}
                             compassDesign={true}
                         >
                             <FormattedMessage
@@ -790,6 +863,7 @@ function PermissionPolicyDetails({
                             actionLabels={{
                                 upload_file_attachment: formatMessage(permissionMessages.uploadLabel),
                                 download_file_attachment: formatMessage(permissionMessages.downloadLabel),
+                                [ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ]: formatMessage(permissionMessages.createBorLabel),
                             }}
                             targetRole={selectedRole}
                             targetScope='system'
@@ -809,15 +883,17 @@ function PermissionPolicyDetails({
                                 />
                             }
                         />
-                        <BlockableLink
-                            className={buttonClassNames({emphasis: 'quaternary'})}
-                            to='/admin_console/system_attributes/permission_policies'
+                        <Button
+                            asChild={true}
+                            emphasis='tertiary'
                         >
-                            <FormattedMessage
-                                id='admin.permission_policies.edit.cancel'
-                                defaultMessage='Cancel'
-                            />
-                        </BlockableLink>
+                            <BlockableLink to='/admin_console/system_attributes/permission_policies'>
+                                <FormattedMessage
+                                    id='admin.permission_policies.edit.cancel'
+                                    defaultMessage='Cancel'
+                                />
+                            </BlockableLink>
+                        </Button>
                         {serverError && (
                             <span className='pp-error'>
                                 <i className='icon icon-alert-outline'/>
@@ -830,7 +906,8 @@ function PermissionPolicyDetails({
                         )}
                     </div>
                 </>
-            ) : (
+            )}
+            {!pageLoaded && (
                 <div className='admin-console__wrapper'>
                     <div className='admin-console__content'/>
                 </div>

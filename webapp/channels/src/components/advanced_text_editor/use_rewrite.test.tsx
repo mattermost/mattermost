@@ -370,11 +370,15 @@ describe('useRewrite', () => {
             const actionHandler = props.onMenuAction(RewriteAction.SHORTEN);
             actionHandler();
 
+            // isProcessing starts false, so waiting on it alone is satisfied by the
+            // initial render — and renderHook publishes result.current from an effect,
+            // so props would still close over the pre-rewrite originalMessage.
             await waitFor(() => {
-                expect(result.current.isProcessing).toBe(false);
+                expect(result.current.rewriteMenuProps.originalMessage).toBe('Test message');
             });
 
             props = result.current.rewriteMenuProps;
+
             props.onUndoMessage();
 
             expect(mockHandleDraftChange).toHaveBeenCalledWith(

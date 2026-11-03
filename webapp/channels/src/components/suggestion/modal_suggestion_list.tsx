@@ -8,7 +8,7 @@ import SuggestionList from 'components/suggestion/suggestion_list';
 import type {SuggestionResults} from './suggestion_results';
 
 type SuggestionListProps = {
-    ariaLiveRef?: React.RefObject<HTMLDivElement>;
+    ariaLiveRef?: React.RefObject<HTMLDivElement | null>;
     renderNoResults?: boolean;
     preventClose?: () => void;
     onItemHover: (term: string) => void;
@@ -29,7 +29,7 @@ type SuggestionListProps = {
 type Props = SuggestionListProps & {
     open: boolean;
     cleared: boolean;
-    inputRef: React.RefObject<HTMLInputElement>;
+    inputRef: React.RefObject<HTMLInputElement | null>;
     onLoseVisibility: () => void;
     position?: 'top' | 'bottom';
 };
@@ -44,7 +44,7 @@ type State = {
 };
 
 export default class ModalSuggestionList extends React.PureComponent<Props, State> {
-    container: React.RefObject<HTMLDivElement>;
+    container: React.RefObject<HTMLDivElement | null>;
     latestHeight: number;
     suggestionList: React.RefObject<any>;
 

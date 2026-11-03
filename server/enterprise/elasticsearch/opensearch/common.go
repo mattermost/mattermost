@@ -17,6 +17,10 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
+// http2SendPingTimeout detects dead HTTP/2 connections that would otherwise
+// leave in-flight requests blocked indefinitely.
+const http2SendPingTimeout = 30 * time.Second
+
 func createClient(logger mlog.LoggerIFace, cfg *model.Config, fileBackend filestore.FileBackend, debugLogging bool) (*opensearchapi.Client, *model.AppError) {
 	esCfg, appErr := createClientConfig(logger, cfg, fileBackend, debugLogging)
 	if appErr != nil {
@@ -36,6 +40,9 @@ func createClientConfig(logger mlog.LoggerIFace, cfg *model.Config, fileBackend 
 	tp.TLSClientConfig = &tls.Config{
 		InsecureSkipVerify: *cfg.ElasticsearchSettings.SkipTLSVerification,
 	}
+	tp.HTTP2 = &http.HTTP2Config{
+		SendPingTimeout: http2SendPingTimeout,
+	}
 
 	osCfg := &opensearchapi.Config{
 		Client: opensearch.Config{
@@ -43,11 +50,11 @@ func createClientConfig(logger mlog.LoggerIFace, cfg *model.Config, fileBackend 
 			RetryBackoff:         func(i int) time.Duration { return time.Duration(i) * 100 * time.Millisecond }, // A minimal backoff function
 			RetryOnStatus:        []int{502, 503, 504, 429},                                                      // Retry on 429 TooManyRequests statuses
 			MaxRetries:           3,
-			DiscoverNodesOnStart: *cfg.ElasticsearchSettings.Sniff,
+			DiscoverNodesOnStart: cfg.ElasticsearchSettings.Sniff,
 		},
 	}
 
-	if osCfg.Client.DiscoverNodesOnStart {
+	if osCfg.Client.DiscoverNodesOnStart != nil && *osCfg.Client.DiscoverNodesOnStart {
 		osCfg.Client.DiscoverNodesInterval = 30 * time.Second
 	}
 
