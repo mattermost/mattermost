@@ -14,7 +14,7 @@ import {PlusIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/compass-ui/components/button';
 import {EmptyState} from '@mattermost/compass-ui/components/empty-state';
 import {Icon} from '@mattermost/compass-ui/components/icon';
-import CollaborateIllustration from '@mattermost/compass-ui/illustrations/collaborate';
+import ThreadsEmptyIllustration from '@mattermost/compass-ui/illustrations/threads-empty';
 import {isRemoteClusterPatch, type RemoteCluster} from '@mattermost/types/remote_clusters';
 
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
@@ -322,7 +322,7 @@ const Placeholder = (props: {filter: 'home' | 'remote'; rc: RemoteCluster}) => {
         <EmptyState
             illustration={{
                 'aria-label': '',
-                children: <CollaborateIllustration/>,
+                children: <ThreadsEmptyIllustration/>,
             }}
             title={props.filter === 'home' ? (
                 <FormattedMessage
