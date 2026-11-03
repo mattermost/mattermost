@@ -60,12 +60,12 @@ function MultiHarness({initialValue = [], onChange}: HarnessProps) {
 type FormHarnessProps = {
     multiple?: boolean;
     initialValue?: string | string[];
-    preventEnterSubmit?: boolean;
+    submitOnEnter?: boolean;
     onChange?: (value: string | string[]) => void;
     onSubmit: () => void;
 };
 
-function FormHarness({multiple = false, initialValue, preventEnterSubmit, onChange, onSubmit}: FormHarnessProps) {
+function FormHarness({multiple = false, initialValue, submitOnEnter, onChange, onSubmit}: FormHarnessProps) {
     const [value, setValue] = useState<string | string[]>(initialValue ?? (multiple ? [] : ''));
 
     return (
@@ -85,7 +85,7 @@ function FormHarness({multiple = false, initialValue, preventEnterSubmit, onChan
                 label={multiple ? 'Skills' : 'Department'}
                 options={OPTIONS}
                 value={value}
-                preventEnterSubmit={preventEnterSubmit}
+                submitOnEnter={submitOnEnter}
                 onChange={(next) => {
                     onChange?.(next);
                     setValue(next);
@@ -351,7 +351,7 @@ describe('AttributeCombobox', () => {
         });
     });
 
-    describe('preventEnterSubmit', () => {
+    describe('submitOnEnter', () => {
         let onSubmit: jest.Mock;
 
         beforeEach(() => {
@@ -364,7 +364,7 @@ describe('AttributeCombobox', () => {
             renderWithContext(
                 <FormHarness
                     initialValue='opt1'
-                    preventEnterSubmit={true}
+                    submitOnEnter={false}
                     onChange={onChange}
                     onSubmit={onSubmit}
                 />,
@@ -388,7 +388,7 @@ describe('AttributeCombobox', () => {
                 <FormHarness
                     multiple={true}
                     initialValue={['opt1']}
-                    preventEnterSubmit={true}
+                    submitOnEnter={false}
                     onChange={onChange}
                     onSubmit={onSubmit}
                 />,
@@ -407,13 +407,12 @@ describe('AttributeCombobox', () => {
         test.each([
             {multiple: false, label: 'Department'},
             {multiple: true, label: 'Skills'},
-        ])('Enter with no matching option does not submit (multiple: $multiple)', async ({multiple, label}) => {
+        ])('even without the prop, Enter with no matching option does not submit (multiple: $multiple)', async ({multiple, label}) => {
             const user = userEvent.setup();
             const onChange = jest.fn();
             renderWithContext(
                 <FormHarness
                     multiple={multiple}
-                    preventEnterSubmit={true}
                     onChange={onChange}
                     onSubmit={onSubmit}
                 />,
@@ -441,7 +440,7 @@ describe('AttributeCombobox', () => {
             renderWithContext(
                 <FormHarness
                     multiple={multiple}
-                    preventEnterSubmit={true}
+                    submitOnEnter={false}
                     onChange={onChange}
                     onSubmit={onSubmit}
                 />,
@@ -463,7 +462,7 @@ describe('AttributeCombobox', () => {
             renderWithContext(
                 <FormHarness
                     initialValue='opt1'
-                    preventEnterSubmit={true}
+                    submitOnEnter={false}
                     onSubmit={onSubmit}
                 />,
             );
@@ -480,7 +479,7 @@ describe('AttributeCombobox', () => {
             renderWithContext(
                 <FormHarness
                     initialValue='opt1'
-                    preventEnterSubmit={true}
+                    submitOnEnter={false}
                     onChange={onChange}
                     onSubmit={onSubmit}
                 />,
@@ -524,33 +523,11 @@ describe('AttributeCombobox', () => {
             expect(onChange).not.toHaveBeenCalled();
         });
 
-        test('without the prop, Enter with no matching option submits', async () => {
-            const user = userEvent.setup();
-            const onChange = jest.fn();
-            renderWithContext(
-                <FormHarness
-                    onChange={onChange}
-                    onSubmit={onSubmit}
-                />,
-            );
-            const input = screen.getByRole('combobox', {name: 'Department'});
-
-            await user.click(input);
-            await user.keyboard('zzz');
-            expect(input).toHaveAttribute('aria-expanded', 'true');
-            expect(screen.getByText('No results')).toBeInTheDocument();
-            await user.keyboard('{Enter}');
-
-            expect(onSubmit).toHaveBeenCalledTimes(1);
-            expect(documentKeys).toContain('Enter');
-            expect(onChange).not.toHaveBeenCalled();
-        });
-
         // user-event can't set isComposing, so dispatch directly.
         test('Enter during IME composition is not prevented', () => {
             renderWithContext(
                 <FormHarness
-                    preventEnterSubmit={true}
+                    submitOnEnter={false}
                     onSubmit={onSubmit}
                 />,
             );

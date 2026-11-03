@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React, {useMemo} from 'react';
-import type {KeyboardEvent} from 'react';
 import {defineMessages, useIntl} from 'react-intl';
 
 import {Combobox} from '@mattermost/compass-ui/components/combobox';
@@ -69,10 +68,10 @@ export type AttributeComboboxProps = {
     'aria-describedby'?: string;
 
     /**
-     * Inside a form: prevents any Enter that doesn't pick an option, so it can't
-     * submit the form. That Enter then no longer reaches document listeners either.
+     * When false, Enter with the menu closed can't submit a surrounding form or
+     * reach document listeners. Default: true.
      */
-    preventEnterSubmit?: boolean;
+    submitOnEnter?: boolean;
 };
 
 function toComboboxOptions(options: readonly PropertyFieldOption[], testIdPrefix?: string): ComboboxOption[] {
@@ -83,16 +82,6 @@ function toComboboxOptions(options: readonly PropertyFieldOption[], testIdPrefix
         }
         return comboboxOption;
     });
-}
-
-// Combobox only handles the Enter that picks an option. Any other Enter on the
-// input would implicitly submit a surrounding form. An Enter that commits IME
-// composition must stay untouched.
-function enterSubmitGuard(e: KeyboardEvent<HTMLInputElement>): void {
-    if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
-        e.preventDefault();
-        e.stopPropagation();
-    }
 }
 
 export function AttributeCombobox({
@@ -109,7 +98,7 @@ export function AttributeCombobox({
     zIndex,
     className,
     'aria-describedby': ariaDescribedBy,
-    preventEnterSubmit,
+    submitOnEnter,
 }: AttributeComboboxProps) {
     const {formatMessage} = useIntl();
     const labels = useMemo(() => ({
@@ -157,9 +146,9 @@ export function AttributeCombobox({
             invalid={invalid}
             placeholder={placeholder}
             zIndex={zIndex}
+            submitOnEnter={submitOnEnter}
             {...labels}
             onChange={handleChange}
-            onKeyDown={preventEnterSubmit ? enterSubmitGuard : undefined}
         />
     );
 }

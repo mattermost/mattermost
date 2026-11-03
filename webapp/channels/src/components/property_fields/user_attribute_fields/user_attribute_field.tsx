@@ -320,7 +320,7 @@ export default function UserAttributeField({
                         aria-describedby={describedErrorId}
                         placeholder={intl.formatMessage(multiple ? messages.selectOptions : messages.selectOption)}
                         className='UserAttributeField__combobox'
-                        preventEnterSubmit={true}
+                        submitOnEnter={false}
                     />
                 ),
             };
