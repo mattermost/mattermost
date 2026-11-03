@@ -85,8 +85,7 @@
         A `health_check` job runs the Health Dashboard check now instead of waiting for the hourly
         schedule. It needs the `HealthDashboard` feature flag and an Enterprise license; otherwise the
         server responds with 501. If a `health_check` run is already pending or in progress, no second
-        run is started and the response is that run. A run with no activity for an hour belongs to a
-        node that stopped mid-run: it is closed as failed and does not block a new one.
+        run is started and the response is that run.
       operationId: CreateJob
       requestBody:
         content:
