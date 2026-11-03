@@ -109,11 +109,9 @@ Only the inbound ports your readers actually reach need to be exposed externally
 
 Use this section to build an egress allowlist for a firewall or [outbound proxy](#outbound-proxy-configuration). It covers connections that the server itself opens. The destinations your deployment reaches depend on its configuration, license, and the features and plugins you enable, so allow only the entries that apply to you.
 
-Unless noted otherwise, each destination uses HTTPS on TCP port 443.
-
 ### Built-in destinations
 
-The following hosts are built into Mattermost. Some are contacted with the default configuration, and others only after a system admin enables a feature or takes an action.
+The following hosts are built into Mattermost. Some are contacted with the default configuration, and others only after a system admin enables a feature or takes an action. Unless noted otherwise, each of these destinations uses HTTPS on TCP port 443.
 
 | Destination | Purpose | When it's contacted | How to disable or redirect |
 |---|---|---|---|
@@ -157,7 +155,7 @@ Users can cause the server to contact arbitrary hosts:
 - The server also fetches images that are embedded in messages to determine their dimensions. Disabling link previews doesn't turn this off. Use [Disable link previews for specific domains](/administration-guide/configure/site-configuration-settings#disable-link-previews-for-specific-domains) to exclude specific domains.
 - When the [image proxy](/deployment-guide/server/image-proxy) is enabled, the server also downloads images on behalf of clients.
 
-The server blocks these requests from reaching private and reserved IP addresses unless you allow them in [Allow untrusted internal connections](/administration-guide/configure/environment-configuration-settings#allow-untrusted-internal-connections).
+These requests use the scheme and port in the URL, so a link to an `http://` address is fetched over TCP port 80. The server blocks these requests from reaching private and reserved IP addresses unless you allow them in [Allow untrusted internal connections](/administration-guide/configure/environment-configuration-settings#allow-untrusted-internal-connections).
 
 <Note>
 
