@@ -1,0 +1,42 @@
+---
+title: "Desktop app privacy"
+---
+<PlanAvailability slug="all-commercial" />
+
+The desktop app can send error reports to Mattermost and session attributes to your servers, and connects to the hosts listed in [Network access](#network-access).
+
+## Error reporting
+
+From Mattermost Desktop v6.1, the desktop app sends automatic error reports to help identify and fix crashes and stability issues.
+
+- **Sent**: crash information and stack traces, app version and platform details, and error messages.
+- **Not sent**: message content, credentials or authentication tokens, personally identifiable information, and server URLs or team names.
+
+Error reporting is enabled by default. Users can turn it off in **Settings \> Advanced \> Send error reports to help improve the app**, then restart the app. If you [build the app from source](/deployment-guide/desktop/distribute-a-custom-desktop-app), omit the `MM_DESKTOP_BUILD_SENTRYDSN` environment variable to turn error reporting off at build time.
+
+## Session attribute collection
+
+From Mattermost Desktop v6.3, the desktop app can report device and network context, such as hardware and network identifiers, VPN status, and MDM enrollment, to the servers it's connected to, for use in [permission policies](/administration-guide/manage/admin/abac-system-wide-policies#permission-policies). See [session attributes](/administration-guide/manage/admin/session-attributes) for every value that can be reported, and [platform availability](/administration-guide/manage/admin/session-attributes#platform-availability) for differences between platforms.
+
+- **When**: the server tells the app which attributes it needs and how often, based on your configuration. Only those attributes are sent.
+- **Not sent**: message content, credentials or authentication tokens, browsing history, running processes, installed applications, or network traffic. VPN status comes from the *types* of network interfaces on the device.
+- **Storage**: reported values are held only in the server's in-memory session cache. They aren't written to the database, aren't included in compliance exports, and are discarded when the session ends.
+
+Session attribute reporting is enabled by default. Users can turn it off by clearing **Settings \> Advanced \> Enable session attributes**. While it's on, a table under the setting shows each attribute the app can collect on that device and its current value. This table is a good first place to look when a user is unexpectedly denied access.
+
+<Important>
+
+If a user turns off session attributes, they're **denied** any permission, like file upload or file download, governed by a policy that depends on a client-reported session attribute. You may want to let users know this before you roll out those policies.
+
+</Important>
+
+## Network access
+
+The desktop app connects to the following hosts:
+
+| Host | Used for |
+|---|---|
+| Your Mattermost servers | All Mattermost content. |
+| `releases.mattermost.com` | Update checks, unless the `EnableAutoUpdater` policy is disabled. |
+| Mattermost's Sentry endpoint | [Error reporting](#error-reporting), when it's enabled. |
+| Chromium's dictionary CDN | Spell checker dictionaries on Windows and Linux, unless you use [custom dictionaries](/deployment-guide/desktop/desktop-troubleshooting#spell-checker-dictionaries). |

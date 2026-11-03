@@ -1,229 +1,199 @@
 ---
-title: "Desktop app troubleshooting"
+title: "Desktop app troubleshooting and advanced operations"
 ---
-## Broken shortcuts after upgrading to v6.1.0 (Windows MSI only)
 
-After upgrading to Mattermost Desktop v6.1.0 using the Windows MSI installer from an older release, the desktop or taskbar shortcut shows the wrong icon or fails to launch. This is due to a one-time icon handling change in the Windows MSI installer to improve shortcut reliability for future upgrades.
+Work through the [troubleshooting steps](#troubleshooting-steps) for any desktop app problem, or jump to a known issue below. [Advanced operations](#advanced-operations) covers where the app stores data, seeding `config.json`, and hosting spell checker dictionaries.
 
-This issue doesn't block app usage and only affects Windows MSI installer upgrades from pre-v6.1.0 versions. Users can launch Mattermost from the Start Menu or a working desktop shortcut.Future upgrades to v6.1.1 and later will not require shortcut recreation.
+## Troubleshooting steps
 
-To resolve this issue, recreate the shortcut:
+1.  **Try it in a browser.** Sign in to the same server in a web browser, including a private window. If the problem happens there too, it's a server or web app issue. See [Deployment troubleshooting](/deployment-guide/server/troubleshooting). If the server doesn't load at all in the desktop app, check for errors in **View \> Developer Tools \> Developer Tools for Current Tab**.
+2.  **Reload.** Press <kbd>Ctrl</kbd> <kbd>R</kbd> (<kbd>⌘</kbd> <kbd>R</kbd> on macOS). If that doesn't help, clear the cache with **View \> Clear Cache and Reload**, or <kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>R</kbd> (<kbd>⌘</kbd> <kbd>⇧</kbd> <kbd>R</kbd> on macOS).
+3.  **Restart.** Quit and reopen the app, then restart the computer if needed.
+4.  **Reset.** Select **View \> Clear Data for Current Server**. If that doesn't help, select **View \> Clear All Data**, which erases session, cache, cookie, and storage data for all servers and signs the user out. If the app won't start, delete the [app data folder](/deployment-guide/desktop/desktop-troubleshooting#where-the-app-stores-data), which also removes the user's servers and settings.
+5.  **Check known issues.** Search the [changelog](/product-overview/desktop-app-changelog) and [GitHub issues](https://github.com/mattermost/desktop/issues?q=is%3Aissue), and try the latest release.
+6.  **Collect information and contact support.** See [Collect debugging information](#collect-debugging-information).
 
-1.  Right-click the broken shortcut on the taskbar and select **Unpin from taskbar**.
-2.  Launch Mattermost Desktop from the Start Menu or a working desktop shortcut.
-3.  Right-click the Mattermost icon in the taskbar while the application is running.
-4.  Select **Pin to taskbar**.
+### Collect debugging information
 
-The new shortcut will work correctly for all future upgrades.
+- **Debug logs**: In **Settings \> Advanced**, set **Logging level** to **Debug**, reproduce the problem, then select **Help \> Show logs** to find the log file. We recommend setting the logging level back afterwards, because debug logging slows the app down.
+- **Diagnostics**: Select **Help \> Run diagnostics**.
+- **Console logs**: Select **View \> Developer Tools \> Developer Tools for Current Tab**, open the **Console** tab, then right-click a log entry and select **Save As**.
+- **Memory usage**: If the app uses a lot of memory or is slow, take a [heap snapshot](https://developer.chrome.com/docs/devtools/memory-problems/heap-snapshots) from **Developer Tools for Current Tab**.
 
-Organizations standardizing on Windows installations can choose between Windows Store (recommended for automatic updates) or MSI packages (traditional deployment). The MSI method includes this one-time shortcut adjustment; the Windows Store method doesn't.
+Attach these to a [support ticket](https://support.mattermost.com/hc/en-us/articles/360060662492-Opening-a-Support-Ticket-for-Self-Managed-Deployments).
 
-## Where is configuration stored locally?
+## Installation and updates
 
-The location of the Mattermost desktop app configuration file depends on the platform where you're running Mattermost (and, in the case of macOS, how you've chosen to install the app):
+### Update notifications don't appear
 
-- Windows: `Users\<username>\AppData\Roaming\Mattermost`
-- macOS installer: `/Users/<username>/Library/Application Support/Mattermost`
-- macOS App Store: `/Users/<username>/Library/Containers/Mattermost.Desktop/Data/Library/Application Support/Mattermost` (via Finder: `~/Library/Application Support/Mattermost` as the extension is hidden)
-- Linux: `~/.config/Mattermost`
+- Your admin may have disabled the `EnableAutoUpdater` [policy](/deployment-guide/desktop/desktop-app-policies).
+- The app checks for updates at `releases.mattermost.com`, so it needs network access to that host.
+- If **Skip This Version** was selected, the app doesn't notify you about that version again. You can still check manually with **Help \> Check for Updates**.
 
-<Note>
+### The update required screen appears
 
-- Local configuration data is not automatically removed when uninstalling the desktop app. If you wish to remove all data, you must manually remove the files from the applicable location noted above.
-- Prior to uninstalling, you can choose to log out of any active sessions. You can terminate active sessions from another Mattermost session in **Profile \> Security \> View and Logout of Active Sessions**, then select **Log Out**. Desktop app sessions are labeled as **Native Desktop App**.
+The server requires a newer desktop app version. **Download** opens the page where you can get the update, or you can contact your admin. Admins, see [Enforce a minimum version](/deployment-guide/desktop/desktop-app-deployment#enforce-a-minimum-version).
 
-</Note>
+## Startup and display
 
-## Update notifications not appearing
+### The app window is black
 
-If you're not seeing in-app update notifications when new versions are available:
+Try clearing **Settings \> Advanced \> Use GPU hardware acceleration**, then restarting the app. If you use a graphics switching driver, such as NVIDIA Optimus, disabling it may also help.
 
-1.  **Check your internet connection**: Ensure outbound HTTPS communication to `mattermost.com` is allowed.
-2.  **Manually check for updates**: Go to **Help \> Check for Updates** or **Settings \> General \> Check for Updates Now** to trigger an immediate check.
-3.  **Verify update notifications are enabled**:
-    - On Windows: Go to **… \> File \> Settings** and ensure **Automatically check for updates** is enabled.
-    - On macOS: Go to **Mattermost \> Settings** and ensure **Automatically check for updates** is enabled.
-4.  **Check Group Policy settings** (Enterprise deployments): Your system administrator may have disabled update notifications via the `EnableAutoUpdater` Group Policy. Contact your IT department for clarification.
-5.  **Version previously skipped**: If you selected **Skip This Version** for the current release, manually check for updates to see it again.
+### The app is running but its window isn't visible
 
-## Update required screen
+This can happen after disconnecting the monitor the app was on. To reset the window position, quit the app, delete `bounds-info.json` from the [app data folder](#where-the-app-stores-data), then reopen the app. It opens on the primary monitor.
 
-From Mattermost server v11.6.0, system admins can set a minimum Desktop App version in **System Console \> Site Configuration \> Customization \> Minimum desktop app version**. If your Desktop App version is below the configured minimum, you will see an update required screen and cannot access Mattermost until you update.
+### The window can't be made smaller
 
-The screen includes a **Download** button that links to the apps download page configured by your admin. Select **Download** to go to that page, then follow the [manual update steps](/deployment-guide/desktop/desktop-troubleshooting#how-to-manually-update-mattermost-desktop) for your platform.
+The app may be in full screen. **View \> Toggle Full Screen** switches it back.
 
-If you believe your app is already up to date, contact your system admin to confirm the configured minimum version.
+### The app constantly refreshes
 
-## How to manually update Mattermost Desktop
+Deleting the `Local Storage` folder from the [app data folder](/deployment-guide/desktop/desktop-troubleshooting#where-the-app-stores-data) while the app is closed usually fixes this.
 
-From v6.1.0, Mattermost Desktop updates are manual. Follow these steps for your platform:
+### The app has problems on a virtual desktop
 
-**macOS (App Store)**:
+See the [VDI frequently asked questions](/deployment-guide/desktop/desktop-vdi-deployment#frequently-asked-questions), which cover Citrix responsiveness and `EEXIST` errors on Omnissa Horizon.
 
-1.  Open the App Store application.
-2.  Go to **Updates** section.
-3.  Find Mattermost Desktop and select **Update**.
+## Sign-in and servers
 
-**macOS (DMG installation)**:
+### Sign-in doesn't return to the app
 
-1.  Download the latest DMG from [https://mattermost.com/download](https://mattermost.com/download) or the [GitHub releases page](https://github.com/mattermost/desktop/releases/latest).
-2.  Open the downloaded DMG file.
-3.  Drag the Mattermost application to your Applications folder, replacing the existing version.
-4.  Restart Mattermost Desktop.
+Sign-in with SSO opens the browser, then returns to the app through a `mattermost://` link. If that doesn't work:
 
-**Windows (Microsoft Store)**:
+- On Windows or macOS, try reinstalling the app, or using a different default browser.
+- On Linux with the tarball, run `create_desktop_file.sh` to register the app with your desktop environment. See [Deploy the desktop app on Linux](/deployment-guide/desktop/linux-desktop-install).
 
-1.  Open the Microsoft Store application.
-2.  Go to **Library \> Get updates**.
-3.  Find Mattermost and select **Update**.
+### Users are signed out after updating the app
 
-**Windows (MSI installation)**:
+Some updates change how the app stores session data. Users need to sign in again once.
 
-1.  Download the latest MSI installer from the [GitHub releases page](https://github.com/mattermost/desktop/releases/latest).
-2.  Run the MSI installer.
-3.  Follow the installation prompts (it will upgrade your existing installation).
+### The server URL changes when adding a server
 
-**Linux**:
+The app replaces the URL with the server's [Site URL](/administration-guide/configure/environment-configuration-settings#site-url). If the Site URL is wrong, ask your admin to correct it.
 
-1.  Visit the [GitHub releases page](https://github.com/mattermost/desktop/releases/latest).
-2.  Download the appropriate package for your distribution (AppImage, .deb, .rpm, Flatpak, etc.).
-3.  Install using your package manager or standard installation method.
+### A certificate error appears
 
-<Tip>
+The server, or content embedded in a message such as an image, uses a certificate the app doesn't trust. Ask your admin to fix the server's certificate. For embedded images, admins can enable the [image proxy](/administration-guide/configure/environment-configuration-settings#enable-image-proxy).
 
-For AppImage users: Simply download the new AppImage file and replace the old one. Make sure to make it executable: `chmod +x mattermost-desktop-*.AppImage`
+### Servers set by policy don't appear
 
-</Tip>
+The app reads policies when it starts, so it needs to be restarted after the policy is applied. On Windows, you can check that the servers are listed in `HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Mattermost\DefaultServerList`. See [Policies](/deployment-guide/desktop/desktop-app-policies).
 
-## How do I access logs?
+### Deep links open in the wrong server
 
-From Mattermost desktop v5.3, you can access logs via **Help \> Show logs**, which opens the file manager window showing the location of the log file.
+Links open in the server whose URL matches them exactly, including protocol and subdomain, so it's worth checking the server URLs in the app and correcting or removing stale servers. Pre-provisioning servers with the `DefaultServerList` [policy](/deployment-guide/desktop/desktop-app-policies) keeps URLs consistent.
 
-## How do I download app diagnostics?
+## Notifications, calls, and permissions
 
-From Mattermost desktop v5.3, you can download a diagnostics text file via **Help \> Run diagnostics**, which can be attached to a Support ticket.
+The desktop app needs permission from the operating system, and the app must grant permission to each server. To check a server's permissions, select the server in the top left of the app, edit it, and review **Permissions**.
 
-## Deep links open in the wrong workspace in multi-view
+### Notifications don't appear
 
-If you experience deep links opening in the wrong workspace, ensure all relevant workspaces are pre-provisioned via the Group Policy `DefaultServerList`. See the [multi-view and group policies](/deployment-guide/desktop/desktop-msi-installer-and-group-policy-install#multi-view-and-group-policies) documentation for details.
+**Notifications** needs to be turned on both in the server's permissions and in your operating system's settings. See [Troubleshoot notifications](/end-user-guide/preferences/troubleshoot-notifications).
 
-- Verify that workspace URLs match exactly (including protocol and subdomain) so links route to the intended workspace.
-- Edit the workspace list to correct or remove stale entries, then retry the link.
+### Notifications appear more than once
 
-## High CPU or memory when multiple workspaces open
+This can happen with several tabs or pop-out windows open for the same server. Closing the extras usually stops it.
 
-Verify the device is powerful enough to run several workspaces concurrently. Close unused tabs and pop-out windows to reduce load.
+### The microphone or camera doesn't work in calls
 
-Check the [desktop app advanced settings](/end-user-guide/preferences/customize-desktop-app-experience). Toggle **Use GPU hardware acceleration** off on systems with unstable drivers.
+**Microphone and Camera** needs to be turned on both in the server's permissions and in your operating system's settings.
 
-## Desktop App displays white screen while launching and doesn't load the page
+## Performance
 
-1.  Delete the local `Mattermost desktop app` configuration file. See the [Where is configuration stored locally?](#where-is-configuration-stored-locally) section above for file location details.
-2.  Reinstall the application.
+### Memory or CPU usage is high
 
-## Upgrade to v6.1.0 fails or installs duplicate version (Windows MSI)
+Reloading the app, and closing tabs, pop-out windows, and servers you don't use, usually reduces it. If it continues, a [heap snapshot](#collect-debugging-information) helps support find the cause.
 
-After installing v6.1.0 MSI, the old version still appears, both versions are present, or the upgrade doesn't seem to work. This is because you had a per-user installation from v5.9 to v6.0.4. From v6.1.0, the MSI installer defaults to per-machine (system-wide) installation. MSI installers cannot automatically upgrade across different installation contexts (per-user to per-machine).
+### The app freezes
 
-To check your installation type before upgrading, open File Explorer.
+Endpoint security software can interfere with the app. Excluding Mattermost from endpoint security scanning may help, so check with your admin.
 
-- If Mattermost is in `C:\Program Files\Mattermost` or `C:\Program Files (x86)\Mattermost`: Per-machine install (upgrade will work normally)
-- If Mattermost is in `C:\Users\<YourName>\AppData\Local\...`: Per-user install (requires manual uninstall before v6.1.0)
+### "BrowserWindow 'unresponsive' event" error
 
-To resolve this issue, you must manually uninstall the old version before installing v6.1.0:
+Try **View \> Clear Cache and Reload**. If it continues, try clearing **Settings \> Advanced \> Use GPU hardware acceleration**, then restarting the app.
 
-1.  Uninstall both versions:
-    - Go to **Settings \> Apps** or **Control Panel \> Programs and Features**.
-    - Uninstall all Mattermost Desktop entries.
-2.  Download the v6.1.0 MSI installer again from the [releases page](https://github.com/mattermost/desktop/releases).
-3.  Install v6.1.0 with administrator privileges (it will install to `C:\Program Files\Mattermost`).
-4.  Future upgrades will work normally.
+## Spell check doesn't work
 
-## "Installation has failed" dialog
+On Windows and Linux, the app downloads dictionaries, which your network may block. Debug logs show spell checker errors if this is the cause. See [Spell checker dictionaries](/deployment-guide/desktop/desktop-troubleshooting#spell-checker-dictionaries).
 
-The app data might be corrupted. Remove all the files in `%LOCALAPPDATA%\mattermost`, then try reinstalling the app.
+## Advanced operations
 
-## "The application "Mattermost" can't be opened" dialog
+### Where the app stores data
 
-On macOS Catalina, this dialog can be triggered if the Mac Archive Utility is the default method for decompressing files. In this case using a third-party tool such as [Keka](https://www.keka.io) or [Unarchiver](https://macpaw.com/the-unarchiver) may resolve the problem.
+Each user's `config.json`, sign-ins, caches, and logs are stored in their app data folder:
 
-## Desktop App window is black and doesn't load the page
+| Platform | App data folder |
+|---|---|
+| Windows | `%APPDATA%\Mattermost` |
+| macOS (DMG) | `~/Library/Application Support/Mattermost` |
+| macOS (Mac App Store) | `~/Library/Containers/Mattermost.Desktop/Data/Library/Application Support/Mattermost` |
+| Linux (Flatpak) | `~/.var/app/com.Mattermost.Desktop/config/Mattermost` |
+| Linux (other packages) | `~/.config/Mattermost` |
 
-1.  Ensure you have installed the latest desktop app version available.
-2.  Clear your cache and reload the app from **View \> Clear Cache and Reload** or press <kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>R</kbd> on Windows or Linux, or <kbd>⌘</kbd> <kbd>⇧</kbd> <kbd>R</kbd> on Mac.
-3.  Quit the app and restart it to see if the issue clears.
-4.  Disable GPU hardware acceleration.
+Uninstalling the app doesn't remove this folder.
 
-> - On Windows or Linux, select **File \> Settings** and clear the **Use GPU hardware acceleration** option.
-> - On macOS, select **Mattermost \> Settings** and clear the **Use GPU hardware acceleration** option.
+### Seed config.json
 
-5.  If you are using a special video driver, such as Optimus, try disabling it to see if the problem is resolved.
+As an advanced option, you can use `config.json` to set initial servers and settings, such as hardware acceleration, autostart, error reporting, or session attributes. The file goes in the user's [app data folder](#where-the-app-stores-data) before they first launch the app. Overwriting an existing file replaces the user's own servers and settings, so it's best to only create it when it's missing.
 
-## Desktop App window is white and doesn't load the page
+**Example config.json:**
 
-1.  Ensure you have installed the latest desktop app version available.
-2.  Delete the `%userprofile%\AppData\Roaming\Mattermost` directory on your local machine.
-3.  Reinstall the desktop app.
+``` json
+{
+  "version": 4,
+  "servers": [
+    {
+      "name": "core",
+      "url": "https://community.mattermost.com",
+      "order": 0
+    },
+    {
+      "name": "hq",
+      "url": "https://hq.example.com",
+      "order": 1
+    }
+  ],
+  "showTrayIcon": true,
+  "trayIconTheme": "light",
+  "minimizeToTray": true,
+  "notifications": {
+    "flashWindow": 2,
+    "bounceIcon": true,
+    "bounceIconType": "informational"
+  },
+  "showUnreadBadge": true,
+  "useSpellChecker": true,
+  "enableHardwareAcceleration": true,
+  "autostart": false,
+  "spellCheckerLocales": ["en-US"],
+  "darkMode": false
+}
+```
 
-## Desktop App is not visible, but the Mattermost icon is in the Task Bar
+#### Seed config.json on Windows
 
-This issue can occur on Windows in a multiple-monitor setup. When you disconnect the monitor that Mattermost is displayed on, Mattermost continues to display at screen coordinates that no longer exist.
+The app data folder is per-user, so the copy step must run as the signed-in user, not as `SYSTEM`. Common ways to do this:
 
-To resolve this issue, you can reset the desktop app screen location by deleting the screen location file. When the file is not present, the desktop app displays on the primary monitor by default.
+- **Separate user-context deployment**: A second script that only copies `config.json`, configured to run as the user (Intune: **Install behavior** set to **User**; SCCM: **Installation behavior** set to **Install for user**), with a dependency on the system-context MSI deployment.
+- **Active Setup**: The system-context install registers an Active Setup `StubPath` command (under `HKLM\SOFTWARE\Microsoft\Active Setup\Installed Components`) that copies `config.json`. Windows runs it once for each user at their next sign-in.
+- **Logon script**: A Group Policy logon script copies the file.
 
-To reset the desktop app screen location:
+``` batch
+@echo off
+rem Run as the signed-in user, not as SYSTEM.
+if exist "%APPDATA%\Mattermost\config.json" exit /b 0
+if not exist "%APPDATA%\Mattermost" mkdir "%APPDATA%\Mattermost"
+copy "\\SERVER\shared_folder\config.json" "%APPDATA%\Mattermost\config.json"
+```
 
-1.  If the desktop app is running, right-click the Mattermost icon in the task bar, then select **Close Window**.
-2.  Open Windows File Explorer, and go to the `%APPDATA%\Mattermost` folder.
-3.  Delete the file `bounds-info.json`.
+### Spell checker dictionaries
 
-## Desktop App constantly refreshes the page
+On Windows and Linux, the app downloads Hunspell dictionaries from Chromium's CDN. On macOS, it uses the dictionaries provided by Apple. If your network blocks the CDN, you can host the dictionaries yourself:
 
-This issue can occur when `localStorage` has an unexpected state. To resolve the issue:
-
-- Windows: Open Windows File Explorer, go to the `%APPDATA%\Mattermost` folder, then delete the `Local Storage` folder.
-- Mac: Open Finder, go to the `~/Library/Application Support/Mattermost` folder, then delete the `Local Storage` folder.
-- Linux: Open the File Manager, go to the `~/.config/Mattermost` folder, then delete the `Local Storage` folder. Linux file managers may hide folders starting with a period by default. You can delete them from the terminal using `rm -rf ~/.config/Mattermost`.
-
-## Desktop App constantly asks to log in to Mattermost server
-
-This issue can occur after a crash or unexpected shutdown of the desktop app that causes the app data to be corrupted. To resolve the issue:
-
-- Windows: Open Windows File Explorer, go to the `%APPDATA%\Mattermost` folder, then delete the `IndexedDB` folder and the `Cookies` and `Cookies-journal` files.
-- Mac: Open Finder, go to the `~/Library/Application Support/Mattermost` folder, then delete the `IndexedDB` folder and the `Cookies` and `Cookies-journal` files.
-- Linux: Open the file manager, go to the `~/.config/Mattermost` folder, then delete the `IndexedDB` folder and the `Cookies` and `Cookies-journal` files. Linux file managers may hide folders starting with a period by default. You can delete them from the terminal using `rm -rf ~/.config/Mattermost`.
-
-## "Internal error: BrowserWindow 'unresponsive' event has been emitted"
-
-Selecting **Show Details** on the dialog provides logs. Ways to resolve the issue:
-
-1.  Clear the cache via **View \> Clear Cache and Reload** or press <kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>R</kbd> on Windows or Linux, or <kbd>⌘</kbd> <kbd>⇧</kbd> <kbd>R</kbd> on Mac.
-2.  Go to App Settings via **File \> Settings** (or by pressing <kbd>Ctrl</kbd> <kbd>,</kbd> on Windows or Linux, or <kbd>⌘</kbd> <kbd>,</kbd> on Mac) and unselect hardware acceleration.
-
-## Desktop app not responsive within Citrix Virtual Apps or Desktop Environment
-
-Append `Mattermost.exe;` to the Registry Key `HKLM\SYSTEM\CurrentControlSet\Services\CtxUvi\UviProcessExcludes` and reboot the system.
-
-For further assistance, review the [Troubleshooting forum](https://forum.mattermost.com/c/trouble-shoot/16) for previously reported errors, or [join the Mattermost user community for troubleshooting help](https://mattermost.com/community/).
-
-## Can I uninstall the desktop app I installed using snap on Linux?
-
-Yes. Run the following command from a terminal window: `sudo snap remove mattermost-desktop`.
-
-### Report Desktop App issues
-
-When reporting issues found in the Mattermost desktop app, it's helpful to include the contents of the Developer Tools Console along with [the information on this page](https://support.mattermost.com/hc/en-us/articles/360060662492-Opening-a-Support-Ticket-for-Self-Managed-Deployments).
-
-To access the Developer Tools Console:
-
-1.  In the menu bar, go to **View \> Developer Tools \> Developer Tools for Current Tab**.
-2.  Select the **Console** tab.
-3.  Right-click the log entry, then select **Save As**.
-4.  Save the file, then send it along with a description of your issue.
-5.  Close the console to disable the Developer Tools.
-
-You can open an additional set of developer tools for each server you have added to the desktop app. The tools can be opened by pasting this command in the Developer Tools Console you opened with the steps described above:
-
-> ``` javascript
-> document.getElementsByTagName("webview")[0].openDevTools();
-> ```
+1.  Download `hunspell_dictionaries.zip` from the [latest Electron release](https://github.com/electron/electron/releases/latest), and extract it.
+2.  Rename the files to lowercase. For example, `en-US` becomes `en-us`.
+3.  Serve the files from a web server.
+4.  Point the app at the folder URL, either with `"spellCheckerURL": "https://<your-server>/<folder>/"` in [config.json](#seed-configjson), or in **Settings \> Language \> Use an alternative dictionary URL**.

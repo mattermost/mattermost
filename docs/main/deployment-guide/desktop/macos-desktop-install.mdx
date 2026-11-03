@@ -10,6 +10,10 @@ The desktop app is available for macOS in two ways:
 
 The rest of this page covers the DMG.
 
+{/*
+TODO: Document deploying the Mac App Store version through Apple Business Manager.
+*/}
+
 ## Install the DMG
 
 1.  Download the DMG for your devices from the [GitHub releases page](https://github.com/mattermost/desktop/releases/latest): `mattermost-desktop-<version>-mac-universal.dmg` for any Mac, or `mac-arm64` for Apple silicon and `mac-x64` for Intel Macs.
@@ -59,6 +63,18 @@ Quit Mattermost, then replace the app in the **Applications** folder with the ne
 
 Downgrading the desktop app isn't supported. An older version may not be able to read configuration written by a newer version, which can cause user settings to be overwritten and data to be lost.
 
+### Can users switch between the Mac App Store and DMG versions?
+
+The two versions store their data in different folders, so switching between them means signing in again and setting up servers and settings from scratch.
+
 ### Does uninstalling remove users' data?
 
 No. To remove it as well, you can delete the [app data folder](/deployment-guide/desktop/desktop-troubleshooting#where-the-app-stores-data).
+
+### Why doesn't screen sharing work?
+
+Try turning Mattermost off and on again in **System Settings \> Privacy & Security \> Screen & System Audio Recording**. If that doesn't help, you can reset the permission by running the following in Terminal, then sharing your screen again:
+
+``` sh
+sudo tccutil reset ScreenCapture Mattermost.Desktop
+```

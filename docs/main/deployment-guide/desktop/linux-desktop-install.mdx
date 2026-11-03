@@ -12,7 +12,7 @@ Install the desktop app from the package for your distribution. How the app is u
 <Tabs>
 <TabItem value="ubuntu-debian" label="Ubuntu/Debian">
 
-Both a `.deb` package and an official APT repository are available for Debian 9 and for Ubuntu releases 20.04 LTS or later. Automatic app updates are supported and enabled. When a new version of the desktop app is released, your app updates automatically.
+Both a `.deb` package and an official APT repository are available for Debian and for Ubuntu LTS releases 22.04 or later. Automatic app updates are supported and enabled. When a new version of the desktop app is released, your app updates automatically.
 
 <Important>
 
@@ -94,9 +94,9 @@ Flatpak packages are available for:
 
 > ``` sh
 > flatpak install mattermost-desktop-&#123;VERSION&#125;-linux-&#123;ARCH&#125;.flatpak
->
-> Replace ``&#123;VERSION&#125;`` with the version number (e.g., ``6.3.2``) and ``&#123;ARCH&#125;`` with your architecture (``x86_64`` or ``aarch64``).
 > ```
+
+    Replace `&#123;VERSION&#125;` with the version number (for example, `6.3.2`) and `&#123;ARCH&#125;` with your architecture (`x86_64` or `aarch64`).
 
 4.  Run Mattermost as a desktop app:
 
@@ -131,7 +131,7 @@ A compressed tarball is available for most Linux distributions from the [GitHub 
     ``` sh
     sudo chown root:root chrome-sandbox && sudo chmod 4755 chrome-sandbox
     ```
-3.  Execute `mattermost-desktop` located inside the extracted directory.
+3.  Run the app executable inside the extracted directory.
 4.  To add Mattermost to your desktop environment's app launcher, and to let sign-in links open the app, run `create_desktop_file.sh` from the extracted directory, then move the `.desktop` file it creates to your applications folder:
 
     ``` sh
