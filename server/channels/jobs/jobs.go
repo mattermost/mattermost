@@ -48,17 +48,20 @@ func (srv *JobServer) CreateJob(rctx request.CTX, jobType string, jobData map[st
 	return job, nil
 }
 
+// CreateJobOnce creates a job unless one of the same type is already pending or in progress. It
+// returns nil, and no error, when it created none.
 func (srv *JobServer) CreateJobOnce(rctx request.CTX, jobType string, jobData map[string]string) (*model.Job, *model.AppError) {
 	job, appErr := srv._createJob(rctx, jobType, jobData)
 	if appErr != nil {
 		return nil, appErr
 	}
 
-	if _, err := srv.Store.Job().SaveOnce(job); err != nil {
+	saved, err := srv.Store.Job().SaveOnce(job)
+	if err != nil {
 		return nil, model.NewAppError("CreateJob", "app.job.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	return job, nil
+	return saved, nil
 }
 
 func (srv *JobServer) CreateJobOnceByTypeAndData(rctx request.CTX, jobType string, jobData map[string]string, data map[string]string) (*model.Job, *model.AppError) {

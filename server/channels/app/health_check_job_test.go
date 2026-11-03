@@ -4,6 +4,7 @@
 package app
 
 import (
+	"net/http"
 	"testing"
 	"time"
 
@@ -31,6 +32,120 @@ func TestHealthCheckWorkersStartOnAppServersOnly(t *testing.T) {
 
 		assert.NotNil(t, th.Server.Channels().healthCheckWorkers)
 	})
+}
+
+func TestStartHealthCheckRun(t *testing.T) {
+	saveJob := func(t *testing.T, th *TestHelper, job *model.Job) *model.Job {
+		t.Helper()
+		job.Id = model.NewId()
+		job.Type = model.JobTypeHealthCheck
+		if job.CreateAt == 0 {
+			job.CreateAt = model.GetMillis()
+		}
+		_, err := th.App.Srv().Store().Job().Save(job)
+		require.NoError(t, err)
+		return job
+	}
+	countJobs := func(t *testing.T, th *TestHelper) int {
+		t.Helper()
+		jobs, err := th.App.Srv().Store().Job().GetAllByType(th.Context, model.JobTypeHealthCheck)
+		require.NoError(t, err)
+		return len(jobs)
+	}
+
+	t.Run("creates a pending job when none is active", func(t *testing.T) {
+		th := Setup(t)
+		saveJob(t, th, &model.Job{Status: model.JobStatusSuccess, CreateAt: model.GetMillis() - 1000})
+
+		job, created, appErr := th.App.StartHealthCheckRun(th.Context)
+		require.Nil(t, appErr)
+		assert.True(t, created)
+		require.NotNil(t, job)
+		assert.Equal(t, model.JobTypeHealthCheck, job.Type)
+		assert.Equal(t, model.JobStatusPending, job.Status)
+		assert.Equal(t, 2, countJobs(t, th))
+	})
+
+	t.Run("returns the pending job", func(t *testing.T) {
+		th := Setup(t)
+		pending := saveJob(t, th, &model.Job{Status: model.JobStatusPending})
+
+		job, created, appErr := th.App.StartHealthCheckRun(th.Context)
+		require.Nil(t, appErr)
+		assert.False(t, created)
+		assert.Equal(t, pending.Id, job.Id)
+		assert.Equal(t, 1, countJobs(t, th))
+	})
+
+	t.Run("returns the job in progress", func(t *testing.T) {
+		th := Setup(t)
+		running := saveJob(t, th, &model.Job{Status: model.JobStatusInProgress, LastActivityAt: model.GetMillis()})
+
+		job, created, appErr := th.App.StartHealthCheckRun(th.Context)
+		require.Nil(t, appErr)
+		assert.False(t, created)
+		assert.Equal(t, running.Id, job.Id)
+		assert.Equal(t, 1, countJobs(t, th))
+	})
+
+	t.Run("a stale job in progress is closed as failed and does not block a new run", func(t *testing.T) {
+		th := Setup(t)
+		stale := time.Now().Add(-health_check.StaleInProgressAfter - time.Minute).UnixMilli()
+		dead := saveJob(t, th, &model.Job{Status: model.JobStatusInProgress, CreateAt: stale, LastActivityAt: stale})
+
+		job, created, appErr := th.App.StartHealthCheckRun(th.Context)
+		require.Nil(t, appErr)
+		assert.True(t, created)
+		assert.NotEqual(t, dead.Id, job.Id)
+		assert.Equal(t, model.JobStatusPending, job.Status)
+		assert.Equal(t, 2, countJobs(t, th))
+
+		closed, err := th.App.Srv().Store().Job().Get(th.Context, dead.Id)
+		require.NoError(t, err)
+		assert.Equal(t, model.JobStatusError, closed.Status)
+
+		// The new run is now the active one.
+		again, created, appErr := th.App.StartHealthCheckRun(th.Context)
+		require.Nil(t, appErr)
+		assert.False(t, created)
+		assert.Equal(t, job.Id, again.Id)
+	})
+
+	t.Run("returns a pending job queued behind a stale one", func(t *testing.T) {
+		th := Setup(t)
+		staleAt := time.Now().Add(-health_check.StaleInProgressAfter - time.Minute).UnixMilli()
+		pending := saveJob(t, th, &model.Job{Status: model.JobStatusPending, CreateAt: staleAt - 1000})
+		saveJob(t, th, &model.Job{Status: model.JobStatusInProgress, CreateAt: staleAt, LastActivityAt: staleAt})
+
+		job, created, appErr := th.App.StartHealthCheckRun(th.Context)
+		require.Nil(t, appErr)
+		assert.False(t, created)
+		assert.Equal(t, pending.Id, job.Id)
+		assert.Equal(t, 2, countJobs(t, th))
+	})
+}
+
+func TestGetLatestHealthCheckRun(t *testing.T) {
+	th := Setup(t)
+
+	_, appErr := th.App.GetLatestHealthCheckRun(th.Context)
+	require.NotNil(t, appErr)
+	assert.Equal(t, http.StatusNotFound, appErr.StatusCode)
+
+	now := model.GetMillis()
+	for _, job := range []*model.Job{
+		{Id: model.NewId(), Type: model.JobTypeHealthCheck, Status: model.JobStatusSuccess, CreateAt: now - 2000},
+		{Id: model.NewId(), Type: model.JobTypeHealthCheck, Status: model.JobStatusError, CreateAt: now - 1000},
+		{Id: model.NewId(), Type: model.JobTypeMigrations, Status: model.JobStatusPending, CreateAt: now},
+	} {
+		_, err := th.App.Srv().Store().Job().Save(job)
+		require.NoError(t, err)
+	}
+
+	latest, appErr := th.App.GetLatestHealthCheckRun(th.Context)
+	require.Nil(t, appErr)
+	assert.Equal(t, model.JobStatusError, latest.Status)
+	assert.Equal(t, now-1000, latest.CreateAt)
 }
 
 // Not parallel: it uses the process-wide latest-version cache that BuildHealthSnapshot reads.

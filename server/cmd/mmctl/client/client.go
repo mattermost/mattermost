@@ -189,4 +189,6 @@ type Client interface {
 	PatchCPAValuesForUser(ctx context.Context, userID string, values map[string]json.RawMessage) (map[string]json.RawMessage, *model.Response, error)
 	GetPostsForReporting(ctx context.Context, options model.ReportPostOptions, cursor model.ReportPostOptionsCursor) (*model.ReportPostListResponse, *model.Response, error)
 	GetHealthFindings(ctx context.Context, filter model.HealthFindingFilter) (*model.HealthFindingList, *model.Response, error)
+	StartHealthCheckRun(ctx context.Context) (*model.Job, *model.Response, error)
+	GetHealthCheckRun(ctx context.Context) (*model.Job, *model.Response, error)
 }

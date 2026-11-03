@@ -440,3 +440,30 @@ func TestGetUsersNotInChannelWithOptions_NilOptions(t *testing.T) {
 		_, _, _ = client.GetUsersNotInChannelWithOptions(context.Background(), "somechannelid", nil)
 	})
 }
+
+func TestClient4HealthCheckRun(t *testing.T) {
+	job := &model.Job{Id: model.NewId(), Type: model.JobTypeHealthCheck, Status: model.JobStatusPending, CreateAt: 1234}
+	var gotMethods []string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "/api/v4/health/check", r.URL.Path)
+		gotMethods = append(gotMethods, r.Method)
+		if r.Method == http.MethodPost {
+			w.WriteHeader(http.StatusCreated)
+		}
+		assert.NoError(t, json.NewEncoder(w).Encode(job))
+	}))
+	defer server.Close()
+	client := model.NewAPIv4Client(server.URL)
+
+	started, resp, err := client.StartHealthCheckRun(context.Background())
+	require.NoError(t, err)
+	assert.Equal(t, http.StatusCreated, resp.StatusCode)
+	assert.Equal(t, job, started)
+
+	latest, resp, err := client.GetHealthCheckRun(context.Background())
+	require.NoError(t, err)
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	assert.Equal(t, job, latest)
+
+	assert.Equal(t, []string{http.MethodPost, http.MethodGet}, gotMethods)
+}

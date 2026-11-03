@@ -318,6 +318,10 @@ func (c *Client4) healthFindingsRoute() clientRoute {
 	return newClientRoute("health").Join("findings")
 }
 
+func (c *Client4) healthCheckRoute() clientRoute {
+	return newClientRoute("health").Join("check")
+}
+
 func (c *Client4) postsEphemeralRoute() clientRoute {
 	return newClientRoute("posts").Join("ephemeral")
 }
@@ -8669,6 +8673,29 @@ func (c *Client4) GetHealthFindings(ctx context.Context, filter HealthFindingFil
 	}
 	defer closeBody(r)
 	return DecodeJSONFromResponse[*HealthFindingList](r)
+}
+
+// StartHealthCheckRun starts a health check run now and returns its health_check job. If a run is
+// already pending or in progress, it returns that run instead: the response status is then 200
+// rather than 201.
+func (c *Client4) StartHealthCheckRun(ctx context.Context) (*Job, *Response, error) {
+	r, err := c.doAPIPost(ctx, c.healthCheckRoute(), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*Job](r)
+}
+
+// GetHealthCheckRun returns the newest health_check job, scheduled or started on demand. The
+// server answers 404 if there has never been a run.
+func (c *Client4) GetHealthCheckRun(ctx context.Context) (*Job, *Response, error) {
+	r, err := c.doAPIGet(ctx, c.healthCheckRoute(), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*Job](r)
 }
 
 func (c *Client4) MuteHealthFinding(ctx context.Context, fingerprint string) (*Response, error) {

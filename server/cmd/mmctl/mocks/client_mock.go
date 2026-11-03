@@ -976,6 +976,22 @@ func (mr *MockClientMockRecorder) GetGroupsByTeam(ctx, teamID, groupOpts any) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGroupsByTeam", reflect.TypeOf((*MockClient)(nil).GetGroupsByTeam), ctx, teamID, groupOpts)
 }
 
+// GetHealthCheckRun mocks base method.
+func (m *MockClient) GetHealthCheckRun(ctx context.Context) (*model.Job, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetHealthCheckRun", ctx)
+	ret0, _ := ret[0].(*model.Job)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetHealthCheckRun indicates an expected call of GetHealthCheckRun.
+func (mr *MockClientMockRecorder) GetHealthCheckRun(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHealthCheckRun", reflect.TypeOf((*MockClient)(nil).GetHealthCheckRun), ctx)
+}
+
 // GetHealthFindings mocks base method.
 func (m *MockClient) GetHealthFindings(ctx context.Context, filter model.HealthFindingFilter) (*model.HealthFindingList, *model.Response, error) {
 	m.ctrl.T.Helper()
@@ -2457,6 +2473,22 @@ func (m *MockClient) SoftDeleteTeam(ctx context.Context, teamID string) (*model.
 func (mr *MockClientMockRecorder) SoftDeleteTeam(ctx, teamID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SoftDeleteTeam", reflect.TypeOf((*MockClient)(nil).SoftDeleteTeam), ctx, teamID)
+}
+
+// StartHealthCheckRun mocks base method.
+func (m *MockClient) StartHealthCheckRun(ctx context.Context) (*model.Job, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "StartHealthCheckRun", ctx)
+	ret0, _ := ret[0].(*model.Job)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// StartHealthCheckRun indicates an expected call of StartHealthCheckRun.
+func (mr *MockClientMockRecorder) StartHealthCheckRun(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartHealthCheckRun", reflect.TypeOf((*MockClient)(nil).StartHealthCheckRun), ctx)
 }
 
 // SyncLdap mocks base method.

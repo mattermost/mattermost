@@ -173,6 +173,7 @@ type Routes struct {
 	DeliveryTracking *mux.Router // 'api/v4/delivery_tracking'
 
 	HealthFindings *mux.Router // 'api/v4/health/findings'
+	HealthCheck    *mux.Router // 'api/v4/health/check'
 
 	Agents      *mux.Router // 'api/v4/agents'
 	LLMServices *mux.Router // 'api/v4/llmservices'
@@ -343,6 +344,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.BaseRoutes.DeliveryTracking = api.BaseRoutes.APIRoot.PathPrefix("/delivery_tracking").Subrouter()
 
 	api.BaseRoutes.HealthFindings = api.BaseRoutes.APIRoot.PathPrefix("/health/findings").Subrouter()
+	api.BaseRoutes.HealthCheck = api.BaseRoutes.APIRoot.PathPrefix("/health/check").Subrouter()
 
 	api.BaseRoutes.Agents = api.BaseRoutes.APIRoot.PathPrefix("/agents").Subrouter()
 	api.BaseRoutes.LLMServices = api.BaseRoutes.APIRoot.PathPrefix("/llmservices").Subrouter()
@@ -511,6 +513,7 @@ func InitLocal(srv *app.Server) *API {
 	api.BaseRoutes.AccessControlPolicy = api.BaseRoutes.APIRoot.PathPrefix("/access_control_policies/{policy_id:[A-Za-z0-9]+}").Subrouter()
 
 	api.BaseRoutes.HealthFindings = api.BaseRoutes.APIRoot.PathPrefix("/health/findings").Subrouter()
+	api.BaseRoutes.HealthCheck = api.BaseRoutes.APIRoot.PathPrefix("/health/check").Subrouter()
 
 	api.InitUserLocal()
 	api.InitTeamLocal()

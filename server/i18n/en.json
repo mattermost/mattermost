@@ -8846,6 +8846,21 @@
     "description": "API error returned when a group operation conflicts with an existing account; {{.Username}} is the already-taken username."
   },
   {
+    "id": "app.health_check.get_latest_run.app_error",
+    "translation": "Unable to get the latest health check run.",
+    "description": "Server error when the newest health check job could not be loaded from the database, for the health dashboard's run status."
+  },
+  {
+    "id": "app.health_check.get_latest_run.not_found.app_error",
+    "translation": "The health check has not run yet.",
+    "description": "API error returned by the health dashboard's run status endpoint when no health check run, scheduled or on demand, has ever been started."
+  },
+  {
+    "id": "app.health_check.start_run.app_error",
+    "translation": "Unable to start a health check run.",
+    "description": "Server error when a system admin asked to run the health check now and the server could neither create a run nor find the one already running."
+  },
+  {
     "id": "app.health_finding.get.app_error",
     "translation": "Unable to get health finding.",
     "description": "Server error when a single health dashboard finding could not be loaded from the database."

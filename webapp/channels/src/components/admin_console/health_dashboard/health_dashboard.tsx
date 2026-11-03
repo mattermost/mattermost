@@ -6,8 +6,9 @@ import React, {useCallback, useEffect, useId, useState} from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 
-import {BellOffOutlineIcon} from '@mattermost/compass-icons/components';
+import {BellOffOutlineIcon, RefreshIcon} from '@mattermost/compass-icons/components';
 import type {HealthFinding, HealthFindingFilter, HealthFindingList} from '@mattermost/types/health';
+import type {Job} from '@mattermost/types/jobs';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import {
@@ -38,8 +39,74 @@ export type Props = {
         getHealthFindings: (filter?: HealthFindingFilter) => Promise<ActionResult<HealthFindingList>>;
         muteHealthFinding: (fingerprint: string) => Promise<ActionResult>;
         unmuteHealthFinding: (fingerprint: string) => Promise<ActionResult>;
+        startHealthCheckRun: () => Promise<ActionResult<Job>>;
+        getHealthCheckRun: () => Promise<ActionResult<Job | null>>;
     };
 };
+
+// How often a run's status is checked while it runs. A run is picked up within about 15 seconds
+// and then takes seconds to a minute or two, so this keeps the page responsive without much load.
+export const HEALTH_CHECK_POLL_INTERVAL = 3000;
+
+function isRunActive(job: Job): boolean {
+    return job.status === 'pending' || job.status === 'in_progress' || job.status === 'cancel_requested';
+}
+
+function isRunSuccessful(job: Job): boolean {
+    return job.status === 'success' || job.status === 'warning';
+}
+
+// The status endpoint returns the newest run. One older than the run being followed means the
+// server read a lagging replica, so keep following ours; a newer one only starts once ours has
+// finished, and its result is the freshest.
+function followRun(current: Job, latest: Job | null): Job {
+    if (!latest || latest.create_at < current.create_at) {
+        return current;
+    }
+    return latest;
+}
+
+type RunError = {
+    message: MessageDescriptor;
+    values?: Record<string, string>;
+};
+
+const runStartErrorMessage = defineMessage({
+    id: 'admin.health_dashboard.run.start_error',
+    defaultMessage: 'The health check could not be started. Try again.',
+});
+
+const runStatusErrorMessage = defineMessage({
+    id: 'admin.health_dashboard.run.status_error',
+    defaultMessage: 'The health check is running, but its progress could not be checked. Reload the page to see its results.',
+});
+
+const runFailedMessage = defineMessage({
+    id: 'admin.health_dashboard.run.failed',
+    // eslint-disable-next-line formatjs/enforce-placeholders -- error is provided where the banner renders it
+    defaultMessage: 'The health check failed: {error}',
+});
+
+const runFailedNoReasonMessage = defineMessage({
+    id: 'admin.health_dashboard.run.failed_no_reason',
+    defaultMessage: 'The health check failed.',
+});
+
+const runCanceledMessage = defineMessage({
+    id: 'admin.health_dashboard.run.canceled',
+    defaultMessage: 'The health check was canceled before it finished.',
+});
+
+function runErrorFor(job: Job): RunError {
+    if (job.status === 'canceled') {
+        return {message: runCanceledMessage};
+    }
+    const error = job.data?.error;
+    if (typeof error === 'string' && error !== '') {
+        return {message: runFailedMessage, values: {error}};
+    }
+    return {message: runFailedNoReasonMessage};
+}
 
 const muteErrorMessage = defineMessage({
     id: 'admin.health_dashboard.mute.error',
@@ -60,6 +127,9 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, actions}: Pr
     const [expanded, setExpanded] = useState<string | null>(null);
     const [showMuted, setShowMuted] = useState(false);
     const [muteError, setMuteError] = useState<MessageDescriptor | null>(null);
+    const [starting, setStarting] = useState(false);
+    const [activeRun, setActiveRun] = useState<Job | null>(null);
+    const [runError, setRunError] = useState<RunError | null>(null);
     const idPrefix = useId();
     const panelId = `${idPrefix}-panel`;
 
@@ -69,7 +139,83 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, actions}: Pr
             setNow(Date.now());
             setLoading(false);
         });
+
+        // Pick up a run that is already going, whoever started it, so the page shows it running.
+        actions.getHealthCheckRun().then(({data}) => {
+            if (data && isRunActive(data)) {
+                setActiveRun((current) => current ?? data);
+            }
+        });
     }, [actions]);
+
+    // Reports a finished run: fresh findings on success, the job's error otherwise.
+    const finishRun = useCallback(async (job: Job) => {
+        if (isRunSuccessful(job)) {
+            const {error} = await actions.getHealthFindings();
+            setFailed(Boolean(error));
+            setNow(Date.now());
+        } else {
+            setRunError(runErrorFor(job));
+        }
+    }, [actions]);
+
+    // Polls the run being followed until it finishes. Unmounting, or following another run,
+    // stops the loop.
+    useEffect(() => {
+        if (!activeRun) {
+            return undefined;
+        }
+
+        let stopped = false;
+        let timer: ReturnType<typeof setTimeout>;
+        let current = activeRun;
+
+        const poll = async () => {
+            const {data, error} = await actions.getHealthCheckRun();
+            if (stopped) {
+                return;
+            }
+            if (error) {
+                setRunError({message: runStatusErrorMessage});
+                setActiveRun(null);
+                return;
+            }
+
+            current = followRun(current, data ?? null);
+            if (isRunActive(current)) {
+                timer = setTimeout(poll, HEALTH_CHECK_POLL_INTERVAL);
+                return;
+            }
+
+            await finishRun(current);
+            if (!stopped) {
+                setActiveRun(null);
+            }
+        };
+        timer = setTimeout(poll, HEALTH_CHECK_POLL_INTERVAL);
+
+        return () => {
+            stopped = true;
+            clearTimeout(timer);
+        };
+    }, [activeRun, actions, finishRun]);
+
+    const startRun = useCallback(async () => {
+        setStarting(true);
+        setRunError(null);
+        const {data, error} = await actions.startHealthCheckRun();
+        setStarting(false);
+
+        if (error || !data) {
+            setRunError({message: runStartErrorMessage});
+            return;
+        }
+        if (isRunActive(data)) {
+            setActiveRun(data);
+            return;
+        }
+        await finishRun(data);
+    }, [actions, finishRun]);
 
     const changeTab = useCallback((next: HealthFindingTab) => {
         setTab(next);
@@ -103,6 +249,47 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, actions}: Pr
 
     const rowState = {now, expanded, onToggle: toggle, onMute: mute, onUnmute: unmute};
 
+    const running = starting || activeRun !== null;
+    const runButton = (
+        <button
+            type='button'
+            className={classNames('btn btn-secondary btn-sm HealthDashboard__rerun', {'HealthDashboard__rerun--running': running})}
+            disabled={running}
+            aria-busy={running}
+            onClick={startRun}
+        >
+            <RefreshIcon
+                size={16}
+                color='currentColor'
+                aria-hidden={true}
+            />
+            {running ? (
+                <FormattedMessage
+                    id='admin.health_dashboard.run.running'
+                    defaultMessage='Running checks…'
+                />
+            ) : (
+                <FormattedMessage
+                    id='admin.health_dashboard.run.button'
+                    defaultMessage='Re-run checks'
+                />
+            )}
+        </button>
+    );
+    const runErrorBanner = runError && (
+        <AlertBanner
+            mode='danger'
+            className='HealthDashboard__runError'
+            onDismiss={() => setRunError(null)}
+            message={
+                <FormattedMessage
+                    {...runError.message}
+                    values={runError.values}
+                />
+            }
+        />
+    );
+
     let content;
     if (loading) {
         content = <LoadingSpinner/>;
@@ -125,33 +312,43 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, actions}: Pr
         );
     } else if (lastEvaluatedAt === 0) {
         content = (
-            <EmptyState
-                title={
-                    <FormattedMessage
-                        id='admin.health_dashboard.empty.title'
-                        defaultMessage='Not evaluated yet'
-                    />
-                }
-                body={
-                    <FormattedMessage
-                        id='admin.health_dashboard.empty.body'
-                        defaultMessage='The first health check runs within an hour of enabling the feature.'
-                    />
-                }
-            />
+            <>
+                <div className='HealthDashboard__summary HealthDashboard__summary--end'>
+                    {runButton}
+                </div>
+                {runErrorBanner}
+                <EmptyState
+                    title={
+                        <FormattedMessage
+                            id='admin.health_dashboard.empty.title'
+                            defaultMessage='Not evaluated yet'
+                        />
+                    }
+                    body={
+                        <FormattedMessage
+                            id='admin.health_dashboard.empty.body'
+                            defaultMessage='The first health check runs within an hour of enabling the feature. To run it now, select Re-run checks.'
+                        />
+                    }
+                />
+            </>
         );
     } else {
         const visible = filterHealthFindingsByTab(findings, tab, now);
 
         content = (
             <>
-                <p className='HealthDashboard__lastEvaluated'>
-                    <FormattedMessage
-                        id='admin.health_dashboard.last_evaluated'
-                        defaultMessage='Last evaluated {time}'
-                        values={{time: <RelativeTime value={lastEvaluatedAt}/>}}
-                    />
-                </p>
+                <div className='HealthDashboard__summary'>
+                    <p className='HealthDashboard__lastEvaluated'>
+                        <FormattedMessage
+                            id='admin.health_dashboard.last_evaluated'
+                            defaultMessage='Last evaluated {time}'
+                            values={{time: <RelativeTime value={lastEvaluatedAt}/>}}
+                        />
+                    </p>
+                    {runButton}
+                </div>
+                {runErrorBanner}
                 <div className='HealthDashboard__toolbar'>
                     <FindingTabs
                         idPrefix={idPrefix}

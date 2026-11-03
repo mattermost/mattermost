@@ -8,9 +8,10 @@
         `title`, `message` and `remediation` are rendered in the locale of the request's `Accept-Language`
         header, falling back to English. Findings whose rule is no longer registered are left out.
 
-        The server evaluates its health rules once an hour, so a finding can be up to an hour old.
-        `evaluated_at` is when the server last evaluated, whatever the `muted` filter; it is 0 if the
-        server has not evaluated yet or no health rule has fired yet.
+        The server evaluates its health rules once an hour, so a finding can be up to an hour old; to
+        evaluate now, start a run with `POST /api/v4/health/check`. `evaluated_at` is when the last
+        successful health check run finished, whatever the `muted` filter; it is 0 if no run has
+        succeeded yet.
 
         __Minimum server version__: 12.1
 
@@ -134,6 +135,97 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "501":
+          description: The `HealthDashboard` feature flag is off, or the server does not have an Enterprise license.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
+  /api/v4/health/check:
+    post:
+      tags:
+        - health
+      summary: Run the health check now
+      description: |
+        Start a health check run without waiting for the hourly schedule. A run is a `health_check`
+        job: an app server picks it up within about 15 seconds, collects every cluster node's
+        diagnostics, evaluates the health rules and stores the findings. Follow it with
+        `GET /api/v4/health/check`; when it succeeds, `GET /api/v4/health/findings` returns its findings
+        and its `evaluated_at`.
+
+        If a run is already pending or in progress, no second run is started: the response is that run,
+        with status 200 instead of 201. A run that has shown no activity for an hour belongs to a node
+        that stopped mid-run: it is closed as failed and does not block a new one. Starting a run is recorded in the audit log.
+
+        __Minimum server version__: 12.1
+
+        ##### Permissions
+
+        Must have `manage_system` permission. Also available over local mode.
+
+        Requires the `HealthDashboard` feature flag and an Enterprise license.
+      operationId: StartHealthCheckRun
+      responses:
+        "200":
+          description: A run was already pending or in progress; it is returned and no run was started.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Job"
+        "201":
+          description: Health check run started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Job"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "501":
+          description: The `HealthDashboard` feature flag is off, or the server does not have an Enterprise license.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
+    get:
+      tags:
+        - health
+      summary: Get the latest health check run
+      description: |
+        Get the newest health check run, whether it was started on demand or by the hourly schedule.
+        Its `status` is `pending` or `in_progress` while it runs, then `success` or `error`; for a run
+        that failed, `data.error` says why.
+
+        __Minimum server version__: 12.1
+
+        ##### Permissions
+
+        Must have `manage_system` permission. Also available over local mode.
+
+        Requires the `HealthDashboard` feature flag and an Enterprise license.
+      operationId: GetHealthCheckRun
+      responses:
+        "200":
+          description: Health check run retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Job"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          description: The health check has never run, on demand or on schedule.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
         "500":
           $ref: "#/components/responses/InternalServerError"
         "501":

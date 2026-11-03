@@ -19,9 +19,34 @@
         display: none;
     }
 
+    &__summary {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+        gap: 12px;
+
+        &--end {
+            justify-content: flex-end;
+        }
+    }
+
     &__lastEvaluated {
-        margin: 0 0 16px;
+        margin: 0;
         color: rgba(var(--sys-center-channel-color-rgb), 0.72);
+    }
+
+    &__rerun {
+        gap: 6px;
+
+        &--running svg {
+            animation: HealthDashboard__spin 1s linear infinite;
+        }
+    }
+
+    &__runError {
+        margin-bottom: 16px;
     }
 
     &__toolbar {
@@ -562,5 +587,17 @@
             align-items: center;
             gap: 6px;
         }
+    }
+}
+
+@keyframes HealthDashboard__spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .HealthDashboard__rerun--running svg {
+        animation: none;
     }
 }

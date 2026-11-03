@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {HealthFinding, HealthFindingFilter, HealthFindingList} from '@mattermost/types/health';
+import type {Job} from '@mattermost/types/jobs';
 
 import {HealthTypes} from 'mattermost-redux/action_types';
 import {logError} from 'mattermost-redux/actions/errors';
@@ -67,4 +68,28 @@ export function unmuteHealthFinding(fingerprint: string): ActionFuncAsync {
         (finding) => ({...finding, muted_at: undefined, muted_by: undefined}),
         Client4.unmuteHealthFinding,
     );
+}
+
+// A run's status lives with the page that follows it, not in the store: the findings it produces
+// arrive through getHealthFindings.
+export function startHealthCheckRun(): ActionFuncAsync<Job> {
+    return bindClientFunc({
+        clientFunc: Client4.startHealthCheckRun,
+    });
+}
+
+// Resolves to null when the health check has never run, which the server reports as a 404.
+export function getHealthCheckRun(): ActionFuncAsync<Job | null> {
+    return async (dispatch, getState) => {
+        try {
+            return {data: await Client4.getHealthCheckRun()};
+        } catch (error) {
+            if (error.status_code === 404) {
+                return {data: null};
+            }
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+    };
 }

@@ -258,6 +258,7 @@ const (
 const (
 	AuditEventMuteHealthFinding   = "muteHealthFinding"   // mute health dashboard finding
 	AuditEventUnmuteHealthFinding = "unmuteHealthFinding" // unmute health dashboard finding
+	AuditEventStartHealthCheckRun = "startHealthCheckRun" // start a health check run on demand
 )
 
 // Imports

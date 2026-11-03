@@ -173,4 +173,60 @@ describe('Actions.Health', () => {
             expect(stored(store)).toEqual(muted);
         });
     });
+
+    describe('health check runs', () => {
+        const job = {id: 'job1', type: 'health_check', status: 'pending', create_at: 1000};
+
+        test('startHealthCheckRun returns the run and leaves the store unchanged', async () => {
+            nock(Client4.getBaseRoute()).
+                post('/health/check').
+                reply(201, job);
+
+            const result = await store.dispatch(Actions.startHealthCheckRun());
+
+            expect(result).toEqual({data: job});
+            expect(store.getState().entities.health).toEqual({findings: {}, evaluatedAt: 0});
+        });
+
+        test('startHealthCheckRun returns the error when the run cannot be started', async () => {
+            nock(Client4.getBaseRoute()).
+                post('/health/check').
+                reply(501, {message: 'disabled', status_code: 501});
+
+            const result = await store.dispatch(Actions.startHealthCheckRun());
+
+            expect(result.error).toBeDefined();
+        });
+
+        test('getHealthCheckRun returns the latest run', async () => {
+            nock(Client4.getBaseRoute()).
+                get('/health/check').
+                reply(200, {...job, status: 'success'});
+
+            const result = await store.dispatch(Actions.getHealthCheckRun());
+
+            expect(result).toEqual({data: {...job, status: 'success'}});
+        });
+
+        test('getHealthCheckRun returns null, not an error, when the health check has never run', async () => {
+            nock(Client4.getBaseRoute()).
+                get('/health/check').
+                reply(404, {id: 'app.health_check.get_latest_run.not_found.app_error', message: 'not run', status_code: 404});
+
+            const result = await store.dispatch(Actions.getHealthCheckRun());
+
+            expect(result).toEqual({data: null});
+            expect(store.getState().errors).toEqual([]);
+        });
+
+        test('getHealthCheckRun returns other errors', async () => {
+            nock(Client4.getBaseRoute()).
+                get('/health/check').
+                reply(500, {message: 'failed', status_code: 500});
+
+            const result = await store.dispatch(Actions.getHealthCheckRun());
+
+            expect(result.error).toBeDefined();
+        });
+    });
 });

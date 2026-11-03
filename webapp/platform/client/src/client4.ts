@@ -593,6 +593,10 @@ export default class Client4 {
         return `${this.getBaseRoute()}/health/findings`;
     }
 
+    getHealthCheckRoute() {
+        return `${this.getBaseRoute()}/health/check`;
+    }
+
     getCSRFFromCookie() {
         if (typeof document !== 'undefined' && typeof document.cookie !== 'undefined') {
             const cookies = document.cookie.split(';');
@@ -5502,6 +5506,22 @@ export default class Client4 {
         return this.doFetch<StatusOK>(
             `${this.getHealthFindingsRoute()}/${fingerprint}/mute`,
             {method: 'delete'},
+        );
+    };
+
+    // Starts a health check run, or returns the run already pending or in progress.
+    startHealthCheckRun = () => {
+        return this.doFetch<Job>(
+            this.getHealthCheckRoute(),
+            {method: 'post'},
+        );
+    };
+
+    // Returns the newest health check run. The server answers 404 if there has never been one.
+    getHealthCheckRun = () => {
+        return this.doFetch<Job>(
+            this.getHealthCheckRoute(),
+            {method: 'get'},
         );
     };
 
