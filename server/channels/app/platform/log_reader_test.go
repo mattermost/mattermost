@@ -639,6 +639,8 @@ func BenchmarkGetLogsSkipSend(b *testing.B) {
 		{name: "third page", page: 2},
 		{name: "rare level", filter: model.LogFilter{LogLevels: []string{"error"}}},
 		{name: "recent date from", filter: model.LogFilter{DateFrom: last.Add(-5 * time.Second).Format(model.LogFilterDateLayout)}},
+		// a range ending now, as the viewer sends for one up to today; the seek saves nothing
+		{name: "date to after the last entry", filter: model.LogFilter{DateTo: last.Add(time.Hour).Format(model.LogFilterDateLayout)}},
 		{name: "common search", filter: model.LogFilter{Search: "HTTP request"}},
 		{name: "rare search", filter: model.LogFilter{Search: "no such entry"}},
 		{name: "rare search with escaped characters", filter: model.LogFilter{Search: `"no such entry"`}},
