@@ -35,9 +35,10 @@ describe('components/admin_console/server_logs/LogRow', () => {
         wrapText: false,
         showNode: false,
         timezone: 'UTC',
-        showDate: false,
-        useMilitaryTime: true,
+        timeFormat: 'HH:mm:ss.SSS',
     };
+
+    const DATE_TIME_FORMAT = 'YYYY-MM-DD HH:mm:ss.SSS';
 
     const writeText = jest.fn();
 
@@ -72,28 +73,34 @@ describe('components/admin_console/server_logs/LogRow', () => {
 
             expect(screen.getByText('Info')).toBeInTheDocument();
 
-            // Only the time portion of the timestamp is displayed
+            // Only the time, in the format the list picked
             expect(screen.getByText('12:34:56.789')).toBeInTheDocument();
             expect(screen.getByText('Something happened')).toBeInTheDocument();
             expect(screen.getByText('app/server.go:123')).toBeInTheDocument();
         });
 
-        test('should show the full timestamp as a title attribute', () => {
-            renderLogRow();
+        test('should keep the raw timestamp as the title whatever the timezone and format', () => {
+            renderLogRow({timezone: 'Europe/Berlin', timeFormat: DATE_TIME_FORMAT});
 
-            expect(screen.getByText('12:34:56.789')).toHaveAttribute('title', baseLog.timestamp);
+            expect(screen.getByText('2024-01-01 13:34:56.789')).toHaveAttribute('title', baseLog.timestamp);
         });
 
         test('should fall back to the raw timestamp when it does not parse', () => {
-            renderLogRow({log: {...baseLog, timestamp: 'not a timestamp'}});
-
-            expect(screen.getByText('not a timestamp')).toBeInTheDocument();
-        });
-
-        test('should fall back to the raw timestamp, even with the date shown', () => {
-            renderLogRow({log: {...baseLog, timestamp: 'not a timestamp'}, timezone: 'Europe/Berlin', showDate: true});
+            renderLogRow({log: {...baseLog, timestamp: 'not a timestamp'}, timezone: 'Europe/Berlin', timeFormat: DATE_TIME_FORMAT});
 
             expect(document.querySelector('.LogRow__timestamp')).toHaveTextContent(/^not a timestamp$/);
+        });
+
+        test('should show the time in the admin\'s timezone', () => {
+            renderLogRow({log: {...baseLog, timestamp: '2024-07-01 08:00:00.000 -04:00'}, timezone: 'Europe/Berlin'});
+
+            expect(document.querySelector('.LogRow__timestamp')).toHaveTextContent(/^14:00:00\.000$/);
+        });
+
+        test('should move to the next day in the admin\'s timezone', () => {
+            renderLogRow({log: {...baseLog, timestamp: '2023-12-31 23:30:00.000 +00:00'}, timezone: 'Europe/Berlin', timeFormat: DATE_TIME_FORMAT});
+
+            expect(document.querySelector('.LogRow__timestamp')).toHaveTextContent(/^2024-01-01 00:30:00\.000$/);
         });
 
         test.each([
@@ -125,59 +132,6 @@ describe('components/admin_console/server_logs/LogRow', () => {
             const level = screen.getByText('silly');
             expect(level).toBeInTheDocument();
             expect(level).toHaveClass('LogRow__level--debug');
-        });
-    });
-
-    describe('timestamp', () => {
-        const getTime = () => document.querySelector('.LogRow__timestamp');
-
-        test('should show the time in the admin\'s timezone', () => {
-            renderLogRow({timezone: 'Europe/Berlin'});
-
-            expect(getTime()).toHaveTextContent(/^13:34:56\.789$/);
-        });
-
-        test('should convert a timestamp logged with another offset', () => {
-            renderLogRow({log: {...baseLog, timestamp: '2024-07-01 08:00:00.000 -04:00'}, timezone: 'Europe/Berlin'});
-
-            expect(getTime()).toHaveTextContent(/^14:00:00\.000$/);
-        });
-
-        test('should hide the date by default', () => {
-            renderLogRow();
-
-            expect(getTime()).toHaveTextContent(/^12:34:56\.789$/);
-        });
-
-        test('should show the date in the admin\'s timezone when asked to', () => {
-            renderLogRow({log: {...baseLog, timestamp: '2023-12-31 23:30:00.000 +00:00'}, timezone: 'Europe/Berlin', showDate: true});
-
-            // Past midnight in Berlin, so the day moves on too
-            expect(getTime()).toHaveTextContent(/^2024-01-01 00:30:00\.000$/);
-        });
-
-        test('should use the 12-hour clock when the admin does', () => {
-            renderLogRow({useMilitaryTime: false});
-
-            expect(getTime()).toHaveTextContent(/^12:34:56\.789 PM$/);
-        });
-
-        test('should show the date with the 12-hour clock', () => {
-            renderLogRow({log: {...baseLog, timestamp: '2024-01-01 00:05:00.000 +00:00'}, useMilitaryTime: false, showDate: true});
-
-            expect(getTime()).toHaveTextContent(/^2024-01-01 12:05:00\.000 AM$/);
-        });
-
-        test('should keep the raw timestamp in the tooltip', () => {
-            renderLogRow({timezone: 'Europe/Berlin', showDate: true});
-
-            expect(getTime()).toHaveAttribute('title', baseLog.timestamp);
-        });
-
-        test('should keep the raw timestamp in the expanded details', () => {
-            renderLogRow({isExpanded: true, timezone: 'Europe/Berlin', showDate: true});
-
-            expect(screen.getByText(baseLog.timestamp)).toHaveClass('LogRow__detail-value');
         });
     });
 
@@ -372,7 +326,7 @@ describe('components/admin_console/server_logs/LogRow', () => {
 
     describe('expanded details', () => {
         test('should render the core fields', () => {
-            renderLogRow({isExpanded: true});
+            renderLogRow({isExpanded: true, timezone: 'Europe/Berlin', timeFormat: DATE_TIME_FORMAT});
 
             expect(screen.getByText('Timestamp')).toBeInTheDocument();
             expect(screen.getByText('Caller')).toBeInTheDocument();
@@ -513,7 +467,7 @@ describe('components/admin_console/server_logs/LogRow', () => {
         });
 
         test('should copy the raw timestamp whatever the admin\'s timezone', async () => {
-            renderLogRow({isExpanded: true, timezone: 'Europe/Berlin', showDate: true});
+            renderLogRow({isExpanded: true, timezone: 'Europe/Berlin', timeFormat: DATE_TIME_FORMAT});
 
             await userEvent.click(screen.getByText('Copy log line'));
             expect(writeText).toHaveBeenLastCalledWith(

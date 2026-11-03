@@ -6,17 +6,12 @@
 // Shared by the structured and plain text viewers so both read as the same page
 
 $level-column-width: 56px;
-$timestamp-time-width: 96px;
 
-// The time column reads this so it can widen when rows show the date. Set on .LogViewer
-$timestamp-column-width: var(--log-timestamp-column-width, #{$timestamp-time-width});
+// Room per character of the monospace time, so the header and the details indent match the rows
+$timestamp-char-width: 8px;
 
-// Fits "YYYY-MM-DD HH:mm:ss.SSS" in the monospace font
-$timestamp-date-time-width: 184px;
-
-// The 12-hour clock adds " PM" and an hour that can take two digits
-$timestamp-time-width-12-hour: 120px;
-$timestamp-date-time-width-12-hour: 208px;
+// LogViewer sets the longest time's length for the format in use; 12 fits "HH:mm:ss.SSS"
+$timestamp-column-width: calc(var(--log-timestamp-chars, 12) * $timestamp-char-width);
 $caller-column-width: 200px;
 $node-column-width: 120px;
 $node-column-min-width: 64px;

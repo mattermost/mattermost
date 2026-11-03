@@ -32,7 +32,7 @@ import CustomRangeModal from './custom_range_modal';
 import KeyboardHints from './keyboard_hints';
 import LogRow from './log_row';
 import type {CustomTimeRange, LogObjectWithAdditionalInfo, TimeRange} from './types';
-import {LEVEL_GROUPS, levelGroup, logsNeedDate, newestLogTimes} from './utils';
+import {LEVEL_GROUPS, levelGroup, logRowTimeFormat, logRowTimeLength, logsNeedDate, newestLogTimes} from './utils';
 
 import './log_list.scss';
 
@@ -358,6 +358,7 @@ export default function LogList({
 
     // Every page shows the date or none does, so the time column keeps one width while paging
     const showDate = useMemo(() => logsNeedDate(processedLogs, timezone), [processedLogs, timezone]);
+    const timeFormat = logRowTimeFormat(showDate, isMilitaryTime);
 
     // Only held entries the current filters would show are worth announcing
     const heldCount = useMemo(() => filterLogs(heldLogs, enabledLevels).length, [heldLogs, enabledLevels]);
@@ -861,10 +862,10 @@ export default function LogList({
 
     return (
         <div
-            className={classNames('LogViewer', {
-                'LogViewer--with-date': showDate,
-                'LogViewer--twelve-hour': !isMilitaryTime,
-            })}
+            className='LogViewer'
+
+            // Sizes the time column to the longest time this format gives
+            style={{'--log-timestamp-chars': logRowTimeLength(timeFormat)} as React.CSSProperties}
             onKeyDown={handleKeyDown}
         >
             {filters}
@@ -1021,8 +1022,7 @@ export default function LogList({
                             wrapText={wrapText}
                             showNode={showNodes}
                             timezone={timezone}
-                            showDate={showDate}
-                            useMilitaryTime={isMilitaryTime}
+                            timeFormat={timeFormat}
                         />
                     ))}
                 </div>

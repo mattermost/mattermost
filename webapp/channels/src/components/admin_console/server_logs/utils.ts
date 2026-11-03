@@ -58,34 +58,33 @@ export function newestLogTimes(logs: LogObjectWithAdditionalInfo[]): Record<stri
 }
 
 const DAY_FORMAT = 'YYYY-MM-DD';
-const TIME_FORMAT_24_HOUR = 'HH:mm:ss.SSS';
-const TIME_FORMAT_12_HOUR = 'h:mm:ss.SSS A';
 
-// The entry's time in the admin's timezone and clock format. A timestamp that doesn't parse is shown as logged
-export function formatLogRowTime(log: LogObjectWithAdditionalInfo, timezone: string, showDate: boolean, useMilitaryTime: boolean): string {
+// The format of a row's time: the admin's clock, with the date when the rows need it
+export function logRowTimeFormat(showDate: boolean, useMilitaryTime: boolean): string {
+    const time = useMilitaryTime ? 'HH:mm:ss.SSS' : 'h:mm:ss.SSS A';
+    return showDate ? `${DAY_FORMAT} ${time}` : time;
+}
+
+// The most characters a time in this format takes: a two-digit hour and "PM" are as long as it gets
+export function logRowTimeLength(format: string): number {
+    return moment.utc('2000-12-31T22:59:59.999Z').format(format).length;
+}
+
+// The entry's time in the admin's timezone. A timestamp that doesn't parse is shown as logged
+export function formatLogRowTime(log: LogObjectWithAdditionalInfo, timezone: string, format: string): string {
     const time = logEntryTime(log);
     if (Number.isNaN(time)) {
         return log.timestamp.slice(0, 23);
     }
-    const timeFormat = useMilitaryTime ? TIME_FORMAT_24_HOUR : TIME_FORMAT_12_HOUR;
-    return moment.tz(time, timezone).format(showDate ? `${DAY_FORMAT} ${timeFormat}` : timeFormat);
+    return moment.tz(time, timezone).format(format);
 }
 
-// Rows need the date when the entries fall on more than one day in the admin's timezone, or when
-// the one day they fall on isn't today, which a bare time would otherwise suggest
+// A bare time reads as today, so rows need the date as soon as any entry is from another day
 export function logsNeedDate(logs: LogObjectWithAdditionalInfo[], timezone: string, now = Date.now()): boolean {
-    let oldest = Infinity;
-    let newest = -Infinity;
-    for (const log of logs) {
+    const startOfToday = moment.tz(now, timezone).startOf('day').valueOf();
+    const endOfToday = moment.tz(now, timezone).endOf('day').valueOf();
+    return logs.some((log) => {
         const time = logEntryTime(log);
-        if (!Number.isNaN(time)) {
-            oldest = Math.min(oldest, time);
-            newest = Math.max(newest, time);
-        }
-    }
-    if (oldest > newest) {
-        return false;
-    }
-    const today = moment.tz(now, timezone).format(DAY_FORMAT);
-    return moment.tz(oldest, timezone).format(DAY_FORMAT) !== today || moment.tz(newest, timezone).format(DAY_FORMAT) !== today;
+        return time < startOfToday || time > endOfToday;
+    });
 }
