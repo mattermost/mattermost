@@ -277,13 +277,13 @@ exports[`components/admin_console/user_grid/UserGrid should match snapshot with 
         </span>
         <button
           aria-label="Previous page"
-          class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 ml-2 prev"
+          class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 ml-2 prev"
           disabled=""
           type="button"
         >
           <span
             aria-hidden="true"
-            class="_icon-button__icon-slot_13ryy_41"
+            class="_icon-button__icon-slot_ft92e_41"
           >
             <div
               aria-hidden="true"
@@ -310,13 +310,13 @@ exports[`components/admin_console/user_grid/UserGrid should match snapshot with 
         </button>
         <button
           aria-label="Next page"
-          class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 next"
+          class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 next"
           disabled=""
           type="button"
         >
           <span
             aria-hidden="true"
-            class="_icon-button__icon-slot_13ryy_41"
+            class="_icon-button__icon-slot_ft92e_41"
           >
             <div
               aria-hidden="true"
@@ -699,13 +699,13 @@ exports[`components/admin_console/user_grid/UserGrid should match snapshot with 
         </span>
         <button
           aria-label="Previous page"
-          class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 ml-2 prev"
+          class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 ml-2 prev"
           disabled=""
           type="button"
         >
           <span
             aria-hidden="true"
-            class="_icon-button__icon-slot_13ryy_41"
+            class="_icon-button__icon-slot_ft92e_41"
           >
             <div
               aria-hidden="true"
@@ -732,13 +732,13 @@ exports[`components/admin_console/user_grid/UserGrid should match snapshot with 
         </button>
         <button
           aria-label="Next page"
-          class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 next"
+          class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 next"
           disabled=""
           type="button"
         >
           <span
             aria-hidden="true"
-            class="_icon-button__icon-slot_13ryy_41"
+            class="_icon-button__icon-slot_ft92e_41"
           >
             <div
               aria-hidden="true"
@@ -981,13 +981,13 @@ exports[`components/admin_console/user_grid/UserGrid should match snapshot with 
         </span>
         <button
           aria-label="Previous page"
-          class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 ml-2 prev"
+          class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 ml-2 prev"
           disabled=""
           type="button"
         >
           <span
             aria-hidden="true"
-            class="_icon-button__icon-slot_13ryy_41"
+            class="_icon-button__icon-slot_ft92e_41"
           >
             <div
               aria-hidden="true"
@@ -1014,13 +1014,13 @@ exports[`components/admin_console/user_grid/UserGrid should match snapshot with 
         </button>
         <button
           aria-label="Next page"
-          class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 next"
+          class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 next"
           disabled=""
           type="button"
         >
           <span
             aria-hidden="true"
-            class="_icon-button__icon-slot_13ryy_41"
+            class="_icon-button__icon-slot_ft92e_41"
           >
             <div
               aria-hidden="true"

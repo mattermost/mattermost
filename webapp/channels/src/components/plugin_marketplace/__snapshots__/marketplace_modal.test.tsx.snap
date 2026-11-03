@@ -50,12 +50,12 @@ exports[`components/marketplace/ doesn't show web marketplace banner for Cloud 1
             </div>
             <button
               aria-label="Close"
-              class="_icon-button_13ryy_2 _icon-button--size-medium_13ryy_91 GenericModal__close"
+              class="_icon-button_ft92e_2 _icon-button--size-medium_ft92e_91 GenericModal__close"
               type="button"
             >
               <span
                 aria-hidden="true"
-                class="_icon-button__icon-slot_13ryy_41"
+                class="_icon-button__icon-slot_ft92e_41"
               >
                 <div
                   aria-hidden="true"
@@ -194,12 +194,12 @@ exports[`components/marketplace/ hides search and shows web marketplace banner 1
             </div>
             <button
               aria-label="Close"
-              class="_icon-button_13ryy_2 _icon-button--size-medium_13ryy_91 GenericModal__close"
+              class="_icon-button_ft92e_2 _icon-button--size-medium_ft92e_91 GenericModal__close"
               type="button"
             >
               <span
                 aria-hidden="true"
-                class="_icon-button__icon-slot_13ryy_41"
+                class="_icon-button__icon-slot_ft92e_41"
               >
                 <div
                   aria-hidden="true"
@@ -526,12 +526,12 @@ exports[`components/marketplace/ should render default 1`] = `
             </div>
             <button
               aria-label="Close"
-              class="_icon-button_13ryy_2 _icon-button--size-medium_13ryy_91 GenericModal__close"
+              class="_icon-button_ft92e_2 _icon-button--size-medium_ft92e_91 GenericModal__close"
               type="button"
             >
               <span
                 aria-hidden="true"
-                class="_icon-button__icon-slot_13ryy_41"
+                class="_icon-button__icon-slot_ft92e_41"
               >
                 <div
                   aria-hidden="true"
@@ -695,12 +695,12 @@ exports[`components/marketplace/ should render with error banner 1`] = `
             </div>
             <button
               aria-label="Close"
-              class="_icon-button_13ryy_2 _icon-button--size-medium_13ryy_91 GenericModal__close"
+              class="_icon-button_ft92e_2 _icon-button--size-medium_ft92e_91 GenericModal__close"
               type="button"
             >
               <span
                 aria-hidden="true"
-                class="_icon-button__icon-slot_13ryy_41"
+                class="_icon-button__icon-slot_ft92e_41"
               >
                 <div
                   aria-hidden="true"
@@ -905,12 +905,12 @@ exports[`components/marketplace/ should render with no plugins available 1`] = `
             </div>
             <button
               aria-label="Close"
-              class="_icon-button_13ryy_2 _icon-button--size-medium_13ryy_91 GenericModal__close"
+              class="_icon-button_ft92e_2 _icon-button--size-medium_ft92e_91 GenericModal__close"
               type="button"
             >
               <span
                 aria-hidden="true"
-                class="_icon-button__icon-slot_13ryy_41"
+                class="_icon-button__icon-slot_ft92e_41"
               >
                 <div
                   aria-hidden="true"
@@ -1099,12 +1099,12 @@ exports[`components/marketplace/ should render with plugins available 1`] = `
             </div>
             <button
               aria-label="Close"
-              class="_icon-button_13ryy_2 _icon-button--size-medium_13ryy_91 GenericModal__close"
+              class="_icon-button_ft92e_2 _icon-button--size-medium_ft92e_91 GenericModal__close"
               type="button"
             >
               <span
                 aria-hidden="true"
-                class="_icon-button__icon-slot_13ryy_41"
+                class="_icon-button__icon-slot_ft92e_41"
               >
                 <div
                   aria-hidden="true"
@@ -1340,12 +1340,12 @@ exports[`components/marketplace/ should render with plugins installed 1`] = `
             </div>
             <button
               aria-label="Close"
-              class="_icon-button_13ryy_2 _icon-button--size-medium_13ryy_91 GenericModal__close"
+              class="_icon-button_ft92e_2 _icon-button--size-medium_ft92e_91 GenericModal__close"
               type="button"
             >
               <span
                 aria-hidden="true"
-                class="_icon-button__icon-slot_13ryy_41"
+                class="_icon-button__icon-slot_ft92e_41"
               >
                 <div
                   aria-hidden="true"
