@@ -6,7 +6,12 @@
 // Shared by the structured and plain text viewers so both read as the same page
 
 $level-column-width: 56px;
-$timestamp-column-width: 96px;
+// The time column reads this so it can widen when rows show the date. Set on .LogViewer
+$timestamp-column-width: var(--log-timestamp-column-width);
+$timestamp-time-width: 96px;
+
+// Fits "YYYY-MM-DD HH:mm:ss.SSS" in the monospace font
+$timestamp-date-time-width: 184px;
 $caller-column-width: 200px;
 $node-column-width: 120px;
 $node-column-min-width: 64px;
@@ -35,10 +40,10 @@ $mono-font: 'SFMono-Regular', consolas, 'Liberation Mono', menlo, monospace;
 }
 
 // Indents the expanded details to line up with the message column
-$details-indent: $row-padding-x + $level-column-width + $column-gap + $timestamp-column-width + $column-gap;
+$details-indent: calc($row-padding-x + $level-column-width + $column-gap + $timestamp-column-width + $column-gap);
 
 // Below this row width node and caller shrink: every column at its basis plus the gaps, chevron and padding
-$row-shrink-width: $details-indent + $node-column-width + $message-column-min-width + $caller-column-width + 3 * $column-gap + $expand-indicator-width + $row-padding-x;
+$row-shrink-width: calc($details-indent + $node-column-width + $message-column-min-width + $caller-column-width + 3 * $column-gap + $expand-indicator-width + $row-padding-x);
 
 // The node column's rendered width: flex gives it node / (node + caller) of the row's shortfall
 $details-node-width: clamp($node-column-min-width, $node-column-width - ($row-shrink-width - 100%) * math.div($node-column-width, $node-column-width + $caller-column-width), $node-column-width);

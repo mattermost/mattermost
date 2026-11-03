@@ -28,6 +28,13 @@
 .LogViewer {
     @include log_viewer.viewer-shell;
 
+    --log-timestamp-column-width: #{log_viewer.$timestamp-time-width};
+
+    // Rows show the date when the listed entries span more than one day
+    &--with-date {
+        --log-timestamp-column-width: #{log_viewer.$timestamp-date-time-width};
+    }
+
     // ---------------------
     // Filters
     // ---------------------
@@ -363,10 +370,12 @@
     }
 
     &__timestamp {
+        overflow: hidden;
         width: log_viewer.$timestamp-column-width;
         flex-shrink: 0;
         color: rgba(var(--center-channel-color-rgb), 0.64);
         font-size: 12px;
+        text-overflow: ellipsis;
     }
 
     &__node {

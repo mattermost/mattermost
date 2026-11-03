@@ -34,6 +34,8 @@ describe('components/admin_console/server_logs/LogRow', () => {
         searchTerm: '',
         wrapText: false,
         showNode: false,
+        timezone: 'UTC',
+        showDate: false,
     };
 
     const writeText = jest.fn();
@@ -85,6 +87,53 @@ describe('components/admin_console/server_logs/LogRow', () => {
             renderLogRow({log: {...baseLog, timestamp: 'not a timestamp'}});
 
             expect(screen.getByText('not a timestamp')).toBeInTheDocument();
+        });
+
+        test('should fall back to the raw timestamp when it does not parse, even with the date shown', () => {
+            renderLogRow({log: {...baseLog, timestamp: 'not a timestamp'}, timezone: 'Europe/Berlin', showDate: true});
+
+            expect(document.querySelector('.LogRow__timestamp')).toHaveTextContent(/^not a timestamp$/);
+        });
+    });
+
+    describe('timestamp', () => {
+        const getTime = () => document.querySelector('.LogRow__timestamp');
+
+        test('should show the time in the admin\'s timezone', () => {
+            renderLogRow({timezone: 'Europe/Berlin'});
+
+            expect(getTime()).toHaveTextContent(/^13:34:56\.789$/);
+        });
+
+        test('should convert a timestamp logged with another offset', () => {
+            renderLogRow({log: {...baseLog, timestamp: '2024-07-01 08:00:00.000 -04:00'}, timezone: 'Europe/Berlin'});
+
+            expect(getTime()).toHaveTextContent(/^14:00:00\.000$/);
+        });
+
+        test('should hide the date by default', () => {
+            renderLogRow();
+
+            expect(getTime()).toHaveTextContent(/^12:34:56\.789$/);
+        });
+
+        test('should show the date in the admin\'s timezone when asked to', () => {
+            renderLogRow({log: {...baseLog, timestamp: '2023-12-31 23:30:00.000 +00:00'}, timezone: 'Europe/Berlin', showDate: true});
+
+            // Past midnight in Berlin, so the day moves on too
+            expect(getTime()).toHaveTextContent(/^2024-01-01 00:30:00\.000$/);
+        });
+
+        test('should keep the raw timestamp in the tooltip', () => {
+            renderLogRow({timezone: 'Europe/Berlin', showDate: true});
+
+            expect(getTime()).toHaveAttribute('title', baseLog.timestamp);
+        });
+
+        test('should keep the raw timestamp in the expanded details', () => {
+            renderLogRow({isExpanded: true, timezone: 'Europe/Berlin', showDate: true});
+
+            expect(screen.getByText(baseLog.timestamp)).toHaveClass('LogRow__detail-value');
         });
 
         test.each([
@@ -448,6 +497,18 @@ describe('components/admin_console/server_logs/LogRow', () => {
             expect(writeText).toHaveBeenCalledWith(
                 '2024-01-01 12:34:56.789 +00:00 [INFO] Something happened (app/server.go:123)',
             );
+        });
+
+        test('should copy the raw timestamp whatever the admin\'s timezone', async () => {
+            renderLogRow({isExpanded: true, timezone: 'Europe/Berlin', showDate: true});
+
+            await userEvent.click(screen.getByText('Copy log line'));
+            expect(writeText).toHaveBeenLastCalledWith(
+                '2024-01-01 12:34:56.789 +00:00 [INFO] Something happened (app/server.go:123)',
+            );
+
+            await userEvent.click(screen.getByText('Copy JSON'));
+            expect(writeText).toHaveBeenLastCalledWith(JSON.stringify(baseLog, undefined, 2));
         });
 
         test('should copy the value of a copyable extra field', async () => {

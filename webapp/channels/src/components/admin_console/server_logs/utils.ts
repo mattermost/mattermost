@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import moment from 'moment-timezone';
+
 import {LogLevelEnum, LogNodeKey} from '@mattermost/types/admin';
 
 import {logEntryTime} from 'mattermost-redux/utils/log_utils';
@@ -53,4 +55,33 @@ export function newestLogTimes(logs: LogObjectWithAdditionalInfo[]): Record<stri
         }
     }
     return newest;
+}
+
+const DAY_FORMAT = 'YYYY-MM-DD';
+const TIME_FORMAT = 'HH:mm:ss.SSS';
+
+// The entry's time in the admin's timezone. A timestamp that doesn't parse is shown as logged
+export function formatLogRowTime(log: LogObjectWithAdditionalInfo, timezone: string, showDate: boolean): string {
+    const time = logEntryTime(log);
+    if (Number.isNaN(time)) {
+        return log.timestamp.slice(0, 23);
+    }
+    return moment.tz(time, timezone).format(showDate ? `${DAY_FORMAT} ${TIME_FORMAT}` : TIME_FORMAT);
+}
+
+// Whether the entries fall on more than one day in the admin's timezone, which rows then need the date to tell apart
+export function spansMultipleDays(logs: LogObjectWithAdditionalInfo[], timezone: string): boolean {
+    let oldest = Infinity;
+    let newest = -Infinity;
+    for (const log of logs) {
+        const time = logEntryTime(log);
+        if (!Number.isNaN(time)) {
+            oldest = Math.min(oldest, time);
+            newest = Math.max(newest, time);
+        }
+    }
+    if (oldest > newest) {
+        return false;
+    }
+    return moment.tz(oldest, timezone).format(DAY_FORMAT) !== moment.tz(newest, timezone).format(DAY_FORMAT);
 }

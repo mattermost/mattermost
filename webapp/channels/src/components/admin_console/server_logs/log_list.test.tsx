@@ -1193,4 +1193,83 @@ describe('components/admin_console/server_logs/LogList', () => {
             expect(newEntriesButton()).not.toBeInTheDocument();
         });
     });
+    describe('row times', () => {
+        beforeEach(() => pinAscendingSort());
+
+        const rowTimes = () => Array.from(document.querySelectorAll('.LogRow__timestamp')).map((el) => el.textContent);
+        const viewer = () => document.querySelector('.LogViewer');
+
+        function renderInTimezone(logs: LogObjectWithAdditionalInfo[], timezone: string) {
+            return renderWithContext(
+                <StatefulLogList
+                    {...baseProps}
+                    logs={logs}
+                />,
+                {entities: {users: {
+                    currentUserId: 'user1',
+                    profiles: {user1: {id: 'user1', timezone: {useAutomaticTimezone: 'false', automaticTimezone: '', manualTimezone: timezone}}},
+                }}},
+            );
+        }
+
+        test('should show the times in the admin\'s timezone rather than the server\'s', () => {
+            renderInTimezone([
+                makeLog('utc', '2026-03-12 14:30:00.000 +00:00'),
+                makeLog('offset', '2026-03-12 10:45:00.000 -04:00'),
+            ], 'Europe/Berlin');
+
+            expect(rowTimes()).toEqual(['15:30:00.000', '15:45:00.000']);
+        });
+
+        test('should hide the date when every entry is on the same day', () => {
+            renderList([first, second, third]);
+
+            expect(rowTimes()).toEqual(['10:00:01.000', '10:00:02.000', '10:00:03.000']);
+            expect(viewer()).not.toHaveClass('LogViewer--with-date');
+        });
+
+        test('should show the date on every row when the entries span more than one day', () => {
+            renderList([
+                makeLog('yesterday', '2026-03-11T23:59:59.000Z'),
+                makeLog('today', '2026-03-12T00:00:01.000Z'),
+            ]);
+
+            expect(rowTimes()).toEqual(['2026-03-11 23:59:59.000', '2026-03-12 00:00:01.000']);
+
+            // Widens the time column for the header and every row alike
+            expect(viewer()).toHaveClass('LogViewer--with-date');
+        });
+
+        test('should decide on the day in the admin\'s timezone', () => {
+            // Different days in UTC, the same day in Berlin
+            renderInTimezone([
+                makeLog('late', '2026-03-11T23:30:00.000Z'),
+                makeLog('early', '2026-03-12T00:30:00.000Z'),
+            ], 'Europe/Berlin');
+
+            expect(rowTimes()).toEqual(['00:30:00.000', '01:30:00.000']);
+            expect(viewer()).not.toHaveClass('LogViewer--with-date');
+        });
+
+        test('should show the date on every page when the entries span more than one day', () => {
+            localStorage.setItem(PREFS_KEY, JSON.stringify({sortAsc: true, pageSize: 50}));
+            const logs = [
+                makeLog('yesterday', '2026-03-11T23:00:00.000Z'),
+                ...Array.from({length: 60}, (_, i) => makeLog(`msg ${i}`, new Date(Date.UTC(2026, 2, 12, 10, 0, i)).toISOString())),
+            ];
+            renderList(logs);
+
+            fireEvent.click(screen.getByLabelText('Next page'));
+
+            // This page only holds entries from one day, yet keeps the date
+            expect(rowTimes()[0]).toBe('2026-03-12 10:00:49.000');
+        });
+
+        test('should ignore a timestamp that does not parse when deciding on the date', () => {
+            renderList([first, makeLog('broken', 'not a timestamp'), second]);
+
+            expect(rowTimes()).toEqual(expect.arrayContaining(['10:00:01.000', 'not a timestamp', '10:00:02.000']));
+            expect(viewer()).not.toHaveClass('LogViewer--with-date');
+        });
+    });
 });
