@@ -1320,10 +1320,13 @@ func TestChannelGroupConstrainedMember(t *testing.T) {
 		channelType       model.ChannelType
 		call              string
 		asSystemAdmin     bool
+		asChannelAdmin    bool
+		archived          bool
 		presetConstrained bool
 		groupConstrained  *bool
 		displayNameOnly   bool
 		expectForbidden   bool
+		keepMember        bool
 	}{
 		{
 			name:             "open channel patch true",
@@ -1427,23 +1430,95 @@ func TestChannelGroupConstrainedMember(t *testing.T) {
 			presetConstrained: true,
 			groupConstrained:  new(false),
 		},
+		{
+			name:             "open channel patch unchanged false",
+			channelType:      model.ChannelTypeOpen,
+			call:             callPatch,
+			groupConstrained: new(false),
+		},
+		{
+			name:             "open channel update unchanged false with display name",
+			channelType:      model.ChannelTypeOpen,
+			call:             callUpdate,
+			groupConstrained: new(false),
+			displayNameOnly:  true,
+		},
+		{
+			name:              "open channel update unchanged true with display name",
+			channelType:       model.ChannelTypeOpen,
+			call:              callUpdate,
+			presetConstrained: true,
+			groupConstrained:  new(true),
+			displayNameOnly:   true,
+		},
+		{
+			name:             "direct channel update true",
+			channelType:      model.ChannelTypeDirect,
+			call:             callUpdate,
+			groupConstrained: new(true),
+			expectForbidden:  true,
+		},
+		{
+			name:             "group channel update true",
+			channelType:      model.ChannelTypeGroup,
+			call:             callUpdate,
+			groupConstrained: new(true),
+			expectForbidden:  true,
+		},
+		{
+			name:             "archived open channel patch true",
+			channelType:      model.ChannelTypeOpen,
+			call:             callPatch,
+			archived:         true,
+			groupConstrained: new(true),
+			expectForbidden:  true,
+		},
+		{
+			name:             "open channel patch true by channel admin",
+			channelType:      model.ChannelTypeOpen,
+			call:             callPatch,
+			asChannelAdmin:   true,
+			groupConstrained: new(true),
+		},
+		{
+			name:             "open channel patch true keeps member",
+			channelType:      model.ChannelTypeOpen,
+			call:             callPatch,
+			asSystemAdmin:    true,
+			groupConstrained: new(true),
+			keepMember:       true,
+		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			var channel *model.Channel
-			if tc.channelType == model.ChannelTypePrivate {
+			switch tc.channelType {
+			case model.ChannelTypePrivate:
 				channel = th.CreatePrivateChannel(t)
-			} else {
+			case model.ChannelTypeDirect:
+				other := th.CreateUser(t)
+				var createErr error
+				channel, _, createErr = memberClient.CreateDirectChannel(context.Background(), memberUser.Id, other.Id)
+				require.NoError(t, createErr)
+			case model.ChannelTypeGroup:
+				other1 := th.CreateUser(t)
+				other2 := th.CreateUser(t)
+				var createErr error
+				channel, _, createErr = memberClient.CreateGroupChannel(context.Background(), []string{memberUser.Id, other1.Id, other2.Id})
+				require.NoError(t, createErr)
+			default:
 				channel = th.CreatePublicChannel(t)
 			}
 
-			added := th.AddUserToChannel(t, memberUser, channel)
-			require.Equal(t, channel.Id, added.ChannelId)
-			require.Equal(t, memberUser.Id, added.UserId)
-			require.False(t, added.SchemeAdmin)
-			require.False(t, added.SchemeGuest)
-			require.True(t, added.SchemeUser)
+			if tc.channelType != model.ChannelTypeDirect && tc.channelType != model.ChannelTypeGroup {
+				added := th.AddUserToChannel(t, memberUser, channel)
+				require.Equal(t, channel.Id, added.ChannelId)
+				require.Equal(t, memberUser.Id, added.UserId)
+				require.False(t, added.SchemeAdmin)
+				require.False(t, added.SchemeGuest)
+				require.True(t, added.SchemeUser)
+			}
 
 			if tc.presetConstrained {
 				current, resp, getErr := th.SystemAdminClient.GetChannel(context.Background(), channel.Id)
@@ -1468,6 +1543,12 @@ func TestChannelGroupConstrainedMember(t *testing.T) {
 			require.True(t, membership.SchemeUser)
 			require.False(t, memberUser.IsGuest())
 
+			if tc.archived {
+				deleteResp, deleteErr := th.SystemAdminClient.DeleteChannel(context.Background(), channel.Id)
+				require.NoError(t, deleteErr)
+				CheckOKStatus(t, deleteResp)
+			}
+
 			before, resp, getErr := th.SystemAdminClient.GetChannel(context.Background(), channel.Id)
 			require.NoError(t, getErr)
 			CheckOKStatus(t, resp)
@@ -1475,6 +1556,15 @@ func TestChannelGroupConstrainedMember(t *testing.T) {
 			client := memberClient
 			if tc.asSystemAdmin {
 				client = th.SystemAdminClient
+			}
+			if tc.asChannelAdmin {
+				client = th.Client
+				adminMember, adminResp, adminErr := th.SystemAdminClient.GetChannelMember(context.Background(), channel.Id, th.BasicUser.Id, "")
+				require.NoError(t, adminErr)
+				CheckOKStatus(t, adminResp)
+				require.Equal(t, th.BasicUser.Id, adminMember.UserId)
+				require.True(t, adminMember.SchemeAdmin)
+				require.False(t, adminMember.SchemeGuest)
 			}
 
 			displayName := ""
@@ -1517,6 +1607,12 @@ func TestChannelGroupConstrainedMember(t *testing.T) {
 				require.NoError(t, storedErr)
 				CheckOKStatus(t, storedResp)
 				require.Equal(t, before.GroupConstrained, stored.GroupConstrained)
+
+				// The caller is still a member of the channel.
+				stillMember, memberResp, memberErr := th.SystemAdminClient.GetChannelMember(context.Background(), channel.Id, memberUser.Id, "")
+				require.NoError(t, memberErr)
+				CheckOKStatus(t, memberResp)
+				require.Equal(t, memberUser.Id, stillMember.UserId)
 				return
 			}
 
@@ -1537,6 +1633,32 @@ func TestChannelGroupConstrainedMember(t *testing.T) {
 				require.Equal(t, *tc.groupConstrained, *updated.GroupConstrained)
 				require.NotNil(t, stored.GroupConstrained)
 				require.Equal(t, *tc.groupConstrained, *stored.GroupConstrained)
+			}
+
+			if !tc.keepMember {
+				return
+			}
+
+			// A channel with no linked groups keeps its members after the flag is set.
+			timeout := time.After(3 * time.Second)
+			ticker := time.NewTicker(100 * time.Millisecond)
+			defer ticker.Stop()
+
+			for {
+				select {
+				case <-timeout:
+					kept, keptResp, keptErr := th.SystemAdminClient.GetChannelMember(context.Background(), channel.Id, memberUser.Id, "")
+					require.NoError(t, keptErr)
+					CheckOKStatus(t, keptResp)
+					require.Equal(t, memberUser.Id, kept.UserId)
+					return
+				case <-ticker.C:
+					_, keptResp, keptErr := th.SystemAdminClient.GetChannelMember(context.Background(), channel.Id, memberUser.Id, "")
+					if keptErr != nil && keptResp.StatusCode == http.StatusNotFound {
+						require.Fail(t, "channel member is no longer in the channel")
+						return
+					}
+				}
 			}
 		})
 	}
