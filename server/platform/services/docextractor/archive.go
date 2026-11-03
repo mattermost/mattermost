@@ -103,12 +103,16 @@ func (ae *archiveExtractor) Extract(ctx context.Context, name string, r io.ReadS
 	if err != nil {
 		return "", fmt.Errorf("error creating file system: %w", err)
 	}
-	extractor, ok := format.(archives.Extractor)
-	if !ok {
-		return "", fmt.Errorf("error creating file system: unsupported format")
-	}
 	if _, err = f.Seek(0, io.SeekStart); err != nil {
 		return "", fmt.Errorf("error creating file system: %w", err)
+	}
+	extractor, ok := format.(archives.Extractor)
+	if !ok {
+		decompressor, ok := format.(archives.Decompressor)
+		if !ok {
+			return "", fmt.Errorf("error creating file system: unsupported format")
+		}
+		return ae.extractCompressedFile(ctx, name, f, decompressor, maxFileSize, budget)
 	}
 
 	var text strings.Builder
@@ -190,6 +194,32 @@ func archiveMemberWithinLimits(name string) bool {
 	return strings.Count(name, "/")+1 <= maxArchivePathDepth
 }
 
+// extractCompressedFile handles a compressed file that is not an archive, such
+// as readme.md.gz, as a single member named without the compression extension.
+func (ae *archiveExtractor) extractCompressedFile(ctx context.Context, name string, r io.Reader, decompressor archives.Decompressor, maxFileSize int64, budget *ExtractionBudget) (string, error) {
+	base := filepath.Base(name)
+	memberName := strings.TrimSuffix(base, filepath.Ext(base))
+
+	var text strings.Builder
+	if ae.SubExtractor == nil {
+		ae.writeMember(ctx, &text, memberName, nil, false, maxFileSize, budget)
+		return text.String(), nil
+	}
+
+	decompressed, err := decompressor.OpenReader(r)
+	if err != nil {
+		return "", fmt.Errorf("error opening compressed file: %w", err)
+	}
+	defer decompressed.Close()
+
+	data, hitLimit, err := readLimited(decompressed, budget.Remaining(), maxFileSize)
+	if err != nil {
+		return "", err
+	}
+	ae.writeMember(ctx, &text, memberName, data, hitLimit, maxFileSize, budget)
+	return text.String(), nil
+}
+
 func readArchiveMember(file archives.FileInfo, room, maxFileSize int64) ([]byte, bool, error) {
 	opened, err := file.Open()
 	if err != nil {
@@ -197,11 +227,15 @@ func readArchiveMember(file archives.FileInfo, room, maxFileSize int64) ([]byte,
 	}
 	defer opened.Close()
 
+	return readLimited(opened, room, maxFileSize)
+}
+
+func readLimited(r io.Reader, room, maxFileSize int64) ([]byte, bool, error) {
 	limit := room
 	if maxFileSize > 0 && maxFileSize < limit {
 		limit = maxFileSize
 	}
-	reader := utils.NewLimitedReaderWithError(opened, limit)
+	reader := utils.NewLimitedReaderWithError(r, limit)
 
 	data, err := io.ReadAll(reader)
 	if errors.Is(err, utils.ErrSizeLimitExceeded) {

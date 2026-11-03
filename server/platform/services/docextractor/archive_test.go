@@ -183,7 +183,7 @@ func TestArchiveExtractorSkips7zip(t *testing.T) {
 // TestArchiveExtractorReadAllocation checks that allocation while reading stays
 // within a fixed ceiling for a long member path, many file members, many
 // directory members, a sub-extractor, another archive suffix, member path and
-// name boundaries, and a cancelled context.
+// name boundaries, a cancelled context, and a single compressed file.
 func TestArchiveExtractorReadAllocation(t *testing.T) {
 	const (
 		allocCeiling = 8 << 20
@@ -220,6 +220,11 @@ func TestArchiveExtractorReadAllocation(t *testing.T) {
 		t.Helper()
 		writeTarMembers(t, tw, memberCount, false)
 	})
+	var singleGz bytes.Buffer
+	sgz := gzip.NewWriter(&singleGz)
+	_, err := sgz.Write(make([]byte, 64<<20))
+	require.NoError(t, err)
+	require.NoError(t, sgz.Close())
 	pathAtLimit := memberPath(maxArchivePathDepth, "kept.txt")
 	pathPastLimit := memberPath(maxArchivePathDepth+1, "dropped.txt")
 	nameAtLimit := strings.Repeat("n", maxArchiveNameLength)
@@ -264,6 +269,7 @@ func TestArchiveExtractorReadAllocation(t *testing.T) {
 		sub          Extractor
 		cancel       bool
 		wantNilErr   bool
+		wantErr      error
 		wantContains string
 		wantAbsent   string
 	}{
@@ -298,6 +304,7 @@ func TestArchiveExtractorReadAllocation(t *testing.T) {
 			archiveName: "deep.tar.gz",
 			data:        deep,
 			cancel:      true,
+			wantErr:     context.Canceled,
 		},
 		{
 			name:        "many file members with sub-extractor",
@@ -353,6 +360,14 @@ func TestArchiveExtractorReadAllocation(t *testing.T) {
 			archiveName: "files.tar.gz",
 			data:        manyFiles,
 			cancel:      true,
+			wantErr:     context.Canceled,
+		},
+		{
+			name:        "single compressed file with sub-extractor",
+			archiveName: "zeros.txt.gz",
+			data:        singleGz.Bytes(),
+			sub:         &plainExtractor{},
+			wantNilErr:  true,
 		},
 	}
 
@@ -385,6 +400,9 @@ func TestArchiveExtractorReadAllocation(t *testing.T) {
 			require.Less(t, delta, uint64(allocCeiling), "allocation while reading stays within a fixed ceiling")
 			if tc.wantNilErr {
 				require.NoError(t, err)
+			}
+			if tc.wantErr != nil {
+				require.ErrorIs(t, err, tc.wantErr)
 			}
 			if tc.wantContains != "" {
 				assert.Contains(t, result, tc.wantContains, "member name is returned")
@@ -439,4 +457,43 @@ func TestArchiveExtractorSmallArchive(t *testing.T) {
 			assert.Contains(t, result, tc.entryName, "a small archive still returns its entry name")
 		})
 	}
+}
+
+// TestArchiveExtractorSingleCompressedFile checks that a compressed file that is
+// not an archive, such as readme.md.gz, returns its name and contents.
+func TestArchiveExtractorSingleCompressedFile(t *testing.T) {
+	var buf bytes.Buffer
+	gz := gzip.NewWriter(&buf)
+	_, err := gz.Write([]byte("hello readme"))
+	require.NoError(t, err)
+	require.NoError(t, gz.Close())
+
+	t.Run("without sub-extractor", func(t *testing.T) {
+		ae := &archiveExtractor{}
+		result, err := ae.Extract(context.Background(), "readme.md.gz", bytes.NewReader(buf.Bytes()), 0, testBudget())
+		require.NoError(t, err)
+		assert.Contains(t, result, "readme.md")
+		assert.NotContains(t, result, "hello readme")
+	})
+
+	t.Run("with sub-extractor", func(t *testing.T) {
+		ae := &archiveExtractor{SubExtractor: &plainExtractor{}}
+		result, err := ae.Extract(context.Background(), "readme.md.gz", bytes.NewReader(buf.Bytes()), 0, testBudget())
+		require.NoError(t, err)
+		assert.Contains(t, result, "readme.md")
+		assert.Contains(t, result, "hello readme")
+	})
+
+	t.Run("contents are limited by the budget", func(t *testing.T) {
+		var large bytes.Buffer
+		lgz := gzip.NewWriter(&large)
+		_, err := lgz.Write(bytes.Repeat([]byte("a"), int(maxArchiveExtractedText)*4))
+		require.NoError(t, err)
+		require.NoError(t, lgz.Close())
+
+		ae := &archiveExtractor{SubExtractor: &plainExtractor{}}
+		result, err := ae.Extract(context.Background(), "large.txt.gz", bytes.NewReader(large.Bytes()), 0, testBudget())
+		require.NoError(t, err)
+		assert.LessOrEqual(t, len(result), int(maxArchiveExtractedText)+256, "total output should not exceed budget by more than a path-length overhead")
+	})
 }
