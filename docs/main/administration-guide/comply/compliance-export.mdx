@@ -21,6 +21,8 @@ Compliance exports are produced from the System Console, and contain all message
 
 Exports include information on channel member history at the time the message was posted.
 
+Compliance exports are incremental. Each export run starts exactly where the previous run ended, so consecutive exports don't overlap or leave gaps.
+
 ## Set up guide
 
 Use the following guides to configure exports for [CSV](#csv), [Smarsh / Actiance XML](#actiance-xml), [Global Relay EML](#global-relay-eml), or [Proofpoint](#proofpoint).
@@ -46,12 +48,12 @@ Use the following guides to configure exports for [CSV](#csv), [Smarsh / Actianc
 
 You can review export job status in the System Console.
 
-When the daily compliance export job is finished, a parent directory is created named based on when the export was started and the `startTimestamp` and `endTimestamp` of the export, e.g, `administration-guide/comply/compliance-export-2024-08-13-05h08m-1723105062492-1723109100075`. That parent directory contains 1 zip file for each batch, named based on the batch number and the start and end timestamps of the messages in that batch, e.g, `batch001-1723105062492-1723106622163.zip`. Each zip file contains the same information available in previous Mattermost server releases.
+When the daily compliance export job is finished, a parent directory is created named based on when the export was started and the `startTimestamp` and `endTimestamp` of the export, e.g, `compliance-export-2024-08-13-05h08m-1723105062492-1723109100075`. That parent directory contains 1 zip file for each batch, named based on the batch number and the start and end timestamps of the messages in that batch, e.g, `batch001-1723105062492-1723106622163.zip`.
 
 Working from the same example above, the directory would look like this:
 
 ``` bash
-administration-guide/comply/compliance-export-2024-08-13-05h08m-1723105062492-1723109100075
+compliance-export-2024-08-13-05h08m-1723105062492-1723109100075
 ├── batch001-1723105062492-1723106622163.zip
 ├── batch002-1723106622163-1723108196005.zip
 └── batch003-1723108196005-1723109100075.zip
@@ -62,28 +64,82 @@ And each batch would look like this:
 ``` bash
 batch001-1723105062492-1723106622163.zip
 ├── files
+│   └── <PostId>
+│       └── <FileId>-<filename>
 ├── metadata.json
-└── actiance_export.xml
+└── posts.csv
 ```
 
-## Updated CSV export fields
+#### CSV columns
 
-**Post Creation Time** is always the `CreateAt` for messages and attachments, or `JoinTime` and `LeaveTime` for participant join and leave events, respectively.
+Each row in `posts.csv` contains the following columns, in this order. All timestamps are UTC epoch milliseconds.
 
-- **Update Time** indicates that the message has been updated, and this is the `updateAt` time.
-- **Updated Type** helps differentiate what kind of update it was as one of the following:
-  - **EditedNewMsg** indicates that the message has been edited, and this is the new message (post-edit) content.
-  - **EditedOriginalMsg** indicates that the message has been edited, and this the original message (pre-edit) content. This message will have another field `EditedNewMsgId`, which is the Id of the message which holds the post-edited message contents.
-  - **UpdatedNoMsgChange** indicates that message's content hasn't changed, but the post was updated for some reason, such as reaction, replied-to, a reply was edited, or a reply was deleted.
-  - **Deleted** indicates that this message was deleted.
-  - **FileDeleted** indicates that this message is recording that a file was deleted.
+| Column | Description |
+|---|---|
+| Post Creation Time | The `CreateAt` time for messages and attachments, or the join or leave time for channel membership rows. Edited versions of a message keep the original message's creation time. |
+| Post Update Time | The `UpdateAt` time when the message was updated, edited, or deleted. `0` for channel membership rows. |
+| Post Update Type | The kind of update. See [Post Update Type values](#post-update-type-values). Empty for newly created messages, attachments, and channel membership rows. |
+| Team Id | The ID of the team. Empty for direct and group messages. |
+| Team Name | The name of the team. Empty for direct and group messages. |
+| Team Display Name | The display name of the team. Empty for direct and group messages. |
+| Channel Id | The ID of the channel. |
+| Channel Name | The name of the channel. |
+| Channel Display Name | The display name of the channel. |
+| Channel Type | One of `public`, `private`, `direct`, or `group`. |
+| User Id | The ID of the user. |
+| User Email | The email address of the user. |
+| Username | The username of the user. |
+| Post Id | The ID of the message. Empty for channel membership rows. An attachment row has the same Post Id as the message it was posted with. |
+| Edited By Post Id | For `EditedOriginalMsg` rows, the Post Id of the message that holds the current (post-edit) content. |
+| Replied to Post Id | For thread replies, the Post Id of the root message. |
+| Post Message | The message text. For attachment and channel membership rows, see [Post Type values](#post-type-values). |
+| Post Type | The kind of row. See [Post Type values](#post-type-values). |
+| User Type | `user` or `bot`. |
+| Previews Post Id | The Post Id of a message previewed by a permalink in this message. |
+
+#### Post Type values
+
+- **message**: A message posted in the channel.
+- **attachment**: A file attached to a message. Each attachment is written as its own row with the same Post Id, Post Creation Time, user, and channel as the message it was posted with. The Post Message column contains the file name followed by the file's path within the batch zip file, e.g. `report.pdf (files/<PostId>/<FileId>-report.pdf)`. The file itself is stored at that path in the batch zip file.
+- **previously-joined**: The user was already a member of the channel when the batch started. Each batch includes a `previously-joined` row for every member of each channel with activity in that batch. Post Creation Time is the time the user originally joined the channel.
+- **enter**: The user joined the channel during the batch. Post Creation Time is the join time.
+- **leave**: The user left the channel during the batch. Post Creation Time is the leave time.
+
+Channel membership rows (`previously-joined`, `enter`, and `leave`) aren't messages, so they have no Post Id. They're identified by the Channel Id, User Id, and Post Creation Time.
+
+<Note>
+
+Because a message and its attachments share the same Post Id, Post Id isn't unique per row. To uniquely identify an attachment row, combine the Post Id with the file path in the Post Message column.
+
+</Note>
+
+#### Post Update Type values
+
+- **EditedNewMsg** indicates that the message has been edited, and this is the new message (post-edit) content. This row keeps the original Post Id.
+- **EditedOriginalMsg** indicates that the message has been edited, and this is the original message (pre-edit) content. This row has its own Post Id, and its **Edited By Post Id** column contains the Post Id of the message that holds the post-edited contents. When a message is edited more than once, each prior version is exported as a separate `EditedOriginalMsg` row, and every one of them points to the same Edited By Post Id.
+- **UpdatedNoMsgChange** indicates that the message's content hasn't changed, but the post was updated for some reason, such as reaction, replied-to, a reply was edited, or a reply was deleted.
+- **Deleted** indicates that this message was deleted.
+- **FileDeleted** indicates that this message is recording that a file was deleted.
+
+When a message with attachments is updated or edited, its attachment rows and files are exported again in the batch that contains the update.
+
+#### metadata.json
+
+Each batch includes a `metadata.json` file that summarizes the batch. It contains:
+
+- `StartTime` and `EndTime`: The start and end timestamps of the batch.
+- `MessagesCount`: The number of `message` rows in the batch.
+- `AttachmentsCount`: The number of `attachment` rows in the batch, including attachments exported again because their message was updated.
+- `Channels`: For each channel with activity in the batch, the channel's `ChannelId`, `ChannelName`, `ChannelDisplayName`, `ChannelType`, `TeamId`, `RoomId`, `StartTime`, `EndTime`, `MessagesCount`, and `AttachmentsCount`.
+
+`metadata.json` doesn't contain message-level data.
 
 </TabItem>
 <TabItem value="prior-to-mattermost-v10-5" label="Prior to Mattermost v10.5">
 
 The daily compliance export job creates a `.zip` file with a unique job identifier of all messages posted in the last 24 hours. You can unzip the file to easily transform the default `.csv` format into a desired format for your third-party archive system.
 
-For a sample CSV output, [download a CSV export file here](/files/samples/csv_export.zip).
+For a sample CSV output in the format used prior to Mattermost v10.5, [download a CSV export file here](/files/samples/csv_export.zip). This sample doesn't include the columns added in Mattermost v10.5.
 
 </TabItem>
 </Tabs>
@@ -91,7 +147,7 @@ For a sample CSV output, [download a CSV export file here](/files/samples/csv_ex
 
 ### Actiance XML
 
-Actiance XML is the supported format for the 'Smarsh Vantage product \[https://central.smarsh.com/s/product/vantage\](https://central.smarsh.com/s/product/vantage\)\`\_.
+Actiance XML is the supported format for the [Smarsh Vantage product](https://central.smarsh.com/s/product/vantage).
 
 1.  Go to **System Console \> Compliance \> Compliance Export**.
 2.  Set **Enable Compliance Exports** to **true**.
@@ -110,12 +166,12 @@ In Actiance XML exports, channel type is prepended to the channel names.
 
 You can review export job status in the System Console. Once you've selected Actiance XML as your file format, you can set up an integration with Actiance Vantage archive system.
 
-When the daily compliance export job is finished, a parent directory is created named based on when the export was started and the `startTimestamp` and `endTimestamp` of the export, e.g, `administration-guide/comply/compliance-export-2024-08-13-05h08m-1723105062492-1723109100075`. That parent directory contains 1 zip file for each batch, named based on the batch number and the start and end timestamps of the messages in that batch, e.g, `batch001-1723105062492-1723106622163.zip`. Each zip file contains the same information available in previous Mattermost server releases.
+When the daily compliance export job is finished, a parent directory is created named based on when the export was started and the `startTimestamp` and `endTimestamp` of the export, e.g, `compliance-export-2024-08-13-05h08m-1723105062492-1723109100075`. That parent directory contains 1 zip file for each batch, named based on the batch number and the start and end timestamps of the messages in that batch, e.g, `batch001-1723105062492-1723106622163.zip`. Each zip file contains the same information available in previous Mattermost server releases.
 
 Working from the same example above, the directory would look like this:
 
 ``` bash
-administration-guide/comply/compliance-export-2024-08-13-05h08m-1723105062492-1723109100075
+compliance-export-2024-08-13-05h08m-1723105062492-1723109100075
 ├── batch001-1723105062492-1723106622163.zip
 ├── batch002-1723106622163-1723108196005.zip
 └── batch003-1723108196005-1723109100075.zip
@@ -146,7 +202,7 @@ If an XML field is empty, it won't be exported. This is a change from previous M
 </TabItem>
 <TabItem value="prior-to-mattermost-v10-5" label="Prior to Mattermost v10.5">
 
-The daily compliance export job creates a `.zip` file with a unique job identifier of all messages posted in the last 24 hours. Once you've selected Actiance XML as your file format, you can set up an integration with Actiance Vantage archive system. For a sample Actiance output, [download an Actiance XML export file here](/files/samples/actiance_export.xml).
+The daily compliance export job creates a `.zip` file with a unique job identifier of all messages posted in the last 24 hours. Once you've selected Actiance XML as your file format, you can set up an integration with Actiance Vantage archive system. For a sample Actiance output in the format used prior to Mattermost v10.5, [download an Actiance XML export file here](/files/samples/actiance_export.xml). This sample doesn't include the fields added in Mattermost v10.5, such as `MessageId`.
 
 </TabItem>
 </Tabs>
@@ -183,7 +239,7 @@ Once you've selected Global Relay EML as your file format, you can set up an int
 6.  Set the **SMTP username**, **SMTP password**, **SMTP email address**, **SMTP Server Name**, and the **SMTP Server Port**, provided by Proofpoint.
 7.  Select **Save**.
 
-See the [Global Relay](#global-relay-eml) section for details on updated Global Relay export fields. Now you can set up an integration with the Proofpoint archive system. For more information, visit the [Proofpoint Archive webiste](https://www.proofpoint.com/us/products/archiving-and-compliance/archive).
+Proofpoint exports use the same EML format as [Global Relay](#global-relay-eml). Now you can set up an integration with the Proofpoint archive system. For more information, visit the [Proofpoint Archive website](https://www.proofpoint.com/us/products/archiving-and-compliance/archive).
 
 ## Frequently Asked Questions (FAQ)
 
@@ -219,6 +275,6 @@ In addition, any failures are returned in the server logs for self-hosted deploy
 
 <Note>
 
-This compliance export feature replaces legacy Compliance Reporting Oversight functionality. We recommend Enterprise customers migrate to the new system. For a sample CSV output of the new compliance export system, [download a CSV export file here](/files/samples/csv_export.zip).
+This compliance export feature replaces legacy Compliance Reporting Oversight functionality. We recommend Enterprise customers migrate to the new system. For the CSV format used from Mattermost v10.5, see [CSV columns](#csv-columns).
 
 </Note>
