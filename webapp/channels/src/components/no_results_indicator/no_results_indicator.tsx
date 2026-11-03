@@ -155,14 +155,13 @@ const NoResultsIndicator = ({
         />
     ) : null;
 
-    const title = titleProp !== undefined ? titleProp : defaultTitle;
-    const subtitle = subtitleProp !== undefined ? subtitleProp : defaultSubtitle;
+    const title = titleProp === undefined ? defaultTitle : titleProp;
+    const subtitle = subtitleProp === undefined ? defaultSubtitle : subtitleProp;
 
-    const resolvedIllustration = iconGraphic !== undefined ? (
-        iconGraphic
-    ) : (
-        variant ? renderNoResultsVariantIllustration(variant) : null
-    );
+    let resolvedIllustration = iconGraphic;
+    if (resolvedIllustration === undefined && variant) {
+        resolvedIllustration = renderNoResultsVariantIllustration(variant);
+    }
 
     const useCompassEmptyState = layout === NoResultsLayout.Vertical && Boolean(title || subtitle || resolvedIllustration);
 
@@ -181,15 +180,13 @@ const NoResultsIndicator = ({
                         'aria-label': '',
                         children: resolvedIllustration,
                     } : undefined}
-                    title={title != null ? (
+                    title={title == null ? '' : (
                         <span
                             className={classNames(titleClassName)}
                             data-testid='no-results-title'
                         >
                             {title}
                         </span>
-                    ) : (
-                        ''
                     )}
                     description={subtitle ? (
                         <span className={classNames(subtitleClassName)}>

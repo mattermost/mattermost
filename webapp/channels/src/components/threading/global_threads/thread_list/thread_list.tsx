@@ -17,6 +17,7 @@ import {getThreadCountsInCurrentTeam} from 'mattermost-redux/selectors/entities/
 import {closeModal, openModal} from 'actions/views/modals';
 
 import NoResultsIndicator from 'components/no_results_indicator';
+import {ThreadsEmptyIllustration} from 'components/no_results_indicator/no_results_variant_illustration';
 import Header from 'components/widgets/header';
 
 import {A11yClassNames, Constants, ModalIdentifiers} from 'utils/constants';
@@ -277,6 +278,7 @@ const ThreadList = ({
                 {unread && !someUnread && isEmpty(unreadIds) ? (
                     <NoResultsIndicator
                         expanded={true}
+                        iconGraphic={<ThreadsEmptyIllustration/>}
                         title={formatMessage({
                             id: 'globalThreads.threadList.noUnreadThreads',
                             defaultMessage: 'No unread threads',
