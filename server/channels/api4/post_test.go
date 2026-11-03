@@ -8140,6 +8140,220 @@ func TestCreateBurnOnReadPost(t *testing.T) {
 	})
 }
 
+// channelMentions returns the channel_mentions prop, or an empty map when it is absent.
+func channelMentions(t *testing.T, post *model.Post) map[string]any {
+	t.Helper()
+
+	prop := post.GetProp(model.PostPropsChannelMentions)
+	if prop == nil {
+		return map[string]any{}
+	}
+
+	mentions, ok := prop.(map[string]any)
+	require.Truef(t, ok, "channel_mentions type %T", prop)
+	return mentions
+}
+
+// TestBurnOnReadPostFields checks the message, hashtags, and channel mentions
+// returned for a burn-on-read post on the channel posts and single post reads.
+func TestBurnOnReadPostFields(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	enableBurnOnReadFeature(th)
+
+	authorClient := th.Client
+	memberClient := th.CreateClient()
+	th.LoginBasic2WithClient(t, memberClient)
+
+	const hashtag = "#borreadtag"
+	message := "see " + hashtag + " ~" + th.BasicChannel.Name
+
+	createPost := func(t *testing.T) *model.Post {
+		t.Helper()
+
+		created, resp, err := authorClient.CreatePost(context.Background(), &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   message,
+			Type:      model.PostTypeBurnOnRead,
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.NotNil(t, created)
+		return created
+	}
+
+	fetchPost := func(t *testing.T, client *model.Client4, postID string, channelPosts bool) *model.Post {
+		t.Helper()
+
+		if channelPosts {
+			list, resp, err := client.GetPostsForChannel(context.Background(), th.BasicChannel.Id, 0, 100, "", true, false)
+			require.NoError(t, err)
+			CheckOKStatus(t, resp)
+			require.NotNil(t, list)
+			got := list.Posts[postID]
+			require.NotNil(t, got)
+			return got
+		}
+
+		got, resp, err := client.GetPost(context.Background(), postID, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, got)
+		return got
+	}
+
+	testCases := []struct {
+		name         string
+		client       *model.Client4
+		revealFirst  bool
+		channelPosts bool
+		withContent  bool
+	}{
+		{
+			name:         "unrevealed member, channel posts",
+			client:       memberClient,
+			channelPosts: true,
+		},
+		{
+			name:   "unrevealed member, single post",
+			client: memberClient,
+		},
+		{
+			name:         "author, channel posts",
+			client:       authorClient,
+			channelPosts: true,
+			withContent:  true,
+		},
+		{
+			name:        "author, single post",
+			client:      authorClient,
+			withContent: true,
+		},
+		{
+			name:         "revealed member, channel posts",
+			client:       memberClient,
+			revealFirst:  true,
+			channelPosts: true,
+			withContent:  true,
+		},
+		{
+			name:        "revealed member, single post",
+			client:      memberClient,
+			revealFirst: true,
+			withContent: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			created := createPost(t)
+			if tc.revealFirst {
+				_, resp, err := memberClient.RevealPost(context.Background(), created.Id)
+				require.NoError(t, err)
+				CheckOKStatus(t, resp)
+			}
+
+			got := fetchPost(t, tc.client, created.Id, tc.channelPosts)
+			if !tc.withContent {
+				// A member who has not revealed the post gets an empty message, empty hashtags, and no channel mentions.
+				assert.Empty(t, got.Message)
+				assert.Empty(t, got.Hashtags)
+				assert.Empty(t, channelMentions(t, got))
+				return
+			}
+
+			// The author, and a member who has revealed the post, receive the hashtags and the channel mention.
+			assert.Equal(t, hashtag, got.Hashtags)
+			assert.Contains(t, channelMentions(t, got), th.BasicChannel.Name)
+		})
+	}
+}
+
+// TestBurnOnReadPostedEventFields checks hashtags on the posted event
+// for the author and for another channel member.
+func TestBurnOnReadPostedEventFields(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	enableBurnOnReadFeature(th)
+
+	authorClient := th.Client
+	memberClient := th.CreateClient()
+	th.LoginBasic2WithClient(t, memberClient)
+
+	const hashtag = "#borreadtag"
+	message := "see " + hashtag + " ~" + th.BasicChannel.Name
+
+	waitForPosted := func(t *testing.T, wsClient *model.WebSocketClient, postID string) *model.Post {
+		t.Helper()
+
+		timeout := time.After(5 * time.Second)
+		for {
+			select {
+			case event := <-wsClient.EventChannel:
+				if event.EventType() != model.WebsocketEventPosted {
+					continue
+				}
+				raw, ok := event.GetData()["post"].(string)
+				if !ok {
+					continue
+				}
+				var posted model.Post
+				require.NoError(t, json.Unmarshal([]byte(raw), &posted))
+				if posted.Id != postID {
+					continue
+				}
+				return &posted
+			case <-timeout:
+				require.FailNow(t, "timed out waiting for posted event")
+				return nil
+			}
+		}
+	}
+
+	testCases := []struct {
+		name         string
+		client       *model.Client4
+		wantHashtags string
+	}{
+		{
+			name:         "author",
+			client:       authorClient,
+			wantHashtags: hashtag,
+		},
+		{
+			name:   "unrevealed member",
+			client: memberClient,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			wsClient := th.CreateConnectedWebSocketClientWithClient(t, tc.client)
+
+			created, resp, err := authorClient.CreatePost(context.Background(), &model.Post{
+				ChannelId: th.BasicChannel.Id,
+				Message:   message,
+				Type:      model.PostTypeBurnOnRead,
+			})
+			require.NoError(t, err)
+			CheckCreatedStatus(t, resp)
+			require.NotNil(t, created)
+
+			posted := waitForPosted(t, wsClient, created.Id)
+			if tc.wantHashtags == "" {
+				// A member who has not revealed the post gets empty hashtags on the posted event.
+				assert.Empty(t, posted.Hashtags)
+				return
+			}
+
+			// The author receives the hashtags on the posted event.
+			assert.Equal(t, hashtag, posted.Hashtags)
+		})
+	}
+}
+
 func TestBurnPost(t *testing.T) {
 	th := SetupEnterprise(t).InitBasic(t)
 
