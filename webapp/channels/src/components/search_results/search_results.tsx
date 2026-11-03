@@ -334,10 +334,7 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
                 ])}
                 aria-live='polite'
             >
-                <NoResultsIndicator
-                    style={{padding: '48px'}}
-                    {...noResultsProps}
-                />
+                <NoResultsIndicator {...noResultsProps}/>
             </div>
         );
         break;
@@ -350,10 +347,7 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
                 ])}
                 aria-live='polite'
             >
-                <NoResultsIndicator
-                    style={{padding: '48px'}}
-                    {...noResultsProps}
-                />
+                <NoResultsIndicator {...noResultsProps}/>
             </div>
         );
         break;
