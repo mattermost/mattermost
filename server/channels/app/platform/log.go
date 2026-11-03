@@ -220,10 +220,8 @@ func (ps *PlatformService) getLogsSkipSend(rctx request.CTX, page, perPage int, 
 		defer cancel()
 
 		reader := newReverseLineReader(file, size, logReadBlockSize)
-		deadline, _ := ctx.Deadline()
 		reader.limit = func(read int64) error {
-			// The deadline is compared directly, as ctx.Err may lag behind it
-			if read >= budget.bytes || ctx.Err() != nil || !time.Now().Before(deadline) {
+			if read >= budget.bytes || ctx.Err() != nil {
 				return errLogScanLimited
 			}
 			return nil

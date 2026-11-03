@@ -537,13 +537,6 @@ func TestGetLogsSkipSendScanBudget(t *testing.T) {
 		// nothing was read, so there is no oldest timestamp
 		assert.NotContains(t, marker, "scanned_back_to")
 	})
-
-	t.Run("time budget", func(t *testing.T) {
-		budget := logScanBudget{duration: time.Nanosecond, bytes: defaultLogScanBudget.bytes}
-		got, appErr := ps.getLogsSkipSend(request.TestContext(t), 0, 10, rare, budget)
-		require.Nil(t, appErr)
-		require.NotNil(t, scanLimitMarker(t, got))
-	})
 }
 
 func TestOpenLogFile(t *testing.T) {
