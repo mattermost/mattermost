@@ -14,7 +14,6 @@ import (
 	"net/http"
 	"os"
 	"slices"
-	"sort"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -399,8 +398,8 @@ func (f *logFollower) print(logs map[string][]json.RawMessage, from, fetchedAt t
 		}
 	}
 
-	sort.SliceStable(pending, func(i, j int) bool {
-		return pending[i].time.Before(pending[j].time)
+	slices.SortStableFunc(pending, func(a, b pendingLog) int {
+		return a.time.Compare(b.time)
 	})
 	for _, p := range pending {
 		f.writerFor(p.node).Write(human.ParseLogMessage(p.line))
