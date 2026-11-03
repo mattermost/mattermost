@@ -26,6 +26,11 @@ class Result:
     todos: list = field(default_factory=list)
     notes: list = field(default_factory=list)
     skipped: str = ""  # why the task does not apply to this version
+    # Private results (drafts, release-highlights, breaking-changes) name Jira keys, epics and
+    # mattermost/enterprise PRs: everything goes to Hub, and Actions get only ``counts`` and
+    # mattermost/mattermost refs. See report.py.
+    private: bool = False
+    counts: dict = field(default_factory=dict)
     pr_branch: str = ""  # for tasks whose branch is not named after one version
 
     def todo(self, reason: str, bare: bool = False) -> str:

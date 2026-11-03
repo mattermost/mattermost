@@ -23,6 +23,7 @@ class FakeHub:
         self.posts = {}  # id -> post, oldest first
         self.reaction_list = {}  # post id -> reactions
         self.scheduled = []
+        self.uploads = []
         self.run = run
         self.writes = []
         self._ids = (f"p{n}" for n in itertools.count(1))
@@ -63,12 +64,17 @@ class FakeHub:
     def reactions(self, post_id):
         return self.reaction_list.get(post_id, [])
 
-    def create_post(self, channel_id, message, props, root_id=""):
+    def create_post(self, channel_id, message, props, root_id="", file_ids=()):
         post = {"id": next(self._ids), "channel_id": channel_id, "message": message, "props": dict(props),
-                "root_id": root_id, "user_id": BOT["id"]}
+                "root_id": root_id, "user_id": BOT["id"], "file_ids": list(file_ids)}
         self.posts[post["id"]] = post
         self.writes.append(("post", channel_id, message))
         return post
+
+    def upload_file(self, channel_id, name, content):
+        self.uploads.append(name)
+        self.writes.append(("upload", channel_id, name))
+        return f"f{len(self.uploads)}"
 
     def schedule_post(self, channel_id, message, props, at_ms):
         self.scheduled.append({"channel_id": channel_id, "message": message, "props": dict(props), "scheduled_at": at_ms})

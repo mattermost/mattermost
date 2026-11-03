@@ -120,6 +120,7 @@ def blog_and_email(version: Version, bullets: list[str], prs: list[dict], epics:
     result = Result(DRAFTS_TASK, version.tag)
     for problem in problems:
         result.todo(problem)
+    result.counts = {"PRs with a release note": sum(1 for p in prs if p["note"]), "Jira epics": len(epics)}
     allowed = {p["id"]: p["url"] for p in prs} | {e["key"]: e["url"] for e in epics}
     if claude is None:
         result.todo("ANTHROPIC_API_KEY is not set, so nothing was drafted")
@@ -152,6 +153,7 @@ def blog_and_email(version: Version, bullets: list[str], prs: list[dict], epics:
         lines += ["## Extended Support Release Updates", "", facts.esr_blog, ""]
     email = answer.get("email", {})
     points = email.get("points", [])
+    result.counts.update({"blog sections": len(answer.get("blog_outline", [])), "email points": len(points)})
     lines += [f"# Mattermost {version.short}: announcement email (with sources, for review)", "",
               f"Subject: {email.get('subject', '')}", ""]
     lines += [point(p) for p in points] + [""]

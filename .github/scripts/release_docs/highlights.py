@@ -356,6 +356,7 @@ def build(version: Version, jira, claude, docs: DocsIndex, config: dict, release
     out += ["", "## Left out", ""]
     out += [f"- [{e.key}]({jira.browse_url(e.key)}) {e.summary} ({e.kind}): {reason}" for e, reason in excluded] or ["- None"]
     result.text = "\n".join(out) + "\n"
+    result.counts = {"slide lines": len(lines), "left out": len(excluded)}
 
     result.artifacts[artifact_name(month, "html")] = html_artifact(title, lines)
     result.artifacts[artifact_name(month, "json")] = json.dumps({

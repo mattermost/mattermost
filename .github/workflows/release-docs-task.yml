@@ -35,6 +35,11 @@ name: Release Docs Task
 #                                              mattermost/enterprise PRs for the drafts). Without it, a
 #                                              dry run reads mattermost/mattermost with GITHUB_TOKEN.
 #
+# drafts, release-highlights and breaking-changes read Jira and mattermost/enterprise: their full
+# output goes to the review channel in Hub (RELEASE_AGENT_MM_TOKEN and the review channel below,
+# needed even for dry runs), and the run summary and artifact keep only counts and
+# mattermost/mattermost PRs. Without Hub the run fails, since the output would be lost.
+#
 # Hub and calendar tasks (announcement, key-dates, marketing, esr-comms, feature-review; see
 # release-docs-hub.yml). What they post or create goes to Hub and the calendar, never to the
 # run summary: nothing from mattermost/enterprise or Jira appears in public Actions output.

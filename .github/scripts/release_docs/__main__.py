@@ -35,6 +35,7 @@ from . import (
     posts,
     publish,
     release_docs_pr,
+    report,
     schedule,
     version_archive,
 )
@@ -53,6 +54,8 @@ PR_TASKS = ("version-archive", "docker-env", "upgrade-notice", "release-docs")
 HUB_TASKS = (announcement.TASK, key_dates.TASK, marketing.TASK, esr.TASK, feature_review.TASK)
 TASKS = PR_TASKS + (dot_release.TASK, "github-release", "posts", "breaking-changes", "drafts", highlights_slide.TASK) + HUB_TASKS
 SCHEDULED = "scheduled"
+# Their output names Jira keys, epics and mattermost/enterprise PRs: it goes to Hub only (report.py).
+PRIVATE_TASKS = ("drafts", highlights_slide.TASK, "breaking-changes")
 SERVER_REPO = "mattermost/mattermost"
 FINAL_TAG = re.compile(r"v\d+\.\d+\.\d+")
 DOT_RELEASE_HANDLED = "handled by the dot release docs PR"
@@ -273,6 +276,13 @@ class Run:
 
 
 def run_task(task: str, raw_version: str, env: dict, gh, read_gh, claude, fetch=None, sleep=None, docs=None) -> Run:
+    run = _run_task(task, raw_version, env, gh, read_gh, claude, fetch, sleep, docs)
+    if task in PRIVATE_TASKS:
+        run.result.private = True
+    return run
+
+
+def _run_task(task: str, raw_version: str, env: dict, gh, read_gh, claude, fetch=None, sleep=None, docs=None) -> Run:
     fetch = fetch or http.fetch
     live = env.get("MODE") == "live"
     esr = env.get("ESR_VERSIONS", "")
@@ -407,7 +417,7 @@ def run_task(task: str, raw_version: str, env: dict, gh, read_gh, claude, fetch=
                                   highlights_slide.load_config(), day)
         if result.skipped:
             return Run(result, f"Skipped: {result.skipped}.")
-        return Run(result, "Nothing written to the deck: paste the slide from the release-highlights artifact.")
+        return Run(result, "Nothing written to the deck: paste the slide from the file attached to the Hub post.")
 
     if task == "drafts":
         return Run(build_drafts(version, env, gh, read_gh, claude, fetch), "Nothing sent: drafts only.")
@@ -831,16 +841,37 @@ def main(argv: list[str]) -> int:
     gh = GitHub(read_token, write_token=env.get("WRITE_TOKEN", ""), committer=committer)
     read_gh = gh
     run = run_task(args.task, env["VERSION"], env, gh, read_gh, Claude.from_env())
-    result = run.result
-    text = summary(result, run.outcome, env.get("MODE", "dry_run"), run.base_files, run.highlights)
+    return finish(run, env, hublib.from_env(env) if run.result.private else None)
+
+
+def finish(run: Run, env: dict, hub) -> int:
+    """Print and write the run's output; a private result goes to Hub and only its counts here."""
+    result, mode = run.result, env.get("MODE", "dry_run")
+    out_dir = env.get("OUTPUT_DIR") or "release-docs-output"
+    if result.private:
+        run_url = publish.run_url() if env.get("GITHUB_RUN_ID") else ""
+        posted, delivered = report.deliver(result, env, hub, run_url)
+        text = report.public_summary(result, run.outcome, mode, delivered)
+        os.makedirs(out_dir, exist_ok=True)
+        with open(os.path.join(out_dir, "summary.md"), "w", encoding="utf-8") as f:
+            f.write(text)
+        with open(os.path.join(out_dir, "result.json"), "w", encoding="utf-8") as f:
+            json.dump(report.public_record(result, delivered), f, indent=2)
+        errors = [f"{len(result.todos)} missing input(s); they are listed in the Hub post"] if result.todos else []
+        if not posted:
+            errors.append(f"the full output was {delivered}")
+    else:
+        text = summary(result, run.outcome, mode, run.base_files, run.highlights)
+        write_outputs(out_dir, result, text, run.base_files)
+        errors = list(result.todos)
+        posted = True
     print(text)
-    write_outputs(env.get("OUTPUT_DIR") or "release-docs-output", result, text, run.base_files)
     if env.get("GITHUB_STEP_SUMMARY"):
         with open(env["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as f:
             f.write(text)
-    for todo in result.todos:
-        print(f"::error title=Missing input::{todo}")
-    return 1 if result.failed else 0
+    for error in errors:
+        print(f"::error title=Missing input::{error}")
+    return 1 if result.failed or not posted else 0
 
 
 if __name__ == "__main__":
