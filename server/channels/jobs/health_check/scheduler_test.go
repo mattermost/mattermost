@@ -20,6 +20,10 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 )
 
+func enterpriseLicense() *model.License {
+	return model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise)
+}
+
 func TestScheduleJob(t *testing.T) {
 	statuses := []string{model.JobStatusPending, model.JobStatusInProgress}
 
@@ -38,7 +42,7 @@ func TestScheduleJob(t *testing.T) {
 		}
 
 		jobServer := jobs.NewJobServer(&testutils.StaticConfigService{Cfg: cfg}, mockStore, nil, mlog.CreateConsoleTestLogger(t), nil)
-		scheduler := MakeScheduler(jobServer)
+		scheduler := MakeScheduler(jobServer, enterpriseLicense)
 		jobServer.RegisterJobType(model.JobTypeHealthCheck, nil, scheduler)
 		return scheduler, mockStore
 	}
@@ -84,10 +88,27 @@ func TestScheduleJob(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotNil(t, job)
 	})
+
+	t.Run("skips below an Enterprise license", func(t *testing.T) {
+		for name, license := range map[string]*model.License{
+			"no license":   nil,
+			"professional": model.NewTestLicenseSKU(model.LicenseShortSkuProfessional),
+		} {
+			t.Run(name, func(t *testing.T) {
+				// No store call is expected: the mock fails on any.
+				jobServer := jobs.NewJobServer(&testutils.StaticConfigService{Cfg: &model.Config{}}, &storetest.Store{}, nil, mlog.CreateConsoleTestLogger(t), nil)
+				scheduler := MakeScheduler(jobServer, func() *model.License { return license })
+
+				job, appErr := scheduler.ScheduleJob(rctx, nil, false, nil)
+				require.Nil(t, appErr)
+				assert.Nil(t, job)
+			})
+		}
+	})
 }
 
 func TestSchedulerEnabled(t *testing.T) {
-	scheduler := MakeScheduler(nil)
+	scheduler := MakeScheduler(nil, enterpriseLicense)
 	cfg := &model.Config{}
 	cfg.SetDefaults()
 

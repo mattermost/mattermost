@@ -38,9 +38,11 @@ func TestWorkers(t *testing.T) {
 	var polls atomic.Int32
 	mockStore.JobStore.On("GetAllByStatus", mock.Anything, model.JobStatusPending).Return([]*model.Job{pending}, nil).
 		Run(func(mock.Arguments) { polls.Add(1) })
+	// The dedicated set's watcher asks for health_check jobs only.
+	mockStore.JobStore.On("GetAllByTypeAndStatus", mock.Anything, model.JobTypeHealthCheck, model.JobStatusPending).Return([]*model.Job{pending}, nil)
 
 	jobServer := jobs.NewJobServer(configService, mockStore, nil, mlog.CreateConsoleTestLogger(t), nil)
-	jobServer.RegisterJobType(model.JobTypeHealthCheck, nil, MakeScheduler(jobServer))
+	jobServer.RegisterJobType(model.JobTypeHealthCheck, nil, MakeScheduler(jobServer, enterpriseLicense))
 
 	// The framework's own workers poll the pending job but have no worker to hand it to. A
 	// claim would call UpdateStatusOptimistically, which the mock does not expect.
@@ -69,4 +71,5 @@ func TestWorkers(t *testing.T) {
 	require.Eventually(t, func() bool { return runs.Load() == 1 }, 5*time.Second, 10*time.Millisecond)
 	require.Eventually(t, succeeded.Load, 5*time.Second, 10*time.Millisecond)
 	assert.Equal(t, int32(1), runs.Load())
+	mockStore.JobStore.AssertCalled(t, "GetAllByTypeAndStatus", mock.Anything, model.JobTypeHealthCheck, model.JobStatusPending)
 }

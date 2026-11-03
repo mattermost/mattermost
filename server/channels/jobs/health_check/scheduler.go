@@ -26,19 +26,28 @@ func isEnabled(cfg *model.Config) bool {
 
 type Scheduler struct {
 	*jobs.PeriodicScheduler
-	jobServer *jobs.JobServer
+	jobServer   *jobs.JobServer
+	licenseFunc func() *model.License
 }
 
-func MakeScheduler(jobServer *jobs.JobServer) *Scheduler {
+func MakeScheduler(jobServer *jobs.JobServer, licenseFunc func() *model.License) *Scheduler {
 	return &Scheduler{
 		PeriodicScheduler: jobs.NewPeriodicScheduler(jobServer, model.JobTypeHealthCheck, schedFreq, isEnabled),
 		jobServer:         jobServer,
+		licenseFunc:       licenseFunc,
 	}
 }
 
-// ScheduleJob skips while a health_check job is pending or in progress, so runs never
-// overlap. The framework only checks for pending jobs.
+// ScheduleJob skips without an Enterprise license: the run would be a no-op, yet its job would
+// succeed and report the server as evaluated. The license is checked here rather than in
+// Enabled, which the framework only re-reads on config changes, so a license added later still
+// gets the next hourly run. It also skips while a health_check job is pending or in progress,
+// so runs never overlap. The framework only checks for pending jobs.
 func (s *Scheduler) ScheduleJob(rctx request.CTX, cfg *model.Config, pendingJobs bool, lastSuccessfulJob *model.Job) (*model.Job, *model.AppError) {
+	if !model.MinimumEnterpriseLicense(s.licenseFunc()) {
+		return nil, nil
+	}
+
 	job, err := s.jobServer.Store.Job().GetNewestJobByStatusesAndType([]string{model.JobStatusPending, model.JobStatusInProgress}, model.JobTypeHealthCheck)
 	var nfErr *store.ErrNotFound
 	if err != nil && !errors.As(err, &nfErr) {

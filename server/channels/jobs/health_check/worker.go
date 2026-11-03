@@ -22,10 +22,11 @@ func MakeWorker(jobServer *jobs.JobServer, runHealthCheck func(rctx request.CTX)
 	return jobs.NewSimpleWorker(workerName, jobServer, execute, isEnabled)
 }
 
-// MakeWorkers returns a worker set holding only the health-check worker, with its own watcher.
+// MakeWorkers returns a worker set holding only the health-check worker, with its own watcher
+// that polls only pending health_check jobs.
 func MakeWorkers(jobServer *jobs.JobServer, configService configservice.ConfigService, worker model.Worker) *jobs.Workers {
 	workers := jobs.NewWorkers(configService)
 	workers.AddWorker(model.JobTypeHealthCheck, worker)
-	workers.Watcher = jobServer.MakeWatcher(workers, jobs.DefaultWatcherPollingInterval)
+	workers.Watcher = jobServer.MakeJobTypeWatcher(workers, jobs.DefaultWatcherPollingInterval, model.JobTypeHealthCheck)
 	return workers
 }

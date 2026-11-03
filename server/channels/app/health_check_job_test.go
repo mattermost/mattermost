@@ -47,7 +47,7 @@ func TestHealthCheckJobEndToEnd(t *testing.T) {
 	_, appErr := th.App.GetLatestVersion(th.Context, latestVersionServer(t).URL)
 	require.Nil(t, appErr)
 
-	job, appErr := health_check.MakeScheduler(th.Server.Jobs).ScheduleJob(th.Context, th.App.Config(), false, nil)
+	job, appErr := health_check.MakeScheduler(th.Server.Jobs, th.App.Srv().License).ScheduleJob(th.Context, th.App.Config(), false, nil)
 	require.Nil(t, appErr)
 	require.NotNil(t, job)
 

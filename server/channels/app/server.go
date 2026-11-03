@@ -912,6 +912,9 @@ func (s *Server) Shutdown() {
 		s.Log().Warn("Failed to shut down config store", mlog.Err(err))
 	}
 
+	// Before the cluster stops, so a run never collects without the other nodes.
+	s.Channels().stopHealthCheckWorkers()
+
 	if s.platform.Cluster() != nil {
 		s.platform.Cluster().StopInterNodeCommunication()
 	}
@@ -1860,7 +1863,7 @@ func (s *Server) initJobs() {
 
 	// No framework worker: app servers run health_check in their own worker set, see
 	// Channels.startHealthCheckWorkers.
-	s.Jobs.RegisterJobType(model.JobTypeHealthCheck, nil, health_check.MakeScheduler(s.Jobs))
+	s.Jobs.RegisterJobType(model.JobTypeHealthCheck, nil, health_check.MakeScheduler(s.Jobs, s.License))
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeCleanupDesktopTokens,
