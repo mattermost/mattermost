@@ -969,26 +969,90 @@ func TestGetFile(t *testing.T) {
 	t.Run("deleted file is indistinguishable from a file that never existed", func(t *testing.T) {
 		th.LoginBasic(t)
 
-		post, fileInfo := uploadFileAndCreatePost(t, th, client)
-
-		// Soft-delete the file info directly: DeletePost does this in a background
+		// Remove the file info through the store. DeletePost does this in a background
 		// goroutine, which would make the test racy.
+		removeWithPost := func(t *testing.T, post *model.Post, _ *model.FileInfo) {
+			t.Helper()
+			_, storeErr := th.App.Srv().Store().FileInfo().DeleteForPost(th.Context, post.Id)
+			require.NoError(t, storeErr)
+		}
+		removeFromPost := func(t *testing.T, post *model.Post, fileInfo *model.FileInfo) {
+			t.Helper()
+			storeErr := th.App.Srv().Store().FileInfo().DeleteForPostByIds(th.Context, post.Id, []string{fileInfo.Id})
+			require.NoError(t, storeErr)
+		}
+
+		testCases := []struct {
+			name           string
+			withCacheLayer bool
+			remove         func(*testing.T, *model.Post, *model.FileInfo)
+		}{
+			{name: "with cache layer, deleted with its post", withCacheLayer: true, remove: removeWithPost},
+			{name: "with cache layer, detached from its post", withCacheLayer: true, remove: removeFromPost},
+			{name: "without cache layer, deleted with its post", withCacheLayer: false, remove: removeWithPost},
+			{name: "without cache layer, detached from its post", withCacheLayer: false, remove: removeFromPost},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				if tc.withCacheLayer {
+					require.True(t, th.IncludeCacheLayer)
+				} else {
+					// Run this case against the store the harness was given.
+					originalStore := th.App.Srv().Store()
+					th.App.Srv().SetStore(th.Store)
+					t.Cleanup(func() {
+						th.App.Srv().SetStore(originalStore)
+					})
+				}
+
+				post, fileInfo := uploadFileAndCreatePost(t, th, client)
+
+				data, _, err := client.GetFile(context.Background(), fileInfo.Id)
+				require.NoError(t, err)
+				require.NotEmpty(t, data)
+
+				tc.remove(t, post, fileInfo)
+
+				// A removed file is reported with the same status and error as a file id that was never created.
+				_, deletedResp, err := client.GetFile(context.Background(), fileInfo.Id)
+				require.Error(t, err)
+				CheckNotFoundStatus(t, deletedResp)
+				CheckErrorID(t, err, "api.file.get_file_info.app_error")
+
+				_, missingResp, err := client.GetFile(context.Background(), model.NewId())
+				require.Error(t, err)
+				CheckNotFoundStatus(t, missingResp)
+				CheckErrorID(t, err, "api.file.get_file_info.app_error")
+			})
+		}
+	})
+
+	t.Run("content reviewer can get a deleted file", func(t *testing.T) {
+		th.LoginBasic(t)
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		require.True(t, ok, "failed to set license")
+		t.Cleanup(func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		})
+
+		appErr := setBasicCommonReviewerConfig(th)
+		require.Nil(t, appErr)
+
+		sent, err := testutils.ReadTestFile("test.png")
+		require.NoError(t, err)
+
+		post, fileInfo := uploadFileAndCreatePost(t, th, client)
+		flagPostViaAPI(t, client, post.Id)
+
 		_, storeErr := th.App.Srv().Store().FileInfo().DeleteForPost(th.Context, post.Id)
 		require.NoError(t, storeErr)
 
-		// GetByIds caches per file ID, and nothing evicts those keys on delete, so a
-		// stale DeleteAt == 0 entry would otherwise make the request succeed.
-		th.App.Srv().Store().FileInfo().ClearCaches()
-
-		_, deletedResp, err := client.GetFile(context.Background(), fileInfo.Id)
-		require.Error(t, err)
-		CheckNotFoundStatus(t, deletedResp)
-		CheckErrorID(t, err, "api.file.get_file_info.app_error")
-
-		_, missingResp, err := client.GetFile(context.Background(), model.NewId())
-		require.Error(t, err)
-		CheckNotFoundStatus(t, missingResp)
-		CheckErrorID(t, err, "api.file.get_file_info.app_error")
+		data, response, err := client.GetFileAsContentReviewer(context.Background(), fileInfo.Id, post.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+		require.Equal(t, sent, data)
 	})
 }
 
