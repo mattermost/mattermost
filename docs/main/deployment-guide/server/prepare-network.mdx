@@ -155,7 +155,7 @@ Users can cause the server to contact arbitrary hosts:
 - The server also fetches images that are embedded in messages to determine their dimensions. Disabling link previews doesn't turn this off. Use [Disable link previews for specific domains](/administration-guide/configure/site-configuration-settings#disable-link-previews-for-specific-domains) to exclude specific domains.
 - When the [image proxy](/deployment-guide/server/image-proxy) is enabled, the server also downloads images on behalf of clients.
 
-These requests use the scheme and port in the URL, so a link to an `http://` address is fetched over TCP port 80. The server blocks these requests from reaching private and reserved IP addresses unless you allow them in [Allow untrusted internal connections](/administration-guide/configure/environment-configuration-settings#allow-untrusted-internal-connections).
+These requests use the scheme and port in the URL, so a link to an `http://` address is fetched over TCP port 80. For direct connections, the server blocks these requests from reaching private and reserved IP addresses unless you allow them in [Allow untrusted internal connections](/administration-guide/configure/environment-configuration-settings#allow-untrusted-internal-connections). When a request goes through an [outbound proxy](#outbound-proxy-configuration), the server checks only the proxy's address, not the final destination, so also block private and reserved destinations at the proxy.
 
 <Note>
 
@@ -203,7 +203,10 @@ When using an HTTPS proxy, ensure your Mattermost server has the proxy's root ce
 
 <Important>
 
-If the proxy resolves to a private or reserved IP address, add the proxy's hostname or IP address, or a CIDR range that contains it, to [Allow untrusted internal connections](/administration-guide/configure/environment-configuration-settings#allow-untrusted-internal-connections) (`ServiceSettings.AllowedUntrustedInternalConnections`). Otherwise, the server refuses to connect to the proxy for requests such as link previews, outgoing webhooks, slash commands, Marketplace listings, and OAuth and OpenID Connect sign-in.
+If the proxy resolves to a private or reserved IP address, add it to [Allow untrusted internal connections](/administration-guide/configure/environment-configuration-settings#allow-untrusted-internal-connections) (`ServiceSettings.AllowedUntrustedInternalConnections`). Otherwise, the server refuses to connect to the proxy for requests such as link previews, outgoing webhooks, slash commands, Marketplace listings, and OAuth and OpenID Connect sign-in.
+
+- Add the proxy's host exactly as it appears in `HTTP_PROXY` and `HTTPS_PROXY`, such as `proxy.example.com`, or add its IP address as a single-address CIDR range, such as `10.0.0.5/32`. A plain IP address is matched only when the proxy URL itself uses that IP address.
+- Avoid broader CIDR ranges. They also let direct requests that bypass the proxy, such as requests to hosts in `NO_PROXY`, reach every other address in the range.
 
 </Important>
 
