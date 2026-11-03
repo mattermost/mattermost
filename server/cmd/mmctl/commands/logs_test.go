@@ -75,7 +75,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 		s.Require().NoError(cmd.Flags().Set("level", "error"))
 		s.Require().NoError(cmd.Flags().Set("node", "node-1"))
 		s.Require().NoError(cmd.Flags().Set("node", "node-2"))
-		s.Require().NoError(cmd.Flags().Set("request-id", "8xyz7gqnfjb1jrkpd5xnqk5mbo"))
+		s.Require().NoError(cmd.Flags().Set("search", "8xyz7gqnfjb1jrkpd5xnqk5mbo"))
 		s.Require().NoError(cmd.Flags().Set("since", "15m"))
 
 		before := time.Now()
@@ -100,22 +100,6 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 		s.Require().NoError(err)
 		s.WithinRange(dateFrom, before.Add(-15*time.Minute-time.Second), time.Now().Add(-15*time.Minute))
 		s.Empty(filter.DateTo)
-	})
-
-	s.Run("Map search to the query", func() {
-		cmd := newTestCmd(s.T(), LogsCmd)
-		s.Require().NoError(cmd.Flags().Set("search", "Marker"))
-
-		s.client.
-			EXPECT().
-			QueryLogs(gomock.Any(), 0, DefaultPageSize, gomock.Cond(func(f *model.LogFilter) bool { return f.Search == "Marker" })).
-			Return(map[string][]json.RawMessage{"default": {testLogLine(time.Now(), "info", "a marker")}}, &model.Response{}, nil).
-			Times(1)
-
-		data, _, err := testLogsCmdF(s.client, cmd, []string{})
-		s.Require().NoError(err)
-		s.Require().Len(data, 1)
-		s.Contains(data[0], "a marker")
 	})
 
 	s.Run("Fail when the query fails", func() {
@@ -230,11 +214,10 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 			flags map[string]string
 			err   string
 		}{
-			{"plain with follow", map[string]string{"plain": "true", "follow": "true"}, "--plain cannot be used with --follow, --level, --node, --search, --request-id or --since"},
-			{"plain with level", map[string]string{"plain": "true", "level": "error"}, "--plain cannot be used with --follow, --level, --node, --search, --request-id or --since"},
+			{"plain with follow", map[string]string{"plain": "true", "follow": "true"}, "--plain cannot be used with --follow, --level, --node, --search or --since"},
+			{"plain with level", map[string]string{"plain": "true", "level": "error"}, "--plain cannot be used with --follow, --level, --node, --search or --since"},
 			{"short interval", map[string]string{"follow": "true", "interval": "1s"}, "--interval must be at least 2s"},
 			{"unknown level", map[string]string{"level": "fatal"}, `invalid level "fatal", must be one of: error, warn, info, debug`},
-			{"search and request ID", map[string]string{"search": "a", "request-id": "b"}, "--search and --request-id cannot be used together"},
 			{"long search", map[string]string{"search": strings.Repeat("a", 257)}, "the search text must be at most 256 characters long"},
 			{"too many entries", map[string]string{"number": "10001"}, "--number must be between 0 and 10000"},
 			{"negative since", map[string]string{"since": "-1m"}, "--since must not be negative"},

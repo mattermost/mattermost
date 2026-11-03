@@ -28,8 +28,8 @@ Examples
     # keep printing new error and warning entries until interrupted
     $ mmctl logs --follow --level error,warn
 
-    # follow the entries of a single request
-    $ mmctl logs -f --request-id 8xyz7gqnfjb1jrkpd5xnqk5mbo
+    # follow the entries of a single request, by its request ID
+    $ mmctl logs -f --search 8xyz7gqnfjb1jrkpd5xnqk5mbo
 
     # print what a node logged in the last 15 minutes
     $ mmctl logs --node node-1 --since 15m
@@ -46,8 +46,7 @@ Options
   -l, --logrus              Use logrus for formatting.
       --node stringArray    Only show the logs of this cluster node. Can be repeated.
   -n, --number int          Number of log entries to retrieve initially, per node. At most 10000. (default 200)
-      --plain               Print the raw log lines of every node. Supports none of --follow, --level, --node, --search, --request-id and --since.
-      --request-id string   Only show the entries of this request. A shorthand for --search.
+      --plain               Print the raw log lines of every node. Supports none of --follow, --level, --node, --search and --since.
       --search string       Only show entries with a value, other than the level and timestamp, that contains this text, ignoring case.
       --since duration      Only show entries logged within this duration, e.g. 15m.
 

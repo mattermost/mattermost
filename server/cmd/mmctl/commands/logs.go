@@ -67,8 +67,8 @@ The logs are read from every node of the cluster, and filtered on each node. Thi
   # keep printing new error and warning entries until interrupted
   $ mmctl logs --follow --level error,warn
 
-  # follow the entries of a single request
-  $ mmctl logs -f --request-id 8xyz7gqnfjb1jrkpd5xnqk5mbo
+  # follow the entries of a single request, by its request ID
+  $ mmctl logs -f --search 8xyz7gqnfjb1jrkpd5xnqk5mbo
 
   # print what a node logged in the last 15 minutes
   $ mmctl logs --node node-1 --since 15m`,
@@ -84,9 +84,8 @@ func init() {
 	LogsCmd.Flags().StringSlice("level", nil, "Only show entries of these level groups: "+strings.Join(logLevelGroupNames, ", ")+".")
 	LogsCmd.Flags().StringArray("node", nil, "Only show the logs of this cluster node. Can be repeated.")
 	LogsCmd.Flags().String("search", "", "Only show entries with a value, other than the level and timestamp, that contains this text, ignoring case.")
-	LogsCmd.Flags().String("request-id", "", "Only show the entries of this request. A shorthand for --search.")
 	LogsCmd.Flags().Duration("since", 0, "Only show entries logged within this duration, e.g. 15m.")
-	LogsCmd.Flags().Bool("plain", false, "Print the raw log lines of every node. Supports none of --follow, --level, --node, --search, --request-id and --since.")
+	LogsCmd.Flags().Bool("plain", false, "Print the raw log lines of every node. Supports none of --follow, --level, --node, --search and --since.")
 	RootCmd.AddCommand(LogsCmd)
 }
 
@@ -142,12 +141,6 @@ func logsOptionsFromFlags(cmd *cobra.Command) (*logsOptions, error) {
 		return nil, fmt.Errorf("--number must be between 0 and %d", logsMaxPerPage)
 	}
 
-	if requestID, _ := cmd.Flags().GetString("request-id"); requestID != "" {
-		if opts.search != "" {
-			return nil, errors.New("--search and --request-id cannot be used together")
-		}
-		opts.search = requestID
-	}
 	if utf8.RuneCountInString(opts.search) > model.LogFilterSearchMaxLength {
 		return nil, fmt.Errorf("the search text must be at most %d characters long", model.LogFilterSearchMaxLength)
 	}
@@ -171,7 +164,7 @@ func logsOptionsFromFlags(cmd *cobra.Command) (*logsOptions, error) {
 	}
 
 	if opts.plain && opts.needsQuery() {
-		return nil, errors.New("--plain cannot be used with --follow, --level, --node, --search, --request-id or --since")
+		return nil, errors.New("--plain cannot be used with --follow, --level, --node, --search or --since")
 	}
 
 	if opts.follow && opts.interval < logsMinInterval {
