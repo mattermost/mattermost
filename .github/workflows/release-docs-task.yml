@@ -39,6 +39,8 @@ name: Release Docs Task
 # output goes to the review channel in Hub (RELEASE_AGENT_MM_TOKEN and the review channel below,
 # needed even for dry runs), and the run summary and artifact keep only counts and
 # mattermost/mattermost PRs. Without Hub the run fails, since the output would be lost.
+# Run locally (GITHUB_ACTIONS unset), they also write the full report and files to
+# OUTPUT_DIR/private/, so a dry run can be checked without Hub; that never happens in Actions.
 #
 # Hub and calendar tasks (announcement, key-dates, marketing, esr-comms, feature-review; see
 # release-docs-hub.yml). What they post or create goes to Hub and the calendar, never to the
