@@ -3,7 +3,7 @@
 exports[`components/admin_console/group_settings/GroupsList.tsx should match snapshot, while loading 1`] = `
 <div>
   <div
-    class="groups-list"
+    class="groups-list groups-list-less-padding"
   >
     <div
       class="groups-list--global-actions"
@@ -98,7 +98,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
 exports[`components/admin_console/group_settings/GroupsList.tsx should match snapshot, with filters open 1`] = `
 <div>
   <div
-    class="groups-list"
+    class="groups-list groups-list-less-padding"
   >
     <div
       class="groups-list--global-actions"
@@ -294,7 +294,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
 exports[`components/admin_console/group_settings/GroupsList.tsx should match snapshot, with mixed types selected 1`] = `
 <div>
   <div
-    class="groups-list"
+    class="groups-list groups-list-less-padding"
   >
     <div
       class="groups-list--global-actions"
@@ -595,7 +595,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
 exports[`components/admin_console/group_settings/GroupsList.tsx should match snapshot, with only linked selected 1`] = `
 <div>
   <div
-    class="groups-list"
+    class="groups-list groups-list-less-padding"
   >
     <div
       class="groups-list--global-actions"
@@ -870,7 +870,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
 exports[`components/admin_console/group_settings/GroupsList.tsx should match snapshot, with only not-linked selected 1`] = `
 <div>
   <div
-    class="groups-list"
+    class="groups-list groups-list-less-padding"
   >
     <div
       class="groups-list--global-actions"
@@ -1145,7 +1145,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
 exports[`components/admin_console/group_settings/GroupsList.tsx should match snapshot, with results 1`] = `
 <div>
   <div
-    class="groups-list"
+    class="groups-list groups-list-less-padding"
   >
     <div
       class="groups-list--global-actions"
@@ -1452,7 +1452,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
 exports[`components/admin_console/group_settings/GroupsList.tsx should match snapshot, with results and next 1`] = `
 <div>
   <div
-    class="groups-list"
+    class="groups-list groups-list-less-padding"
   >
     <div
       class="groups-list--global-actions"
@@ -2115,7 +2115,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
 exports[`components/admin_console/group_settings/GroupsList.tsx should match snapshot, with results and next and previous 1`] = `
 <div>
   <div
-    class="groups-list"
+    class="groups-list groups-list-less-padding"
   >
     <div
       class="groups-list--global-actions"
@@ -2777,7 +2777,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
 exports[`components/admin_console/group_settings/GroupsList.tsx should match snapshot, with results and previous 1`] = `
 <div>
   <div
-    class="groups-list"
+    class="groups-list groups-list-less-padding"
   >
     <div
       class="groups-list--global-actions"
@@ -3082,7 +3082,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
 exports[`components/admin_console/group_settings/GroupsList.tsx should match snapshot, without results 1`] = `
 <div>
   <div
-    class="groups-list"
+    class="groups-list groups-list-less-padding"
   >
     <div
       class="groups-list--global-actions"
@@ -3175,7 +3175,7 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
 exports[`components/admin_console/group_settings/GroupsList.tsx should match snapshot, without selection 1`] = `
 <div>
   <div
-    class="groups-list"
+    class="groups-list groups-list-less-padding"
   >
     <div
       class="groups-list--global-actions"
