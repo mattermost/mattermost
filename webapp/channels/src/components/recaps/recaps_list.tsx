@@ -5,6 +5,8 @@ import React, {useState, useEffect, useRef} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
+import {EmptyState} from '@mattermost/compass-ui/components/empty-state';
+import AICopilotIntroIllustration from '@mattermost/compass-ui/illustrations/ai-copilot-intro';
 import type {Recap} from '@mattermost/types/recaps';
 import {RecapStatus} from '@mattermost/types/recaps';
 
@@ -63,17 +65,14 @@ const RecapsList = ({recaps}: Props) => {
 
     if (recaps.length === 0) {
         return (
-            <div className='recaps-empty-state'>
-                <div className='empty-state-icon'>
-                    <i className='icon icon-check-circle'/>
-                </div>
-                <h2 className='empty-state-title'>
-                    {formatMessage({id: 'recaps.emptyState.title', defaultMessage: "You're all caught up"})}
-                </h2>
-                <p className='empty-state-description'>
-                    {formatMessage({id: 'recaps.emptyState.description', defaultMessage: "You don't have any recaps yet. Create one to get started."})}
-                </p>
-            </div>
+            <EmptyState
+                illustration={{
+                    'aria-label': '',
+                    children: <AICopilotIntroIllustration/>,
+                }}
+                title={formatMessage({id: 'recaps.emptyState.title', defaultMessage: "You're all caught up"})}
+                description={formatMessage({id: 'recaps.emptyState.description', defaultMessage: "You don't have any recaps yet. Create one to get started."})}
+            />
         );
     }
 

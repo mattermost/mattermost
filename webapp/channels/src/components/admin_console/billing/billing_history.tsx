@@ -5,11 +5,13 @@ import React, {useEffect} from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {EmptyState} from '@mattermost/compass-ui/components/empty-state';
+import BillingHistoryIllustration from '@mattermost/compass-ui/illustrations/billing-history';
+
 import {getInvoices} from 'mattermost-redux/actions/cloud';
 import {getCloudErrors, getCloudInvoices, isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
 
 import CloudFetchError from 'components/cloud_fetch_error';
-import EmptyBillingHistorySvg from 'components/common/svg_images_components/empty_billing_history_svg';
 import ExternalLink from 'components/external_link';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
@@ -32,29 +34,34 @@ interface NoBillingHistorySectionProps {
     selfHosted: boolean;
 }
 export const NoBillingHistorySection = (props: NoBillingHistorySectionProps) => (
-    <div className='BillingHistory__noHistory'>
-        <EmptyBillingHistorySvg
-            width={152}
-            height={116}
-        />
-        <div className='BillingHistory__noHistory-message'>
+    <EmptyState
+        illustration={{
+            'aria-label': '',
+            children: <BillingHistoryIllustration/>,
+        }}
+        title={
             <FormattedMessage
                 id='admin.billing.history.noBillingHistory'
                 defaultMessage='In the future, this is where your billing history will show.'
             />
-        </div>
-        <ExternalLink
-            data-testid='billingHistoryLink'
-            location='billing_history'
-            href={props.selfHosted ? HostedCustomerLinks.SELF_HOSTED_BILLING : CloudLinks.BILLING_DOCS}
-            className='BillingHistory__noHistory-link'
-        >
-            <FormattedMessage
-                id='admin.billing.history.seeHowBillingWorks'
-                defaultMessage='See how billing works'
-            />
-        </ExternalLink>
-    </div>
+        }
+        action={{
+            asChild: true,
+            emphasis: 'tertiary',
+            children: (
+                <ExternalLink
+                    data-testid='billingHistoryLink'
+                    location='billing_history'
+                    href={props.selfHosted ? HostedCustomerLinks.SELF_HOSTED_BILLING : CloudLinks.BILLING_DOCS}
+                >
+                    <FormattedMessage
+                        id='admin.billing.history.seeHowBillingWorks'
+                        defaultMessage='See how billing works'
+                    />
+                </ExternalLink>
+            ),
+        }}
+    />
 );
 
 const BillingHistory = () => {

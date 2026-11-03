@@ -35,6 +35,16 @@
         height: 362px;
         padding: 0;
 
+        // Center the empty state in the space below the input.
+        &:has(> .no-results__wrapper) {
+            display: flex;
+            flex-direction: column;
+
+            > :not(.no-results__wrapper) {
+                flex: 0 0 auto;
+            }
+        }
+
         .input-wrapper {
             position: inherit !important;
             height: 42px;
