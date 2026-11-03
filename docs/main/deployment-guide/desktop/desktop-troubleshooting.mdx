@@ -123,17 +123,15 @@ On Windows and Linux, the app downloads dictionaries, which your network may blo
 
 ### Where the app stores data
 
-Each user's `config.json`, sign-ins, and caches are stored in their app data folder. Logs are stored there on Windows and Linux. On macOS, logs are in `~/Library/Logs/Mattermost` for DMG installations, or in `~/Library/Containers/Mattermost.Desktop/Data/Library/Logs/Mattermost` for Mac App Store installations.
+Each user's `config.json`, sign-ins, caches, and logs are stored in their app data folder:
 
-The app data folder for each platform is:
-
-| Platform | App data folder |
-|---|---|
-| Windows | `%APPDATA%\Mattermost` |
-| macOS (DMG) | `~/Library/Application Support/Mattermost` |
-| macOS (Mac App Store) | `~/Library/Containers/Mattermost.Desktop/Data/Library/Application Support/Mattermost` |
-| Linux (Flatpak) | `~/.var/app/com.Mattermost.Desktop/config/Mattermost` |
-| Linux (other packages) | `~/.config/Mattermost` |
+| Platform | App data folder | Logs |
+|---|---|---|
+| Windows | `%APPDATA%\Mattermost` | `%APPDATA%\Mattermost` |
+| macOS (DMG) | `~/Library/Application Support/Mattermost` | `~/Library/Logs/Mattermost` |
+| macOS (Mac App Store) | `~/Library/Containers/Mattermost.Desktop/Data/Library/Application Support/Mattermost` | `~/Library/Containers/Mattermost.Desktop/Data/Library/Logs/Mattermost` |
+| Linux (Flatpak) | `~/.var/app/com.Mattermost.Desktop/config/Mattermost` | `~/.var/app/com.Mattermost.Desktop/config/Mattermost` |
+| Linux (other packages) | `~/.config/Mattermost` | `~/.config/Mattermost` |
 
 Uninstalling the app doesn't remove this folder.
 
