@@ -1182,6 +1182,13 @@
         `Failed to fetch logs from node`, `failed_node` set to `true`, and an
         `error` field describing the failure.
 
+        Reading a node's log file stops after about 20 seconds or 1 GiB,
+        whichever comes first. When it stops before filling the page, the lines
+        found so far are followed by a JSON line with `level` set to `warn`,
+        `msg` set to `Log scan stopped at its limit`, `scan_limited` set to
+        `true`, and `scanned_back_to` set to the timestamp of the oldest line
+        read, when it has one.
+
         ##### Permissions
 
         Must have `manage_system` permission.
@@ -1267,6 +1274,17 @@
         `Failed to fetch logs from node`, `failed_node` set to `true`, and an
         `error` field describing the failure. This entry is returned regardless
         of `log_levels`, `date_from`, `date_to` and `search`.
+
+        Reading a node's log file stops after about 20 seconds or 1 GiB,
+        whichever comes first, so a rare `search` term or level doesn't read the
+        whole file. When it stops before finding a full page, that node's array
+        holds the entries found so far followed by one entry with `level` set to
+        `warn`, `msg` set to `Log scan stopped at its limit`, `scan_limited` set
+        to `true`, and `scanned_back_to` set to the timestamp of the oldest line
+        read, when it has one. Older matching entries may exist. The scan starts
+        from the end of the file whatever `date_to` is, so a narrower range
+        doesn't reach further back. This entry is returned regardless of
+        `log_levels` and `search`.
 
         ##### Permissions
         Must have `get_logs` permission.

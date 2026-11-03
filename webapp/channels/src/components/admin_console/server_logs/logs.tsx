@@ -17,7 +17,7 @@ import AdminHeader from 'components/widgets/admin_console/admin_header';
 import LogFormatMenu from './log_format_menu';
 import LogList, {loadPrefs} from './log_list';
 import PlainLogList from './plain_log_list';
-import type {CustomTimeRange, LogObjectWithAdditionalInfo, TimeRange} from './types';
+import type {CustomTimeRange, LogObjectWithAdditionalInfo, ScanLimitedLogNode, TimeRange} from './types';
 import useLogPolling from './use_log_polling';
 import {LEVEL_GROUPS, groupLevels, presetStartMs} from './utils';
 
@@ -27,10 +27,11 @@ type Props = {
     logs: LogObjectWithAdditionalInfo[];
     logNodes: string[];
     truncatedLogNodes: string[];
+    scanLimitedLogNodes?: ScanLimitedLogNode[];
     plainLogs: string[];
     isPlainLogs: boolean;
     actions: {
-        getLogs: (logFilter: LogFilter) => Promise<ActionResult | undefined>;
+        getLogs: (logFilter: LogFilter, signal?: AbortSignal) => Promise<ActionResult | undefined>;
         getNewLogs: (logFilter: LogFilter) => Promise<ActionResult | undefined>;
         getPlainLogs: (
             page?: number | undefined,
@@ -102,7 +103,9 @@ function getInitialFormat(configIsPlainLogs: boolean): boolean {
     return false;
 }
 
-export default function Logs({logs, logNodes, truncatedLogNodes, plainLogs, isPlainLogs: configIsPlainLogs, actions}: Props) {
+const NO_SCAN_LIMITED_NODES: ScanLimitedLogNode[] = [];
+
+export default function Logs({logs, logNodes, truncatedLogNodes, scanLimitedLogNodes = NO_SCAN_LIMITED_NODES, plainLogs, isPlainLogs: configIsPlainLogs, actions}: Props) {
     const [isPlainLogs, setIsPlainLogs] = useState(() => getInitialFormat(configIsPlainLogs));
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
@@ -140,6 +143,11 @@ export default function Logs({logs, logNodes, truncatedLogNodes, plainLogs, isPl
     const latestFetchRef = useRef(0);
     const pendingFetchesRef = useRef(0);
 
+    // A full reload replaces the previous one's result, so it aborts that request rather than
+    // waiting in the queue for a slow scan to finish
+    const reloadAbortRef = useRef<AbortController | null>(null);
+    useEffect(() => () => reloadAbortRef.current?.abort(), []);
+
     // `silent` polls leave the loading state alone so the viewer never flashes a spinner
     const reload = useCallback((options?: {silent?: boolean}) => {
         const silent = options?.silent === true;
@@ -148,8 +156,12 @@ export default function Logs({logs, logNodes, truncatedLogNodes, plainLogs, isPl
         }
 
         const id = silent ? latestFetchRef.current : ++latestFetchRef.current;
+        let signal: AbortSignal | undefined;
         if (!silent) {
             setLoading(true);
+            reloadAbortRef.current?.abort();
+            reloadAbortRef.current = new AbortController();
+            signal = reloadAbortRef.current.signal;
         }
 
         // A preset has no end, so the server ends the range at its own clock rather than the browser's
@@ -189,7 +201,7 @@ export default function Logs({logs, logNodes, truncatedLogNodes, plainLogs, isPl
                 dateTo: rangeEnd === null ? '' : formatFilterDate(new Date(rangeEnd)),
                 search,
             };
-            const result = await (silent ? actions.getNewLogs(query) : actions.getLogs(query));
+            const result = await (silent ? actions.getNewLogs(query) : actions.getLogs(query, signal));
             if (!result?.error) {
                 lastFetchStartRef.current = startedAt;
             }
@@ -267,6 +279,7 @@ export default function Logs({logs, logNodes, truncatedLogNodes, plainLogs, isPl
             loading={loading}
             logs={logs}
             truncatedNodes={truncatedLogNodes}
+            scanLimitedNodes={scanLimitedLogNodes}
             onSearchChange={setSearch}
             search={search}
             enabledLevels={enabledLevels}

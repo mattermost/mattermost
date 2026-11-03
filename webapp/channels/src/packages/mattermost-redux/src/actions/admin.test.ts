@@ -56,6 +56,22 @@ describe('Actions.Admin', () => {
         expect(store.getState().entities.admin.logs).toEqual({default: [{level: 'info', msg: 'Websocket closed'}]});
     });
 
+    it('getLogs drops an aborted request without storing or reporting it', async () => {
+        nock(Client4.getBaseRoute()).
+            post('/logs/query').
+            query(true).
+            delay(1000).
+            reply(200, {default: [{level: 'info', msg: 'stale'}]});
+
+        const controller = new AbortController();
+        const result = store.dispatch(Actions.getLogs({serverNames: [], logLevels: [], dateFrom: '', dateTo: ''}, controller.signal));
+        controller.abort();
+
+        expect((await result).error).toBeTruthy();
+        expect(store.getState().entities.admin.logs).toEqual({});
+        expect(store.getState().errors).toEqual([]);
+    });
+
     it('getPlainLogs', async () => {
         nock(Client4.getBaseRoute()).
             get('/logs').

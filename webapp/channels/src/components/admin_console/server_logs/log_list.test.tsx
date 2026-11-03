@@ -425,6 +425,55 @@ describe('components/admin_console/server_logs/LogList', () => {
         });
     });
 
+    describe('scan limit notice', () => {
+        test('should not show the notice when no scan stopped at its limit', () => {
+            renderListWith({logs: [first]});
+
+            expect(screen.queryByText(/The search stopped/)).not.toBeInTheDocument();
+        });
+
+        test('should say how far back the server searched', () => {
+            fakeNow('2026-03-12T10:00:00Z');
+            renderListWith({
+                logs: [makeNodeLog('default', 'a')],
+                nodes: ['default'],
+                scanLimitedNodes: [{node: 'default', scannedBackTo: '2026-03-12 09:15:00.000 Z'}],
+            });
+
+            expect(screen.getByText('The search stopped before reaching older entries')).toBeInTheDocument();
+            expect(screen.getByText('Searched back to 9:15 AM.')).toBeInTheDocument();
+            expect(screen.getByText(/Download the log file to search all of it/)).toBeInTheDocument();
+        });
+
+        test('should name each node, and the day when it is not today', () => {
+            fakeNow('2026-03-12T10:00:00Z');
+            renderListWith({
+                logs: [makeNodeLog('node-a', 'a'), makeNodeLog('node-b', 'b'), makeNodeLog('node-c', 'c')],
+                nodes: ['node-a', 'node-b', 'node-c'],
+                scanLimitedNodes: [
+                    {node: 'node-a', scannedBackTo: '2026-03-10 09:15:00.000 Z'},
+                    {node: 'node-c'},
+                ],
+            });
+
+            expect(screen.getByText(/^Searched node-a back to Mar 10, 9:15\sAM\.$/)).toBeInTheDocument();
+            expect(screen.getByText('The search on node-c stopped at its limit.')).toBeInTheDocument();
+            expect(screen.queryByText(/node-b/, {selector: '.LogViewer__notice-line'})).not.toBeInTheDocument();
+            expect(screen.getByText("Older entries weren't searched.")).toBeInTheDocument();
+        });
+
+        test('should only show the notice for the selected node', () => {
+            renderListWith({
+                logs: [makeNodeLog('node-a', 'a'), makeNodeLog('node-b', 'b')],
+                nodes: ['node-a', 'node-b'],
+                selectedNode: 'node-a',
+                scanLimitedNodes: [{node: 'node-b'}],
+            });
+
+            expect(screen.queryByText(/The search stopped/)).not.toBeInTheDocument();
+        });
+    });
+
     describe('sorting', () => {
         test('should default to showing the newest entries first', () => {
             renderList([first, second, third]);

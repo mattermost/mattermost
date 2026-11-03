@@ -3,6 +3,8 @@
 
 import type {LogNodeKey, LogObject} from '@mattermost/types/admin';
 
+export type {ScanLimitedLogNode} from 'mattermost-redux/selectors/entities/admin';
+
 export type LogObjectWithAdditionalInfo = LogObject & {
     [LogNodeKey]?: string;
     [key: string]: unknown;

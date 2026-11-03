@@ -48,6 +48,13 @@ export type LogObject = {
 
     // Set on the entry the server returns in place of a node it could not reach
     failed_node?: boolean;
+
+    // Set on the entry the server adds after a node's lines when its log scan stopped at its time
+    // or size limit, so older matching entries may be missing
+    scan_limited?: boolean;
+
+    // On a scan_limited entry, the timestamp of the oldest line the scan read
+    scanned_back_to?: string;
 };
 
 // The node an entry came from. A symbol, so it can't clash with a field the server logged

@@ -22,6 +22,12 @@ type reverseLineReader struct {
 	// data holds the bytes [offset, offset+len(data)) of the file that have not been returned yet.
 	data   []byte
 	offset int64
+	size   int64
+
+	// limit, when set, is called before each block is read with the number of bytes read so far.
+	// An error it returns is returned by Next. Nothing is read in that case, so the line Next last
+	// returned stays valid.
+	limit func(read int64) error
 }
 
 // newReverseLineReader returns a reader for the lines in the first size bytes of r.
@@ -30,6 +36,7 @@ func newReverseLineReader(r io.ReaderAt, size int64, blockSize int) *reverseLine
 		r:         r,
 		blockSize: blockSize,
 		offset:    size,
+		size:      size,
 	}
 }
 
@@ -66,6 +73,12 @@ func (lr *reverseLineReader) Next() ([]byte, error) {
 // readBlock prepends the block that precedes data in the file to data and returns its length.
 // Blocks grow with data so that a line spanning many blocks is not moved once per block.
 func (lr *reverseLineReader) readBlock() (int, error) {
+	if lr.limit != nil {
+		if err := lr.limit(lr.size - lr.offset); err != nil {
+			return 0, err
+		}
+	}
+
 	n := int(min(int64(max(lr.blockSize, len(lr.data))), lr.offset))
 	size := n + len(lr.data)
 	if size > cap(lr.buf) {

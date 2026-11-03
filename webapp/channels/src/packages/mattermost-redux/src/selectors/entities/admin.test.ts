@@ -6,7 +6,7 @@ import type {LogObject} from '@mattermost/types/admin';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {General} from 'mattermost-redux/constants';
-import {getAllLogsWithNode, getLogNodes, getTruncatedLogNodes} from 'mattermost-redux/selectors/entities/admin';
+import {getAllLogsWithNode, getLogNodes, getScanLimitedLogNodes, getTruncatedLogNodes} from 'mattermost-redux/selectors/entities/admin';
 
 function makeLog(msg: string): LogObject {
     return {
@@ -83,5 +83,38 @@ describe('selectors.entities.admin', () => {
 
     test('getTruncatedLogNodes returns no nodes before the first fetch', () => {
         expect(getTruncatedLogNodes(stateWith([]))).toEqual([]);
+    });
+
+    const scanLimit = (scannedBackTo?: string): LogObject => ({
+        ...makeLog('Log scan stopped at its limit'),
+        level: LogLevelEnum.WARN,
+        scan_limited: true,
+        scanned_back_to: scannedBackTo,
+    });
+
+    test('getAllLogsWithNode leaves out scan limit entries', () => {
+        const state = stateWith({'node-a': [e1, scanLimit('2026-10-21 09:00:00.000 Z')]});
+
+        expect(getAllLogsWithNode(state)).toEqual([{...e1, [LogNodeKey]: 'node-a'}]);
+    });
+
+    test('getTruncatedLogNodes does not count a scan limit entry', () => {
+        const almostFull = Array.from({length: General.LOGS_PAGE_SIZE_DEFAULT - 1}, () => e1);
+
+        expect(getTruncatedLogNodes(stateWith({'node-a': [...almostFull, scanLimit()]}))).toEqual([]);
+    });
+
+    test('getScanLimitedLogNodes lists the nodes whose scan stopped at its limit', () => {
+        const state = stateWith({
+            'node-c': [e1, scanLimit()],
+            'node-a': [e2, scanLimit('2026-10-21 09:00:00.000 Z')],
+            'node-b': [e3],
+        });
+
+        expect(getScanLimitedLogNodes(state)).toEqual([
+            {node: 'node-a', scannedBackTo: '2026-10-21 09:00:00.000 Z'},
+            {node: 'node-c', scannedBackTo: undefined},
+        ]);
+        expect(getScanLimitedLogNodes(stateWith({}))).toEqual([]);
     });
 });

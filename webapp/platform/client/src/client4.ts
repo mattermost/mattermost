@@ -3778,10 +3778,10 @@ export default class Client4 {
 
     // Admin Routes
 
-    getLogs = (logFilter: LogFilterQuery, page = 0, perPage = LOGS_PER_PAGE_DEFAULT) => {
+    getLogs = (logFilter: LogFilterQuery, page = 0, perPage = LOGS_PER_PAGE_DEFAULT, signal?: AbortSignal) => {
         return this.doFetch<LogsByNode>(
             `${this.getBaseRoute()}/logs/query${buildQueryString({page, logs_per_page: perPage})}`,
-            {method: 'post', body: JSON.stringify(logFilter)},
+            {method: 'post', body: JSON.stringify(logFilter), signal},
         );
     };
 
