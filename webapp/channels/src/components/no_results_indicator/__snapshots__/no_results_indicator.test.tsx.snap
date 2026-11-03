@@ -10,7 +10,7 @@ exports[`components/no_results_indicator should match snapshot when expanded 1`]
       data-testid="no-results-wrapper"
     >
       <div
-        class="_scrollbar_xs0gi_2 _empty-state_am73h_2 no-results__empty-state"
+        class="_scrollbar_xs0gi_2 _empty-state_yb2f1_2 no-results__empty-state"
         data-simplebar="init"
       >
         <div
@@ -41,10 +41,10 @@ exports[`components/no_results_indicator should match snapshot when expanded 1`]
                   class="simplebar-content"
                 >
                   <div
-                    class="_empty-state__container_am73h_15"
+                    class="_empty-state__container_yb2f1_17"
                   >
                     <div
-                      class="_empty-state__illustration_am73h_25"
+                      class="_empty-state__illustration_yb2f1_27"
                     >
                       <span
                         aria-hidden="true"
@@ -227,10 +227,10 @@ exports[`components/no_results_indicator should match snapshot when expanded 1`]
                       </span>
                     </div>
                     <div
-                      class="_empty-state__titles_am73h_31"
+                      class="_empty-state__titles_yb2f1_33"
                     >
                       <h2
-                        class="_empty-state__title_am73h_31"
+                        class="_empty-state__title_yb2f1_33"
                       >
                         <span
                           class=""
@@ -240,7 +240,7 @@ exports[`components/no_results_indicator should match snapshot when expanded 1`]
                         </span>
                       </h2>
                       <p
-                        class="_empty-state__description_am73h_48"
+                        class="_empty-state__description_yb2f1_50"
                       >
                         <span
                           class=""
@@ -335,7 +335,7 @@ exports[`components/no_results_indicator should match snapshot with variant Chan
     data-testid="no-results-wrapper"
   >
     <div
-      class="_scrollbar_xs0gi_2 _empty-state_am73h_2 no-results__empty-state"
+      class="_scrollbar_xs0gi_2 _empty-state_yb2f1_2 no-results__empty-state"
       data-simplebar="init"
     >
       <div
@@ -366,10 +366,10 @@ exports[`components/no_results_indicator should match snapshot with variant Chan
                 class="simplebar-content"
               >
                 <div
-                  class="_empty-state__container_am73h_15"
+                  class="_empty-state__container_yb2f1_17"
                 >
                   <div
-                    class="_empty-state__illustration_am73h_25"
+                    class="_empty-state__illustration_yb2f1_27"
                   >
                     <span
                       aria-hidden="true"
@@ -381,10 +381,10 @@ exports[`components/no_results_indicator should match snapshot with variant Chan
                     </span>
                   </div>
                   <div
-                    class="_empty-state__titles_am73h_31"
+                    class="_empty-state__titles_yb2f1_33"
                   >
                     <h2
-                      class="_empty-state__title_am73h_31"
+                      class="_empty-state__title_yb2f1_33"
                     >
                       <span
                         class=""
@@ -394,7 +394,7 @@ exports[`components/no_results_indicator should match snapshot with variant Chan
                       </span>
                     </h2>
                     <p
-                      class="_empty-state__description_am73h_48"
+                      class="_empty-state__description_yb2f1_50"
                     >
                       <span
                         class=""
@@ -443,7 +443,7 @@ exports[`components/no_results_indicator should match snapshot with variant Chan
     data-testid="no-results-wrapper"
   >
     <div
-      class="_scrollbar_xs0gi_2 _empty-state_am73h_2 no-results__empty-state"
+      class="_scrollbar_xs0gi_2 _empty-state_yb2f1_2 no-results__empty-state"
       data-simplebar="init"
     >
       <div
@@ -474,10 +474,10 @@ exports[`components/no_results_indicator should match snapshot with variant Chan
                 class="simplebar-content"
               >
                 <div
-                  class="_empty-state__container_am73h_15"
+                  class="_empty-state__container_yb2f1_17"
                 >
                   <div
-                    class="_empty-state__illustration_am73h_25"
+                    class="_empty-state__illustration_yb2f1_27"
                   >
                     <span
                       aria-hidden="true"
@@ -489,10 +489,10 @@ exports[`components/no_results_indicator should match snapshot with variant Chan
                     </span>
                   </div>
                   <div
-                    class="_empty-state__titles_am73h_31"
+                    class="_empty-state__titles_yb2f1_33"
                   >
                     <h2
-                      class="_empty-state__title_am73h_31"
+                      class="_empty-state__title_yb2f1_33"
                     >
                       <span
                         class=""
@@ -502,7 +502,7 @@ exports[`components/no_results_indicator should match snapshot with variant Chan
                       </span>
                     </h2>
                     <p
-                      class="_empty-state__description_am73h_48"
+                      class="_empty-state__description_yb2f1_50"
                     >
                       <span
                         class=""
@@ -551,7 +551,7 @@ exports[`components/no_results_indicator should match snapshot with variant Chan
     data-testid="no-results-wrapper"
   >
     <div
-      class="_scrollbar_xs0gi_2 _empty-state_am73h_2 no-results__empty-state"
+      class="_scrollbar_xs0gi_2 _empty-state_yb2f1_2 no-results__empty-state"
       data-simplebar="init"
     >
       <div
@@ -582,10 +582,10 @@ exports[`components/no_results_indicator should match snapshot with variant Chan
                 class="simplebar-content"
               >
                 <div
-                  class="_empty-state__container_am73h_15"
+                  class="_empty-state__container_yb2f1_17"
                 >
                   <div
-                    class="_empty-state__illustration_am73h_25"
+                    class="_empty-state__illustration_yb2f1_27"
                   >
                     <span
                       aria-hidden="true"
@@ -597,10 +597,10 @@ exports[`components/no_results_indicator should match snapshot with variant Chan
                     </span>
                   </div>
                   <div
-                    class="_empty-state__titles_am73h_31"
+                    class="_empty-state__titles_yb2f1_33"
                   >
                     <h2
-                      class="_empty-state__title_am73h_31"
+                      class="_empty-state__title_yb2f1_33"
                     >
                       <span
                         class=""
@@ -610,7 +610,7 @@ exports[`components/no_results_indicator should match snapshot with variant Chan
                       </span>
                     </h2>
                     <p
-                      class="_empty-state__description_am73h_48"
+                      class="_empty-state__description_yb2f1_50"
                     >
                       <span
                         class=""
@@ -659,7 +659,7 @@ exports[`components/no_results_indicator should match snapshot with variant Flag
     data-testid="no-results-wrapper"
   >
     <div
-      class="_scrollbar_xs0gi_2 _empty-state_am73h_2 no-results__empty-state"
+      class="_scrollbar_xs0gi_2 _empty-state_yb2f1_2 no-results__empty-state"
       data-simplebar="init"
     >
       <div
@@ -690,10 +690,10 @@ exports[`components/no_results_indicator should match snapshot with variant Flag
                 class="simplebar-content"
               >
                 <div
-                  class="_empty-state__container_am73h_15"
+                  class="_empty-state__container_yb2f1_17"
                 >
                   <div
-                    class="_empty-state__illustration_am73h_25"
+                    class="_empty-state__illustration_yb2f1_27"
                   >
                     <span
                       aria-hidden="true"
@@ -705,10 +705,10 @@ exports[`components/no_results_indicator should match snapshot with variant Flag
                     </span>
                   </div>
                   <div
-                    class="_empty-state__titles_am73h_31"
+                    class="_empty-state__titles_yb2f1_33"
                   >
                     <h2
-                      class="_empty-state__title_am73h_31"
+                      class="_empty-state__title_yb2f1_33"
                     >
                       <span
                         class=""
@@ -718,7 +718,7 @@ exports[`components/no_results_indicator should match snapshot with variant Flag
                       </span>
                     </h2>
                     <p
-                      class="_empty-state__description_am73h_48"
+                      class="_empty-state__description_yb2f1_50"
                     >
                       <span
                         class=""
@@ -767,7 +767,7 @@ exports[`components/no_results_indicator should match snapshot with variant Ment
     data-testid="no-results-wrapper"
   >
     <div
-      class="_scrollbar_xs0gi_2 _empty-state_am73h_2 no-results__empty-state"
+      class="_scrollbar_xs0gi_2 _empty-state_yb2f1_2 no-results__empty-state"
       data-simplebar="init"
     >
       <div
@@ -798,10 +798,10 @@ exports[`components/no_results_indicator should match snapshot with variant Ment
                 class="simplebar-content"
               >
                 <div
-                  class="_empty-state__container_am73h_15"
+                  class="_empty-state__container_yb2f1_17"
                 >
                   <div
-                    class="_empty-state__illustration_am73h_25"
+                    class="_empty-state__illustration_yb2f1_27"
                   >
                     <span
                       aria-hidden="true"
@@ -813,10 +813,10 @@ exports[`components/no_results_indicator should match snapshot with variant Ment
                     </span>
                   </div>
                   <div
-                    class="_empty-state__titles_am73h_31"
+                    class="_empty-state__titles_yb2f1_33"
                   >
                     <h2
-                      class="_empty-state__title_am73h_31"
+                      class="_empty-state__title_yb2f1_33"
                     >
                       <span
                         class=""
@@ -826,7 +826,7 @@ exports[`components/no_results_indicator should match snapshot with variant Ment
                       </span>
                     </h2>
                     <p
-                      class="_empty-state__description_am73h_48"
+                      class="_empty-state__description_yb2f1_50"
                     >
                       <span
                         class=""
@@ -875,7 +875,7 @@ exports[`components/no_results_indicator should match snapshot with variant Pinn
     data-testid="no-results-wrapper"
   >
     <div
-      class="_scrollbar_xs0gi_2 _empty-state_am73h_2 no-results__empty-state"
+      class="_scrollbar_xs0gi_2 _empty-state_yb2f1_2 no-results__empty-state"
       data-simplebar="init"
     >
       <div
@@ -906,10 +906,10 @@ exports[`components/no_results_indicator should match snapshot with variant Pinn
                 class="simplebar-content"
               >
                 <div
-                  class="_empty-state__container_am73h_15"
+                  class="_empty-state__container_yb2f1_17"
                 >
                   <div
-                    class="_empty-state__illustration_am73h_25"
+                    class="_empty-state__illustration_yb2f1_27"
                   >
                     <span
                       aria-hidden="true"
@@ -921,10 +921,10 @@ exports[`components/no_results_indicator should match snapshot with variant Pinn
                     </span>
                   </div>
                   <div
-                    class="_empty-state__titles_am73h_31"
+                    class="_empty-state__titles_yb2f1_33"
                   >
                     <h2
-                      class="_empty-state__title_am73h_31"
+                      class="_empty-state__title_yb2f1_33"
                     >
                       <span
                         class=""
@@ -934,7 +934,7 @@ exports[`components/no_results_indicator should match snapshot with variant Pinn
                       </span>
                     </h2>
                     <p
-                      class="_empty-state__description_am73h_48"
+                      class="_empty-state__description_yb2f1_50"
                     >
                       <span
                         class=""
