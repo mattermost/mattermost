@@ -54,7 +54,7 @@ describe('components/SearchableChannelList', () => {
         canShowArchivedChannels: false,
         rememberHideJoinedChannelsChecked: false,
         rememberHideArchivedChannelsChecked: true,
-        noResultsText: <>{'no channel found'}</>,
+        noResultsDescription: 'no channel found',
         filter: Filter.All,
         intl: {
             formatMessage: ({defaultMessage}: {defaultMessage: string}) => defaultMessage,
