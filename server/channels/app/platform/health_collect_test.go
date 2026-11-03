@@ -11,7 +11,6 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
-	"sync"
 	"testing"
 	"time"
 
@@ -28,16 +27,12 @@ import (
 	_ "github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/rules"
 )
 
-// healthCollectCluster is this node, "local", in a cluster of infos. onRequest is called for
-// every collect request this node broadcasts; replies are delivered with deliver.
+// healthCollectCluster is this node, "local", in a cluster of infos. collect answers
+// CollectHealthDiagnostics for the other nodes.
 type healthCollectCluster struct {
 	*testlib.FakeClusterInterface
-	ps        *PlatformService
-	infos     []*model.ClusterInfo
-	onRequest func(req model.HealthCollectRequest)
-
-	mut     sync.Mutex
-	toNodes map[string][]*model.ClusterMessage
+	infos   []*model.ClusterInfo
+	collect func(rctx request.CTX) map[string]*model.NodeDiagnostics
 }
 
 func (c *healthCollectCluster) GetClusterId() string { return "local" }
@@ -46,49 +41,11 @@ func (c *healthCollectCluster) GetClusterInfos() ([]*model.ClusterInfo, error) {
 	return c.infos, nil
 }
 
-func (c *healthCollectCluster) SendClusterMessage(msg *model.ClusterMessage) {
-	c.FakeClusterInterface.SendClusterMessage(msg)
-	if msg.Event != model.ClusterEventHealthCollect || c.onRequest == nil {
-		return
+func (c *healthCollectCluster) CollectHealthDiagnostics(rctx request.CTX) map[string]*model.NodeDiagnostics {
+	if c.collect == nil {
+		return nil
 	}
-
-	var req model.HealthCollectRequest
-	if err := json.Unmarshal(msg.Data, &req); err == nil {
-		go c.onRequest(req)
-	}
-}
-
-func (c *healthCollectCluster) SendClusterMessageToNode(nodeID string, msg *model.ClusterMessage) error {
-	c.mut.Lock()
-	defer c.mut.Unlock()
-	if c.toNodes == nil {
-		c.toNodes = map[string][]*model.ClusterMessage{}
-	}
-	c.toNodes[nodeID] = append(c.toNodes[nodeID], msg)
-	return nil
-}
-
-func (c *healthCollectCluster) sentTo(nodeID string) []*model.ClusterMessage {
-	c.mut.Lock()
-	defer c.mut.Unlock()
-	return c.toNodes[nodeID]
-}
-
-func (c *healthCollectCluster) broadcasts() []*model.ClusterMessage {
-	return c.SelectMessages(func(msg *model.ClusterMessage) bool {
-		return msg.Event == model.ClusterEventHealthCollect
-	})
-}
-
-// deliver hands a reply to this node as if it had arrived over the cluster.
-func (c *healthCollectCluster) deliver(t *testing.T, runID, nodeID, hostname string, errs model.SectionErrors) {
-	t.Helper()
-
-	var diag model.SupportPacketDiagnostics
-	diag.Server.Hostname = model.NewPointer(hostname)
-	data, err := encodeHealthCollectReply(runID, nodeID, &model.NodeDiagnostics{Diagnostics: &diag, Errors: errs})
-	require.NoError(t, err)
-	c.ps.handleHealthCollectReply(&model.ClusterMessage{Event: model.ClusterEventHealthCollectReply, Data: data})
+	return c.collect(rctx)
 }
 
 func setupHealthCollect(t *testing.T, infos []*model.ClusterInfo) (*TestHelper, *healthCollectCluster) {
@@ -96,7 +53,6 @@ func setupHealthCollect(t *testing.T, infos []*model.ClusterInfo) (*TestHelper, 
 
 	cluster := &healthCollectCluster{FakeClusterInterface: &testlib.FakeClusterInterface{}, infos: infos}
 	th := SetupWithCluster(t, cluster)
-	cluster.ps = th.Service
 	return th, cluster
 }
 
@@ -108,13 +64,11 @@ func connectedInfos(ids ...string) []*model.ClusterInfo {
 	return infos
 }
 
-// withTimeout returns rctx with a deadline d from now.
-func withTimeout(t *testing.T, rctx request.CTX, d time.Duration) request.CTX {
-	t.Helper()
-
-	ctx, cancel := context.WithTimeout(rctx.Context(), d)
-	t.Cleanup(cancel)
-	return rctx.WithContext(ctx)
+// nodeDiagnostics returns a node's diagnostics reporting hostname, with errs as section errors.
+func nodeDiagnostics(hostname string, errs model.SectionErrors) *model.NodeDiagnostics {
+	var diag model.SupportPacketDiagnostics
+	diag.Server.Hostname = model.NewPointer(hostname)
+	return &model.NodeDiagnostics{Diagnostics: &diag, Errors: errs}
 }
 
 func nodesByID(nodes []*healthcheck.NodeSnapshot) map[string]*healthcheck.NodeSnapshot {
@@ -130,16 +84,15 @@ func TestCollectHealthNodes(t *testing.T) {
 
 	t.Run("every node replies", func(t *testing.T) {
 		th, cluster := setupHealthCollect(t, connectedInfos("node-2", "node-3"))
-		cluster.onRequest = func(req model.HealthCollectRequest) {
-			assert.Equal(t, "local", req.RequesterID)
-			cluster.deliver(t, req.RunID, "node-2", "node-2-host", model.SectionErrors{model.SectionSMTPProbe: nil})
-			cluster.deliver(t, req.RunID, "node-3", "node-3-host", model.SectionErrors{model.SectionSMTPProbe: errors.New("dial tcp: timeout")})
+		cluster.collect = func(request.CTX) map[string]*model.NodeDiagnostics {
+			return map[string]*model.NodeDiagnostics{
+				"node-2": nodeDiagnostics("node-2-host", model.SectionErrors{model.SectionSMTPProbe: nil}),
+				"node-3": nodeDiagnostics("node-3-host", model.SectionErrors{model.SectionSMTPProbe: errors.New("dial tcp: timeout")}),
+			}
 		}
 
-		start := time.Now()
 		nodes, err := th.Service.CollectHealthNodes(th.Context)
 		require.NoError(t, err)
-		assert.Less(t, time.Since(start), 30*time.Second)
 
 		require.Len(t, nodes, 3)
 		byID := nodesByID(nodes)
@@ -151,19 +104,16 @@ func TestCollectHealthNodes(t *testing.T) {
 		assert.True(t, byID["node-2"].Has(model.SectionSMTPProbe))
 		_, smtpErr := byID["node-3"].SectionErr(model.SectionSMTPProbe)
 		assert.EqualError(t, smtpErr, "dial tcp: timeout")
-		assert.Len(t, cluster.broadcasts(), 1)
 	})
 
-	t.Run("a node that never replies is left out at the deadline", func(t *testing.T) {
+	t.Run("a node that does not reply is marked", func(t *testing.T) {
 		th, cluster := setupHealthCollect(t, connectedInfos("node-2", "node-3"))
-		cluster.onRequest = func(req model.HealthCollectRequest) {
-			cluster.deliver(t, req.RunID, "node-2", "node-2-host", nil)
+		cluster.collect = func(request.CTX) map[string]*model.NodeDiagnostics {
+			return map[string]*model.NodeDiagnostics{"node-2": nodeDiagnostics("node-2-host", nil)}
 		}
 
-		start := time.Now()
-		nodes, err := th.Service.CollectHealthNodes(withTimeout(t, th.Context, 500*time.Millisecond))
+		nodes, err := th.Service.CollectHealthNodes(th.Context)
 		require.NoError(t, err)
-		assert.GreaterOrEqual(t, time.Since(start), 500*time.Millisecond)
 
 		byID := nodesByID(nodes)
 		assert.NotNil(t, byID["local"].Diagnostics)
@@ -172,61 +122,49 @@ func TestCollectHealthNodes(t *testing.T) {
 		assert.ErrorIs(t, byID["node-3"].CollectErr, healthcheck.ErrNodeNoReply)
 	})
 
-	t.Run("replies for another run, from an unknown node or repeated are dropped", func(t *testing.T) {
-		th, cluster := setupHealthCollect(t, connectedInfos("node-2", "node-3"))
-		cluster.onRequest = func(req model.HealthCollectRequest) {
-			cluster.deliver(t, model.NewId(), "node-2", "wrong-run", nil)
-			cluster.deliver(t, req.RunID, "node-9", "unknown-node", nil)
-			cluster.deliver(t, req.RunID, "node-2", "node-2-host", nil)
-			cluster.deliver(t, req.RunID, "node-2", "repeated", nil)
-			cluster.deliver(t, req.RunID, "node-3", "node-3-host", nil)
+	t.Run("the cluster gets a deadline when the caller sets none", func(t *testing.T) {
+		th, cluster := setupHealthCollect(t, connectedInfos("node-2"))
+		var deadline time.Time
+		cluster.collect = func(rctx request.CTX) map[string]*model.NodeDiagnostics {
+			deadline, _ = rctx.Context().Deadline()
+			return nil
 		}
 
-		nodes, err := th.Service.CollectHealthNodes(th.Context)
+		start := time.Now()
+		_, err := th.Service.CollectHealthNodes(th.Context)
 		require.NoError(t, err)
-		byID := nodesByID(nodes)
-		require.Len(t, byID, 3)
-		assert.Equal(t, "node-2-host", *byID["node-2"].Diagnostics.Diagnostics.Server.Hostname)
-		assert.Equal(t, "node-3-host", *byID["node-3"].Diagnostics.Diagnostics.Server.Hostname)
+		assert.WithinRange(t, deadline, start.Add(healthCollectTimeout), time.Now().Add(healthCollectTimeout))
 	})
 
-	t.Run("a reply after the run ended is dropped", func(t *testing.T) {
-		th, cluster := setupHealthCollect(t, connectedInfos("node-2"))
-		runIDs := make(chan string, 1)
-		cluster.onRequest = func(req model.HealthCollectRequest) { runIDs <- req.RunID }
+	t.Run("the caller's deadline is kept and nodes that replied by then are used", func(t *testing.T) {
+		th, cluster := setupHealthCollect(t, connectedInfos("node-2", "node-3"))
+		ctx, cancel := context.WithTimeout(th.Context.Context(), 200*time.Millisecond)
+		defer cancel()
+		cluster.collect = func(rctx request.CTX) map[string]*model.NodeDiagnostics {
+			<-rctx.Context().Done()
+			return map[string]*model.NodeDiagnostics{"node-2": nodeDiagnostics("node-2-host", nil)}
+		}
 
-		nodes, err := th.Service.CollectHealthNodes(withTimeout(t, th.Context, 100*time.Millisecond))
+		nodes, err := th.Service.CollectHealthNodes(th.Context.WithContext(ctx))
 		require.NoError(t, err)
-		assert.ErrorIs(t, nodesByID(nodes)["node-2"].CollectErr, healthcheck.ErrNodeNoReply)
 
-		runID := <-runIDs
-		assert.NotPanics(t, func() { cluster.deliver(t, runID, "node-2", "node-2-host", nil) })
-		th.Service.healthCollectMut.Lock()
-		assert.Empty(t, th.Service.healthCollectRuns)
-		th.Service.healthCollectMut.Unlock()
+		byID := nodesByID(nodes)
+		assert.NotNil(t, byID["node-2"].Diagnostics)
+		assert.ErrorIs(t, byID["node-3"].CollectErr, healthcheck.ErrNodeNoReply)
 	})
 
 	t.Run("cancelling the context aborts the run", func(t *testing.T) {
 		th, cluster := setupHealthCollect(t, connectedInfos("node-2"))
 		ctx, cancel := context.WithCancel(th.Context.Context())
 		defer cancel()
-		cluster.onRequest = func(model.HealthCollectRequest) { cancel() }
+		cluster.collect = func(request.CTX) map[string]*model.NodeDiagnostics {
+			cancel()
+			return nil
+		}
 
 		nodes, err := th.Service.CollectHealthNodes(th.Context.WithContext(ctx))
 		require.ErrorIs(t, err, context.Canceled)
 		assert.Nil(t, nodes)
-	})
-
-	t.Run("nodes that are not connected are not waited for", func(t *testing.T) {
-		infos := append(connectedInfos(), &model.ClusterInfo{Id: "node-2", Hostname: "node-2-host"})
-		th, cluster := setupHealthCollect(t, infos)
-
-		start := time.Now()
-		nodes, err := th.Service.CollectHealthNodes(th.Context)
-		require.NoError(t, err)
-		assert.Less(t, time.Since(start), 30*time.Second)
-		assert.ErrorIs(t, nodesByID(nodes)["node-2"].CollectErr, healthcheck.ErrNodeNoReply)
-		assert.Empty(t, cluster.broadcasts())
 	})
 
 	t.Run("standalone collects locally only", func(t *testing.T) {
@@ -245,34 +183,8 @@ func TestCollectHealthNodes(t *testing.T) {
 	})
 }
 
-func TestHandleHealthCollect(t *testing.T) {
-	mainHelper.Parallel(t)
-
-	th, cluster := setupHealthCollect(t, connectedInfos("requester"))
-	data, err := json.Marshal(model.HealthCollectRequest{RunID: "run-1", RequesterID: "requester"})
-	require.NoError(t, err)
-
-	th.Service.handleHealthCollect(&model.ClusterMessage{Event: model.ClusterEventHealthCollect, Data: data})
-
-	// Shutdown waits for the collection, so the reply is sent by the time the wait returns.
-	th.Service.waitForGoroutines()
-	require.Len(t, cluster.sentTo("requester"), 1)
-	msg := cluster.sentTo("requester")[0]
-	assert.Equal(t, model.ClusterEventHealthCollectReply, msg.Event)
-	assert.Equal(t, model.ClusterSendReliable, msg.SendType)
-
-	var reply model.HealthCollectReply
-	require.NoError(t, json.Unmarshal(msg.Data, &reply))
-	assert.Equal(t, "run-1", reply.RunID)
-	assert.Equal(t, "local", reply.NodeID)
-
-	diagnostics, err := decodeHealthCollectReply(&reply)
-	require.NoError(t, err)
-	assert.Equal(t, model.CurrentVersion, diagnostics.Diagnostics.Server.Version)
-	assert.Len(t, diagnostics.Errors, len(model.AllNodeSections()))
-}
-
-func TestHealthCollectReplyRoundTrip(t *testing.T) {
+// A real node's diagnostics survive the JSON that nodes send each other.
+func TestNodeDiagnosticsJSONRoundTrip(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	data, err := os.ReadFile(filepath.Join(server.GetPackagePath(), "platform", "shared", "healthcheck", "packet", "testdata", "ha", "app-2.example.com", "diagnostics.yaml"))
@@ -289,24 +201,16 @@ func TestHealthCollectReplyRoundTrip(t *testing.T) {
 		},
 	}
 
-	data, err = encodeHealthCollectReply("run-1", "node-1", diagnostics)
+	data, err = json.Marshal(diagnostics)
 	require.NoError(t, err)
 
-	var decoded model.HealthCollectReply
-	require.NoError(t, json.Unmarshal(data, &decoded))
-	assert.Equal(t, "run-1", decoded.RunID)
-	assert.Equal(t, "node-1", decoded.NodeID)
-
-	got, err := decodeHealthCollectReply(&decoded)
-	require.NoError(t, err)
+	var got model.NodeDiagnostics
+	require.NoError(t, json.Unmarshal(data, &got))
 	assert.Equal(t, diagnostics.Diagnostics, got.Diagnostics)
 	require.Len(t, got.Errors, 2)
 	require.Contains(t, got.Errors, model.SectionServerHost)
 	assert.NoError(t, got.Errors[model.SectionServerHost])
 	assert.EqualError(t, got.Errors[model.SectionSMTPProbe], "dial tcp 10.0.0.5:25: i/o timeout")
-
-	_, err = decodeHealthCollectReply(&model.HealthCollectReply{RunID: "run-1", NodeID: "node-1"})
-	assert.Error(t, err, "a reply without diagnostics")
 }
 
 func TestHealthNodes(t *testing.T) {
