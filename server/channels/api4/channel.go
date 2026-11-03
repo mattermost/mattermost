@@ -368,6 +368,16 @@ func canSetChannelAttributeOnCreate(c *Context, field *model.PropertyField) bool
 	}
 }
 
+// groupConstrainedValueChanging reports whether next changes channel's
+// group-constrained value. A nil next leaves the current value in place.
+// Nil and a pointer to false are the same value.
+func groupConstrainedValueChanging(channel *model.Channel, next *bool) bool {
+	if channel == nil || next == nil {
+		return false
+	}
+	return *next != channel.IsGroupConstrained()
+}
+
 func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireChannelId()
 	if c.Err != nil {
@@ -458,6 +468,13 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	if channel.Name != "" {
 		oldChannel.Name = channel.Name
 		model.AddEventParameterToAuditRec(auditRec, "new_channel_name", oldChannel.Name)
+	}
+
+	if groupConstrainedValueChanging(oldChannel, channel.GroupConstrained) {
+		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionManageChannelRoles); !ok {
+			c.SetPermissionError(model.PermissionManageChannelRoles)
+			return
+		}
 	}
 
 	if channel.GroupConstrained != nil {
@@ -703,16 +720,31 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if groupConstrainedValueChanging(originalOldChannel, patch.GroupConstrained) {
+		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionManageChannelRoles); !ok {
+			c.SetPermissionError(model.PermissionManageChannelRoles)
+			return
+		}
+	}
+
 	rchannel, appErr := c.App.PatchChannel(c.AppContext, oldChannel, patch, c.AppContext.Session().UserId)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
 
-	// If the channel is now group constrained but wasn't previously, delete members that aren't part of the channel's groups
-	if patch.GroupConstrained != nil && *patch.GroupConstrained && (originalOldChannel.GroupConstrained == nil || !*originalOldChannel.GroupConstrained) {
+	// If the channel is now group constrained but wasn't previously, delete members that aren't part of the channel's groups.
+	// Skip that deletion when the channel has no linked groups.
+	if patch.GroupConstrained != nil && *patch.GroupConstrained && !originalOldChannel.IsGroupConstrained() {
+		channelID := rchannel.Id
 		c.App.Srv().Go(func() {
-			if err := c.App.DeleteGroupConstrainedChannelMemberships(c.AppContext, &rchannel.Id); err != nil {
+			_, count, groupErr := c.App.GetGroupsByChannel(channelID, model.GroupSearchOpts{})
+			if groupErr != nil {
+				c.Logger.Warn("Error listing channel groups", mlog.Err(groupErr))
+			} else if count == 0 {
+				return
+			}
+			if err := c.App.DeleteGroupConstrainedChannelMemberships(c.AppContext, &channelID); err != nil {
 				c.Logger.Warn("Error deleting group-constrained channel memberships", mlog.Err(err))
 			}
 		})

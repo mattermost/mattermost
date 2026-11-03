@@ -1097,11 +1097,10 @@ func TestPatchChannelGroupConstrained(t *testing.T) {
 		// Test GroupConstrained flag
 		patch := &model.ChannelPatch{}
 		patch.GroupConstrained = new(true)
-		rchannel, resp, err := client.PatchChannel(context.Background(), th.BasicChannel.Id, patch)
-		require.NoError(t, err)
-		CheckOKStatus(t, resp)
+		_, resp, err := client.PatchChannel(context.Background(), th.BasicChannel.Id, patch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
 
-		require.Equal(t, *rchannel.GroupConstrained, *patch.GroupConstrained, "GroupConstrained flags do not match")
 		patch.GroupConstrained = nil
 
 		_, resp, err = client.PatchChannel(context.Background(), "junk", patch)
