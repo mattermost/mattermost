@@ -88,14 +88,16 @@ func (s *MmctlE2ETestSuite) TestlogsCmdF() {
 		s.False(logged.After(before), "logged at %s, printed after %s", logged, before)
 	})
 
-	s.RunForSystemAdminAndLocal("Display plain logs", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("Ignore the deprecated plain flag", func(c client.Client) {
+		marker := logMarker()
 		cmd := newTestCmd(s.T(), LogsCmd)
 		s.Require().NoError(cmd.Flags().Set("plain", "true"))
-		s.Require().NoError(cmd.Flags().Set("number", "1"))
+		s.Require().NoError(cmd.Flags().Set("search", marker))
 
 		data, _, err := testLogsCmdF(c, cmd, []string{})
 		s.Require().NoError(err)
-		s.Require().NotEmpty(data)
+		s.Require().Len(data, 1)
+		s.Contains(data[0], marker)
 	})
 
 	s.RunForSystemAdminAndLocal("Follow new log entries", func(c client.Client) {

@@ -139,8 +139,38 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 		s.Require().EqualError(err, "Unable to retrieve logs. Error: mock error")
 	})
 
-	s.Run("Fail with plain-text log files", func() {
+	s.Run("Fall back to unfiltered logs with plain-text log files", func() {
+		const plainLine = "2026-11-03 08:00:00.000 Z info Server is listening"
 		cmd := newTestCmd(s.T(), LogsCmd)
+		s.Require().NoError(cmd.Flags().Set("number", "2"))
+
+		s.client.
+			EXPECT().
+			QueryLogs(gomock.Any(), 0, 2, gomock.Any()).
+			Return(map[string][]json.RawMessage{"default": {}}, &model.Response{}, nil).
+			Times(1)
+		gomock.InOrder(
+			s.client.
+				EXPECT().
+				GetLogs(gomock.Any(), 0, 1).
+				Return([]string{plainLine}, &model.Response{}, nil).
+				Times(1),
+			s.client.
+				EXPECT().
+				GetLogs(gomock.Any(), 0, 2).
+				Return([]string{plainLine, "\n" + plainLine}, &model.Response{}, nil).
+				Times(1),
+		)
+
+		data, stderr, err := testLogsCmdF(s.client, cmd, []string{})
+		s.Require().NoError(err)
+		s.Equal([]string{plainLine, plainLine}, data)
+		s.Contains(stderr, "not in JSON format, printing the logs unfiltered instead")
+	})
+
+	s.Run("Fail with plain-text log files when the flags need the query", func() {
+		cmd := newTestCmd(s.T(), LogsCmd)
+		s.Require().NoError(cmd.Flags().Set("level", "error"))
 
 		s.client.
 			EXPECT().
@@ -155,7 +185,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 
 		_, _, err := testLogsCmdF(s.client, cmd, []string{})
 		s.Require().ErrorIs(err, errPlainTextLogs)
-		s.Contains(err.Error(), "--plain")
+		s.Contains(err.Error(), "LogSettings.FileJson")
 	})
 
 	s.Run("Print nothing when no JSON entry matches", func() {
@@ -214,22 +244,26 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 		s.Require().ErrorIs(err, errQueryLogsNotFound)
 	})
 
-	s.Run("Display plain logs", func() {
+	s.Run("Ignore the deprecated plain flag", func() {
 		cmd := newTestCmd(s.T(), LogsCmd)
 		s.Require().NoError(cmd.Flags().Set("plain", "true"))
 		s.Require().NoError(cmd.Flags().Set("number", "1"))
+		s.Require().NoError(cmd.Flags().Set("level", "info"))
+
+		flag := cmd.Flags().Lookup("plain")
+		s.True(flag.Hidden)
+		s.Equal("mmctl prints the logs unfiltered by itself when it can't filter them", flag.Deprecated)
 
 		s.client.
 			EXPECT().
-			GetLogs(gomock.Any(), 0, 1).
-			Return([]string{testLogInfo}, &model.Response{}, nil).
+			QueryLogs(gomock.Any(), 0, 1, gomock.Any()).
+			Return(map[string][]json.RawMessage{"default": {json.RawMessage(testLogMlog)}}, &model.Response{}, nil).
 			Times(1)
 
 		data, _, err := testLogsCmdF(s.client, cmd, []string{})
 
 		s.Require().NoError(err)
-		s.Require().Len(data, 1)
-		s.Contains(data[0], testLogInfoStdout)
+		s.Require().Equal([]string{testLogMlogStdout}, data)
 	})
 
 	s.Run("Reject invalid flags", func() {
@@ -238,8 +272,6 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 			flags map[string]string
 			err   string
 		}{
-			{"plain with follow", map[string]string{"plain": "true", "follow": "true"}, "--plain cannot be used with --follow, --level, --node, --search or --since"},
-			{"plain with level", map[string]string{"plain": "true", "level": "error"}, "--plain cannot be used with --follow, --level, --node, --search or --since"},
 			{"short interval", map[string]string{"follow": "true", "interval": "1s"}, "--interval must be at least 2s"},
 			{"unknown level", map[string]string{"level": "fatal"}, `invalid level "fatal", must be one of: error, warn, info, debug`},
 			{"long search", map[string]string{"search": strings.Repeat("a", 257)}, "the search text must be at most 256 characters long"},

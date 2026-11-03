@@ -50,16 +50,16 @@ var logLevelGroups = map[string][]string{
 
 var logLevelGroupNames = []string{"error", "warn", "info", "debug"}
 
-var errPlainTextLogs = errors.New("the server's log file is not in JSON format, which is needed to filter and follow the logs. Enable LogSettings.FileJson, or use --plain to print the logs unfiltered")
+var errPlainTextLogs = errors.New("the server's log file is not in JSON format, which is needed to filter and follow the logs. Enable LogSettings.FileJson, or run mmctl logs without --follow, --level, --node, --search and --since to print them unfiltered")
 
-var errQueryLogsNotFound = errors.New("the server doesn't support querying the logs over this connection, which is needed to filter and follow them. Upgrade the server, or use --plain to print the logs unfiltered")
+var errQueryLogsNotFound = errors.New("the server doesn't support querying the logs over this connection, which is needed to filter and follow them. Upgrade the server, or run mmctl logs without --follow, --level, --node, --search and --since to print them unfiltered")
 
 var LogsCmd = &cobra.Command{
 	Use:   "logs",
 	Short: "Display logs in a human-readable format",
 	Long: `Display logs in a human-readable format. As the logs format depends on the server, the "--format" flag cannot be used with this command.
 
-The logs are read from every node of the cluster, and filtered on each node. This needs the server to write its log file in JSON format (LogSettings.FileJson). Use "--plain" to print them unfiltered instead.
+The logs are read from every node of the cluster, and filtered on each node. This needs the server to write its log file in JSON format (LogSettings.FileJson). Otherwise mmctl prints the logs unfiltered, and --follow, --level, --node, --search and --since aren't available.
 
 Entries are colored when printed to a terminal. Set NO_COLOR to turn the colors off, or CLICOLOR_FORCE to keep them when the output is piped.`,
 	Example: `  # print the last 200 entries of each node
@@ -88,13 +88,14 @@ func init() {
 	LogsCmd.Flags().StringArray("node", nil, "Only show the logs of this cluster node. Can be repeated.")
 	LogsCmd.Flags().StringP("search", "s", "", "Only show entries with a value, other than the level and timestamp, that contains this text, ignoring case.")
 	LogsCmd.Flags().Duration("since", 0, "Only show entries logged within this duration, e.g. 15m.")
-	LogsCmd.Flags().Bool("plain", false, "Print the log lines of every node unfiltered. Works with plain-text log files, but supports none of --follow, --level, --node, --search and --since.")
+	// mmctl prints the logs unfiltered by itself when it can't query them, so the flag is only kept for existing scripts
+	LogsCmd.Flags().Bool("plain", false, "Print the logs unfiltered.")
+	_ = LogsCmd.Flags().MarkDeprecated("plain", "mmctl prints the logs unfiltered by itself when it can't filter them")
 	RootCmd.AddCommand(LogsCmd)
 }
 
 type logsOptions struct {
 	number   int
-	plain    bool
 	follow   bool
 	interval time.Duration
 	// levels are the server levels the chosen level groups stand for.
@@ -125,9 +126,6 @@ func logsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		ctx = context.Background()
 	}
 
-	if opts.plain {
-		return printPlainLogs(ctx, c, opts, os.Stdout)
-	}
 	return newLogFollower(c, opts, os.Stdout, os.Stderr).run(ctx)
 }
 
@@ -135,7 +133,6 @@ func logsOptionsFromFlags(cmd *cobra.Command) (*logsOptions, error) {
 	// A flag that isn't defined, as on a bare command in tests, reads as its zero value
 	opts := &logsOptions{}
 	opts.number, _ = cmd.Flags().GetInt("number")
-	opts.plain, _ = cmd.Flags().GetBool("plain")
 	opts.follow, _ = cmd.Flags().GetBool("follow")
 	opts.interval, _ = cmd.Flags().GetDuration("interval")
 	opts.nodes, _ = cmd.Flags().GetStringArray("node")
@@ -166,10 +163,6 @@ func logsOptionsFromFlags(cmd *cobra.Command) (*logsOptions, error) {
 
 	if opts.since < 0 {
 		return nil, errors.New("--since must not be negative")
-	}
-
-	if opts.plain && opts.needsQuery() {
-		return nil, errors.New("--plain cannot be used with --follow, --level, --node, --search or --since")
 	}
 
 	if opts.follow && opts.interval < logsMinInterval {
@@ -204,8 +197,8 @@ func logsUseColors(isTerminal bool) bool {
 	return isTerminal
 }
 
-// printPlainLogs prints the log lines of every node unfiltered, as returned by GET /api/v4/logs.
-func printPlainLogs(ctx context.Context, c client.Client, opts *logsOptions, out io.Writer) error {
+// printUnfilteredLogs prints the log lines of every node unfiltered, as returned by GET /api/v4/logs.
+func printUnfilteredLogs(ctx context.Context, c client.Client, opts *logsOptions, out io.Writer) error {
 	logLines, _, err := c.GetLogs(ctx, 0, opts.number)
 	if err != nil {
 		return errors.New("Unable to retrieve logs. Error: " + err.Error())
@@ -287,15 +280,17 @@ func (f *logFollower) run(ctx context.Context) error {
 				return errQueryLogsNotFound
 			}
 			fmt.Fprintln(f.errOut, "Warning: the server doesn't support querying the logs, printing them unfiltered instead.")
-			return printPlainLogs(ctx, f.c, f.opts, f.out)
+			return printUnfilteredLogs(ctx, f.c, f.opts, f.out)
 		}
 		return errors.New("Unable to retrieve logs. Error: " + err.Error())
 	}
 	f.setFloors(logs, perPage)
-	if !f.print(logs, since, start, f.opts.number > 0) {
-		if err := f.checkJSONLogs(ctx); err != nil {
-			return err
+	if !f.print(logs, since, start, f.opts.number > 0) && f.hasPlainTextLogs(ctx) {
+		if f.opts.needsQuery() {
+			return errPlainTextLogs
 		}
+		fmt.Fprintln(f.errOut, "Warning: the server's log file is not in JSON format, printing the logs unfiltered instead.")
+		return printUnfilteredLogs(ctx, f.c, f.opts, f.out)
 	}
 
 	if !f.opts.follow {
@@ -354,18 +349,17 @@ func (f *logFollower) fetch(ctx context.Context, from time.Time, perPage int) (m
 	return f.c.QueryLogs(ctx, 0, perPage, filter)
 }
 
-// checkJSONLogs fails when the server writes its log file as plain text, which the query skips.
-// It's only called when a query returned no entries, as that's the only way plain-text logs show.
-func (f *logFollower) checkJSONLogs(ctx context.Context) error {
+// hasPlainTextLogs reports whether the server writes its log file as plain text, which the query
+// skips. It's only called when a query returned no entries, as that's the only way plain-text
+// logs show.
+func (f *logFollower) hasPlainTextLogs(ctx context.Context) bool {
 	// The first line is the last one the node handling the request logged
 	lines, _, err := f.c.GetLogs(ctx, 0, 1)
 	if err != nil || len(lines) == 0 {
-		return nil
+		return false
 	}
-	if line := strings.TrimSpace(lines[0]); line != "" && !strings.HasPrefix(line, "{") {
-		return errPlainTextLogs
-	}
-	return nil
+	line := strings.TrimSpace(lines[0])
+	return line != "" && !strings.HasPrefix(line, "{")
 }
 
 type pendingLog struct {

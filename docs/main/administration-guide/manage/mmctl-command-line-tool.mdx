@@ -4744,7 +4744,7 @@ Each entry shows the time the server logged it. When printed to a terminal, the 
 
 <Note>
 
-Filtering and following the logs requires the server to write its log file in JSON format. See the [Output file logs as JSON](/administration-guide/configure/environment-configuration-settings#output-file-logs-as-json) configuration setting. With plain-text log files, use `--plain` to print the log lines unfiltered, which doesn't support `--follow` or the filters.
+Filtering and following the logs requires the server to write its log file in JSON format. See the [Output file logs as JSON](/administration-guide/configure/environment-configuration-settings#output-file-logs-as-json) configuration setting. With plain-text log files, mmctl prints the log lines of every node unfiltered, and `--follow`, `--level`, `--node`, `--search`, and `--since` aren't available.
 
 </Note>
 
@@ -4779,12 +4779,11 @@ mmctl logs --node node-1 --since 15m -n 10000
     --level strings       Only show entries of these level groups: error, warn, info, debug.
     --node stringArray    Only show the logs of this cluster node. Can be repeated.
 -n, --number int          Number of log entries to retrieve initially, per node. At most 10000. (default 200)
-    --plain               Print the log lines of every node unfiltered. Works with plain-text log files, but supports none of --follow, --level, --node, --search and --since.
 -s, --search string       Only show entries with a value, other than the level and timestamp, that contains this text, ignoring case.
     --since duration      Only show entries logged within this duration, e.g. 15m.
 ```
 
-The `-l, --logrus` option is deprecated from Mattermost v12.2, as the logrus format is now the default. It's still accepted, and will be removed in a future version.
+From Mattermost v12.2, the `-l, --logrus` and `--plain` options are deprecated. The logrus format is now the default, and mmctl prints the logs unfiltered by itself when it can't filter them. Both options are still accepted, and will be removed in a future version.
 
 **Options inherited from parent commands**
 
