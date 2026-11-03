@@ -360,7 +360,7 @@ func TestArchiveExtractorReadAllocation(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			r := bytes.NewReader(tc.data)
 
-			ctx := context.Background()
+			var ctx context.Context
 			if tc.cancel {
 				var cancel context.CancelFunc
 				ctx, cancel = context.WithCancel(context.Background())

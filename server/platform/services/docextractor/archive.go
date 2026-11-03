@@ -13,7 +13,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"sort"
+	"slices"
 	"strings"
 
 	"github.com/mholt/archives"
@@ -138,7 +138,7 @@ func (ae *archiveExtractor) Extract(ctx context.Context, name string, r io.ReadS
 		}
 
 		if ae.SubExtractor == nil {
-			ae.writeMember(&text, ctx, memberName, nil, false, maxFileSize, budget)
+			ae.writeMember(ctx, &text, memberName, nil, false, maxFileSize, budget)
 			return nil
 		}
 
@@ -163,14 +163,14 @@ func (ae *archiveExtractor) Extract(ctx context.Context, name string, r io.ReadS
 		return "", err
 	}
 
-	sort.Slice(pending, func(i, j int) bool {
-		return pending[i].name < pending[j].name
+	slices.SortFunc(pending, func(a, b archiveMember) int {
+		return strings.Compare(a.name, b.name)
 	})
 	for _, member := range pending {
 		if budget.Exhausted() {
 			break
 		}
-		ae.writeMember(&text, ctx, member.name, member.data, member.hitLimit, maxFileSize, budget)
+		ae.writeMember(ctx, &text, member.name, member.data, member.hitLimit, maxFileSize, budget)
 	}
 
 	return text.String(), nil
@@ -187,16 +187,7 @@ func archiveMemberWithinLimits(name string) bool {
 	if name == "" || name == "." {
 		return true
 	}
-	depth := 1
-	for i := 0; i < len(name); i++ {
-		if name[i] == '/' {
-			depth++
-			if depth > maxArchivePathDepth {
-				return false
-			}
-		}
-	}
-	return true
+	return strings.Count(name, "/")+1 <= maxArchivePathDepth
 }
 
 func readArchiveMember(file archives.FileInfo, room, maxFileSize int64) ([]byte, bool, error) {
@@ -222,7 +213,7 @@ func readArchiveMember(file archives.FileInfo, room, maxFileSize int64) ([]byte,
 	return data, false, nil
 }
 
-func (ae *archiveExtractor) writeMember(text *strings.Builder, ctx context.Context, memberPath string, data []byte, hitLimit bool, maxFileSize int64, budget *ExtractionBudget) {
+func (ae *archiveExtractor) writeMember(ctx context.Context, text *strings.Builder, memberPath string, data []byte, hitLimit bool, maxFileSize int64, budget *ExtractionBudget) {
 	pathEntry := memberPath + " "
 	text.WriteString(pathEntry)
 	budget.Deduct(int64(len(pathEntry)))
@@ -232,6 +223,7 @@ func (ae *archiveExtractor) writeMember(text *strings.Builder, ctx context.Conte
 	}
 	if hitLimit {
 		budget.Exhaust()
+		return
 	}
 
 	filename := filepath.Base(memberPath)
