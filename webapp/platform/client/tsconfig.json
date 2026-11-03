@@ -1,8 +1,9 @@
 {
     "compilerOptions": {
         "module": "commonjs",
-        "moduleResolution": "node",
+        "moduleResolution": "bundler",
         "target": "es2022",
+        "types": ["jest", "node"],
         "declaration": true,
         "strict": true,
         "skipLibCheck": true,

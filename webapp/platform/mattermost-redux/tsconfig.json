@@ -2,11 +2,13 @@
     "compilerOptions": {
         "allowJs": true,
         "module": "commonjs",
-        "moduleResolution": "node",
+        "moduleResolution": "bundler",
         "target": "ES2022",
         "lib": [
-            "ES2022"
+            "ES2022",
+            "DOM"
         ],
+        "types": ["node"],
         "declaration": true,
         "strict": true,
         "resolveJsonModule": true,

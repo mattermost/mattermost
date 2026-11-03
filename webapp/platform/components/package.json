@@ -33,7 +33,7 @@
     "react-dom": "19.3.1",
     "rollup": "^2.75.7",
     "rollup-plugin-scss": "4.0.1",
-    "typescript": "^5.0.0"
+    "typescript": "^6.0.0"
   },
   "peerDependencies": {
     "@babel/runtime-corejs3": "^7.29.10",
