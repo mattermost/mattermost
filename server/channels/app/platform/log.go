@@ -215,7 +215,7 @@ func (ps *PlatformService) getLogsSkipSend(rctx request.CTX, page, perPage int, 
 		if parent == nil {
 			parent = context.Background()
 		}
-		// The caller's context may end the scan sooner, as a remote node's handler does
+		// The caller's context may end the scan sooner
 		ctx, cancel := context.WithTimeout(parent, budget.duration)
 		defer cancel()
 
