@@ -6,8 +6,9 @@ title: "Distribute a custom desktop app"
 You can build and distribute your own Mattermost desktop app with built-in servers and settings by configuring [src/common/config/buildConfig.ts](https://github.com/mattermost/desktop/blob/master/src/common/config/buildConfig.ts).
 
 1.  Configure `buildConfig.ts` with the parameters below.
-2.  Build the app by following the [Mattermost Desktop Development Guide](https://docs.mattermost.com/developers/contribute/more-info/desktop/developer-setup/).
-3.  Distribute the app to your users.
+2.  Set up your build environment by following the [Mattermost Desktop Development Guide](https://docs.mattermost.com/developers/contribute/more-info/desktop/developer-setup/).
+3.  Create installable packages with the `npm run package:<os>` scripts, such as `package:windows`, `package:mac`, or `package:linux`, and [sign them](/administration-guide/manage/code-signing-custom-builds).
+4.  Distribute the app to your users.
 
 ## `defaultServers`
 
@@ -44,12 +45,12 @@ enableServerManagement: true
 
 ## `managedResources`
 
-Paths to services on the same protocol and hostname as the Mattermost server, such as a video or conference service. Selecting a link to a managed resource opens it in a pop-up window in the app. Also configure the [Managed Resource Paths](/administration-guide/configure/environment-configuration-settings#managed-resource-paths) setting on the Mattermost server.
+Paths to services on the same protocol, hostname, and port as the Mattermost server, such as a video or conference service. Selecting a link to a managed resource opens it in a pop-up window in the app. Also configure the [Managed Resource Paths](/administration-guide/configure/environment-configuration-settings#managed-resource-paths) setting on the Mattermost server.
 
 ``` text
 managedResources: ['trusted', 'video'],
 ```
 
-For a server at `https://mattermost.my.org`, `https://mattermost.my.org/video` is a valid managed resource. `http://mattermost.my.org/video` (different protocol) and `https://conference.my.org` (different origin) aren't.
+For a server at `https://mattermost.my.org`, `https://mattermost.my.org/video` is a valid managed resource. `http://mattermost.my.org/video` (different protocol) and `https://conference.my.org` (different origin) aren't. A different port also makes it a different origin.
 
 For a server at `https://my.org/mattermost`, `https://my.org/mattermost/video` is a valid managed resource.
