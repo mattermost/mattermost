@@ -439,8 +439,8 @@ describe('components/FileUpload', () => {
     });
 
     describe('disabledByPolicy', () => {
-        // jest-dom's toBeDisabled() only recognises the native attribute, and the button uses
-        // aria-disabled so the tooltip still opens. Playwright's accepts either, so e2e is fine.
+        // IconButton asChild + disabled uses aria-disabled (and the disabled class) so the
+        // tooltip still opens. jest-dom's toBeDisabled() only recognises the native attribute.
         test('renders the button visible but disabled, and keeps its id', () => {
             const {container} = renderWithContext(
                 <FileUpload
@@ -452,6 +452,23 @@ describe('components/FileUpload', () => {
             const button = container.querySelector('#fileUploadButton');
             expect(button).toBeVisible();
             expect(button).toHaveAttribute('aria-disabled', 'true');
+            expect(button).not.toBeDisabled();
+            expect(button?.className).toMatch(/icon-button--disabled/);
+            expect(container.querySelector('.btn-file__disabled')).toBeNull();
+        });
+
+        test('uses IconButton disabled styles when the attachment limit is reached', () => {
+            const {container} = renderWithContext(
+                <FileUpload
+                    {...baseProps}
+                    fileCount={10}
+                />,
+            );
+
+            const button = container.querySelector('#fileUploadButton');
+            expect(button).toHaveAttribute('aria-disabled', 'true');
+            expect(button?.className).toMatch(/icon-button--disabled/);
+            expect(container.querySelector('.btn-file__disabled')).toBeNull();
         });
 
         test('does not open the file picker when the disabled button is clicked', () => {

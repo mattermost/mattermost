@@ -1561,7 +1561,7 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
           </div>
         </div>
         <section
-          aria-labelledby="_r_c_"
+          aria-labelledby="_r_e_"
           class="_admin-panel_iwm08_2 AdminPanel clearfix"
           id="group_profile"
         >
@@ -1582,7 +1582,7 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
                   >
                     <h2
                       class="_admin-panel-header__title_19tix_37"
-                      id="_r_c_"
+                      id="_r_e_"
                     >
                       Group Profile
                     </h2>
@@ -1686,7 +1686,7 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
           </div>
         </section>
         <section
-          aria-labelledby="_r_e_"
+          aria-labelledby="_r_g_"
           class="_admin-panel_iwm08_2 AdminPanel clearfix"
           id="group_teams_and_channels"
         >
@@ -1707,7 +1707,7 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
                   >
                     <h2
                       class="_admin-panel-header__title_19tix_37"
-                      id="_r_e_"
+                      id="_r_g_"
                     >
                       Team and Channel Membership
                     </h2>
@@ -1784,7 +1784,7 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
           </div>
         </section>
         <section
-          aria-labelledby="_r_f_"
+          aria-labelledby="_r_h_"
           class="_admin-panel_iwm08_2 AdminPanel clearfix"
           id="group_users"
         >
@@ -1805,7 +1805,7 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
                   >
                     <h2
                       class="_admin-panel-header__title_19tix_37"
-                      id="_r_f_"
+                      id="_r_h_"
                     >
                       Users
                     </h2>
