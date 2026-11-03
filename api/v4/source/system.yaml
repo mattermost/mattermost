@@ -1184,7 +1184,8 @@
 
         If reading a node's log file stops at its time or size limit, that
         node's lines end with a JSON line with `scan_limited` set to `true` and
-        `scanned_back_to` set to the timestamp of the oldest line read.
+        `scanned_back_to` set to the timestamp of the oldest line read, if a
+        line with a timestamp was read.
 
         ##### Permissions
 
@@ -1274,7 +1275,8 @@
 
         If reading a node's log file stops at its time or size limit, that
         node's array ends with an entry with `scan_limited` set to `true` and
-        `scanned_back_to` set to the timestamp of the oldest line read.
+        `scanned_back_to` set to the timestamp of the oldest line read, if a
+        line with a timestamp was read.
 
         ##### Permissions
         Must have `get_logs` permission.
