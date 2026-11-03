@@ -5,13 +5,8 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-import {
-    getHealthCheckRun,
-    getHealthFindings,
-    muteHealthFinding,
-    startHealthCheckRun,
-    unmuteHealthFinding,
-} from 'mattermost-redux/actions/health';
+import {getHealthFindings, muteHealthFinding, unmuteHealthFinding} from 'mattermost-redux/actions/health';
+import {createJob, getJob, getJobsByType} from 'mattermost-redux/actions/jobs';
 import {getFindings, getLastEvaluatedAt, getMutedFindings} from 'mattermost-redux/selectors/entities/health';
 
 import type {GlobalState} from 'types/store';
@@ -32,8 +27,9 @@ function mapDispatchToProps(dispatch: Dispatch) {
             getHealthFindings,
             muteHealthFinding,
             unmuteHealthFinding,
-            startHealthCheckRun,
-            getHealthCheckRun,
+            createJob,
+            getJob,
+            getJobsByType,
         }, dispatch),
     };
 }

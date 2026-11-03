@@ -112,74 +112,36 @@ func (a *App) runHealthCheck(rctx request.CTX, svc *HealthCheckService) error {
 
 // StartHealthCheckRun creates a health_check job for an app server's health-check workers to
 // pick up, unless a run is already pending or in progress: then it returns that run instead, so
-// runs never overlap. created reports whether the returned job is new. A run left in progress by
-// a node that died is closed as failed and does not count (see health_check.RunningJob).
+// runs never overlap. A run left in progress by a node that died is closed as failed and does not
+// count (see health_check.RunningJob). App.CreateJob routes health_check jobs here.
 //
-// The job is created through the job server, bypassing the jobs API's per-type permissions:
-// callers gate this on the health dashboard's own checks.
-func (a *App) StartHealthCheckRun(rctx request.CTX) (job *model.Job, created bool, appErr *model.AppError) {
+// It refuses with 501 unless the health dashboard is enabled and licensed: the health-check
+// workers don't run otherwise, so the job would never be picked up.
+func (a *App) StartHealthCheckRun(rctx request.CTX) (*model.Job, *model.AppError) {
+	if !a.Config().FeatureFlags.HealthDashboard {
+		return nil, model.NewAppError("StartHealthCheckRun", "api.health_finding.feature_disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+	if !model.MinimumEnterpriseLicense(a.Channels().License()) {
+		return nil, model.NewAppError("StartHealthCheckRun", "api.health_finding.license.app_error", nil, "", http.StatusNotImplemented)
+	}
+
 	running, appErr := health_check.RunningJob(rctx, a.Srv().Jobs)
 	if appErr != nil || running != nil {
-		return running, false, appErr
+		return running, appErr
 	}
 
-	pending, appErr := a.newestHealthCheckJob(model.JobStatusPending)
-	if appErr != nil || pending != nil {
-		return pending, false, appErr
+	// CreateJobOnce saves atomically and creates nothing if a run is already pending, or another
+	// request or the scheduler has just created one; that run is returned instead.
+	job, appErr := a.Srv().Jobs.CreateJobOnce(rctx, model.JobTypeHealthCheck, nil)
+	if appErr != nil || job != nil {
+		return job, appErr
 	}
 
-	// CreateJobOnce saves atomically and creates nothing if another request, or the scheduler,
-	// has just created a run; that run is returned instead.
-	job, appErr = a.Srv().Jobs.CreateJobOnce(rctx, model.JobTypeHealthCheck, nil)
-	if appErr != nil {
-		return nil, false, appErr
-	}
-	if job != nil {
-		return job, true, nil
-	}
-
-	active, appErr := a.newestHealthCheckJob(model.JobStatusPending, model.JobStatusInProgress)
-	if appErr != nil {
-		return nil, false, appErr
-	}
-	if active == nil {
-		return nil, false, model.NewAppError("StartHealthCheckRun", "app.health_check.start_run.app_error", nil, "", http.StatusInternalServerError)
-	}
-	return active, false, nil
-}
-
-func (a *App) newestHealthCheckJob(statuses ...string) (*model.Job, *model.AppError) {
-	job, err := a.Srv().Store().Job().GetNewestJobByStatusesAndType(statuses, model.JobTypeHealthCheck)
-	var nfErr *store.ErrNotFound
-	if err != nil && !errors.As(err, &nfErr) {
-		return nil, model.NewAppError("StartHealthCheckRun", "app.job.get_newest_job_by_status_and_type.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return job, nil
-}
-
-// GetLatestHealthCheckRun returns the newest health_check job, whatever its status and whether
-// it was started on demand or by the scheduler. It returns a 404 error if there has never been one.
-// A stale in-progress run is closed as failed first (see health_check.RunningJob).
-func (a *App) GetLatestHealthCheckRun(rctx request.CTX) (*model.Job, *model.AppError) {
-	jobs, err := a.Srv().Store().Job().GetAllByTypePage(rctx, model.JobTypeHealthCheck, 0, 1)
+	existing, err := a.Srv().Store().Job().GetNewestJobByStatusesAndType([]string{model.JobStatusPending, model.JobStatusInProgress}, model.JobTypeHealthCheck)
 	if err != nil {
-		return nil, model.NewAppError("GetLatestHealthCheckRun", "app.health_check.get_latest_run.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("StartHealthCheckRun", "app.health_check.start_run.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	if len(jobs) == 0 {
-		return nil, model.NewAppError("GetLatestHealthCheckRun", "app.health_check.get_latest_run.not_found.app_error", nil, "", http.StatusNotFound)
-	}
-
-	// A run left in progress by a node that died would otherwise show as running until the next
-	// scheduled run closes it, up to an hour, and keep clients polling it. Close it now instead.
-	latest := jobs[0]
-	if health_check.IsStale(latest) {
-		if _, appErr := health_check.RunningJob(rctx, a.Srv().Jobs); appErr != nil {
-			return nil, appErr
-		}
-		latest.Status = model.JobStatusError
-	}
-
-	return latest, nil
+	return existing, nil
 }
 
 func (a *App) MuteHealthFinding(rctx request.CTX, fingerprint string, userID string) *model.AppError {

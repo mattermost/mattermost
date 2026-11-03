@@ -35,6 +35,12 @@ func TestHealthCheckWorkersStartOnAppServersOnly(t *testing.T) {
 }
 
 func TestStartHealthCheckRun(t *testing.T) {
+	setup := func(t *testing.T) *TestHelper {
+		th := SetupConfig(t, func(cfg *model.Config) { cfg.FeatureFlags.HealthDashboard = true })
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		t.Cleanup(func() { th.App.Srv().SetLicense(nil) })
+		return th
+	}
 	saveJob := func(t *testing.T, th *TestHelper, job *model.Job) *model.Job {
 		t.Helper()
 		job.Id = model.NewId()
@@ -54,12 +60,11 @@ func TestStartHealthCheckRun(t *testing.T) {
 	}
 
 	t.Run("creates a pending job when none is active", func(t *testing.T) {
-		th := Setup(t)
+		th := setup(t)
 		saveJob(t, th, &model.Job{Status: model.JobStatusSuccess, CreateAt: model.GetMillis() - 1000})
 
-		job, created, appErr := th.App.StartHealthCheckRun(th.Context)
+		job, appErr := th.App.StartHealthCheckRun(th.Context)
 		require.Nil(t, appErr)
-		assert.True(t, created)
 		require.NotNil(t, job)
 		assert.Equal(t, model.JobTypeHealthCheck, job.Type)
 		assert.Equal(t, model.JobStatusPending, job.Status)
@@ -67,35 +72,32 @@ func TestStartHealthCheckRun(t *testing.T) {
 	})
 
 	t.Run("returns the pending job", func(t *testing.T) {
-		th := Setup(t)
+		th := setup(t)
 		pending := saveJob(t, th, &model.Job{Status: model.JobStatusPending})
 
-		job, created, appErr := th.App.StartHealthCheckRun(th.Context)
+		job, appErr := th.App.StartHealthCheckRun(th.Context)
 		require.Nil(t, appErr)
-		assert.False(t, created)
 		assert.Equal(t, pending.Id, job.Id)
 		assert.Equal(t, 1, countJobs(t, th))
 	})
 
 	t.Run("returns the job in progress", func(t *testing.T) {
-		th := Setup(t)
+		th := setup(t)
 		running := saveJob(t, th, &model.Job{Status: model.JobStatusInProgress, LastActivityAt: model.GetMillis()})
 
-		job, created, appErr := th.App.StartHealthCheckRun(th.Context)
+		job, appErr := th.App.StartHealthCheckRun(th.Context)
 		require.Nil(t, appErr)
-		assert.False(t, created)
 		assert.Equal(t, running.Id, job.Id)
 		assert.Equal(t, 1, countJobs(t, th))
 	})
 
 	t.Run("a stale job in progress is closed as failed and does not block a new run", func(t *testing.T) {
-		th := Setup(t)
+		th := setup(t)
 		stale := time.Now().Add(-health_check.StaleInProgressAfter - time.Minute).UnixMilli()
 		dead := saveJob(t, th, &model.Job{Status: model.JobStatusInProgress, CreateAt: stale, LastActivityAt: stale})
 
-		job, created, appErr := th.App.StartHealthCheckRun(th.Context)
+		job, appErr := th.App.StartHealthCheckRun(th.Context)
 		require.Nil(t, appErr)
-		assert.True(t, created)
 		assert.NotEqual(t, dead.Id, job.Id)
 		assert.Equal(t, model.JobStatusPending, job.Status)
 		assert.Equal(t, 2, countJobs(t, th))
@@ -103,76 +105,38 @@ func TestStartHealthCheckRun(t *testing.T) {
 		closed, err := th.App.Srv().Store().Job().Get(th.Context, dead.Id)
 		require.NoError(t, err)
 		assert.Equal(t, model.JobStatusError, closed.Status)
-
-		// The new run is now the active one.
-		again, created, appErr := th.App.StartHealthCheckRun(th.Context)
-		require.Nil(t, appErr)
-		assert.False(t, created)
-		assert.Equal(t, job.Id, again.Id)
 	})
 
 	t.Run("returns a pending job queued behind a stale one", func(t *testing.T) {
-		th := Setup(t)
+		th := setup(t)
 		staleAt := time.Now().Add(-health_check.StaleInProgressAfter - time.Minute).UnixMilli()
 		pending := saveJob(t, th, &model.Job{Status: model.JobStatusPending, CreateAt: staleAt - 1000})
 		saveJob(t, th, &model.Job{Status: model.JobStatusInProgress, CreateAt: staleAt, LastActivityAt: staleAt})
 
-		job, created, appErr := th.App.StartHealthCheckRun(th.Context)
+		job, appErr := th.App.StartHealthCheckRun(th.Context)
 		require.Nil(t, appErr)
-		assert.False(t, created)
 		assert.Equal(t, pending.Id, job.Id)
 		assert.Equal(t, 2, countJobs(t, th))
 	})
-}
 
-func TestGetLatestHealthCheckRun(t *testing.T) {
-	th := Setup(t)
+	t.Run("refused with the feature flag off", func(t *testing.T) {
+		th := setup(t)
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.HealthDashboard = false })
 
-	_, appErr := th.App.GetLatestHealthCheckRun(th.Context)
-	require.NotNil(t, appErr)
-	assert.Equal(t, http.StatusNotFound, appErr.StatusCode)
-
-	now := model.GetMillis()
-	for _, job := range []*model.Job{
-		{Id: model.NewId(), Type: model.JobTypeHealthCheck, Status: model.JobStatusSuccess, CreateAt: now - 2000},
-		{Id: model.NewId(), Type: model.JobTypeHealthCheck, Status: model.JobStatusError, CreateAt: now - 1000},
-		{Id: model.NewId(), Type: model.JobTypeMigrations, Status: model.JobStatusPending, CreateAt: now},
-	} {
-		_, err := th.App.Srv().Store().Job().Save(job)
-		require.NoError(t, err)
-	}
-
-	latest, appErr := th.App.GetLatestHealthCheckRun(th.Context)
-	require.Nil(t, appErr)
-	assert.Equal(t, model.JobStatusError, latest.Status)
-	assert.Equal(t, now-1000, latest.CreateAt)
-
-	t.Run("a run left in progress by a node that died is closed as failed", func(t *testing.T) {
-		stale := &model.Job{Id: model.NewId(), Type: model.JobTypeHealthCheck, Status: model.JobStatusInProgress,
-			CreateAt: now + 1000, LastActivityAt: time.Now().Add(-health_check.StaleInProgressAfter - time.Minute).UnixMilli()}
-		_, err := th.App.Srv().Store().Job().Save(stale)
-		require.NoError(t, err)
-
-		latest, appErr := th.App.GetLatestHealthCheckRun(th.Context)
-		require.Nil(t, appErr)
-		assert.Equal(t, stale.Id, latest.Id)
-		assert.Equal(t, model.JobStatusError, latest.Status)
-
-		stored, err := th.App.Srv().Store().Job().Get(th.Context, stale.Id)
-		require.NoError(t, err)
-		assert.Equal(t, model.JobStatusError, stored.Status)
+		_, appErr := th.App.StartHealthCheckRun(th.Context)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusNotImplemented, appErr.StatusCode)
+		assert.Equal(t, 0, countJobs(t, th))
 	})
 
-	t.Run("a run in progress with recent activity is returned as is", func(t *testing.T) {
-		running := &model.Job{Id: model.NewId(), Type: model.JobTypeHealthCheck, Status: model.JobStatusInProgress,
-			CreateAt: now + 2000, LastActivityAt: model.GetMillis()}
-		_, err := th.App.Srv().Store().Job().Save(running)
-		require.NoError(t, err)
+	t.Run("refused without an Enterprise license", func(t *testing.T) {
+		th := setup(t)
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
-		latest, appErr := th.App.GetLatestHealthCheckRun(th.Context)
-		require.Nil(t, appErr)
-		assert.Equal(t, running.Id, latest.Id)
-		assert.Equal(t, model.JobStatusInProgress, latest.Status)
+		_, appErr := th.App.StartHealthCheckRun(th.Context)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusNotImplemented, appErr.StatusCode)
+		assert.Equal(t, 0, countJobs(t, th))
 	})
 }
 

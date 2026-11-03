@@ -80,6 +80,13 @@
         - `create_ldap_sync_job` — `ldap_sync`
         - `manage_jobs` — `migrations`, `plugins`, `product_notices`, `expiry_notify`, `active_users`, `import_process`, `import_delete`, `export_process`, `export_delete`, `cloud`, `extract_content`
         - `access_control_sync` — `manage_system`, or `manage_channel_access_rules` on the channel given in job `data`, or `manage_team_access_rules` on the team in job `data` (see server logic for scoped sync jobs)
+        - `manage_system` — `health_check`
+
+        A `health_check` job runs the Health Dashboard check now instead of waiting for the hourly
+        schedule. It needs the `HealthDashboard` feature flag and an Enterprise license; otherwise the
+        server responds with 501. If a `health_check` run is already pending or in progress, no second
+        run is started and the response is that run. A run with no activity for an hour belongs to a
+        node that stopped mid-run: it is closed as failed and does not block a new one.
       operationId: CreateJob
       requestBody:
         content:

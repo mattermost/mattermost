@@ -17,40 +17,6 @@ describe('Client4', () => {
         nock.restore();
     });
 
-    describe('health check runs', () => {
-        let client: Client4;
-        const job = {id: 'job1', type: 'health_check', status: 'pending', create_at: 1000};
-
-        beforeEach(() => {
-            client = new Client4();
-            client.setUrl('http://mattermost.example.com');
-        });
-
-        test('startHealthCheckRun should POST to the health check route and return the job', async () => {
-            nock(client.getBaseRoute()).
-                post('/health/check').
-                reply(201, job);
-
-            await expect(client.startHealthCheckRun()).resolves.toEqual(job);
-        });
-
-        test('getHealthCheckRun should GET the health check route and return the job', async () => {
-            nock(client.getBaseRoute()).
-                get('/health/check').
-                reply(200, {...job, status: 'success'});
-
-            await expect(client.getHealthCheckRun()).resolves.toEqual({...job, status: 'success'});
-        });
-
-        test('getHealthCheckRun should reject with the status code when there has never been a run', async () => {
-            nock(client.getBaseRoute()).
-                get('/health/check').
-                reply(404, {id: 'app.health_check.get_latest_run.not_found.app_error', message: 'The health check has not run yet.', status_code: 404});
-
-            await expect(client.getHealthCheckRun()).rejects.toMatchObject({status_code: 404});
-        });
-    });
-
     describe('property field routes', () => {
         let client: Client4;
 

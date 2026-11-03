@@ -80,11 +80,7 @@ func checkHealthDashboardNotImplemented(t *testing.T, th *TestHelper) {
 	require.Error(t, err)
 	CheckNotImplementedStatus(t, resp)
 
-	_, resp, err = th.SystemAdminClient.StartHealthCheckRun(context.Background())
-	require.Error(t, err)
-	CheckNotImplementedStatus(t, resp)
-
-	_, resp, err = th.SystemAdminClient.GetHealthCheckRun(context.Background())
+	_, resp, err = th.SystemAdminClient.CreateJob(context.Background(), &model.Job{Type: model.JobTypeHealthCheck})
 	require.Error(t, err)
 	CheckNotImplementedStatus(t, resp)
 
@@ -128,14 +124,9 @@ func TestHealthDashboardAccess(t *testing.T) {
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 
-		_, resp, err = th.Client.StartHealthCheckRun(context.Background())
+		_, resp, err = th.Client.CreateJob(context.Background(), &model.Job{Type: model.JobTypeHealthCheck})
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
-
-		_, resp, err = th.Client.GetHealthCheckRun(context.Background())
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
-
 		assert.Empty(t, healthCheckJobs(t, th))
 	})
 
@@ -143,10 +134,6 @@ func TestHealthDashboardAccess(t *testing.T) {
 		th := setupHealthDashboard(t, false)
 
 		_, resp, err := th.Client.GetHealthFindings(context.Background(), model.HealthFindingFilter{})
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
-
-		_, resp, err = th.Client.StartHealthCheckRun(context.Background())
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -191,16 +178,14 @@ func TestHealthDashboardLocal(t *testing.T) {
 		assert.Equal(t, []string{finding.Fingerprint}, findingFingerprints(list.Findings))
 	})
 
-	t.Run("runs are served", func(t *testing.T) {
-		job, resp, err := th.LocalClient.StartHealthCheckRun(context.Background())
+	t.Run("a run can be started and followed", func(t *testing.T) {
+		job, _, err := th.LocalClient.CreateJob(context.Background(), &model.Job{Type: model.JobTypeHealthCheck})
 		require.NoError(t, err)
-		CheckCreatedStatus(t, resp)
 		assert.Equal(t, model.JobTypeHealthCheck, job.Type)
 
-		latest, resp, err := th.LocalClient.GetHealthCheckRun(context.Background())
+		got, _, err := th.LocalClient.GetJob(context.Background(), job.Id)
 		require.NoError(t, err)
-		CheckOKStatus(t, resp)
-		assert.Equal(t, job.Id, latest.Id)
+		assert.Equal(t, job.Id, got.Id)
 	})
 
 	t.Run("mute is not routed", func(t *testing.T) {
@@ -550,91 +535,51 @@ func TestHealthCheckPushURLRoundTrip(t *testing.T) {
 	assert.Equal(t, badScheme.FirstSeenAt, cleared.FirstSeenAt)
 }
 
+// A run is started and followed through the generic jobs API: POST /api/v4/jobs routes health_check
+// to App.StartHealthCheckRun, which returns the active run instead of starting a second one.
 func TestHealthCheckRun(t *testing.T) {
 	th := setupHealthDashboard(t, true)
 	client := th.SystemAdminClient
-
-	setStatus := func(job *model.Job, status string) {
+	start := func() *model.Job {
 		t.Helper()
-		job.Status = status
-		job.LastActivityAt = model.GetMillis()
-		_, err := th.App.Srv().Store().Job().UpdateOptimistically(job, model.JobStatusPending)
-		require.NoError(t, err)
-	}
-
-	t.Run("status is 404 before the first run", func(t *testing.T) {
-		_, resp, err := client.GetHealthCheckRun(context.Background())
-		require.Error(t, err)
-		CheckNotFoundStatus(t, resp)
-		CheckErrorID(t, err, "app.health_check.get_latest_run.not_found.app_error")
-	})
-
-	var first *model.Job
-	t.Run("start creates a pending health_check job", func(t *testing.T) {
-		job, resp, err := client.StartHealthCheckRun(context.Background())
+		job, resp, err := client.CreateJob(context.Background(), &model.Job{Type: model.JobTypeHealthCheck})
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
-		assert.Equal(t, model.JobTypeHealthCheck, job.Type)
-		assert.Equal(t, model.JobStatusPending, job.Status)
-		first = job
+		return job
+	}
 
-		latest, resp, err := client.GetHealthCheckRun(context.Background())
-		require.NoError(t, err)
-		CheckOKStatus(t, resp)
-		assert.Equal(t, job.Id, latest.Id)
-		assert.Equal(t, model.JobStatusPending, latest.Status)
-	})
+	first := start()
+	assert.Equal(t, model.JobStatusPending, first.Status)
 
-	t.Run("start while pending returns the pending run", func(t *testing.T) {
-		job, resp, err := client.StartHealthCheckRun(context.Background())
-		require.NoError(t, err)
-		CheckOKStatus(t, resp)
-		assert.Equal(t, first.Id, job.Id)
+	t.Run("starting while pending returns the pending run", func(t *testing.T) {
+		assert.Equal(t, first.Id, start().Id)
 		assert.Len(t, healthCheckJobs(t, th), 1)
 	})
 
-	t.Run("start while in progress joins the run", func(t *testing.T) {
-		setStatus(first, model.JobStatusInProgress)
-
-		job, resp, err := client.StartHealthCheckRun(context.Background())
+	t.Run("starting while in progress returns the running run", func(t *testing.T) {
+		first.Status = model.JobStatusInProgress
+		first.LastActivityAt = model.GetMillis()
+		_, err := th.App.Srv().Store().Job().UpdateOptimistically(first, model.JobStatusPending)
 		require.NoError(t, err)
-		CheckOKStatus(t, resp)
-		assert.Equal(t, first.Id, job.Id)
-		assert.Equal(t, model.JobStatusInProgress, job.Status)
+
+		assert.Equal(t, first.Id, start().Id)
 		assert.Len(t, healthCheckJobs(t, th), 1)
 	})
 
-	t.Run("status reports how the run ended", func(t *testing.T) {
+	t.Run("the run is followed through GET /api/v4/jobs/{id}", func(t *testing.T) {
 		first.Status = model.JobStatusError
 		first.Data = map[string]string{"error": "collect failed"}
 		_, err := th.App.Srv().Store().Job().UpdateOptimistically(first, model.JobStatusInProgress)
 		require.NoError(t, err)
 
-		latest, resp, err := client.GetHealthCheckRun(context.Background())
+		got, _, err := client.GetJob(context.Background(), first.Id)
 		require.NoError(t, err)
-		CheckOKStatus(t, resp)
-		assert.Equal(t, first.Id, latest.Id)
-		assert.Equal(t, model.JobStatusError, latest.Status)
-		assert.Equal(t, "collect failed", latest.Data["error"])
+		assert.Equal(t, model.JobStatusError, got.Status)
+		assert.Equal(t, "collect failed", got.Data["error"])
 	})
 
-	t.Run("start after a finished run creates a new one", func(t *testing.T) {
-		job, resp, err := client.StartHealthCheckRun(context.Background())
-		require.NoError(t, err)
-		CheckCreatedStatus(t, resp)
-		assert.NotEqual(t, first.Id, job.Id)
+	t.Run("starting after a finished run creates a new one", func(t *testing.T) {
+		assert.NotEqual(t, first.Id, start().Id)
 		assert.Len(t, healthCheckJobs(t, th), 2)
-
-		latest, _, err := client.GetHealthCheckRun(context.Background())
-		require.NoError(t, err)
-		assert.Equal(t, job.Id, latest.Id)
-	})
-
-	t.Run("the generic jobs API still refuses to create one", func(t *testing.T) {
-		// SessionHasPermissionToCreateJob doesn't list health_check, so the jobs API refuses it
-		// as an incorrect job type rather than a permission error.
-		_, resp, err := client.CreateJob(context.Background(), &model.Job{Type: model.JobTypeHealthCheck})
-		CheckErrorID(t, err, "api.job.unable_to_create_job.incorrect_job_type")
-		CheckBadRequestStatus(t, resp)
 	})
 }

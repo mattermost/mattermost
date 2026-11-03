@@ -116,17 +116,6 @@ func TestSchedulerEnabled(t *testing.T) {
 	assert.True(t, scheduler.Enabled(cfg))
 }
 
-func TestIsStale(t *testing.T) {
-	old := time.Now().Add(-StaleInProgressAfter - time.Minute).UnixMilli()
-	recent := model.GetMillis()
-
-	assert.True(t, IsStale(&model.Job{Status: model.JobStatusInProgress, LastActivityAt: old}))
-	assert.False(t, IsStale(&model.Job{Status: model.JobStatusInProgress, LastActivityAt: recent}))
-	// Only a run in progress can be stale: a pending run hasn't started, and a finished one is done.
-	assert.False(t, IsStale(&model.Job{Status: model.JobStatusPending, LastActivityAt: old}))
-	assert.False(t, IsStale(&model.Job{Status: model.JobStatusSuccess, LastActivityAt: old}))
-}
-
 func TestRunningJob(t *testing.T) {
 	rctx := request.TestContext(t)
 	newJobServer := func(t *testing.T) (*jobs.JobServer, *storetest.Store) {

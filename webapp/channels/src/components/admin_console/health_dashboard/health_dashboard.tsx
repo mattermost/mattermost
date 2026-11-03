@@ -8,7 +8,7 @@ import type {MessageDescriptor} from 'react-intl';
 
 import {BellOffOutlineIcon, RefreshIcon} from '@mattermost/compass-icons/components';
 import type {HealthFinding, HealthFindingFilter, HealthFindingList} from '@mattermost/types/health';
-import type {Job} from '@mattermost/types/jobs';
+import type {Job, JobType, JobTypeBase} from '@mattermost/types/jobs';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import {
@@ -39,8 +39,9 @@ export type Props = {
         getHealthFindings: (filter?: HealthFindingFilter) => Promise<ActionResult<HealthFindingList>>;
         muteHealthFinding: (fingerprint: string) => Promise<ActionResult>;
         unmuteHealthFinding: (fingerprint: string) => Promise<ActionResult>;
-        startHealthCheckRun: () => Promise<ActionResult<Job>>;
-        getHealthCheckRun: () => Promise<ActionResult<Job | null>>;
+        createJob: (job: JobTypeBase) => Promise<ActionResult<Job>>;
+        getJob: (id: string) => Promise<ActionResult<Job>>;
+        getJobsByType: (type: JobType, page?: number, perPage?: number) => Promise<ActionResult<Job[]>>;
     };
 };
 
@@ -48,42 +49,25 @@ export type Props = {
 // and then takes seconds to a minute or two, so this keeps the page responsive without much load.
 export const HEALTH_CHECK_POLL_INTERVAL = 3000;
 
+// A run in progress with no activity for this long belongs to a node that died mid-run; the server
+// closes it as failed on the next run (health_check.StaleInProgressAfter).
+const STALE_RUN_AFTER = 60 * 60 * 1000;
+
 function isRunActive(job: Job): boolean {
+    if (job.status === 'in_progress' && Date.now() - job.last_activity_at > STALE_RUN_AFTER) {
+        return false;
+    }
     return job.status === 'pending' || job.status === 'in_progress' || job.status === 'cancel_requested';
 }
-
-function isRunSuccessful(job: Job): boolean {
-    return job.status === 'success' || job.status === 'warning';
-}
-
-// The status endpoint returns the newest run. One older than the run being followed means the
-// server read a lagging replica, so keep following ours; a newer one only starts once ours has
-// finished, and its result is the freshest.
-function followRun(current: Job, latest: Job | null): Job {
-    if (!latest || latest.create_at < current.create_at) {
-        return current;
-    }
-    return latest;
-}
-
-type RunError = {
-    message: MessageDescriptor;
-    values?: Record<string, string>;
-};
 
 const runStartErrorMessage = defineMessage({
     id: 'admin.health_dashboard.run.start_error',
     defaultMessage: 'The health check could not be started. Try again.',
 });
 
-const runStatusErrorMessage = defineMessage({
-    id: 'admin.health_dashboard.run.status_error',
-    defaultMessage: 'The health check is running, but its progress could not be checked. Reload the page to see its results.',
-});
-
 const runReloadErrorMessage = defineMessage({
     id: 'admin.health_dashboard.run.reload_error',
-    defaultMessage: 'The health check finished, but its findings could not be loaded. Reload the page to see them.',
+    defaultMessage: 'The health check results could not be loaded. Reload the page to see them.',
 });
 
 const runFailedMessage = defineMessage({
@@ -94,24 +78,13 @@ const runFailedMessage = defineMessage({
 
 const runFailedNoReasonMessage = defineMessage({
     id: 'admin.health_dashboard.run.failed_no_reason',
-    defaultMessage: 'The health check failed.',
+    defaultMessage: 'The health check did not finish.',
 });
 
-const runCanceledMessage = defineMessage({
-    id: 'admin.health_dashboard.run.canceled',
-    defaultMessage: 'The health check was canceled before it finished.',
-});
-
-function runErrorFor(job: Job): RunError {
-    if (job.status === 'canceled') {
-        return {message: runCanceledMessage};
-    }
-    const error = job.data?.error;
-    if (typeof error === 'string' && error !== '') {
-        return {message: runFailedMessage, values: {error}};
-    }
-    return {message: runFailedNoReasonMessage};
-}
+type RunError = {
+    message: MessageDescriptor;
+    values?: Record<string, string>;
+};
 
 const muteErrorMessage = defineMessage({
     id: 'admin.health_dashboard.mute.error',
@@ -146,32 +119,31 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, actions}: Pr
         });
 
         // Pick up a run that is already going, whoever started it, so the page shows it running.
-        actions.getHealthCheckRun().then(({data}) => {
-            if (data && isRunActive(data)) {
-                setActiveRun((current) => current ?? data);
+        actions.getJobsByType('health_check', 0, 1).then(({data}) => {
+            if (data?.[0] && isRunActive(data[0])) {
+                setActiveRun((current) => current ?? data[0]);
             }
         });
     }, [actions]);
 
-    // Reports a finished run: fresh findings on success, the job's error otherwise.
+    // Reports a finished run: fresh findings on success, the job's error otherwise. A failed reload
+    // keeps the findings on screen rather than replacing the page with the load error.
     const finishRun = useCallback(async (job: Job) => {
-        if (isRunSuccessful(job)) {
-            // Keep the findings already on screen if the reload fails, rather than replacing the
-            // whole page with the load error: the run itself succeeded.
-            const {error} = await actions.getHealthFindings();
-            if (error) {
-                setRunError({message: runReloadErrorMessage});
-                return;
-            }
-            setFailed(false);
-            setNow(Date.now());
-        } else {
-            setRunError(runErrorFor(job));
+        if (job.status !== 'success' && job.status !== 'warning') {
+            const error = job.data?.error;
+            setRunError(typeof error === 'string' && error ? {message: runFailedMessage, values: {error}} : {message: runFailedNoReasonMessage});
+            return;
         }
+        const {error} = await actions.getHealthFindings();
+        if (error) {
+            setRunError({message: runReloadErrorMessage});
+            return;
+        }
+        setFailed(false);
+        setNow(Date.now());
     }, [actions]);
 
-    // Polls the run being followed until it finishes. Unmounting, or following another run,
-    // stops the loop.
+    // Polls the run being followed until it finishes. Unmounting stops the loop.
     useEffect(() => {
         if (!activeRun) {
             return undefined;
@@ -179,26 +151,23 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, actions}: Pr
 
         let stopped = false;
         let timer: ReturnType<typeof setTimeout>;
-        let current = activeRun;
 
         const poll = async () => {
-            const {data, error} = await actions.getHealthCheckRun();
+            const {data, error} = await actions.getJob(activeRun.id);
             if (stopped) {
                 return;
             }
-            if (error) {
-                setRunError({message: runStatusErrorMessage});
-                setActiveRun(null);
-                return;
-            }
 
-            current = followRun(current, data ?? null);
-            if (isRunActive(current)) {
+            // A 404 means a lagging read replica hasn't seen the new run yet.
+            if ((error && error.status_code === 404) || (data && isRunActive(data))) {
                 timer = setTimeout(poll, HEALTH_CHECK_POLL_INTERVAL);
                 return;
             }
-
-            await finishRun(current);
+            if (error || !data) {
+                setRunError({message: runReloadErrorMessage});
+            } else {
+                await finishRun(data);
+            }
             if (!stopped) {
                 setActiveRun(null);
             }
@@ -214,18 +183,16 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, actions}: Pr
     const startRun = useCallback(async () => {
         setStarting(true);
         setRunError(null);
-        const {data, error} = await actions.startHealthCheckRun();
+        const {data, error} = await actions.createJob({type: 'health_check'});
         setStarting(false);
 
         if (error || !data) {
             setRunError({message: runStartErrorMessage});
-            return;
-        }
-        if (isRunActive(data)) {
+        } else if (isRunActive(data)) {
             setActiveRun(data);
-            return;
+        } else {
+            await finishRun(data);
         }
-        await finishRun(data);
     }, [actions, finishRun]);
 
     const changeTab = useCallback((next: HealthFindingTab) => {

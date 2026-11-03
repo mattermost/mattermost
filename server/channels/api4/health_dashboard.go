@@ -18,9 +18,6 @@ func (api *API) InitHealthDashboard() {
 	api.BaseRoutes.HealthFindings.Handle("", api.APISessionRequired(getHealthFindings)).Methods(http.MethodGet)
 	api.BaseRoutes.HealthFindings.Handle("/{fingerprint:[a-f0-9]{32}}/mute", api.APISessionRequired(muteHealthFinding)).Methods(http.MethodPost)
 	api.BaseRoutes.HealthFindings.Handle("/{fingerprint:[a-f0-9]{32}}/mute", api.APISessionRequired(unmuteHealthFinding)).Methods(http.MethodDelete)
-
-	api.BaseRoutes.HealthCheck.Handle("", api.APISessionRequired(startHealthCheckRun)).Methods(http.MethodPost)
-	api.BaseRoutes.HealthCheck.Handle("", api.APISessionRequired(getHealthCheckRun)).Methods(http.MethodGet)
 }
 
 // requireHealthDashboard sets c.Err and returns false unless the caller may use the health
@@ -136,49 +133,4 @@ func unmuteHealthFinding(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	ReturnStatusOK(w)
-}
-
-// startHealthCheckRun starts a health check run now and returns its health_check job: 201 for a
-// new run, or 200 with the run that is already pending or in progress.
-func startHealthCheckRun(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !requireHealthDashboard(c) {
-		return
-	}
-
-	auditRec := c.MakeAuditRecord(model.AuditEventStartHealthCheckRun, model.AuditStatusFail)
-	defer c.LogAuditRec(auditRec)
-
-	job, created, appErr := c.App.StartHealthCheckRun(c.AppContext)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-	model.AddEventParameterToAuditRec(auditRec, "job_id", job.Id)
-	model.AddEventParameterToAuditRec(auditRec, "created", created)
-
-	auditRec.Success()
-	if created {
-		w.WriteHeader(http.StatusCreated)
-	}
-	if err := json.NewEncoder(w).Encode(job); err != nil {
-		c.Logger.Warn("Error while writing response", mlog.Err(err))
-	}
-}
-
-// getHealthCheckRun returns the newest health_check job, scheduled or on demand, or 404 if there
-// has never been one.
-func getHealthCheckRun(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !requireHealthDashboard(c) {
-		return
-	}
-
-	job, appErr := c.App.GetLatestHealthCheckRun(c.AppContext)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	if err := json.NewEncoder(w).Encode(job); err != nil {
-		c.Logger.Warn("Error while writing response", mlog.Err(err))
-	}
 }

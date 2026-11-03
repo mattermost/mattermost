@@ -63,12 +63,6 @@ func (s *Scheduler) ScheduleJob(rctx request.CTX, _ *model.Config, pendingJobs b
 	return s.jobServer.CreateJobOnce(rctx, model.JobTypeHealthCheck, nil)
 }
 
-// IsStale reports whether an in-progress job has gone without activity for StaleInProgressAfter,
-// so belongs to a node that died mid-run.
-func IsStale(job *model.Job) bool {
-	return job.Status == model.JobStatusInProgress && time.Since(time.UnixMilli(job.LastActivityAt)) >= StaleInProgressAfter
-}
-
 // RunningJob returns the health_check job in progress, or nil if there is none. A job in progress
 // with no activity for StaleInProgressAfter belongs to a node that died mid-run: RunningJob closes
 // it as failed and returns nil. The scheduler and on-demand runs share it, so neither can be
@@ -82,7 +76,7 @@ func RunningJob(rctx request.CTX, jobServer *jobs.JobServer) (*model.Job, *model
 	if running == nil {
 		return nil, nil
 	}
-	if !IsStale(running) {
+	if time.Since(time.UnixMilli(running.LastActivityAt)) < StaleInProgressAfter {
 		return running, nil
 	}
 

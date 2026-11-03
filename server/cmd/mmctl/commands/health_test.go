@@ -8,6 +8,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"net/http"
 	"os"
 	"path/filepath"
 	"slices"
@@ -233,9 +234,9 @@ func (s *MmctlUnitTestSuite) TestHealthCheckRun() {
 		succeeded.Status = model.JobStatusSuccess
 
 		gomock.InOrder(
-			s.client.EXPECT().StartHealthCheckRun(gomock.Any()).Return(pending, &model.Response{}, nil).Times(1),
-			s.client.EXPECT().GetHealthCheckRun(gomock.Any()).Return(&inProgress, &model.Response{}, nil).Times(1),
-			s.client.EXPECT().GetHealthCheckRun(gomock.Any()).Return(&succeeded, &model.Response{}, nil).Times(1),
+			s.client.EXPECT().CreateJob(gomock.Any(), &model.Job{Type: model.JobTypeHealthCheck}).Return(pending, &model.Response{}, nil).Times(1),
+			s.client.EXPECT().GetJob(gomock.Any(), pending.Id).Return(&inProgress, &model.Response{}, nil).Times(1),
+			s.client.EXPECT().GetJob(gomock.Any(), pending.Id).Return(&succeeded, &model.Response{}, nil).Times(1),
 			s.client.EXPECT().GetHealthFindings(context.TODO(), model.HealthFindingFilter{}).Return(healthTestList(lastSeen), &model.Response{}, nil).Times(1),
 		)
 
@@ -247,19 +248,18 @@ func (s *MmctlUnitTestSuite) TestHealthCheckRun() {
 		s.Contains(output, "Push notification server is not HTTPS")
 	})
 
-	s.Run("--run keeps following its run when the status lags behind", func() {
+	s.Run("--run keeps waiting while a lagging replica hasn't seen the new run", func() {
 		printer.Clean()
 		printer.SetFormat(printer.FormatPlain)
 
-		previous := healthTestJob(model.JobStatusSuccess, 50)
 		started := healthTestJob(model.JobStatusPending, 100)
 		succeeded := *started
 		succeeded.Status = model.JobStatusSuccess
 
 		gomock.InOrder(
-			s.client.EXPECT().StartHealthCheckRun(gomock.Any()).Return(started, &model.Response{}, nil).Times(1),
-			s.client.EXPECT().GetHealthCheckRun(gomock.Any()).Return(previous, &model.Response{}, nil).Times(1),
-			s.client.EXPECT().GetHealthCheckRun(gomock.Any()).Return(&succeeded, &model.Response{}, nil).Times(1),
+			s.client.EXPECT().CreateJob(gomock.Any(), &model.Job{Type: model.JobTypeHealthCheck}).Return(started, &model.Response{}, nil).Times(1),
+			s.client.EXPECT().GetJob(gomock.Any(), started.Id).Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("not found")).Times(1),
+			s.client.EXPECT().GetJob(gomock.Any(), started.Id).Return(&succeeded, &model.Response{}, nil).Times(1),
 			s.client.EXPECT().GetHealthFindings(context.TODO(), model.HealthFindingFilter{}).Return(healthTestList(lastSeen), &model.Response{}, nil).Times(1),
 		)
 
@@ -267,12 +267,25 @@ func (s *MmctlUnitTestSuite) TestHealthCheckRun() {
 		s.Require().NoError(err)
 	})
 
+	s.Run("--run fails when the run's status can't be read", func() {
+		printer.Clean()
+
+		started := healthTestJob(model.JobStatusPending, 100)
+		gomock.InOrder(
+			s.client.EXPECT().CreateJob(gomock.Any(), &model.Job{Type: model.JobTypeHealthCheck}).Return(started, &model.Response{}, nil).Times(1),
+			s.client.EXPECT().GetJob(gomock.Any(), started.Id).Return(nil, &model.Response{StatusCode: http.StatusInternalServerError}, errors.New("mock error")).Times(1),
+		)
+
+		err := healthCheckCmdF(s.client, s.healthRunTestCommand(time.Minute), []string{})
+		s.Require().EqualError(err, "failed to get the health check run status: mock error")
+	})
+
 	s.Run("a run that already finished is not polled", func() {
 		printer.Clean()
 		printer.SetFormat(printer.FormatPlain)
 
 		gomock.InOrder(
-			s.client.EXPECT().StartHealthCheckRun(gomock.Any()).Return(healthTestJob(model.JobStatusSuccess, 100), &model.Response{}, nil).Times(1),
+			s.client.EXPECT().CreateJob(gomock.Any(), &model.Job{Type: model.JobTypeHealthCheck}).Return(healthTestJob(model.JobStatusSuccess, 100), &model.Response{}, nil).Times(1),
 			s.client.EXPECT().GetHealthFindings(context.TODO(), model.HealthFindingFilter{}).Return(healthTestList(lastSeen), &model.Response{}, nil).Times(1),
 		)
 
@@ -289,8 +302,8 @@ func (s *MmctlUnitTestSuite) TestHealthCheckRun() {
 		failed.Data = model.StringMap{"error": "collect failed"}
 
 		gomock.InOrder(
-			s.client.EXPECT().StartHealthCheckRun(gomock.Any()).Return(started, &model.Response{}, nil).Times(1),
-			s.client.EXPECT().GetHealthCheckRun(gomock.Any()).Return(&failed, &model.Response{}, nil).Times(1),
+			s.client.EXPECT().CreateJob(gomock.Any(), &model.Job{Type: model.JobTypeHealthCheck}).Return(started, &model.Response{}, nil).Times(1),
+			s.client.EXPECT().GetJob(gomock.Any(), started.Id).Return(&failed, &model.Response{}, nil).Times(1),
 		)
 
 		err := healthCheckCmdF(s.client, s.healthRunTestCommand(time.Minute), []string{})
@@ -308,9 +321,9 @@ func (s *MmctlUnitTestSuite) TestHealthCheckRun() {
 		canceled.Status = model.JobStatusCanceled
 
 		gomock.InOrder(
-			s.client.EXPECT().StartHealthCheckRun(gomock.Any()).Return(started, &model.Response{}, nil).Times(1),
-			s.client.EXPECT().GetHealthCheckRun(gomock.Any()).Return(&cancelRequested, &model.Response{}, nil).Times(1),
-			s.client.EXPECT().GetHealthCheckRun(gomock.Any()).Return(&canceled, &model.Response{}, nil).Times(1),
+			s.client.EXPECT().CreateJob(gomock.Any(), &model.Job{Type: model.JobTypeHealthCheck}).Return(started, &model.Response{}, nil).Times(1),
+			s.client.EXPECT().GetJob(gomock.Any(), started.Id).Return(&cancelRequested, &model.Response{}, nil).Times(1),
+			s.client.EXPECT().GetJob(gomock.Any(), started.Id).Return(&canceled, &model.Response{}, nil).Times(1),
 		)
 
 		err := healthCheckCmdF(s.client, s.healthRunTestCommand(time.Minute), []string{})
@@ -322,8 +335,8 @@ func (s *MmctlUnitTestSuite) TestHealthCheckRun() {
 		printer.Clean()
 
 		started := healthTestJob(model.JobStatusPending, 100)
-		s.client.EXPECT().StartHealthCheckRun(gomock.Any()).Return(started, &model.Response{}, nil).Times(1)
-		s.client.EXPECT().GetHealthCheckRun(gomock.Any()).Return(started, &model.Response{}, nil).AnyTimes()
+		s.client.EXPECT().CreateJob(gomock.Any(), &model.Job{Type: model.JobTypeHealthCheck}).Return(started, &model.Response{}, nil).Times(1)
+		s.client.EXPECT().GetJob(gomock.Any(), started.Id).Return(started, &model.Response{}, nil).AnyTimes()
 
 		err := healthCheckCmdF(s.client, s.healthRunTestCommand(50*time.Millisecond), []string{})
 		s.Require().EqualError(err, "timed out after 50ms waiting for health check run "+started.Id+", which is still pending; run `mmctl health check` later to see its findings")
@@ -333,7 +346,7 @@ func (s *MmctlUnitTestSuite) TestHealthCheckRun() {
 	s.Run("the run cannot be started", func() {
 		printer.Clean()
 
-		s.client.EXPECT().StartHealthCheckRun(gomock.Any()).Return(nil, &model.Response{}, errors.New("mock error")).Times(1)
+		s.client.EXPECT().CreateJob(gomock.Any(), &model.Job{Type: model.JobTypeHealthCheck}).Return(nil, &model.Response{}, errors.New("mock error")).Times(1)
 
 		err := healthCheckCmdF(s.client, s.healthRunTestCommand(time.Minute), []string{})
 		s.Require().EqualError(err, "failed to start a health check run: mock error")

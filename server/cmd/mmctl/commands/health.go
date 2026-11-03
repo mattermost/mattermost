@@ -8,6 +8,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"slices"
 	"strings"
 	"time"
@@ -102,7 +103,7 @@ func healthCheckCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 }
 
 // runHealthCheckAndWait starts a health check run, or joins the one already pending or in
-// progress, and polls the server's run status until it finishes or timeout passes.
+// progress, and polls its job until it finishes or timeout passes.
 func runHealthCheckAndWait(c client.Client, timeout time.Duration) error {
 	if timeout <= 0 {
 		return errors.New("--timeout must be positive")
@@ -110,7 +111,7 @@ func runHealthCheckAndWait(c client.Client, timeout time.Duration) error {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	job, _, err := c.StartHealthCheckRun(ctx)
+	job, _, err := c.CreateJob(ctx, &model.Job{Type: model.JobTypeHealthCheck})
 	if err != nil {
 		return fmt.Errorf("failed to start a health check run: %w", err)
 	}
@@ -136,25 +137,17 @@ func runHealthCheckAndWait(c client.Client, timeout time.Duration) error {
 		case <-ticker.C:
 		}
 
-		latest, _, err := c.GetHealthCheckRun(ctx)
+		latest, resp, err := c.GetJob(ctx, job.Id)
 		if err != nil {
-			if ctx.Err() != nil {
-				continue // Report the timeout, not the request it cut short.
+			// Report the timeout, not the request it cut short. A 404 means a lagging read replica
+			// hasn't seen the new job yet.
+			if ctx.Err() != nil || (resp != nil && resp.StatusCode == http.StatusNotFound) {
+				continue
 			}
 			return fmt.Errorf("failed to get the health check run status: %w", err)
 		}
-		job = followHealthCheckRun(job, latest)
+		job = latest
 	}
-}
-
-// followHealthCheckRun returns the run to keep following, given the one being followed and the
-// newest the server reports. An older run means the server read a lagging replica, so keep the
-// current one; a newer run only starts once ours has finished, and its result is the freshest.
-func followHealthCheckRun(current, latest *model.Job) *model.Job {
-	if latest == nil || latest.CreateAt < current.CreateAt {
-		return current
-	}
-	return latest
 }
 
 // healthCheckPacketCmdF evaluates a Support Packet with the same engine and reconciler the
