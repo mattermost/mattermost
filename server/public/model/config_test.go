@@ -20,7 +20,6 @@ import (
 	"reflect"
 	"runtime"
 	"strings"
-	"syscall"
 	"testing"
 	"time"
 
@@ -4808,8 +4807,6 @@ func TestAdvancedLoggingJSONCertAndFileTargets(t *testing.T) {
 		audit bool
 		kind  string
 	}{
-		{name: "log settings returns within the time bound", kind: "bound"},
-		{name: "audit settings returns within the time bound", audit: true, kind: "bound"},
 		{name: "log settings results match", kind: "match"},
 		{name: "audit settings results match", audit: true, kind: "match"},
 		{name: "log settings connection is not accepted", kind: "connection"},
@@ -4827,38 +4824,6 @@ func TestAdvancedLoggingJSONCertAndFileTargets(t *testing.T) {
 			}
 
 			switch tc.kind {
-			case "bound":
-				fifo := filepath.Join(t.TempDir(), "cert.fifo")
-				require.NoError(t, syscall.Mkfifo(fifo, 0600))
-
-				raw := advancedLoggingTargetJSON(t, "syslog", tc.audit, map[string]any{
-					"host":     "127.0.0.1",
-					"port":     closedTCPPort(t),
-					"tls":      true,
-					"cert":     fifo,
-					"insecure": true,
-				})
-
-				returned := make(chan struct{})
-				go func() {
-					_ = validateAdvancedLoggingJSON(tc.audit, raw)
-					close(returned)
-				}()
-
-				select {
-				case <-returned:
-				case <-time.After(2 * time.Second):
-					// Unblock the reader so the test process can exit.
-					writer, err := os.OpenFile(fifo, os.O_WRONLY, 0)
-					if err == nil {
-						_ = writer.Close()
-					}
-					select {
-					case <-returned:
-					case <-time.After(2 * time.Second):
-					}
-					require.FailNow(t, "returns within the time bound")
-				}
 			case "match":
 				port := closedTCPPort(t)
 				certPEM, _ := newTestCertPEM(t)

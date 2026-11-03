@@ -428,7 +428,7 @@ func validateLoggingJSONCerts(raw, activeRaw json.RawMessage) error {
 		if !ok {
 			continue
 		}
-		if advancedLoggingCertIsInline(cert) {
+		if cert == "" || advancedLoggingCertIsInline(cert) {
 			continue
 		}
 		if prev, found := stored[name]; found && prev == cert {
