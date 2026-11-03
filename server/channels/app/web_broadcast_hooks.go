@@ -382,6 +382,7 @@ func (h *burnOnReadBroadcastHook) Process(msg *platform.HookedWebSocketEvent, we
 	post.Metadata.Files = nil
 	post.FileIds = model.StringArray{}
 	post.Hashtags = ""
+	post.DelProp(model.PostPropsChannelMentions)
 	postJSON, err = post.ToJSON()
 	if err != nil {
 		return errors.Wrap(err, "Invalid post value passed to burnOnReadBroadcastHook")
