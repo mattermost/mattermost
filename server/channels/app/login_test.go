@@ -320,6 +320,32 @@ func TestDoLogin_RespectsUserDeleteAt(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
+	tearDown, pluginIDs, activationErrors := SetAppEnvironmentWithPlugins(t, []string{`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost/server/public/plugin"
+			"github.com/mattermost/mattermost/server/public/model"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) UserWillLogIn(c *plugin.Context, user *model.User) string {
+			_ = p.API.KVSet(user.Id, []byte("called"))
+			return ""
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`}, th.App, th.NewPluginAPI)
+	defer tearDown()
+	require.Len(t, pluginIDs, 1)
+	require.NoError(t, activationErrors[0])
+	pluginID := pluginIDs[0]
+
 	r := &http.Request{}
 
 	for _, tc := range []struct {
@@ -392,10 +418,13 @@ func TestDoLogin_RespectsUserDeleteAt(t *testing.T) {
 
 			// Checks that DoLogin consults user DeleteAt before creating a session.
 			session, err := th.App.DoLogin(th.Context, w, r, user, model.LoginOptions{})
+			hookValue, kvErr := th.App.GetPluginKey(pluginID, user.Id)
+			require.Nil(t, kvErr)
 			if tc.wantErrID == "" {
 				require.Nil(t, err)
 				require.NotNil(t, session)
 				assert.Equal(t, user.Id, session.UserId)
+				assert.Equal(t, "called", string(hookValue))
 				return
 			}
 
@@ -403,6 +432,7 @@ func TestDoLogin_RespectsUserDeleteAt(t *testing.T) {
 			require.Nil(t, session)
 			assert.Equal(t, tc.wantStatus, err.StatusCode)
 			assert.Equal(t, tc.wantErrID, err.Id)
+			assert.Nil(t, hookValue, "UserWillLogIn must not run for a deactivated user")
 
 			sessionsAfter, getErr := th.App.GetSessions(th.Context, user.Id)
 			require.Nil(t, getErr)
