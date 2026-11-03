@@ -70,8 +70,9 @@ def check(name: str, text: str, result: Result) -> None:
 def run(version, day_text: str, email: str, email_todos: list, social: str, forum: str, hub, env: dict,
         live: bool) -> Result:
     result = Result(TASK, version.tag)
-    for todo in email_todos:
-        result.todo(f"email draft: {todo}")
+    if email_todos:
+        # Not repeated here: they can name Jira keys and enterprise PRs. The drafts task posts them to Hub.
+        result.todo(f"the email draft has {len(email_todos)} missing input(s); run the drafts task to see them in Hub")
     check("email", email, result)
     check("social", social, result)
     if forum:

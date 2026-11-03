@@ -10,8 +10,10 @@ name: Release Docs - Breaking Change Notices
 # release-note wording, removed WebSocket events and destructive migrations
 # in the release diff, and a Claude review of the milestone's release notes.
 # A person keeps or removes items, then runs this by hand with `confirmed` set to the PRs kept,
-# and Claude drafts one notice per confirmed PR, citing it. Output goes to the run summary and
-# the release-docs-breaking-changes artifact; nothing is published. See release-docs-task.yml.
+# and Claude drafts one notice per confirmed PR, citing it. The list and the notices name Jira
+# tickets and mattermost/enterprise PRs, so they are posted to the review channel in Hub (also
+# in a dry run); the run summary and artifact keep only counts and mattermost/mattermost PRs.
+# Nothing else is published. See release-docs-task.yml.
 
 on:
   push:

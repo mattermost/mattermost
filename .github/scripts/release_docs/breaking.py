@@ -224,12 +224,18 @@ def run(gh, repos: list[str], milestone: str, confirmed: str, claude, jira_label
         candidates, loose, facts = find(gh, repos, milestone, claude, jira_labels)
         result = Result(TASK, milestone, text=candidate_list(milestone, candidates, loose, facts))
         result.notes += facts["problems"]
+        result.counts = {"merged PRs read": facts["prs"], "candidates": len(candidates),
+                         "strong signals": sum(1 for c in candidates if c.strong),
+                         "release diff findings with no PR": len(loose)}
         return result
     if not chosen:
-        return Result(TASK, milestone, text=f"No breaking changes confirmed for {milestone}; no notices drafted.\n")
+        result = Result(TASK, milestone, text=f"No breaking changes confirmed for {milestone}; no notices drafted.\n")
+        result.counts = {"confirmed PRs": 0}
+        return result
     prs = {p["id"]: p for p in drafts.milestone_prs(gh, repos, milestone)}
     missing = [i for i in chosen if i not in prs]
     result = drafts.breaking_notices(milestone, [prs[i] for i in chosen if i in prs], claude)
     for item in missing:
         result.todo(f"{item} is not a merged PR in milestone {milestone}")
+    result.counts = {"confirmed PRs": len(chosen), "notices drafted": result.text.count("\nSource: ")}
     return result

@@ -36,12 +36,13 @@ class Hub:
         self.opener = opener
         self._me = None
 
-    def _request(self, method: str, path: str, params: dict | None = None, body=None):
+    def _request(self, method: str, path: str, params: dict | None = None, body=None, raw: bytes | None = None):
         url = self.base_url + path + (("?" + urllib.parse.urlencode(params)) if params else "")
-        request = urllib.request.Request(url, data=json.dumps(body).encode() if body is not None else None,
-                                         method=method, headers={"Authorization": f"Bearer {self.token}",
-                                                                 "Content-Type": "application/json",
-                                                                 "Accept": "application/json"})
+        data = raw if raw is not None else (json.dumps(body).encode() if body is not None else None)
+        content_type = "application/octet-stream" if raw is not None else "application/json"
+        request = urllib.request.Request(url, data=data, method=method, headers={"Authorization": f"Bearer {self.token}",
+                                                                                 "Content-Type": content_type,
+                                                                                 "Accept": "application/json"})
         for attempt in range(3):
             try:
                 with self.opener(request, timeout=60) as response:
@@ -99,11 +100,18 @@ class Hub:
     def reactions(self, post_id: str) -> list[dict]:
         return self._request("GET", f"/api/v4/posts/{post_id}/reactions") or []
 
-    def create_post(self, channel_id: str, message: str, props: dict, root_id: str = "") -> dict:
+    def create_post(self, channel_id: str, message: str, props: dict, root_id: str = "", file_ids=()) -> dict:
         body = {"channel_id": channel_id, "message": message, "props": props}
         if root_id:
             body["root_id"] = root_id
+        if file_ids:
+            body["file_ids"] = list(file_ids)
         return self._request("POST", "/api/v4/posts", body=body)
+
+    def upload_file(self, channel_id: str, name: str, content: bytes) -> str:
+        """A file for a post in ``channel_id`` (the raw-body form of POST /api/v4/files); its id."""
+        result = self._request("POST", "/api/v4/files", {"channel_id": channel_id, "filename": name}, raw=content)
+        return result["file_infos"][0]["id"]
 
     def schedule_post(self, channel_id: str, message: str, props: dict, at_ms: int) -> dict:
         return self._request("POST", "/api/v4/posts/schedule",

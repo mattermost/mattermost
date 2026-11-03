@@ -1,7 +1,9 @@
 name: Release Docs - Drafts
 
-# Drafts for the release manager to review and share; nothing is sent, posted or written.
-# Output goes to the run summary and the release-docs-<task> artifact. See
+# Drafts for the release manager to review and share; nothing is sent or written. They name
+# Jira epics and mattermost/enterprise PRs, so the full output (with the email.md and slide
+# files attached) is posted to the review channel in Hub, also in a dry run; the run summary
+# and the release-docs-<task> artifact keep only counts and mattermost/mattermost PRs. See
 # release-docs-task.yml for settings.
 #
 #   drafts              Playbook T-16 and T-15. Claude drafts the blog outline and the
@@ -17,8 +19,8 @@ name: Release Docs - Drafts
 #   release-highlights  Playbook T-0, "Update the Release Highlights deck". The month's slide:
 #                       the server and mobile Jira epics, internal ones left out with a reason,
 #                       each with a docs link and a one-sentence description, plus a
-#                       paste-ready HTML artifact. Runs when a feature release becomes the
-#                       latest release, and by hand. To check it against a past slide,
+#                       paste-ready HTML file attached to the Hub post. Runs when a
+#                       feature release becomes the latest release, and by hand. To check it against a past slide,
 #                       dispatch it with v12.0.0 (October 2026) or v11.7.0 (May 2026).
 
 on:
