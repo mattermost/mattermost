@@ -154,6 +154,9 @@ type Server struct {
 	OutgoingOAuthConnection einterfaces.OutgoingOAuthConnectionInterface
 	PushProxy               einterfaces.PushProxyInterface
 	AutoTranslation         einterfaces.AutoTranslationInterface
+	// Attributes is created by the enterprise build but not started yet:
+	// nothing feeds or queries it until access control search adopts it.
+	Attributes einterfaces.AttributesInterface
 
 	agentsBridgeOverride AgentsBridge
 

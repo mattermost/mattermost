@@ -128,6 +128,12 @@ func RegisterAutoTranslationInterface(f func(*Server) einterfaces.AutoTranslatio
 	autoTranslationInterface = f
 }
 
+var attributesInterface func(*Server) einterfaces.AttributesInterface
+
+func RegisterAttributesInterface(f func(*Server) einterfaces.AttributesInterface) {
+	attributesInterface = f
+}
+
 var intuneInterface func(*App) einterfaces.IntuneInterface
 
 func RegisterIntuneInterface(f func(*App) einterfaces.IntuneInterface) {
@@ -140,5 +146,8 @@ func (s *Server) initEnterprise() {
 	}
 	if autoTranslationInterface != nil {
 		s.AutoTranslation = autoTranslationInterface(s)
+	}
+	if attributesInterface != nil {
+		s.Attributes = attributesInterface(s)
 	}
 }

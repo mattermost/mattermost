@@ -37,6 +37,8 @@ import (
 	// Needed to ensure the init() method in the EE gets run
 	_ "github.com/mattermost/enterprise/access_control"
 	// Needed to ensure the init() method in the EE gets run
+	_ "github.com/mattermost/enterprise/attributes"
+	// Needed to ensure the init() method in the EE gets run
 	_ "github.com/mattermost/enterprise/message_export"
 	// Needed to ensure the init() method in the EE gets run
 	_ "github.com/mattermost/enterprise/message_export/actiance_export"
