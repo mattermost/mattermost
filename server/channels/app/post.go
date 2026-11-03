@@ -1413,6 +1413,15 @@ func (a *App) processBroadcastHookForBurnOnRead(rctx request.CTX, postJSON strin
 	masterCtx := sqlstore.RequestContextWithMaster(rctx)
 	tmpPost = a.PreparePostForClient(masterCtx, tmpPost, &model.PreparePostForClientOpts{IncludePriority: true, RetainContent: true})
 
+	// Deleted-event author copies keep hashtags and channel mentions, and leave message and file ids empty.
+	if message.EventType() == model.WebsocketEventPostDeleted {
+		tmpPost.Message = ""
+		tmpPost.FileIds = []string{}
+		if tmpPost.Metadata != nil {
+			tmpPost.Metadata.Files = nil
+		}
+	}
+
 	revealedPostJSON, err := tmpPost.ToJSON()
 	if err != nil {
 		return model.NewAppError("processBroadcastHookForBurnOnRead", "app.post.marshal.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
