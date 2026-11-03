@@ -17,7 +17,7 @@ import (
 const schedFreq = time.Hour
 
 // A run takes minutes at most, so an older in-progress job belongs to a node that died
-// mid-run and must not block new runs.
+// mid-run. It is closed as failed so it neither blocks new runs nor shows as running for ever.
 const staleInProgressAfter = time.Hour
 
 func isEnabled(cfg *model.Config) bool {
@@ -41,23 +41,30 @@ func MakeScheduler(jobServer *jobs.JobServer, licenseFunc func() *model.License)
 // ScheduleJob skips without an Enterprise license: the run would be a no-op, yet its job would
 // succeed and report the server as evaluated. The license is checked here rather than in
 // Enabled, which the framework only re-reads on config changes, so a license added later still
-// gets the next hourly run. It also skips while a health_check job is pending or in progress,
-// so runs never overlap: the framework passes pendingJobs but PeriodicScheduler ignores it,
-// creating a job every period whatever is pending or running. pendingJobs is checked as well
-// as the newest job, which can be a newer stale in-progress job hiding an older pending one.
-func (s *Scheduler) ScheduleJob(rctx request.CTX, cfg *model.Config, pendingJobs bool, lastSuccessfulJob *model.Job) (*model.Job, *model.AppError) {
+// gets the next hourly run.
+//
+// It also keeps runs from overlapping, which the framework doesn't: it passes pendingJobs but
+// PeriodicScheduler ignores it and creates a job every period. A job pending or in progress
+// skips the run; CreateJobOnce checks again atomically as it saves.
+func (s *Scheduler) ScheduleJob(rctx request.CTX, _ *model.Config, pendingJobs bool, _ *model.Job) (*model.Job, *model.AppError) {
 	if !model.MinimumEnterpriseLicense(s.licenseFunc()) || pendingJobs {
 		return nil, nil
 	}
 
-	job, err := s.jobServer.Store.Job().GetNewestJobByStatusesAndType([]string{model.JobStatusPending, model.JobStatusInProgress}, model.JobTypeHealthCheck)
+	running, err := s.jobServer.Store.Job().GetNewestJobByStatusAndType(model.JobStatusInProgress, model.JobTypeHealthCheck)
 	var nfErr *store.ErrNotFound
 	if err != nil && !errors.As(err, &nfErr) {
 		return nil, model.NewAppError("ScheduleJob", "app.job.get_newest_job_by_status_and_type.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	if job != nil && (job.Status == model.JobStatusPending || time.Since(time.UnixMilli(job.LastActivityAt)) < staleInProgressAfter) {
-		return nil, nil
+	if running != nil {
+		if time.Since(time.UnixMilli(running.LastActivityAt)) < staleInProgressAfter {
+			return nil, nil
+		}
+		rctx.Logger().Warn("Health check job appears to be stuck, closing it as failed", jobs.JobLoggerFields(running)...)
+		if appErr := s.jobServer.SetJobError(running, nil); appErr != nil {
+			return nil, appErr
+		}
 	}
 
-	return s.PeriodicScheduler.ScheduleJob(rctx, cfg, pendingJobs, lastSuccessfulJob)
+	return s.jobServer.CreateJobOnce(rctx, model.JobTypeHealthCheck, nil)
 }

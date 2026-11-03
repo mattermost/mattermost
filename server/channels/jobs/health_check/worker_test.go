@@ -64,7 +64,7 @@ func TestWorkers(t *testing.T) {
 		runs.Add(1)
 		return nil
 	})
-	workers := MakeWorkers(jobServer, configService, worker)
+	workers := MakeWorkers(jobServer, worker)
 	workers.Start()
 	t.Cleanup(workers.Stop)
 
@@ -84,7 +84,7 @@ func TestWorkersWatcherSkipsPollingWhileDisabled(t *testing.T) {
 	mockStore := &storetest.Store{}
 	jobServer := jobs.NewJobServer(configService, mockStore, nil, mlog.CreateConsoleTestLogger(t), nil)
 	worker := MakeWorker(jobServer, func(request.CTX) error { return nil })
-	workers := MakeWorkers(jobServer, configService, worker)
+	workers := MakeWorkers(jobServer, worker)
 
 	workers.Watcher.PollAndNotify()
 	mockStore.JobStore.AssertNotCalled(t, "GetAllByTypeAndStatus", mock.Anything, mock.Anything, mock.Anything)

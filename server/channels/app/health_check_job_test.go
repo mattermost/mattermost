@@ -56,15 +56,14 @@ func TestHealthCheckJobEndToEnd(t *testing.T) {
 	t.Cleanup(ch.stopHealthCheckWorkers)
 
 	// Poll instead of waiting for the watcher's 15 s interval.
+	var stored *model.Job
 	require.Eventually(t, func() bool {
 		ch.healthCheckWorkers.Watcher.PollAndNotify()
-		stored, err := th.App.Srv().Store().Job().Get(th.Context, job.Id)
+		var err error
+		stored, err = th.App.Srv().Store().Job().Get(th.Context, job.Id)
 		require.NoError(t, err)
 		return stored.Status == model.JobStatusSuccess
 	}, 30*time.Second, 100*time.Millisecond)
-
-	stored, err := th.App.Srv().Store().Job().Get(th.Context, job.Id)
-	require.NoError(t, err)
 
 	list, appErr := th.App.GetHealthFindings(th.Context, model.HealthFindingFilter{Muted: model.MutedIncluded})
 	require.Nil(t, appErr)

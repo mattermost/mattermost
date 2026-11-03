@@ -24,38 +24,38 @@ func enterpriseLicense() *model.License {
 	return model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise)
 }
 
+// newScheduler returns a scheduler over a mock store. The mock fails on any call it was not
+// told to expect, and checks on cleanup that every expected call happened.
+func newScheduler(t *testing.T, licenseFunc func() *model.License) (*Scheduler, *storetest.Store) {
+	t.Helper()
+
+	mockStore := &storetest.Store{}
+	t.Cleanup(func() { mockStore.AssertExpectations(t) })
+	jobServer := jobs.NewJobServer(&testutils.StaticConfigService{Cfg: &model.Config{}}, mockStore, nil, mlog.CreateConsoleTestLogger(t), nil)
+	scheduler := MakeScheduler(jobServer, licenseFunc)
+	jobServer.RegisterJobType(model.JobTypeHealthCheck, nil, scheduler)
+	return scheduler, mockStore
+}
+
 func TestScheduleJob(t *testing.T) {
-	statuses := []string{model.JobStatusPending, model.JobStatusInProgress}
-
-	setup := func(t *testing.T, newest *model.Job) (*Scheduler, *storetest.Store) {
-		t.Helper()
-
-		cfg := &model.Config{}
-		cfg.SetDefaults()
-		mockStore := &storetest.Store{}
-		t.Cleanup(func() { mockStore.AssertExpectations(t) })
-
-		if newest != nil {
-			mockStore.JobStore.On("GetNewestJobByStatusesAndType", statuses, model.JobTypeHealthCheck).Return(newest, nil)
-		} else {
-			mockStore.JobStore.On("GetNewestJobByStatusesAndType", statuses, model.JobTypeHealthCheck).Return(nil, store.NewErrNotFound("Job", ""))
+	rctx := request.TestContext(t)
+	expectRunning := func(mockStore *storetest.Store, running *model.Job) {
+		var err error
+		if running == nil {
+			err = store.NewErrNotFound("Job", "")
 		}
-
-		jobServer := jobs.NewJobServer(&testutils.StaticConfigService{Cfg: cfg}, mockStore, nil, mlog.CreateConsoleTestLogger(t), nil)
-		scheduler := MakeScheduler(jobServer, enterpriseLicense)
-		jobServer.RegisterJobType(model.JobTypeHealthCheck, nil, scheduler)
-		return scheduler, mockStore
+		mockStore.JobStore.On("GetNewestJobByStatusAndType", model.JobStatusInProgress, model.JobTypeHealthCheck).Return(running, err)
 	}
-	expectSave := func(mockStore *storetest.Store) {
-		mockStore.JobStore.On("Save", mock.MatchedBy(func(job *model.Job) bool {
+	expectSaveOnce := func(mockStore *storetest.Store) {
+		mockStore.JobStore.On("SaveOnce", mock.MatchedBy(func(job *model.Job) bool {
 			return job.Type == model.JobTypeHealthCheck && job.Status == model.JobStatusPending
 		})).Return(func(job *model.Job) *model.Job { return job }, nil).Once()
 	}
-	rctx := request.TestContext(t)
 
 	t.Run("creates a job when none is pending or in progress", func(t *testing.T) {
-		scheduler, mockStore := setup(t, nil)
-		expectSave(mockStore)
+		scheduler, mockStore := newScheduler(t, enterpriseLicense)
+		expectRunning(mockStore, nil)
+		expectSaveOnce(mockStore)
 
 		job, appErr := scheduler.ScheduleJob(rctx, nil, false, nil)
 		require.Nil(t, appErr)
@@ -63,59 +63,45 @@ func TestScheduleJob(t *testing.T) {
 		assert.Equal(t, model.JobTypeHealthCheck, job.Type)
 	})
 
-	t.Run("skips while a job is pending", func(t *testing.T) {
-		scheduler, _ := setup(t, &model.Job{Status: model.JobStatusPending, CreateAt: model.GetMillis()})
-
-		job, appErr := scheduler.ScheduleJob(rctx, nil, false, nil)
-		require.Nil(t, appErr)
-		assert.Nil(t, job)
-	})
-
 	t.Run("skips while a job is in progress", func(t *testing.T) {
-		scheduler, _ := setup(t, &model.Job{Status: model.JobStatusInProgress, LastActivityAt: model.GetMillis()})
+		scheduler, mockStore := newScheduler(t, enterpriseLicense)
+		expectRunning(mockStore, &model.Job{Status: model.JobStatusInProgress, LastActivityAt: model.GetMillis()})
 
 		job, appErr := scheduler.ScheduleJob(rctx, nil, false, nil)
 		require.Nil(t, appErr)
 		assert.Nil(t, job)
 	})
 
-	t.Run("an in-progress job from a node that died does not block new runs", func(t *testing.T) {
-		stale := time.Now().Add(-staleInProgressAfter - time.Minute).UnixMilli()
-		scheduler, mockStore := setup(t, &model.Job{Status: model.JobStatusInProgress, LastActivityAt: stale})
-		expectSave(mockStore)
+	t.Run("closes an in-progress job from a node that died and creates a new one", func(t *testing.T) {
+		scheduler, mockStore := newScheduler(t, enterpriseLicense)
+		stale := &model.Job{Id: model.NewId(), Type: model.JobTypeHealthCheck, Status: model.JobStatusInProgress,
+			LastActivityAt: time.Now().Add(-staleInProgressAfter - time.Minute).UnixMilli()}
+		expectRunning(mockStore, stale)
+		mockStore.JobStore.On("UpdateStatus", stale.Id, model.JobStatusError).Return(stale, nil).Once()
+		expectSaveOnce(mockStore)
 
 		job, appErr := scheduler.ScheduleJob(rctx, nil, false, nil)
 		require.Nil(t, appErr)
 		require.NotNil(t, job)
 	})
 
-	t.Run("skips when the framework reports a pending job", func(t *testing.T) {
-		// The newest pending or in-progress job can be a stale in-progress one hiding an older
-		// pending job, so pendingJobs is checked first and no store call is expected.
-		jobServer := jobs.NewJobServer(&testutils.StaticConfigService{Cfg: &model.Config{}}, &storetest.Store{}, nil, mlog.CreateConsoleTestLogger(t), nil)
-		scheduler := MakeScheduler(jobServer, enterpriseLicense)
+	// No store call is expected in these cases.
+	for name, tc := range map[string]struct {
+		license     *model.License
+		pendingJobs bool
+	}{
+		"skips while a job is pending":      {license: enterpriseLicense(), pendingJobs: true},
+		"skips without a license":           {license: nil},
+		"skips with a Professional license": {license: model.NewTestLicenseSKU(model.LicenseShortSkuProfessional)},
+	} {
+		t.Run(name, func(t *testing.T) {
+			scheduler, _ := newScheduler(t, func() *model.License { return tc.license })
 
-		job, appErr := scheduler.ScheduleJob(rctx, nil, true, nil)
-		require.Nil(t, appErr)
-		assert.Nil(t, job)
-	})
-
-	t.Run("skips below an Enterprise license", func(t *testing.T) {
-		for name, license := range map[string]*model.License{
-			"no license":   nil,
-			"professional": model.NewTestLicenseSKU(model.LicenseShortSkuProfessional),
-		} {
-			t.Run(name, func(t *testing.T) {
-				// No store call is expected: the mock fails on any.
-				jobServer := jobs.NewJobServer(&testutils.StaticConfigService{Cfg: &model.Config{}}, &storetest.Store{}, nil, mlog.CreateConsoleTestLogger(t), nil)
-				scheduler := MakeScheduler(jobServer, func() *model.License { return license })
-
-				job, appErr := scheduler.ScheduleJob(rctx, nil, false, nil)
-				require.Nil(t, appErr)
-				assert.Nil(t, job)
-			})
-		}
-	})
+			job, appErr := scheduler.ScheduleJob(rctx, nil, tc.pendingJobs, nil)
+			require.Nil(t, appErr)
+			assert.Nil(t, job)
+		})
+	}
 }
 
 func TestSchedulerEnabled(t *testing.T) {

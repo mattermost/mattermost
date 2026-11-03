@@ -57,7 +57,7 @@ func (ch *Channels) startHealthCheckWorkers() {
 	})
 
 	ch.cancelHealthCheck = cancel
-	ch.healthCheckWorkers = health_check.MakeWorkers(ch.srv.Jobs, ch.srv.platform, worker)
+	ch.healthCheckWorkers = health_check.MakeWorkers(ch.srv.Jobs, worker)
 	ch.healthCheckWorkers.Start()
 }
 

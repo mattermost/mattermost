@@ -5,7 +5,6 @@ package health_check
 
 import (
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/configservice"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
@@ -24,8 +23,8 @@ func MakeWorker(jobServer *jobs.JobServer, runHealthCheck func(rctx request.CTX)
 
 // MakeWorkers returns a worker set holding only the health-check worker, with its own watcher
 // that polls only pending health_check jobs, and only while the worker is enabled.
-func MakeWorkers(jobServer *jobs.JobServer, configService configservice.ConfigService, worker model.Worker) *jobs.Workers {
-	workers := jobs.NewWorkers(configService)
+func MakeWorkers(jobServer *jobs.JobServer, worker model.Worker) *jobs.Workers {
+	workers := jobs.NewWorkers(jobServer.ConfigService)
 	workers.AddWorker(model.JobTypeHealthCheck, worker)
 	workers.Watcher = jobServer.MakeJobTypeWatcher(workers, jobs.DefaultWatcherPollingInterval, model.JobTypeHealthCheck)
 	return workers
