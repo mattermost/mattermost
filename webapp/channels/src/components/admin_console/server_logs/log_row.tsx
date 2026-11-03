@@ -38,7 +38,7 @@ type Props = {
     wrapText: boolean;
     showNode: boolean;
 
-    // The admin's display timezone, which the custom range dialog uses too
+    // The admin's display timezone
     timezone: string;
 
     // From logRowTimeFormat, shared by every row so the time column keeps one width

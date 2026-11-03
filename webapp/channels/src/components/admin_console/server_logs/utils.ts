@@ -70,19 +70,20 @@ export function logRowTimeLength(format: string): number {
     return moment.utc('2000-12-31T22:59:59.999Z').format(format).length;
 }
 
-// The entry's time in the admin's timezone. A timestamp that doesn't parse is shown as logged
+// The entry's time in the admin's timezone. A timestamp that doesn't parse is shown as logged, and cut to the column by CSS
 export function formatLogRowTime(log: LogObjectWithAdditionalInfo, timezone: string, format: string): string {
     const time = logEntryTime(log);
     if (Number.isNaN(time)) {
-        return log.timestamp.slice(0, 23);
+        return log.timestamp;
     }
     return moment.tz(time, timezone).format(format);
 }
 
 // A bare time reads as today, so rows need the date as soon as any entry is from another day
 export function logsNeedDate(logs: LogObjectWithAdditionalInfo[], timezone: string, now = Date.now()): boolean {
-    const startOfToday = moment.tz(now, timezone).startOf('day').valueOf();
-    const endOfToday = moment.tz(now, timezone).endOf('day').valueOf();
+    const today = moment.tz(now, timezone);
+    const startOfToday = today.clone().startOf('day').valueOf();
+    const endOfToday = today.endOf('day').valueOf();
     return logs.some((log) => {
         const time = logEntryTime(log);
         return time < startOfToday || time > endOfToday;

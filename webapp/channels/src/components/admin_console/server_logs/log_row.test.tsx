@@ -91,12 +91,6 @@ describe('components/admin_console/server_logs/LogRow', () => {
             expect(document.querySelector('.LogRow__timestamp')).toHaveTextContent(/^not a timestamp$/);
         });
 
-        test('should show the time in the admin\'s timezone', () => {
-            renderLogRow({log: {...baseLog, timestamp: '2024-07-01 08:00:00.000 -04:00'}, timezone: 'Europe/Berlin'});
-
-            expect(document.querySelector('.LogRow__timestamp')).toHaveTextContent(/^14:00:00\.000$/);
-        });
-
         test('should move to the next day in the admin\'s timezone', () => {
             renderLogRow({log: {...baseLog, timestamp: '2023-12-31 23:30:00.000 +00:00'}, timezone: 'Europe/Berlin', timeFormat: DATE_TIME_FORMAT});
 
@@ -448,8 +442,9 @@ describe('components/admin_console/server_logs/LogRow', () => {
     });
 
     describe('copying', () => {
+        // The admin's timezone and format only change what the row shows
         test('should copy the log as JSON', async () => {
-            renderLogRow({isExpanded: true});
+            renderLogRow({isExpanded: true, timezone: 'Europe/Berlin', timeFormat: DATE_TIME_FORMAT});
 
             await userEvent.click(screen.getByText('Copy JSON'));
 
@@ -457,25 +452,13 @@ describe('components/admin_console/server_logs/LogRow', () => {
         });
 
         test('should copy the log line in the expected format', async () => {
-            renderLogRow({isExpanded: true});
+            renderLogRow({isExpanded: true, timezone: 'Europe/Berlin', timeFormat: DATE_TIME_FORMAT});
 
             await userEvent.click(screen.getByText('Copy log line'));
 
             expect(writeText).toHaveBeenCalledWith(
                 '2024-01-01 12:34:56.789 +00:00 [INFO] Something happened (app/server.go:123)',
             );
-        });
-
-        test('should copy the raw timestamp whatever the admin\'s timezone', async () => {
-            renderLogRow({isExpanded: true, timezone: 'Europe/Berlin', timeFormat: DATE_TIME_FORMAT});
-
-            await userEvent.click(screen.getByText('Copy log line'));
-            expect(writeText).toHaveBeenLastCalledWith(
-                '2024-01-01 12:34:56.789 +00:00 [INFO] Something happened (app/server.go:123)',
-            );
-
-            await userEvent.click(screen.getByText('Copy JSON'));
-            expect(writeText).toHaveBeenLastCalledWith(JSON.stringify(baseLog, undefined, 2));
         });
 
         test('should copy the value of a copyable extra field', async () => {

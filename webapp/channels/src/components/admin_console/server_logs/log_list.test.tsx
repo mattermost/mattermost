@@ -98,25 +98,18 @@ function renderList(logs: LogObjectWithAdditionalInfo[]) {
 
 type ListProps = Omit<React.ComponentProps<typeof LogList>, 'enabledLevels' | 'onEnabledLevelsChange'>;
 
-function renderListWith(props: Partial<ListProps>) {
-    return renderWithContext(
-        <StatefulLogList
-            {...baseProps}
-            logs={[]}
-            {...props}
-        />,
-    );
-}
+type AdminSettings = {timezone?: string; militaryTime?: boolean};
 
-// The admin's timezone and Clock Display setting, which defaults to the 12-hour clock
-function renderWithSettings(props: Partial<ListProps>, {timezone = 'UTC', militaryTime = false} = {}) {
+// Settings set the admin's timezone and Clock Display, which otherwise default to UTC and the 12-hour clock
+function renderListWith(props: Partial<ListProps>, settings?: AdminSettings) {
+    const {timezone = 'UTC', militaryTime = false} = settings ?? {};
     return renderWithContext(
         <StatefulLogList
             {...baseProps}
             logs={[]}
             {...props}
         />,
-        {entities: {
+        settings && {entities: {
             users: {
                 currentUserId: 'user1',
                 profiles: {user1: {id: 'user1', timezone: {useAutomaticTimezone: 'false', automaticTimezone: '', manualTimezone: timezone}}},
@@ -990,7 +983,7 @@ describe('components/admin_console/server_logs/LogList', () => {
         test('should decide on the year in the user\'s timezone', () => {
             // Already 2027 in Tokyo, still 2026 in UTC
             fakeNow('2026-12-31T16:00:00.000Z');
-            renderWithSettings(
+            renderListWith(
                 {timeRange: {from: Date.parse('2026-12-31T14:00:00.000Z'), to: Date.parse('2026-12-31T14:30:00.000Z')}},
                 {timezone: 'Asia/Tokyo'},
             );
@@ -1223,7 +1216,7 @@ describe('components/admin_console/server_logs/LogList', () => {
         const timeColumnChars = () => (document.querySelector('.LogViewer') as HTMLElement).style.getPropertyValue('--log-timestamp-chars');
 
         test('should show the times in the admin\'s timezone rather than the server\'s', () => {
-            renderWithSettings({logs: [
+            renderListWith({logs: [
                 makeLog('utc', '2026-03-12 14:30:00.000 +00:00'),
                 makeLog('offset', '2026-03-12 10:45:00.000 -04:00'),
             ]}, {timezone: 'Europe/Berlin', militaryTime: true});
@@ -1231,13 +1224,12 @@ describe('components/admin_console/server_logs/LogList', () => {
             expect(rowTimes()).toEqual(['15:30:00.000', '15:45:00.000']);
         });
 
+        // The formats themselves are covered by the utils tests; this checks they reach the rows and the column
         test.each([
             ['24-hour, only today', [first, second], true, ['10:00:01.000', '10:00:02.000'], '12'],
-            ['12-hour, only today', [first, makeLog('later', '2026-03-12T14:30:00.000Z')], false, ['10:00:01.000 AM', '2:30:00.000 PM'], '15'],
-            ['24-hour, one earlier day', [makeLog('a', '2026-03-10T10:00:01.000Z')], true, ['2026-03-10 10:00:01.000'], '23'],
             ['12-hour, across midnight', [makeLog('a', '2026-03-11T23:59:59.000Z'), makeLog('b', '2026-03-12T00:00:01.000Z')], false, ['2026-03-11 11:59:59.000 PM', '2026-03-12 12:00:01.000 AM'], '26'],
         ])('should size the time column to the format: %s', (_, logs, militaryTime, times, chars) => {
-            renderWithSettings({logs}, {militaryTime});
+            renderListWith({logs}, {militaryTime});
 
             expect(rowTimes()).toEqual(times);
             expect(timeColumnChars()).toBe(chars);
@@ -1249,7 +1241,7 @@ describe('components/admin_console/server_logs/LogList', () => {
                 makeLog('yesterday', '2026-03-11T23:00:00.000Z'),
                 ...Array.from({length: 60}, (_, i) => makeLog(`msg ${i}`, new Date(Date.UTC(2026, 2, 12, 10, 0, i)).toISOString())),
             ];
-            renderWithSettings({logs}, {militaryTime: true});
+            renderListWith({logs}, {militaryTime: true});
 
             fireEvent.click(screen.getByLabelText('Next page'));
 

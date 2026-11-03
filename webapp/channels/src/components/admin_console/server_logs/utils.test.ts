@@ -75,7 +75,6 @@ describe('components/admin_console/server_logs/utils', () => {
         ])('with the date %s and the 24-hour clock %s', (showDate, useMilitaryTime, format, length) => {
             expect(logRowTimeFormat(showDate, useMilitaryTime)).toBe(format);
 
-            // As long as "12:59:59.999 PM", which the column has to fit
             expect(logRowTimeLength(format)).toBe(length);
         });
     });
