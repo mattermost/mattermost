@@ -1067,7 +1067,7 @@ func (s *Server) Start() error {
 	}
 
 	if s.MailServiceConfig().SendEmailNotifications {
-		if err := mail.TestConnection(s.MailServiceConfig()); err != nil {
+		if err := mail.TestConnection(context.Background(), s.MailServiceConfig()); err != nil {
 			mlog.Error("Mail server connection test failed", mlog.Err(err))
 		}
 	}
