@@ -4,6 +4,7 @@
 package remotecluster
 
 import (
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -38,6 +39,15 @@ func (rcs *Service) AcceptInvitation(invite *model.RemoteClusterInvite, name str
 		RemoteToken:   remoteToken,
 		SiteURL:       invite.SiteURL,
 		CreatorId:     creatorId,
+	}
+
+	// Check whether this remote id is already stored, including a deleted row.
+	existing, err := rcs.server.GetStore().RemoteCluster().Get(invite.RemoteId, true)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return nil, model.NewAppError("AcceptInvitation", "api.remote_cluster.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if existing != nil {
+		return nil, model.NewAppError("AcceptInvitation", "api.remote_cluster.save_not_unique.app_error", nil, "", http.StatusConflict)
 	}
 
 	rcSaved, err := rcs.server.GetStore().RemoteCluster().Save(rc)
