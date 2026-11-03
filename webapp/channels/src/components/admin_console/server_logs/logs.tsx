@@ -121,15 +121,42 @@ export default function Logs({logs, logNodes, truncatedLogNodes, plainLogs, isPl
     const [selectedNode, setSelectedNode] = useState(urlFilters.node ?? initialPrefs.node);
     const [timeRange, setTimeRange] = useState<TimeRange>(urlFilters.timeRange ?? null);
 
+    // The query this viewer last wrote, so a different one arriving is a navigation to a new view
+    const writtenSearchRef = useRef(history.location.search);
+
     // Replaced rather than pushed, so changing filters doesn't fill the back button's history.
     // The search is mirrored once debounced, and the plain viewer has no filters to share
     useEffect(() => {
         const {location} = history;
         const query = withUrlFilters(location.search, isPlainLogs ? null : {search, enabledLevels, node: selectedNode, timeRange});
+        writtenSearchRef.current = query;
         if (query !== location.search) {
             history.replace({...location, search: query});
         }
     }, [history, isPlainLogs, search, enabledLevels, selectedNode, timeRange]);
+
+    // The search box keeps its own text, so it's remounted to show a search that arrived from the URL
+    const [viewKey, setViewKey] = useState(0);
+
+    // A link followed while this viewer is open replaces its filters, and what it leaves out falls back to the saved prefs
+    useEffect(() => {
+        const {pathname} = history.location;
+        return history.listen((location) => {
+            if (location.pathname !== pathname || location.search === writtenSearchRef.current) {
+                return;
+            }
+            const filters = parseUrlFilters(location.search, PRESET_MINUTES);
+            const prefs = loadPrefs();
+            setSearch(filters.search ?? '');
+            setEnabledLevels(filters.enabledLevels ?? new Set(prefs.enabledLevels));
+            setSelectedNode(filters.node ?? prefs.node);
+            setTimeRange(filters.timeRange ?? null);
+            if (!configIsPlainLogs && Object.keys(filters).length > 0) {
+                setIsPlainLogs(false);
+            }
+            setViewKey((key) => key + 1);
+        });
+    }, [history, configIsPlainLogs]);
 
     const [plainPage, setPlainPage] = useState(0);
     const [liveTailEnabled, setLiveTailEnabled] = useState(false);
@@ -285,6 +312,7 @@ export default function Logs({logs, logNodes, truncatedLogNodes, plainLogs, isPl
         />
     ) : (
         <LogList
+            key={viewKey}
             loading={loading}
             logs={logs}
             truncatedNodes={truncatedLogNodes}

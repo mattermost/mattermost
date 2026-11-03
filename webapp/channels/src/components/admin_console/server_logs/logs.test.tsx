@@ -978,6 +978,7 @@ describe('components/admin_console/server_logs/Logs URL filters', () => {
         ['a range that ends before it starts', 'from=2026-10-20T12:00:00Z&to=2026-10-20T11:00:00Z', {dateFrom: '', dateTo: ''}],
         ['a range that ends when it starts', 'from=2026-10-20T12:00:00Z&to=2026-10-20T12:00:00Z', {dateFrom: '', dateTo: ''}],
         ['dates without a timezone offset', 'from=2026-10-20T11:00:00&to=2026-10-20T12:00:00', {dateFrom: '', dateTo: ''}],
+        ['dates that are not on the calendar', 'from=2026-02-30T11:00:00Z&to=2026-03-02T12:00:00Z', {dateFrom: '', dateTo: ''}],
         ['an invalid custom range in favor of a valid preset', 'range=60&from=bad&to=2026-10-20T12:00:00Z', {dateFrom: '2026-10-20 11:00:00.000 +00:00', dateTo: ''}],
     ])('should ignore %s', async (_, query, expected) => {
         fakeNow('2026-10-20T12:00:00Z');
@@ -986,6 +987,13 @@ describe('components/admin_console/server_logs/Logs URL filters', () => {
 
         await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
         expect(getLogs).toHaveBeenCalledWith(expect.objectContaining(expected));
+    });
+
+    test('should keep a search of 256 characters that take two UTF-16 code units each', async () => {
+        const search = '😀'.repeat(256);
+        const {getLogs} = renderLogs(`${PAGE}?search=${encodeURIComponent(search)}`);
+
+        await waitFor(() => expect(getLogs).toHaveBeenCalledWith(expect.objectContaining({search})));
     });
 
     test('should mirror the filters in the URL as they change, without adding history entries', async () => {
@@ -1040,6 +1048,47 @@ describe('components/admin_console/server_logs/Logs URL filters', () => {
 
         await pickMenuItem('Open menu to select the log format', 'Structured');
         await waitFor(() => expect(urlParams(history)).toEqual({search: 'timeout'}));
+    });
+
+    test('should apply the filters of a link followed while the viewer is open', async () => {
+        fakeNow('2026-10-20T12:00:00Z');
+        const {history, getLogs} = renderLogs(`${PAGE}?search=first&levels=warn&node=node-a&range=15`);
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
+
+        act(() => history.push(`${PAGE}?search=second&node=node-b&range=60`));
+
+        await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith({
+            search: 'second',
+            logLevels: ['warn'],
+            serverNames: ['node-b'],
+            dateFrom: '2026-10-20 11:00:00.000 +00:00',
+            dateTo: '',
+        }));
+        expect(screen.getByLabelText('Search logs')).toHaveValue('second');
+        expect(screen.getByLabelText('Duration')).toHaveValue('Last hour');
+
+        // The levels the link leaves out are the last used ones, which were those of the previous link
+        await waitFor(() => expect(urlParams(history)).toEqual({search: 'second', levels: 'warn', node: 'node-b', range: '60'}));
+    });
+
+    test('should apply the saved prefs when a link followed while the viewer is open has no filters', async () => {
+        const {history, getLogs} = renderLogs(`${PAGE}?search=first&range=15`);
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
+
+        act(() => history.push(PAGE));
+
+        await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith({search: '', logLevels: [], serverNames: [], dateFrom: '', dateTo: ''}));
+        expect(screen.getByLabelText('Search logs')).toHaveValue('');
+        expect(history.location.search).toBe('');
+    });
+
+    test('should not query again when the viewer is left', async () => {
+        const {history, getLogs} = renderLogs(`${PAGE}?search=first`);
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
+
+        act(() => history.push('/admin_console/reporting/site_statistics'));
+
+        expect(getLogs).toHaveBeenCalledTimes(1);
     });
 
     test('should keep the URL free of filters when the server only writes plain logs', async () => {

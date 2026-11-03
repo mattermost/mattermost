@@ -23,7 +23,14 @@ function parseDate(value: string | null): number | null {
         return null;
     }
     const time = Date.parse(value);
-    return Number.isNaN(time) ? null : time;
+    return Number.isNaN(time) || !isRealDate(value) ? null : time;
+}
+
+// Date.parse rolls a date like February 30 over into March instead of rejecting it
+function isRealDate(value: string): boolean {
+    const [year, month, day] = value.slice(0, 10).split('-').map(Number);
+    const date = new Date(Date.UTC(year, month - 1, day));
+    return date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
 }
 
 function isLevelGroup(level: string): level is LevelGroup {
@@ -36,7 +43,9 @@ export function parseUrlFilters(query: string, presetMinutes: readonly number[])
     const filters: Partial<UrlFilters> = {};
 
     const search = params.get('search');
-    if (search && search.length <= SEARCH_MAX_LENGTH) {
+
+    // The server counts characters, not UTF-16 code units
+    if (search && Array.from(search).length <= SEARCH_MAX_LENGTH) {
         filters.search = search;
     }
 
