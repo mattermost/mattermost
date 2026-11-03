@@ -11,8 +11,8 @@ import {ChevronDownIcon} from '@mattermost/compass-icons/components';
 import {Button, type ButtonEmphasis} from '@mattermost/compass-ui/components/button';
 import {EmptyState} from '@mattermost/compass-ui/components/empty-state';
 import {Icon} from '@mattermost/compass-ui/components/icon';
-import OfficeIllustration from '@mattermost/compass-ui/illustrations/office';
 import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
+import OfficeIllustration from '@mattermost/compass-ui/illustrations/office';
 
 import LoadingScreen from 'components/loading_screen';
 import * as Menu from 'components/menu';

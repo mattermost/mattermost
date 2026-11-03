@@ -32,10 +32,11 @@ export const noBillingHistory = (
                 defaultMessage='In the future, this is where your most recent bill summary will show.'
             />
         }
-        action={{
-            asChild: true,
-            emphasis: 'primary',
-            children: (
+        actionSlot={
+            <Button
+                asChild={true}
+                emphasis='primary'
+            >
                 <ExternalLink
                     location='billing_summary'
                     href={CloudLinks.BILLING_DOCS}
@@ -45,8 +46,8 @@ export const noBillingHistory = (
                         defaultMessage='See how billing works'
                     />
                 </ExternalLink>
-            ),
-        }}
+            </Button>
+        }
     />
 );
 

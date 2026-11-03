@@ -27,9 +27,9 @@ import {getSelectedThreadIdInCurrentTeam} from 'selectors/views/threads';
 import {useGlobalState} from 'stores/hooks';
 import LocalStorageStore from 'stores/local_storage_store';
 
-import {ThreadsEmptyIllustration} from 'components/no_results_indicator/no_results_variant_illustration';
 import LoadingScreen from 'components/loading_screen';
 import NoResultsIndicator from 'components/no_results_indicator';
+import {ThreadsEmptyIllustration} from 'components/no_results_indicator/no_results_variant_illustration';
 
 import {PreviousViewedTypes, RHSStates} from 'utils/constants';
 import {Mark, Measure, measureAndReport} from 'utils/performance_telemetry';
