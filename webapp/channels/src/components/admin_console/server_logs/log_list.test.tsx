@@ -1194,42 +1194,81 @@ describe('components/admin_console/server_logs/LogList', () => {
         });
     });
     describe('row times', () => {
-        beforeEach(() => pinAscendingSort());
+        beforeEach(() => {
+            pinAscendingSort();
+            fakeNow('2026-03-12T18:00:00.000Z');
+        });
+
+        afterEach(() => {
+            jest.useRealTimers();
+        });
 
         const rowTimes = () => Array.from(document.querySelectorAll('.LogRow__timestamp')).map((el) => el.textContent);
         const viewer = () => document.querySelector('.LogViewer');
 
-        function renderInTimezone(logs: LogObjectWithAdditionalInfo[], timezone: string) {
+        function renderWithSettings(logs: LogObjectWithAdditionalInfo[], {timezone = 'UTC', militaryTime = true} = {}) {
             return renderWithContext(
                 <StatefulLogList
                     {...baseProps}
                     logs={logs}
                 />,
-                {entities: {users: {
-                    currentUserId: 'user1',
-                    profiles: {user1: {id: 'user1', timezone: {useAutomaticTimezone: 'false', automaticTimezone: '', manualTimezone: timezone}}},
-                }}},
+                {entities: {
+                    users: {
+                        currentUserId: 'user1',
+                        profiles: {user1: {id: 'user1', timezone: {useAutomaticTimezone: 'false', automaticTimezone: '', manualTimezone: timezone}}},
+                    },
+                    preferences: {myPreferences: {
+                        'display_settings--use_military_time': {category: 'display_settings', name: 'use_military_time', user_id: 'user1', value: String(militaryTime)},
+                    }},
+                }},
             );
         }
 
         test('should show the times in the admin\'s timezone rather than the server\'s', () => {
-            renderInTimezone([
+            renderWithSettings([
                 makeLog('utc', '2026-03-12 14:30:00.000 +00:00'),
                 makeLog('offset', '2026-03-12 10:45:00.000 -04:00'),
-            ], 'Europe/Berlin');
+            ], {timezone: 'Europe/Berlin'});
 
             expect(rowTimes()).toEqual(['15:30:00.000', '15:45:00.000']);
         });
 
-        test('should hide the date when every entry is on the same day', () => {
-            renderList([first, second, third]);
+        test('should follow the admin\'s 12-hour clock setting', () => {
+            renderWithSettings([
+                makeLog('morning', '2026-03-12T09:05:00.000Z'),
+                makeLog('afternoon', '2026-03-12T14:30:00.000Z'),
+            ], {militaryTime: false});
+
+            expect(rowTimes()).toEqual(['9:05:00.000 AM', '2:30:00.000 PM']);
+            expect(viewer()).toHaveClass('LogViewer--twelve-hour');
+        });
+
+        test('should keep the 24-hour clock when the admin uses it', () => {
+            renderWithSettings([first]);
+
+            expect(rowTimes()).toEqual(['10:00:01.000']);
+            expect(viewer()).not.toHaveClass('LogViewer--twelve-hour');
+        });
+
+        test('should hide the date when every entry is from today', () => {
+            renderWithSettings([first, second, third]);
 
             expect(rowTimes()).toEqual(['10:00:01.000', '10:00:02.000', '10:00:03.000']);
             expect(viewer()).not.toHaveClass('LogViewer--with-date');
         });
 
+        test('should show the date when every entry is from the same earlier day', () => {
+            renderWithSettings([
+                makeLog('a', '2026-03-10T10:00:01.000Z'),
+                makeLog('b', '2026-03-10T10:00:02.000Z'),
+            ]);
+
+            expect(rowTimes()).toEqual(['2026-03-10 10:00:01.000', '2026-03-10 10:00:02.000']);
+            expect(viewer()).toHaveClass('LogViewer--with-date');
+        });
+
         test('should show the date on every row when the entries span more than one day', () => {
-            renderList([
+            renderWithSettings([
                 makeLog('yesterday', '2026-03-11T23:59:59.000Z'),
                 makeLog('today', '2026-03-12T00:00:01.000Z'),
             ]);
@@ -1240,15 +1279,34 @@ describe('components/admin_console/server_logs/LogList', () => {
             expect(viewer()).toHaveClass('LogViewer--with-date');
         });
 
+        test('should show the date with the 12-hour clock', () => {
+            renderWithSettings([
+                makeLog('yesterday', '2026-03-11T23:59:59.000Z'),
+                makeLog('today', '2026-03-12T00:00:01.000Z'),
+            ], {militaryTime: false});
+
+            expect(rowTimes()).toEqual(['2026-03-11 11:59:59.000 PM', '2026-03-12 12:00:01.000 AM']);
+            expect(viewer()).toHaveClass('LogViewer--with-date');
+            expect(viewer()).toHaveClass('LogViewer--twelve-hour');
+        });
+
         test('should decide on the day in the admin\'s timezone', () => {
-            // Different days in UTC, the same day in Berlin
-            renderInTimezone([
+            // Different days in UTC, but both on the 12th in Berlin, which is today there
+            renderWithSettings([
                 makeLog('late', '2026-03-11T23:30:00.000Z'),
                 makeLog('early', '2026-03-12T00:30:00.000Z'),
-            ], 'Europe/Berlin');
+            ], {timezone: 'Europe/Berlin'});
 
             expect(rowTimes()).toEqual(['00:30:00.000', '01:30:00.000']);
             expect(viewer()).not.toHaveClass('LogViewer--with-date');
+        });
+
+        test('should decide on today in the admin\'s timezone', () => {
+            // Still the 12th in UTC, already the 13th in Tokyo
+            fakeNow('2026-03-12T16:00:00.000Z');
+            renderWithSettings([first], {timezone: 'Asia/Tokyo'});
+
+            expect(rowTimes()).toEqual(['2026-03-12 19:00:01.000']);
         });
 
         test('should show the date on every page when the entries span more than one day', () => {
@@ -1257,16 +1315,16 @@ describe('components/admin_console/server_logs/LogList', () => {
                 makeLog('yesterday', '2026-03-11T23:00:00.000Z'),
                 ...Array.from({length: 60}, (_, i) => makeLog(`msg ${i}`, new Date(Date.UTC(2026, 2, 12, 10, 0, i)).toISOString())),
             ];
-            renderList(logs);
+            renderWithSettings(logs);
 
             fireEvent.click(screen.getByLabelText('Next page'));
 
-            // This page only holds entries from one day, yet keeps the date
+            // This page only holds entries from today, yet keeps the date
             expect(rowTimes()[0]).toBe('2026-03-12 10:00:49.000');
         });
 
         test('should ignore a timestamp that does not parse when deciding on the date', () => {
-            renderList([first, makeLog('broken', 'not a timestamp'), second]);
+            renderWithSettings([first, makeLog('broken', 'not a timestamp'), second]);
 
             expect(rowTimes()).toEqual(expect.arrayContaining(['10:00:01.000', 'not a timestamp', '10:00:02.000']));
             expect(viewer()).not.toHaveClass('LogViewer--with-date');

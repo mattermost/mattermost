@@ -41,8 +41,11 @@ type Props = {
     // The admin's display timezone, which the custom range dialog uses too
     timezone: string;
 
-    // Set when the listed entries fall on more than one day
+    // Set when the listed entries need the date to be told apart from today's
     showDate: boolean;
+
+    // The admin's Clock Display setting
+    useMilitaryTime: boolean;
 };
 
 const LEVEL_CONFIG: Record<string, {label: MessageDescriptor; className: string}> = {
@@ -195,7 +198,7 @@ function DetailValue({fieldKey, value}: {fieldKey: string; value: string}) {
     );
 }
 
-function LogRow({log, isExpanded, isFocused, isNew, onToggleExpand, onFocus, searchTerm, wrapText, showNode, timezone, showDate}: Props) {
+function LogRow({log, isExpanded, isFocused, isNew, onToggleExpand, onFocus, searchTerm, wrapText, showNode, timezone, showDate, useMilitaryTime}: Props) {
     const [copyJsonStatus, copyJson] = useClipboardCopy();
     const [copyLineStatus, copyLine] = useClipboardCopy();
     const copyJsonSuccess = copyJsonStatus === 'copied';
@@ -287,7 +290,7 @@ function LogRow({log, isExpanded, isFocused, isNew, onToggleExpand, onFocus, sea
                     className='LogRow__timestamp'
                     title={log.timestamp}
                 >
-                    {formatLogRowTime(log, timezone, showDate)}
+                    {formatLogRowTime(log, timezone, showDate, useMilitaryTime)}
                 </span>
                 {showNode && (
                     <span

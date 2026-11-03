@@ -36,6 +36,7 @@ describe('components/admin_console/server_logs/LogRow', () => {
         showNode: false,
         timezone: 'UTC',
         showDate: false,
+        useMilitaryTime: true,
     };
 
     const writeText = jest.fn();
@@ -153,6 +154,18 @@ describe('components/admin_console/server_logs/LogRow', () => {
 
             // Past midnight in Berlin, so the day moves on too
             expect(getTime()).toHaveTextContent(/^2024-01-01 00:30:00\.000$/);
+        });
+
+        test('should use the 12-hour clock when the admin does', () => {
+            renderLogRow({useMilitaryTime: false});
+
+            expect(getTime()).toHaveTextContent(/^12:34:56\.789 PM$/);
+        });
+
+        test('should show the date with the 12-hour clock', () => {
+            renderLogRow({log: {...baseLog, timestamp: '2024-01-01 00:05:00.000 +00:00'}, useMilitaryTime: false, showDate: true});
+
+            expect(getTime()).toHaveTextContent(/^2024-01-01 12:05:00\.000 AM$/);
         });
 
         test('should keep the raw timestamp in the tooltip', () => {

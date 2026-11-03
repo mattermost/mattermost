@@ -58,19 +58,22 @@ export function newestLogTimes(logs: LogObjectWithAdditionalInfo[]): Record<stri
 }
 
 const DAY_FORMAT = 'YYYY-MM-DD';
-const TIME_FORMAT = 'HH:mm:ss.SSS';
+const TIME_FORMAT_24_HOUR = 'HH:mm:ss.SSS';
+const TIME_FORMAT_12_HOUR = 'h:mm:ss.SSS A';
 
-// The entry's time in the admin's timezone. A timestamp that doesn't parse is shown as logged
-export function formatLogRowTime(log: LogObjectWithAdditionalInfo, timezone: string, showDate: boolean): string {
+// The entry's time in the admin's timezone and clock format. A timestamp that doesn't parse is shown as logged
+export function formatLogRowTime(log: LogObjectWithAdditionalInfo, timezone: string, showDate: boolean, useMilitaryTime: boolean): string {
     const time = logEntryTime(log);
     if (Number.isNaN(time)) {
         return log.timestamp.slice(0, 23);
     }
-    return moment.tz(time, timezone).format(showDate ? `${DAY_FORMAT} ${TIME_FORMAT}` : TIME_FORMAT);
+    const timeFormat = useMilitaryTime ? TIME_FORMAT_24_HOUR : TIME_FORMAT_12_HOUR;
+    return moment.tz(time, timezone).format(showDate ? `${DAY_FORMAT} ${timeFormat}` : timeFormat);
 }
 
-// Whether the entries fall on more than one day in the admin's timezone, which rows then need the date to tell apart
-export function spansMultipleDays(logs: LogObjectWithAdditionalInfo[], timezone: string): boolean {
+// Rows need the date when the entries fall on more than one day in the admin's timezone, or when
+// the one day they fall on isn't today, which a bare time would otherwise suggest
+export function logsNeedDate(logs: LogObjectWithAdditionalInfo[], timezone: string, now = Date.now()): boolean {
     let oldest = Infinity;
     let newest = -Infinity;
     for (const log of logs) {
@@ -83,5 +86,6 @@ export function spansMultipleDays(logs: LogObjectWithAdditionalInfo[], timezone:
     if (oldest > newest) {
         return false;
     }
-    return moment.tz(oldest, timezone).format(DAY_FORMAT) !== moment.tz(newest, timezone).format(DAY_FORMAT);
+    const today = moment.tz(now, timezone).format(DAY_FORMAT);
+    return moment.tz(oldest, timezone).format(DAY_FORMAT) !== today || moment.tz(newest, timezone).format(DAY_FORMAT) !== today;
 }

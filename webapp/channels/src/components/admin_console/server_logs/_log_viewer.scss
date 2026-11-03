@@ -13,6 +13,10 @@ $timestamp-column-width: var(--log-timestamp-column-width, #{$timestamp-time-wid
 
 // Fits "YYYY-MM-DD HH:mm:ss.SSS" in the monospace font
 $timestamp-date-time-width: 184px;
+
+// The 12-hour clock adds " PM" and an hour that can take two digits
+$timestamp-time-width-12-hour: 120px;
+$timestamp-date-time-width-12-hour: 208px;
 $caller-column-width: 200px;
 $node-column-width: 120px;
 $node-column-min-width: 64px;

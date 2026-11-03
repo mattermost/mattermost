@@ -35,6 +35,14 @@
         --log-timestamp-column-width: #{log_viewer.$timestamp-date-time-width};
     }
 
+    &--twelve-hour {
+        --log-timestamp-column-width: #{log_viewer.$timestamp-time-width-12-hour};
+    }
+
+    &--twelve-hour#{&}--with-date {
+        --log-timestamp-column-width: #{log_viewer.$timestamp-date-time-width-12-hour};
+    }
+
     // ---------------------
     // Filters
     // ---------------------

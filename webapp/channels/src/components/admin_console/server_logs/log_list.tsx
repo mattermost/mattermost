@@ -32,7 +32,7 @@ import CustomRangeModal from './custom_range_modal';
 import KeyboardHints from './keyboard_hints';
 import LogRow from './log_row';
 import type {CustomTimeRange, LogObjectWithAdditionalInfo, TimeRange} from './types';
-import {LEVEL_GROUPS, levelGroup, newestLogTimes, spansMultipleDays} from './utils';
+import {LEVEL_GROUPS, levelGroup, logsNeedDate, newestLogTimes} from './utils';
 
 import './log_list.scss';
 
@@ -357,7 +357,7 @@ export default function LogList({
     }, [scopedLogs, enabledLevels, sortAsc]);
 
     // Every page shows the date or none does, so the time column keeps one width while paging
-    const showDate = useMemo(() => spansMultipleDays(processedLogs, timezone), [processedLogs, timezone]);
+    const showDate = useMemo(() => logsNeedDate(processedLogs, timezone), [processedLogs, timezone]);
 
     // Only held entries the current filters would show are worth announcing
     const heldCount = useMemo(() => filterLogs(heldLogs, enabledLevels).length, [heldLogs, enabledLevels]);
@@ -861,7 +861,10 @@ export default function LogList({
 
     return (
         <div
-            className={classNames('LogViewer', {'LogViewer--with-date': showDate})}
+            className={classNames('LogViewer', {
+                'LogViewer--with-date': showDate,
+                'LogViewer--twelve-hour': !isMilitaryTime,
+            })}
             onKeyDown={handleKeyDown}
         >
             {filters}
@@ -1019,6 +1022,7 @@ export default function LogList({
                             showNode={showNodes}
                             timezone={timezone}
                             showDate={showDate}
+                            useMilitaryTime={isMilitaryTime}
                         />
                     ))}
                 </div>
