@@ -6,6 +6,7 @@ package platform
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -1288,10 +1289,10 @@ func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {
 		})
 	}
 
-	requireSectionErrors := func(t *testing.T, failed map[model.NodeSection][]string) *model.SupportPacketDiagnostics {
+	requireSectionErrorsWithContext := func(t *testing.T, rctx request.CTX, failed map[model.NodeSection][]string) *model.SupportPacketDiagnostics {
 		t.Helper()
 
-		nodeDiagnostics, err := th.Service.GetSupportPacketDiagnostics(th.Context)
+		nodeDiagnostics, err := th.Service.GetSupportPacketDiagnostics(rctx)
 		require.NotNil(t, nodeDiagnostics)
 		require.NotNil(t, nodeDiagnostics.Diagnostics)
 		if len(failed) == 0 {
@@ -1317,6 +1318,24 @@ func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {
 			}
 		}
 		return nodeDiagnostics.Diagnostics
+	}
+	requireSectionErrors := func(t *testing.T, failed map[model.NodeSection][]string) *model.SupportPacketDiagnostics {
+		t.Helper()
+		return requireSectionErrorsWithContext(t, th.Context, failed)
+	}
+
+	setLDAP := func(t *testing.T, ldapMock *emocks.LdapDiagnosticInterface) {
+		originalLDAP := th.Service.ldapDiagnostic
+		t.Cleanup(func() {
+			th.Service.ldapDiagnostic = originalLDAP
+			th.Service.UpdateConfig(func(cfg *model.Config) {
+				cfg.LdapSettings.EnableSync = model.NewPointer(false)
+			})
+		})
+		th.Service.ldapDiagnostic = ldapMock
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.LdapSettings.EnableSync = model.NewPointer(true)
+		})
 	}
 
 	t.Run("all sections present and clean", func(t *testing.T) {
@@ -1459,6 +1478,117 @@ func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {
 		})
 
 		requireSectionErrors(t, nil)
+	})
+
+	t.Run("probe still running at the deadline", func(t *testing.T) {
+		release := make(chan struct{})
+		t.Cleanup(func() { close(release) })
+		ldapMock := &emocks.LdapDiagnosticInterface{}
+		ldapMock.On("RunTest", mock.AnythingOfType("*request.Context")).
+			Run(func(mock.Arguments) { <-release }).
+			Return(model.NewAppError("", "released", nil, "", 0))
+		setLDAP(t, ldapMock)
+
+		// Long enough for the local collection, which also uses the context for its database queries.
+		ctx, cancel := context.WithTimeout(th.Context.Context(), 2*time.Second)
+		t.Cleanup(cancel)
+
+		start := time.Now()
+		d := requireSectionErrorsWithContext(t, th.Context.WithContext(ctx), map[model.NodeSection][]string{
+			model.SectionLDAPProbe: {"probe did not complete", context.DeadlineExceeded.Error()},
+		})
+		assert.Less(t, time.Since(start), 10*time.Second)
+		assert.Empty(t, d.LDAP.Status, "a probe that did not finish has no status")
+		assert.Contains(t, d.LDAP.Error, "probe did not complete")
+	})
+
+	t.Run("probes run concurrently", func(t *testing.T) {
+		originalFileStore := th.Service.filestore
+		t.Cleanup(func() {
+			err := SetFileStore(originalFileStore)(th.Service)
+			require.NoError(t, err)
+		})
+
+		// Each probe waits for the other to start, so they only both succeed when they run at the same time.
+		ldapStarted := make(chan struct{})
+		fileStoreStarted := make(chan struct{})
+		waitFor := func(started chan struct{}) error {
+			select {
+			case <-started:
+				return nil
+			case <-time.After(10 * time.Second):
+				return errors.New("other probe did not start")
+			}
+		}
+
+		fb := &fmocks.FileBackend{}
+		fb.On("DriverName").Return("amazons3")
+		fb.On("TestConnection").Return(func() error {
+			close(fileStoreStarted)
+			return waitFor(ldapStarted)
+		})
+		err := SetFileStore(fb)(th.Service)
+		require.NoError(t, err)
+
+		ldapMock := &emocks.LdapDiagnosticInterface{}
+		ldapMock.On("RunTest", mock.AnythingOfType("*request.Context")).Return(func(request.CTX) *model.AppError {
+			close(ldapStarted)
+			if err := waitFor(fileStoreStarted); err != nil {
+				return model.NewAppError("", "timeout", nil, "", 0).Wrap(err)
+			}
+			return nil
+		})
+		ldapMock.On("GetVendorNameAndVendorVersion", mock.AnythingOfType("*request.Context")).Return("OpenLDAP", "2.6", nil)
+		setLDAP(t, ldapMock)
+
+		d := requireSectionErrors(t, nil)
+		assert.Equal(t, model.StatusOk, d.FileStore.Status, d.FileStore.Error)
+		assert.Equal(t, model.StatusOk, d.LDAP.Status, d.LDAP.Error)
+		assert.Equal(t, "OpenLDAP", d.LDAP.ServerName)
+	})
+}
+
+func TestStartProbe(t *testing.T) {
+	t.Run("returns the probe's result", func(t *testing.T) {
+		wait := startProbe(context.Background(), func(context.Context) int { return 42 })
+		value, err := wait()
+		require.NoError(t, err)
+		assert.Equal(t, 42, value)
+	})
+
+	t.Run("gives up when the context ends", func(t *testing.T) {
+		release := make(chan struct{})
+		t.Cleanup(func() { close(release) })
+		ctx, cancel := context.WithCancel(context.Background())
+		wait := startProbe(ctx, func(context.Context) int {
+			<-release
+			return 42
+		})
+		cancel()
+
+		value, err := wait()
+		require.ErrorIs(t, err, context.Canceled)
+		assert.ErrorContains(t, err, "probe did not complete")
+		assert.Zero(t, value)
+	})
+
+	t.Run("passes the context to the probe", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		wait := startProbe(ctx, func(ctx context.Context) error {
+			<-ctx.Done()
+			return ctx.Err()
+		})
+		cancel()
+
+		// Either the wait or the probe notices the cancellation first; both report it.
+		value, err := wait()
+		require.True(t, errors.Is(err, context.Canceled) || errors.Is(value, context.Canceled))
+	})
+
+	t.Run("returns a panic as an error", func(t *testing.T) {
+		wait := startProbe(context.Background(), func(context.Context) int { panic("boom") })
+		_, err := wait()
+		assert.ErrorContains(t, err, "probe panicked: boom")
 	})
 }
 

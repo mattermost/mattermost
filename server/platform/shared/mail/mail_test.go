@@ -893,3 +893,120 @@ func TestSendMailCcDisplayName(t *testing.T) {
 	assert.Contains(t, cc, "Cc Person")
 	assert.Contains(t, cc, "<cc@example.com>")
 }
+
+// fakeSMTPServer serves every connection with handle and returns a config pointing at it.
+func fakeSMTPServer(t *testing.T, handle func(conn net.Conn)) *SMTPConfig {
+	t.Helper()
+
+	l, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+	t.Cleanup(func() { l.Close() })
+
+	go func() {
+		for {
+			conn, acceptErr := l.Accept()
+			if acceptErr != nil {
+				return
+			}
+			go func() {
+				defer conn.Close()
+				handle(conn)
+			}()
+		}
+	}()
+
+	host, port, err := net.SplitHostPort(l.Addr().String())
+	require.NoError(t, err)
+	return &SMTPConfig{
+		Hostname:      "localhost",
+		ServerName:    host,
+		Server:        host,
+		Port:          port,
+		ServerTimeout: 1,
+	}
+}
+
+// discardUntilClosed reads from conn without ever answering, until the client hangs up.
+func discardUntilClosed(conn net.Conn) {
+	_, _ = io.Copy(io.Discard, conn)
+}
+
+func TestConnectionTimeouts(t *testing.T) {
+	t.Run("server never greets", func(t *testing.T) {
+		cfg := fakeSMTPServer(t, discardUntilClosed)
+
+		start := time.Now()
+		err := TestConnection(context.Background(), cfg)
+		require.ErrorIs(t, err, context.DeadlineExceeded)
+		assert.Less(t, time.Since(start), 5*time.Second)
+	})
+
+	t.Run("server stalls after the greeting", func(t *testing.T) {
+		cfg := fakeSMTPServer(t, func(conn net.Conn) {
+			_, _ = conn.Write([]byte("220 localhost ESMTP\r\n"))
+			discardUntilClosed(conn)
+		})
+
+		start := time.Now()
+		err := TestConnection(context.Background(), cfg)
+		require.ErrorIs(t, err, context.DeadlineExceeded, "ServerTimeout should bound Hello, not just the greeting")
+		assert.ErrorContains(t, err, "unable to send hello message")
+		assert.Less(t, time.Since(start), 5*time.Second)
+	})
+
+	t.Run("caller cancels", func(t *testing.T) {
+		cfg := fakeSMTPServer(t, func(conn net.Conn) {
+			_, _ = conn.Write([]byte("220 localhost ESMTP\r\n"))
+			discardUntilClosed(conn)
+		})
+		cfg.ServerTimeout = 60
+
+		ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+		defer cancel()
+
+		start := time.Now()
+		err := TestConnection(ctx, cfg)
+		require.ErrorIs(t, err, context.DeadlineExceeded)
+		assert.Less(t, time.Since(start), 5*time.Second)
+	})
+
+	t.Run("successful handshake", func(t *testing.T) {
+		cfg := fakeSMTPServer(t, func(conn net.Conn) {
+			r := textproto.NewConn(conn)
+			_ = r.PrintfLine("220 localhost ESMTP")
+			for {
+				line, err := r.ReadLine()
+				if err != nil {
+					return
+				}
+				switch {
+				case strings.HasPrefix(line, "EHLO"):
+					_ = r.PrintfLine("250 localhost")
+				case strings.HasPrefix(line, "QUIT"):
+					_ = r.PrintfLine("221 bye")
+					return
+				default:
+					_ = r.PrintfLine("502 not implemented")
+				}
+			}
+		})
+
+		require.NoError(t, TestConnection(context.Background(), cfg))
+	})
+}
+
+func TestNewSMTPClientAdvancedCallerCancels(t *testing.T) {
+	cfg := fakeSMTPServer(t, discardUntilClosed)
+
+	conn, err := connectToSMTPServer(context.Background(), cfg)
+	require.NoError(t, err)
+	defer conn.Close()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	// A cancelled caller context used to be mistaken for a successful greeting and return a nil client.
+	c, err := NewSMTPClientAdvanced(ctx, conn, cfg)
+	require.ErrorIs(t, err, context.Canceled)
+	assert.Nil(t, c)
+}
