@@ -1,14 +1,14 @@
 services:
   mattermost:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: mattermost-team-edition:latest
+    #build:
+    #  context: .
+    #  dockerfile: Dockerfile
+    image: ${MATTERMOST_IMAGE}
     container_name: mattermost-app
     restart: unless-stopped
-    depends_on:
-      postgres:
-        condition: service_healthy
+    #depends_on:
+    #  postgres:
+    #    condition: service_healthy
     ports:
       - "8065:8065"
     environment:
