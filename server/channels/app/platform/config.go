@@ -119,6 +119,12 @@ func (ps *PlatformService) SaveConfig(newCfg *model.Config, sendConfigChangeClus
 		}
 	}
 
+	// Applied to every save. A TLS syslog or tcp certificate must be a base64-encoded PEM
+	// certificate unless that same string is already stored on the target with TLS on.
+	if err := config.ValidateAdvancedLoggingCerts(newCfg, ps.Config()); err != nil {
+		return nil, nil, model.NewAppError("saveConfig", "app.save_config.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	oldCfg, newCfg, err := ps.configStore.Set(newCfg)
 	if errors.Is(err, config.ErrReadOnlyConfiguration) {
 		return nil, nil, model.NewAppError("saveConfig", "ent.cluster.save_config.error", nil, "", http.StatusForbidden).Wrap(err)
