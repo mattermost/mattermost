@@ -171,6 +171,21 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 		rErr = multierror.Append(rErr, failure)
 		sectionErrors[section] = multierror.Append(sectionErrors[section], failure)
 	}
+	// recordProbe records a probe's outcome. A probe that did not complete fails its section and keeps
+	// an empty status, so readers treat it as unknown rather than failed.
+	recordProbe := func(section model.NodeSection, wait func() (probeOutcome, error), status, errMsg *string) {
+		if wait == nil {
+			*status = model.StatusDisabled
+			return
+		}
+		outcome, probeErr := wait()
+		if probeErr != nil {
+			fail(section, probeErr)
+			*errMsg = probeErr.Error()
+			return
+		}
+		*status, *errMsg = outcome.Status, outcome.Error
+	}
 
 	// Start the network probes first so that they overlap with the local collection below.
 	probes := ps.startNetworkProbes(rctx)
@@ -275,12 +290,7 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 	}
 
 	/* File store */
-	if outcome, probeErr := probes.fileStore(); probeErr != nil {
-		fail(model.SectionFilestoreConn, probeErr)
-		d.FileStore.Error = probeErr.Error()
-	} else {
-		d.FileStore.Status, d.FileStore.Error = outcome.Status, outcome.Error
-	}
+	recordProbe(model.SectionFilestoreConn, probes.fileStore, &d.FileStore.Status, &d.FileStore.Error)
 	d.FileStore.Driver = ps.FileBackend().DriverName()
 	if d.FileStore.Driver == model.ImageDriverLocal {
 		dir := model.SafeDereference(ps.Config().FileSettings.Directory)
@@ -351,53 +361,26 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 		d.ElasticSearch.ServerVersion = se.GetFullVersion()
 		d.ElasticSearch.ServerPlugins = se.GetPlugins()
 	}
-	if probes.search == nil {
-		d.ElasticSearch.Status = model.StatusDisabled
-	} else if outcome, probeErr := probes.search(); probeErr != nil {
-		fail(model.SectionSearchProbe, probeErr)
-		d.ElasticSearch.Error = probeErr.Error()
-	} else {
-		d.ElasticSearch.Status, d.ElasticSearch.Error = outcome.Status, outcome.Error
-	}
+	recordProbe(model.SectionSearchProbe, probes.search, &d.ElasticSearch.Status, &d.ElasticSearch.Error)
 
 	/* Email Notifications */
-	if probes.smtp == nil {
-		d.Notifications.Email.Status = model.StatusDisabled
-	} else if outcome, probeErr := probes.smtp(); probeErr != nil {
-		fail(model.SectionSMTPProbe, probeErr)
-		d.Notifications.Email.Error = probeErr.Error()
-	} else {
-		d.Notifications.Email.Status, d.Notifications.Email.Error = outcome.Status, outcome.Error
-	}
+	recordProbe(model.SectionSMTPProbe, probes.smtp, &d.Notifications.Email.Status, &d.Notifications.Email.Error)
 
 	/* OAuth2 / OpenID Connect Providers */
 	for _, provider := range []struct {
-		name   string
 		status *model.OAuthProviderStatus
-		wait   func() (model.OAuthProviderStatus, error)
+		wait   func() (probeOutcome, error)
 	}{
-		{"gitlab", &d.OAuthProviders.GitLab, probes.gitLab},
-		{"google", &d.OAuthProviders.Google, probes.google},
-		{"office365", &d.OAuthProviders.Office365, probes.office365},
-		{"openid", &d.OAuthProviders.OpenID, probes.openID},
+		{&d.OAuthProviders.GitLab, probes.gitLab},
+		{&d.OAuthProviders.Google, probes.google},
+		{&d.OAuthProviders.Office365, probes.office365},
+		{&d.OAuthProviders.OpenID, probes.openID},
 	} {
-		status, probeErr := provider.wait()
-		if probeErr != nil {
-			fail(model.SectionOAuthProbes, errors.Wrap(probeErr, provider.name))
-			status.Error = probeErr.Error()
-		}
-		*provider.status = status
+		recordProbe(model.SectionOAuthProbes, provider.wait, &provider.status.Status, &provider.status.Error)
 	}
 
 	/* Push Notifications */
-	if probes.push == nil {
-		d.Notifications.Push.Status = model.StatusDisabled
-	} else if outcome, probeErr := probes.push(); probeErr != nil {
-		fail(model.SectionPushProbe, probeErr)
-		d.Notifications.Push.Error = probeErr.Error()
-	} else {
-		d.Notifications.Push.Status, d.Notifications.Push.Error = outcome.Status, outcome.Error
-	}
+	recordProbe(model.SectionPushProbe, probes.push, &d.Notifications.Push.Status, &d.Notifications.Push.Error)
 
 	return &model.NodeDiagnostics{Diagnostics: &d, Errors: sectionErrors}, rErr.ErrorOrNil()
 }
@@ -429,10 +412,10 @@ type networkProbes struct {
 	ldap      func() (ldapProbeOutcome, error)
 	search    func() (probeOutcome, error)
 	smtp      func() (probeOutcome, error)
-	gitLab    func() (model.OAuthProviderStatus, error)
-	google    func() (model.OAuthProviderStatus, error)
-	office365 func() (model.OAuthProviderStatus, error)
-	openID    func() (model.OAuthProviderStatus, error)
+	gitLab    func() (probeOutcome, error)
+	google    func() (probeOutcome, error)
+	office365 func() (probeOutcome, error)
+	openID    func() (probeOutcome, error)
 	push      func() (probeOutcome, error)
 }
 
@@ -450,16 +433,18 @@ func (ps *PlatformService) startNetworkProbes(rctx request.CTX) *networkProbes {
 
 	// Takes no context and, against a server that stops responding, may never return.
 	if ldap := ps.LdapDiagnostic(); ldap != nil && (model.SafeDereference(cfg.LdapSettings.Enable) || model.SafeDereference(cfg.LdapSettings.EnableSync)) {
+		// The probe may outlive this collection and is shared with later ones, so it keeps only the logger.
+		logger := rctx.Logger()
 		probes.ldap = startSharedProbe(ctx, &ps.sharedProbes, string(model.SectionLDAPProbe), func() ldapProbeOutcome {
-			result := ldapProbeOutcome{serverName: unknownDataPoint, serverVersion: unknownDataPoint}
-			if appErr := ldap.RunTest(rctx); appErr != nil {
+			probeRctx := request.EmptyContext(logger)
+			result := ldapProbeOutcome{probeOutcome: probeOutcomeOf(nil), serverName: unknownDataPoint, serverVersion: unknownDataPoint}
+			if appErr := ldap.RunTest(probeRctx); appErr != nil {
 				result.probeOutcome = probeOutcomeOf(appErr)
 				return result
 			}
-			result.probeOutcome = probeOutcomeOf(nil)
 
 			// Only if the LDAP test was successful, try to get the LDAP server info
-			serverName, serverVersion, err := ldap.GetVendorNameAndVendorVersion(rctx)
+			serverName, serverVersion, err := ldap.GetVendorNameAndVendorVersion(probeRctx)
 			result.vendorErr = err
 			if serverName != "" {
 				result.serverName = serverName
@@ -492,15 +477,22 @@ func (ps *PlatformService) startNetworkProbes(rctx request.CTX) *networkProbes {
 		})
 	}
 
-	oauthProbe := func(sso *model.SSOSettings) func() (model.OAuthProviderStatus, error) {
-		return startProbe(ctx, func(ctx context.Context) model.OAuthProviderStatus {
-			return probeOAuthProvider(ctx, sso)
+	oauthProbe := func(name string, sso *model.SSOSettings) func() (probeOutcome, error) {
+		if !model.SafeDereference(sso.Enable) {
+			return nil
+		}
+		wait := startProbe(ctx, func(ctx context.Context) probeOutcome {
+			return probeOutcome(probeOAuthProvider(ctx, sso))
 		})
+		return func() (probeOutcome, error) {
+			outcome, err := wait()
+			return outcome, errors.Wrap(err, name)
+		}
 	}
-	probes.gitLab = oauthProbe(&cfg.GitLabSettings)
-	probes.google = oauthProbe(&cfg.GoogleSettings)
-	probes.office365 = oauthProbe(cfg.Office365Settings.SSOSettings())
-	probes.openID = oauthProbe(&cfg.OpenIdSettings)
+	probes.gitLab = oauthProbe("gitlab", &cfg.GitLabSettings)
+	probes.google = oauthProbe("google", &cfg.GoogleSettings)
+	probes.office365 = oauthProbe("office365", cfg.Office365Settings.SSOSettings())
+	probes.openID = oauthProbe("openid", &cfg.OpenIdSettings)
 
 	if model.SafeDereference(cfg.EmailSettings.SendPushNotifications) {
 		pushServerURL := model.SafeDereference(cfg.EmailSettings.PushNotificationServer)
@@ -541,7 +533,7 @@ type probeResult[T any] struct {
 // gives up when ctx ends and returns why; fn is then abandoned and must stop on its own.
 func startProbe[T any](ctx context.Context, fn func(context.Context) T) func() (T, error) {
 	if ctx.Err() != nil {
-		return abandonedProbe[T](ctx)
+		return func() (T, error) { var zero T; return zero, probeNotCompleted(ctx) }
 	}
 
 	// Buffered so an abandoned probe can still deliver its result and exit.
@@ -554,7 +546,7 @@ func startProbe[T any](ctx context.Context, fn func(context.Context) T) func() (
 	return func() (T, error) {
 		result, ok := awaitProbe(ctx, done)
 		if !ok {
-			return abandonedProbe[T](ctx)()
+			return result.value, probeNotCompleted(ctx)
 		}
 		return result.value, result.err
 	}
@@ -565,7 +557,7 @@ func startProbe[T any](ctx context.Context, fn func(context.Context) T) func() (
 // abandoned probe rather than one per collection.
 func startSharedProbe[T any](ctx context.Context, group *singleflight.Group, key string, fn func() T) func() (T, error) {
 	if ctx.Err() != nil {
-		return abandonedProbe[T](ctx)
+		return func() (T, error) { var zero T; return zero, probeNotCompleted(ctx) }
 	}
 
 	done := group.DoChan(key, func() (any, error) {
@@ -576,7 +568,7 @@ func startSharedProbe[T any](ctx context.Context, group *singleflight.Group, key
 	return func() (T, error) {
 		result, ok := awaitProbe(ctx, done)
 		if !ok {
-			return abandonedProbe[T](ctx)()
+			result.Err = probeNotCompleted(ctx)
 		}
 		if result.Err != nil {
 			var zero T
@@ -613,11 +605,8 @@ func awaitProbe[R any](ctx context.Context, done <-chan R) (R, bool) {
 	}
 }
 
-func abandonedProbe[T any](ctx context.Context) func() (T, error) {
-	return func() (T, error) {
-		var zero T
-		return zero, errors.Wrap(context.Cause(ctx), "probe did not complete")
-	}
+func probeNotCompleted(ctx context.Context) error {
+	return errors.Wrap(context.Cause(ctx), "probe did not complete")
 }
 
 func (ps *PlatformService) applyStoreDiagnostics(rctx request.CTX, diagnostics *model.SupportPacketDiagnostics) error {
@@ -665,11 +654,8 @@ func (ps *PlatformService) applyStoreDiagnostics(rctx request.CTX, diagnostics *
 // that URL and verifies the response is a valid OIDC discovery document.
 // Otherwise it probes the TokenEndpoint host: any HTTP response (including
 // 4xx/5xx) is treated as reachable, since token endpoints typically reject GETs.
+// Callers only probe enabled providers.
 func probeOAuthProvider(ctx context.Context, sso *model.SSOSettings) model.OAuthProviderStatus {
-	if !model.SafeDereference(sso.Enable) {
-		return model.OAuthProviderStatus{Status: model.StatusDisabled}
-	}
-
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
