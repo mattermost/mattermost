@@ -3,12 +3,8 @@
 
 // The top-level AdminHeader's own base rule (.admin-console__header) already
 // sets Metropolis/600/22px for its own h1 and 12px 20px padding -- overridden
-// here to 18px 20px per the design spec. The Card's own header ("Definition")
-// has no equivalent base rule, so it's styled explicitly below via
-// .AttributeDetails__blockTitle with the smaller "block title" tokens
-// (font-size-200=16px/line-height-200=24px), distinct from the page-level h1's
-// larger title style. Rendered as a plain div, not a heading element, since it
-// sits under the page's own h1 with nothing at h2/h3 in between.
+// here to 18px 20px per the design spec. Definition / Applies to panel titles
+// come from Compass AdminPanel header chrome.
 // This is also the first `withBackButton` page whose header carries a second
 // subtitle line (see GlobalAttributes__root's header for the sibling fix):
 // the shared `.admin-console__header` rule fixes `height: 64px; flex: 0 0
@@ -98,15 +94,6 @@
 .AttributeDetails__typeLockWrap {
     display: inline-flex;
     max-width: 100%;
-}
-
-.AttributeDetails__blockTitle {
-    margin: 0;
-    color: var(--center-channel-color);
-    font-family: Metropolis, sans-serif;
-    font-size: 16px;
-    font-weight: 600;
-    line-height: 24px;
 }
 
 .AttributeDetails__row {

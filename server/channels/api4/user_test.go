@@ -5748,9 +5748,10 @@ func TestLoginCookies(t *testing.T) {
 		th.App.Srv().SetCWSTokenOverride(token)
 		t.Cleanup(func() { th.App.Srv().SetCWSTokenOverride("") })
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+		user := th.CreateUser(t)
 
 		form := url.Values{}
-		form.Add("login_id", th.SystemAdminUser.Email)
+		form.Add("login_id", user.Email)
 		form.Add("cws_token", token)
 
 		th.Client.HTTPClient.CheckRedirect = func(req *http.Request, via []*http.Request) error {
