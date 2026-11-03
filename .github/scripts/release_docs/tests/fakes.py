@@ -25,6 +25,7 @@ class FakeGitHub:
         self.repos = {}
         self.pulls = {}
         self.releases = {}
+        self.release_list = {}  # repo -> releases, newest first
         self.latest = {}
         self.search_results = {}
         self.tags = {}  # repo -> tag names
@@ -131,6 +132,9 @@ class FakeGitHub:
 
     def release_by_tag(self, repo, tag):
         return self.releases.get((repo, tag))
+
+    def recent_releases(self, repo, count=30):
+        return self.release_list.get(repo, [])[:count]
 
     def latest_release(self, repo):
         tag = self.latest.get(repo)

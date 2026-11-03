@@ -268,40 +268,17 @@ class ReleaseDocsTest(unittest.TestCase):
         self.assertEqual(again.files, {})
 
 
-SERVER_RELEASES_TABLE = """| **Release** | **Released on** | **Support ends** |
-|:---|:---|:---|
-| v11.7 [Download](x) \\| [Changelog](y) | 2026-05-15 | 2027-05-15 [EXTENDED](./release-policy#release-types) |
-| v10.11 [Download](x) \\| [Changelog](y) | 2025-08-15 | 2026-08-15 [EXTENDED](./release-policy#release-types) |
-"""
-
-
 class PostsTest(unittest.TestCase):
-    def setUp(self):
-        from release_docs import calendar
-        self.events = calendar.parse_ics(fixture("release-dates.ics"))
-
-    def test_all_three_posts(self):
-        result = posts.build(Version.parse("v12.1.0"), ESR, self.events, HIGHLIGHTS, "https://blog", SERVER_RELEASES_TABLE)
+    def test_announcement_post(self):
+        result = posts.build(Version.parse("v12.1.0"), ESR, HIGHLIGHTS, "https://blog")
         self.assertEqual(result.todos, [])
-        self.assertIn("**Mattermost v12.2**\n- Release Branch Cut: Mon, Oct 19, 2026", result.text)
-        self.assertIn("- Code Freeze: Wed, Oct 28, 2026 at 09:00 America/Toronto", result.text)
-        self.assertIn("**Mattermost v12.3**", result.text)
         self.assertIn("- [Shared Drafts](https://docs.mattermost.com/drafts)\n- Audit Exports", result.text)
-        self.assertIn("Mattermost v10.11 ESR support ends August 15, 2026", result.text)
-        self.assertIn("send on 2026-05-15, three months before", result.text)
-        self.assertIn("supported until May 15, 2027", result.text)
+        self.assertIn("- Blog post: https://blog", result.text)
 
-    def test_missing_calendar_and_highlights_are_todos(self):
-        result = posts.build(Version.parse("v12.1.0"), ESR, None, [], "https://blog", SERVER_RELEASES_TABLE)
-        self.assertEqual(len(result.todos), 2)
+    def test_missing_highlights_are_a_todo(self):
+        result = posts.build(Version.parse("v12.1.0"), ESR, [], "https://blog")
+        self.assertEqual(result.todos, ["no highlights for the Announcements post"])
         self.assertIn(TODO_MARKER, result.text)
-
-    def test_esr_comms_for_a_new_esr_uses_its_release_day(self):
-        result = posts.Result("posts", "v12.4.0")
-        text = posts.esr_comms(Version.parse("v12.4.0"), ESR, SERVER_RELEASES_TABLE, date(2027, 2, 16), result)
-        self.assertIn("Mattermost v11.7 ESR support ends May 15, 2027", text)
-        self.assertIn("send on 2027-02-15", text)
-        self.assertIn("v12.4 is the current Extended Support Release, supported until February 15, 2028", text)
 
 
 PR_ITEM = {"repository_url": "https://api.github.com/repos/mattermost/mattermost", "number": 7, "title": "Remove X",

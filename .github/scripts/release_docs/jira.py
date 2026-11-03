@@ -37,11 +37,40 @@ class Jira:
             if not next_token or page.get("isLast", True):
                 return found
 
+    def create_issue(self, summary: str, description: str, labels: list[str], issue_type: str = "Task",
+                     project: str = PROJECT) -> str:
+        """A new ticket, with a plain-text description; returns its key."""
+        paragraphs = [{"type": "paragraph", "content": [{"type": "text", "text": line}]}
+                      for line in description.split("\n") if line.strip()]
+        created = self._request("/rest/api/3/issue", {"fields": {
+            "project": {"key": project}, "issuetype": {"name": issue_type}, "summary": summary, "labels": labels,
+            "description": {"type": "doc", "version": 1, "content": paragraphs}}})
+        return created["key"]
+
+    def find_by_summary(self, summary: str, label: str, project: str = PROJECT) -> str | None:
+        """The key of a ticket with exactly this summary and label, if one exists."""
+        for issue in self.search(f'project = {project} AND labels = "{label}" ORDER BY created DESC', ["summary"]):
+            if issue["fields"].get("summary") == summary:
+                return issue["key"]
+        return None
+
+    def confluence_page(self, page_id: str) -> str:
+        """A Confluence page's storage-format body, on the same site and with the same account."""
+        page = self._request(f"/wiki/api/v2/pages/{urllib.parse.quote(page_id)}?body-format=storage") or {}
+        return ((page.get("body") or {}).get("storage") or {}).get("value") or ""
+
     def browse_url(self, key: str) -> str:
         return f"{self.base_url}/browse/{key}"
 
     def filter_url(self, jql: str) -> str:
         return f"{self.base_url}/issues/?" + urllib.parse.urlencode({"jql": jql})
+
+
+def from_env(env: dict):
+    """A client from RELEASE_AGENT_JIRA_EMAIL / RELEASE_AGENT_JIRA_TOKEN, or None."""
+    if not (env.get("JIRA_EMAIL") and env.get("JIRA_TOKEN")):
+        return None
+    return Jira(env.get("JIRA_URL") or DEFAULT_URL, env["JIRA_EMAIL"], env["JIRA_TOKEN"])
 
 
 def epics(base_url: str, email: str, token: str, fix_version: str, opener=urllib.request.urlopen) -> list[dict]:

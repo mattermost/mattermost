@@ -16,30 +16,43 @@ from datetime import date, datetime, timezone
 from changelog_release import changelog_path, parse_ls_remote, unreleased_branches
 
 from . import (
+    announcement,
     breaking,
     calendar,
     changelog,
     docker_env,
     dot_release,
     drafts,
+    esr,
+    feature_review,
+    gcal,
     github_release,
     http,
     jira,
+    key_dates,
+    marketing,
     notice,
     posts,
     publish,
     release_docs_pr,
+    schedule,
     version_archive,
 )
+from . import hub as hublib
 from . import highlights as highlights_slide
 from .claude import Claude
 from .github import GitHub
 from .result import TODO_MARKER, Result
-from .versions import Version
+from .versions import Version, add_months, changelog_url, long_date
 
 MODES = ("dry_run", "live")
 PR_TASKS = ("version-archive", "docker-env", "upgrade-notice", "release-docs")
-TASKS = PR_TASKS + (dot_release.TASK, "github-release", "posts", "breaking-changes", "drafts", highlights_slide.TASK)
+# Hub and calendar tasks: they post to Hub or write to Google Calendar (and, for ESR comms,
+# open a docs PR and Jira tickets). On a schedule each works out for itself whether today is
+# its day, so the resolve step only says "scheduled".
+HUB_TASKS = (announcement.TASK, key_dates.TASK, marketing.TASK, esr.TASK, feature_review.TASK)
+TASKS = PR_TASKS + (dot_release.TASK, "github-release", "posts", "breaking-changes", "drafts", highlights_slide.TASK) + HUB_TASKS
+SCHEDULED = "scheduled"
 SERVER_REPO = "mattermost/mattermost"
 FINAL_TAG = re.compile(r"v\d+\.\d+\.\d+")
 DOT_RELEASE_HANDLED = "handled by the dot release docs PR"
@@ -80,6 +93,8 @@ def resolve(task: str, env: dict, event: dict, gh=None) -> dict:
     name = env.get("EVENT_NAME", "")
     if name == "workflow_dispatch":
         raw = (env.get("INPUT_VERSION") or "").strip()
+        if task in HUB_TASKS and not raw:
+            return {"run": "true", "version": SCHEDULED, "mode": mode, "reason": "dispatched without a version: today's work"}
         if task == "breaking-changes":
             if not raw:
                 raise ValueError("the milestone input is required")
@@ -100,6 +115,8 @@ def resolve(task: str, env: dict, event: dict, gh=None) -> dict:
         if task == dot_release.TASK and not dot:
             return {"run": "false", "reason": f"{tag} is a feature release: the version archive task handles it"}
         return {"run": "true", "version": tag, "mode": mode, "reason": f"release {event.get('action')}"}
+    if name == "schedule" and task in HUB_TASKS:
+        return {"run": "true", "version": SCHEDULED, "mode": mode, "reason": "weekday run: the task checks whether it's due"}
     if name == "schedule" and task == release_docs_pr.TASK:
         # A weekday backstop for the vX.Y.0-rc1 tag event: the task updates the PR it already
         # opened, so a run after the tag event changes nothing.
@@ -289,6 +306,9 @@ def run_task(task: str, raw_version: str, env: dict, gh, read_gh, claude, fetch=
         result.notes = result_notes + result.notes + jira_problems
         return Run(result, outcome, base_files=base_files)
 
+    if task in HUB_TASKS:
+        return run_hub_task(task, raw_version, env, gh, read_gh, claude, fetch)
+
     version = Version.parse(raw_version)
     released_event = env.get("EVENT_NAME") == "release"
 
@@ -368,13 +388,9 @@ def run_task(task: str, raw_version: str, env: dict, gh, read_gh, claude, fetch=
         return Run(built, f"Set the {version.tag} release description.", highlights)
 
     if task == "posts":
-        events, problem = load_events(env, fetch)
         result = Result(task, version.tag)
         highlights, entry = highlights_for(gh, version, claude, result)
-        server_releases = gh.file(SERVER_REPO, release_docs_pr.SERVER_RELEASES, gh.default_branch(SERVER_REPO)) or ""
-        built = posts.build(version, esr, events, highlights, changelog.blog_url(entry or "", version), server_releases)
-        if problem:
-            built.notes.append(problem)
+        built = posts.build(version, esr, highlights, changelog.blog_url(entry or "", version))
         built.todos, built.notes = result.todos + built.todos, result.notes + built.notes
         return Run(built, "Nothing posted: text for copy and paste.", highlights)
 
@@ -394,26 +410,309 @@ def run_task(task: str, raw_version: str, env: dict, gh, read_gh, claude, fetch=
         return Run(result, "Nothing written to the deck: paste the slide from the release-highlights artifact.")
 
     if task == "drafts":
-        problems = []
-        entry, _ = changelog_entry(gh, version)
-        if not entry:
-            problems.append(f"no {version.short} entry in the changelog on master or in an open changelog PR")
-        repos = [r.strip() for r in env.get("REPOS", SERVER_REPO).split(",") if r.strip()]
-        prs = drafts.milestone_prs(read_gh, repos, env.get("MILESTONE") or Version(version.major, version.minor, 0).tag)
-        epics = []
-        if not (env.get("JIRA_EMAIL") and env.get("JIRA_TOKEN")):
-            problems.append("RELEASE_AGENT_JIRA_EMAIL / RELEASE_AGENT_JIRA_TOKEN are not set, so Jira epics were not read")
-        else:
-            events, problem = load_events(env, fetch)
-            day = release_day_for(version, env, events, Result(task, version.tag))
-            fix_version = env.get("JIRA_FIX_VERSION") or (calendar.fix_version(version, day) if day else "")
-            if not fix_version:
-                problems.append(f"no Jira fix version for {version.short}: {problem or 'no Release Day on the calendar'}")
-            else:
-                epics = jira.epics(env.get("JIRA_URL") or jira.DEFAULT_URL, env["JIRA_EMAIL"], env["JIRA_TOKEN"], fix_version)
-        bullets = changelog.improvement_bullets(entry or "")
-        return Run(drafts.blog_and_email(version, bullets, prs, epics, claude, problems), "Nothing sent: drafts only.")
+        return Run(build_drafts(version, env, gh, read_gh, claude, fetch), "Nothing sent: drafts only.")
 
+    raise ValueError(f"unknown task {task!r}")
+
+
+# ── Drafts, and the Hub and calendar tasks ─────────────────────────────────────────
+
+SEVERITY = re.compile(r"contains (?:an? )?(.+?) severity level security fix", re.IGNORECASE)
+PATCH_REPOS = (
+    ("mattermost/mattermost-mobile", "Mobile", "https://docs.mattermost.com/product-overview/mobile-app-changelog.html"),
+    ("mattermost/desktop", "Desktop App", "https://docs.mattermost.com/product-overview/desktop-app-changelog.html"),
+)
+
+
+def now_utc(env: dict) -> datetime:
+    raw = (env.get("NOW") or "").strip()
+    return datetime.fromisoformat(raw) if raw else datetime.now(timezone.utc)
+
+
+def releases_between(gh, repo: str, since: date, until: date, problems: list) -> list[Version]:
+    """Dot releases published on GitHub after ``since`` and up to ``until``, newest first."""
+    try:
+        releases = gh.recent_releases(repo, 50)
+    except Exception as err:  # noqa: BLE001 - reported; the email says what's missing
+        problems.append(f"{repo} releases could not be read ({type(err).__name__})")
+        return []
+    found = set()
+    for release in releases:
+        tag, published = release.get("tag_name", ""), (release.get("published_at") or release.get("created_at") or "")[:10]
+        if release.get("draft") or not FINAL_TAG.fullmatch(tag) or not published:
+            continue
+        version = Version.parse(tag)
+        if version.is_dot and since < date.fromisoformat(published) <= until:
+            found.add(version)
+    return sorted(found, reverse=True)
+
+
+def severity_of(gh, version: Version) -> str | None:
+    """The severity a dot release's published changelog entry gives, e.g. "Low to Medium"."""
+    content = gh.file(SERVER_REPO, changelog_path(version.tag), gh.default_branch(SERVER_REPO)) or ""
+    match = SEVERITY.search(changelog.entry(content, version) or "")
+    return match.group(1).strip() if match else None
+
+
+def esr_section_for(day: date, env: dict, gh, problems: list):
+    """(ESR, "before"/"ended", desktop ESR map) when ``day``'s month has ESR comms, else None."""
+    server_releases = gh.file(SERVER_REPO, release_docs_pr.SERVER_RELEASES, gh.default_branch(SERVER_REPO)) or ""
+    found = esr.for_month((day.year, day.month), esr.esrs(env.get("ESR_VERSIONS", ""), server_releases))
+    if not found:
+        return None
+    holder = Result(esr.TASK, "")
+    desktop = esr.desktop_versions(env.get("DESKTOP_ESR_VERSIONS", ""), holder)
+    problems += holder.todos
+    return found[0], found[1], desktop
+
+
+def email_facts(version: Version, env: dict, gh, read_gh, claude, entry: str, day: date | None, prs: list,
+                problems: list) -> drafts.EmailFacts:
+    facts = drafts.EmailFacts(release_day=day, blog_url=changelog.blog_url(entry, version) if entry else "",
+                              plugins=drafts.plugins_in(entry))
+    if day is None:
+        problems.append("no Release Day, so the security and patch releases and the ESR section were not looked up")
+    else:
+        since = add_months(day, -1)
+        facts.security = [(dot, severity_of(gh, dot)) for dot in releases_between(read_gh, SERVER_REPO, since, day, problems)]
+        for repo, label, url in PATCH_REPOS:
+            facts.patches += [(f"{label} {v.tag}", url) for v in releases_between(read_gh, repo, since, day, problems)]
+        found = esr_section_for(day, env, gh, problems)
+        if found:
+            holder = Result(esr.TASK, "")
+            facts.esr_blog = esr.section(*found, holder)
+            facts.esr_email = esr.section(*found, holder, email=True)
+            problems += holder.todos
+    try:
+        chosen = breaking.parse_confirmed(env.get("CONFIRMED", ""))
+    except ValueError as err:
+        problems.append(str(err))
+        chosen = None
+    if chosen:
+        by_id = {p["id"]: p for p in prs}
+        picked = [by_id[i] for i in chosen if i in by_id]
+        problems += [f"{i} is not a merged PR in the milestone" for i in chosen if i not in by_id]
+        holder = Result(drafts.BREAKING_TASK, "")
+        notices = drafts.draft_notices(picked, claude, holder)
+        facts.breaking = [notices.get(p["id"]) or holder.todo(f"no notice drafted for {p['id']}") for p in picked]
+        problems += holder.todos
+    return facts
+
+
+def build_drafts(version: Version, env: dict, gh, read_gh, claude, fetch) -> Result:
+    problems = []
+    entry, _ = changelog_entry(gh, version)
+    if not entry:
+        problems.append(f"no {version.short} entry in the changelog on master or in an open changelog PR")
+    repos = [r.strip() for r in env.get("REPOS", SERVER_REPO).split(",") if r.strip()]
+    prs = drafts.milestone_prs(read_gh, repos, env.get("MILESTONE") or Version(version.major, version.minor, 0).tag)
+    events, problem = load_events(env, fetch)
+    holder = Result(drafts.DRAFTS_TASK, version.tag)
+    day = release_day_for(version, env, events, holder)
+    epics = []
+    if not (env.get("JIRA_EMAIL") and env.get("JIRA_TOKEN")):
+        problems.append("RELEASE_AGENT_JIRA_EMAIL / RELEASE_AGENT_JIRA_TOKEN are not set, so Jira epics were not read")
+    else:
+        fix_version = env.get("JIRA_FIX_VERSION") or (calendar.fix_version(version, day) if day else "")
+        if not fix_version:
+            problems.append(f"no Jira fix version for {version.short}: {problem or 'no Release Day on the calendar'}")
+        else:
+            epics = jira.epics(env.get("JIRA_URL") or jira.DEFAULT_URL, env["JIRA_EMAIL"], env["JIRA_TOKEN"], fix_version)
+    facts = email_facts(version, env, gh, read_gh, claude, entry or "", day, prs, problems)
+    result = drafts.blog_and_email(version, changelog.improvement_bullets(entry or ""), prs, epics, claude, problems,
+                                   facts, env.get("ESR_VERSIONS", ""))
+    result.notes = holder.notes + result.notes
+    return result
+
+
+def load_holidays(env: dict, client) -> tuple[schedule.Holidays | None, str | None]:
+    """Holidays from the Release Processes Overview page, read with the Jira account."""
+    if client is None:
+        return None, "RELEASE_AGENT_JIRA_EMAIL / RELEASE_AGENT_JIRA_TOKEN are not set, so the holidays page can't be read"
+    try:
+        page = client.confluence_page(env.get("HOLIDAYS_PAGE_ID") or schedule.HOLIDAYS_PAGE_ID)
+    except Exception as err:  # noqa: BLE001 - only the error type is public
+        return None, f"the holidays page could not be read ({type(err).__name__})"
+    holidays = schedule.parse_holidays(page)
+    return (holidays, None) if holidays.years else (None, "the holidays page has no holiday lists")
+
+
+def due_release(task: str, events: list, today: date, holidays) -> tuple[Version | None, date | None]:
+    """The release a scheduled run acts on today, and its Release Day, from the calendar."""
+    for line, found in sorted(calendar.milestones(events or []).items()):
+        if "release_day" not in found:
+            continue
+        version, day = Version(*line), found["release_day"].start
+        if task == announcement.TASK and schedule.add_working_days(day, -1, holidays) <= today <= day:
+            return version, day
+        if task in (key_dates.TASK, marketing.TASK) and today == day:
+            return version, day
+        if task == feature_review.TASK and "feature_complete" in found and \
+                schedule.add_working_days(found["feature_complete"].start, 1, holidays) <= today < day:
+            return version, day
+    return None, None
+
+
+def report_in_hub(hub, channel_id: str, marker: str, message: str, live: bool) -> str:
+    if hub is None or not channel_id:
+        return "no Hub token or review channel, so nothing was reported in Hub"
+    if hublib.find_post(hub, channel_id, marker):
+        return "already reported in Hub"
+    if not live:
+        return "dry run: would have reported in Hub"
+    hub.create_post(channel_id, message, {hublib.MARKER_PROP: marker})
+    return "reported in Hub"
+
+
+def run_esr_comms(raw: str, env: dict, gh, hub, jira_client, holidays, today: date, live: bool) -> Result:
+    result = Result(esr.TASK, raw)
+    server_releases = gh.file(SERVER_REPO, release_docs_pr.SERVER_RELEASES, gh.default_branch(SERVER_REPO)) or ""
+    all_esrs = esr.esrs(env.get("ESR_VERSIONS", ""), server_releases)
+    if raw != SCHEDULED:
+        line = Version.parse(raw)
+        stage = (env.get("ESR_STAGE") or esr.ENDED).strip()
+        jobs = [(e, stage) for e in all_esrs if e.old.line == line.line]
+        if not jobs:
+            result.todo(f"{line.short} is not a released ESR in CHANGELOG_ESR_VERSIONS and the server releases table")
+    elif holidays is None:
+        return result
+    else:
+        jobs = esr.due(today, all_esrs, lambda day: schedule.due_on(day, holidays))
+        if not jobs:
+            result.text = "Not due: no ESR goes out of support in three months or today."
+            return result
+    desktop = esr.desktop_versions(env.get("DESKTOP_ESR_VERSIONS", ""), result)
+    lines, hub_lines = [], []
+    for item, stage in jobs:
+        label = f"{item.old.short} ESR, {'end of support' if stage == esr.ENDED else 'three months before'} ({long_date(item.end)})"
+        target = publish.locate(gh, SERVER_REPO, f"{item.old.tag}-{stage}", esr.DOCS_TASK)
+        docs = esr.docs_result(item, stage, {p: gh.file(SERVER_REPO, p, target.ref) or "" for p in esr.DOCS_FILES}, desktop)
+        outcome = publish.apply(gh, docs, target, live) if docs.files else "no docs changes needed"
+        lines.append(f"- {label}: docs PR: {outcome}")
+        result.todos += [t for t in docs.todos if t not in result.todos]
+        result.notes += docs.notes
+        if jira_client is None:
+            result.todo("RELEASE_AGENT_JIRA_EMAIL / RELEASE_AGENT_JIRA_TOKEN are not set, so no Jira tickets were created")
+            continue
+        made, found = [], []
+        for summary, description in esr.tickets(item, stage):
+            key = jira_client.find_by_summary(summary, esr.JIRA_LABEL)
+            if key:
+                found.append((key, summary))
+            elif live:
+                made.append((jira_client.create_issue(summary, description, [esr.JIRA_LABEL]), summary))
+            else:
+                made.append(("", summary))
+        lines.append(f"- {label}: {len(made)} Jira ticket(s) {'created' if live else 'would be created'}, "
+                     f"{len(found)} already there (keys are posted in Hub only)")
+        hub_lines += [f"- {'Created' if live else 'Would create'} [{key}]({jira_client.browse_url(key)}): {summary}"
+                      if key else f"- Would create: {summary}" for key, summary in made]
+        hub_lines += [f"- Already there: [{key}]({jira_client.browse_url(key)}): {summary}" for key, summary in found]
+    if hub_lines:
+        message = "ESR comms: Jira tickets\n" + "\n".join(hub_lines)
+        marker = f"release-docs:esr-comms:{raw}:{today}"
+        lines.append(f"- Jira tickets: {report_in_hub(hub, env.get('REVIEW_CHANNEL_ID', ''), marker, message, live)}")
+    result.text = "\n".join(lines)
+    return result
+
+
+def run_hub_task(task: str, raw: str, env: dict, gh, read_gh, claude, fetch) -> Run:
+    live = env.get("MODE") == "live"
+    now = now_utc(env)
+    today = now.date()
+    hub = hublib.from_env(env)
+    jira_client = jira.from_env(env)
+    holidays, holidays_problem = (None, None)
+    if task != marketing.TASK:
+        holidays, holidays_problem = load_holidays(env, jira_client)
+    label = raw if raw != SCHEDULED else f"{today} (scheduled)"
+    try:
+        if task == esr.TASK:
+            result = run_esr_comms(raw, env, gh, hub, jira_client, holidays, today, live)
+            if holidays_problem and raw == SCHEDULED:
+                result.todo(holidays_problem)
+            return Run(result, "ESR comms." if result.text else "Nothing done.")
+
+        events, problem = load_events(env, fetch)
+        if raw != SCHEDULED:
+            version = Version.parse(raw)
+            day = release_day_for(version, env, events, Result(task, version.tag))
+        elif holidays is None and task != marketing.TASK:
+            result = Result(task, label)
+            result.todo(holidays_problem or "no holidays")
+            return Run(result, "Nothing done.")
+        else:
+            version, day = due_release(task, events, today, holidays)
+            if version is None:
+                note = f" ({problem})" if problem else ""
+                return Run(Result(task, label, skipped=f"nothing is due on {today}{note}"), f"Not due on {today}.")
+        if day is None and task != key_dates.TASK:
+            result = Result(task, version.tag)
+            result.todo(f"no Release Day for {version.short}: set the release_date input or the calendar URL")
+            return Run(result, "Nothing done.")
+        if hub is None and task in (announcement.TASK, marketing.TASK):
+            result = Result(task, version.tag)
+            result.todo("RELEASE_AGENT_MM_TOKEN is not set, so Hub can't be read or posted to")
+            return Run(result, "Nothing posted.")
+
+        if task == announcement.TASK:
+            if holidays is None:
+                result = Result(task, version.tag)
+                result.todo(holidays_problem or "no holidays")
+                return Run(result, "Nothing posted.")
+
+            def render():
+                holder = Result(posts.TASK, version.tag)
+                highlights, entry = highlights_for(gh, version, claude, holder)
+                text = posts.announcement(version, env.get("ESR_VERSIONS", ""), highlights,
+                                          changelog.blog_url(entry or "", version), holder)
+                return text, holder.todos
+
+            result = announcement.run(version, day, render, hub, env, live, now, holidays, raw != SCHEDULED)
+            return Run(result, "Announcements post.")
+
+        if task == key_dates.TASK:
+            if holidays is None:
+                result = Result(task, version.tag)
+                result.todo(f"{holidays_problem}: no key dates written")
+                return Run(result, "Nothing written.")
+            client, calendar_problem = gcal.from_env(env)
+            month = (day.year, day.month) if day else schedule.release_month(version)
+            result = key_dates.run(version, month, holidays, client, hub, env, live)
+            if calendar_problem and client is None:
+                result.notes.append(calendar_problem)
+            return Run(result, "Key dates on the Release Dates calendar.")
+
+        if task == marketing.TASK:
+            draft = build_drafts(version, env, gh, read_gh, claude, fetch)
+            holder = Result(task, version.tag)
+            highlights, _ = highlights_for(gh, version, claude, holder)
+            esr_esr = env.get("ESR_VERSIONS", "")
+            social = marketing.social_text(version, highlights, changelog_url(Version(version.major, version.minor, 0), esr_esr), holder)
+            problems = []
+            found = esr_section_for(day, env, gh, problems)
+            forum = esr.forum_post(*found, holder) if found else ""
+            result = marketing.run(version, long_date(day), draft.artifacts.get("email.md", ""), draft.todos + problems,
+                                   social, forum, hub, env, live)
+            result.todos = holder.todos + result.todos
+            return Run(result, "Marketing hand-off.")
+
+        if task == feature_review.TASK:
+            if jira_client is None:
+                result = Result(task, version.tag)
+                result.todo("RELEASE_AGENT_JIRA_EMAIL / RELEASE_AGENT_JIRA_TOKEN are not set, so Jira epics were not read")
+                return Run(result, "Nothing changed.")
+            fix_version = env.get("JIRA_FIX_VERSION") or calendar.fix_version(version, day)
+            epics = jira.epics(env.get("JIRA_URL") or jira.DEFAULT_URL, env["JIRA_EMAIL"], env["JIRA_TOKEN"], fix_version)
+            client, calendar_problem = gcal.from_env(env)
+            result = feature_review.run(version, epics, client, today, hub, live)
+            if calendar_problem and client is None:
+                result.notes.append(calendar_problem)
+            return Run(result, "Feature Ready Review description.")
+    except schedule.MissingHolidays as err:
+        result = Result(task, label)
+        result.todo(f"{err}: nothing done. Add the year's holidays to the Release Processes Overview page")
+        return Run(result, "Nothing done.")
     raise ValueError(f"unknown task {task!r}")
 
 
