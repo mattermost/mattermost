@@ -15262,11 +15262,6 @@
     "description": "Health dashboard finding detail when a cluster node did not return its diagnostics; 'findings' are the health dashboard's reported problems."
   },
   {
-    "id": "health.rule.node_not_responding.message.older_version",
-    "translation": "This node did not return its diagnostics and runs an older Mattermost version that may not support the health check, so it could not be checked. This is expected during a rolling upgrade.",
-    "description": "Health dashboard reason shown when a cluster node that runs an older version did not return its diagnostics; a 'rolling upgrade' upgrades the cluster's nodes one at a time."
-  },
-  {
     "id": "health.rule.node_not_responding.remediation",
     "translation": "Check that Mattermost is running on this node, review its logs and its CPU and memory use, and confirm it can reach the other nodes on the gossip port (ClusterSettings.GossipPort).",
     "description": "Health dashboard fix-it step for a cluster node that is not responding; 'ClusterSettings.GossipPort' is a config setting name and should not be translated, and 'gossip' is the protocol cluster nodes use to talk to each other."
