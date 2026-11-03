@@ -431,7 +431,7 @@ func (ps *PlatformService) startNetworkProbes(rctx request.CTX) *networkProbes {
 		return probeOutcomeOf(ps.FileBackend().TestConnection())
 	})
 
-	// Takes no context and, against a server that stops responding, may never return.
+	// Takes no context, so it can outlive the collection that started it.
 	if ldap := ps.LdapDiagnostic(); ldap != nil && (model.SafeDereference(cfg.LdapSettings.Enable) || model.SafeDereference(cfg.LdapSettings.EnableSync)) {
 		// The probe may outlive this collection and is shared with later ones, so it keeps only the logger.
 		logger := rctx.Logger()
