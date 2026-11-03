@@ -94,6 +94,43 @@ describe('components/integrations/bots/AddBot', () => {
         expect(descriptionInput.value).toBe(bot.description);
     });
 
+    it('fills in the username from the display name when creating a bot', () => {
+        const {container} = renderWithContext(
+            <AddBot
+                {...baseProps}
+                actions={actions}
+            />,
+        );
+
+        const displayNameInput = container.querySelector('#displayName') as HTMLInputElement;
+        const usernameInput = container.querySelector('#username') as HTMLInputElement;
+        fireEvent.change(displayNameInput, {target: {value: 'Café Build Bot'}});
+        expect(usernameInput).toHaveValue('cafe-build-bot');
+
+        fireEvent.change(usernameInput, {target: {value: 'builder'}});
+        fireEvent.change(displayNameInput, {target: {value: 'Café Build Bot 2'}});
+        expect(usernameInput).toHaveValue('builder');
+
+        // Clearing the username resumes following the display name
+        fireEvent.change(usernameInput, {target: {value: ''}});
+        fireEvent.change(displayNameInput, {target: {value: 'Café Build Bot 3'}});
+        expect(usernameInput).toHaveValue('cafe-build-bot-3');
+    });
+
+    it('does not change the username from the display name when editing a bot', () => {
+        const bot = TestHelper.getBotMock({username: 'existing'});
+        const {container} = renderWithContext(
+            <AddBot
+                {...baseProps}
+                bot={bot}
+                actions={actions}
+            />,
+        );
+
+        fireEvent.change(container.querySelector('#displayName') as HTMLInputElement, {target: {value: 'Renamed'}});
+        expect(container.querySelector('#username')).toHaveValue('existing');
+    });
+
     it('creates the default token without expiry when no maximum lifetime is configured', async () => {
         const bot = TestHelper.getBotMock({user_id: 'bot-user-id', username: 'testbot'});
         const createBot = jest.fn().mockResolvedValue({data: bot});
@@ -113,7 +150,9 @@ describe('components/integrations/bots/AddBot', () => {
         fireEvent.click(screen.getByText('Create Bot Account'));
 
         await waitFor(() => expect(createUserAccessToken).toHaveBeenCalledWith(bot.user_id, 'Default Token', undefined));
-        expect(getHistory().push).toHaveBeenCalledWith(`/${team.name}/integrations/confirm?type=bots&id=${bot.user_id}&token=default-secret`);
+        const redirectUrl = String((getHistory().push as jest.Mock).mock.calls[0][0]);
+        expect(redirectUrl).toBe(`/${team.name}/integrations/confirm?type=bots&id=${bot.user_id}`);
+        expect(redirectUrl).not.toMatch(/[?&]token=/);
     });
 
     it('creates the default token with clamped expiry when a maximum lifetime is configured', async () => {
@@ -145,7 +184,7 @@ describe('components/integrations/bots/AddBot', () => {
     describe('attributes', () => {
         const historyMock = getHistory();
         const LIST_URL = `/${team.name}/integrations/bots`;
-        const CONFIRM_URL = `/${team.name}/integrations/confirm?type=bots&id=bot-user-id&token=default-secret`;
+        const CONFIRM_URL = `/${team.name}/integrations/confirm?type=bots&id=bot-user-id`;
 
         const buildField = (overrides: Partial<UserPropertyField> = {}, attrs: Partial<UserPropertyField['attrs']> = {}): UserPropertyField => ({
             id: 'field-1',
@@ -263,7 +302,8 @@ describe('components/integrations/bots/AddBot', () => {
                 typeUsername();
                 submit('Create Bot Account');
 
-                await waitFor(() => expect(historyMock.push).toHaveBeenCalledWith(CONFIRM_URL));
+                await waitFor(() => expect(historyMock.push).toHaveBeenCalled());
+                expect(historyMock.push).toHaveBeenCalledWith(CONFIRM_URL);
                 expect(botActions.createBot).toHaveBeenCalled();
                 expect(botActions.updateUserCustomProfileAttributeValues).not.toHaveBeenCalled();
             });
@@ -551,7 +591,8 @@ describe('components/integrations/bots/AddBot', () => {
                 fireEvent.change(await screen.findByRole('textbox', {name: 'Department'}), {target: {value: 'Eng'}});
                 submit('Create Bot Account');
 
-                await waitFor(() => expect(historyMock.push).toHaveBeenCalledWith(CONFIRM_URL));
+                await waitFor(() => expect(historyMock.push).toHaveBeenCalled());
+                expect(historyMock.push).toHaveBeenCalledWith(CONFIRM_URL);
                 const createOrder = botActions.createBot.mock.invocationCallOrder[0];
                 const tokenOrder = botActions.createUserAccessToken.mock.invocationCallOrder[0];
                 const attributesOrder = botActions.updateUserCustomProfileAttributeValues.mock.invocationCallOrder[0];
@@ -569,7 +610,8 @@ describe('components/integrations/bots/AddBot', () => {
                 fireEvent.change(await screen.findByRole('textbox', {name: 'Department'}), {target: {value: 'Eng'}});
                 submit('Create Bot Account');
 
-                await waitFor(() => expect(historyMock.push).toHaveBeenCalledWith(`${CONFIRM_URL}&bot_warnings=attributes`));
+                await waitFor(() => expect(historyMock.push).toHaveBeenCalled());
+                expect(historyMock.push).toHaveBeenCalledWith(`${CONFIRM_URL}&bot_warnings=attributes`);
             });
 
             test('a token failure still saves attributes and lands on the list with both warnings', async () => {
@@ -603,7 +645,8 @@ describe('components/integrations/bots/AddBot', () => {
                 setRoleSelect(container, 'System Admin');
                 submit('Create Bot Account');
 
-                await waitFor(() => expect(historyMock.push).toHaveBeenCalledWith(`${CONFIRM_URL}&bot_warnings=roles`));
+                await waitFor(() => expect(historyMock.push).toHaveBeenCalled());
+                expect(historyMock.push).toHaveBeenCalledWith(`${CONFIRM_URL}&bot_warnings=roles`);
                 expect(botActions.updateUserRoles).toHaveBeenCalledTimes(1);
                 expect(botActions.updateUserRoles).toHaveBeenCalledWith('bot-user-id', 'system_user system_admin');
             });
@@ -654,7 +697,8 @@ describe('components/integrations/bots/AddBot', () => {
                 typeUsername();
                 submit('Create Bot Account');
 
-                await waitFor(() => expect(historyMock.push).toHaveBeenCalledWith(CONFIRM_URL));
+                await waitFor(() => expect(historyMock.push).toHaveBeenCalled());
+                expect(historyMock.push).toHaveBeenCalledWith(CONFIRM_URL);
                 expect(botActions.updateUserCustomProfileAttributeValues).not.toHaveBeenCalled();
             });
 

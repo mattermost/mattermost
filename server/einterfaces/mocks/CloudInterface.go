@@ -46,36 +46,6 @@ func (_m *CloudInterface) ApplyIPFilters(userID string, ranges *model.AllowedIPR
 	return r0, r1
 }
 
-// ChangeSubscription provides a mock function with given fields: userID, subscriptionID, subscriptionChange
-func (_m *CloudInterface) ChangeSubscription(userID string, subscriptionID string, subscriptionChange *model.SubscriptionChange) (*model.Subscription, error) {
-	ret := _m.Called(userID, subscriptionID, subscriptionChange)
-
-	if len(ret) == 0 {
-		panic("no return value specified for ChangeSubscription")
-	}
-
-	var r0 *model.Subscription
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string, *model.SubscriptionChange) (*model.Subscription, error)); ok {
-		return rf(userID, subscriptionID, subscriptionChange)
-	}
-	if rf, ok := ret.Get(0).(func(string, string, *model.SubscriptionChange) *model.Subscription); ok {
-		r0 = rf(userID, subscriptionID, subscriptionChange)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.Subscription)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(string, string, *model.SubscriptionChange) error); ok {
-		r1 = rf(userID, subscriptionID, subscriptionChange)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // CheckCWSConnection provides a mock function with given fields: userId
 func (_m *CloudInterface) CheckCWSConnection(userId string) error {
 	ret := _m.Called(userId)
@@ -322,36 +292,6 @@ func (_m *CloudInterface) GetInstallation(userID string) (*model.Installation, e
 	return r0, r1
 }
 
-// GetSelfHostedProducts provides a mock function with given fields: userID
-func (_m *CloudInterface) GetSelfHostedProducts(userID string) ([]*model.Product, error) {
-	ret := _m.Called(userID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetSelfHostedProducts")
-	}
-
-	var r0 []*model.Product
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string) ([]*model.Product, error)); ok {
-		return rf(userID)
-	}
-	if rf, ok := ret.Get(0).(func(string) []*model.Product); ok {
-		r0 = rf(userID)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.Product)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(userID)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // GetSubscription provides a mock function with given fields: userID
 func (_m *CloudInterface) GetSubscription(userID string) (*model.Subscription, error) {
 	ret := _m.Called(userID)
@@ -388,24 +328,6 @@ func (_m *CloudInterface) HandleLicenseChange() error {
 
 	if len(ret) == 0 {
 		panic("no return value specified for HandleLicenseChange")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func() error); ok {
-		r0 = rf()
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// InvalidateCaches provides a mock function with no fields
-func (_m *CloudInterface) InvalidateCaches() error {
-	ret := _m.Called()
-
-	if len(ret) == 0 {
-		panic("no return value specified for InvalidateCaches")
 	}
 
 	var r0 error

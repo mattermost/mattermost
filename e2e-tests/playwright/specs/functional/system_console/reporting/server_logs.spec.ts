@@ -5,6 +5,16 @@ import type {Client4} from '@mattermost/client';
 
 import {expect, test} from '@mattermost/playwright-lib';
 
+// The layout of the logs query's date_from and date_to, which the server parses
+const FILTER_DATE_LAYOUT = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3} \+00:00$/;
+
+const MINUTE_MS = 60 * 1000;
+
+// A time in the logs query's date layout, which is ISO 8601 in UTC with a space for the T and the Z
+function formatFilterDate(time: number): string {
+    return new Date(time).toISOString().replace('T', ' ').replace('Z', ' +00:00');
+}
+
 /**
  * Write a uniquely identifiable entry to the server log.
  *
@@ -81,17 +91,77 @@ test.describe('System Console - Reporting - Server Logs', () => {
             await serverLogs.toBeVisible();
 
             // # Turn on live tail at the shortest poll interval
+            const pollRequest = systemConsolePage.page.waitForRequest(
+                (request) => request.url().includes('/api/v4/logs/query') && request.method() === 'POST',
+            );
             await serverLogs.selectLiveTailInterval('Every 10 seconds');
 
             // * Verify live tail is on
             await expect(serverLogs.liveTailValue).toHaveValue('Every 10 seconds');
 
+            // * Verify the poll asks every node at once, only for what was logged since the page loaded
+            const body = (await pollRequest).postDataJSON();
+            expect(body.server_names).toEqual([]);
+            expect(body.date_from).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3} \+00:00$/);
+
             // # Write an entry only after the page has loaded, so it can only arrive by polling
             const marker = `pw-log-${pw.random.id()}`;
             await writeServerLogEntry(adminClient, marker);
 
-            // * Verify the entry appears without the reload button being used
+            // * Verify the entry appears without the reload button being used, highlighted as new
             await expect(serverLogs.row(marker)).toBeVisible({timeout: 30000});
+            await expect(serverLogs.row(marker)).toHaveClass(/LogRow--new/);
+        },
+    );
+
+    /**
+     * @objective Verify live tail holds new entries back while an entry is expanded, so the list
+     * doesn't move, and shows them from the new entries button.
+     */
+    test(
+        'holds new entries while an entry is expanded and shows them from the new entries button',
+        {tag: ['@system_console', '@server_logs']},
+        async ({pw}) => {
+            test.setTimeout(pw.duration.two_min);
+
+            const {adminUser, adminClient} = await pw.initSetup();
+            const expandedMarker = `pw-log-${pw.random.id()}`;
+
+            // # Write an entry to expand later
+            await writeServerLogEntry(adminClient, expandedMarker);
+
+            // # Log in as admin and go to the server logs page
+            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+            await systemConsolePage.gotoServerLogs();
+            await systemConsolePage.toBeVisible();
+
+            const serverLogs = systemConsolePage.serverLogs;
+            await serverLogs.toBeVisible();
+
+            // # Wait for the entry to reach the page, then expand it
+            await expect(async () => {
+                await serverLogs.reloadButton.click();
+                await expect(serverLogs.row(expandedMarker)).toBeVisible({timeout: 2000});
+            }).toPass({timeout: 30000});
+            await serverLogs.row(expandedMarker).click();
+            await expect(serverLogs.row(expandedMarker)).toHaveClass(/LogRow--expanded/);
+
+            // # Turn on live tail and write an entry that can only arrive by polling
+            await serverLogs.selectLiveTailInterval('Every 10 seconds');
+            const heldMarker = `pw-log-${pw.random.id()}`;
+            await writeServerLogEntry(adminClient, heldMarker);
+
+            // * Verify the new entry is held back behind the new entries button until it's clicked.
+            // Other server activity can arrive in an earlier poll, so repeat until it's the marker.
+            await expect(async () => {
+                await expect(serverLogs.newEntriesButton).toBeVisible({timeout: 15000});
+                await expect(serverLogs.row(heldMarker)).toHaveCount(0);
+                await serverLogs.newEntriesButton.click();
+                await expect(serverLogs.row(heldMarker)).toBeVisible({timeout: 1000});
+            }).toPass({timeout: 45000});
+
+            // * Verify the expanded entry is still expanded
+            await expect(serverLogs.row(expandedMarker)).toHaveClass(/LogRow--expanded/);
         },
     );
 
@@ -136,7 +206,7 @@ test.describe('System Console - Reporting - Server Logs', () => {
             // status alone would not catch a format change. The end is left open so the
             // server ends the range at its own clock.
             const body = (await queryRequest).postDataJSON();
-            expect(body.date_from).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3} \+00:00$/);
+            expect(body.date_from).toMatch(FILTER_DATE_LAYOUT);
             expect(body.date_to).toBe('');
             expect((await queryResponse).status()).toBe(200);
 
@@ -148,6 +218,77 @@ test.describe('System Console - Reporting - Server Logs', () => {
 
             // * Verify the unfiltered list comes back
             await expect(serverLogs.rows.first()).toBeVisible();
+        },
+    );
+
+    /**
+     * @objective Verify a custom time range sends both bounds to the logs query API in a format
+     * the server accepts.
+     */
+    test(
+        'applies a custom time range through the logs query API',
+        {tag: ['@system_console', '@server_logs']},
+        async ({pw}) => {
+            const {adminUser, adminClient} = await pw.initSetup();
+            const marker = `pw-log-${pw.random.id()}`;
+
+            // # Write a uniquely identifiable entry to the server log
+            await writeServerLogEntry(adminClient, marker);
+
+            // # Log in as admin and go to the server logs page
+            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+            await systemConsolePage.gotoServerLogs();
+            await systemConsolePage.toBeVisible();
+
+            const serverLogs = systemConsolePage.serverLogs;
+            await serverLogs.toBeVisible();
+
+            // # Wait for the entry to reach the page
+            await expect(async () => {
+                await serverLogs.reloadButton.click();
+                await expect(serverLogs.row(marker)).toBeVisible({timeout: 2000});
+            }).toPass({timeout: 30000});
+
+            // # Apply the default custom range, the last hour
+            const page = systemConsolePage.page;
+            const queryRequest = page.waitForRequest(
+                (request) => request.url().includes('/api/v4/logs/query') && request.method() === 'POST',
+            );
+            const queryResponse = page.waitForResponse((response) => response.url().includes('/api/v4/logs/query'));
+            const browserNow = () => page.evaluate(() => Date.now());
+            const openedAt = await browserNow();
+            await serverLogs.applyDefaultCustomRange();
+            const appliedAt = await browserNow();
+
+            // * Verify both bounds are sent in the layout the server parses
+            const body = (await queryRequest).postDataJSON();
+            expect(body.date_from).toMatch(FILTER_DATE_LAYOUT);
+            expect(body.date_to).toMatch(FILTER_DATE_LAYOUT);
+            expect((await queryResponse).status()).toBe(200);
+
+            // * Verify the end is the last millisecond of the minute the dialog opened in, so the
+            // range stops there instead of running on, and the start is an hour before that minute.
+            // The minute can tick over while the dialog opens, so either side of it is accepted
+            const openedMinutes: number[] = [];
+            for (let minute = openedAt - (openedAt % MINUTE_MS); minute <= appliedAt; minute += MINUTE_MS) {
+                openedMinutes.push(minute);
+            }
+            const minuteEnds = openedMinutes.map((minute) => formatFilterDate(minute + MINUTE_MS - 1));
+            expect(minuteEnds).toContain(body.date_to);
+            const openedMinute = openedMinutes[minuteEnds.indexOf(body.date_to)];
+            expect(body.date_from).toBe(formatFilterDate(openedMinute - 60 * MINUTE_MS));
+
+            // * Verify the just-written entry is inside the range, which ends with the current minute
+            await expect(serverLogs.row(marker)).toBeVisible();
+
+            // * Verify the duration field shows the range rather than a preset
+            await expect(serverLogs.durationValue).toHaveValue(/–/);
+
+            // # Clear the range
+            await serverLogs.selectDuration('All time');
+
+            // * Verify the duration field is back to all time
+            await expect(serverLogs.durationValue).toHaveValue('All time');
         },
     );
 
