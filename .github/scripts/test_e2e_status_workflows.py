@@ -192,6 +192,8 @@ class StatusPublicationContract(unittest.TestCase):
         self.assertEqual(result['with']['use-staging'], triage['with']['use-staging'])
         self.assertIn('inputs.execution_success', triage['with']['mode'])
         self.assertIn("steps.result.outputs.reports-complete == 'true'", triage['with']['mode'])
+        # A re-run that kept the first attempt's identity never enforces (see the comment on mode).
+        self.assertIn('fromJSON(inputs.composite_identity_json).gh_run_attempt == github.run_attempt', triage['with']['mode'])
         self.assertTrue(triage['with']['mode'].endswith("|| 'report-only' }}"))
         self.assertIn("vars.E2E_TRIAGE_MODE || 'enforce'", triage['with']['mode'])
         self.assertIn("steps.result.outputs.state != 'success'", triage['if'])
