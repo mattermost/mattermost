@@ -698,9 +698,18 @@ func verifyLinkUnlinkPermission(c *Context, syncableType model.GroupSyncableType
 
 	switch syncableType {
 	case model.GroupSyncableTypeTeam:
-		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), syncableID, model.PermissionInviteUser) &&
+		team, teamErr := c.App.GetTeam(syncableID)
+		if teamErr != nil {
+			return teamErr
+		}
+
+		permission := model.PermissionInviteUser
+		if team.IsGroupConstrained() {
+			permission = model.PermissionManageTeam
+		}
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), syncableID, permission) &&
 			!c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementGroups) {
-			return model.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionInviteUser})
+			return model.MakePermissionError(c.AppContext.Session(), []*model.Permission{permission})
 		}
 	case model.GroupSyncableTypeChannel:
 		channel, appErr := c.App.GetChannel(c.AppContext, syncableID)
@@ -725,10 +734,16 @@ func verifyLinkUnlinkPermission(c *Context, syncableType model.GroupSyncableType
 		}
 
 		var permission *model.Permission
-		if channel.Type == model.ChannelTypePrivate {
+		if channel.IsGroupConstrained() {
+			permission = model.PermissionManageChannelRoles
+		} else if channel.Type == model.ChannelTypePrivate {
 			permission = model.PermissionManagePrivateChannelMembers
 		} else {
 			permission = model.PermissionManagePublicChannelMembers
+		}
+
+		if channel.IsGroupConstrained() && c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementGroups) {
+			return nil
 		}
 
 		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), syncableID, permission); !ok {

@@ -553,7 +553,7 @@ func (a *App) DeleteGroupSyncable(groupID string, syncableID string, syncableTyp
 		}
 	}
 
-	// if a GroupTeam is being deleted delete all associated GroupChannels
+	// When a team syncable is deleted, also delete channel syncables whose channel is on that team.
 	if gs.Type == model.GroupSyncableTypeTeam {
 		allGroupChannels, err := a.Srv().Store().Group().GetAllGroupSyncablesByGroupId(gs.GroupId, model.GroupSyncableTypeChannel)
 		if err != nil {
@@ -561,6 +561,21 @@ func (a *App) DeleteGroupSyncable(groupID string, syncableID string, syncableTyp
 		}
 
 		for _, groupChannel := range allGroupChannels {
+			channel, nErr := a.Srv().Store().Channel().Get(groupChannel.SyncableId, true)
+			if nErr != nil {
+				errCtx := map[string]any{"channel_id": groupChannel.SyncableId}
+				var nfErr *store.ErrNotFound
+				switch {
+				case errors.As(nErr, &nfErr):
+					return nil, model.NewAppError("DeleteGroupSyncable", "app.channel.get.existing.app_error", errCtx, "", http.StatusNotFound).Wrap(nErr)
+				default:
+					return nil, model.NewAppError("DeleteGroupSyncable", "app.channel.get.find.app_error", errCtx, "", http.StatusInternalServerError).Wrap(nErr)
+				}
+			}
+			if channel.TeamId != gs.SyncableId {
+				continue
+			}
+
 			_, err = a.Srv().Store().Group().DeleteGroupSyncable(groupChannel.GroupId, groupChannel.SyncableId, groupChannel.Type)
 			if err != nil {
 				var invErr *store.ErrInvalidInput
