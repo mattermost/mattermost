@@ -15,6 +15,8 @@ import {switchToChannel} from 'actions/views/channel';
 
 import ExternalLink from 'components/external_link';
 
+import {getSiteURL, mightTriggerExternalRequest} from 'utils/url';
+
 import type {GlobalState} from 'types/store';
 
 import RecapMenu from './recap_menu';
@@ -33,19 +35,20 @@ type ParsedItem = {
 // Helper function to parse permalink from text
 const parsePermalink = (text: string): ParsedItem => {
     // Match pattern: [PERMALINK:url]
-    const permalinkRegex = /\[PERMALINK:([^\]]+)\]/;
-    const match = text.match(permalinkRegex);
+    const permalinkRegex = /\[PERMALINK:([^\]]*)\]/g;
+    const siteURL = getSiteURL();
 
-    if (match) {
-        return {
-            text: text.replace(permalinkRegex, '').trim(),
-            permalink: match[1],
-        };
+    let permalink: string | null = null;
+    for (const match of text.matchAll(permalinkRegex)) {
+        const candidate = match[1].trim();
+        if (!mightTriggerExternalRequest(candidate, siteURL)) {
+            permalink = candidate;
+        }
     }
 
     return {
-        text,
-        permalink: null,
+        text: text.replace(permalinkRegex, '').trim(),
+        permalink,
     };
 };
 

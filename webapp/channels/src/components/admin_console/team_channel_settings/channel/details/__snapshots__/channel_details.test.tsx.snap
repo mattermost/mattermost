@@ -23,29 +23,47 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
       <div
         class="admin-console__content"
       >
-        <div
-          class="AdminPanel clearfix "
+        <section
+          aria-labelledby="_r_0_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix"
           id="channel_profile"
         >
-          <div
-            class="header"
-          >
-            <div>
-              <h3>
-                Channel Profile
-              </h3>
-              <div
-                class="mt-2"
-              >
-                Summary of the channel, including the channel name.
-              </div>
-            </div>
-          </div>
-          <div
-            class="group-teams-and-channels AdminChannelDetails"
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
           >
             <div
-              class="group-teams-and-channels--body channel-desc-col"
+              class="_admin-panel-header__main_19tix_10"
+            >
+              <div
+                class="_admin-panel-header__start_19tix_19"
+              >
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
+                >
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_0_"
+                    >
+                      Channel Profile
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Summary of the channel, including the channel name.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </header>
+          <div
+            class="_admin-panel__body_iwm08_25"
+          >
+            <div
+              class="AdminChannelDetails channel-desc-col"
             >
               <div
                 class="channel-name"
@@ -65,8 +83,16 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                 <br />
                 test
               </div>
+            </div>
+          </div>
+          <div
+            class="_admin-panel-footer_13680_2 _admin-panel-footer--single_13680_35"
+          >
+            <div
+              class="_admin-panel-footer__content_13680_11"
+            >
               <div
-                class="AdminChannelDetails_archiveContainer"
+                class="_admin-panel-footer__left_13680_20"
               >
                 <button
                   class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64 _button--destructive_we8pe_176"
@@ -106,382 +132,440 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
               </div>
             </div>
           </div>
-        </div>
-        <div
-          class="AdminPanel clearfix "
+        </section>
+        <section
+          aria-labelledby="_r_1_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix"
           id="channel_moderation"
         >
-          <div
-            class="header"
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
           >
-            <div>
-              <h3>
-                Advanced Access Control
-              </h3>
+            <div
+              class="_admin-panel-header__main_19tix_10"
+            >
               <div
-                class="mt-2"
+                class="_admin-panel-header__start_19tix_19"
               >
-                Manage the actions available to channel members and guests.
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
+                >
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_1_"
+                    >
+                      Advanced Access Control
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Manage the actions available to channel members and guests.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </header>
+          <div
+            class="_admin-panel__body_iwm08_25"
+          >
+            <div
+              class="channel-moderation"
+            >
+              <div
+                class="channel-moderation--body"
+              >
+                <table
+                  class="channel-moderation--table"
+                  id="channel_moderation_table"
+                >
+                  <thead>
+                    <tr>
+                      <th>
+                        Permissions
+                      </th>
+                      <th>
+                        Guests
+                      </th>
+                      <th>
+                        Members
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody />
+                </table>
               </div>
             </div>
           </div>
-          <div
-            class="channel-moderation"
-          >
-            <div
-              class="channel-moderation--body"
-            >
-              <table
-                class="channel-moderation--table"
-                id="channel_moderation_table"
-              >
-                <thead>
-                  <tr>
-                    <th>
-                      Permissions
-                    </th>
-                    <th>
-                      Guests
-                    </th>
-                    <th>
-                      Members
-                    </th>
-                  </tr>
-                </thead>
-                <tbody />
-              </table>
-            </div>
-          </div>
-        </div>
-        <div
-          class="AdminPanel clearfix "
+        </section>
+        <section
+          aria-labelledby="_r_2_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix"
           id="channel_manage"
         >
-          <div
-            class="header"
-          >
-            <div>
-              <h3>
-                Channel Management
-              </h3>
-              <div
-                class="mt-2"
-              >
-                Choose between inviting members manually or syncing members automatically from groups.
-              </div>
-            </div>
-          </div>
-          <div
-            class="group-teams-and-channels"
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
           >
             <div
-              class="group-teams-and-channels--body"
+              class="_admin-panel-header__main_19tix_10"
             >
               <div
-                data-testid="syncGroupSwitch"
-              >
-                <label
-                  class="switch switch--size-medium switch--semi-bold switch--with-secondary"
-                  for="syncGroupSwitch"
-                >
-                  <span
-                    class="switch__labels"
-                  >
-                    <span
-                      class="switch__label"
-                    >
-                      Sync Group Members
-                    </span>
-                    <span
-                      class="switch__secondary-label"
-                    >
-                      When enabled, adding and removing users from groups will add or remove them from this channel. The only way of inviting members to this channel is by adding the groups they belong to. 
-                      <a
-                        href="https://mattermost.com/pl/default-ldap-group-constrained-team-channel.html?utm_source=mattermost&utm_medium=in-product&utm_content=channel_modes&uid=&sid=&edition=team&server_version="
-                        location="channel_modes"
-                        rel="noopener noreferrer"
-                        target="_blank"
-                      >
-                        Learn More
-                      </a>
-                    </span>
-                  </span>
-                  <span
-                    class="switch__track"
-                  >
-                    <input
-                      aria-checked="false"
-                      class="switch__input"
-                      data-testid="syncGroupSwitch-button"
-                      id="syncGroupSwitch"
-                      role="switch"
-                      tabindex="0"
-                      type="checkbox"
-                    />
-                    <span
-                      aria-hidden="true"
-                      class="switch__knob"
-                    />
-                  </span>
-                </label>
-              </div>
-              <div
-                class="section-separator"
-              >
-                <hr
-                  class="separator__hr"
-                />
-              </div>
-              <div
-                class="AdminSettingsSegmentedRow"
-                data-testid="allow-all-toggle"
+                class="_admin-panel-header__start_19tix_19"
               >
                 <div
-                  class="AdminSettingsSegmentedRow__text"
+                  class="_admin-panel-header__title-stack_19tix_37"
                 >
                   <div
-                    class="AdminSettingsSegmentedRow__title"
+                    class="_admin-panel-header__title-row_19tix_46"
                   >
-                    Public channel or private channel
-                  </div>
-                  <div
-                    class="AdminSettingsSegmentedRow__description"
-                  >
-                    Select Public for a channel any user can find and join. 
-                    <br />
-                    Select Private to require channel invitations to join. 
-                    <br />
-                    Use this control to change this channel from public to private or from private to public.
-                  </div>
-                </div>
-                <div
-                  aria-label="Public channel or private channel"
-                  class="AdminSettingsSegmentedRow__segments"
-                  role="group"
-                >
-                  <button
-                    aria-pressed="true"
-                    class="AdminSettingsSegmentedRow__segment AdminSettingsSegmentedRow__segment--active"
-                    data-testid="allow-all-toggle-public"
-                    id="allow-all-toggle-public"
-                    type="button"
-                  >
-                    Public
-                  </button>
-                  <button
-                    aria-pressed="false"
-                    class="AdminSettingsSegmentedRow__segment"
-                    data-testid="allow-all-toggle-private"
-                    id="allow-all-toggle-private"
-                    type="button"
-                  >
-                    Private
-                  </button>
-                </div>
-              </div>
-              <div
-                class="section-separator"
-              >
-                <hr
-                  class="separator__hr"
-                />
-              </div>
-              <div
-                data-testid="policy-enforce-toggle"
-              >
-                <label
-                  class="switch switch--size-medium switch--semi-bold switch--with-secondary"
-                  for="policy-enforce-toggle"
-                >
-                  <span
-                    class="switch__labels"
-                  >
-                    <span
-                      class="switch__label"
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_2_"
                     >
-                      Enable attribute based channel access
-                    </span>
-                    <span
-                      class="switch__secondary-label"
-                    >
-                      Recommend this channel to users whose attributes match the rules and (optionally) auto-add them. Anyone can still join freely.
-                    </span>
-                  </span>
-                  <span
-                    class="switch__track"
+                      Channel Management
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
                   >
-                    <input
-                      aria-checked="false"
-                      class="switch__input"
-                      data-testid="policy-enforce-toggle-button"
-                      id="policy-enforce-toggle"
-                      role="switch"
-                      tabindex="0"
-                      type="checkbox"
-                    />
-                    <span
-                      aria-hidden="true"
-                      class="switch__knob"
-                    />
-                  </span>
-                </label>
+                    Choose between inviting members manually or syncing members automatically from groups.
+                  </p>
+                </div>
               </div>
             </div>
+          </header>
+          <div
+            class="_admin-panel__body_iwm08_25"
+          >
+            <div
+              data-testid="syncGroupSwitch"
+            >
+              <label
+                class="switch switch--size-medium switch--semi-bold switch--with-secondary"
+                for="syncGroupSwitch"
+              >
+                <span
+                  class="switch__labels"
+                >
+                  <span
+                    class="switch__label"
+                  >
+                    Sync Group Members
+                  </span>
+                  <span
+                    class="switch__secondary-label"
+                  >
+                    When enabled, adding and removing users from groups will add or remove them from this channel. The only way of inviting members to this channel is by adding the groups they belong to. 
+                    <a
+                      href="https://mattermost.com/pl/default-ldap-group-constrained-team-channel.html?utm_source=mattermost&utm_medium=in-product&utm_content=channel_modes&uid=&sid=&edition=team&server_version="
+                      location="channel_modes"
+                      rel="noopener noreferrer"
+                      target="_blank"
+                    >
+                      Learn More
+                    </a>
+                  </span>
+                </span>
+                <span
+                  class="switch__track"
+                >
+                  <input
+                    aria-checked="false"
+                    class="switch__input"
+                    data-testid="syncGroupSwitch-button"
+                    id="syncGroupSwitch"
+                    role="switch"
+                    tabindex="0"
+                    type="checkbox"
+                  />
+                  <span
+                    aria-hidden="true"
+                    class="switch__knob"
+                  />
+                </span>
+              </label>
+            </div>
+            <div
+              class="section-separator"
+            >
+              <hr
+                class="separator__hr"
+              />
+            </div>
+            <div
+              class="AdminSettingsSegmentedRow"
+              data-testid="allow-all-toggle"
+            >
+              <div
+                class="AdminSettingsSegmentedRow__text"
+              >
+                <div
+                  class="AdminSettingsSegmentedRow__title"
+                >
+                  Public channel or private channel
+                </div>
+                <div
+                  class="AdminSettingsSegmentedRow__description"
+                >
+                  Select Public for a channel any user can find and join. 
+                  <br />
+                  Select Private to require channel invitations to join. 
+                  <br />
+                  Use this control to change this channel from public to private or from private to public.
+                </div>
+              </div>
+              <div
+                aria-label="Public channel or private channel"
+                class="AdminSettingsSegmentedRow__segments"
+                role="group"
+              >
+                <button
+                  aria-pressed="true"
+                  class="AdminSettingsSegmentedRow__segment AdminSettingsSegmentedRow__segment--active"
+                  data-testid="allow-all-toggle-public"
+                  id="allow-all-toggle-public"
+                  type="button"
+                >
+                  Public
+                </button>
+                <button
+                  aria-pressed="false"
+                  class="AdminSettingsSegmentedRow__segment"
+                  data-testid="allow-all-toggle-private"
+                  id="allow-all-toggle-private"
+                  type="button"
+                >
+                  Private
+                </button>
+              </div>
+            </div>
+            <div
+              class="section-separator"
+            >
+              <hr
+                class="separator__hr"
+              />
+            </div>
+            <div
+              data-testid="policy-enforce-toggle"
+            >
+              <label
+                class="switch switch--size-medium switch--semi-bold switch--with-secondary"
+                for="policy-enforce-toggle"
+              >
+                <span
+                  class="switch__labels"
+                >
+                  <span
+                    class="switch__label"
+                  >
+                    Enable attribute based channel access
+                  </span>
+                  <span
+                    class="switch__secondary-label"
+                  >
+                    Recommend this channel to users whose attributes match the rules and (optionally) auto-add them. Anyone can still join freely.
+                  </span>
+                </span>
+                <span
+                  class="switch__track"
+                >
+                  <input
+                    aria-checked="false"
+                    class="switch__input"
+                    data-testid="policy-enforce-toggle-button"
+                    id="policy-enforce-toggle"
+                    role="switch"
+                    tabindex="0"
+                    type="checkbox"
+                  />
+                  <span
+                    aria-hidden="true"
+                    class="switch__knob"
+                  />
+                </span>
+              </label>
+            </div>
           </div>
-        </div>
-        <div
-          class="AdminPanel clearfix "
+        </section>
+        <section
+          aria-labelledby="_r_5_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix"
           id="channel_groups"
         >
-          <div
-            class="header"
-          >
-            <div>
-              <h3>
-                Groups
-              </h3>
-              <div
-                class="mt-2"
-              >
-                Select groups to be added to this channel.
-              </div>
-            </div>
-            <div
-              class="button"
-            >
-              <button
-                class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
-                id="addGroupsToChannelToggle"
-                type="button"
-              >
-                <span
-                  class="_button__label_we8pe_31"
-                >
-                  Add Group
-                </span>
-              </button>
-            </div>
-          </div>
-          <div
-            class="groups-list groups-list-no-padding"
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
           >
             <div
-              class="groups-list--header"
+              class="_admin-panel-header__main_19tix_10"
             >
               <div
-                class="group-name group-name-adjusted"
-              >
-                Group Name
-              </div>
-              <div
-                class="group-content"
+                class="_admin-panel-header__start_19tix_19"
               >
                 <div
-                  class="group-description group-description-adjusted"
-                >
-                  Member Count
-                </div>
-                <div
-                  class="group-description group-description-adjusted"
-                >
-                  Roles
-                </div>
-                <div
-                  class="group-actions"
-                />
-              </div>
-            </div>
-            <div
-              class="groups-list--body"
-              id="groups-list--body"
-            >
-              <div
-                class="groups-list-loading"
-              >
-                <i
-                  class="fa fa-spinner fa-pulse fa-2x"
-                />
-              </div>
-            </div>
-            <div
-              class="groups-list--footer"
-            >
-              <div
-                class="counter"
-              >
-                1 - 1 of 1
-              </div>
-              <button
-                aria-label="Previous page"
-                class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
-                data-testid="page-link-prev"
-                disabled=""
-                type="button"
-              >
-                <span
-                  aria-hidden="true"
-                  class="_icon-button__icon-slot_13ryy_41"
+                  class="_admin-panel-header__title-stack_19tix_37"
                 >
                   <div
-                    aria-hidden="true"
-                    class="_icon_1i355_2 _icon--size-16_1i355_38"
+                    class="_admin-panel-header__title-row_19tix_46"
                   >
-                    <div
-                      class="_icon__glyph-area_1i355_9"
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_5_"
                     >
-                      <svg
-                        fill="currentColor"
-                        height="18"
-                        version="1.1"
-                        viewBox="0 0 24 24"
-                        width="18"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M15.41,16.58L10.83,12L15.41,7.41L14,6L8,12L14,18L15.41,16.58Z"
-                        />
-                      </svg>
-                    </div>
+                      Groups
+                    </h2>
                   </div>
-                </span>
-              </button>
-              <button
-                aria-label="Next page"
-                class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
-                data-testid="page-link-next"
-                disabled=""
-                type="button"
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Select groups to be added to this channel.
+                  </p>
+                </div>
+              </div>
+              <div
+                class="_admin-panel-header__actions_19tix_75"
               >
-                <span
-                  aria-hidden="true"
-                  class="_icon-button__icon-slot_13ryy_41"
+                <button
+                  class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+                  id="addGroupsToChannelToggle"
+                  type="button"
+                >
+                  <span
+                    class="_button__label_we8pe_31"
+                  >
+                    Add Group
+                  </span>
+                </button>
+              </div>
+            </div>
+          </header>
+          <div
+            class="_admin-panel__body_iwm08_25"
+          >
+            <div
+              class="groups-list groups-list-no-padding"
+            >
+              <div
+                class="groups-list--header"
+              >
+                <div
+                  class="group-name group-name-adjusted"
+                >
+                  Group Name
+                </div>
+                <div
+                  class="group-content"
                 >
                   <div
+                    class="group-description group-description-adjusted"
+                  >
+                    Member Count
+                  </div>
+                  <div
+                    class="group-description group-description-adjusted"
+                  >
+                    Roles
+                  </div>
+                  <div
+                    class="group-actions"
+                  />
+                </div>
+              </div>
+              <div
+                class="groups-list--body"
+                id="groups-list--body"
+              >
+                <div
+                  class="groups-list-loading"
+                >
+                  <i
+                    class="fa fa-spinner fa-pulse fa-2x"
+                  />
+                </div>
+              </div>
+              <div
+                class="groups-list--footer"
+              >
+                <div
+                  class="counter"
+                >
+                  1 - 1 of 1
+                </div>
+                <button
+                  aria-label="Previous page"
+                  class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
+                  data-testid="page-link-prev"
+                  disabled=""
+                  type="button"
+                >
+                  <span
                     aria-hidden="true"
-                    class="_icon_1i355_2 _icon--size-16_1i355_38"
+                    class="_icon-button__icon-slot_13ryy_41"
                   >
                     <div
-                      class="_icon__glyph-area_1i355_9"
+                      aria-hidden="true"
+                      class="_icon_1i355_2 _icon--size-16_1i355_38"
                     >
-                      <svg
-                        fill="currentColor"
-                        height="18"
-                        version="1.1"
-                        viewBox="0 0 24 24"
-                        width="18"
-                        xmlns="http://www.w3.org/2000/svg"
+                      <div
+                        class="_icon__glyph-area_1i355_9"
                       >
-                        <path
-                          d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"
-                        />
-                      </svg>
+                        <svg
+                          fill="currentColor"
+                          height="18"
+                          version="1.1"
+                          viewBox="0 0 24 24"
+                          width="18"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M15.41,16.58L10.83,12L15.41,7.41L14,6L8,12L14,18L15.41,16.58Z"
+                          />
+                        </svg>
+                      </div>
                     </div>
-                  </div>
-                </span>
-              </button>
+                  </span>
+                </button>
+                <button
+                  aria-label="Next page"
+                  class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
+                  data-testid="page-link-next"
+                  disabled=""
+                  type="button"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_icon-button__icon-slot_13ryy_41"
+                  >
+                    <div
+                      aria-hidden="true"
+                      class="_icon_1i355_2 _icon--size-16_1i355_38"
+                    >
+                      <div
+                        class="_icon__glyph-area_1i355_9"
+                      >
+                        <svg
+                          fill="currentColor"
+                          height="18"
+                          version="1.1"
+                          viewBox="0 0 24 24"
+                          width="18"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </span>
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        </section>
         <div>
           ChannelMembers
         </div>
@@ -546,29 +630,47 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
       <div
         class="admin-console__content"
       >
-        <div
-          class="AdminPanel clearfix "
+        <section
+          aria-labelledby="_r_a_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix"
           id="channel_profile"
         >
-          <div
-            class="header"
-          >
-            <div>
-              <h3>
-                Channel Profile
-              </h3>
-              <div
-                class="mt-2"
-              >
-                Summary of the channel, including the channel name.
-              </div>
-            </div>
-          </div>
-          <div
-            class="group-teams-and-channels AdminChannelDetails"
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
           >
             <div
-              class="group-teams-and-channels--body channel-desc-col"
+              class="_admin-panel-header__main_19tix_10"
+            >
+              <div
+                class="_admin-panel-header__start_19tix_19"
+              >
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
+                >
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_a_"
+                    >
+                      Channel Profile
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Summary of the channel, including the channel name.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </header>
+          <div
+            class="_admin-panel__body_iwm08_25"
+          >
+            <div
+              class="AdminChannelDetails channel-desc-col"
             >
               <div
                 class="channel-name"
@@ -587,8 +689,16 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                 </b>
                 <br />
               </div>
+            </div>
+          </div>
+          <div
+            class="_admin-panel-footer_13680_2 _admin-panel-footer--single_13680_35"
+          >
+            <div
+              class="_admin-panel-footer__content_13680_11"
+            >
               <div
-                class="AdminChannelDetails_archiveContainer"
+                class="_admin-panel-footer__left_13680_20"
               >
                 <button
                   class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64 _button--destructive_we8pe_176"
@@ -628,382 +738,440 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
               </div>
             </div>
           </div>
-        </div>
-        <div
-          class="AdminPanel clearfix "
+        </section>
+        <section
+          aria-labelledby="_r_b_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix"
           id="channel_moderation"
         >
-          <div
-            class="header"
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
           >
-            <div>
-              <h3>
-                Advanced Access Control
-              </h3>
+            <div
+              class="_admin-panel-header__main_19tix_10"
+            >
               <div
-                class="mt-2"
+                class="_admin-panel-header__start_19tix_19"
               >
-                Manage the actions available to channel members and guests.
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
+                >
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_b_"
+                    >
+                      Advanced Access Control
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Manage the actions available to channel members and guests.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </header>
+          <div
+            class="_admin-panel__body_iwm08_25"
+          >
+            <div
+              class="channel-moderation"
+            >
+              <div
+                class="channel-moderation--body"
+              >
+                <table
+                  class="channel-moderation--table"
+                  id="channel_moderation_table"
+                >
+                  <thead>
+                    <tr>
+                      <th>
+                        Permissions
+                      </th>
+                      <th>
+                        Guests
+                      </th>
+                      <th>
+                        Members
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody />
+                </table>
               </div>
             </div>
           </div>
-          <div
-            class="channel-moderation"
-          >
-            <div
-              class="channel-moderation--body"
-            >
-              <table
-                class="channel-moderation--table"
-                id="channel_moderation_table"
-              >
-                <thead>
-                  <tr>
-                    <th>
-                      Permissions
-                    </th>
-                    <th>
-                      Guests
-                    </th>
-                    <th>
-                      Members
-                    </th>
-                  </tr>
-                </thead>
-                <tbody />
-              </table>
-            </div>
-          </div>
-        </div>
-        <div
-          class="AdminPanel clearfix "
+        </section>
+        <section
+          aria-labelledby="_r_c_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix"
           id="channel_manage"
         >
-          <div
-            class="header"
-          >
-            <div>
-              <h3>
-                Channel Management
-              </h3>
-              <div
-                class="mt-2"
-              >
-                Choose between inviting members manually or syncing members automatically from groups.
-              </div>
-            </div>
-          </div>
-          <div
-            class="group-teams-and-channels"
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
           >
             <div
-              class="group-teams-and-channels--body"
+              class="_admin-panel-header__main_19tix_10"
             >
               <div
-                data-testid="syncGroupSwitch"
-              >
-                <label
-                  class="switch switch--size-medium switch--semi-bold switch--with-secondary"
-                  for="syncGroupSwitch"
-                >
-                  <span
-                    class="switch__labels"
-                  >
-                    <span
-                      class="switch__label"
-                    >
-                      Sync Group Members
-                    </span>
-                    <span
-                      class="switch__secondary-label"
-                    >
-                      When enabled, adding and removing users from groups will add or remove them from this channel. The only way of inviting members to this channel is by adding the groups they belong to. 
-                      <a
-                        href="https://mattermost.com/pl/default-ldap-group-constrained-team-channel.html?utm_source=mattermost&utm_medium=in-product&utm_content=channel_modes&uid=&sid=&edition=team&server_version="
-                        location="channel_modes"
-                        rel="noopener noreferrer"
-                        target="_blank"
-                      >
-                        Learn More
-                      </a>
-                    </span>
-                  </span>
-                  <span
-                    class="switch__track"
-                  >
-                    <input
-                      aria-checked="false"
-                      class="switch__input"
-                      data-testid="syncGroupSwitch-button"
-                      id="syncGroupSwitch"
-                      role="switch"
-                      tabindex="0"
-                      type="checkbox"
-                    />
-                    <span
-                      aria-hidden="true"
-                      class="switch__knob"
-                    />
-                  </span>
-                </label>
-              </div>
-              <div
-                class="section-separator"
-              >
-                <hr
-                  class="separator__hr"
-                />
-              </div>
-              <div
-                class="AdminSettingsSegmentedRow"
-                data-testid="allow-all-toggle"
+                class="_admin-panel-header__start_19tix_19"
               >
                 <div
-                  class="AdminSettingsSegmentedRow__text"
+                  class="_admin-panel-header__title-stack_19tix_37"
                 >
                   <div
-                    class="AdminSettingsSegmentedRow__title"
+                    class="_admin-panel-header__title-row_19tix_46"
                   >
-                    Public channel or private channel
-                  </div>
-                  <div
-                    class="AdminSettingsSegmentedRow__description"
-                  >
-                    Select Public for a channel any user can find and join. 
-                    <br />
-                    Select Private to require channel invitations to join. 
-                    <br />
-                    Use this control to change this channel from public to private or from private to public.
-                  </div>
-                </div>
-                <div
-                  aria-label="Public channel or private channel"
-                  class="AdminSettingsSegmentedRow__segments"
-                  role="group"
-                >
-                  <button
-                    aria-pressed="true"
-                    class="AdminSettingsSegmentedRow__segment AdminSettingsSegmentedRow__segment--active"
-                    data-testid="allow-all-toggle-public"
-                    id="allow-all-toggle-public"
-                    type="button"
-                  >
-                    Public
-                  </button>
-                  <button
-                    aria-pressed="false"
-                    class="AdminSettingsSegmentedRow__segment"
-                    data-testid="allow-all-toggle-private"
-                    id="allow-all-toggle-private"
-                    type="button"
-                  >
-                    Private
-                  </button>
-                </div>
-              </div>
-              <div
-                class="section-separator"
-              >
-                <hr
-                  class="separator__hr"
-                />
-              </div>
-              <div
-                data-testid="policy-enforce-toggle"
-              >
-                <label
-                  class="switch switch--size-medium switch--semi-bold switch--with-secondary"
-                  for="policy-enforce-toggle"
-                >
-                  <span
-                    class="switch__labels"
-                  >
-                    <span
-                      class="switch__label"
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_c_"
                     >
-                      Enable attribute based channel access
-                    </span>
-                    <span
-                      class="switch__secondary-label"
-                    >
-                      Recommend this channel to users whose attributes match the rules and (optionally) auto-add them. Anyone can still join freely.
-                    </span>
-                  </span>
-                  <span
-                    class="switch__track"
+                      Channel Management
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
                   >
-                    <input
-                      aria-checked="false"
-                      class="switch__input"
-                      data-testid="policy-enforce-toggle-button"
-                      id="policy-enforce-toggle"
-                      role="switch"
-                      tabindex="0"
-                      type="checkbox"
-                    />
-                    <span
-                      aria-hidden="true"
-                      class="switch__knob"
-                    />
-                  </span>
-                </label>
+                    Choose between inviting members manually or syncing members automatically from groups.
+                  </p>
+                </div>
               </div>
             </div>
+          </header>
+          <div
+            class="_admin-panel__body_iwm08_25"
+          >
+            <div
+              data-testid="syncGroupSwitch"
+            >
+              <label
+                class="switch switch--size-medium switch--semi-bold switch--with-secondary"
+                for="syncGroupSwitch"
+              >
+                <span
+                  class="switch__labels"
+                >
+                  <span
+                    class="switch__label"
+                  >
+                    Sync Group Members
+                  </span>
+                  <span
+                    class="switch__secondary-label"
+                  >
+                    When enabled, adding and removing users from groups will add or remove them from this channel. The only way of inviting members to this channel is by adding the groups they belong to. 
+                    <a
+                      href="https://mattermost.com/pl/default-ldap-group-constrained-team-channel.html?utm_source=mattermost&utm_medium=in-product&utm_content=channel_modes&uid=&sid=&edition=team&server_version="
+                      location="channel_modes"
+                      rel="noopener noreferrer"
+                      target="_blank"
+                    >
+                      Learn More
+                    </a>
+                  </span>
+                </span>
+                <span
+                  class="switch__track"
+                >
+                  <input
+                    aria-checked="false"
+                    class="switch__input"
+                    data-testid="syncGroupSwitch-button"
+                    id="syncGroupSwitch"
+                    role="switch"
+                    tabindex="0"
+                    type="checkbox"
+                  />
+                  <span
+                    aria-hidden="true"
+                    class="switch__knob"
+                  />
+                </span>
+              </label>
+            </div>
+            <div
+              class="section-separator"
+            >
+              <hr
+                class="separator__hr"
+              />
+            </div>
+            <div
+              class="AdminSettingsSegmentedRow"
+              data-testid="allow-all-toggle"
+            >
+              <div
+                class="AdminSettingsSegmentedRow__text"
+              >
+                <div
+                  class="AdminSettingsSegmentedRow__title"
+                >
+                  Public channel or private channel
+                </div>
+                <div
+                  class="AdminSettingsSegmentedRow__description"
+                >
+                  Select Public for a channel any user can find and join. 
+                  <br />
+                  Select Private to require channel invitations to join. 
+                  <br />
+                  Use this control to change this channel from public to private or from private to public.
+                </div>
+              </div>
+              <div
+                aria-label="Public channel or private channel"
+                class="AdminSettingsSegmentedRow__segments"
+                role="group"
+              >
+                <button
+                  aria-pressed="true"
+                  class="AdminSettingsSegmentedRow__segment AdminSettingsSegmentedRow__segment--active"
+                  data-testid="allow-all-toggle-public"
+                  id="allow-all-toggle-public"
+                  type="button"
+                >
+                  Public
+                </button>
+                <button
+                  aria-pressed="false"
+                  class="AdminSettingsSegmentedRow__segment"
+                  data-testid="allow-all-toggle-private"
+                  id="allow-all-toggle-private"
+                  type="button"
+                >
+                  Private
+                </button>
+              </div>
+            </div>
+            <div
+              class="section-separator"
+            >
+              <hr
+                class="separator__hr"
+              />
+            </div>
+            <div
+              data-testid="policy-enforce-toggle"
+            >
+              <label
+                class="switch switch--size-medium switch--semi-bold switch--with-secondary"
+                for="policy-enforce-toggle"
+              >
+                <span
+                  class="switch__labels"
+                >
+                  <span
+                    class="switch__label"
+                  >
+                    Enable attribute based channel access
+                  </span>
+                  <span
+                    class="switch__secondary-label"
+                  >
+                    Recommend this channel to users whose attributes match the rules and (optionally) auto-add them. Anyone can still join freely.
+                  </span>
+                </span>
+                <span
+                  class="switch__track"
+                >
+                  <input
+                    aria-checked="false"
+                    class="switch__input"
+                    data-testid="policy-enforce-toggle-button"
+                    id="policy-enforce-toggle"
+                    role="switch"
+                    tabindex="0"
+                    type="checkbox"
+                  />
+                  <span
+                    aria-hidden="true"
+                    class="switch__knob"
+                  />
+                </span>
+              </label>
+            </div>
           </div>
-        </div>
-        <div
-          class="AdminPanel clearfix "
+        </section>
+        <section
+          aria-labelledby="_r_f_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix"
           id="channel_groups"
         >
-          <div
-            class="header"
-          >
-            <div>
-              <h3>
-                Groups
-              </h3>
-              <div
-                class="mt-2"
-              >
-                Select groups to be added to this channel.
-              </div>
-            </div>
-            <div
-              class="button"
-            >
-              <button
-                class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
-                id="addGroupsToChannelToggle"
-                type="button"
-              >
-                <span
-                  class="_button__label_we8pe_31"
-                >
-                  Add Group
-                </span>
-              </button>
-            </div>
-          </div>
-          <div
-            class="groups-list groups-list-no-padding"
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
           >
             <div
-              class="groups-list--header"
+              class="_admin-panel-header__main_19tix_10"
             >
               <div
-                class="group-name group-name-adjusted"
-              >
-                Group Name
-              </div>
-              <div
-                class="group-content"
+                class="_admin-panel-header__start_19tix_19"
               >
                 <div
-                  class="group-description group-description-adjusted"
-                >
-                  Member Count
-                </div>
-                <div
-                  class="group-description group-description-adjusted"
-                >
-                  Roles
-                </div>
-                <div
-                  class="group-actions"
-                />
-              </div>
-            </div>
-            <div
-              class="groups-list--body"
-              id="groups-list--body"
-            >
-              <div
-                class="groups-list-loading"
-              >
-                <i
-                  class="fa fa-spinner fa-pulse fa-2x"
-                />
-              </div>
-            </div>
-            <div
-              class="groups-list--footer"
-            >
-              <div
-                class="counter"
-              >
-                1 - 1 of 1
-              </div>
-              <button
-                aria-label="Previous page"
-                class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
-                data-testid="page-link-prev"
-                disabled=""
-                type="button"
-              >
-                <span
-                  aria-hidden="true"
-                  class="_icon-button__icon-slot_13ryy_41"
+                  class="_admin-panel-header__title-stack_19tix_37"
                 >
                   <div
-                    aria-hidden="true"
-                    class="_icon_1i355_2 _icon--size-16_1i355_38"
+                    class="_admin-panel-header__title-row_19tix_46"
                   >
-                    <div
-                      class="_icon__glyph-area_1i355_9"
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_f_"
                     >
-                      <svg
-                        fill="currentColor"
-                        height="18"
-                        version="1.1"
-                        viewBox="0 0 24 24"
-                        width="18"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M15.41,16.58L10.83,12L15.41,7.41L14,6L8,12L14,18L15.41,16.58Z"
-                        />
-                      </svg>
-                    </div>
+                      Groups
+                    </h2>
                   </div>
-                </span>
-              </button>
-              <button
-                aria-label="Next page"
-                class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
-                data-testid="page-link-next"
-                disabled=""
-                type="button"
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Select groups to be added to this channel.
+                  </p>
+                </div>
+              </div>
+              <div
+                class="_admin-panel-header__actions_19tix_75"
               >
-                <span
-                  aria-hidden="true"
-                  class="_icon-button__icon-slot_13ryy_41"
+                <button
+                  class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+                  id="addGroupsToChannelToggle"
+                  type="button"
+                >
+                  <span
+                    class="_button__label_we8pe_31"
+                  >
+                    Add Group
+                  </span>
+                </button>
+              </div>
+            </div>
+          </header>
+          <div
+            class="_admin-panel__body_iwm08_25"
+          >
+            <div
+              class="groups-list groups-list-no-padding"
+            >
+              <div
+                class="groups-list--header"
+              >
+                <div
+                  class="group-name group-name-adjusted"
+                >
+                  Group Name
+                </div>
+                <div
+                  class="group-content"
                 >
                   <div
+                    class="group-description group-description-adjusted"
+                  >
+                    Member Count
+                  </div>
+                  <div
+                    class="group-description group-description-adjusted"
+                  >
+                    Roles
+                  </div>
+                  <div
+                    class="group-actions"
+                  />
+                </div>
+              </div>
+              <div
+                class="groups-list--body"
+                id="groups-list--body"
+              >
+                <div
+                  class="groups-list-loading"
+                >
+                  <i
+                    class="fa fa-spinner fa-pulse fa-2x"
+                  />
+                </div>
+              </div>
+              <div
+                class="groups-list--footer"
+              >
+                <div
+                  class="counter"
+                >
+                  1 - 1 of 1
+                </div>
+                <button
+                  aria-label="Previous page"
+                  class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
+                  data-testid="page-link-prev"
+                  disabled=""
+                  type="button"
+                >
+                  <span
                     aria-hidden="true"
-                    class="_icon_1i355_2 _icon--size-16_1i355_38"
+                    class="_icon-button__icon-slot_13ryy_41"
                   >
                     <div
-                      class="_icon__glyph-area_1i355_9"
+                      aria-hidden="true"
+                      class="_icon_1i355_2 _icon--size-16_1i355_38"
                     >
-                      <svg
-                        fill="currentColor"
-                        height="18"
-                        version="1.1"
-                        viewBox="0 0 24 24"
-                        width="18"
-                        xmlns="http://www.w3.org/2000/svg"
+                      <div
+                        class="_icon__glyph-area_1i355_9"
                       >
-                        <path
-                          d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"
-                        />
-                      </svg>
+                        <svg
+                          fill="currentColor"
+                          height="18"
+                          version="1.1"
+                          viewBox="0 0 24 24"
+                          width="18"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M15.41,16.58L10.83,12L15.41,7.41L14,6L8,12L14,18L15.41,16.58Z"
+                          />
+                        </svg>
+                      </div>
                     </div>
-                  </div>
-                </span>
-              </button>
+                  </span>
+                </button>
+                <button
+                  aria-label="Next page"
+                  class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77"
+                  data-testid="page-link-next"
+                  disabled=""
+                  type="button"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_icon-button__icon-slot_13ryy_41"
+                  >
+                    <div
+                      aria-hidden="true"
+                      class="_icon_1i355_2 _icon--size-16_1i355_38"
+                    >
+                      <div
+                        class="_icon__glyph-area_1i355_9"
+                      >
+                        <svg
+                          fill="currentColor"
+                          height="18"
+                          version="1.1"
+                          viewBox="0 0 24 24"
+                          width="18"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </span>
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        </section>
         <div>
           ChannelMembers
         </div>
@@ -1068,29 +1236,47 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
       <div
         class="admin-console__content"
       >
-        <div
-          class="AdminPanel clearfix "
+        <section
+          aria-labelledby="_r_q_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix"
           id="channel_profile"
         >
-          <div
-            class="header"
-          >
-            <div>
-              <h3>
-                Channel Profile
-              </h3>
-              <div
-                class="mt-2"
-              >
-                Summary of the channel, including the channel name.
-              </div>
-            </div>
-          </div>
-          <div
-            class="group-teams-and-channels AdminChannelDetails"
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
           >
             <div
-              class="group-teams-and-channels--body channel-desc-col"
+              class="_admin-panel-header__main_19tix_10"
+            >
+              <div
+                class="_admin-panel-header__start_19tix_19"
+              >
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
+                >
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_q_"
+                    >
+                      Channel Profile
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Summary of the channel, including the channel name.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </header>
+          <div
+            class="_admin-panel__body_iwm08_25"
+          >
+            <div
+              class="AdminChannelDetails channel-desc-col"
             >
               <div
                 class="channel-name"
@@ -1110,8 +1296,16 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                 <br />
                 test
               </div>
+            </div>
+          </div>
+          <div
+            class="_admin-panel-footer_13680_2 _admin-panel-footer--single_13680_35"
+          >
+            <div
+              class="_admin-panel-footer__content_13680_11"
+            >
               <div
-                class="AdminChannelDetails_archiveContainer"
+                class="_admin-panel-footer__left_13680_20"
               >
                 <button
                   class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64 _button--destructive_we8pe_176"
@@ -1151,174 +1345,210 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
               </div>
             </div>
           </div>
-        </div>
-        <div
-          class="AdminPanel clearfix "
+        </section>
+        <section
+          aria-labelledby="_r_r_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix"
           id="channel_moderation"
         >
-          <div
-            class="header"
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
           >
-            <div>
-              <h3>
-                Advanced Access Control
-              </h3>
+            <div
+              class="_admin-panel-header__main_19tix_10"
+            >
               <div
-                class="mt-2"
+                class="_admin-panel-header__start_19tix_19"
               >
-                Manage the actions available to channel members and guests.
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
+                >
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_r_"
+                    >
+                      Advanced Access Control
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Manage the actions available to channel members and guests.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </header>
+          <div
+            class="_admin-panel__body_iwm08_25"
+          >
+            <div
+              class="channel-moderation"
+            >
+              <div
+                class="channel-moderation--body"
+              >
+                <table
+                  class="channel-moderation--table"
+                  id="channel_moderation_table"
+                >
+                  <thead>
+                    <tr>
+                      <th>
+                        Permissions
+                      </th>
+                      <th>
+                        Guests
+                      </th>
+                      <th>
+                        Members
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody />
+                </table>
               </div>
             </div>
           </div>
-          <div
-            class="channel-moderation"
-          >
-            <div
-              class="channel-moderation--body"
-            >
-              <table
-                class="channel-moderation--table"
-                id="channel_moderation_table"
-              >
-                <thead>
-                  <tr>
-                    <th>
-                      Permissions
-                    </th>
-                    <th>
-                      Guests
-                    </th>
-                    <th>
-                      Members
-                    </th>
-                  </tr>
-                </thead>
-                <tbody />
-              </table>
-            </div>
-          </div>
-        </div>
-        <div
-          class="AdminPanel clearfix "
+        </section>
+        <section
+          aria-labelledby="_r_s_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix"
           id="channel_manage"
         >
-          <div
-            class="header"
-          >
-            <div>
-              <h3>
-                Channel Management
-              </h3>
-              <div
-                class="mt-2"
-              >
-                Choose between inviting members manually or syncing members automatically from groups.
-              </div>
-            </div>
-          </div>
-          <div
-            class="group-teams-and-channels"
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
           >
             <div
-              class="group-teams-and-channels--body"
+              class="_admin-panel-header__main_19tix_10"
             >
               <div
-                class="AdminSettingsSegmentedRow"
-                data-testid="allow-all-toggle"
+                class="_admin-panel-header__start_19tix_19"
               >
                 <div
-                  class="AdminSettingsSegmentedRow__text"
+                  class="_admin-panel-header__title-stack_19tix_37"
                 >
                   <div
-                    class="AdminSettingsSegmentedRow__title"
+                    class="_admin-panel-header__title-row_19tix_46"
                   >
-                    Public channel or private channel
-                  </div>
-                  <div
-                    class="AdminSettingsSegmentedRow__description"
-                  >
-                    Select Public for a channel any user can find and join. 
-                    <br />
-                    Select Private to require channel invitations to join. 
-                    <br />
-                    Use this control to change this channel from public to private or from private to public.
-                  </div>
-                </div>
-                <div
-                  aria-label="Public channel or private channel"
-                  class="AdminSettingsSegmentedRow__segments"
-                  role="group"
-                >
-                  <button
-                    aria-pressed="true"
-                    class="AdminSettingsSegmentedRow__segment AdminSettingsSegmentedRow__segment--active"
-                    data-testid="allow-all-toggle-public"
-                    id="allow-all-toggle-public"
-                    type="button"
-                  >
-                    Public
-                  </button>
-                  <button
-                    aria-pressed="false"
-                    class="AdminSettingsSegmentedRow__segment"
-                    data-testid="allow-all-toggle-private"
-                    id="allow-all-toggle-private"
-                    type="button"
-                  >
-                    Private
-                  </button>
-                </div>
-              </div>
-              <div
-                class="section-separator"
-              >
-                <hr
-                  class="separator__hr"
-                />
-              </div>
-              <div
-                data-testid="policy-enforce-toggle"
-              >
-                <label
-                  class="switch switch--size-medium switch--semi-bold switch--with-secondary"
-                  for="policy-enforce-toggle"
-                >
-                  <span
-                    class="switch__labels"
-                  >
-                    <span
-                      class="switch__label"
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_s_"
                     >
-                      Enable attribute based channel access
-                    </span>
-                    <span
-                      class="switch__secondary-label"
-                    >
-                      Recommend this channel to users whose attributes match the rules and (optionally) auto-add them. Anyone can still join freely.
-                    </span>
-                  </span>
-                  <span
-                    class="switch__track"
+                      Channel Management
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
                   >
-                    <input
-                      aria-checked="false"
-                      class="switch__input"
-                      data-testid="policy-enforce-toggle-button"
-                      id="policy-enforce-toggle"
-                      role="switch"
-                      tabindex="0"
-                      type="checkbox"
-                    />
-                    <span
-                      aria-hidden="true"
-                      class="switch__knob"
-                    />
-                  </span>
-                </label>
+                    Choose between inviting members manually or syncing members automatically from groups.
+                  </p>
+                </div>
               </div>
             </div>
+          </header>
+          <div
+            class="_admin-panel__body_iwm08_25"
+          >
+            <div
+              class="AdminSettingsSegmentedRow"
+              data-testid="allow-all-toggle"
+            >
+              <div
+                class="AdminSettingsSegmentedRow__text"
+              >
+                <div
+                  class="AdminSettingsSegmentedRow__title"
+                >
+                  Public channel or private channel
+                </div>
+                <div
+                  class="AdminSettingsSegmentedRow__description"
+                >
+                  Select Public for a channel any user can find and join. 
+                  <br />
+                  Select Private to require channel invitations to join. 
+                  <br />
+                  Use this control to change this channel from public to private or from private to public.
+                </div>
+              </div>
+              <div
+                aria-label="Public channel or private channel"
+                class="AdminSettingsSegmentedRow__segments"
+                role="group"
+              >
+                <button
+                  aria-pressed="true"
+                  class="AdminSettingsSegmentedRow__segment AdminSettingsSegmentedRow__segment--active"
+                  data-testid="allow-all-toggle-public"
+                  id="allow-all-toggle-public"
+                  type="button"
+                >
+                  Public
+                </button>
+                <button
+                  aria-pressed="false"
+                  class="AdminSettingsSegmentedRow__segment"
+                  data-testid="allow-all-toggle-private"
+                  id="allow-all-toggle-private"
+                  type="button"
+                >
+                  Private
+                </button>
+              </div>
+            </div>
+            <div
+              class="section-separator"
+            >
+              <hr
+                class="separator__hr"
+              />
+            </div>
+            <div
+              data-testid="policy-enforce-toggle"
+            >
+              <label
+                class="switch switch--size-medium switch--semi-bold switch--with-secondary"
+                for="policy-enforce-toggle"
+              >
+                <span
+                  class="switch__labels"
+                >
+                  <span
+                    class="switch__label"
+                  >
+                    Enable attribute based channel access
+                  </span>
+                  <span
+                    class="switch__secondary-label"
+                  >
+                    Recommend this channel to users whose attributes match the rules and (optionally) auto-add them. Anyone can still join freely.
+                  </span>
+                </span>
+                <span
+                  class="switch__track"
+                >
+                  <input
+                    aria-checked="false"
+                    class="switch__input"
+                    data-testid="policy-enforce-toggle-button"
+                    id="policy-enforce-toggle"
+                    role="switch"
+                    tabindex="0"
+                    type="checkbox"
+                  />
+                  <span
+                    aria-hidden="true"
+                    class="switch__knob"
+                  />
+                </span>
+              </label>
+            </div>
           </div>
-        </div>
+        </section>
         <div>
           ChannelMembers
         </div>
@@ -1383,29 +1613,47 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
       <div
         class="admin-console__content"
       >
-        <div
-          class="AdminPanel clearfix "
+        <section
+          aria-labelledby="_r_u_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix"
           id="channel_profile"
         >
-          <div
-            class="header"
-          >
-            <div>
-              <h3>
-                Channel Profile
-              </h3>
-              <div
-                class="mt-2"
-              >
-                Summary of the channel, including the channel name.
-              </div>
-            </div>
-          </div>
-          <div
-            class="group-teams-and-channels AdminChannelDetails"
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
           >
             <div
-              class="group-teams-and-channels--body channel-desc-col"
+              class="_admin-panel-header__main_19tix_10"
+            >
+              <div
+                class="_admin-panel-header__start_19tix_19"
+              >
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
+                >
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_u_"
+                    >
+                      Channel Profile
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Summary of the channel, including the channel name.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </header>
+          <div
+            class="_admin-panel__body_iwm08_25"
+          >
+            <div
+              class="AdminChannelDetails channel-desc-col"
             >
               <div
                 class="channel-name"
@@ -1424,8 +1672,16 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                 </b>
                 <br />
               </div>
+            </div>
+          </div>
+          <div
+            class="_admin-panel-footer_13680_2 _admin-panel-footer--single_13680_35"
+          >
+            <div
+              class="_admin-panel-footer__content_13680_11"
+            >
               <div
-                class="AdminChannelDetails_archiveContainer"
+                class="_admin-panel-footer__left_13680_20"
               >
                 <button
                   class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64 _button--destructive_we8pe_176"
@@ -1465,174 +1721,210 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
               </div>
             </div>
           </div>
-        </div>
-        <div
-          class="AdminPanel clearfix "
+        </section>
+        <section
+          aria-labelledby="_r_v_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix"
           id="channel_moderation"
         >
-          <div
-            class="header"
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
           >
-            <div>
-              <h3>
-                Advanced Access Control
-              </h3>
+            <div
+              class="_admin-panel-header__main_19tix_10"
+            >
               <div
-                class="mt-2"
+                class="_admin-panel-header__start_19tix_19"
               >
-                Manage the actions available to channel members and guests.
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
+                >
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_v_"
+                    >
+                      Advanced Access Control
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Manage the actions available to channel members and guests.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </header>
+          <div
+            class="_admin-panel__body_iwm08_25"
+          >
+            <div
+              class="channel-moderation"
+            >
+              <div
+                class="channel-moderation--body"
+              >
+                <table
+                  class="channel-moderation--table"
+                  id="channel_moderation_table"
+                >
+                  <thead>
+                    <tr>
+                      <th>
+                        Permissions
+                      </th>
+                      <th>
+                        Guests
+                      </th>
+                      <th>
+                        Members
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody />
+                </table>
               </div>
             </div>
           </div>
-          <div
-            class="channel-moderation"
-          >
-            <div
-              class="channel-moderation--body"
-            >
-              <table
-                class="channel-moderation--table"
-                id="channel_moderation_table"
-              >
-                <thead>
-                  <tr>
-                    <th>
-                      Permissions
-                    </th>
-                    <th>
-                      Guests
-                    </th>
-                    <th>
-                      Members
-                    </th>
-                  </tr>
-                </thead>
-                <tbody />
-              </table>
-            </div>
-          </div>
-        </div>
-        <div
-          class="AdminPanel clearfix "
+        </section>
+        <section
+          aria-labelledby="_r_10_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix"
           id="channel_manage"
         >
-          <div
-            class="header"
-          >
-            <div>
-              <h3>
-                Channel Management
-              </h3>
-              <div
-                class="mt-2"
-              >
-                Choose between inviting members manually or syncing members automatically from groups.
-              </div>
-            </div>
-          </div>
-          <div
-            class="group-teams-and-channels"
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
           >
             <div
-              class="group-teams-and-channels--body"
+              class="_admin-panel-header__main_19tix_10"
             >
               <div
-                class="AdminSettingsSegmentedRow"
-                data-testid="allow-all-toggle"
+                class="_admin-panel-header__start_19tix_19"
               >
                 <div
-                  class="AdminSettingsSegmentedRow__text"
+                  class="_admin-panel-header__title-stack_19tix_37"
                 >
                   <div
-                    class="AdminSettingsSegmentedRow__title"
+                    class="_admin-panel-header__title-row_19tix_46"
                   >
-                    Public channel or private channel
-                  </div>
-                  <div
-                    class="AdminSettingsSegmentedRow__description"
-                  >
-                    Select Public for a channel any user can find and join. 
-                    <br />
-                    Select Private to require channel invitations to join. 
-                    <br />
-                    Use this control to change this channel from public to private or from private to public.
-                  </div>
-                </div>
-                <div
-                  aria-label="Public channel or private channel"
-                  class="AdminSettingsSegmentedRow__segments"
-                  role="group"
-                >
-                  <button
-                    aria-pressed="true"
-                    class="AdminSettingsSegmentedRow__segment AdminSettingsSegmentedRow__segment--active"
-                    data-testid="allow-all-toggle-public"
-                    id="allow-all-toggle-public"
-                    type="button"
-                  >
-                    Public
-                  </button>
-                  <button
-                    aria-pressed="false"
-                    class="AdminSettingsSegmentedRow__segment"
-                    data-testid="allow-all-toggle-private"
-                    id="allow-all-toggle-private"
-                    type="button"
-                  >
-                    Private
-                  </button>
-                </div>
-              </div>
-              <div
-                class="section-separator"
-              >
-                <hr
-                  class="separator__hr"
-                />
-              </div>
-              <div
-                data-testid="policy-enforce-toggle"
-              >
-                <label
-                  class="switch switch--size-medium switch--semi-bold switch--with-secondary"
-                  for="policy-enforce-toggle"
-                >
-                  <span
-                    class="switch__labels"
-                  >
-                    <span
-                      class="switch__label"
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_10_"
                     >
-                      Enable attribute based channel access
-                    </span>
-                    <span
-                      class="switch__secondary-label"
-                    >
-                      Recommend this channel to users whose attributes match the rules and (optionally) auto-add them. Anyone can still join freely.
-                    </span>
-                  </span>
-                  <span
-                    class="switch__track"
+                      Channel Management
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
                   >
-                    <input
-                      aria-checked="false"
-                      class="switch__input"
-                      data-testid="policy-enforce-toggle-button"
-                      id="policy-enforce-toggle"
-                      role="switch"
-                      tabindex="0"
-                      type="checkbox"
-                    />
-                    <span
-                      aria-hidden="true"
-                      class="switch__knob"
-                    />
-                  </span>
-                </label>
+                    Choose between inviting members manually or syncing members automatically from groups.
+                  </p>
+                </div>
               </div>
             </div>
+          </header>
+          <div
+            class="_admin-panel__body_iwm08_25"
+          >
+            <div
+              class="AdminSettingsSegmentedRow"
+              data-testid="allow-all-toggle"
+            >
+              <div
+                class="AdminSettingsSegmentedRow__text"
+              >
+                <div
+                  class="AdminSettingsSegmentedRow__title"
+                >
+                  Public channel or private channel
+                </div>
+                <div
+                  class="AdminSettingsSegmentedRow__description"
+                >
+                  Select Public for a channel any user can find and join. 
+                  <br />
+                  Select Private to require channel invitations to join. 
+                  <br />
+                  Use this control to change this channel from public to private or from private to public.
+                </div>
+              </div>
+              <div
+                aria-label="Public channel or private channel"
+                class="AdminSettingsSegmentedRow__segments"
+                role="group"
+              >
+                <button
+                  aria-pressed="true"
+                  class="AdminSettingsSegmentedRow__segment AdminSettingsSegmentedRow__segment--active"
+                  data-testid="allow-all-toggle-public"
+                  id="allow-all-toggle-public"
+                  type="button"
+                >
+                  Public
+                </button>
+                <button
+                  aria-pressed="false"
+                  class="AdminSettingsSegmentedRow__segment"
+                  data-testid="allow-all-toggle-private"
+                  id="allow-all-toggle-private"
+                  type="button"
+                >
+                  Private
+                </button>
+              </div>
+            </div>
+            <div
+              class="section-separator"
+            >
+              <hr
+                class="separator__hr"
+              />
+            </div>
+            <div
+              data-testid="policy-enforce-toggle"
+            >
+              <label
+                class="switch switch--size-medium switch--semi-bold switch--with-secondary"
+                for="policy-enforce-toggle"
+              >
+                <span
+                  class="switch__labels"
+                >
+                  <span
+                    class="switch__label"
+                  >
+                    Enable attribute based channel access
+                  </span>
+                  <span
+                    class="switch__secondary-label"
+                  >
+                    Recommend this channel to users whose attributes match the rules and (optionally) auto-add them. Anyone can still join freely.
+                  </span>
+                </span>
+                <span
+                  class="switch__track"
+                >
+                  <input
+                    aria-checked="false"
+                    class="switch__input"
+                    data-testid="policy-enforce-toggle-button"
+                    id="policy-enforce-toggle"
+                    role="switch"
+                    tabindex="0"
+                    type="checkbox"
+                  />
+                  <span
+                    aria-hidden="true"
+                    class="switch__knob"
+                  />
+                </span>
+              </label>
+            </div>
           </div>
-        </div>
+        </section>
         <div>
           ChannelMembers
         </div>
@@ -1697,29 +1989,47 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
       <div
         class="admin-console__content"
       >
-        <div
-          class="AdminPanel clearfix "
+        <section
+          aria-labelledby="_r_k_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix"
           id="channel_profile"
         >
-          <div
-            class="header"
-          >
-            <div>
-              <h3>
-                Channel Profile
-              </h3>
-              <div
-                class="mt-2"
-              >
-                Summary of the channel, including the channel name.
-              </div>
-            </div>
-          </div>
-          <div
-            class="group-teams-and-channels AdminChannelDetails"
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
           >
             <div
-              class="group-teams-and-channels--body channel-desc-col"
+              class="_admin-panel-header__main_19tix_10"
+            >
+              <div
+                class="_admin-panel-header__start_19tix_19"
+              >
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
+                >
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_k_"
+                    >
+                      Channel Profile
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Summary of the channel, including the channel name.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </header>
+          <div
+            class="_admin-panel__body_iwm08_25"
+          >
+            <div
+              class="AdminChannelDetails channel-desc-col"
             >
               <div
                 class="channel-name"
@@ -1739,8 +2049,16 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                 <br />
                 test
               </div>
+            </div>
+          </div>
+          <div
+            class="_admin-panel-footer_13680_2 _admin-panel-footer--single_13680_35"
+          >
+            <div
+              class="_admin-panel-footer__content_13680_11"
+            >
               <div
-                class="AdminChannelDetails_archiveContainer"
+                class="_admin-panel-footer__left_13680_20"
               >
                 <button
                   class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64 _button--destructive_we8pe_176"
@@ -1780,134 +2098,170 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
               </div>
             </div>
           </div>
-        </div>
-        <div
-          class="AdminPanel clearfix "
+        </section>
+        <section
+          aria-labelledby="_r_l_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix"
           id="channel_moderation"
         >
-          <div
-            class="header"
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
           >
-            <div>
-              <h3>
-                Advanced Access Control
-              </h3>
+            <div
+              class="_admin-panel-header__main_19tix_10"
+            >
               <div
-                class="mt-2"
+                class="_admin-panel-header__start_19tix_19"
               >
-                Manage the actions available to channel members and guests.
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
+                >
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_l_"
+                    >
+                      Advanced Access Control
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Manage the actions available to channel members and guests.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </header>
+          <div
+            class="_admin-panel__body_iwm08_25"
+          >
+            <div
+              class="channel-moderation"
+            >
+              <div
+                class="channel-moderation--body"
+              >
+                <table
+                  class="channel-moderation--table"
+                  id="channel_moderation_table"
+                >
+                  <thead>
+                    <tr>
+                      <th>
+                        Permissions
+                      </th>
+                      <th>
+                        Guests
+                      </th>
+                      <th>
+                        Members
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody />
+                </table>
               </div>
             </div>
           </div>
-          <div
-            class="channel-moderation"
-          >
-            <div
-              class="channel-moderation--body"
-            >
-              <table
-                class="channel-moderation--table"
-                id="channel_moderation_table"
-              >
-                <thead>
-                  <tr>
-                    <th>
-                      Permissions
-                    </th>
-                    <th>
-                      Guests
-                    </th>
-                    <th>
-                      Members
-                    </th>
-                  </tr>
-                </thead>
-                <tbody />
-              </table>
-            </div>
-          </div>
-        </div>
-        <div
-          class="AdminPanel clearfix "
+        </section>
+        <section
+          aria-labelledby="_r_m_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix"
           id="channel_manage"
         >
-          <div
-            class="header"
-          >
-            <div>
-              <h3>
-                Channel Management
-              </h3>
-              <div
-                class="mt-2"
-              >
-                Choose between inviting members manually or syncing members automatically from groups.
-              </div>
-            </div>
-          </div>
-          <div
-            class="group-teams-and-channels"
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
           >
             <div
-              class="group-teams-and-channels--body"
+              class="_admin-panel-header__main_19tix_10"
             >
               <div
-                class="AdminSettingsSegmentedRow"
-                data-testid="allow-all-toggle"
+                class="_admin-panel-header__start_19tix_19"
               >
                 <div
-                  class="AdminSettingsSegmentedRow__text"
+                  class="_admin-panel-header__title-stack_19tix_37"
                 >
                   <div
-                    class="AdminSettingsSegmentedRow__title"
+                    class="_admin-panel-header__title-row_19tix_46"
                   >
-                    Public channel or private channel
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_m_"
+                    >
+                      Channel Management
+                    </h2>
                   </div>
-                  <div
-                    class="AdminSettingsSegmentedRow__description"
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
                   >
-                    Select Public for a channel any user can find and join. 
-                    <br />
-                    Select Private to require channel invitations to join. 
-                    <br />
-                    Use this control to change this channel from public to private or from private to public.
-                  </div>
+                    Choose between inviting members manually or syncing members automatically from groups.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </header>
+          <div
+            class="_admin-panel__body_iwm08_25"
+          >
+            <div
+              class="AdminSettingsSegmentedRow"
+              data-testid="allow-all-toggle"
+            >
+              <div
+                class="AdminSettingsSegmentedRow__text"
+              >
+                <div
+                  class="AdminSettingsSegmentedRow__title"
+                >
+                  Public channel or private channel
                 </div>
                 <div
-                  aria-label="Public channel or private channel"
-                  class="AdminSettingsSegmentedRow__segments"
-                  role="group"
+                  class="AdminSettingsSegmentedRow__description"
                 >
-                  <button
-                    aria-pressed="true"
-                    class="AdminSettingsSegmentedRow__segment AdminSettingsSegmentedRow__segment--active"
-                    data-testid="allow-all-toggle-public"
-                    id="allow-all-toggle-public"
-                    type="button"
-                  >
-                    Public
-                  </button>
-                  <button
-                    aria-pressed="false"
-                    class="AdminSettingsSegmentedRow__segment"
-                    data-testid="allow-all-toggle-private"
-                    id="allow-all-toggle-private"
-                    type="button"
-                  >
-                    Private
-                  </button>
+                  Select Public for a channel any user can find and join. 
+                  <br />
+                  Select Private to require channel invitations to join. 
+                  <br />
+                  Use this control to change this channel from public to private or from private to public.
                 </div>
               </div>
               <div
-                class="section-separator"
+                aria-label="Public channel or private channel"
+                class="AdminSettingsSegmentedRow__segments"
+                role="group"
               >
-                <hr
-                  class="separator__hr"
-                />
+                <button
+                  aria-pressed="true"
+                  class="AdminSettingsSegmentedRow__segment AdminSettingsSegmentedRow__segment--active"
+                  data-testid="allow-all-toggle-public"
+                  id="allow-all-toggle-public"
+                  type="button"
+                >
+                  Public
+                </button>
+                <button
+                  aria-pressed="false"
+                  class="AdminSettingsSegmentedRow__segment"
+                  data-testid="allow-all-toggle-private"
+                  id="allow-all-toggle-private"
+                  type="button"
+                >
+                  Private
+                </button>
               </div>
             </div>
+            <div
+              class="section-separator"
+            >
+              <hr
+                class="separator__hr"
+              />
+            </div>
           </div>
-        </div>
+        </section>
         <div>
           ChannelMembers
         </div>
@@ -1972,29 +2326,47 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
       <div
         class="admin-console__content"
       >
-        <div
-          class="AdminPanel clearfix "
+        <section
+          aria-labelledby="_r_n_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix"
           id="channel_profile"
         >
-          <div
-            class="header"
-          >
-            <div>
-              <h3>
-                Channel Profile
-              </h3>
-              <div
-                class="mt-2"
-              >
-                Summary of the channel, including the channel name.
-              </div>
-            </div>
-          </div>
-          <div
-            class="group-teams-and-channels AdminChannelDetails"
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
           >
             <div
-              class="group-teams-and-channels--body channel-desc-col"
+              class="_admin-panel-header__main_19tix_10"
+            >
+              <div
+                class="_admin-panel-header__start_19tix_19"
+              >
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
+                >
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_n_"
+                    >
+                      Channel Profile
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Summary of the channel, including the channel name.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </header>
+          <div
+            class="_admin-panel__body_iwm08_25"
+          >
+            <div
+              class="AdminChannelDetails channel-desc-col"
             >
               <div
                 class="channel-name"
@@ -2013,8 +2385,16 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                 </b>
                 <br />
               </div>
+            </div>
+          </div>
+          <div
+            class="_admin-panel-footer_13680_2 _admin-panel-footer--single_13680_35"
+          >
+            <div
+              class="_admin-panel-footer__content_13680_11"
+            >
               <div
-                class="AdminChannelDetails_archiveContainer"
+                class="_admin-panel-footer__left_13680_20"
               >
                 <button
                   class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64 _button--destructive_we8pe_176"
@@ -2054,134 +2434,170 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
               </div>
             </div>
           </div>
-        </div>
-        <div
-          class="AdminPanel clearfix "
+        </section>
+        <section
+          aria-labelledby="_r_o_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix"
           id="channel_moderation"
         >
-          <div
-            class="header"
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
           >
-            <div>
-              <h3>
-                Advanced Access Control
-              </h3>
+            <div
+              class="_admin-panel-header__main_19tix_10"
+            >
               <div
-                class="mt-2"
+                class="_admin-panel-header__start_19tix_19"
               >
-                Manage the actions available to channel members and guests.
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
+                >
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_o_"
+                    >
+                      Advanced Access Control
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Manage the actions available to channel members and guests.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </header>
+          <div
+            class="_admin-panel__body_iwm08_25"
+          >
+            <div
+              class="channel-moderation"
+            >
+              <div
+                class="channel-moderation--body"
+              >
+                <table
+                  class="channel-moderation--table"
+                  id="channel_moderation_table"
+                >
+                  <thead>
+                    <tr>
+                      <th>
+                        Permissions
+                      </th>
+                      <th>
+                        Guests
+                      </th>
+                      <th>
+                        Members
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody />
+                </table>
               </div>
             </div>
           </div>
-          <div
-            class="channel-moderation"
-          >
-            <div
-              class="channel-moderation--body"
-            >
-              <table
-                class="channel-moderation--table"
-                id="channel_moderation_table"
-              >
-                <thead>
-                  <tr>
-                    <th>
-                      Permissions
-                    </th>
-                    <th>
-                      Guests
-                    </th>
-                    <th>
-                      Members
-                    </th>
-                  </tr>
-                </thead>
-                <tbody />
-              </table>
-            </div>
-          </div>
-        </div>
-        <div
-          class="AdminPanel clearfix "
+        </section>
+        <section
+          aria-labelledby="_r_p_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix"
           id="channel_manage"
         >
-          <div
-            class="header"
-          >
-            <div>
-              <h3>
-                Channel Management
-              </h3>
-              <div
-                class="mt-2"
-              >
-                Choose between inviting members manually or syncing members automatically from groups.
-              </div>
-            </div>
-          </div>
-          <div
-            class="group-teams-and-channels"
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
           >
             <div
-              class="group-teams-and-channels--body"
+              class="_admin-panel-header__main_19tix_10"
             >
               <div
-                class="AdminSettingsSegmentedRow"
-                data-testid="allow-all-toggle"
+                class="_admin-panel-header__start_19tix_19"
               >
                 <div
-                  class="AdminSettingsSegmentedRow__text"
+                  class="_admin-panel-header__title-stack_19tix_37"
                 >
                   <div
-                    class="AdminSettingsSegmentedRow__title"
+                    class="_admin-panel-header__title-row_19tix_46"
                   >
-                    Public channel or private channel
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_p_"
+                    >
+                      Channel Management
+                    </h2>
                   </div>
-                  <div
-                    class="AdminSettingsSegmentedRow__description"
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
                   >
-                    Select Public for a channel any user can find and join. 
-                    <br />
-                    Select Private to require channel invitations to join. 
-                    <br />
-                    Use this control to change this channel from public to private or from private to public.
-                  </div>
+                    Choose between inviting members manually or syncing members automatically from groups.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </header>
+          <div
+            class="_admin-panel__body_iwm08_25"
+          >
+            <div
+              class="AdminSettingsSegmentedRow"
+              data-testid="allow-all-toggle"
+            >
+              <div
+                class="AdminSettingsSegmentedRow__text"
+              >
+                <div
+                  class="AdminSettingsSegmentedRow__title"
+                >
+                  Public channel or private channel
                 </div>
                 <div
-                  aria-label="Public channel or private channel"
-                  class="AdminSettingsSegmentedRow__segments"
-                  role="group"
+                  class="AdminSettingsSegmentedRow__description"
                 >
-                  <button
-                    aria-pressed="true"
-                    class="AdminSettingsSegmentedRow__segment AdminSettingsSegmentedRow__segment--active"
-                    data-testid="allow-all-toggle-public"
-                    id="allow-all-toggle-public"
-                    type="button"
-                  >
-                    Public
-                  </button>
-                  <button
-                    aria-pressed="false"
-                    class="AdminSettingsSegmentedRow__segment"
-                    data-testid="allow-all-toggle-private"
-                    id="allow-all-toggle-private"
-                    type="button"
-                  >
-                    Private
-                  </button>
+                  Select Public for a channel any user can find and join. 
+                  <br />
+                  Select Private to require channel invitations to join. 
+                  <br />
+                  Use this control to change this channel from public to private or from private to public.
                 </div>
               </div>
               <div
-                class="section-separator"
+                aria-label="Public channel or private channel"
+                class="AdminSettingsSegmentedRow__segments"
+                role="group"
               >
-                <hr
-                  class="separator__hr"
-                />
+                <button
+                  aria-pressed="true"
+                  class="AdminSettingsSegmentedRow__segment AdminSettingsSegmentedRow__segment--active"
+                  data-testid="allow-all-toggle-public"
+                  id="allow-all-toggle-public"
+                  type="button"
+                >
+                  Public
+                </button>
+                <button
+                  aria-pressed="false"
+                  class="AdminSettingsSegmentedRow__segment"
+                  data-testid="allow-all-toggle-private"
+                  id="allow-all-toggle-private"
+                  type="button"
+                >
+                  Private
+                </button>
               </div>
             </div>
+            <div
+              class="section-separator"
+            >
+              <hr
+                class="separator__hr"
+              />
+            </div>
           </div>
-        </div>
+        </section>
         <div>
           ChannelMembers
         </div>
