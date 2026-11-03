@@ -15483,7 +15483,7 @@
   },
   {
     "id": "health.rule.saml_probe_failed.message.partial",
-    "translation": "The SAML check of the IdP certificate and IdP URL failed on {{.nodes}}, while it passes on the other nodes, so SAML sign-in may fail on those nodes. Check the network, firewall, proxy and DNS settings on those nodes.",
+    "translation": "The SAML check of the IdP certificate and IdP URL failed on {{.nodes}}, while it passes on the other nodes, so SAML sign-in may fail on those nodes. The check reads the certificate from those nodes' configuration, so check that the IdP certificate there is present, valid and the same as on the other nodes.",
     "description": "Health dashboard finding detail when the SAML check fails on some cluster nodes but not others; {{.nodes}} is a comma-separated list of node hostnames, and 'IdP' means identity provider."
   },
   {
