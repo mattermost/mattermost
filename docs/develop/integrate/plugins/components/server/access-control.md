@@ -3,9 +3,9 @@ title: "Enforce access control in your plugin"
 sidebar_position: 30
 ---
 
-From Mattermost v11.11, a plugin can protect its own resources, such as reports, agents or dashboards, with [attribute-based access control](/administration-guide/manage/admin/attribute-based-access-control) policies. Each policy holds rules that compare a user's attributes with the conditions the rule sets, and your plugin asks Mattermost whether a user may perform an action on a resource. Your plugin's web app can reuse the same rule editors that Mattermost uses in the System Console.
+From Mattermost v11.11, a plugin can protect its own resources, such as reports, agents or dashboards, with [attribute-based access control](/administration-guide/manage/admin/attribute-based-access-control) policies. Each policy holds rules that compare a user's attributes with the conditions the rule sets, and your plugin asks Mattermost whether a user may perform an action on a resource.
 
-Mattermost also enforces its own file upload and download policies, and a plugin that handles files can check them too. See [Respect file upload and download policies](#respect-file-upload-and-download-policies).
+Mattermost also enforces its own permission policies, which restrict actions in channels such as uploading and downloading files. A plugin that performs one of those actions for users should check them too. See [Respect permission policies](#respect-permission-policies).
 
 Policy evaluation needs a Mattermost Entry or Enterprise Advanced license, with [attribute-based access control enabled](/administration-guide/configure/system-attributes#enable-attribute-based-access-control). For the method reference, see the [server plugin SDK reference](/developers/integrate/reference/server#API.EvaluateAccessControl).
 
@@ -102,101 +102,22 @@ When attribute-based access control is unavailable, Mattermost still checks whet
 
 ## Build a policy editor
 
-These methods support an admin UI for writing rules. Each takes an `actingUserID` and runs as that user. As with saving, Mattermost doesn't check that this user may make the call, so check permissions in your plugin first.
+If your plugin lets admins write rules, these methods help its UI check an expression, test it against users and list the attributes a rule can use. Each takes an `actingUserID` and runs as that user. As with saving, Mattermost doesn't check that this user may make the call, so check permissions in your plugin first.
 
 | Method | Use |
 |---|---|
 | `CheckAccessControlExpression(actingUserID, resourceType, expression)` | Checks an expression. Returns a list of errors, each with `Line`, `Column` and `Message`; an empty list means the expression is valid. |
 | `QueryUsersForAccessControlExpression(actingUserID, resourceType, expression, term, cursorID, limit)` | Lists the users who match an expression, optionally filtered by a search term, so an admin can test a rule. Returns `Users` and `Total`. `limit` defaults to 50 and is capped at 100; pass the last user's ID as `cursorID` for the next page. |
 | `GetAccessControlFieldsAutocomplete(actingUserID, after, limit)` | Lists the attributes a rule can use: the built-in user fields first, then user attributes. Pass an empty `after` to start at the beginning. `limit` defaults to 50 and is capped at 100. |
-| `GetAccessControlVisualAST(actingUserID, resourceType, expression)` | Converts an expression to the row-by-row form that the table editor displays. |
+| `GetAccessControlVisualAST(actingUserID, resourceType, expression)` | Converts an expression to a list of conditions, each with an attribute, an operator and a value, so your UI can show it as a table. Returns an error for an expression that can't be shown that way, such as one that joins conditions on different attributes with OR. |
 
-Expose these through your plugin's HTTP endpoints (`ServeHTTP`) so your web app can call them.
+Like the rest of the plugin API, these methods run in your plugin's server. For your web app to use them, add routes to your plugin's `ServeHTTP` that call them, and call those routes from the web app.
 
-## Reuse the rule editors in your web app
+## Respect permission policies
 
-From Mattermost v11.11, the web app exports the two editors that the System Console uses for access rules, so a web app plugin can offer the same editing experience:
+Admins can restrict what users can do in channels with [permission policies](/administration-guide/manage/admin/abac-system-wide-policies#permission-policies), such as who can upload and download files. If your plugin performs one of these actions for users, check the policies before it does.
 
-- `window.Components.AccessControlTableEditor`: the table editor (Simple Mode), where each row is a condition and all rows must match.
-- `window.Components.AccessControlCELEditor`: the expression editor (Advanced Mode), with syntax checking and autocomplete.
-
-Both are loaded on demand, so render them inside a React `<Suspense>` boundary. On older servers they're missing, so check for them before you show your editor.
-
-Each editor talks to your plugin's server through functions you pass in `actions`. Functions that return an `ActionResult` resolve to `{data}` on success or `{error}` on failure.
-
-```tsx
-import React, {Suspense} from 'react';
-
-function ReportPolicyEditor({expression, setExpression, setValid, fields, client}) {
-    const TableEditor = window.Components?.AccessControlTableEditor;
-    if (!TableEditor) {
-        return null; // the server is too old
-    }
-
-    const wrap = (fn) => async (...args) => {
-        try {
-            return {data: await fn(...args)};
-        } catch (error) {
-            return {error};
-        }
-    };
-
-    return (
-        <Suspense fallback={null}>
-            <TableEditor
-                value={expression}
-                onChange={setExpression}
-                onValidate={setValid}
-                userAttributes={fields}
-                enableUserManagedAttributes={false}
-                onParseError={() => { /* switch to the expression editor */ }}
-                actions={{
-                    getVisualAST: wrap((expr) => client.getVisualAST(expr)),
-                    searchUsers: wrap((expr, term, after, limit) => client.testExpression(expr, term, after, limit)),
-                }}
-            />
-        </Suspense>
-    );
-}
-```
-
-Here `client.getVisualAST` and `client.testExpression` stand for your own web app's calls to your plugin's endpoints, which call `GetAccessControlVisualAST` and `QueryUsersForAccessControlExpression`.
-
-### `AccessControlTableEditor` props
-
-| Prop | Required | Description |
-|---|---|---|
-| `value` | Yes | The expression. |
-| `onChange(value)` | Yes | Called with the new expression when the rows change. |
-| `onValidate(isValid)` | No | Called with whether the rows form a valid expression. |
-| `userAttributes` | Yes | The attribute fields, as returned by `GetAccessControlFieldsAutocomplete`. |
-| `enableUserManagedAttributes` | Yes | When `false`, attributes that users can set themselves are shown but can't be picked. See [Enable user-managed attributes](/administration-guide/configure/system-attributes#enable-user-managed-attributes). |
-| `onParseError(error)` | Yes | Called when the expression can't be shown as rows, for example because it uses OR. Switch to the expression editor when this happens. |
-| `actions.getVisualAST(expression)` | Yes | Returns an `ActionResult` whose `data` is the result of `GetAccessControlVisualAST`. |
-| `actions.searchUsers(expression, term, after, limit)` | No | Returns an `ActionResult` whose `data` is the result of `QueryUsersForAccessControlExpression`. Used by the editor's **Test access rule** button. Pass it so the test goes through your plugin; without it, the editor calls the core REST API directly. |
-| `disabled` | No | Makes the editor read-only. |
-| `isSystemAdmin`, `validateExpressionAgainstRequester(expression)` | No | When `isSystemAdmin` is `false` and the function is provided, the editor warns if the current user wouldn't match the rules. The function returns an `ActionResult` whose `data` is `{requester_matches: boolean}`. |
-| `onTestClick` | No | Replaces the built-in test results dialog: the test button calls this function instead. |
-| `testButtonLabel`, `testButtonDisabled`, `testButtonTooltip` | No | Change the test button's label, disable it, and set the tooltip shown while it's disabled. |
-
-### `AccessControlCELEditor` props
-
-| Prop | Required | Description |
-|---|---|---|
-| `value` | Yes | The expression. |
-| `onChange(value)` | Yes | Called with the new expression as the user types. |
-| `onValidate(isValid)` | No | Called with whether the expression is valid. |
-| `userAttributes` | Yes | The attributes to offer in autocomplete. Each entry is `{attribute, values, isNative, objectType}`: the field's `name`, an empty `values` list, `isNative` set to the field's `attrs.native`, and the field's `object_type`. Build them from the result of `GetAccessControlFieldsAutocomplete`. |
-| `actions.checkExpression(expression)` | No | Returns a promise of the result of `CheckAccessControlExpression`. Pass it so the check goes through your plugin; without it, the editor calls the core REST API directly. |
-| `actions.searchUsers(expression, term, after, limit)` | No | As for the table editor. |
-| `placeholder`, `className`, `disabled` | No | Placeholder text, an extra CSS class, and read-only mode. |
-| `onTestClick`, `testButtonLabel` | No | As for the table editor. |
-
-Both editors also accept `channelId` and `teamId`, and the expression editor accepts `resourceAttributes`. Mattermost uses these for its own channel and team policies; plugin editors don't need them.
-
-## Respect file upload and download policies
-
-Admins can restrict who can upload and download files with [permission policies](/administration-guide/manage/admin/abac-system-wide-policies#permission-policies). If your plugin serves file contents or attaches files for users, check those policies with `HasPermissionToFileAction(sessionID, fileID, action)`. It needs Mattermost v12.0, or v11.7.12, v11.10.3, v11.11.1 or a later patch release of those versions.
+For files, use `HasPermissionToFileAction(sessionID, fileID, action)` when your plugin serves file contents or attaches files for users. It needs Mattermost v12.0, or v11.7.12, v11.10.3, v11.11.1 or a later patch release of those versions.
 
 - `sessionID` is the session of the user making the request. In `ServeHTTP`, it's `c.SessionId` from the `*plugin.Context`.
 - `action` is `upload_file_attachment` or `download_file_attachment`.
