@@ -6,7 +6,7 @@ package commands
 import (
 	"context"
 	"fmt"
-	"strings"
+	"slices"
 	"testing"
 	"time"
 
@@ -38,19 +38,24 @@ var EnableEnterpriseTests string
 // Execute/ExecuteContext, which only assigns a fresh context when one isn't
 // already set.
 func newTestCmd(t *testing.T, base *cobra.Command) *cobra.Command {
+	// A slice flag's first Set replaces its default and later ones append, and pflag can't
+	// reset that. So the test gets fresh slice values, and base gets its own back afterwards.
+	originals := make(map[*pflag.Flag]pflag.Value)
+	base.Flags().VisitAll(func(f *pflag.Flag) {
+		if fresh := newSliceValue(t, f); fresh != nil {
+			originals[f] = f.Value
+			f.Value = fresh
+		}
+	})
+
 	t.Cleanup(func() {
 		// A nil context is intentional here: it restores cobra's own "no
 		// context assigned yet" sentinel (see Command.ExecuteC), so the next
 		// real dispatch gets a fresh context instead of this test's.
 		base.SetContext(nil) //nolint:staticcheck
 		base.Flags().VisitAll(func(f *pflag.Flag) {
-			// Set would add the printed default, e.g. "[]", to a slice flag's values
-			if slice, ok := f.Value.(pflag.SliceValue); ok {
-				var values []string
-				if def := strings.Trim(f.DefValue, "[]"); def != "" {
-					values = strings.Split(def, ",")
-				}
-				_ = slice.Replace(values)
+			if original, ok := originals[f]; ok {
+				f.Value = original
 			} else {
 				_ = f.Value.Set(f.DefValue)
 			}
@@ -59,6 +64,59 @@ func newTestCmd(t *testing.T, base *cobra.Command) *cobra.Command {
 	})
 	base.SetContext(t.Context())
 	return base
+}
+
+// newSliceValue returns a new value holding the default of a slice flag, or nil for any other flag.
+func newSliceValue(t *testing.T, f *pflag.Flag) pflag.Value {
+	slice, ok := f.Value.(pflag.SliceValue)
+	if !ok {
+		return nil
+	}
+
+	defaults := slices.Clone(slice.GetSlice())
+	fs := pflag.NewFlagSet(f.Name, pflag.ContinueOnError)
+	switch f.Value.Type() {
+	case "stringSlice":
+		fs.StringSlice(f.Name, defaults, f.Usage)
+	case "stringArray":
+		fs.StringArray(f.Name, defaults, f.Usage)
+	default:
+		t.Fatalf("newTestCmd doesn't support %s flags yet, such as --%s", f.Value.Type(), f.Name)
+	}
+	return fs.Lookup(f.Name).Value
+}
+
+func (s *MmctlUnitTestSuite) TestNewTestCmd() {
+	base := &cobra.Command{}
+	base.Flags().StringSlice("slice", []string{"a"}, "")
+	base.Flags().StringArray("array", []string{"a"}, "")
+
+	for _, name := range []string{"slice", "array"} {
+		get := func(cmd *cobra.Command) []string {
+			if name == "slice" {
+				values, err := cmd.Flags().GetStringSlice(name)
+				s.Require().NoError(err)
+				return values
+			}
+			values, err := cmd.Flags().GetStringArray(name)
+			s.Require().NoError(err)
+			return values
+		}
+
+		// Each test's first Set replaces the default, as on the command line
+		for range 2 {
+			s.Run(name+" set", func() {
+				cmd := newTestCmd(s.T(), base)
+				s.Require().NoError(cmd.Flags().Set(name, "b"))
+				s.Require().NoError(cmd.Flags().Set(name, "c"))
+				s.Equal([]string{"b", "c"}, get(cmd))
+			})
+		}
+
+		s.Run(name+" default", func() {
+			s.Equal([]string{"a"}, get(newTestCmd(s.T(), base)))
+		})
+	}
 }
 
 type MmctlUnitTestSuite struct {

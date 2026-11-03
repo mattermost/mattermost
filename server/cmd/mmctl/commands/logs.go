@@ -18,7 +18,6 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/mattermost/logr/v2"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"golang.org/x/term"
@@ -306,6 +305,10 @@ func (f *logFollower) run(ctx context.Context) error {
 			return nil
 		case <-ticker.C:
 		}
+		// select picks either when both are ready
+		if ctx.Err() != nil {
+			return nil
+		}
 
 		from := lastStart.Add(-logsPollOverlap)
 		if from.Before(since) {
@@ -359,9 +362,9 @@ func (f *logFollower) checkJSONLogs(ctx context.Context) error {
 }
 
 type pendingLog struct {
-	node string
-	time time.Time
-	line string
+	node  string
+	time  time.Time
+	entry human.LogEntry
 }
 
 // print prints the entries not printed before, in timestamp order. Entries before from are
@@ -397,10 +400,11 @@ func (f *logFollower) print(logs map[string][]json.RawMessage, from, fetchedAt t
 			}
 			hasEntries = true
 
-			if entry.hasTime {
-				lastTime = entry.time
+			sortTime := entry.Time
+			if entry.Time.IsZero() {
+				sortTime = lastTime
 			} else {
-				entry.time = lastTime
+				lastTime = entry.Time
 			}
 
 			if !f.keep(entry, from) {
@@ -410,8 +414,8 @@ func (f *logFollower) print(logs map[string][]json.RawMessage, from, fetchedAt t
 				repeats[entry.key]--
 				continue
 			}
-			seen.add(entry.key, entry.time)
-			pending = append(pending, pendingLog{node: node, time: entry.time, line: string(raw)})
+			seen.add(entry.key, sortTime)
+			pending = append(pending, pendingLog{node: node, time: sortTime, entry: entry.LogEntry})
 		}
 		if !nodeFailed {
 			delete(f.failed, node)
@@ -422,7 +426,7 @@ func (f *logFollower) print(logs map[string][]json.RawMessage, from, fetchedAt t
 		return a.time.Compare(b.time)
 	})
 	for _, p := range pending {
-		f.writerFor(p.node).Write(human.ParseLogMessage(p.line))
+		f.writerFor(p.node).Write(p.entry)
 	}
 
 	return hasEntries
@@ -430,10 +434,10 @@ func (f *logFollower) print(logs map[string][]json.RawMessage, from, fetchedAt t
 
 // keep applies the filters on the client, as a backstop for servers that ignore them.
 func (f *logFollower) keep(entry logQueryEntry, from time.Time) bool {
-	if entry.hasTime && !from.IsZero() && entry.time.Before(from) {
+	if !entry.Time.IsZero() && !from.IsZero() && entry.Time.Before(from) {
 		return false
 	}
-	if len(f.levels) > 0 && !f.levels[entry.level] {
+	if len(f.levels) > 0 && !f.levels[entry.Level] {
 		return false
 	}
 	if f.search != "" && !entry.matches(f.search) {
@@ -460,39 +464,24 @@ func (f *logFollower) writerFor(node string) human.LogWriter {
 
 // logQueryEntry is a log entry as returned by POST /api/v4/logs/query.
 type logQueryEntry struct {
+	human.LogEntry
 	// key identifies the entry by all of its fields: concurrent requests log the same
 	// message, caller and millisecond
 	key        string
-	fields     map[string]any
-	level      string
-	time       time.Time
-	hasTime    bool
 	failedNode bool
 	error      string
 }
 
 func parseLogQueryEntry(raw json.RawMessage) logQueryEntry {
-	dec := json.NewDecoder(bytes.NewReader(raw))
-	dec.UseNumber()
-	var fields map[string]any
-	if err := dec.Decode(&fields); err != nil || fields == nil {
-		return logQueryEntry{key: string(raw), fields: map[string]any{"msg": string(raw)}}
-	}
-
-	entry := logQueryEntry{fields: fields}
-	// Map keys are marshaled in sorted order, so the key doesn't depend on the field order
-	if key, err := json.Marshal(fields); err == nil {
-		entry.key = string(key)
-	} else {
-		entry.key = string(raw)
-	}
-	entry.level, _ = fields["level"].(string)
-	entry.failedNode, _ = fields["failed_node"].(bool)
-	entry.error, _ = fields["error"].(string)
-	if ts, ok := fields["timestamp"].(string); ok {
-		if t, err := time.Parse(logr.DefTimestampFormat, ts); err == nil {
-			entry.time = t
-			entry.hasTime = true
+	// The server encodes each entry from a decoded map, so its keys are sorted, and identical
+	// entries come as identical bytes
+	entry := logQueryEntry{LogEntry: human.ParseLogMessage(string(raw)), key: string(raw)}
+	for _, field := range entry.Fields {
+		switch field.Key {
+		case "failed_node":
+			entry.failedNode, _ = field.Interface.(bool)
+		case "error":
+			entry.error, _ = field.Interface.(string)
 		}
 	}
 	return entry
@@ -501,13 +490,17 @@ func parseLogQueryEntry(raw json.RawMessage) logQueryEntry {
 // matches reports whether a value other than the level and timestamp contains the lower-cased
 // search, ignoring case, as the server does.
 func (e logQueryEntry) matches(search string) bool {
-	for key, value := range e.fields {
-		if key == "level" || key == "timestamp" {
+	if strings.Contains(strings.ToLower(e.Message), search) || strings.Contains(strings.ToLower(e.Caller), search) {
+		return true
+	}
+	for _, field := range e.Fields {
+		// A timestamp the parser couldn't read stays a field
+		if field.Key == "timestamp" {
 			continue
 		}
-		s, ok := value.(string)
+		s, ok := field.Interface.(string)
 		if !ok {
-			b, err := json.Marshal(value)
+			b, err := json.Marshal(field.Interface)
 			if err != nil {
 				continue
 			}

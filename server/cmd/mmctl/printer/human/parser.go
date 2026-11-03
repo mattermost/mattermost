@@ -35,6 +35,9 @@ func parseLogMessage(msg string) (result LogEntry, err error) {
 	// having the formatter sort fields alphabetically (logrus does by default)
 
 	dec := json.NewDecoder(strings.NewReader(msg))
+	// Numbers keep their digits, rather than becoming floats that print large integers in
+	// scientific notation
+	dec.UseNumber()
 
 	// look for an initial "{"
 	token, err := dec.Token()

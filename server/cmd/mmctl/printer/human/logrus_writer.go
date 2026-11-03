@@ -6,12 +6,19 @@ package human
 import (
 	"fmt"
 	"io"
+	"strings"
 	"time"
 
 	"github.com/sirupsen/logrus"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 )
+
+// mlogLevels maps the mlog levels logrus doesn't have to the closest one it does.
+var mlogLevels = map[string]logrus.Level{
+	"critical": logrus.ErrorLevel,
+	"stdlog":   logrus.InfoLevel,
+}
 
 type LogrusWriter struct {
 	logger *logrus.Logger
@@ -25,13 +32,18 @@ func (w *LogrusWriter) Write(e LogEntry) {
 		return
 	}
 
+	logger := w.logger.WithTime(e.Time)
+
 	lvl, err := logrus.ParseLevel(e.Level)
 	if err != nil {
-		fmt.Fprintln(w.logger.Out, err)
-		lvl = logrus.TraceLevel + 1 // will invoke Println
+		// Any other level, such as a custom one, shows as info
+		lvl = logrus.InfoLevel
+		if mapped, ok := mlogLevels[strings.ToLower(e.Level)]; ok {
+			lvl = mapped
+		}
+		// logrus can only show its own levels, so the server's is kept as a field
+		logger = logger.WithField("original_level", printer.SanitizeForTerminal(e.Level))
 	}
-
-	logger := w.logger.WithTime(e.Time)
 
 	if e.Caller != "" {
 		// logrus has a system of reporting the caller, but there's no easy way to override it
@@ -65,8 +77,6 @@ func (w *LogrusWriter) Write(e LogEntry) {
 		logger.Debug(message)
 	case logrus.TraceLevel:
 		logger.Trace(message)
-	default:
-		logger.Println(message)
 	}
 }
 

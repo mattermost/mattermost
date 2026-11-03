@@ -4,6 +4,7 @@
 package human
 
 import (
+	"encoding/json"
 	"testing"
 	"time"
 
@@ -40,6 +41,13 @@ func TestParseLogMessage(t *testing.T) {
 			require.Len(t, entry.Fields, 1, line)
 			assert.Equal(t, "timestamp", entry.Fields[0].Key)
 		}
+	})
+
+	t.Run("keeps the digits of numbers", func(t *testing.T) {
+		entry := ParseLogMessage(`{"level":"info","msg":"listening","post_count":12345678901234567890}`)
+
+		require.Len(t, entry.Fields, 1)
+		assert.Equal(t, json.Number("12345678901234567890"), entry.Fields[0].Interface)
 	})
 
 	t.Run("still reads the older ts", func(t *testing.T) {

@@ -5,6 +5,7 @@ package human
 
 import (
 	"bytes"
+	"strings"
 	"testing"
 	"time"
 
@@ -56,6 +57,41 @@ func TestLogrusWriter(t *testing.T) {
 			assert.NotContains(t, out.String(), "\x1b[5m")
 			assert.Contains(t, out.String(), "invalid token: done")
 			assert.Contains(t, out.String(), "abc")
+		}
+	})
+
+	t.Run("strips other control characters", func(t *testing.T) {
+		var out bytes.Buffer
+		NewLogrusWriter(&out, true).Write(LogEntry{Time: entry.Time, Level: "info", Message: "some\x00bytes\x7fhere"})
+
+		assert.NotContains(t, out.String(), "\x00")
+		assert.NotContains(t, out.String(), "\x7f")
+		assert.Contains(t, out.String(), "somebyteshere")
+	})
+
+	t.Run("preserves multi-line messages", func(t *testing.T) {
+		var out bytes.Buffer
+		NewLogrusWriter(&out, true).Write(LogEntry{Time: entry.Time, Level: "info", Message: "line 1\nline 2"})
+
+		assert.Contains(t, out.String(), "line 1\nline 2")
+	})
+
+	t.Run("maps mlog levels logrus doesn't have", func(t *testing.T) {
+		for _, tc := range []struct {
+			level string
+			want  string
+		}{
+			{"critical", "level=error"},
+			{"stdlog", "level=info"},
+			{"audit-api", "level=info"},
+		} {
+			var out bytes.Buffer
+			NewLogrusWriter(&out, false).Write(LogEntry{Time: entry.Time, Level: tc.level, Message: "something"})
+
+			assert.Equal(t, 1, strings.Count(out.String(), "\n"), "only the entry is printed: %q", out.String())
+			assert.Contains(t, out.String(), tc.want)
+			assert.Contains(t, out.String(), "original_level="+tc.level)
+			assert.NotContains(t, out.String(), "not a valid logrus Level")
 		}
 	})
 

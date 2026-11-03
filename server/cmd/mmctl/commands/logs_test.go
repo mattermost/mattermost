@@ -280,6 +280,8 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 	})
 
 	s.Run("Error when using format flag", func() {
+		// The root command only registers --format and --json in Run, so a bare command
+		// stands in for LogsCmd here
 		cmd := &cobra.Command{}
 		cmd.Flags().String("format", "json", "")
 		cmd.Flags().Lookup("format").Changed = true
