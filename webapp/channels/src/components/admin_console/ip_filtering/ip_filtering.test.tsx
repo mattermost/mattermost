@@ -96,11 +96,10 @@ describe('IPFiltering', () => {
         render(wrapWithIntlProviderAndStore(<IPFiltering/>));
 
         await waitFor(() => {
-            expect(screen.getByTestId('filterToggle-button')).toBeInTheDocument();
             expect(screen.getByRole('switch', {checked: true})).toBeInTheDocument();
         });
 
-        await userEvent.click(screen.getByTestId('filterToggle-button'));
+        await userEvent.click(screen.getByRole('switch'));
 
         await waitFor(() => {
             expect(screen.getByRole('switch', {checked: false})).toBeInTheDocument();
@@ -188,11 +187,10 @@ describe('IPFiltering', () => {
         const {getByText, queryByText} = render(wrapWithIntlProviderAndStore(<IPFiltering/>));
 
         await waitFor(() => {
-            expect(screen.getByTestId('filterToggle-button')).toBeInTheDocument();
             expect(screen.getByRole('switch', {checked: true})).toBeInTheDocument();
         });
 
-        await userEvent.click(screen.getByTestId('filterToggle-button'));
+        await userEvent.click(screen.getByRole('switch'));
 
         await waitFor(() => {
             expect(screen.getByRole('switch', {checked: false})).toBeInTheDocument();
@@ -250,12 +248,11 @@ describe('IPFiltering', () => {
         const {getByText, queryByText} = render(wrapWithIntlProviderAndStore(<IPFiltering/>));
 
         await waitFor(() => {
-            expect(screen.getByTestId('filterToggle-button')).toBeInTheDocument();
             expect(screen.getByRole('switch', {checked: true})).toBeInTheDocument();
         });
 
         // Use fireEvent.click here because userEvent doesn't work well with fake timers
-        fireEvent.click(screen.getByTestId('filterToggle-button'));
+        fireEvent.click(screen.getByRole('switch'));
 
         await waitFor(() => {
             expect(screen.getByRole('switch', {checked: false})).toBeInTheDocument();

@@ -499,6 +499,9 @@ func BenchmarkGetLogsSkipSend(b *testing.B) {
 		{name: "third page", page: 2},
 		{name: "rare level", filter: model.LogFilter{LogLevels: []string{"error"}}},
 		{name: "recent date from", filter: model.LogFilter{DateFrom: last.Add(-5 * time.Second).Format(model.LogFilterDateLayout)}},
+		{name: "common search", filter: model.LogFilter{Search: "HTTP request"}},
+		{name: "rare search", filter: model.LogFilter{Search: "no such entry"}},
+		{name: "rare search with escaped characters", filter: model.LogFilter{Search: `"no such entry"`}},
 	} {
 		b.Run(bc.name, func(b *testing.B) {
 			b.ReportAllocs()

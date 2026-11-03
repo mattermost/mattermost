@@ -1078,9 +1078,16 @@ describe('GlobalClassificationIndicators section', () => {
         });
         mockFieldsByObjectType({[CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [field]});
 
-        renderWithContext(<ClassificationMarkings/>, BASE_STATE);
+        const {container} = renderWithContext(<ClassificationMarkings/>, BASE_STATE);
         await screen.findByText('Global Classification Indicators');
 
+        // Preset and clearance settings sit in the enable form, not in a panel.
+        expect(container.querySelector('#classification_markings_settings')).not.toBeInTheDocument();
+
+        expect(container.querySelector('#classification_levels.AdminPanel')).toBeInTheDocument();
+        expect(container.querySelector('#global_classification_indicators.AdminPanel')).toBeInTheDocument();
+        expect(screen.getByRole('heading', {level: 2, name: 'Classification levels'})).toBeInTheDocument();
+        expect(screen.getByRole('heading', {level: 2, name: 'Global Classification Indicators'})).toBeInTheDocument();
         expect(screen.getByText('Configure the global classification banner')).toBeInTheDocument();
         expect(screen.getByText('Global Classification Banner')).toBeInTheDocument();
     });

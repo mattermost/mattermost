@@ -1,39 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-.autotranslation-section-header {
-    display: flex;
-    width: 100%;
-    min-width: 0; // prevents overflow in flex layouts
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 24px;
-}
-
-.autotranslation-section-toggle {
-    display: flex;
-    align-items: center;
-    align-self: center;
-}
-
-.localization-section-title {
-    display: flex;
-    margin: unset;
-    font-size: 16px;
-    gap: 6px;
-    
-    .Tag {
-        position: relative;
-        top: -1px;
-    }
-}
-
-.localization-section-description {
-    margin-bottom: 0;
-    color: var(--center-channel-color-72);
-    font-size: 14px;
-    font-style: normal;
-    font-weight: 400;
+// Compass AdminPanel always renders a body slot; collapse it when auto-translation is off.
+#AutoTranslationSettings [class*='admin-panel__body']:empty {
+    display: none;
+    padding: 0;
 }
 
 .ai-service-help-text {
