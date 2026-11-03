@@ -7,7 +7,13 @@ name: Release Docs - Drafts
 #   drafts              Playbook T-16 and T-15. Claude drafts the blog outline and the
 #                       announcement email from the changelog's Improvements section, the
 #                       milestone's merged PRs and the release's Jira epics; every point
-#                       cites its PR or ticket. Manual only.
+#                       cites its PR or ticket. The email follows the monthly one (August
+#                       2026): the release with its pre-packaged plugins, the server security
+#                       releases and mobile and desktop patch releases since the last email,
+#                       the Extended Support Release Updates section in an ESR comms month,
+#                       the confirmed breaking changes, and the Responsible Disclosure footer.
+#                       The email.md artifact is the email without sources; the marketing
+#                       task (release-docs-hub.yml) posts it on Release Day. Manual only.
 #   release-highlights  Playbook T-0, "Update the Release Highlights deck". The month's slide:
 #                       the server and mobile Jira epics, internal ones left out with a reason,
 #                       each with a docs link and a one-sentence description, plus a
@@ -40,6 +46,10 @@ on:
         description: 'drafts: Jira fix version, e.g. "v12.2 (December 2026)". Defaults to the version and the month of its Release Day on the calendar.'
         required: false
         type: string
+      confirmed:
+        description: 'drafts: breaking changes confirmed in the breaking-change list, e.g. 39001, mattermost/enterprise#1234'
+        required: false
+        type: string
 
 permissions: {}
 
@@ -53,6 +63,7 @@ jobs:
       mode: dry_run
       milestone: ${{ inputs.milestone }}
       jira_fix_version: ${{ inputs.jira_fix_version }}
+      confirmed: ${{ inputs.confirmed }}
     secrets: inherit
     permissions:
       contents: read

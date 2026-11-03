@@ -78,9 +78,8 @@ class TemplatesTest(unittest.TestCase):
         "notice.json": {"short", "display_date", "description_json", "changelog_page_url"},
         "github-release.txt": {"release_kind", "version", "highlights"},
         "announcement-post.md": {"short", "esr_label", "highlight_list", "changelog_url", "blog_url", "download_url"},
-        "key-dates-post.md": {"releases"},
-        "esr-comms.md": {"ending", "end_long", "first_send", "second_send", "current", "current_end_long",
-                         "current_changelog_url"},
+        "esr-section.md": {"new_esr", "new_desktop_esr", "new_esr_month", "new_esr_support_end", "old_esr",
+                           "old_desktop_esr", "old_esr_support_end", "life_cycle", "backports"},
         "dot-release-security.md": {"version", "fixes"},
         "dot-release-pr-body.md": {"versions", "files", "details"},
     }

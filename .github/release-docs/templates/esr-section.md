@@ -1,0 +1,5 @@
+Server {{new_esr}} and Desktop App {{new_desktop_esr}} have been implemented as new Extended Support Releases (ESRs) in {{new_esr_month}}. Per [our release and support policy](https://docs.mattermost.com/product-overview/release-policy.html#extended-support-releases), both will be supported until {{new_esr_support_end}}.
+
+We have been maintaining server {{old_esr}} and Desktop App {{old_desktop_esr}} as our previous ESRs. These versions {{life_cycle}}. Starting {{old_esr_support_end}}, {{backports}} to either release. Please [upgrade your systems](https://docs.mattermost.com/administration-guide/upgrade/enterprise-install-upgrade.html) to server {{new_esr}} and Desktop App {{new_desktop_esr}} as soon as possible to continue to receive important bug fixes and security updates and to maintain mobile compatibility.
+
+ESRs are a strategic choice for organizations looking for stability and reduced frequency of updates. Using ESRs can minimize disruptions associated with frequent upgrades, making them an attractive option for environments where stability is paramount.

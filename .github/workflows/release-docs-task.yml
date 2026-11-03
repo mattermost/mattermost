@@ -34,6 +34,26 @@ name: Release Docs Task
 #                                              read app. Every read uses its token (it also reads
 #                                              mattermost/enterprise PRs for the drafts). Without it, a
 #                                              dry run reads mattermost/mattermost with GITHUB_TOKEN.
+#
+# Hub and calendar tasks (announcement, key-dates, marketing, esr-comms, feature-review; see
+# release-docs-hub.yml). What they post or create goes to Hub and the calendar, never to the
+# run summary: nothing from mattermost/enterprise or Jira appears in public Actions output.
+#   RELEASE_AGENT_MM_TOKEN          (secret)   the release agent's Hub bot, a member of every channel below
+#   RELEASE_AGENT_MM_URL            (variable) Hub, default https://hub.mattermost.com
+#   RELEASE_DOCS_ANNOUNCEMENTS_CHANNEL_ID (variable) Staff: Announcements
+#   RELEASE_DOCS_MARKETING_CHANNEL_ID     (variable) Staff: Marketing
+#   RELEASE_DOCS_REVIEW_CHANNEL_ID  (variable) where approvals are asked; default: the release channel
+#                                              ("Release: vX.Y"), found by name as the release agent does
+#   RELEASE_DOCS_MARKETING_EMAIL_OWNER  (variable) default caroline.knoche
+#   RELEASE_DOCS_MARKETING_SOCIAL_OWNER (variable) default a-rosa.lear
+#   RELEASE_DOCS_ANNOUNCEMENT_TIME_UTC  (variable) when the approved Announcements post goes out on
+#                                              Release Day, HH:MM in UTC, default 14:00
+#   RELEASE_DOCS_GOOGLE_SA_KEY      (secret)   JSON key of a service account added to the Release Dates
+#                                              calendar with "Make changes to events"
+#   RELEASE_DATES_CALENDAR_ID       (variable) the Release Dates calendar's ID
+#   RELEASE_AGENT_HOLIDAYS_PAGE_ID  (variable) the Release Processes Overview page, default 2928869382,
+#                                              read with the RELEASE_AGENT_JIRA_* account
+#   DESKTOP_ESR_VERSIONS            (variable) server ESR -> desktop ESR, e.g. {"v10.11": "v5.13", "v11.7": "v6.2"}
 
 on:
   workflow_call:
@@ -70,7 +90,12 @@ on:
         type: string
         default: ''
       confirmed:
-        description: breaking-changes only, the PRs to draft notices for
+        description: breaking-changes and drafts, the PRs to draft notices for
+        required: false
+        type: string
+        default: ''
+      esr_stage:
+        description: esr-comms by hand only, "before" (three months before support ends) or "ended"
         required: false
         type: string
         default: ''
@@ -116,7 +141,7 @@ jobs:
           owner: mattermost
 
       - name: Require the write app and commit author for live runs
-        if: steps.resolve.outputs.run == 'true' && steps.resolve.outputs.mode == 'live' && contains(fromJSON('["version-archive","docker-env","upgrade-notice","release-docs","dot-release-docs","github-release"]'), inputs.task)
+        if: steps.resolve.outputs.run == 'true' && steps.resolve.outputs.mode == 'live' && contains(fromJSON('["version-archive","docker-env","upgrade-notice","release-docs","dot-release-docs","github-release","esr-comms"]'), inputs.task)
         env:
           WRITE_CLIENT_ID: ${{ vars.CHANGELOG_WRITE_CLIENT_ID }}
           WRITE_PRIVATE_KEY: ${{ secrets.CHANGELOG_WRITE_PRIVATE_KEY }}
@@ -138,7 +163,7 @@ jobs:
       # limited to the repo this task writes to; tasks that only report write nothing.
       - name: Get write token
         id: write
-        if: steps.resolve.outputs.run == 'true' && steps.resolve.outputs.mode == 'live' && contains(fromJSON('["version-archive","docker-env","upgrade-notice","release-docs","dot-release-docs","github-release"]'), inputs.task)
+        if: steps.resolve.outputs.run == 'true' && steps.resolve.outputs.mode == 'live' && contains(fromJSON('["version-archive","docker-env","upgrade-notice","release-docs","dot-release-docs","github-release","esr-comms"]'), inputs.task)
         continue-on-error: true
         uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
         with:
@@ -157,7 +182,7 @@ jobs:
 
       - name: Install dependencies
         if: steps.resolve.outputs.run == 'true'
-        run: pip install requests==2.32.3 --quiet
+        run: pip install requests==2.32.3 cryptography==44.0.2 --quiet
 
       - name: Run ${{ inputs.task }}
         if: steps.resolve.outputs.run == 'true'
@@ -183,6 +208,19 @@ jobs:
           CONFIRMED: ${{ inputs.confirmed }}
           RELEASE_DATE: ${{ inputs.release_date }}
           MILESTONE: ${{ inputs.milestone }}
+          ESR_STAGE: ${{ inputs.esr_stage }}
+          DESKTOP_ESR_VERSIONS: ${{ vars.DESKTOP_ESR_VERSIONS }}
+          MM_URL: ${{ vars.RELEASE_AGENT_MM_URL }}
+          MM_TOKEN: ${{ secrets.RELEASE_AGENT_MM_TOKEN }}
+          ANNOUNCEMENTS_CHANNEL_ID: ${{ vars.RELEASE_DOCS_ANNOUNCEMENTS_CHANNEL_ID }}
+          MARKETING_CHANNEL_ID: ${{ vars.RELEASE_DOCS_MARKETING_CHANNEL_ID }}
+          REVIEW_CHANNEL_ID: ${{ vars.RELEASE_DOCS_REVIEW_CHANNEL_ID }}
+          MARKETING_EMAIL_OWNER: ${{ vars.RELEASE_DOCS_MARKETING_EMAIL_OWNER }}
+          MARKETING_SOCIAL_OWNER: ${{ vars.RELEASE_DOCS_MARKETING_SOCIAL_OWNER }}
+          ANNOUNCEMENT_TIME: ${{ vars.RELEASE_DOCS_ANNOUNCEMENT_TIME_UTC }}
+          GOOGLE_SA_KEY: ${{ secrets.RELEASE_DOCS_GOOGLE_SA_KEY }}
+          CALENDAR_ID: ${{ vars.RELEASE_DATES_CALENDAR_ID }}
+          HOLIDAYS_PAGE_ID: ${{ vars.RELEASE_AGENT_HOLIDAYS_PAGE_ID }}
           OUTPUT_DIR: ${{ runner.temp }}/release-docs-output
         run: python3 -m release_docs run "$TASK"
 

@@ -28,7 +28,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install requests==2.32.3 --quiet
+        run: pip install requests==2.32.3 cryptography==44.0.2 --quiet
 
       - name: Unit tests
         working-directory: .github/scripts
