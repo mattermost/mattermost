@@ -789,6 +789,23 @@ describe('getChannelsInCategoryOrder with a collapsed category', () => {
             otherUnreadChannel,
         ]);
     });
+
+    test('with the unread filter enabled, should include unread channels hidden by a collapsed category', () => {
+        const state = mergeObjects(enabledState, {
+            views: {
+                channelSidebar: {
+                    unreadFilterEnabled: true,
+                },
+            },
+        }) as GlobalState;
+
+        expect(Selectors.getDisplayedChannels(state)).toEqual([
+            otherUnreadChannel,
+            unreadChannel,
+            currentChannel,
+            mutedMentionChannel,
+        ]);
+    });
 });
 
 describe('makeGetFilteredChannelIdsForCategory', () => {
