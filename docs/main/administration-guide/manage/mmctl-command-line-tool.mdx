@@ -4738,19 +4738,53 @@ license upload-string "mylicensestring"
 
 Display logs in a human-readable format. As the log format depends on the server, the `--format` flag cannot be used with this command.
 
+From Mattermost v12.2, mmctl reads the logs of every node in the cluster, and can filter them by level, node, text, and time. With `--follow`, it keeps printing new log entries until you stop it with `Ctrl+C`, polling the server at the `--interval` you set. Search for a request ID with `--search` to follow a single request.
+
+Each entry shows the time the server logged it. When printed to a terminal, the level of each entry is colored. Set the `NO_COLOR` environment variable to turn the colors off, or `CLICOLOR_FORCE` to keep them when the output is piped to another command. When the logs come from more than one node, each line starts with the name of its node.
+
+<Note>
+
+Filtering and following the logs requires the server to write its log file in JSON format. See the [Output file logs as JSON](/administration-guide/configure/environment-configuration-settings#output-file-logs-as-json) configuration setting. With plain-text log files, use `--plain` to print the raw log lines, which doesn't support `--follow` or the filters.
+
+</Note>
+
 **Format**
 
 ``` sh
 mmctl logs [flags]
 ```
 
+**Examples**
+
+``` sh
+# print the last 200 entries of each node
+mmctl logs
+
+# keep printing new error and warning entries until interrupted
+mmctl logs --follow --level error,warn
+
+# follow the entries of a single request, by its request ID
+mmctl logs -f --search 8xyz7gqnfjb1jrkpd5xnqk5mbo
+
+# print what a node logged in the last 15 minutes
+mmctl logs --node node-1 --since 15m
+```
+
 **Options**
 
 ``` sh
--h, --help         help for logs
--l, --logrus       Use logrus for formatting
--n, --number int   Number of log lines to retrieve (default 200)
+-f, --follow              Keep polling the server and print new log entries until interrupted.
+-h, --help                help for logs
+    --interval duration   How often to poll for new log entries with --follow. At least 2s. (default 5s)
+    --level strings       Only show entries of these level groups: error, warn, info, debug.
+    --node stringArray    Only show the logs of this cluster node. Can be repeated.
+-n, --number int          Number of log entries to retrieve initially, per node. At most 10000. (default 200)
+    --plain               Print the raw log lines of every node. Supports none of --follow, --level, --node, --search and --since.
+-s, --search string       Only show entries with a value, other than the level and timestamp, that contains this text, ignoring case.
+    --since duration      Only show entries logged within this duration, e.g. 15m.
 ```
+
+The `-l, --logrus` option is deprecated from Mattermost v12.2, as the logrus format is now the default. It's still accepted, and will be removed in a future version.
 
 **Options inherited from parent commands**
 
