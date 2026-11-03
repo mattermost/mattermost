@@ -26,10 +26,11 @@
   "dependencies": {
     "@mattermost/compass-icons": "0.1.64",
     "@mattermost/compass-ui": "0.1.0-alpha.25",
+    "@typescript/native": "npm:typescript@7.0.2",
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "react-intl": "7.1.14",
-    "typescript": "5.9.3"
+    "typescript": "npm:@typescript/typescript6@6.0.2"
   },
   "devDependencies": {
     "@babel/core": "7.28.5",
@@ -78,6 +79,9 @@
     "react-is": "19.3.1",
     "redux-persist": {
       "redux": "5.0.1"
+    },
+    "react-intl": {
+      "typescript": "$typescript"
     },
     "ajv@>=7.0.0-alpha.0 <8.18.0": "8.20.0",
     "bn.js@>=5.0.0 <5.2.3": "5.2.3",
