@@ -321,6 +321,9 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 func (s *MmctlUnitTestSuite) TestLogFollower() {
 	t0 := time.Date(2026, time.November, 3, 8, 0, 0, 0, time.UTC)
 
+	// perPages holds the page size of each query the last follow made
+	var perPages []int
+
 	// follow runs a follower that polls every millisecond until polls runs out of responses.
 	// The clock moves 5 seconds on every call, so the n-th fetch starts at t0+5s*n.
 	follow := func(opts *logsOptions, polls ...func(f *model.LogFilter) (map[string][]json.RawMessage, error)) (filters []*model.LogFilter, stdout, stderr string) {
@@ -328,13 +331,15 @@ func (s *MmctlUnitTestSuite) TestLogFollower() {
 		defer cancel()
 
 		var mu sync.Mutex
+		perPages = nil
 		s.client.
 			EXPECT().
 			QueryLogs(gomock.Any(), 0, gomock.Any(), gomock.Any()).
-			DoAndReturn(func(_ context.Context, _, _ int, f *model.LogFilter) (map[string][]json.RawMessage, *model.Response, error) {
+			DoAndReturn(func(_ context.Context, _, perPage int, f *model.LogFilter) (map[string][]json.RawMessage, *model.Response, error) {
 				mu.Lock()
 				defer mu.Unlock()
 				filters = append(filters, f)
+				perPages = append(perPages, perPage)
 				poll := polls[len(filters)-1]
 				if len(filters) == len(polls) {
 					cancel()
@@ -383,6 +388,36 @@ func (s *MmctlUnitTestSuite) TestLogFollower() {
 		// first is older than the second poll's start, which a server ignoring the filter would return
 		s.Equal([]string{"first", "second", "third"}, testLogMessages(stdout))
 		s.Empty(stderr)
+	})
+
+	s.Run("Drop entries older than a full first page", func() {
+		older := testLogLine(t0.Add(-20*time.Second), "info", "older")
+		first := testLogLine(t0.Add(-10*time.Second), "info", "first")
+		second := testLogLine(t0.Add(-5*time.Second), "info", "second")
+		third := testLogLine(t0.Add(2*time.Second), "info", "third")
+
+		_, stdout, _ := follow(&logsOptions{number: 2},
+			respond(map[string][]json.RawMessage{"default": {first, second}}),
+			// The poll reaches back 30 seconds, past what --number asked for
+			respond(map[string][]json.RawMessage{"default": {older, first, second, third}}),
+		)
+
+		s.Equal([]int{2, logsMaxPerPage}, perPages)
+		s.Equal([]string{"first", "second", "third"}, testLogMessages(stdout))
+	})
+
+	s.Run("Print only new entries with --number 0", func() {
+		older := testLogLine(t0.Add(-20*time.Second), "info", "older")
+		last := testLogLine(t0.Add(-5*time.Second), "info", "last")
+		next := testLogLine(t0.Add(2*time.Second), "info", "next")
+
+		_, stdout, _ := follow(&logsOptions{number: 0},
+			respond(map[string][]json.RawMessage{"default": {last}}),
+			respond(map[string][]json.RawMessage{"default": {older, last, next}}),
+		)
+
+		s.Equal([]int{1, logsMaxPerPage}, perPages)
+		s.Equal([]string{"next"}, testLogMessages(stdout))
 	})
 
 	s.Run("Keep identical entries logged in the same millisecond", func() {

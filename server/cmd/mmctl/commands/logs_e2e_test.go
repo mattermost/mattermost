@@ -120,10 +120,10 @@ func (s *MmctlE2ETestSuite) TestlogsCmdF() {
 		s.th.TestLogger.Info(marker)
 		s.Require().NoError(s.th.TestLogger.Flush())
 
-		// One interval, plus some slack for the query itself
+		// A few intervals, as the log file may only show the marker some time after Flush
 		s.Require().Eventually(func() bool {
 			return strings.Contains(stdout.String(), marker)
-		}, opts.interval+time.Second, 50*time.Millisecond, "the followed logs should print the marker")
+		}, 3*opts.interval+time.Second, 50*time.Millisecond, "the followed logs should print the marker")
 
 		cancel()
 		s.Require().NoError(<-done)

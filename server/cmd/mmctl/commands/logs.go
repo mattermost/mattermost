@@ -240,6 +240,9 @@ type logFollower struct {
 	seen map[string]*seenLogs
 	// failed holds the nodes last reported as unreachable, so they're reported once until they recover
 	failed map[string]bool
+	// floor holds, per node, the oldest entry the first fetch printed when it filled a page. Later
+	// polls reach further back, and the entries before it are older than what --number asked for
+	floor map[string]time.Time
 }
 
 func newLogFollower(c client.Client, opts *logsOptions, out, errOut io.Writer) *logFollower {
@@ -256,6 +259,7 @@ func newLogFollower(c client.Client, opts *logsOptions, out, errOut io.Writer) *
 		prefixedWriter: make(map[string]human.LogWriter),
 		seen:           make(map[string]*seenLogs),
 		failed:         make(map[string]bool),
+		floor:          make(map[string]time.Time),
 	}
 	for _, level := range opts.levels {
 		f.levels[level] = true
@@ -270,7 +274,9 @@ func (f *logFollower) run(ctx context.Context) error {
 		since = start.Add(-f.opts.since)
 	}
 
-	logs, resp, err := f.fetch(ctx, since, f.opts.number)
+	// With --number 0, one entry per node still shows where the logs end, by the server's clock
+	perPage := max(f.opts.number, 1)
+	logs, resp, err := f.fetch(ctx, since, perPage)
 	if err != nil {
 		if ctx.Err() != nil {
 			return nil
@@ -285,7 +291,8 @@ func (f *logFollower) run(ctx context.Context) error {
 		}
 		return errors.New("Unable to retrieve logs. Error: " + err.Error())
 	}
-	if !f.print(logs, since, start) {
+	f.setFloors(logs, perPage)
+	if !f.print(logs, since, start, f.opts.number > 0) {
 		if err := f.checkJSONLogs(ctx); err != nil {
 			return err
 		}
@@ -324,7 +331,7 @@ func (f *logFollower) run(ctx context.Context) error {
 			continue
 		}
 		lastStart = pollStart
-		f.print(logs, from, pollStart)
+		f.print(logs, from, pollStart, true)
 
 		// The next poll starts no earlier than this, so older entries can't be repeated
 		cutoff := lastStart.Add(-logsPollOverlap)
@@ -367,10 +374,27 @@ type pendingLog struct {
 	entry human.LogEntry
 }
 
-// print prints the entries not printed before, in timestamp order. Entries before from are
-// dropped, as servers older than v12.2 may ignore the filters on remote nodes. It reports
-// whether the response held any entry the nodes logged.
-func (f *logFollower) print(logs map[string][]json.RawMessage, from, fetchedAt time.Time) bool {
+// setFloors records the floor of each node whose first response filled a page.
+func (f *logFollower) setFloors(logs map[string][]json.RawMessage, perPage int) {
+	for node, lines := range logs {
+		if len(lines) < perPage {
+			continue
+		}
+		// Entries come oldest first
+		for _, raw := range lines {
+			if entry := parseLogQueryEntry(raw); !entry.failedNode && !entry.Time.IsZero() {
+				f.floor[node] = entry.Time
+				break
+			}
+		}
+	}
+}
+
+// print prints the entries not printed before, in timestamp order, or with emit unset only
+// records them as printed. Entries before from are dropped, as servers older than v12.2 may
+// ignore the filters on remote nodes. It reports whether the response held any entry the
+// nodes logged.
+func (f *logFollower) print(logs map[string][]json.RawMessage, from, fetchedAt time.Time, emit bool) bool {
 	var hasEntries bool
 	var pending []pendingLog
 
@@ -410,12 +434,17 @@ func (f *logFollower) print(logs map[string][]json.RawMessage, from, fetchedAt t
 			if !f.keep(entry, from) {
 				continue
 			}
+			if floor, ok := f.floor[node]; ok && !entry.Time.IsZero() && entry.Time.Before(floor) {
+				continue
+			}
 			if repeats[entry.key] > 0 {
 				repeats[entry.key]--
 				continue
 			}
 			seen.add(entry.key, sortTime)
-			pending = append(pending, pendingLog{node: node, time: sortTime, entry: entry.LogEntry})
+			if emit {
+				pending = append(pending, pendingLog{node: node, time: sortTime, entry: entry.LogEntry})
+			}
 		}
 		if !nodeFailed {
 			delete(f.failed, node)
