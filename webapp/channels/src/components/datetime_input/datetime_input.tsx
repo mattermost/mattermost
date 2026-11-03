@@ -14,6 +14,7 @@ import {isUseMilitaryTime} from 'selectors/preferences';
 import DatePicker from 'components/date_picker';
 import * as Menu from 'components/menu';
 
+import {useLatest} from 'hooks/useLatest';
 import Constants from 'utils/constants';
 import {formatDateForDisplay} from 'utils/date_utils';
 import {relativeFormatDate} from 'utils/datetime';
@@ -117,8 +118,12 @@ type TimeInputManualProps = {
     timezone?: string;
     isMilitaryTime: boolean;
     onTimeChange: (time: Moment) => void;
+    onTimeInputError?: (hasError: boolean) => void;
     minDateTime?: Moment;
     maxDateTime?: Moment;
+
+    // Changes each time a day is picked, so picking the day already selected still restores a cleared time
+    dayPickCount: number;
 };
 
 const TimeInputManual: React.FC<TimeInputManualProps> = ({
@@ -126,13 +131,24 @@ const TimeInputManual: React.FC<TimeInputManualProps> = ({
     timezone,
     isMilitaryTime,
     onTimeChange,
+    onTimeInputError,
     minDateTime,
     maxDateTime,
+    dayPickCount,
 }) => {
     const {formatMessage} = useIntl();
     const [timeInputValue, setTimeInputValue] = useState<string>('');
-    const [timeInputError, setTimeInputError] = useState<boolean>(false);
+    const [timeInputError, setTimeInputErrorState] = useState<boolean>(false);
     const timeInputRef = useRef<HTMLInputElement>(null);
+
+    // Reported from the same handler as the change, not an effect, so the parent hears about it as soon as a valid
+    // time would be. An effect's update can land after a click that blurred the input, letting that click act on it.
+    // Through a ref, so a new callback each render doesn't re-run the sync below and reset what's typed
+    const onTimeInputErrorRef = useLatest(onTimeInputError);
+    const setTimeInputError = useCallback((hasError: boolean) => {
+        setTimeInputErrorState(hasError);
+        onTimeInputErrorRef.current?.(hasError);
+    }, [onTimeInputErrorRef]);
 
     // Sync input value with time prop changes
     useEffect(() => {
@@ -142,18 +158,20 @@ const TimeInputManual: React.FC<TimeInputManualProps> = ({
         } else {
             setTimeInputValue('');
         }
-    }, [time, isMilitaryTime]);
+        setTimeInputError(false);
+    }, [time, isMilitaryTime, dayPickCount, setTimeInputError]);
 
     const handleTimeInputChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         setTimeInputValue(event.target.value);
         setTimeInputError(false); // Clear error as user types
-    }, []);
+    }, [setTimeInputError]);
 
     const handleTimeInputBlur = useCallback(() => {
         const parsed = parseTimeString(timeInputValue);
 
         if (!parsed) {
-            if (timeInputValue.trim() !== '') {
+            // A cleared field still holds the previous time, so it's an error unless there is none
+            if (timeInputValue.trim() !== '' || time) {
                 setTimeInputError(true);
             }
             return;
@@ -191,7 +209,7 @@ const TimeInputManual: React.FC<TimeInputManualProps> = ({
         // Valid time - update (no auto-advance, no exclusion checking)
         onTimeChange(targetMoment);
         setTimeInputError(false);
-    }, [timeInputValue, time, timezone, onTimeChange, minDateTime, maxDateTime]);
+    }, [timeInputValue, time, timezone, onTimeChange, minDateTime, maxDateTime, setTimeInputError]);
 
     const handleTimeInputKeyDown = useCallback((event: React.KeyboardEvent<HTMLInputElement>) => {
         if (isKeyPressed(event as any, Constants.KeyCodes.ENTER)) {
@@ -230,6 +248,9 @@ type Props = {
     timePickerInterval?: number;
     allowPastDates?: boolean;
     manualTimeEntry?: boolean;
+
+    // Called when the manually entered time becomes invalid or valid again. The time keeps its last valid value meanwhile
+    onTimeInputError?: (hasError: boolean) => void;
     minDateTime?: Moment;
     maxDateTime?: Moment;
 };
@@ -243,6 +264,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
     timePickerInterval,
     allowPastDates = false,
     manualTimeEntry = false,
+    onTimeInputError,
     minDateTime,
     maxDateTime,
 }: Props) => {
@@ -254,6 +276,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
     const [isPopperOpen, setIsPopperOpen] = useState(false);
     const [isTimeMenuOpen, setIsTimeMenuOpen] = useState(false);
     const [menuWidth, setMenuWidth] = useState<string>('200px');
+    const [dayPickCount, setDayPickCount] = useState(0);
     const {formatMessage} = useIntl();
     const timeContainerRef = useRef<HTMLDivElement>(null);
 
@@ -363,10 +386,11 @@ const DateTimeInputContainer: React.FC<Props> = ({
                 getRoundedTime(nowInTimezone, timePickerInterval || 60);
         }
 
+        // Past dates are allowed, so today has no earliest time and keeps the one already chosen
         let result: Moment;
-        if (modifiers.today) {
+        if (modifiers.today && !allowPastDates) {
             const baseTime = getCurrentMomentForTimezone(timezone);
-            if (!allowPastDates && isBeforeTime(baseTime, effectiveTime)) {
+            if (isBeforeTime(baseTime, effectiveTime)) {
                 baseTime.hour(effectiveTime.hours());
                 baseTime.minute(effectiveTime.minutes());
             }
@@ -397,6 +421,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
         }
 
         handleChange(result);
+        setDayPickCount((count) => count + 1);
         handlePopperOpenState(false);
     };
 
@@ -484,8 +509,10 @@ const DateTimeInputContainer: React.FC<Props> = ({
                         timezone={timezone}
                         isMilitaryTime={isMilitaryTime}
                         onTimeChange={handleTimeChange}
+                        onTimeInputError={onTimeInputError}
                         minDateTime={minDateTime}
                         maxDateTime={maxDateTime}
+                        dayPickCount={dayPickCount}
                     />
                 ) : (
                     <Menu.Container

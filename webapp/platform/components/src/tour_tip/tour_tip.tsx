@@ -18,6 +18,7 @@ import React, {useId, useRef, type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 
 import {TourTipBackdrop} from './tour_tip_backdrop';
 
@@ -56,9 +57,10 @@ type Props = {
     nextBtn?: JSX.Element;
     prevBtn?: JSX.Element;
 
-    // Compass icon slots. Keep these off the label so Button can size and align them.
-    nextTrailingIcon?: React.ReactNode;
-    prevLeadingIcon?: React.ReactNode;
+    // Compass icon glyphs (e.g. <ChevronRightIcon/>) for the Button icon slots. TourTip wraps
+    // them in Icon itself so Button sizes them, and they stay off the label.
+    nextTrailingGlyph?: React.ReactNode;
+    prevLeadingGlyph?: React.ReactNode;
     imageURL?: string;
     singleTip?: boolean;
     showOptOut?: boolean;
@@ -108,8 +110,8 @@ export const TourTip = ({
     pulsatingDotPlacement,
     nextBtn,
     prevBtn,
-    nextTrailingIcon,
-    prevLeadingIcon,
+    nextTrailingGlyph,
+    prevLeadingGlyph,
     className,
     offset: tipOffset = [-18, 4],
     placement = 'right-start',
@@ -225,7 +227,7 @@ export const TourTip = ({
                                 id='tipPreviousButton'
                                 emphasis='tertiary'
                                 size='small'
-                                leadingIcon={prevLeadingIcon}
+                                leadingIcon={prevLeadingGlyph ? <Icon glyph={prevLeadingGlyph}/> : undefined}
                                 onClick={handlePrevious}
                             >
                                 {prevBtn}
@@ -236,7 +238,7 @@ export const TourTip = ({
                                 id='tipNextButton'
                                 emphasis='primary'
                                 size='small'
-                                trailingIcon={nextTrailingIcon}
+                                trailingIcon={nextTrailingGlyph ? <Icon glyph={nextTrailingGlyph}/> : undefined}
                                 onClick={handleNext}
                             >
                                 {nextBtn}

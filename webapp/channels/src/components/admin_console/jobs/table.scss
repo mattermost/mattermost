@@ -1,6 +1,8 @@
 .job-table__data-retention {
     .job-table__table {
-        border: none;
+        // Match AdminPanel table scroll chrome (e.g. compliance-panel__table).
+        border: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.08);
+        border-radius: var(--radius-m);
     }
 
     .table > thead > tr > th,
@@ -16,14 +18,27 @@
         border-bottom: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.16);
     }
 
+    // Nested under Compass AdminPanel body (`spacing-xxl`). Drop legacy Card-era
+    // inset padding/background so the daily-time row sits at the same top edge
+    // as other System Console AdminPanel content.
     .help-text {
-        padding: 10px 16px;
-        background: rgba(var(--sys-center-channel-color-rgb), 0.04);
+        padding: 0;
+        background: transparent;
         color: var(--sys-center-channel-color);
     }
 
     .cancel-button-field {
         width: 30px;
+    }
+}
+
+.JobTable.AdminPanel {
+    .job-table__table {
+        max-height: none;
+        padding: 0;
+        border: none;
+        margin: 0;
+        background: transparent;
     }
 }
 

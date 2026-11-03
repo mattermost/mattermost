@@ -70,7 +70,6 @@ const LaunchingWorkspace = makeAsyncComponent('LaunchingWorkspace', lazy(() => i
 const TeamController = makeAsyncComponent('TeamController', lazy(() => import('components/team_controller')));
 const AnnouncementBarController = makeAsyncComponent('AnnouncementBarController', lazy(() => import('components/announcement_bar')));
 const SystemNotice = makeAsyncComponent('SystemNotice', lazy(() => import('components/system_notice')));
-const CloudEffects = makeAsyncComponent('CloudEffects', lazy(() => import('components/cloud_effects')));
 const TeamSidebar = makeAsyncComponent('TeamSidebar', lazy(() => import('components/team_sidebar')));
 const ProductRail = makeAsyncComponent('ProductRail', lazy(() => import('components/product_rail/product_rail')));
 const SidebarRight = makeAsyncComponent('SidebarRight', lazy(() => import('components/sidebar_right')));
@@ -423,7 +422,6 @@ export default class Root extends React.PureComponent<Props, State> {
                         <AnnouncementBarController/>
                         <SystemNotice/>
                         <GlobalHeader/>
-                        <CloudEffects/>
                         <TeamSidebar/>
                         <ProductRail/>
                         <div className='main-wrapper'>

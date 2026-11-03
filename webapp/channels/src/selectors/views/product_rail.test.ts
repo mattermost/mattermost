@@ -3,12 +3,14 @@
 
 import type {DeepPartial} from '@mattermost/types/utilities';
 
+import localStorageStore from 'stores/local_storage_store';
+
 import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
 import type {ProductRailSection} from 'types/store/views';
 
-import {filterChannelIdsForSection, getBoardChannelIds, getProductRailFilter, getProductRailSection, isProductRailShown, isTeamSidebarHidden, toFullListIndex} from './product_rail';
+import {filterChannelIdsForSection, getBoardChannelIds, getProductRailFilter, getProductRailSection, getProductRailTeamIdToRestore, isProductRailShown, isTeamSidebarHidden, toFullListIndex} from './product_rail';
 import type {ChannelKindRegistration} from './product_rail';
 
 const channel = TestHelper.getChannelMock({id: 'channel'});
@@ -177,5 +179,64 @@ describe('isProductRailShown', () => {
         expect(isProductRailShown(withView(getState({enabled: false})))).toBe(false);
         expect(isProductRailShown(withView(getState(), {teamId: ''}))).toBe(false);
         expect(isProductRailShown(withView(getState(), {windowSize: 'mobileView'}))).toBe(false);
+    });
+});
+
+describe('getProductRailTeamIdToRestore', () => {
+    const alpha = TestHelper.getTeamMock({id: 'alpha', display_name: 'Alpha'});
+    const beta = TestHelper.getTeamMock({id: 'beta', display_name: 'Beta'});
+    const left = TestHelper.getTeamMock({id: 'left', display_name: 'Left'});
+
+    const withTeams = (currentTeamId = '') => {
+        const state = getState();
+        return {
+            ...state,
+            entities: {
+                ...state.entities,
+                users: {currentUserId: 'user', profiles: {user: TestHelper.getUserMock({id: 'user', locale: 'en'})}},
+                teams: {
+                    currentTeamId,
+                    teams: {alpha, beta, left},
+                    myMembers: {alpha: {team_id: 'alpha'}, beta: {team_id: 'beta'}},
+                },
+            },
+        } as unknown as GlobalState;
+    };
+
+    afterEach(() => {
+        localStorage.clear();
+    });
+
+    test('should restore nothing while a team is selected', () => {
+        localStorageStore.setPreviousTeamId('user', 'beta');
+        expect(getProductRailTeamIdToRestore(withTeams('alpha'))).toBe('');
+    });
+
+    test('should restore the team the user was last in', () => {
+        localStorageStore.setPreviousTeamId('user', 'beta');
+        expect(getProductRailTeamIdToRestore(withTeams())).toBe('beta');
+    });
+
+    test('should fall back to the first of the user\'s teams for a team they\'ve left, or none', () => {
+        localStorageStore.setPreviousTeamId('user', 'left');
+        expect(getProductRailTeamIdToRestore(withTeams())).toBe('alpha');
+    });
+
+    test('should fall back to the first team when storage can\'t be read', () => {
+        const getItem = jest.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+            throw new Error('blocked');
+        });
+        expect(getProductRailTeamIdToRestore(withTeams())).toBe('alpha');
+        getItem.mockRestore();
+    });
+
+    test('should restore nothing where the rail never shows', () => {
+        localStorageStore.setPreviousTeamId('user', 'beta');
+        const state = withTeams();
+        expect(getProductRailTeamIdToRestore({...state, views: {...state.views, browser: {windowSize: 'mobileView'}}} as GlobalState)).toBe('');
+        expect(getProductRailTeamIdToRestore({
+            ...state,
+            entities: {...state.entities, general: {...state.entities.general, config: {FeatureFlagProductRail: 'false'}}},
+        } as GlobalState)).toBe('');
     });
 });

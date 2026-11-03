@@ -385,7 +385,7 @@ func (a *App) setChannelPropertyValuesOnCreate(rctx request.CTX, channel *model.
 		value.UpdatedBy = channel.CreatorId
 	}
 
-	_, appErr := a.UpsertPropertyValues(rctx, values, model.PropertyFieldObjectTypeChannel, channel.Id, "")
+	_, appErr := a.UpsertPropertyValues(rctxWithSessionCallerID(rctx), values, model.PropertyFieldObjectTypeChannel, channel.Id, "")
 	if appErr == nil {
 		return nil
 	}

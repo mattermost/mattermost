@@ -22,6 +22,8 @@ import * as Menu from 'components/menu';
 import {OnboardingTourSteps} from 'components/tours';
 import {useShowOnboardingTutorialStep, CreateAndJoinChannelsTour, InvitePeopleTour} from 'components/tours/onboarding_tour';
 
+import type {SidebarBrowseOrAddChannelMenuAction} from 'types/store/plugins';
+
 export const ELEMENT_ID_FOR_BROWSE_OR_ADD_CHANNEL_MENU = 'browserOrAddChannelMenu';
 export const ELEMENT_ID_FOR_BROWSE_OR_ADD_CHANNEL_MENU_BUTTON = 'browseOrAddChannelMenuButton';
 
@@ -157,8 +159,9 @@ export default function SidebarBrowserOrAddChannelMenu(props: Props) {
     );
 
     let pluggableMenuItems: JSX.Element[] = [];
+    let afterCreateChannelMenuItems: JSX.Element[] = [];
     if (pluginMenuItems) {
-        pluggableMenuItems = pluginMenuItems.map((item) => {
+        const toMenuItem = (item: SidebarBrowseOrAddChannelMenuAction) => {
             const handlePluginItemClick = () => {
                 if (item.action) {
                     item.action(currentTeamId);
@@ -174,7 +177,9 @@ export default function SidebarBrowserOrAddChannelMenu(props: Props) {
                     labels={<span>{item.text}</span>}
                 />
             );
-        });
+        };
+        afterCreateChannelMenuItems = pluginMenuItems.filter((item) => item.placement === 'afterCreateChannel').map(toMenuItem);
+        pluggableMenuItems = pluginMenuItems.filter((item) => item.placement !== 'afterCreateChannel').map(toMenuItem);
     }
 
     return (
@@ -197,6 +202,7 @@ export default function SidebarBrowserOrAddChannelMenu(props: Props) {
             }}
         >
             {createNewChannelMenuItem}
+            {afterCreateChannelMenuItems}
             {browseChannelsMenuItem}
             {createDirectMessageMenuItem}
             {createUserGroupMenuItem}

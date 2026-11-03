@@ -457,6 +457,77 @@ func TestPermissionsPatchMaskingIsPresenceOnly(t *testing.T) {
 	}
 }
 
+func TestPermissionsEqual(t *testing.T) {
+	base := func() *Permissions {
+		return &Permissions{
+			Restrictions: &Restrictions{Field: WriteOnly{Write: PermissionLevelSysadmin}},
+			Grants: []Grant{{
+				Identity: Identity{Type: PropertyOwnerTypePlugin, ID: "com.example.sync"},
+				Allow:    []string{PropertyActionValueWrite},
+			}},
+			Masking: &Masking{Except: []Identity{{Type: PropertyOwnerTypeUser, ID: "userid"}}},
+		}
+	}
+
+	t.Run("nil and empty lists are the same list", func(t *testing.T) {
+		assert.True(t, PermissionsEqual(&Permissions{Grants: nil}, &Permissions{Grants: []Grant{}}))
+		assert.True(t, PermissionsEqual(&Permissions{Masking: &Masking{}}, &Permissions{Masking: &Masking{Except: []Identity{}}}))
+
+		a, b := base(), base()
+		a.Grants[0].Scopes = nil
+		b.Grants[0].Scopes = []string{}
+		assert.True(t, PermissionsEqual(a, b))
+
+		a, b = base(), base()
+		a.Grants[0].Allow = nil
+		b.Grants[0].Allow = []string{}
+		assert.True(t, PermissionsEqual(a, b))
+	})
+
+	t.Run("a copy is equal and neither side is modified", func(t *testing.T) {
+		a := &Permissions{Grants: []Grant{{Identity: Identity{Type: PropertyOwnerTypeUser, ID: "userid"}, Scopes: []string{}, Allow: []string{}}}, Masking: &Masking{Except: []Identity{}}}
+		assert.True(t, PermissionsEqual(a, a))
+		assert.NotNil(t, a.Grants[0].Scopes)
+		assert.NotNil(t, a.Grants[0].Allow)
+		assert.NotNil(t, a.Masking.Except)
+		assert.True(t, PermissionsEqual(base(), base()))
+	})
+
+	t.Run("nil permissions equal only nil", func(t *testing.T) {
+		assert.True(t, PermissionsEqual(nil, nil))
+		assert.False(t, PermissionsEqual(nil, &Permissions{}))
+		assert.False(t, PermissionsEqual(&Permissions{Grants: []Grant{}}, nil))
+	})
+
+	changes := map[string]func(*Permissions){
+		"no restrictions":     func(p *Permissions) { p.Restrictions = nil },
+		"a restrictions leaf": func(p *Permissions) { p.Restrictions.Field.Write = PermissionLevelMember },
+		"no grants":           func(p *Permissions) { p.Grants = nil },
+		"an added grant": func(p *Permissions) {
+			p.Grants = append(p.Grants, Grant{Identity: Identity{Type: PropertyOwnerTypeUser, ID: "userid"}, Allow: []string{PropertyActionFieldWrite}})
+		},
+		"a grant's identity": func(p *Permissions) { p.Grants[0].ID = "com.example.other" },
+		"a grant's scopes":   func(p *Permissions) { p.Grants[0].Scopes = []string{"channelid"} },
+		"a grant's allow":    func(p *Permissions) { p.Grants[0].Allow = []string{PropertyActionFieldWrite} },
+		"no masking":         func(p *Permissions) { p.Masking = nil },
+		"masking's except":   func(p *Permissions) { p.Masking.Except = nil },
+		"masking's field":    func(p *Permissions) { p.Masking.MaskByFieldID = "fieldid" },
+		"the filtered flag":  func(p *Permissions) { p.Filtered = true },
+	}
+	for name, change := range changes {
+		t.Run("a change to "+name+" is not equal", func(t *testing.T) {
+			changed := base()
+			change(changed)
+			assert.False(t, PermissionsEqual(base(), changed))
+			assert.False(t, PermissionsEqual(changed, base()))
+		})
+	}
+
+	t.Run("masking absent is not masking {}", func(t *testing.T) {
+		assert.False(t, PermissionsEqual(&Permissions{}, &Permissions{Masking: &Masking{}}))
+	})
+}
+
 func TestRestrictionsTierFor(t *testing.T) {
 	r := &Restrictions{
 		Value:  ReadWrite{Read: PermissionLevelEveryone, Write: PermissionLevelAdmin},

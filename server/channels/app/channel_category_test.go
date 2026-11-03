@@ -4,12 +4,18 @@
 package app
 
 import (
+	"errors"
+	"fmt"
+	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
 
 func TestSidebarCategory(t *testing.T) {
@@ -788,5 +794,178 @@ func TestDiffChannelsBetweenCategories(t *testing.T) {
 			},
 			channelsDiff,
 		)
+	})
+}
+
+func TestSidebarCategoryStoreErrorClassification(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupWithStoreMock(t)
+
+	mockStore := th.App.Srv().Store().(*storemocks.Store)
+
+	var channelBinding *mock.Call
+	bindChannel := func(channel *storemocks.ChannelStore) {
+		t.Helper()
+		if channelBinding != nil {
+			channelBinding.Unset()
+		}
+		channelBinding = mockStore.On("Channel").Return(channel)
+	}
+
+	notFound := func() error {
+		return fmt.Errorf("query: %w", store.NewErrNotFound("SidebarCategories", model.NewId()))
+	}
+	invalidInput := func() error {
+		return fmt.Errorf("query: %w", store.NewErrInvalidInput("SidebarCategories", "id", "preset"))
+	}
+	plain := func() error {
+		return errors.New("db down")
+	}
+
+	requireMapped := func(t *testing.T, got *model.AppError, status int, cause error) {
+		t.Helper()
+		require.NotNil(t, got)
+		assert.Equal(t, "app.channel.sidebar_categories.app_error", got.Id)
+		assert.Equal(t, status, got.StatusCode)
+		assert.ErrorIs(t, got, cause)
+	}
+
+	t.Run("GetSidebarCategoriesForTeamForUser", func(t *testing.T) {
+		cause := notFound()
+		channel := &storemocks.ChannelStore{}
+		channel.On("GetSidebarCategoriesForTeamForUser", mock.Anything, mock.Anything).Return((*model.OrderedSidebarCategories)(nil), cause).Once()
+		bindChannel(channel)
+		_, got := th.App.GetSidebarCategoriesForTeamForUser(th.Context, model.NewId(), model.NewId())
+		requireMapped(t, got, http.StatusNotFound, cause)
+
+		cause = plain()
+		channel = &storemocks.ChannelStore{}
+		channel.On("GetSidebarCategoriesForTeamForUser", mock.Anything, mock.Anything).Return((*model.OrderedSidebarCategories)(nil), cause).Once()
+		bindChannel(channel)
+		_, got = th.App.GetSidebarCategoriesForTeamForUser(th.Context, model.NewId(), model.NewId())
+		requireMapped(t, got, http.StatusInternalServerError, cause)
+	})
+
+	t.Run("GetSidebarCategories", func(t *testing.T) {
+		cause := notFound()
+		channel := &storemocks.ChannelStore{}
+		channel.On("GetSidebarCategories", mock.Anything, mock.Anything).Return((*model.OrderedSidebarCategories)(nil), cause).Once()
+		bindChannel(channel)
+		_, got := th.App.GetSidebarCategories(th.Context, model.NewId(), model.NewId())
+		requireMapped(t, got, http.StatusNotFound, cause)
+
+		cause = plain()
+		channel = &storemocks.ChannelStore{}
+		channel.On("GetSidebarCategories", mock.Anything, mock.Anything).Return((*model.OrderedSidebarCategories)(nil), cause).Once()
+		bindChannel(channel)
+		_, got = th.App.GetSidebarCategories(th.Context, model.NewId(), model.NewId())
+		requireMapped(t, got, http.StatusInternalServerError, cause)
+	})
+
+	t.Run("GetSidebarCategoryOrder", func(t *testing.T) {
+		cause := notFound()
+		channel := &storemocks.ChannelStore{}
+		channel.On("GetSidebarCategoryOrder", mock.Anything, mock.Anything).Return([]string(nil), cause).Once()
+		bindChannel(channel)
+		_, got := th.App.GetSidebarCategoryOrder(th.Context, model.NewId(), model.NewId())
+		requireMapped(t, got, http.StatusNotFound, cause)
+
+		cause = plain()
+		channel = &storemocks.ChannelStore{}
+		channel.On("GetSidebarCategoryOrder", mock.Anything, mock.Anything).Return([]string(nil), cause).Once()
+		bindChannel(channel)
+		_, got = th.App.GetSidebarCategoryOrder(th.Context, model.NewId(), model.NewId())
+		requireMapped(t, got, http.StatusInternalServerError, cause)
+	})
+
+	t.Run("GetSidebarCategory", func(t *testing.T) {
+		cause := notFound()
+		channel := &storemocks.ChannelStore{}
+		channel.On("GetSidebarCategory", mock.Anything).Return((*model.SidebarCategoryWithChannels)(nil), cause).Once()
+		bindChannel(channel)
+		_, got := th.App.GetSidebarCategory(th.Context, model.NewId())
+		requireMapped(t, got, http.StatusNotFound, cause)
+
+		cause = plain()
+		channel = &storemocks.ChannelStore{}
+		channel.On("GetSidebarCategory", mock.Anything).Return((*model.SidebarCategoryWithChannels)(nil), cause).Once()
+		bindChannel(channel)
+		_, got = th.App.GetSidebarCategory(th.Context, model.NewId())
+		requireMapped(t, got, http.StatusInternalServerError, cause)
+	})
+
+	t.Run("CreateSidebarCategory", func(t *testing.T) {
+		newCategory := &model.SidebarCategoryWithChannels{
+			SidebarCategory: model.SidebarCategory{DisplayName: "TEST"},
+		}
+
+		cause := notFound()
+		channel := &storemocks.ChannelStore{}
+		channel.On("CreateSidebarCategory", mock.Anything, mock.Anything, mock.Anything).Return((*model.SidebarCategoryWithChannels)(nil), cause).Once()
+		bindChannel(channel)
+		_, got := th.App.CreateSidebarCategory(th.Context, model.NewId(), model.NewId(), newCategory)
+		requireMapped(t, got, http.StatusNotFound, cause)
+
+		cause = plain()
+		channel = &storemocks.ChannelStore{}
+		channel.On("CreateSidebarCategory", mock.Anything, mock.Anything, mock.Anything).Return((*model.SidebarCategoryWithChannels)(nil), cause).Once()
+		bindChannel(channel)
+		_, got = th.App.CreateSidebarCategory(th.Context, model.NewId(), model.NewId(), newCategory)
+		requireMapped(t, got, http.StatusInternalServerError, cause)
+	})
+
+	t.Run("UpdateSidebarCategoryOrder", func(t *testing.T) {
+		// Not-found is checked before invalid input. An invalid-input error that
+		// wraps not-found stays on the not-found branch.
+		var cause error = store.NewErrInvalidInput("SidebarCategories", "id", "x").Wrap(store.NewErrNotFound("SidebarCategories", model.NewId()))
+		channel := &storemocks.ChannelStore{}
+		channel.On("UpdateSidebarCategoryOrder", mock.Anything, mock.Anything, mock.Anything).Return(cause).Once()
+		bindChannel(channel)
+		got := th.App.UpdateSidebarCategoryOrder(th.Context, model.NewId(), model.NewId(), []string{model.NewId()})
+		requireMapped(t, got, http.StatusNotFound, cause)
+
+		cause = notFound()
+		channel = &storemocks.ChannelStore{}
+		channel.On("UpdateSidebarCategoryOrder", mock.Anything, mock.Anything, mock.Anything).Return(cause).Once()
+		bindChannel(channel)
+		got = th.App.UpdateSidebarCategoryOrder(th.Context, model.NewId(), model.NewId(), []string{model.NewId()})
+		requireMapped(t, got, http.StatusNotFound, cause)
+
+		cause = invalidInput()
+		channel = &storemocks.ChannelStore{}
+		channel.On("UpdateSidebarCategoryOrder", mock.Anything, mock.Anything, mock.Anything).Return(cause).Once()
+		bindChannel(channel)
+		got = th.App.UpdateSidebarCategoryOrder(th.Context, model.NewId(), model.NewId(), []string{model.NewId()})
+		requireMapped(t, got, http.StatusBadRequest, cause)
+
+		cause = plain()
+		channel = &storemocks.ChannelStore{}
+		channel.On("UpdateSidebarCategoryOrder", mock.Anything, mock.Anything, mock.Anything).Return(cause).Once()
+		bindChannel(channel)
+		got = th.App.UpdateSidebarCategoryOrder(th.Context, model.NewId(), model.NewId(), []string{model.NewId()})
+		requireMapped(t, got, http.StatusInternalServerError, cause)
+	})
+
+	t.Run("DeleteSidebarCategory", func(t *testing.T) {
+		cause := invalidInput()
+		channel := &storemocks.ChannelStore{}
+		channel.On("DeleteSidebarCategory", mock.Anything).Return(cause).Once()
+		bindChannel(channel)
+		got := th.App.DeleteSidebarCategory(th.Context, model.NewId(), model.NewId(), model.NewId())
+		requireMapped(t, got, http.StatusBadRequest, cause)
+
+		cause = notFound()
+		channel = &storemocks.ChannelStore{}
+		channel.On("DeleteSidebarCategory", mock.Anything).Return(cause).Once()
+		bindChannel(channel)
+		got = th.App.DeleteSidebarCategory(th.Context, model.NewId(), model.NewId(), model.NewId())
+		requireMapped(t, got, http.StatusInternalServerError, cause)
+
+		cause = plain()
+		channel = &storemocks.ChannelStore{}
+		channel.On("DeleteSidebarCategory", mock.Anything).Return(cause).Once()
+		bindChannel(channel)
+		got = th.App.DeleteSidebarCategory(th.Context, model.NewId(), model.NewId(), model.NewId())
+		requireMapped(t, got, http.StatusInternalServerError, cause)
 	})
 }

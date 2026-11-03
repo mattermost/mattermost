@@ -74,6 +74,7 @@ export type PluginsState = {
         SidebarBrowseOrAddChannelMenu: SidebarBrowseOrAddChannelMenuAction[];
         ChannelTypeOption: ChannelTypeOptionComponent[];
         ChannelIconOverride: ChannelIconOverrideRegistration[];
+        ChannelKind: ChannelKindRegistration[];
         ChannelComposerBanner: ChannelComposerBannerComponent[];
         ChannelIntro: ChannelIntroRegistration[];
         ChannelView: ChannelViewRegistration[];
@@ -467,11 +468,26 @@ export type SidebarBrowseOrAddChannelMenuAction = PluginComponent & {
     text: PluggableText;
     action: (teamId: string) => void;
     icon: React.ReactNode;
+
+    /** Where the item sits: 'afterCreateChannel' puts it right below "Create new channel"; by default it follows the built-in items. */
+    placement?: 'default' | 'afterCreateChannel';
 };
 
 export type ChannelIconOverrideRegistration = PluginComponent & {
     matcher: (state: GlobalState, channel: Channel) => boolean;
     iconName: IconGlyphTypes;
+};
+
+/** The kinds a plugin can register a channel as (registerChannelKind), each with its own wording. */
+export const CHANNEL_KINDS = ['board'] as const;
+export type RegisteredChannelKind = typeof CHANNEL_KINDS[number];
+
+/** The kind of a channel, which picks the words the webapp names it with: a registered kind, or 'channel'. */
+export type ChannelKind = 'channel' | RegisteredChannelKind;
+
+export type ChannelKindRegistration = PluginComponent & {
+    matcher: (state: GlobalState, channel: Channel) => boolean;
+    kind: RegisteredChannelKind;
 };
 
 export type ChannelComposerBannerComponent = PluginComponent & {
@@ -522,6 +538,13 @@ export type ChannelTypeOptionComponent = PluginComponent & {
     description: PluggableText;
     icon: React.ReactNode;
     createButtonText?: PluggableText;
+
+    /**
+     * Whether "Create a new channel" lists the option; true when unset. An option that is not listed
+     * is offered only when the plugin opens the modal for its own channel types (new_channel_modal
+     * with channelTypePluginId).
+     */
+    showInNewChannelModal?: boolean;
 
     /** Called with the full Redux state so plugins can read their own plugin-scoped state. */
     isAvailable: (state: GlobalState) => boolean;

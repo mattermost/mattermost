@@ -7,7 +7,7 @@ import type {JSX, MouseEvent} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 
-import {Button} from '@mattermost/compass-ui/components/button';
+import {Button} from '@mattermost/shared/components/button';
 import type {Group} from '@mattermost/types/groups';
 import type {Team} from '@mattermost/types/teams';
 
@@ -157,17 +157,20 @@ export default class AbstractList extends React.PureComponent<Props, State> {
                     </div>
                     <Button
                         type='button'
-                        emphasis='tertiary'
-                        className={classNames({disabled: firstPage})}
+                        emphasis='quaternary'
+                        size='sm'
+                        className={classNames('btn-icon ml-2', 'prev', {disabled: firstPage})}
                         onClick={firstPage ? undefined : this.previousPage}
                         disabled={firstPage}
+                        data-testid='page-link-prev'
                     >
                         <PreviousIcon/>
                     </Button>
                     <Button
                         type='button'
-                        emphasis='tertiary'
-                        className={classNames({disabled: lastPage})}
+                        emphasis='quaternary'
+                        size='sm'
+                        className={classNames('btn-icon', 'next', {disabled: lastPage})}
                         onClick={lastPage ? undefined : this.nextPage}
                         disabled={lastPage}
                         data-testid='page-link-next'
