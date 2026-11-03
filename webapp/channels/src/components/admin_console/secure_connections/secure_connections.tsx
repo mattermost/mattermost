@@ -8,16 +8,17 @@ import {useHistory} from 'react-router-dom';
 
 import {ChevronDownIcon} from '@mattermost/compass-icons/components';
 import {Button, type ButtonEmphasis} from '@mattermost/compass-ui/components/button';
+import {EmptyState} from '@mattermost/compass-ui/components/empty-state';
 import {Icon} from '@mattermost/compass-ui/components/icon';
 import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
+import OfficeIllustration from '@mattermost/compass-ui/illustrations/office';
 
 import LoadingScreen from 'components/loading_screen';
 import * as Menu from 'components/menu';
 import type {MenuButtonComponentProps} from 'components/menu';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
-import BuildingSvg from './building.svg';
-import {AdminSection, SectionHeader, SectionHeading, SectionContent, PlaceholderContainer, PlaceholderHeading} from './controls';
+import {AdminSection, SectionHeader, SectionHeading, SectionContent} from './controls';
 import {useRemoteClusterAcceptInvite} from './modals/modal_utils';
 import SecureConnectionRow from './secure_connection_row';
 import {getCreateLocation, getEditLocation, useRemoteClusters} from './utils';
@@ -94,23 +95,20 @@ const Placeholder = ({disabled, serviceNotRunning}: {disabled: boolean; serviceN
                     )}
                 />
             )}
-            <PlaceholderContainer>
-                <BuildingSvg/>
-                <hgroup>
-                    <FormattedMessage
-                        tagName={PlaceholderHeading}
-                        {...msg.placeholderTitle}
+            <EmptyState
+                illustration={{
+                    'aria-label': '',
+                    children: <OfficeIllustration/>,
+                }}
+                title={<FormattedMessage {...msg.placeholderTitle}/>}
+                description={<FormattedMessage {...msg.placeholderSubtitle}/>}
+                actionSlot={
+                    <AddMenu
+                        buttonEmphasis='tertiary'
+                        disabled={disabled}
                     />
-                    <FormattedMessage
-                        tagName={'p'}
-                        {...msg.placeholderSubtitle}
-                    />
-                </hgroup>
-                <AddMenu
-                    buttonEmphasis='tertiary'
-                    disabled={disabled}
-                />
-            </PlaceholderContainer>
+                }
+            />
         </SectionContent>
     );
 };

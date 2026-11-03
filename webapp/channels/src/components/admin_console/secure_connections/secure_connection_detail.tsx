@@ -12,7 +12,9 @@ import styled from 'styled-components';
 
 import {PlusIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/compass-ui/components/button';
+import {EmptyState} from '@mattermost/compass-ui/components/empty-state';
 import {Icon} from '@mattermost/compass-ui/components/icon';
+import CollaborateIllustration from '@mattermost/compass-ui/illustrations/collaborate';
 import {isRemoteClusterPatch, type RemoteCluster} from '@mattermost/types/remote_clusters';
 
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
@@ -29,16 +31,12 @@ import {getChannelIconComponent} from 'utils/channel_utils';
 
 import type {GlobalState} from 'types/store';
 
-import ChatSvg from './chat.svg';
 import {
     AdminSection,
     SectionHeader,
     SectionHeading,
     SectionContent,
-    PlaceholderContainer,
-    PlaceholderHeading,
     AdminWrapper,
-    PlaceholderParagraph,
     Input,
     FormField,
     ConnectionStatusLabel,
@@ -337,35 +335,32 @@ function SharedChannelRemotes(props: {remoteId: string; rc: RemoteCluster | unde
 
 const Placeholder = (props: {filter: 'home' | 'remote'; rc: RemoteCluster}) => {
     return (
-        <PlaceholderContainer>
-            <ChatSvg/>
-            <hgroup>
-                {props.filter === 'home' ? (
-                    <>
-                        <FormattedMessage
-                            tagName={PlaceholderHeading}
-                            id='admin.secure_connection_detail.shared_channels.placeholder.title_home'
-                            defaultMessage="You haven't shared any channels"
-                        />
-                        <FormattedMessage
-                            tagName={PlaceholderParagraph}
-                            id='admin.secure_connection_detail.shared_channels.placeholder.subtitle'
-                            defaultMessage='Please add channels to start sharing'
-                        />
-                    </>
-                ) : (
-                    <FormattedMessage
-                        tagName={PlaceholderHeading}
-                        id='admin.secure_connection_detail.shared_channels.placeholder.title_remote'
-                        defaultMessage="{remote} hasn't shared any channels"
-                        values={{
-                            remote: props.rc.display_name,
-                        }}
-                    />
-                )}
-
-            </hgroup>
-        </PlaceholderContainer>
+        <EmptyState
+            illustration={{
+                'aria-label': '',
+                children: <CollaborateIllustration/>,
+            }}
+            title={props.filter === 'home' ? (
+                <FormattedMessage
+                    id='admin.secure_connection_detail.shared_channels.placeholder.title_home'
+                    defaultMessage="You haven't shared any channels"
+                />
+            ) : (
+                <FormattedMessage
+                    id='admin.secure_connection_detail.shared_channels.placeholder.title_remote'
+                    defaultMessage="{remote} hasn't shared any channels"
+                    values={{
+                        remote: props.rc.display_name,
+                    }}
+                />
+            )}
+            description={props.filter === 'home' ? (
+                <FormattedMessage
+                    id='admin.secure_connection_detail.shared_channels.placeholder.subtitle'
+                    defaultMessage='Please add channels to start sharing'
+                />
+            ) : undefined}
+        />
     );
 };
 
