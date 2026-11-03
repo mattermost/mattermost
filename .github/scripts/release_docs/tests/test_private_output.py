@@ -39,7 +39,7 @@ class PrivateOutputTest(unittest.TestCase):
             summary_file = os.path.join(out, "step-summary.md")
             output_dir = os.path.join(out, "artifact")
             full_env = {"MODE": "dry_run", "OUTPUT_DIR": output_dir, "GITHUB_STEP_SUMMARY": summary_file,
-                        "REVIEW_CHANNEL_ID": "review", **(env or {})}
+                        "REVIEW_CHANNEL_ID": "review", "GITHUB_ACTIONS": "true", **(env or {})}
             log = io.StringIO()
             with redirect_stdout(log):
                 code = cli.finish(run, full_env, hub)
@@ -49,6 +49,7 @@ class PrivateOutputTest(unittest.TestCase):
                     with open(os.path.join(root, name), encoding="utf-8") as f:
                         public.append(f"--- {name}\n{f.read()}")
             artifact_files = sorted(os.listdir(output_dir))
+            self.assertNotIn(report.PRIVATE_DIR, artifact_files)  # never in Actions
         posts = "\n".join(p["message"] for p in hub.posts.values()) if hub else ""
         return code, "\n".join(public), posts, artifact_files
 
@@ -140,6 +141,54 @@ class PrivateOutputTest(unittest.TestCase):
             self.assertNotIn(secret, public)
         self.assertIn("not posted: RELEASE_AGENT_MM_TOKEN is not set", public)
         self.assertIn("::error title=Missing input::1 missing input(s); they are listed in the Hub post", public)
+
+    def run_locally(self, run, hub):
+        """``finish`` outside Actions: (exit code, public output, {private file: text})."""
+        with tempfile.TemporaryDirectory() as out:
+            log = io.StringIO()
+            with redirect_stdout(log):
+                code = cli.finish(run, {"MODE": "dry_run", "OUTPUT_DIR": out, "REVIEW_CHANNEL_ID": "review"}, hub)
+            private_dir = os.path.join(out, report.PRIVATE_DIR)
+            private = {}
+            for name in sorted(os.listdir(private_dir)):
+                with open(os.path.join(private_dir, name), encoding="utf-8") as f:
+                    private[name] = f.read()
+            public = [log.getvalue()]
+            for name in ("summary.md", "result.json"):
+                with open(os.path.join(out, name), encoding="utf-8") as f:
+                    public.append(f.read())
+        return code, "\n".join(public), private
+
+    def test_local_run_writes_the_full_report_and_files_without_hub(self):
+        jira = HighlightsJira({"200": [epic(JIRA_KEY, EPIC_NAME), epic(EXCLUDED_KEY, EXCLUDED_NAME)]})
+        claude = FakeClaude(answer((JIRA_KEY, True, "feature", EPIC_NAME, "Channels for everyone."),
+                                   (EXCLUDED_KEY, False, f"internal work on {EXCLUDED_NAME}", "", "")))
+        with mock.patch.object(cli.jira, "Jira", return_value=jira):
+            run = cli.run_task("release-highlights", "v12.2.0", {"MODE": "dry_run", "JIRA_EMAIL": "e", "JIRA_TOKEN": "t"},
+                               FakeGitHub(), FakeGitHub(), claude, docs=docs())
+        code, public, private = self.run_locally(run, None)
+        self.assertEqual(code, 0)  # the output isn't lost, so no Hub is fine locally
+        self.assertEqual(sorted(private), ["release-highlights-December-2026.html", "release-highlights-December-2026.json",
+                                           report.REPORT_FILE])
+        for value in (JIRA_KEY, EPIC_NAME, EXCLUDED_KEY, EXCLUDED_NAME):
+            self.assertIn(value, private[report.REPORT_FILE])
+        self.assertIn(EPIC_NAME, private["release-highlights-December-2026.html"])
+        for secret in SECRETS:  # the public files stay as they are in Actions
+            self.assertNotIn(secret, public)
+        self.assertIn("not posted: RELEASE_AGENT_MM_TOKEN is not set; also written to", public)
+
+    def test_local_run_with_hub_posts_and_writes_and_names_the_report_for_missing_inputs(self):
+        run = cli.Run(cli.Result("breaking-changes", "v12.2.0", text=f"- [ ] [{ENTERPRISE_PR}](x) {ENTERPRISE_TITLE}",
+                                 private=True, todos=[f"no notice drafted for {ENTERPRISE_PR}"]), "Nothing published.")
+        hub = FakeHub()
+        code, public, private = self.run_locally(run, hub)
+        self.assertEqual(code, 1)  # missing inputs still fail
+        self.assertEqual(len(hub.posts), 1)
+        self.assertIn(ENTERPRISE_TITLE, private[report.REPORT_FILE])
+        self.assertIn(f"{report.TODO_MARKER}: no notice drafted for {ENTERPRISE_PR}", private[report.REPORT_FILE])
+        self.assertIn("1 missing input(s); they are listed in the Hub post", public)
+        for secret in SECRETS:
+            self.assertNotIn(secret, public)
 
     def test_long_output_is_split_across_replies(self):
         text = "\n".join(f"- line {i} " + "x" * 80 for i in range(400))

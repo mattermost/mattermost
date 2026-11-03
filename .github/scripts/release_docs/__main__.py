@@ -851,13 +851,21 @@ def finish(run: Run, env: dict, hub) -> int:
     if result.private:
         run_url = publish.run_url() if env.get("GITHUB_RUN_ID") else ""
         posted, delivered = report.deliver(result, env, hub, run_url)
+        where = "the Hub post"
+        if not env.get("GITHUB_ACTIONS"):
+            # A local run: the full output also goes to OUTPUT_DIR/private/, so a dry run can be
+            # checked without Hub. Never in Actions, where the artifact is public.
+            private_dir = report.write_private(result, out_dir, run_url)
+            delivered += f"; also written to {private_dir}"
+            where = "the Hub post" if posted else f"{private_dir}/{report.REPORT_FILE}"
+            posted = True  # the output isn't lost
         text = report.public_summary(result, run.outcome, mode, delivered)
         os.makedirs(out_dir, exist_ok=True)
         with open(os.path.join(out_dir, "summary.md"), "w", encoding="utf-8") as f:
             f.write(text)
         with open(os.path.join(out_dir, "result.json"), "w", encoding="utf-8") as f:
             json.dump(report.public_record(result, delivered), f, indent=2)
-        errors = [f"{len(result.todos)} missing input(s); they are listed in the Hub post"] if result.todos else []
+        errors = [f"{len(result.todos)} missing input(s); they are listed in {where}"] if result.todos else []
         if not posted:
             errors.append(f"the full output was {delivered}")
     else:

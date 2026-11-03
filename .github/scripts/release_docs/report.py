@@ -7,12 +7,16 @@ that is posted to the review channel in Hub instead (RELEASE_DOCS_REVIEW_CHANNEL
 the release channel), with the artifacts attached. Actions keep the outcome, the counts,
 how many inputs are missing, and mattermost/mattermost PR refs.
 
+Outside GitHub Actions (GITHUB_ACTIONS unset), the full report and its files are also written
+to OUTPUT_DIR/private/, so a local dry run can be checked without Hub.
+
 The report is posted in dry runs too: these tasks never change anything else, their
 workflows always run them as dry runs, and the report is their whole output. A rerun with
 the same output posts nothing new.
 """
 
 import hashlib
+import os
 import re
 
 from . import hub as hublib
@@ -21,6 +25,8 @@ from .versions import Version
 
 PUBLIC_PR = re.compile(r"(?<![\w.-])mattermost/mattermost#\d+")
 HASH_PROP = "release_docs_hash"
+PRIVATE_DIR = "private"
+REPORT_FILE = "report.md"
 # Hub's post limit is 16383 characters; leave room for the code fence and a part number.
 CHUNK = 15000
 
@@ -99,6 +105,18 @@ def deliver(result: Result, env: dict, hub, run_url: str = "") -> tuple[bool, st
         return False, f"not posted: {err}"
     files = f", with {len(file_ids)} file(s) attached" if file_ids else ""
     return True, f"posted to the review channel in Hub{files}"
+
+
+def write_private(result: Result, out_dir: str, run_url: str = "") -> str:
+    """The full report and the result's files in ``out_dir/private/``, for local runs only."""
+    target = os.path.join(out_dir, PRIVATE_DIR)
+    os.makedirs(target, exist_ok=True)
+    with open(os.path.join(target, REPORT_FILE), "w", encoding="utf-8") as f:
+        f.write(full_report(result, run_url))
+    for name, content in result.artifacts.items():
+        with open(os.path.join(target, name), "w", encoding="utf-8") as f:
+            f.write(content)
+    return target
 
 
 def public_summary(result: Result, outcome: str, mode: str, delivered: str) -> str:
