@@ -242,6 +242,11 @@
         display: flex;
         justify-content: center;
         padding-top: 0;
+
+        // Fill the sidebar so the empty state isn't sized to its minimum width.
+        > .files-or-messages-panel {
+            flex: 1 1 auto;
+        }
     }
 }
 
