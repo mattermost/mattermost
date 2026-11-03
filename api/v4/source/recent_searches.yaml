@@ -26,6 +26,8 @@
             application/json:
               schema:
                 $ref: "#/components/schemas/RecentSearchList"
+        "400":
+          $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "403":
@@ -89,8 +91,8 @@
         - recent_searches
       summary: Delete a recent search
       description: >
-        Delete one recent search owned by the current user. A missing or
-        foreign id returns 404.
+        Delete one recent search owned by the current user. An id not owned by
+        the current user returns 404. Using another user's user_id returns 403.
 
 
         ##### Permissions
@@ -117,6 +119,8 @@
             application/json:
               schema:
                 $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "403":
