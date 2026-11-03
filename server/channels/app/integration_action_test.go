@@ -1374,6 +1374,11 @@ func TestDoPostActionPluginRouteAuthor(t *testing.T) {
 	require.True(t, canRead)
 	require.True(t, isMember)
 
+	require.False(t, th.SystemAdminUser.IsBot)
+	require.Contains(t, th.SystemAdminUser.Roles, model.SystemAdminRoleId)
+	th.LinkUserToTeam(t, th.SystemAdminUser, th.BasicTeam)
+	th.AddUserToChannel(t, th.SystemAdminUser, th.BasicChannel)
+
 	clickerSession, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser2.Id})
 	require.Nil(t, appErr)
 	require.NotEmpty(t, clickerSession.Token)
@@ -1481,11 +1486,13 @@ func TestDoPostActionPluginRouteAuthor(t *testing.T) {
 		return actionID
 	}
 
+	// urlKind empty selects the relative /plugins/<id> path. Other kinds are
+	// action URL shapes the dispatcher already routes.
 	testCases := []struct {
-		name          string
-		author        string
-		siteURLPlugin bool
-		expectCall    bool
+		name       string
+		author     string
+		urlKind    string
+		expectCall bool
 	}{
 		{
 			name:       "ordinary user relative plugin route",
@@ -1493,10 +1500,10 @@ func TestDoPostActionPluginRouteAuthor(t *testing.T) {
 			expectCall: false,
 		},
 		{
-			name:          "ordinary user siteurl plugin route",
-			author:        "user",
-			siteURLPlugin: true,
-			expectCall:    false,
+			name:       "ordinary user siteurl plugin route",
+			author:     "user",
+			urlKind:    "site",
+			expectCall: false,
 		},
 		{
 			name:       "bot relative plugin route",
@@ -1507,6 +1514,85 @@ func TestDoPostActionPluginRouteAuthor(t *testing.T) {
 			name:       "incoming webhook relative plugin route",
 			author:     "webhook",
 			expectCall: true,
+		},
+		{
+			name:       "system admin relative plugin route",
+			author:     "admin",
+			expectCall: false,
+		},
+		{
+			name:       "ordinary user create with identity props",
+			author:     "create-props",
+			expectCall: false,
+		},
+		{
+			name:       "ordinary user update with identity props",
+			author:     "update-props",
+			expectCall: false,
+		},
+		{
+			name:       "plugin relative plugin route",
+			author:     "plugin",
+			expectCall: true,
+		},
+		{
+			name:       "oauth app relative plugin route",
+			author:     "oauth",
+			expectCall: true,
+		},
+		{
+			name:       "relative plugin route without leading slash",
+			author:     "user",
+			urlKind:    "noslash",
+			expectCall: false,
+		},
+		{
+			name:       "dirty relative plugin route",
+			author:     "user",
+			urlKind:    "dirty",
+			expectCall: false,
+		},
+		{
+			name:       "siteurl plugin route with subpath",
+			author:     "user",
+			urlKind:    "subpath",
+			expectCall: false,
+		},
+		{
+			name:       "siteurl plugin route on another port",
+			author:     "user",
+			urlKind:    "port",
+			expectCall: false,
+		},
+		{
+			name:       "siteurl plugin route with userinfo",
+			author:     "user",
+			urlKind:    "userinfo",
+			expectCall: false,
+		},
+		{
+			name:       "siteurl plugin route with encoded dot segment",
+			author:     "user",
+			urlKind:    "encoded",
+			expectCall: false,
+		},
+		{
+			name:       "siteurl path with plugins prefix",
+			author:     "user",
+			urlKind:    "prefix",
+			expectCall: false,
+		},
+		{
+			name:       "siteurl plugin route with uppercase scheme",
+			author:     "user",
+			urlKind:    "scheme",
+			expectCall: false,
+		},
+		{
+			name:       "empty action url",
+			author:     "user",
+			urlKind:    "empty",
+			expectCall: false,
 		},
 	}
 
@@ -1552,20 +1638,127 @@ func TestDoPostActionPluginRouteAuthor(t *testing.T) {
 				require.Equal(t, "true", created.GetProp(model.PostPropsFromWebhook))
 				require.False(t, th.BasicUser.IsBot)
 				postID = created.Id
+			case "admin":
+				created, _, createErr := th.App.CreatePostAsUser(th.Context, &model.Post{
+					Message:   "interactive",
+					ChannelId: th.BasicChannel.Id,
+					UserId:    th.SystemAdminUser.Id,
+				}, "", true)
+				require.Nil(t, createErr)
+				require.Equal(t, th.SystemAdminUser.Id, created.UserId)
+				postID = created.Id
+			case "create-props":
+				// Identity props are supplied on the normal create path.
+				created, _, createErr := th.App.CreatePostAsUser(th.Context, &model.Post{
+					Message:   "interactive",
+					ChannelId: th.BasicChannel.Id,
+					UserId:    th.BasicUser.Id,
+					Props: model.StringInterface{
+						model.PostPropsFromBot:      "true",
+						model.PostPropsFromWebhook:  "true",
+						model.PostPropsFromPlugin:   "true",
+						model.PostPropsFromOAuthApp: "true",
+					},
+				}, "", true)
+				require.Nil(t, createErr)
+				require.Equal(t, th.BasicUser.Id, created.UserId)
+				postID = created.Id
+			case "update-props":
+				created, _, createErr := th.App.CreatePostAsUser(th.Context, &model.Post{
+					Message:   "interactive",
+					ChannelId: th.BasicChannel.Id,
+					UserId:    th.BasicUser.Id,
+				}, "", true)
+				require.Nil(t, createErr)
+				updated := created.Clone()
+				// Identity props are supplied on the normal update path.
+				updated.SetProps(model.StringInterface{
+					model.PostPropsFromBot:      "true",
+					model.PostPropsFromWebhook:  "true",
+					model.PostPropsFromPlugin:   "true",
+					model.PostPropsFromOAuthApp: "true",
+				})
+				saved, _, updateErr := th.App.UpdatePost(th.Context, updated, model.DefaultUpdatePostOptions())
+				require.Nil(t, updateErr)
+				require.Equal(t, th.BasicUser.Id, saved.UserId)
+				postID = saved.Id
+			case "plugin":
+				api := NewPluginAPI(th.App, th.Context, &model.Manifest{Id: "com.mattermost.test-plugin"})
+				created, createErr := api.CreatePost(&model.Post{
+					Message:   "interactive",
+					ChannelId: th.BasicChannel.Id,
+					UserId:    th.BasicUser.Id,
+				})
+				require.Nil(t, createErr)
+				require.Equal(t, "true", created.GetProp(model.PostPropsFromPlugin))
+				require.False(t, th.BasicUser.IsBot)
+				postID = created.Id
+			case "oauth":
+				oauthCtx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id, IsOAuth: true})
+				created, _, createErr := th.App.CreatePostAsUser(oauthCtx, &model.Post{
+					Message:   "interactive",
+					ChannelId: th.BasicChannel.Id,
+					UserId:    th.BasicUser.Id,
+				}, "", true)
+				require.Nil(t, createErr)
+				require.Equal(t, "true", created.GetProp(model.PostPropsFromOAuthApp))
+				require.Nil(t, created.GetProp(model.PostPropsFromBot))
+				require.Nil(t, created.GetProp(model.PostPropsFromWebhook))
+				require.Nil(t, created.GetProp(model.PostPropsFromPlugin))
+				require.False(t, th.BasicUser.IsBot)
+				postID = created.Id
 			default:
 				t.Fatalf("unknown author %q", tc.author)
 			}
 
 			actionURL := "/plugins/myplugin/myaction?source=button"
-			th.App.UpdateConfig(func(cfg *model.Config) {
-				*cfg.ServiceSettings.SiteURL = ""
-			})
-			if tc.siteURLPlugin {
+			siteURL := ""
+			switch tc.urlKind {
+			case "", "relative":
+			case "site":
 				actionURL = recorder.URL + "/plugins/myplugin/myaction"
-				th.App.UpdateConfig(func(cfg *model.Config) {
-					*cfg.ServiceSettings.SiteURL = recorder.URL
-				})
+				siteURL = recorder.URL
+			case "noslash":
+				actionURL = "plugins/myplugin/myaction?source=button"
+			case "dirty":
+				actionURL = "//plugins/myplugin///myaction"
+			case "subpath":
+				actionURL = recorder.URL + "/subpath/plugins/myplugin/myaction"
+				siteURL = recorder.URL + "/subpath"
+			case "port":
+				parsed, parseErr := url.Parse(recorder.URL)
+				require.NoError(t, parseErr)
+				altPort := "1"
+				if parsed.Port() == "1" {
+					altPort = "2"
+				}
+				actionURL = recorder.URL + "/plugins/myplugin/myaction"
+				siteURL = parsed.Scheme + "://" + parsed.Hostname() + ":" + altPort
+			case "userinfo":
+				parsed, parseErr := url.Parse(recorder.URL)
+				require.NoError(t, parseErr)
+				parsed.User = url.UserPassword("clicker", "secret")
+				parsed.Path = "/plugins/myplugin/myaction"
+				parsed.RawQuery = ""
+				actionURL = parsed.String()
+				siteURL = recorder.URL
+			case "encoded":
+				actionURL = recorder.URL + "/%2e/plugins/myplugin/myaction"
+				siteURL = recorder.URL
+			case "prefix":
+				actionURL = recorder.URL + "/pluginsExtra"
+				siteURL = recorder.URL
+			case "scheme":
+				actionURL = strings.Replace(recorder.URL, "http://", "HTTP://", 1) + "/plugins/myplugin/myaction"
+				siteURL = recorder.URL
+			case "empty":
+				actionURL = ""
+			default:
+				t.Fatalf("unknown url kind %q", tc.urlKind)
 			}
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.ServiceSettings.SiteURL = siteURL
+			})
 
 			actionID := storeAttachmentAction(t, postID, actionURL)
 
@@ -1573,7 +1766,7 @@ func TestDoPostActionPluginRouteAuthor(t *testing.T) {
 			require.NoError(t, err)
 			require.NotEqual(t, th.BasicUser2.Id, reloaded.UserId)
 			switch tc.author {
-			case "user":
+			case "user", "admin":
 				require.Nil(t, reloaded.GetProp(model.PostPropsFromBot))
 				require.Nil(t, reloaded.GetProp(model.PostPropsFromWebhook))
 				require.Nil(t, reloaded.GetProp(model.PostPropsFromPlugin))
@@ -1582,6 +1775,14 @@ func TestDoPostActionPluginRouteAuthor(t *testing.T) {
 				require.Equal(t, "true", reloaded.GetProp(model.PostPropsFromBot))
 			case "webhook":
 				require.Equal(t, "true", reloaded.GetProp(model.PostPropsFromWebhook))
+			case "plugin":
+				require.Equal(t, "true", reloaded.GetProp(model.PostPropsFromPlugin))
+				require.Nil(t, reloaded.GetProp(model.PostPropsFromBot))
+			case "oauth":
+				require.Equal(t, "true", reloaded.GetProp(model.PostPropsFromOAuthApp))
+				require.Nil(t, reloaded.GetProp(model.PostPropsFromBot))
+				require.Nil(t, reloaded.GetProp(model.PostPropsFromPlugin))
+				require.Nil(t, reloaded.GetProp(model.PostPropsFromWebhook))
 			}
 
 			clickCtx := th.Context.WithSession(clickerSession)
@@ -1611,7 +1812,13 @@ func TestDoPostActionPluginRouteAuthor(t *testing.T) {
 				t.Errorf("siteurl plugin route request included the clicking user's session token")
 			}
 			if len(hits) != 0 {
-				t.Errorf("plugin route calls = %d, want 0; recorded %q", len(hits), hits)
+				t.Errorf("plugin route calls = %d, want 0; recorded %q; from_bot=%v from_webhook=%v from_plugin=%v from_oauth_app=%v",
+					len(hits), hits,
+					reloaded.GetProp(model.PostPropsFromBot),
+					reloaded.GetProp(model.PostPropsFromWebhook),
+					reloaded.GetProp(model.PostPropsFromPlugin),
+					reloaded.GetProp(model.PostPropsFromOAuthApp),
+				)
 			}
 			if appErr == nil {
 				t.Errorf("DoPostActionWithCookie returned no error")
