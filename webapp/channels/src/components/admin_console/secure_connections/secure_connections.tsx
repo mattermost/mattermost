@@ -5,20 +5,21 @@ import type {ReactNode} from 'react';
 import React, {forwardRef} from 'react';
 import {useIntl, FormattedMessage, defineMessages} from 'react-intl';
 import {useHistory} from 'react-router-dom';
+import styled from 'styled-components';
 
 import {ChevronDownIcon} from '@mattermost/compass-icons/components';
 import {Button, type ButtonEmphasis} from '@mattermost/compass-ui/components/button';
 import {EmptyState} from '@mattermost/compass-ui/components/empty-state';
 import {Icon} from '@mattermost/compass-ui/components/icon';
-import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
 import OfficeIllustration from '@mattermost/compass-ui/illustrations/office';
+import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
 
 import LoadingScreen from 'components/loading_screen';
 import * as Menu from 'components/menu';
 import type {MenuButtonComponentProps} from 'components/menu';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
+import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
-import {AdminSection, SectionHeader, SectionHeading, SectionContent} from './controls';
 import {useRemoteClusterAcceptInvite} from './modals/modal_utils';
 import SecureConnectionRow from './secure_connection_row';
 import {getCreateLocation, getEditLocation, useRemoteClusters} from './utils';
@@ -47,32 +48,34 @@ export default function SecureConnections() {
                 <FormattedMessage {...msg.pageTitle}/>
             </AdminHeader>
             <AdminWrapper>
-                <AdminSection>
-                    <SectionHeader>
-                        <hgroup>
-                            <FormattedMessage
-                                tagName={SectionHeading}
-                                {...msg.title}
-                            />
-                            <FormattedMessage {...msg.subtitle}/>
-                        </hgroup>
-                        <AddMenu disabled={disabled}/>
-                    </SectionHeader>
-                    {remoteClusters?.map((rc) => {
-                        return (
-                            <SecureConnectionRow
-                                key={rc.remote_id}
-                                remoteCluster={rc}
-                                onDeleteSuccess={fetch}
-                                disabled={disabled}
-                            />
-                        );
-                    }) ?? placeholder}
-                </AdminSection>
+                <AdminPanel
+                    id='secure_connections'
+                    title={msg.title}
+                    subtitle={msg.subtitle}
+                    button={<AddMenu disabled={disabled}/>}
+                >
+                    <RowList>
+                        {remoteClusters?.map((rc) => {
+                            return (
+                                <SecureConnectionRow
+                                    key={rc.remote_id}
+                                    remoteCluster={rc}
+                                    onDeleteSuccess={fetch}
+                                    disabled={disabled}
+                                />
+                            );
+                        }) ?? placeholder}
+                    </RowList>
+                </AdminPanel>
             </AdminWrapper>
         </div>
     );
 }
+
+const RowList = styled.div`
+    display: flex;
+    flex-direction: column;
+`;
 
 const AdminWrapper = (props: {children: ReactNode}) => {
     return (
@@ -86,7 +89,7 @@ const AdminWrapper = (props: {children: ReactNode}) => {
 
 const Placeholder = ({disabled, serviceNotRunning}: {disabled: boolean; serviceNotRunning: boolean}) => {
     return (
-        <SectionContent>
+        <>
             {serviceNotRunning && (
                 <SectionNotice
                     type='danger'
@@ -109,7 +112,7 @@ const Placeholder = ({disabled, serviceNotRunning}: {disabled: boolean; serviceN
                     />
                 }
             />
-        </SectionContent>
+        </>
     );
 };
 

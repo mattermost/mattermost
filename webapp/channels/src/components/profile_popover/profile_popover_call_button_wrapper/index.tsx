@@ -5,6 +5,11 @@ import React from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import {
+    PhoneIcon,
+} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {getChannelByName} from 'mattermost-redux/selectors/entities/channels';
@@ -112,18 +117,13 @@ const CallButton = ({
         <WithTooltip
             title={startCallMessage}
         >
-            <button
+            <IconButton
                 id='startCallButton'
-                type='button'
+                size='small'
+                icon={<Icon glyph={<PhoneIcon/>}/>}
                 disabled={disabled}
-                className='btn btn-icon btn-sm style--none'
                 aria-label={startCallMessage}
-            >
-                <span
-                    className='icon icon-phone'
-                    aria-hidden='true'
-                />
-            </button>
+            />
         </WithTooltip>
     );
 

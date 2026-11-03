@@ -516,11 +516,9 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	fileInfos, storeErr := c.App.Srv().Store().FileInfo().GetByIds([]string{c.Params.FileId}, true, true, false)
 	if storeErr != nil {
 		c.Err = model.NewAppError("getFile", "api.file.get_file_info.app_error", nil, "", http.StatusInternalServerError)
-		setInaccessibleFileHeader(w, c.Err)
 		return
 	} else if len(fileInfos) == 0 {
 		c.Err = model.NewAppError("getFile", "api.file.get_file_info.app_error", nil, "", http.StatusNotFound)
-		setInaccessibleFileHeader(w, c.Err)
 		return
 	}
 
@@ -571,7 +569,6 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	// deleted file cannot be told apart from a file that never existed.
 	if fileInfo.DeleteAt != 0 && !isContentReviewer {
 		c.Err = model.NewAppError("getFile", "api.file.get_file_info.app_error", nil, "", http.StatusNotFound)
-		setInaccessibleFileHeader(w, c.Err)
 		return
 	}
 
@@ -633,7 +630,6 @@ func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
 	info, err := c.App.GetFileInfo(c.AppContext, c.Params.FileId)
 	if err != nil {
 		c.Err = err
-		setInaccessibleFileHeader(w, err)
 		return
 	}
 
@@ -708,7 +704,6 @@ func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
 	info, err := c.App.GetFileInfo(c.AppContext, c.Params.FileId)
 	if err != nil {
 		c.Err = err
-		setInaccessibleFileHeader(w, err)
 		return
 	}
 	model.AddEventParameterAuditableToAuditRec(auditRec, "file", info)
@@ -764,7 +759,6 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 	info, err := c.App.GetFileInfo(c.AppContext, c.Params.FileId)
 	if err != nil {
 		c.Err = err
-		setInaccessibleFileHeader(w, err)
 		return
 	}
 
@@ -832,7 +826,6 @@ func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 	info, err := c.App.GetFileInfo(c.AppContext, c.Params.FileId)
 	if err != nil {
 		c.Err = err
-		setInaccessibleFileHeader(w, err)
 		return
 	}
 
@@ -885,7 +878,6 @@ func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	info, err := c.App.GetFileInfo(c.AppContext, c.Params.FileId)
 	if err != nil {
 		c.Err = err
-		setInaccessibleFileHeader(w, err)
 		return
 	}
 
@@ -1012,11 +1004,4 @@ func searchFiles(c *Context, w http.ResponseWriter, r *http.Request, teamID stri
 	}
 
 	auditRec.Success()
-}
-
-func setInaccessibleFileHeader(w http.ResponseWriter, appErr *model.AppError) {
-	// File is inaccessible due to cloud plan's limit.
-	if appErr.Id == "app.file.cloud.get.app_error" {
-		w.Header().Set(model.HeaderFirstInaccessibleFileTime, "1")
-	}
 }

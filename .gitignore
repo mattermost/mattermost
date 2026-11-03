@@ -6,6 +6,7 @@
 logs
 .DS_Store
 node_modules
+__pycache__/
 /data
 /dist
 /webapp/dist
