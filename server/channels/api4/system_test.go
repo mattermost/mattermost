@@ -26,6 +26,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
+	"github.com/mattermost/mattermost/server/v8/channels/web"
 )
 
 func TestGetPing(t *testing.T) {
@@ -952,6 +953,126 @@ func TestS3TestConnection(t *testing.T) {
 				require.Error(t, err)
 				CheckErrorID(t, err, "api.admin.test_azure.missing_azure_field")
 				CheckBadRequestStatus(t, resp)
+			})
+		}
+	})
+
+	t.Run("with experimental admin setting", func(t *testing.T) {
+		dir := t.TempDir()
+
+		fs := model.FileSettings{}
+		fs.SetDefaults(false)
+		fs.DriverName = model.NewPointer(model.ImageDriverLocal)
+		fs.Directory = model.NewPointer(dir)
+
+		th.LoginSystemManager(t)
+
+		originalRestrictSystemAdminVal := *th.App.Config().ExperimentalSettings.RestrictSystemAdmin
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.ExperimentalSettings.RestrictSystemAdmin = originalRestrictSystemAdminVal
+			})
+		})
+
+		cases := []struct {
+			name     string
+			restrict bool
+			client   *model.Client4
+			call     func(*model.Client4, context.Context, *model.Config) (*model.Response, error)
+			wantOK   bool
+		}{
+			{
+				name:     "as restricted system admin",
+				restrict: true,
+				client:   th.SystemAdminClient,
+				call:     (*model.Client4).TestS3Connection,
+				wantOK:   false,
+			},
+			{
+				name:     "as restricted system admin with file store connection",
+				restrict: true,
+				client:   th.SystemAdminClient,
+				call:     (*model.Client4).TestFileStoreConnection,
+				wantOK:   false,
+			},
+			{
+				name:     "as restricted system manager",
+				restrict: true,
+				client:   th.SystemManagerClient,
+				call:     (*model.Client4).TestS3Connection,
+				wantOK:   false,
+			},
+			{
+				name:     "as restricted system manager with file store connection",
+				restrict: true,
+				client:   th.SystemManagerClient,
+				call:     (*model.Client4).TestFileStoreConnection,
+				wantOK:   false,
+			},
+			{
+				name:     "as system manager",
+				restrict: false,
+				client:   th.SystemManagerClient,
+				call:     (*model.Client4).TestS3Connection,
+				wantOK:   true,
+			},
+			{
+				name:     "as system manager with file store connection",
+				restrict: false,
+				client:   th.SystemManagerClient,
+				call:     (*model.Client4).TestFileStoreConnection,
+				wantOK:   true,
+			},
+		}
+		for _, tc := range cases {
+			t.Run(tc.name, func(t *testing.T) {
+				th.App.UpdateConfig(func(cfg *model.Config) {
+					*cfg.ExperimentalSettings.RestrictSystemAdmin = tc.restrict
+				})
+
+				resp, err := tc.call(tc.client, context.Background(), &model.Config{FileSettings: fs})
+				if tc.wantOK {
+					require.NoError(t, err)
+					CheckOKStatus(t, resp)
+					return
+				}
+
+				// Status for a non-local session while the experimental admin setting is on.
+				CheckForbiddenStatus(t, resp)
+				require.Error(t, err)
+			})
+		}
+
+		localHandler := &web.Handler{
+			Srv:         th.App.Srv(),
+			HandleFunc:  testFileStore,
+			HandlerName: "testFileStore",
+			IsLocal:     true,
+		}
+		localCases := []struct {
+			name string
+			path string
+		}{
+			{name: "as local session", path: "/api/v4/file/s3_test"},
+			{name: "as local session with file store connection", path: "/api/v4/file/test"},
+		}
+		for _, lc := range localCases {
+			t.Run(lc.name, func(t *testing.T) {
+				th.App.UpdateConfig(func(cfg *model.Config) {
+					*cfg.ExperimentalSettings.RestrictSystemAdmin = true
+				})
+
+				payload, err := json.Marshal(&model.Config{FileSettings: fs})
+				require.NoError(t, err)
+
+				req := httptest.NewRequest(http.MethodPost, lc.path, bytes.NewReader(payload))
+				req.Header.Set("Content-Type", "application/json")
+				req.RemoteAddr = "@"
+				rr := httptest.NewRecorder()
+				localHandler.ServeHTTP(rr, req)
+
+				// Status for a local session while the experimental admin setting is on.
+				require.Equal(t, http.StatusOK, rr.Code)
 			})
 		}
 	})
