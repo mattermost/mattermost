@@ -220,6 +220,7 @@ func systemSupportPacketCmdF(c client.Client, cmd *cobra.Command, _ []string) er
 	if err != nil {
 		return fmt.Errorf("unable to fetch Support Packet: %w", err)
 	}
+	defer data.Close()
 
 	exclusive := filename == ""
 	var file *os.File
