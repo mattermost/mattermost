@@ -3,6 +3,7 @@
 
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
+import {useHistory} from 'react-router-dom';
 
 import type {
     LogFilter,
@@ -18,6 +19,7 @@ import LogFormatMenu from './log_format_menu';
 import LogList, {loadPrefs} from './log_list';
 import PlainLogList from './plain_log_list';
 import type {CustomTimeRange, LogObjectWithAdditionalInfo, TimeRange} from './types';
+import {parseUrlFilters, withUrlFilters} from './url_filters';
 import useLogPolling from './use_log_polling';
 import {LEVEL_GROUPS, groupLevels, presetStartMs} from './utils';
 
@@ -84,9 +86,15 @@ const ALL_SERVER_NAMES: LogServerNames = [];
 
 const PLAIN_LOGS_PER_PAGE = 1000;
 
-function getInitialFormat(configIsPlainLogs: boolean): boolean {
+const PRESET_MINUTES = TIME_PRESETS.map((preset) => preset.minutes);
+
+// A shared link's filters only apply to the structured viewer, so it opens there over a saved plain format
+function getInitialFormat(configIsPlainLogs: boolean, hasUrlFilters: boolean): boolean {
     if (configIsPlainLogs) {
         return true;
+    }
+    if (hasUrlFilters) {
+        return false;
     }
     try {
         const saved = localStorage.getItem(LOG_FORMAT_PREF_KEY);
@@ -103,16 +111,61 @@ function getInitialFormat(configIsPlainLogs: boolean): boolean {
 }
 
 export default function Logs({logs, logNodes, truncatedLogNodes, plainLogs, isPlainLogs: configIsPlainLogs, actions}: Props) {
-    const [isPlainLogs, setIsPlainLogs] = useState(() => getInitialFormat(configIsPlainLogs));
+    const history = useHistory();
+    const [urlFilters] = useState(() => parseUrlFilters(history.location.search, PRESET_MINUTES));
+    const [isPlainLogs, setIsPlainLogs] = useState(() => getInitialFormat(configIsPlainLogs, Object.keys(urlFilters).length > 0));
     const [loading, setLoading] = useState(true);
-    const [search, setSearch] = useState('');
+    const [search, setSearch] = useState(urlFilters.search ?? '');
     const [initialPrefs] = useState(loadPrefs);
-    const [enabledLevels, setEnabledLevels] = useState(() => new Set(initialPrefs.enabledLevels));
-    const [selectedNode, setSelectedNode] = useState(initialPrefs.node);
-    const [timeRange, setTimeRange] = useState<TimeRange>(null);
-    const [plainPage, setPlainPage] = useState(0);
+    const [enabledLevels, setEnabledLevels] = useState(() => urlFilters.enabledLevels ?? new Set(initialPrefs.enabledLevels));
+    const [selectedNode, setSelectedNode] = useState(urlFilters.node ?? initialPrefs.node);
+    const [timeRange, setTimeRange] = useState<TimeRange>(urlFilters.timeRange ?? null);
     const [liveTailEnabled, setLiveTailEnabled] = useState(false);
     const [pollInterval, setPollInterval] = useState(30000);
+
+    // The query this viewer last wrote, so a different one arriving is a navigation to a new view
+    const writtenSearchRef = useRef(history.location.search);
+
+    // Replaced rather than pushed, so changing filters doesn't fill the back button's history.
+    // The search is mirrored once debounced, and the plain viewer has no filters to share
+    useEffect(() => {
+        const {location} = history;
+        const query = withUrlFilters(location.search, isPlainLogs ? null : {search, enabledLevels, node: selectedNode, timeRange});
+        writtenSearchRef.current = query;
+        if (query !== location.search) {
+            history.replace({...location, search: query});
+        }
+    }, [history, isPlainLogs, search, enabledLevels, selectedNode, timeRange]);
+
+    // The search box keeps its own text, so it's remounted to show a search that arrived from the URL
+    const [viewKey, setViewKey] = useState(0);
+
+    // A link followed while this viewer is open replaces its filters, and what it leaves out falls back to the saved prefs
+    useEffect(() => {
+        const {pathname} = history.location;
+        return history.listen((location) => {
+            if (location.pathname !== pathname || location.search === writtenSearchRef.current) {
+                return;
+            }
+            const filters = parseUrlFilters(location.search, PRESET_MINUTES);
+            const prefs = loadPrefs();
+            setSearch(filters.search ?? '');
+            setEnabledLevels(filters.enabledLevels ?? new Set(prefs.enabledLevels));
+            setSelectedNode(filters.node ?? prefs.node);
+            setTimeRange(filters.timeRange ?? null);
+
+            // A range that ends in the past has nothing new to tail
+            if (filters.timeRange && typeof filters.timeRange !== 'number') {
+                setLiveTailEnabled(false);
+            }
+            if (!configIsPlainLogs && Object.keys(filters).length > 0) {
+                setIsPlainLogs(false);
+            }
+            setViewKey((key) => key + 1);
+        });
+    }, [history, configIsPlainLogs]);
+
+    const [plainPage, setPlainPage] = useState(0);
 
     // Moved on by every fetch, so entries age out of the range even when a poll brings nothing new
     const [timeRangeStart, setTimeRangeStart] = useState<number | null>(null);
@@ -264,6 +317,7 @@ export default function Logs({logs, logNodes, truncatedLogNodes, plainLogs, isPl
         />
     ) : (
         <LogList
+            key={viewKey}
             loading={loading}
             logs={logs}
             truncatedNodes={truncatedLogNodes}

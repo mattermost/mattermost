@@ -160,8 +160,11 @@ export default class SystemConsolePage {
         await this.editionAndLicense.toBeVisible();
     }
 
-    async gotoServerLogs() {
-        await this.page.goto('/admin_console/reporting/server_logs');
+    /**
+     * @param query - Filters to open the page with, e.g. '?search=timeout&range=60'
+     */
+    async gotoServerLogs(query = '') {
+        await this.page.goto(`/admin_console/reporting/server_logs${query}`);
         await this.page.waitForLoadState('networkidle');
     }
 
