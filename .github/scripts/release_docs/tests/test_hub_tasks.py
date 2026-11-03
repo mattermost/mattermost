@@ -395,28 +395,60 @@ def series_calendar():
 EPICS = [{"key": "MM-1", "summary": "Shared  Drafts"}, {"key": "MM-2", "summary": "Audit Exports"}]
 
 
+V12_2_FC = date(2026, 11, 23)
+
+
+def review(calendar, now, live=True, epics=EPICS):
+    """The v12.2 review: Feature Complete Nov 23, Release Day Dec 16."""
+    return feature_review.run(V12_2, epics, calendar, at(*now) if isinstance(now, tuple) else at(now), V12_2_FC,
+                              RELEASE_DAY, None, live)
+
+
 class FeatureReviewTest(unittest.TestCase):
-    def test_only_the_next_occurrences_description_changes(self):
+    def test_only_the_releases_occurrence_changes(self):
         calendar = series_calendar()
-        result = feature_review.run(V12_2, EPICS, calendar, date(2026, 11, 24), None, True)
+        result = review(calendar, "2026-11-24")
         self.assertEqual(calendar.writes, [("describe", "frr_20261127")])
         description = calendar.series_instances["frr"][1]["description"]
         self.assertTrue(description.startswith(feature_review.INTRO))
         self.assertIn("List of features:\n\n- Shared Drafts (plan TBD, v12.2)\n- Audit Exports (plan TBD, v12.2)\n", description)
         self.assertEqual([i["description"] for i in calendar.series_instances["frr"][::2]], ["old", "old"])
         self.assertNotIn("MM-1", result.text)
-        feature_review.run(V12_2, EPICS, calendar, date(2026, 11, 25), None, True)
+        review(calendar, "2026-11-25")
         self.assertEqual(len(calendar.writes), 1)  # unchanged on a rerun
+
+    def test_after_the_releases_occurrence_the_next_one_is_left_alone(self):
+        calendar = series_calendar()
+        result = review(calendar, "2026-12-01")  # after Nov 27; Dec 24 is after v12.2's Release Day
+        self.assertEqual(calendar.writes, [])
+        self.assertEqual([i["description"] for i in calendar.series_instances["frr"]], ["old", "old", "old"])
+        self.assertEqual(result.text, "The occurrence on 2026-11-27 has started, so its description is no longer changed.")
+        self.assertFalse(result.failed)
+
+    def test_stops_once_the_occurrence_has_started(self):
+        calendar = series_calendar()
+        self.assertIn("has started", review(calendar, ("2026-11-27", "17:30")).text)
+        self.assertEqual(calendar.writes, [])
+        review(calendar, ("2026-11-27", "16:30"))  # half an hour before: still updated
+        self.assertEqual(calendar.writes, [("describe", "frr_20261127")])
+
+    def test_no_occurrence_between_feature_complete_and_release_day_is_flagged(self):
+        calendar = series_calendar()
+        calendar.series_instances["frr"].pop(1)  # only Oct 30 and Dec 24 are left
+        result = review(calendar, "2026-11-24")
+        self.assertTrue(result.failed)
+        self.assertIn("no occurrence between Feature Complete (2026-11-23) and Release Day (2026-12-16)", result.todos[0])
+        self.assertEqual(calendar.writes, [])
 
     def test_no_recurring_event_is_flagged_and_nothing_is_created(self):
         calendar = FakeCalendar([{"id": "x", "summary": "v12.1 Feature Ready Review", "start": {"dateTime": "2026-10-30T17:00:00Z"}}])
-        result = feature_review.run(V12_2, EPICS, calendar, date(2026, 11, 24), None, True)
+        result = review(calendar, "2026-11-24")
         self.assertTrue(result.failed)
         self.assertEqual(calendar.writes, [])
 
     def test_dry_run_writes_nothing(self):
         calendar = series_calendar()
-        feature_review.run(V12_2, EPICS, calendar, date(2026, 11, 24), None, False)
+        review(calendar, "2026-11-24", live=False)
         self.assertEqual(calendar.writes, [])
 
 

@@ -727,7 +727,8 @@ def run_hub_task(task: str, raw: str, env: dict, gh, read_gh, claude, fetch) -> 
             fix_version = env.get("JIRA_FIX_VERSION") or calendar.fix_version(version, day)
             epics = jira.epics(env.get("JIRA_URL") or jira.DEFAULT_URL, env["JIRA_EMAIL"], env["JIRA_TOKEN"], fix_version)
             client, calendar_problem = gcal.from_env(env)
-            result = feature_review.run(version, epics, client, today, hub, live)
+            fc_event = calendar.milestones(events or []).get(version.line, {}).get("feature_complete")
+            result = feature_review.run(version, epics, client, now, fc_event.start if fc_event else None, day, hub, live)
             if calendar_problem and client is None:
                 result.notes.append(calendar_problem)
             return Run(result, "Feature Ready Review description.")
