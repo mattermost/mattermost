@@ -5,7 +5,9 @@ package api4
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -204,4 +206,76 @@ func TestRecentSearchIsolation(t *testing.T) {
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
+}
+
+func TestRecentSearchWebSocketEvents(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	clientA := th.Client
+	clientB := th.CreateClient()
+	th.LoginBasic2WithClient(t, clientB)
+
+	wsA := th.CreateConnectedWebSocketClientWithClient(t, clientA)
+	wsB := th.CreateConnectedWebSocketClientWithClient(t, clientB)
+
+	waitForRecentSearchEvent := func(wsClient *model.WebSocketClient, action string) map[string]any {
+		timer := time.NewTimer(5 * time.Second)
+		defer timer.Stop()
+
+		for {
+			select {
+			case event := <-wsClient.EventChannel:
+				if event == nil || event.EventType() != model.WebsocketEventRecentSearchUpdated {
+					continue
+				}
+				data := event.GetData()
+				require.Equal(t, action, data["action"])
+				return data
+			case <-timer.C:
+				require.FailNow(t, "timed out waiting for recent_search_updated")
+				return nil
+			}
+		}
+	}
+
+	requireNoRecentSearchEvent := func(wsClient *model.WebSocketClient) {
+		timer := time.NewTimer(250 * time.Millisecond)
+		defer timer.Stop()
+
+		for {
+			select {
+			case event := <-wsClient.EventChannel:
+				if event != nil {
+					require.NotEqual(t, model.WebsocketEventRecentSearchUpdated, event.EventType(),
+						"received recent_search_updated for another user")
+				}
+			case <-timer.C:
+				return
+			}
+		}
+	}
+
+	saved, resp, err := clientA.SaveRecentSearch(context.Background(), "me", &model.RecentSearch{
+		Terms:      "websocket integration",
+		SearchType: model.RecentSearchTypeMessages,
+	})
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+
+	saveEvent := waitForRecentSearchEvent(wsA, model.RecentSearchWSActionSave)
+	itemJSON, ok := saveEvent["item"].(string)
+	require.True(t, ok)
+	var eventItem model.RecentSearch
+	require.NoError(t, json.Unmarshal([]byte(itemJSON), &eventItem))
+	require.Equal(t, *saved, eventItem)
+	requireNoRecentSearchEvent(wsB)
+
+	resp, err = clientA.DeleteRecentSearch(context.Background(), "me", saved.Id)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+
+	deleteEvent := waitForRecentSearchEvent(wsA, model.RecentSearchWSActionDelete)
+	require.Equal(t, saved.Id, deleteEvent["id"])
+	requireNoRecentSearchEvent(wsB)
 }

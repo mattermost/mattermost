@@ -9,9 +9,10 @@ import type {WebSocketMessage, WebSocketMessages} from '@mattermost/client';
 import {WebSocketEvents} from '@mattermost/client';
 import type {ChannelType} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
+import type {RecentSearch} from '@mattermost/types/search';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {ChannelTypes, CloudTypes, JobTypes, PostTypes, RenderPermissionTypes, TeamTypes} from 'mattermost-redux/action_types';
+import {ChannelTypes, CloudTypes, JobTypes, PostTypes, RenderPermissionTypes, SearchTypes, TeamTypes} from 'mattermost-redux/action_types';
 import {fetchMyCategories} from 'mattermost-redux/actions/channel_categories';
 import {fetchAllMyTeamsChannels, getChannelMember} from 'mattermost-redux/actions/channels';
 import {getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
@@ -296,6 +297,61 @@ describe('handleEvent', () => {
         handleEvent(msg);
 
         expect(store.dispatch).toHaveBeenCalled();
+    });
+});
+
+describe('handleRecentSearchUpdatedEvent', () => {
+    beforeEach(() => {
+        jest.mocked(store.dispatch).mockClear();
+    });
+
+    const recentSearch: RecentSearch = {
+        id: 'recent-search-id',
+        user_id: 'user-id',
+        terms: 'hello from:me',
+        search_type: 'messages',
+        team_id: '',
+        create_at: 1,
+        update_at: 2,
+    };
+
+    test('dispatches the saved item', () => {
+        const msg = wsMessage<WebSocketMessages.RecentSearchUpdated>({
+            event: WebSocketEvents.RecentSearchUpdated,
+            data: {action: 'save', item: JSON.stringify(recentSearch)},
+        });
+
+        handleEvent(msg);
+
+        expect(store.dispatch).toHaveBeenCalledWith({
+            type: SearchTypes.RECEIVED_RECENT_SEARCH,
+            data: recentSearch,
+        });
+    });
+
+    test('dispatches the deleted item id', () => {
+        const msg = wsMessage<WebSocketMessages.RecentSearchUpdated>({
+            event: WebSocketEvents.RecentSearchUpdated,
+            data: {action: 'delete', id: recentSearch.id},
+        });
+
+        handleEvent(msg);
+
+        expect(store.dispatch).toHaveBeenCalledWith({
+            type: SearchTypes.REMOVED_RECENT_SEARCH,
+            data: recentSearch.id,
+        });
+    });
+
+    test('ignores an unknown action', () => {
+        const msg = wsMessage<WebSocketMessages.RecentSearchUpdated>({
+            event: WebSocketEvents.RecentSearchUpdated,
+            data: {action: 'save'},
+        });
+        Object.assign(msg.data, {action: 'unknown'});
+
+        expect(() => handleEvent(msg)).not.toThrow();
+        expect(store.dispatch).not.toHaveBeenCalled();
     });
 });
 
