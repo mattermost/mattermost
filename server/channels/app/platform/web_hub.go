@@ -294,7 +294,8 @@ func (ps *PlatformService) SessionIsRegistered(session model.Session) bool {
 // are none to resume from, it returns the reason the client must start a new connection.
 func (ps *PlatformService) CheckWebConn(userID, connectionID string, seqNum int64) (res *CheckConnResult, failureReason string, isRemote bool) {
 	if ps.Cluster() == nil || seqNum == 0 {
-		return ps.checkLocalWebConn(userID, connectionID)
+		res, failureReason = ps.checkLocalWebConn(userID, connectionID)
+		return res, failureReason, false
 	}
 
 	// We need some extra care for HA
@@ -381,28 +382,28 @@ func (ps *PlatformService) CheckWebConn(userID, connectionID string, seqNum int6
 		return connRes, "", false
 	}
 
-	res, failureReason, isRemote = ps.checkLocalWebConn(userID, connectionID)
+	res, failureReason = ps.checkLocalWebConn(userID, connectionID)
 	if failureReason == reconnectFailureConnNotFound && remoteReason != "" {
 		return nil, remoteReason, true
 	}
-	return res, failureReason, isRemote
+	return res, failureReason, false
 }
 
 // checkLocalWebConn checks this node's hub for a given user's connection.
-func (ps *PlatformService) checkLocalWebConn(userID, connectionID string) (res *CheckConnResult, failureReason string, isRemote bool) {
+func (ps *PlatformService) checkLocalWebConn(userID, connectionID string) (res *CheckConnResult, failureReason string) {
 	hub := ps.GetHubForUserId(userID)
 	if hub == nil {
-		return nil, reconnectFailureConnNotFound, false
+		return nil, reconnectFailureConnNotFound
 	}
 
 	res, active := hub.CheckConn(userID, connectionID)
 	switch {
 	case res != nil:
-		return res, "", false
+		return res, ""
 	case active:
-		return nil, reconnectFailureOldConnStillOpen, false
+		return nil, reconnectFailureOldConnStillOpen
 	}
-	return nil, reconnectFailureConnNotFound, false
+	return nil, reconnectFailureConnNotFound
 }
 
 // WebConnCountForUser returns the number of active websocket connections

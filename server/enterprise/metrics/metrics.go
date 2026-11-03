@@ -785,7 +785,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Namespace:   MetricsNamespace,
 			Subsystem:   MetricsSubsystemWebsocket,
 			Name:        "reconnect_failures_total",
-			Help:        "Total number of websocket reconnects that could not resume the previous connection, by reason",
+			Help:        "Total number of websocket reconnects that could not resume the previous connection",
 			ConstLabels: additionalLabels,
 		},
 		[]string{"reason", "is_remote", "disconnect_err_code", "origin_client"},
