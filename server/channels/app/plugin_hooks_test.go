@@ -1687,6 +1687,25 @@ func TestHookOnPluginActivatedAndDeactivated(t *testing.T) {
 	require.Equal(t, targetID+","+targetID+","+targetID, getKey("activated"))
 	require.Equal(t, targetID+","+targetID, getKey("deactivated"))
 	require.Equal(t, "pong,pong,pong", getKey("ping"))
+
+	t.Run("webapp-only plugin", func(t *testing.T) {
+		plugins, err := env.Available()
+		require.NoError(t, err)
+		require.NotEmpty(t, plugins)
+		webappID := model.NewId()
+		webappDir := filepath.Join(filepath.Dir(plugins[0].Path), webappID)
+		require.NoError(t, os.MkdirAll(filepath.Join(webappDir, "webapp"), 0700))
+		require.NoError(t, os.WriteFile(filepath.Join(webappDir, "plugin.json"), []byte(`{"id": "`+webappID+`", "webapp": {"bundle_path": "webapp/bundle.js"}}`), 0600))
+		require.NoError(t, os.WriteFile(filepath.Join(webappDir, "webapp", "bundle.js"), []byte("console.log('webapp');"), 0600))
+
+		_, activated, err := env.Activate(webappID)
+		require.NoError(t, err)
+		require.True(t, activated)
+		require.True(t, strings.HasSuffix(getKey("activated"), ","+webappID))
+
+		require.True(t, env.Deactivate(webappID))
+		require.Equal(t, targetID+","+targetID+","+webappID, getKey("deactivated"))
+	})
 }
 
 //go:embed test_templates/hook_notification_will_be_pushed.tmpl

@@ -478,9 +478,14 @@ func (env *Environment) RemovePlugin(id string) {
 func (env *Environment) deactivateAndTeardown(rp registeredPlugin) bool {
 	id := rp.BundleInfo.Manifest.Id
 
-	if rp.supervisor == nil || !env.IsActive(id) {
+	if !env.IsActive(id) {
 		env.setPluginState(id, model.PluginStateNotRunning)
 		return false
+	}
+
+	if rp.supervisor == nil {
+		env.setPluginState(id, model.PluginStateNotRunning)
+		return true
 	}
 
 	done := make(chan struct{})

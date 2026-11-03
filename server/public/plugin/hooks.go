@@ -388,9 +388,10 @@ type Hooks interface {
 	OnLicenseChanged(oldLicense, newLicense *model.License)
 
 	// OnPluginActivated is invoked on every other active plugin after a plugin
-	// finishes activating on this server, once it has returned from OnActivate
-	// and can serve inter-plugin requests. It also fires when the health check
-	// restarts a plugin. The activated plugin itself is not notified, and a
+	// finishes activating on this server, including webapp-only plugins. A plugin
+	// with a server component has returned from OnActivate and can serve
+	// inter-plugin requests. It also fires when the health check restarts a
+	// plugin. The activated plugin itself is not notified, and a
 	// plugin that is still in its own OnActivate misses activations that
 	// complete in the meantime; plugins that need the current set should call
 	// API.GetPluginStatus from OnActivate.
