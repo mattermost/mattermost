@@ -32,7 +32,7 @@ import CustomRangeModal from './custom_range_modal';
 import KeyboardHints from './keyboard_hints';
 import LogRow from './log_row';
 import type {CustomTimeRange, LogObjectWithAdditionalInfo, TimeRange} from './types';
-import {LEVEL_GROUPS, levelGroup, logRowTimeFormat, logRowTimeLength, logsNeedDate, newestLogTimes} from './utils';
+import {LEVEL_GROUPS, levelGroup, logRowTimeFormat, logRowTimeLength, logsNeedDate, msUntilNextDay, newestLogTimes} from './utils';
 
 import './log_list.scss';
 
@@ -356,8 +356,16 @@ export default function LogList({
             map(({log}) => log);
     }, [scopedLogs, enabledLevels, sortAsc]);
 
+    // Today's entries become yesterday's at midnight, so check again then even when no new ones arrive
+    const [dayChanges, setDayChanges] = useState(0);
+    useEffect(() => {
+        const timer = setTimeout(() => setDayChanges((count) => count + 1), msUntilNextDay(timezone));
+        return () => clearTimeout(timer);
+    }, [timezone, dayChanges]);
+
     // Every page shows the date or none does, so the time column keeps one width while paging
-    const showDate = useMemo(() => logsNeedDate(processedLogs, timezone), [processedLogs, timezone]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- dayChanges marks a new day, which moves Date.now() in logsNeedDate
+    const showDate = useMemo(() => logsNeedDate(processedLogs, timezone), [processedLogs, timezone, dayChanges]);
     const timeFormat = logRowTimeFormat(showDate, isMilitaryTime);
 
     // Only held entries the current filters would show are worth announcing

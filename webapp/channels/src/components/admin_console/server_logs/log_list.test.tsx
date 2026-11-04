@@ -8,7 +8,7 @@ import {LogLevelEnum, LogNodeKey} from '@mattermost/types/admin';
 import {Preferences} from 'mattermost-redux/constants';
 
 import {fakeNow} from 'tests/helpers/date';
-import {renderWithContext, fireEvent, screen, waitFor, within} from 'tests/react_testing_utils';
+import {act, renderWithContext, fireEvent, screen, waitFor, within} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import LogList, {loadPrefs} from './log_list';
@@ -1233,6 +1233,18 @@ describe('components/admin_console/server_logs/LogList', () => {
 
             expect(rowTimes()).toEqual(times);
             expect(timeColumnChars()).toBe(chars);
+        });
+
+        test('should add the date at midnight when the entries stop being from today', () => {
+            jest.useFakeTimers({now: new Date('2026-03-12T23:59:00.000Z')});
+            renderListWith({logs: [makeLog('late', '2026-03-12T23:58:00.000Z')]}, {militaryTime: true});
+            expect(rowTimes()).toEqual(['23:58:00.000']);
+
+            act(() => {
+                jest.advanceTimersByTime(60 * 1000);
+            });
+
+            expect(rowTimes()).toEqual(['2026-03-12 23:58:00.000']);
         });
 
         test('should show the date on every page when any entry is from another day', () => {

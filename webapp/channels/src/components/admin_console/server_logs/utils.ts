@@ -79,6 +79,11 @@ export function formatLogRowTime(log: LogObjectWithAdditionalInfo, timezone: str
     return moment.tz(time, timezone).format(format);
 }
 
+// When the admin's day ends, which turns today's bare times into yesterday's
+export function msUntilNextDay(timezone: string, now = Date.now()): number {
+    return (moment.tz(now, timezone).endOf('day').valueOf() + 1) - now;
+}
+
 // A bare time reads as today, so rows need the date as soon as any entry is from another day
 export function logsNeedDate(logs: LogObjectWithAdditionalInfo[], timezone: string, now = Date.now()): boolean {
     const today = moment.tz(now, timezone);

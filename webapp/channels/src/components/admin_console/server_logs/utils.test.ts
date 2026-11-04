@@ -4,7 +4,7 @@
 import {LogLevelEnum, LogNodeKey} from '@mattermost/types/admin';
 
 import type {LogObjectWithAdditionalInfo} from './types';
-import {LEVEL_GROUPS, formatLogValue, groupLevels, levelGroup, logRowTimeFormat, logRowTimeLength, logsNeedDate, newestLogTimes} from './utils';
+import {LEVEL_GROUPS, formatLogValue, groupLevels, levelGroup, logRowTimeFormat, logRowTimeLength, logsNeedDate, msUntilNextDay, newestLogTimes} from './utils';
 
 describe('components/admin_console/server_logs/utils', () => {
     test.each([
@@ -93,6 +93,16 @@ describe('components/admin_console/server_logs/utils', () => {
             ['a timestamp that does not parse among today\'s', ['2026-03-12T10:00:00.000Z', 'not a timestamp'], 'UTC', false],
         ])('with %s', (_, timestamps, timezone, expected) => {
             expect(logsNeedDate(timestamps.map(at), timezone, now)).toBe(expected);
+        });
+    });
+
+    describe('msUntilNextDay', () => {
+        test.each([
+            ['UTC', '2026-03-12T18:00:00.000Z', 6 * 60 * 60 * 1000],
+            ['Europe/Berlin', '2026-03-12T18:00:00.000Z', 5 * 60 * 60 * 1000],
+            ['UTC', '2026-03-12T23:59:59.999Z', 1],
+        ])('in %s at %s', (timezone, now, expected) => {
+            expect(msUntilNextDay(timezone, Date.parse(now))).toBe(expected);
         });
     });
 });
