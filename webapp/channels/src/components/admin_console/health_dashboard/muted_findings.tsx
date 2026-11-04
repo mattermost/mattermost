@@ -6,11 +6,11 @@ import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {InformationOutlineIcon} from '@mattermost/compass-icons/components';
+import {EmptyState} from '@mattermost/compass-ui/components/empty-state';
 import type {HealthFinding} from '@mattermost/types/health';
 
 import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
 
-import {EmptyState} from './empty_state';
 import FindingGroups from './finding_groups';
 import type {RowState} from './finding_section';
 import type {GroupBy} from './group_by_control';
@@ -45,13 +45,14 @@ const MutedFindings = ({findings, groupBy, ...rowState}: Props) => {
             </p>
             {findings.length === 0 ? (
                 <EmptyState
+                    className='HealthDashboard__empty'
                     title={
                         <FormattedMessage
                             id='admin.health_dashboard.muted.empty.title'
                             defaultMessage='No muted findings'
                         />
                     }
-                    body={
+                    description={
                         <FormattedMessage
                             id='admin.health_dashboard.muted.empty.body'
                             defaultMessage='Findings muted by any admin are listed here, with who muted them and when.'

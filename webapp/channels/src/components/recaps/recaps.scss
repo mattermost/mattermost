@@ -479,3 +479,9 @@
 .recap-add-button-wrapper {
     display: inline-block;
 }
+
+// Compass EmptyState paints its own center-channel background; let the surface behind it show through.
+// Nested so it wins over the Compass module class regardless of stylesheet order.
+.recaps-container .recaps-empty-state {
+    background: transparent;
+}

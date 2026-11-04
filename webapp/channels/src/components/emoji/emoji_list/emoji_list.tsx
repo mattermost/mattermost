@@ -7,6 +7,7 @@ import {defineMessage, FormattedMessage} from 'react-intl';
 
 import {ChevronLeftIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/compass-ui/components/button';
+import {EmptyState} from '@mattermost/compass-ui/components/empty-state';
 import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {CustomEmoji} from '@mattermost/types/emojis';
 
@@ -191,9 +192,13 @@ export default class EmojiList extends React.PureComponent<Props, State> {
                     className='backstage-list__item backstage-list__empty'
                 >
                     <td colSpan={4}>
-                        <FormattedMessage
-                            id='emoji_list.empty'
-                            defaultMessage='No custom emoji found'
+                        <EmptyState
+                            title={
+                                <FormattedMessage
+                                    id='emoji_list.empty'
+                                    defaultMessage='No custom emoji found'
+                                />
+                            }
                         />
                     </td>
                 </tr>,

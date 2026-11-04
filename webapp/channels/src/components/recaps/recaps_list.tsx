@@ -66,6 +66,7 @@ const RecapsList = ({recaps}: Props) => {
     if (recaps.length === 0) {
         return (
             <EmptyState
+                className='recaps-empty-state'
                 illustration={{
                     'aria-label': '',
                     children: <AICopilotIntroIllustration/>,

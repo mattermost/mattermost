@@ -594,7 +594,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
         } else if (channels.length === 0) {
             listContent = (
                 <div
-                    className='no-channel-message'
+                    className='browse-channels-empty-state'
                     aria-label={this.state.channelSearchValue.length > 0 ? this.props.intl.formatMessage(messages.noMore, {text: this.state.channelSearchValue}) : this.props.intl.formatMessage({id: 'widgets.channels_input.empty', defaultMessage: 'No channels found'})
                     }
                 >
