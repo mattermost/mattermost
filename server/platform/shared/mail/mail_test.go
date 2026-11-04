@@ -1031,3 +1031,23 @@ func TestNewSMTPClientAdvancedCallerCancels(t *testing.T) {
 	require.ErrorIs(t, err, context.Canceled)
 	assert.Nil(t, c)
 }
+
+func TestNewSMTPClientAdvancedDeadlineDuringGreeting(t *testing.T) {
+	cfg := fakeSMTPServer(t, discardUntilClosed)
+
+	conn, err := connectToSMTPServer(context.Background(), cfg)
+	require.NoError(t, err)
+	defer conn.Close()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+	defer cancel()
+
+	start := time.Now()
+	c, err := NewSMTPClientAdvanced(ctx, conn, cfg)
+	require.ErrorIs(t, err, context.DeadlineExceeded)
+	assert.Nil(t, c)
+	assert.Less(t, time.Since(start), 5*time.Second)
+
+	_, err = conn.Write([]byte("QUIT\r\n"))
+	assert.ErrorIs(t, err, net.ErrClosed, "the connection should be closed when the deadline ends the greeting")
+}
