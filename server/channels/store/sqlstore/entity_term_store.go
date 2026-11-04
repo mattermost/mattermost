@@ -4,6 +4,8 @@
 package sqlstore
 
 import (
+	"database/sql"
+
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
@@ -25,6 +27,24 @@ func (s *SqlEntityTermStore) Replace(pluginID, typeID string, terms []model.Enti
 		return errors.Wrap(err, "failed to store entity terms")
 	}
 	defer func() { _ = tx.Rollback() }()
+
+	var current int64
+	lock := s.getQueryBuilder().
+		Select("generation").
+		From("entitydictionaries").
+		Where(sq.Eq{"typeid": typeID}).
+		Suffix("FOR UPDATE")
+	lockSQL, lockArgs, err := lock.ToSql()
+	if err != nil {
+		return errors.Wrap(err, "failed to store entity terms")
+	}
+	switch err = tx.QueryRow(lockSQL, lockArgs...).Scan(&current); {
+	case errors.Is(err, sql.ErrNoRows):
+	case err != nil:
+		return errors.Wrap(err, "failed to store entity terms")
+	case current > generation:
+		return errors.Errorf("entity terms for %s are already at generation %d", typeID, current)
+	}
 
 	del := s.getQueryBuilder().Delete("entityterms").Where(sq.Eq{"typeid": typeID})
 	if _, err = tx.ExecBuilder(del); err != nil {
@@ -49,6 +69,29 @@ func (s *SqlEntityTermStore) Replace(pluginID, typeID string, terms []model.Enti
 	}
 	if err = tx.Commit(); err != nil {
 		return errors.Wrap(err, "failed to store entity terms")
+	}
+	return nil
+}
+
+func (s *SqlEntityTermStore) DeleteByPlugin(pluginID string) error {
+	tx, err := s.GetMaster().Begin()
+	if err != nil {
+		return errors.Wrap(err, "failed to delete entity terms")
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	delTerms := s.getQueryBuilder().
+		Delete("entityterms").
+		Where(sq.Expr("typeid IN (SELECT typeid FROM entitydictionaries WHERE pluginid = ?)", pluginID))
+	if _, err = tx.ExecBuilder(delTerms); err != nil {
+		return errors.Wrap(err, "failed to delete entity terms")
+	}
+	delDict := s.getQueryBuilder().Delete("entitydictionaries").Where(sq.Eq{"pluginid": pluginID})
+	if _, err = tx.ExecBuilder(delDict); err != nil {
+		return errors.Wrap(err, "failed to delete entity terms")
+	}
+	if err = tx.Commit(); err != nil {
+		return errors.Wrap(err, "failed to delete entity terms")
 	}
 	return nil
 }

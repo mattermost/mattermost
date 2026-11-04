@@ -24,19 +24,20 @@ const (
 )
 
 type matcher struct {
-	id          string
-	typeID      string
-	pattern     *regexp.Regexp
-	urlTemplate string
-	url         func(value string, groups map[string]string) string
-	valueGroup  int
-	spanGroup   int
-	boundary    string
-	scope       []string
-	skipBots    bool
-	validate    bool
-	pluginID    string
-	displayName string
+	id           string
+	typeID       string
+	pattern      *regexp.Regexp
+	valuePattern *regexp.Regexp
+	urlTemplate  string
+	url          func(value string, groups map[string]string) string
+	valueGroup   int
+	spanGroup    int
+	boundary     string
+	scope        []string
+	skipBots     bool
+	validate     bool
+	pluginID     string
+	displayName  string
 }
 
 var (
@@ -65,6 +66,7 @@ type hit struct {
 	url         string
 	displayName string
 	title       string
+	scoped      bool
 }
 
 // Detect finds pattern entities in message. Dictionary terms are not included;
@@ -84,6 +86,7 @@ func DetectAccepted(message string, accept func(pluginID, typeID, value string) 
 	scanned := scanPrefix(message)
 	mask := protectedMask(scanned)
 	var hits []hit
+	validateCalls := 0
 	for _, m := range activeMatchers() {
 		locs := m.pattern.FindAllStringSubmatchIndex(scanned, -1)
 		for _, loc := range locs {
@@ -104,6 +107,11 @@ func DetectAccepted(message string, accept func(pluginID, typeID, value string) 
 				if accept == nil {
 					continue
 				}
+				validateCalls++
+				if validateCalls > maxEntities {
+					incomplete = true
+					continue
+				}
 				ok, err := accept(m.pluginID, m.typeID, value)
 				if err != nil {
 					incomplete = true
@@ -120,6 +128,7 @@ func DetectAccepted(message string, accept func(pluginID, typeID, value string) 
 				byteEnd:     end,
 				value:       value,
 				displayName: m.displayName,
+				scoped:      len(m.scope) > 0,
 			}
 			if m.url != nil {
 				h.url = m.url(value, groupsOf(m.pattern, scanned, loc))
@@ -287,7 +296,6 @@ func appendTermHits(scanned string, mask []bool, hits []hit) []hit {
 			continue
 		}
 		h := hit{
-			matcherID:   matches[0].typeID + ".term",
 			byteStart:   start,
 			byteEnd:     end,
 			value:       value,
@@ -320,27 +328,36 @@ func resolve(hits []hit) []hit {
 	var accepted []hit
 	for _, h := range hits {
 		merged := false
-		overlaps := false
+		suppressed := false
 		for i := range accepted {
-			if h.byteStart < accepted[i].byteEnd && accepted[i].byteStart < h.byteEnd {
-				overlaps = true
-				if h.byteStart == accepted[i].byteStart && h.byteEnd == accepted[i].byteEnd {
-					for _, typeID := range h.typeIDs {
-						if !containsType(accepted[i].typeIDs, typeID) {
-							accepted[i].typeIDs = append(accepted[i].typeIDs, typeID)
-						}
+			if h.byteStart >= accepted[i].byteEnd || accepted[i].byteStart >= h.byteEnd {
+				continue
+			}
+			if h.byteStart == accepted[i].byteStart && h.byteEnd == accepted[i].byteEnd {
+				for _, typeID := range h.typeIDs {
+					if !containsType(accepted[i].typeIDs, typeID) {
+						accepted[i].typeIDs = append(accepted[i].typeIDs, typeID)
 					}
-					merged = true
 				}
+				if accepted[i].scoped && !h.scoped {
+					accepted[i].matcherID = h.matcherID
+					accepted[i].scoped = false
+					accepted[i].value = h.value
+					accepted[i].url = h.url
+					accepted[i].displayName = h.displayName
+				}
+				merged = true
+				break
+			}
+			if accepted[i].scoped == h.scoped {
+				suppressed = true
 				break
 			}
 		}
-		if merged {
+		if merged || suppressed {
 			continue
 		}
-		if !overlaps {
-			accepted = append(accepted, h)
-		}
+		accepted = append(accepted, h)
 	}
 	sort.Slice(accepted, func(i, j int) bool {
 		return accepted[i].byteStart < accepted[j].byteStart

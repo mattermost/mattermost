@@ -280,6 +280,138 @@ func TestValidateErrorLeavesTheScanIncomplete(t *testing.T) {
 	require.Empty(t, rejected)
 }
 
+func TestValueGroupLooksUpTheCapturedText(t *testing.T) {
+	const pluginID = "com.example.freq"
+	t.Cleanup(func() { RemovePlugin(pluginID) })
+	require.NoError(t, AddType(pluginID, &model.EntityType{ID: pluginID + ".freq", DisplayName: "Frequency"}))
+	require.NoError(t, AddMatcher(pluginID, &model.EntityMatcher{
+		ID:         pluginID + ".freq.mhz",
+		TypeID:     pluginID + ".freq",
+		Pattern:    `FREQ:[ \t]*([0-9]+(?:\.[0-9]+)?)`,
+		ValueGroup: 1,
+	}))
+
+	found, _ := Detect("use FREQ: 243.0 now")
+	require.Len(t, found, 1)
+	require.Equal(t, "243.0", found[0].Value)
+	_, _, err := Prepare(t.Context(), pluginID+".freq", found[0].Value)
+	require.NoError(t, err)
+	_, _, err = Prepare(t.Context(), pluginID+".freq", "nope")
+	require.Error(t, err)
+}
+
+func TestValidateStopsAfterTheEntityCap(t *testing.T) {
+	const pluginID = "com.example.budget"
+	t.Cleanup(func() { RemovePlugin(pluginID) })
+	require.NoError(t, AddType(pluginID, &model.EntityType{ID: pluginID + ".time", DisplayName: "Time"}))
+	require.NoError(t, AddMatcher(pluginID, &model.EntityMatcher{
+		ID:       pluginID + ".time.short",
+		TypeID:   pluginID + ".time",
+		Pattern:  `\d{6}Z`,
+		Validate: true,
+	}))
+
+	var calls int
+	var body strings.Builder
+	for i := 0; i < maxEntities+20; i++ {
+		fmt.Fprintf(&body, " %06dZ", i)
+	}
+	_, _, incomplete := DetectAccepted(body.String(), func(string, string, string) (bool, error) {
+		calls++
+		return true, nil
+	})
+	require.True(t, incomplete)
+	require.Equal(t, maxEntities, calls)
+}
+
+func TestScopedMatcherDoesNotHideAGlobalOne(t *testing.T) {
+	const pluginID = "com.example.scope"
+	t.Cleanup(func() { RemovePlugin(pluginID) })
+	require.NoError(t, AddType(pluginID, &model.EntityType{ID: pluginID + ".wide", DisplayName: "Wide"}))
+	require.NoError(t, AddType(pluginID, &model.EntityType{ID: pluginID + ".narrow", DisplayName: "Narrow"}))
+	require.NoError(t, AddMatcher(pluginID, &model.EntityMatcher{
+		ID:      pluginID + ".wide.scan",
+		TypeID:  pluginID + ".wide",
+		Pattern: `MARK-[0-9]{4}`,
+	}))
+	require.NoError(t, AddMatcher(pluginID, &model.EntityMatcher{
+		ID:      pluginID + ".narrow.scan",
+		TypeID:  pluginID + ".narrow",
+		Pattern: `SEE MARK-[0-9]{4}`,
+		Scope:   []string{"team/town-square"},
+	}))
+
+	found, _ := Detect("SEE MARK-2048")
+	require.Len(t, found, 2)
+	outside := Present(found, ReadContext{})
+	require.Len(t, outside, 1)
+	require.Equal(t, "MARK-2048", outside[0].Value)
+	inside := Present(found, ReadContext{TeamName: "team", ChannelName: "town-square"})
+	require.Len(t, inside, 2)
+}
+
+func TestRemovedMatcherIsNotPresented(t *testing.T) {
+	const pluginID = "com.example.gone"
+	require.NoError(t, AddType(pluginID, &model.EntityType{ID: pluginID + ".mark", DisplayName: "Mark"}))
+	require.NoError(t, AddMatcher(pluginID, &model.EntityMatcher{
+		ID:      pluginID + ".mark.scan",
+		TypeID:  pluginID + ".mark",
+		Pattern: `MARK-[0-9]{4}`,
+	}))
+	found, _ := Detect("see MARK-2048 today")
+	require.Len(t, found, 1)
+	RemovePlugin(pluginID)
+	require.Empty(t, Present(found, ReadContext{}))
+}
+
+func TestLoadedTermTakesItsDisplayNameWhenTheTypeArrives(t *testing.T) {
+	snap := SnapshotTerms()
+	t.Cleanup(func() {
+		RestoreTerms(snap)
+		RemovePlugin("com.example.loaded")
+	})
+	const pluginID = "com.example.loaded"
+	typeID := pluginID + ".acronym"
+	LoadTerms([]model.EntityTermRow{{
+		TypeID:     typeID,
+		PluginID:   pluginID,
+		Generation: 3,
+		Value:      "MLT",
+		Title:      "Leadership team",
+		URL:        "/conflux/team/pages/abcdefghijklmnopqrstuvwxyz",
+	}})
+	shown := ApplyTerms("ask the MLT", nil, nil)
+	require.Len(t, shown, 1)
+	require.Empty(t, shown[0].DisplayName)
+	require.Empty(t, shown[0].MatcherID)
+
+	require.NoError(t, AddType(pluginID, &model.EntityType{ID: typeID, DisplayName: "Acronym"}))
+	shown = ApplyTerms("ask the MLT", nil, nil)
+	require.Equal(t, "Acronym", shown[0].DisplayName)
+}
+
+func TestValidateChangesThePatternGeneration(t *testing.T) {
+	const pluginID = "com.example.generation"
+	t.Cleanup(func() { RemovePlugin(pluginID) })
+	require.NoError(t, AddType(pluginID, &model.EntityType{ID: pluginID + ".mark", DisplayName: "Mark"}))
+	require.NoError(t, AddMatcher(pluginID, &model.EntityMatcher{
+		ID:      pluginID + ".mark.scan",
+		TypeID:  pluginID + ".mark",
+		Pattern: `MARK-[0-9]{4}`,
+	}))
+	before := PatternGeneration()
+	require.NoError(t, AddMatcher(pluginID, &model.EntityMatcher{
+		ID:       pluginID + ".mark.scan",
+		TypeID:   pluginID + ".mark",
+		Pattern:  `MARK-[0-9]{4}`,
+		Validate: true,
+	}))
+	require.NotEqual(t, before, PatternGeneration())
+	renamed := PatternGeneration()
+	require.NoError(t, AddType(pluginID, &model.EntityType{ID: pluginID + ".mark", DisplayName: "Marker"}))
+	require.NotEqual(t, renamed, PatternGeneration())
+}
+
 func TestCardBodyIgnoresTheFallbackSentence(t *testing.T) {
 	require.False(t, model.EntityCardHasBody(&model.EntityCard{Title: "MM-123", URL: "https://jira.example.com/browse/MM-123"}))
 	require.False(t, model.EntityCardHasBody(&model.EntityCard{Summary: model.EntityCardFallbackSummary}))

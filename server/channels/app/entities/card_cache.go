@@ -37,15 +37,15 @@ func normalizeCache(mode string, ttlSeconds int) (string, time.Duration, error) 
 
 // CardCacheKey is the storage key for a provider card. The boolean is false
 // when the provider asked not to cache, or when a per-user card has no reader.
-func CardCacheKey(providerID, mode, typeID, value, userID string) (string, bool) {
+func CardCacheKey(providerID, mode, typeID, value, userID, postID string, createAt int64) (string, bool) {
 	switch mode {
 	case model.EntityCacheShared:
-		return cacheDigest(providerID, typeID, value), true
+		return cacheDigest(providerID, typeID, value, postID, fmt.Sprint(createAt)), true
 	case model.EntityCacheUser:
 		if userID == "" {
 			return "", false
 		}
-		return cacheDigest(providerID, typeID, value, userID), true
+		return cacheDigest(providerID, typeID, value, userID, postID, fmt.Sprint(createAt)), true
 	default:
 		return "", false
 	}

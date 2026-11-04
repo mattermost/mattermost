@@ -18,4 +18,5 @@ func (postEntityStore) GetMany([]string) (map[string]*model.PostEntityRow, error
 type entityTermStore struct{}
 
 func (entityTermStore) Replace(string, string, []model.EntityTerm, int64) error { return nil }
+func (entityTermStore) DeleteByPlugin(string) error                             { return nil }
 func (entityTermStore) List() ([]model.EntityTermRow, error)                    { return nil, nil }

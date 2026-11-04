@@ -465,19 +465,21 @@ turns the prototype on.
 These are the decisions the prototype makes and that a review should accept
 or change.
 
-1. **Card authorization.** Any logged-in user can request the card for any
-   value that matches a registered pattern or term. They do not need to be
-   able to read a message that contains it. For a CVE that is public data.
-   For a Conflux acronym the card includes the long form, the description,
-   and a link to the wiki page, and the term is server-global. For a future
-   Weave HTTP lookup, the plugin's credentials run for whoever calls the
-   endpoint.
+1. **Card authorization.** `GET /api/v4/entities/card` with no post still
+   answers a shared provider for any logged-in user and any value the
+   registry recognizes. `user` and `none` providers require a post the caller
+   can read, and the value has to be on that post. The check is the post-read
+   check (`read_channel_content`, or `read_public_channel` for an unjoined
+   public channel). A shared card is still public data: a CVE, or a Conflux
+   acronym whose long form is server-global.
 
 2. **Shared cache hides the reader.** A shared provider is not told who
    opened the card. It cannot enforce per-user authorization inside
    `EntityLookup`. A shared card has to be safe for every logged-in user.
-   `user` and `none` do receive the reader id. Nothing in the request yet
-   carries the channel, the post, or the locale. The spec asked for those.
+   `user` and `none` do receive the reader id. The cache key includes the
+   post id and the post time, so a token resolved against one post is not
+   reused for another. The request still does not carry the channel or the
+   locale. The spec asked for those.
 
 3. **One provider per type.** The first `HasCard` provider is the whole side
    panel. A second plugin cannot add a section beside it. The spec's stack
@@ -505,9 +507,10 @@ or change.
 
 9. **What is stored.** Pattern spans live beside the post. Term text, title,
    and URL live in Postgres in the clear. The message body is unchanged.
-   Deleting the post deletes the pattern row. Deleting a plugin does not
-   delete historical pattern rows. Those rows name the plugin's type id and
-   stop matching once the plugin is gone and the generation changes.
+   Deleting the post deletes the pattern row. Deactivating a plugin deletes
+   its dictionary rows. Historical pattern rows stay until the post is
+   rescanned; they name the plugin's type id and are hidden as soon as the
+   matcher is gone.
 
 10. **Rewrite leftover.** Posts already rewritten by Tactical Fusion stay
     rewritten. Entities never sees the original token inside a markdown link,
@@ -523,8 +526,8 @@ Built instead: plugin-owned types, exact-term autolinks capped at 500 per
 plugin, a word-map scan, Postgres for the dictionary, a per-type generation,
 the posts refetch endpoint, and provider cache modes.
 
-Not built: stacked providers, lookup by post id and occurrence id, the
-async re-detect queue for matcher changes, `post_entities_updated`, cluster
+Not built: stacked providers, the async re-detect queue for matcher changes,
+`post_entities_updated`, cluster
 reload of a dictionary generation, the stop-list, the 64 MB automaton, admin
 types, mobile rendering, and a System Console.
 

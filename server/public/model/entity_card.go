@@ -5,6 +5,8 @@ package model
 
 import (
 	"encoding/json"
+	"net/url"
+	"strings"
 )
 
 // EntityCard is the read-time detail for one entity. Pattern detection stays
@@ -51,12 +53,38 @@ const (
 	entityMapMaxGeoJSON = 32 * 1024
 )
 
-// NormalizeEntityCard caps a map a plugin returned. A point keeps one pin, a runway two, and a cell its ring.
+// NormalizeEntityCard caps a map a plugin returned and drops URLs that are not https, http, or a root-relative path.
 func NormalizeEntityCard(card *EntityCard) {
-	if card == nil || card.Map == nil {
+	if card == nil {
 		return
 	}
-	card.Map = normalizeEntityCardMap(card.Map)
+	card.URL = entityCardURL(card.URL)
+	for i := range card.Related {
+		card.Related[i].URL = entityCardURL(card.Related[i].URL)
+	}
+	for i := range card.Sections {
+		card.Sections[i].URL = entityCardURL(card.Sections[i].URL)
+		for j := range card.Sections[i].Items {
+			card.Sections[i].Items[j].URL = entityCardURL(card.Sections[i].Items[j].URL)
+		}
+	}
+	if card.Map != nil {
+		card.Map = normalizeEntityCardMap(card.Map)
+	}
+}
+
+func entityCardURL(raw string) string {
+	if raw == "" || strings.ContainsAny(raw, " \t\r\n\\") {
+		return ""
+	}
+	if strings.HasPrefix(raw, "/") && !strings.HasPrefix(raw, "//") && !strings.Contains(raw, "..") {
+		return raw
+	}
+	parsed, err := url.Parse(raw)
+	if err != nil || parsed.Host == "" || (parsed.Scheme != "https" && parsed.Scheme != "http") {
+		return ""
+	}
+	return raw
 }
 
 func normalizeEntityCardMap(drawing *EntityCardMap) *EntityCardMap {

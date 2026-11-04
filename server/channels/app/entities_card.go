@@ -5,6 +5,8 @@ package app
 
 import (
 	"net/http"
+	"sync"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
@@ -12,6 +14,8 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/entities"
 )
+
+var entityTermMu sync.Mutex
 
 func (a *App) GetEntityCard(rctx request.CTX, typeID, value string) (*model.EntityCard, *model.AppError) {
 	if !a.entitiesEnabled() {
@@ -48,6 +52,10 @@ func (a *App) GetEntityCardFromPost(rctx request.CTX, postID, typeID, value stri
 	if appErr != nil {
 		return nil, appErr
 	}
+	a.hydratePostEntities(rctx, post)
+	if !postContainsEntity(post, typeID, value) {
+		return nil, model.NewAppError("GetEntityCardFromPost", "api.context.404.app_error", nil, "", http.StatusNotFound)
+	}
 	card, remote, err := entities.Prepare(rctx.Context(), typeID, value)
 	if err != nil {
 		return nil, model.NewAppError("GetEntityCardFromPost", "api.context.invalid_url_param.app_error", map[string]any{"Name": "value"}, err.Error(), http.StatusBadRequest)
@@ -67,18 +75,32 @@ func (a *App) GetEntityCardFromPost(rctx request.CTX, postID, typeID, value stri
 }
 
 func (a *App) readableEntityPost(rctx request.CTX, postID string) (*model.Post, *model.AppError) {
-	post, appErr := a.GetSinglePost(rctx, postID, false)
-	if appErr != nil {
-		return nil, appErr
-	}
 	session := rctx.Session()
 	if session == nil {
 		return nil, model.NewAppError("GetEntityCardForPost", "api.context.session_expired.app_error", nil, "", http.StatusUnauthorized)
 	}
-	if ok, _ := a.SessionHasPermissionToChannel(rctx, *session, post.ChannelId, model.PermissionReadChannel); !ok {
-		return nil, model.NewAppError("GetEntityCardForPost", "api.context.permissions.app_error", nil, "", http.StatusForbidden)
+	post, appErr, _ := a.GetPostIfAuthorized(rctx, postID, session, false)
+	if appErr != nil {
+		return nil, appErr
 	}
 	return post, nil
+}
+
+func postContainsEntity(post *model.Post, typeID, value string) bool {
+	if post == nil || post.Metadata == nil {
+		return false
+	}
+	for _, entity := range post.Metadata.Entities {
+		if entity == nil || entity.Value != value {
+			continue
+		}
+		for _, id := range entity.TypeIDs {
+			if id == typeID {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func (a *App) GetEntityCardForPost(rctx request.CTX, postID, occurrence string) (*model.EntityCard, *model.AppError) {
@@ -108,6 +130,11 @@ func (a *App) GetEntityCardForPost(rctx request.CTX, postID, occurrence string) 
 			return got, nil
 		}
 	}
+	for _, typeID := range entity.TypeIDs {
+		if term, ok := entities.TermCard(typeID, entity.Value); ok {
+			return term, nil
+		}
+	}
 	return &model.EntityCard{TypeID: entity.TypeIDs[0], Value: entity.Value, Title: entity.Value}, nil
 }
 
@@ -125,7 +152,7 @@ func (a *App) lookupEntityProvider(rctx request.CTX, remote *entities.Remote, ty
 	if remote.Cache != model.EntityCacheShared {
 		lookupUser = userID
 	}
-	key, cacheable := entities.CardCacheKey(remote.ProviderID, remote.Cache, typeID, value, userID)
+	key, cacheable := entities.CardCacheKey(remote.ProviderID, remote.Cache, typeID, value, userID, postID, createAt)
 	cardCache := a.Srv().entityCardCache
 	if cacheable && cardCache != nil {
 		var cached model.EntityCard
@@ -135,14 +162,31 @@ func (a *App) lookupEntityProvider(rctx request.CTX, remote *entities.Remote, ty
 			return &cached
 		}
 	}
-	card, err := hooks.EntityLookup(&plugin.Context{}, &model.EntityLookupRequest{
-		ProviderID: remote.ProviderID,
-		TypeID:     typeID,
-		Value:      value,
-		UserID:     lookupUser,
-		PostID:     postID,
-		CreateAt:   createAt,
-	})
+	type lookupResult struct {
+		card *model.EntityCard
+		err  error
+	}
+	done := make(chan lookupResult, 1)
+	go func() {
+		card, err := hooks.EntityLookup(&plugin.Context{}, &model.EntityLookupRequest{
+			ProviderID: remote.ProviderID,
+			TypeID:     typeID,
+			Value:      value,
+			UserID:     lookupUser,
+			PostID:     postID,
+			CreateAt:   createAt,
+		})
+		done <- lookupResult{card: card, err: err}
+	}()
+	var card *model.EntityCard
+	select {
+	case <-rctx.Context().Done():
+		return nil
+	case <-time.After(entityProviderBudget):
+		return nil
+	case result := <-done:
+		card, err = result.card, result.err
+	}
 	if err != nil || card == nil {
 		return nil
 	}
@@ -191,12 +235,17 @@ func (a *App) RegisterPluginEntityTerms(pluginID, typeID string, terms []model.E
 	if !a.entitiesEnabled() {
 		return model.NewAppError("RegisterPluginEntityTerms", model.EntitiesDisabledError, nil, "", http.StatusNotImplemented)
 	}
+	entityTermMu.Lock()
+	defer entityTermMu.Unlock()
+	snap := entities.SnapshotTerms()
 	generation, err := entities.ReplaceTerms(pluginID, typeID, terms)
 	if err != nil {
 		return model.NewAppError("RegisterPluginEntityTerms", "api.context.invalid_body_param.app_error", map[string]any{"Name": "terms"}, err.Error(), http.StatusBadRequest)
 	}
 	if storeErr := a.Srv().Store().EntityTerm().Replace(pluginID, typeID, terms, generation); storeErr != nil {
+		entities.RestoreTerms(snap)
 		rctxWarnTerms(a, typeID, storeErr)
+		return model.NewAppError("RegisterPluginEntityTerms", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
 	}
 	a.publishDictionaryChanged(typeID, generation)
 	return nil

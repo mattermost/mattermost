@@ -24,6 +24,7 @@ const (
 	maxPluginMatchers  = 50
 	maxTerms           = 500
 	maxTermTitleRune   = 120
+	maxTermURLBytes    = 2048
 	maxDisplayNameRune = 64
 	coreOwner          = "core"
 )
@@ -157,6 +158,38 @@ func ReplaceTerms(pluginID, typeID string, terms []model.EntityTerm) (int64, err
 	return reg.generations[typeID], nil
 }
 
+// TermSnapshot is the in-memory dictionary, taken before a write so a failed store call can put it back.
+type TermSnapshot struct {
+	terms       []storedTerm
+	generations map[string]int64
+	epoch       int64
+}
+
+func SnapshotTerms() TermSnapshot {
+	reg.mu.RLock()
+	defer reg.mu.RUnlock()
+	generations := make(map[string]int64, len(reg.generations))
+	for id, generation := range reg.generations {
+		generations[id] = generation
+	}
+	return TermSnapshot{
+		terms:       append([]storedTerm(nil), reg.terms...),
+		generations: generations,
+		epoch:       reg.termEpoch,
+	}
+}
+
+func RestoreTerms(snap TermSnapshot) {
+	reg.mu.Lock()
+	defer reg.mu.Unlock()
+	reg.terms = append([]storedTerm(nil), snap.terms...)
+	reg.generations = snap.generations
+	if reg.generations == nil {
+		reg.generations = map[string]int64{}
+	}
+	reg.termEpoch = snap.epoch
+}
+
 // LoadTerms installs dictionary rows read from storage. It runs before plugins
 // activate, so a restart keeps recognizing terms until each plugin registers again.
 func LoadTerms(rows []model.EntityTermRow) {
@@ -207,6 +240,9 @@ func termValueOK(value string) bool {
 func termURL(raw string) (string, error) {
 	if raw == "" {
 		return "", fmt.Errorf("url is required")
+	}
+	if len(raw) > maxTermURLBytes {
+		return "", fmt.Errorf("url is not allowed")
 	}
 	if strings.ContainsAny(raw, " \t\r\n\\") {
 		return "", fmt.Errorf("url is not allowed")
@@ -266,7 +302,11 @@ func (r *registry) generation() string {
 	ids := append([]storedMatcher(nil), r.matchers...)
 	sortMatchers(ids)
 	for _, stored := range ids {
-		fmt.Fprintf(h, "%s\n%s\n%s\n%d\n%d\n%s\n%t\n%s\n", stored.id, stored.typeID, stored.pattern.String(), stored.valueGroup, stored.spanGroup, stored.boundary, stored.skipBots, stored.urlTemplate)
+		name := ""
+		if t, ok := r.types[stored.typeID]; ok {
+			name = t.displayName
+		}
+		fmt.Fprintf(h, "%s\n%s\n%s\n%d\n%d\n%s\n%t\n%t\n%s\n%s\n", stored.id, stored.typeID, stored.pattern.String(), stored.valueGroup, stored.spanGroup, stored.boundary, stored.skipBots, stored.validate, stored.urlTemplate, name)
 	}
 	return hex.EncodeToString(h.Sum(nil))[:16]
 }
@@ -344,18 +384,94 @@ func (r *registry) valueMatches(typeID, value string) bool {
 }
 
 func matcherCovers(m matcher, value string) bool {
-	loc := m.pattern.FindStringSubmatchIndex(value)
-	if loc == nil {
-		return false
-	}
-	start, end := loc[0], loc[1]
-	if m.valueGroup > 0 {
-		if m.valueGroup*2+1 >= len(loc) {
-			return false
+	if loc := m.pattern.FindStringSubmatchIndex(value); loc != nil {
+		start, end := loc[0], loc[1]
+		if m.valueGroup > 0 {
+			if m.valueGroup*2+1 >= len(loc) {
+				return false
+			}
+			start, end = loc[m.valueGroup*2], loc[m.valueGroup*2+1]
 		}
-		start, end = loc[m.valueGroup*2], loc[m.valueGroup*2+1]
+		if start == 0 && end == len(value) {
+			return true
+		}
 	}
-	return start == 0 && end == len(value)
+	return m.valueGroup > 0 && m.valuePattern != nil && m.valuePattern.MatchString(value)
+}
+
+func compileValuePattern(pattern string, group int) (*regexp.Regexp, error) {
+	if group <= 0 {
+		return nil, nil
+	}
+	source, ok := capturingGroup(pattern, group)
+	if !ok {
+		return nil, fmt.Errorf("value group is outside the pattern")
+	}
+	compiled, err := regexp.Compile("^(?:" + source + ")$")
+	if err != nil || compiled.MatchString("") {
+		return nil, fmt.Errorf("value group is outside the pattern")
+	}
+	return compiled, nil
+}
+
+func capturingGroup(pattern string, want int) (string, bool) {
+	seen := 0
+	for i := 0; i < len(pattern); i++ {
+		if pattern[i] == '\\' {
+			i++
+			continue
+		}
+		if pattern[i] != '(' {
+			continue
+		}
+		if !capturingOpen(pattern, i) {
+			continue
+		}
+		seen++
+		if seen != want {
+			continue
+		}
+		return groupBody(pattern, i)
+	}
+	return "", false
+}
+
+func capturingOpen(pattern string, i int) bool {
+	if i+1 >= len(pattern) || pattern[i+1] != '?' {
+		return true
+	}
+	return i+3 < len(pattern) && pattern[i+2] == 'P' && pattern[i+3] == '<'
+}
+
+func groupBody(pattern string, open int) (string, bool) {
+	start := open + 1
+	if capturingOpen(pattern, open) && open+1 < len(pattern) && pattern[open+1] == '?' {
+		rel := strings.IndexByte(pattern[open:], '>')
+		if rel < 0 {
+			return "", false
+		}
+		start = open + rel + 1
+	}
+	depth := 0
+	for i := open; i < len(pattern); i++ {
+		if pattern[i] == '\\' {
+			i++
+			continue
+		}
+		switch pattern[i] {
+		case '(':
+			depth++
+		case ')':
+			depth--
+			if depth == 0 {
+				if start > i {
+					return "", false
+				}
+				return pattern[start:i], true
+			}
+		}
+	}
+	return "", false
 }
 
 // CoreLookup describes a value using a built-in type. Plugins own every type.
@@ -388,7 +504,8 @@ func AddType(pluginID string, t *model.EntityType) error {
 	}
 	id := t.ID
 	name := strings.TrimSpace(t.DisplayName)
-	if !strings.HasPrefix(id, pluginID+".") || len(id) <= len(pluginID)+1 {
+	local, prefixed := strings.CutPrefix(id, pluginID+".")
+	if !prefixed || local == "" || strings.Contains(local, ".") {
 		return fmt.Errorf("type id must start with the plugin id")
 	}
 	if !typeNameOK(id) || !typeNameOK(pluginID) {
@@ -403,6 +520,17 @@ func AddType(pluginID string, t *model.EntityType) error {
 		return fmt.Errorf("type is owned by someone else")
 	}
 	reg.types[id] = entityType{id: id, displayName: name, owner: pluginID}
+	renamed := false
+	for i := range reg.terms {
+		if reg.terms[i].typeID == id && reg.terms[i].displayName != name {
+			reg.terms[i].displayName = name
+			renamed = true
+		}
+	}
+	if renamed {
+		reg.termEpoch++
+	}
+	reg.rememberGeneration()
 	return nil
 }
 
@@ -427,6 +555,10 @@ func AddMatcher(pluginID string, spec *model.EntityMatcher) error {
 	if spec.ValueGroup < 0 || spec.ValueGroup > compiled.NumSubexp() {
 		return fmt.Errorf("value group is outside the pattern")
 	}
+	valuePattern, err := compileValuePattern(spec.Pattern, spec.ValueGroup)
+	if err != nil {
+		return err
+	}
 	if spec.SpanGroup < 0 || spec.SpanGroup > compiled.NumSubexp() {
 		return fmt.Errorf("span group is outside the pattern")
 	}
@@ -450,19 +582,20 @@ func AddMatcher(pluginID string, spec *model.EntityMatcher) error {
 		return fmt.Errorf("matcher quota is exhausted")
 	}
 	next := storedMatcher{owner: pluginID, matcher: matcher{
-		id:          spec.ID,
-		typeID:      spec.TypeID,
-		pattern:     compiled,
-		urlTemplate: spec.URL,
-		url:         urlFor,
-		valueGroup:  spec.ValueGroup,
-		spanGroup:   spec.SpanGroup,
-		boundary:    spec.Boundary,
-		scope:       append([]string(nil), spec.Scope...),
-		skipBots:    spec.SkipBots,
-		validate:    spec.Validate,
-		pluginID:    pluginID,
-		displayName: t.displayName,
+		id:           spec.ID,
+		typeID:       spec.TypeID,
+		pattern:      compiled,
+		valuePattern: valuePattern,
+		urlTemplate:  spec.URL,
+		url:          urlFor,
+		valueGroup:   spec.ValueGroup,
+		spanGroup:    spec.SpanGroup,
+		boundary:     spec.Boundary,
+		scope:        append([]string(nil), spec.Scope...),
+		skipBots:     spec.SkipBots,
+		validate:     spec.Validate,
+		pluginID:     pluginID,
+		displayName:  t.displayName,
 	}}
 	for i, stored := range reg.matchers {
 		if stored.id == spec.ID {
@@ -569,7 +702,7 @@ func (r *registry) allows(matcherID string, ctx ReadContext) bool {
 	}
 	stored, ok := r.matcher(matcherID)
 	if !ok {
-		return true
+		return false
 	}
 	if stored.skipBots && ctx.AuthorIsBot {
 		return false

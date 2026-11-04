@@ -170,6 +170,18 @@ func (a *App) InitPlugins(rctx request.CTX, pluginDir, webappPluginDir string) {
 	a.ch.initPlugins(rctx, pluginDir, webappPluginDir)
 }
 
+func (ch *Channels) dropPluginEntities(id string) {
+	entityTermMu.Lock()
+	defer entityTermMu.Unlock()
+	entities.RemovePlugin(id)
+	if ch.srv == nil || ch.srv.Store() == nil {
+		return
+	}
+	if err := ch.srv.Store().EntityTerm().DeleteByPlugin(id); err != nil {
+		ch.srv.Log().Warn("Failed to delete entity terms", mlog.String("plugin_id", id), mlog.Err(err))
+	}
+}
+
 func (ch *Channels) initPlugins(rctx request.CTX, pluginDir, webappPluginDir string) {
 	// Acquiring lock manually, as plugins might be disabled. See GetPluginsEnvironment.
 	defer func() {
@@ -215,7 +227,7 @@ func (ch *Channels) initPlugins(rctx request.CTX, pluginDir, webappPluginDir str
 		ch.srv.Log().Error("Failed to start up plugins", mlog.Err(err))
 		return
 	}
-	env.SetDeactivated(entities.RemovePlugin)
+	env.SetDeactivated(ch.dropPluginEntities)
 	ch.pluginsLock.Lock()
 	ch.pluginsEnvironment = env
 	ch.pluginsLock.Unlock()

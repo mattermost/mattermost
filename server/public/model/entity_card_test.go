@@ -32,3 +32,25 @@ func TestNormalizeEntityCardCapsTheDrawing(t *testing.T) {
 		t.Fatalf("unknown kind kept %#v", unknown.Map)
 	}
 }
+
+func TestNormalizeEntityCardDropsUnsafeURLs(t *testing.T) {
+	card := &EntityCard{
+		URL: "javascript:alert(1)",
+		Related: []EntityCardLink{{
+			Label: "keep",
+			URL:   "https://attack.mitre.org/techniques/T1059/001/",
+		}, {
+			Label: "drop",
+			URL:   "data:text/html,hi",
+		}},
+		Sections: []EntityCardSection{{
+			Title: "Notes",
+			URL:   "/plugins/com.example/page",
+			Items: []EntityCardItem{{URL: "javascript:alert(1)"}, {URL: "http://example.com/a"}},
+		}},
+	}
+	NormalizeEntityCard(card)
+	if card.URL != "" || card.Related[0].URL == "" || card.Related[1].URL != "" || card.Sections[0].URL == "" || card.Sections[0].Items[0].URL != "" || card.Sections[0].Items[1].URL == "" {
+		t.Fatalf("card urls = %#v", card)
+	}
+}

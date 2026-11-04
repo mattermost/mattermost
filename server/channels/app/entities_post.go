@@ -4,6 +4,7 @@
 package app
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -20,11 +21,19 @@ import (
 )
 
 const (
-	entityMemoCap    = 8192
-	entityRefreshCap = 4
-	validateCacheCap = 4096
-	validateCacheTTL = 30 * time.Second
+	entityMemoCap        = 8192
+	entityRefreshCap     = 4
+	validateCacheCap     = 4096
+	validateCacheTTL     = 30 * time.Second
+	entityProviderBudget = 2 * time.Second
 )
+
+func (a *App) AppendEntityEtag(etag string) string {
+	if !a.entitiesEnabled() {
+		return etag
+	}
+	return etag + "." + entities.PatternGeneration() + "." + strconv.FormatInt(entities.TermEpoch(), 10)
+}
 
 func (a *App) entitiesEnabled() bool {
 	if os.Getenv("MM_ENTITIES") == "1" {
@@ -211,7 +220,14 @@ func (a *App) rememberEntities(rctx request.CTX, post *model.Post, hash, generat
 func (a *App) scanPostEntities(rctx request.CTX, post *model.Post, hash, generation string) ([]*model.PostEntity, bool) {
 	key := post.Id + "\n" + hash + "\n" + generation
 	v, _, _ := entityScan.Do(key, func() (any, error) {
+		deadline := time.Now().Add(entityProviderBudget)
 		found, protected, incomplete := entities.DetectAccepted(post.Message, func(pluginID, typeID, value string) (bool, error) {
+			if err := rctx.Context().Err(); err != nil {
+				return false, err
+			}
+			if time.Now().After(deadline) {
+				return false, fmt.Errorf("entity validation timed out")
+			}
 			return a.acceptEntityValue(rctx, pluginID, typeID, value, post.CreateAt)
 		})
 		applied := entities.ApplyTerms(post.Message, protected, found)
@@ -282,17 +298,20 @@ func (a *App) acceptEntityValue(rctx request.CTX, pluginID, typeID, value string
 	}
 	env := a.GetPluginsEnvironment()
 	if env == nil {
-		return false, nil
+		return false, fmt.Errorf("plugin environment is unavailable")
 	}
-	hooks, err := env.HooksForPlugin(pluginID)
+	hooks, err := env.HooksForPluginWithRPCErr(pluginID)
 	if err != nil || hooks == nil {
-		return false, nil
+		return false, fmt.Errorf("plugin is unavailable")
 	}
-	ok, callErr := hooks.EntityValidate(&plugin.Context{}, &model.EntityValidateRequest{
+	ok, callErr, rpcErr := hooks.EntityValidateWithRPCErr(&plugin.Context{}, &model.EntityValidateRequest{
 		TypeID:   typeID,
 		Value:    value,
 		CreateAt: createAt,
 	})
+	if rpcErr != nil {
+		return false, rpcErr
+	}
 	if callErr != nil {
 		return false, callErr
 	}
