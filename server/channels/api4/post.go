@@ -89,8 +89,8 @@ func createPostChecks(where string, c *Context, post *model.Post) {
 	}
 
 	if len(post.FileIds) > 0 {
-		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionUploadFile); !ok {
-			c.SetPermissionError(model.PermissionUploadFile)
+		checkUploadFileAttachmentPermission(c, where, post.ChannelId)
+		if c.Err != nil {
 			return
 		}
 	}
