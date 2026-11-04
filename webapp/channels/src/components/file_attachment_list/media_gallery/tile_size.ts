@@ -1,13 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {FileInfo} from '@mattermost/types/files';
+import type {CSSProperties} from 'react';
 
-export type TileSizeOptions = {
-    rowHeight: number;
-    minTileWidth: number;
-    maxTileWidth: number;
-};
+import type {FileInfo} from '@mattermost/types/files';
 
 const DEFAULT_ASPECT_RATIO = 1.5;
 
@@ -18,14 +14,18 @@ function ratioOf(file: FileInfo): number {
     return DEFAULT_ASPECT_RATIO;
 }
 
-// Tiles wrap into rows via CSS flex-wrap rather than JS packing, so the post
-// has its final height on first render instead of after measuring the container.
-export function tileWidth(file: FileInfo, opts: TileSizeOptions): number {
-    let width = ratioOf(file) * opts.rowHeight;
+// Tiles are sized in CSS from these variables against the gallery's row height,
+// which a container query shrinks in narrow containers, and they wrap into rows
+// via CSS flex-wrap. Nothing depends on measuring the container, so the post has
+// its final height on first render.
+export function tileSizeVars(file: FileInfo): CSSProperties {
+    const vars: Record<string, string> = {
+        '--tile-ratio': String(ratioOf(file)),
+    };
 
-    if (file.width && width > file.width) {
-        width = file.width;
+    if (file.width && file.width > 0) {
+        vars['--tile-native-width'] = `${file.width}px`;
     }
 
-    return Math.max(opts.minTileWidth, Math.min(width, opts.maxTileWidth));
+    return vars as CSSProperties;
 }

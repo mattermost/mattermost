@@ -21,11 +21,9 @@ import {getFileType} from 'utils/utils';
 import type {GlobalState} from 'types/store';
 
 import {ArchiveFileError, ArchiveTooLargeError, archiveFilename, buildFileArchive} from './file_archive';
-import {tileWidth} from './tile_size';
 import ImageTile from './tiles/image_tile';
 import VideoTile from './tiles/video_tile';
 import type {ClassifiedFile, TileKind} from './types';
-import {useContainerDimensions} from './use_container_dimensions';
 
 import './media_gallery.scss';
 
@@ -37,18 +35,6 @@ type Props = {
     onItemClick: (index: number) => void;
     onToggleCollapse?: (postId: string) => void;
 };
-
-const ROW_HEIGHT = 216;
-const COMPACT_ROW_HEIGHT = 144;
-const MIN_TILE_WIDTH = 50;
-const MAX_TILE_WIDTH = 500;
-
-const NARROW_ENTER_WIDTH = 480;
-const NARROW_EXIT_WIDTH = 512;
-
-export function nextNarrowState(isNarrow: boolean, width: number): boolean {
-    return isNarrow ? width < NARROW_EXIT_WIDTH : width < NARROW_ENTER_WIDTH;
-}
 
 function tileKindFor(fileInfo: FileInfo): TileKind | null {
     const type = getFileType(fileInfo.extension);
@@ -73,17 +59,6 @@ const MediaGallery = ({fileInfos, postId, compactDisplay, isEmbedVisible = true,
 
     useEffect(() => () => downloadAbortRef.current?.abort(), []);
 
-    const containerRef = useRef<HTMLDivElement | null>(null);
-    const {width: containerWidth} = useContainerDimensions(containerRef);
-
-    const [isNarrow, setIsNarrow] = useState(false);
-
-    useEffect(() => {
-        if (containerWidth > 0) {
-            setIsNarrow((prev) => nextNarrowState(prev, containerWidth));
-        }
-    }, [containerWidth]);
-
     const tiles: ClassifiedFile[] = useMemo(() => {
         const out: ClassifiedFile[] = [];
         for (const file of fileInfos) {
@@ -94,8 +69,6 @@ const MediaGallery = ({fileInfos, postId, compactDisplay, isEmbedVisible = true,
         }
         return out;
     }, [fileInfos]);
-
-    const rowHeight = (compactDisplay || isNarrow) ? COMPACT_ROW_HEIGHT : ROW_HEIGHT;
 
     const handleClick = useCallback((index: number) => {
         const file = tiles[index]?.file;
@@ -184,11 +157,8 @@ const MediaGallery = ({fileInfos, postId, compactDisplay, isEmbedVisible = true,
     // Collapsed single videos need a header, otherwise the tile disappears with no toggle.
     const showHeader = Boolean(onToggleCollapse) && (!isSingle || !isEmbedVisible);
 
-    const sizeOpts = {rowHeight, minTileWidth: MIN_TILE_WIDTH, maxTileWidth: MAX_TILE_WIDTH};
-
     return (
         <div
-            ref={containerRef}
             className={classNames('MediaGallery', {
                 'MediaGallery--compact': compactDisplay,
                 'MediaGallery--single': isSingle,
@@ -268,8 +238,6 @@ const MediaGallery = ({fileInfos, postId, compactDisplay, isEmbedVisible = true,
                                 fileInfo={tile.file}
                                 index={idx}
                                 total={tiles.length}
-                                width={tileWidth(tile.file, sizeOpts)}
-                                height={rowHeight}
                                 enablePublicLink={enablePublicLink}
                                 onClick={handleClick}
                             />

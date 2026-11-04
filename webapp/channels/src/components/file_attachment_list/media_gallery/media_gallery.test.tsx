@@ -10,7 +10,7 @@ import type {FileInfo} from '@mattermost/types/files';
 import {renderWithContext} from 'tests/react_testing_utils';
 
 import {ArchiveFileError, ArchiveTooLargeError, buildFileArchive} from './file_archive';
-import MediaGallery, {nextNarrowState} from './media_gallery';
+import MediaGallery from './media_gallery';
 
 jest.mock('./file_archive', () => ({
     ...jest.requireActual('./file_archive'),
@@ -39,37 +39,6 @@ function fileInfo(overrides: Partial<FileInfo>): FileInfo {
         ...overrides,
     };
 }
-
-describe('nextNarrowState', () => {
-    const SCROLLBAR_WIDTH = 15;
-
-    it('switches to compact rows below the enter threshold', () => {
-        expect(nextNarrowState(false, 479)).toBe(true);
-        expect(nextNarrowState(false, 480)).toBe(false);
-    });
-
-    it('stays compact until well past the enter threshold so a vanishing scrollbar cannot flip it back', () => {
-        expect(nextNarrowState(true, 479 + SCROLLBAR_WIDTH)).toBe(true);
-        expect(nextNarrowState(true, 511)).toBe(true);
-        expect(nextNarrowState(true, 512)).toBe(false);
-    });
-
-    it('settles at every width in the worst case, where tall rows scroll and compact rows do not', () => {
-        for (let unscrolledWidth = 400; unscrolledWidth <= 600; unscrolledWidth++) {
-            const scrolledWidth = unscrolledWidth - SCROLLBAR_WIDTH;
-
-            // Going compact hides the scrollbar, which widens the container back out.
-            if (nextNarrowState(false, scrolledWidth)) {
-                expect(nextNarrowState(true, unscrolledWidth)).toBe(true);
-            }
-
-            // Going tall shows the scrollbar, which narrows the container again.
-            if (!nextNarrowState(true, unscrolledWidth)) {
-                expect(nextNarrowState(false, scrolledWidth)).toBe(false);
-            }
-        }
-    });
-});
 
 describe('MediaGallery', () => {
     const baseState = {
@@ -150,27 +119,28 @@ describe('MediaGallery', () => {
         expect(onToggle).toHaveBeenCalledWith('p1');
     });
 
-    it('uses compact rows in a narrow container', () => {
-        const rectSpy = jest.spyOn(Element.prototype, 'getBoundingClientRect').mockReturnValue({
-            width: 400,
-            height: 144,
-        } as DOMRect);
+    it('leaves tile sizing to CSS so a narrow container does not need to be measured', () => {
+        renderWithContext(
+            <MediaGallery
+                fileInfos={[
+                    fileInfo({id: 'a', name: 'a.png', width: 800, height: 600}),
+                    fileInfo({id: 'v', name: 'clip.mp4', extension: 'mp4', mime_type: 'video/mp4', width: 0, height: 0}),
+                ]}
+                postId='p1'
+                onItemClick={jest.fn()}
+            />,
+            baseState,
+        );
 
-        try {
-            const {container} = renderWithContext(
-                <MediaGallery
-                    fileInfos={[fileInfo({id: 'v', name: 'clip.mp4', extension: 'mp4', mime_type: 'video/mp4'})]}
-                    postId='p1'
-                    onItemClick={jest.fn()}
-                />,
-                baseState,
-            );
+        const [image, video] = screen.getAllByTestId('media-gallery-tile');
+        expect(image.style.getPropertyValue('--tile-ratio')).toBe(String(800 / 600));
+        expect(image.style.getPropertyValue('--tile-native-width')).toBe('800px');
+        expect(video.style.getPropertyValue('--tile-ratio')).toBe('1.5');
+        expect(video.style.getPropertyValue('--tile-native-width')).toBe('');
 
-            const tile = container.querySelector<HTMLElement>('.MediaGallery__tile');
-            expect(tile).not.toBeNull();
-            expect(tile!.style.height).toBe('144px');
-        } finally {
-            rectSpy.mockRestore();
+        for (const tile of [image, video]) {
+            expect(tile.style.width).toBe('');
+            expect(tile.style.height).toBe('');
         }
     });
 
