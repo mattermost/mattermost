@@ -38,9 +38,7 @@ name: Release cherry-pick labels
 #   reads  — the changelog read app (CHANGELOG_READ_*), read-only on mattermost/mattermost
 #            and mattermost/enterprise, to read enterprise PRs and search both repos.
 #
-# The secrets and variables below live in the "release-automation" environment, not at
-# repository level, and that environment is limited to master, so only runs of master get
-# them. The job sets environment: release-automation to use it.
+# These secrets and variables are repository-level (Settings → Secrets and variables → Actions).
 #
 # Secrets:
 #   CHANGELOG_READ_PRIVATE_KEY  — the changelog read app's private key
@@ -87,7 +85,6 @@ concurrency:
 jobs:
   label:
     if: github.repository == 'mattermost/mattermost'
-    environment: release-automation
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
