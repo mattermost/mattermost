@@ -33,9 +33,11 @@ func (b *Paragraph) Continuation(indentation int, r Range) *continuation {
 
 func (b *Paragraph) Close() {
 	// What a reference definition leaves behind is the tail of the text it was read from, so the
-	// text is joined once and read from a growing offset. Joining it again for each definition
-	// would make the work a paragraph of definitions costs grow with the square of its length.
-	raw := joinRanges(b.markdown, b.Text)
+	// text is joined once, only when the paragraph opens with a possible definition, and read from
+	// a growing offset. Joining it again for each definition would make the work a paragraph of
+	// definitions costs grow with the square of its length.
+	var raw string
+	joined := false
 	rawOffset := 0
 
 	for {
@@ -50,6 +52,12 @@ func (b *Paragraph) Close() {
 
 		if len(b.Text) == 0 || b.Text[0].Position < b.Text[0].End && b.markdown[b.Text[0].Position] != '[' {
 			break
+		}
+
+		if !joined {
+			raw = joinRanges(b.markdown, b.Text)
+			rawOffset = 0
+			joined = true
 		}
 
 		definition, length := parseReferenceDefinition(b.markdown, raw[rawOffset:], b.Text)

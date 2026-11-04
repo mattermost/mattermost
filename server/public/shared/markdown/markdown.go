@@ -147,21 +147,20 @@ func joinRanges(markdown string, ranges []Range) string {
 	return sb.String()
 }
 
-// trimBytesFromRanges drops the leading bytes bytes of the text the ranges cover. The result is
+// trimBytesFromRanges drops the leading bytes of the text the ranges cover. The result is
 // a reslice of ranges whose first element it may rewrite in place, so a caller keeps the result
 // rather than its own view of the slice, and gets a trim that never allocates in return.
 func trimBytesFromRanges(ranges []Range, bytes int) []Range {
-	rem := bytes
 	for i := range ranges {
-		if rem == 0 {
+		if bytes == 0 {
 			return ranges[i:]
 		}
 		l := ranges[i].End - ranges[i].Position
-		if rem < l {
-			ranges[i].Position += rem
+		if bytes < l {
+			ranges[i].Position += bytes
 			return ranges[i:]
 		}
-		rem -= l
+		bytes -= l
 	}
 	return ranges[len(ranges):]
 }

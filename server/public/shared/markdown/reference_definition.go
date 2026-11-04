@@ -132,7 +132,7 @@ func parseReferenceDefinition(markdown, raw string, ranges []Range) (*ReferenceD
 	position = next
 
 	absoluteDestination := relativeToAbsolutePosition(ranges, destination.Position)
-	rawLabel := raw[label.Position:label.End]
+	rawLabel := strings.Clone(raw[label.Position:label.End])
 	ret := &ReferenceDefinition{
 		RawDestination:  Range{absoluteDestination, absoluteDestination + destination.End - destination.Position},
 		markdown:        markdown,
@@ -149,7 +149,7 @@ func parseReferenceDefinition(markdown, raw string, ranges []Range) (*ReferenceD
 			return nil, 0
 		}
 		if nextLine, skippedNonWhitespace := nextLine(raw, next); !skippedNonWhitespace {
-			ret.rawTitle = raw[title.Position:title.End]
+			ret.rawTitle = strings.Clone(raw[title.Position:title.End])
 			return ret, nextLine
 		}
 	}

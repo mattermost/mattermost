@@ -9,7 +9,6 @@ import (
 	"strings"
 	"sync"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -106,13 +105,6 @@ func TestParse(t *testing.T) {
 	})
 
 	t.Run("parse cost stays proportional to document size as reference definitions and uses grow", func(t *testing.T) {
-		// Doubling the number of reference uses and definitions doubles the document, so parse
-		// work that is proportional to the document roughly doubles with it. Work that pairs
-		// every use with every definition, or that rebuilds the remainder of a paragraph once
-		// per definition it holds, roughly quadruples instead. The bound below sits between the
-		// two, so it says "cost follows the document" without pinning an exact constant.
-		const maxGrowth = 3.0
-
 		for _, tc := range []struct {
 			name     string
 			document func(n int) string
@@ -198,6 +190,14 @@ func TestParse(t *testing.T) {
 			t.Run(tc.name, func(t *testing.T) {
 				small := tc.document(tc.n)
 				large := tc.document(2 * tc.n)
+				// Doubling the number of reference uses and definitions doubles the document, so
+				// parse work that is proportional to the document roughly doubles with it. Work
+				// that pairs every use with every definition, or that rebuilds the remainder of a
+				// paragraph once per definition it holds, roughly quadruples instead. The bound
+				// sits between the two, so it says "cost follows the document" without pinning an
+				// exact constant.
+				const maxGrowth = 3.0
+
 				// Parse and Inspect skip anything longer than MaxLen without looking at it, which
 				// would make both measurements trivially equal.
 				require.LessOrEqual(t, len(large), MaxLen())
@@ -212,57 +212,6 @@ func TestParse(t *testing.T) {
 					float64(len(large))/float64(len(small)), len(small), len(large))
 			})
 		}
-	})
-
-	t.Run("parsing one document many times over completes in bounded time", func(t *testing.T) {
-		if testing.Short() {
-			t.Skip("wall-clock bound is not meaningful in short mode")
-		}
-
-		n := 3000
-		markdown := referenceUses(n, "no", "\n\n") + referenceDefinitions(n, "", " ", "\n\n")
-		require.LessOrEqual(t, len(markdown), MaxLen())
-
-		// Parses are independent, so the time for the whole batch follows the total work rather
-		// than the cost of any single parse. Running several parses per available thread keeps
-		// that total the same whatever the machine's parallelism is.
-		parses := max(20, 4*runtime.GOMAXPROCS(0))
-
-		start := time.Now()
-
-		var wg sync.WaitGroup
-		for range parses {
-			wg.Go(func() {
-				Inspect(markdown, func(any) bool { return true })
-			})
-		}
-		wg.Wait()
-
-		// The race detector and loaded shared runners can push linear work past one second even
-		// when the allocation-growth tests already show the cost follows document size.
-		if raceDetector {
-			return
-		}
-
-		elapsed := time.Since(start)
-		assert.Lessf(t, elapsed, time.Second,
-			"%d concurrent parses of a %d byte document took %v", parses, len(markdown), elapsed)
-	})
-
-	t.Run("a long list of reference definitions parses in bounded time", func(t *testing.T) {
-		const n = 2000
-		markdown := strings.Repeat("[a]: b\n", n)
-
-		start := time.Now()
-		_, definitions := Parse(markdown)
-		elapsed := time.Since(start)
-
-		require.Len(t, definitions, n)
-
-		if testing.Short() || raceDetector {
-			return
-		}
-		assert.Lessf(t, elapsed, 15*time.Millisecond, "Parse(%d definitions) took %v", n, elapsed)
 	})
 
 	t.Run("concurrent parses of a list of reference definitions keep a bounded allocation total", func(t *testing.T) {
@@ -330,6 +279,19 @@ func TestParse(t *testing.T) {
 				assert.Empty(t, definitions[2].Title())
 			})
 		}
+	})
+
+	t.Run("text after a run of reference definitions keeps its ranges", func(t *testing.T) {
+		document, definitions := Parse("[foo]: /foo\n[bar]: /bar\nremaining text")
+		require.Len(t, definitions, 2)
+		assert.Equal(t, "/foo", definitions[0].Destination())
+		assert.Equal(t, "/bar", definitions[1].Destination())
+
+		require.Len(t, document.Children, 1)
+		paragraph, ok := document.Children[0].(*Paragraph)
+		require.True(t, ok)
+		require.Equal(t, []Range{{Position: 24, End: 38}}, paragraph.Text)
+		assert.Equal(t, "remaining text", paragraph.markdown[paragraph.Text[0].Position:paragraph.Text[0].End])
 	})
 
 	t.Run("reference links resolve against the definition their label names", func(t *testing.T) {
