@@ -340,11 +340,13 @@ def _split_source(source: str) -> tuple[str, int]:
     return repo, int(number)
 
 
-_DOCS_LINE_RE = re.compile(r"(?im)^[ \t]*Docs:[ \t]*(.*?)[ \t]*$\n?")
+_DOCS_LINE_RE = re.compile(r"(?im)^[ \t]*Docs(?:[ \t]+page)?:[ \t]*(.*?)[ \t]*$\n?")
+# The same label in the middle of a line, once the template's newlines are gone.
+_DOCS_INLINE_RE = re.compile(r"(?i)[ \t]*\bDocs(?:[ \t]+page)?:[ \t]*(https?://[^\s)>\]]+|/[^\s)>\]]+)")
 
 
 def split_docs_line(note: str) -> tuple[str, str | None]:
-    """A release note without its ``Docs: <url>`` line, and the docs URL that line names.
+    """A release note without its ``Docs: <url>`` (or ``Docs page:``) line, and the docs URL it names.
 
     The author knows which page documents the change, so it outranks the docs page
     found by following the PR. A path is taken as relative to docs.mattermost.com.
@@ -356,7 +358,14 @@ def split_docs_line(note: str) -> tuple[str, str | None]:
             value = changelog_release.DOCS_SITE + value
         if url is None and changelog_release.DOCS_URL_RE.fullmatch(value):
             url = value
-    return _DOCS_LINE_RE.sub("", note).strip(), url
+    note = _DOCS_LINE_RE.sub("", note)
+    for value in _DOCS_INLINE_RE.findall(note):
+        value = value.rstrip(".,;")
+        if value.startswith("/"):
+            value = changelog_release.DOCS_SITE + value
+        if url is None and changelog_release.DOCS_URL_RE.fullmatch(value):
+            url = value
+    return _DOCS_INLINE_RE.sub("", note).strip(), url
 
 
 def extract_release_notes(body: str) -> list[str] | None:
@@ -1032,6 +1041,33 @@ def unattributed_sources(sources_by_id: dict, referenced: set) -> list[str]:
 def _sources_of(sources_by_id: dict, referenced: set) -> set:
     """The PRs (or derived keys) that at least one marker named."""
     return {sources_by_id[note_id] for note_id in referenced if note_id in sources_by_id}
+
+
+def migration_restated(text: str, migrations: list[str]) -> str | None:
+    """The listed migration a developer's note names by number or name, or None.
+
+    A note such as "Added the number property field type (migration 000238)." restates the
+    Database Schema Changes bullet written for that migration.
+    """
+    for name in migrations:
+        number = name.split("_", 1)[0]
+        if re.search(r"(?<![\w])" + re.escape(name) + r"(?![\w])", text) or (
+                number.isdigit() and re.search(r"(?<!\d)" + re.escape(number) + r"(?!\d)", text)):
+            return name
+    return None
+
+
+def split_restated_notes(notes: list[dict], derived: list[dict]) -> tuple[list[dict], list[dict]]:
+    """Split ``notes`` into those to write and those that only restate a migration already listed."""
+    migrations = [note["source"][len("migration:"):] for note in derived if note["source"].startswith("migration:")]
+    kept, restated = [], []
+    for note in notes:
+        name = None if note.get("derived") or note["source"].startswith(_DIFF_DERIVED) else migration_restated(note["text"], migrations)
+        if name:
+            restated.append({**note, "migration": name})
+        else:
+            kept.append(note)
+    return kept, restated
 
 
 def dropped_notes(notes: list[dict], referenced: set) -> list[dict]:
@@ -1770,6 +1806,13 @@ def render_status(readiness: dict) -> list[str]:
             lines.append(f"- {pr(note['source'])}{kept}: \"{note['excerpt'].replace('`', chr(39))}\"")
         lines.append("")
 
+    restated = readiness.get("restated", [])
+    if restated:
+        lines += [f"### Notes that only restate a migration: {len(restated)}", "",
+                  "No bullet was written for these, since the migration is listed under Database Schema Changes.", ""]
+        lines += [f"- {pr(note['source'])}: migration `{note['migration']}`" for note in restated]
+        lines.append("")
+
     blocking = [check for check in readiness["preflight"] if check["status"] == "fail" and check["blocking"]]
     lines += [f"**Generator status: {'NOT READY (preflight failing)' if blocking else 'ready to run'}**", ""]
     return lines
@@ -1883,6 +1926,11 @@ def render_fragment(notes: list[dict], sources_by_id: dict) -> tuple[str, list[d
     # Both are applied to the generated fragment only, never to file contents. The
     # [[N1]] markers pass through both untouched and are stripped afterwards.
     polished = escape_mdx_unsafe(normalize_formatting(raw_polished))
+    url_sources = {}
+    for note in notes:
+        if note.get("docs_url"):
+            url_sources.setdefault(note["docs_url"], set()).add(note["source"])
+    polished = drop_repeated_notes(drop_misplaced_doc_links(strip_docs_page_labels(polished), url_sources, sources_by_id))
     polished, items, referenced = extract_source_markers(polished, sources_by_id)
 
     items, referenced = _drop_go_version(items, referenced)
@@ -1890,11 +1938,90 @@ def render_fragment(notes: list[dict], sources_by_id: dict) -> tuple[str, list[d
     missing = dropped_notes(notes, referenced) if ai_polished else []
     if missing:
         print(f"⚠️  The model left out {len(missing)} note(s): {', '.join(note['id'] for note in missing)}")
-        polished, items, referenced = _place_missing(polished, items, referenced, missing, sources_by_id)
+        polished, items, referenced = _place_missing(polished, items, referenced, missing, sources_by_id, url_sources)
     return polished, items, referenced, ai_polished
 
 
 _RETRY_WRAPPER = "## Release v0.0"
+
+_MD_LINK_RE = re.compile(r"\[([^\]]*)\]\(([^)\s]+)\)")
+
+
+def _bullet_blocks(lines: list[str]) -> list[dict]:
+    """Each bullet of generated text with its line range, ``###``/``####`` location and note IDs.
+
+    A bullet's block is its first line plus the indented lines that continue it.
+    """
+    blocks = []
+    section = subsection = None
+    index = 0
+    while index < len(lines):
+        heading = re.match(r"^(#{3,4}) +(.*?)\s*$", lines[index])
+        if heading:
+            if len(heading.group(1)) == 3:
+                section, subsection = heading.group(2), None
+            else:
+                subsection = heading.group(2)
+        elif _BULLET_RE.match(lines[index]):
+            end = index + 1
+            while end < len(lines) and lines[end].strip() and not _BULLET_RE.match(lines[end]) and lines[end].startswith(" "):
+                end += 1
+            ids = [part.strip() for line in lines[index:end] for match in _SOURCE_MARKER_RE.finditer(line)
+                   for part in match.group(1).split(",")]
+            blocks.append({"start": index, "end": end, "section": section, "subsection": subsection, "ids": ids})
+            index = end
+            continue
+        index += 1
+    return blocks
+
+
+def strip_docs_page_labels(text: str) -> str:
+    """Remove ``Docs page: <url>`` lines the model copied from its input into the changelog text."""
+    text = re.sub(r"(?im)^[ \t]*Docs(?:[ \t]+page)?:.*\n?", "", text)
+    return _DOCS_INLINE_RE.sub("", text)
+
+
+def drop_misplaced_doc_links(text: str, url_sources: dict, sources_by_id: dict) -> str:
+    """Unlink a docs page the model put on a bullet that none of the page's PRs wrote.
+
+    ``url_sources`` maps each docs URL sent with a note to the PRs it belongs to. A link on a
+    bullet whose markers name none of them is a different feature's page, so it is replaced
+    by its label. Links to pages that were not sent are left to the link check.
+    """
+    known = {}
+    for url, sources in url_sources.items():
+        known.setdefault(url.split("#")[0].rstrip("/"), set()).update(sources)
+    lines = text.split("\n")
+    for block in _bullet_blocks(lines):
+        own = {sources_by_id[note_id] for note_id in block["ids"] if note_id in sources_by_id}
+
+        def unlink(match):
+            owners = known.get(match.group(2).split("#")[0].rstrip("/"))
+            return match.group(1) if owners and not owners & own else match.group(0)
+        for number in range(block["start"], block["end"]):
+            lines[number] = _MD_LINK_RE.sub(unlink, lines[number])
+    return "\n".join(lines)
+
+
+def drop_repeated_notes(text: str) -> str:
+    """Keep each note in one place: drop a bullet whose notes were all placed earlier elsewhere.
+
+    The first placement wins. A bullet that also carries a note not seen before is kept.
+    ``### Go Version`` does not count, since its bullets are replaced.
+    """
+    lines = text.split("\n")
+    placed = {}
+    drop = set()
+    for block in _bullet_blocks(lines):
+        if block["section"] == "Go Version":
+            continue
+        where = (block["section"], block["subsection"])
+        if block["ids"] and all(placed.get(note_id, where) != where for note_id in block["ids"]):
+            drop.update(range(block["start"], block["end"]))
+            continue
+        for note_id in block["ids"]:
+            placed.setdefault(note_id, where)
+    return "\n".join(line for number, line in enumerate(lines) if number not in drop)
 
 
 def _drop_go_version(items: list[dict], referenced: set) -> tuple[list[dict], set]:
@@ -1954,7 +2081,7 @@ def keep_requested_bullets(text: str, wanted: set) -> str:
 
 
 def _place_missing(polished: str, items: list[dict], referenced: set, missing: list[dict],
-                   sources_by_id: dict) -> tuple[str, list[dict], set]:
+                   sources_by_id: dict, url_sources: dict) -> tuple[str, list[dict], set]:
     """Retry once with only the dropped notes and merge what comes back into ``polished``.
 
     The answer is merged the way update mode merges a fragment, into the section it names.
@@ -1973,6 +2100,7 @@ def _place_missing(polished: str, items: list[dict], referenced: set, missing: l
     wanted = {note["id"] for note in missing}
     retry_text = drop_bulletless_sections(keep_requested_bullets(normalize_formatting(retry_raw), wanted))
     retry_text = escape_mdx_unsafe(normalize_formatting(retry_text))
+    retry_text = drop_misplaced_doc_links(strip_docs_page_labels(retry_text), url_sources, sources_by_id)
     retry_text, retry_items, retry_referenced = extract_source_markers(retry_text, sources_by_id)
     retry_items, retry_referenced = _drop_go_version(retry_items, retry_referenced)
     if not retry_referenced & wanted:
@@ -2208,6 +2336,10 @@ def main():
         all_notes = [note for note in all_notes if note["source"] not in included | withheld]
         print(f"ℹ️  {len(included)} source(s) already in the changelog PR; {len(all_notes)} new note(s) to add")
 
+    all_notes, restated = split_restated_notes(all_notes, derived)
+    for note in restated:
+        print(f"ℹ️  {note['source']} only restates migration {note['migration']}, which is listed under Database Schema Changes; no bullet written")
+
     for number, note in enumerate(all_notes, start=1):
         note["id"] = f"N{number}"
     sources_by_id = {note["id"]: note["source"] for note in all_notes}
@@ -2421,6 +2553,10 @@ def main():
     unattributed = unattributed_sources(sources_by_id, referenced)
     recorded_now = _sources_of(sources_by_id, referenced)
     included |= recorded_now
+    # Recorded as included although no bullet was written for them: the migration's own
+    # bullet covers the change, and leaving them out would add them back on every run.
+    if not proposed_before:
+        included |= {note["source"] for note in restated}
     not_placed = [
         {"source": note["source"], "id": note["id"], "excerpt": " ".join(note["text"].split())[:160],
          "recorded": note["source"] in recorded_now}
@@ -2429,6 +2565,7 @@ def main():
     for note in not_placed:
         print(f"::warning title=Release note not placed::{note['source']}: the model left this note out of the changelog")
     readiness["not_placed"] = not_placed
+    readiness["restated"] = [{"source": n["source"], "migration": n["migration"]} for n in restated]
     # proposed_before is only left set when the run proposed a list instead of updating.
     if not proposed_before:
         pr_body = render_pr_body(pr_body, included)

@@ -527,7 +527,7 @@ class MainTest(unittest.TestCase):
         self.assertIn("changed in the same PR, which added the page", link["basis"])
         self.assertIn(f"is documented in [Feature]({url}) (linked in Administration)", (self.out / "summary.md").read_text())
 
-    def test_docs_link_on_another_prs_bullet_is_reported_there(self):
+    def test_docs_link_on_another_prs_bullet_is_dropped(self):
         self.details[1] = {"head_ref": "MM-123-feature", "files": [{
             "filename": "docs/main/administration-guide/manage/admin/feature.mdx", "status": "added",
             "patch": "+# Feature\n+\n+Use the feature.\n",
@@ -542,10 +542,13 @@ class MainTest(unittest.TestCase):
                     f" - Extended the [feature]({url}). [[N2]]\n - Pre-packaged Calls plugin version [v1.12.6](https://example.com). [[N3]]\n"), True
         gc.polish_with_ai = polish
         gc.main()
+        url = "https://docs.mattermost.com/administration-guide/manage/admin/feature"
+        content = self.changelog.read_text()
+        self.assertNotIn(url, content)
+        self.assertIn("Extended the feature.", content)
         link = self._payload()["readiness"]["doc_links"][0]
-        self.assertEqual((link["used_in"], link["linked_elsewhere"]), ([], ["mattermost/mattermost#2"]))
-        self.assertIn("(linked from the bullet for [mattermost/mattermost#2](https://github.com/mattermost/mattermost/pull/2) instead)",
-                      (self.out / "summary.md").read_text())
+        self.assertEqual((link["used_in"], link["linked_elsewhere"]), ([], []))
+        self.assertIn("(no bullet links it)", (self.out / "summary.md").read_text())
 
     def test_docs_line_outranks_the_followed_page_and_is_checked(self):
         self.details[1] = {"head_ref": "MM-123-feature", "files": [{
@@ -956,6 +959,50 @@ class MainTest(unittest.TestCase):
         self.assertNotIn("Improvements", text)
         self.assertIn("### Bug Fixes\n - Wanted. [[N2]]", text)
 
+    def test_a_note_placed_in_two_sections_is_kept_in_the_first(self):
+        gc.polish_with_ai = lambda notes: (
+            "### Improvements\n\n#### User Interface\n - Added the first thing. [[N1]]\n"
+            " - Pre-packaged Calls plugin version [v1.12.6](https://example.com). [[N3]]\n"
+            "#### Administration\n - Added the first thing again. [[N1]]\n - Combined with a new note. [[N1,N2]]\n"
+            "### Bug Fixes\n - Added the first thing, once more. [[N1]]\n", True)
+        gc.main()
+        content = self.changelog.read_text()
+        self.assertEqual(content.count("Added the first thing"), 1)
+        self.assertIn("Combined with a new note.", content)
+        self.assertEqual(self._payload()["readiness"]["not_placed"], [])
+
+    def test_a_note_that_only_restates_a_listed_migration_gets_no_bullet(self):
+        migration = {"source": "migration:000238_add_number_to_property_field_type", "derived": True,
+                     "text": "Database schema migration 000238.",
+                     "fallback": "Added database migration ``000238_add_number_to_property_field_type``."}
+        saved = gc.changelog_release.derived_notes
+        gc.changelog_release.derived_notes = lambda base, head: saved(base, head) + [migration]
+        self.prs[1] = self._pr(2, NOTE_BODY.replace("Added a thing.", "Added the number property field type (migration 000238)."),
+                               "2026-10-21T10:00:00Z")
+        sent = []
+
+        def polish(notes):
+            sent.extend(note["source"] for note in notes)
+            return gc._raw_bullets(notes), False
+        gc.polish_with_ai = polish
+        gc.main()
+        self.assertNotIn("mattermost/mattermost#2", sent)
+        self.assertNotIn("number property field type (migration", self.changelog.read_text())
+        self.assertIn("mattermost/mattermost#2", self._recorded())
+        self.assertEqual(self._payload()["readiness"]["restated"],
+                         [{"source": "mattermost/mattermost#2", "migration": "000238_add_number_to_property_field_type"}])
+        self.assertIn("### Notes that only restate a migration: 1", (self.out / "summary.md").read_text())
+
+    def test_docs_page_lines_the_model_copies_are_stripped(self):
+        gc.polish_with_ai = lambda notes: (
+            "### Improvements\n\n#### User Interface\n - Added the first thing. [[N1]]\n"
+            "   Docs page: https://docs.mattermost.com/a/b\n"
+            " - Fixed an issue found later. Docs page: https://docs.mattermost.com/c [[N2]]\n"
+            " - Pre-packaged Calls plugin version [v1.12.6](https://example.com). [[N3]]\n", True)
+        gc.main()
+        self.assertNotIn("Docs page", self.changelog.read_text())
+        self.assertIn("Fixed an issue found later.", self.changelog.read_text())
+
 
 class RetryFilterTest(unittest.TestCase):
     def test_star_and_plus_bullets_for_other_notes_are_dropped(self):
@@ -963,6 +1010,31 @@ class RetryFilterTest(unittest.TestCase):
         kept = gc.keep_requested_bullets(gc.normalize_formatting(text), {"N2"})
         self.assertNotIn("Repeated", kept)
         self.assertIn("Wanted.", kept)
+
+
+class GeneratedTextCleanupTest(unittest.TestCase):
+    def test_docs_label_is_split_from_an_inline_note(self):
+        site = "https://docs.mattermost.com"
+        self.assertEqual(gc.split_docs_line("Added a thing. Docs: https://docs.mattermost.com/a/b."),
+                         ("Added a thing.", f"{site}/a/b"))
+        self.assertEqual(gc.split_docs_line("Added a thing.\nDocs page: /a/b"), ("Added a thing.", f"{site}/a/b"))
+
+    def test_a_link_is_kept_only_on_a_bullet_that_names_its_pr(self):
+        sources = {"N1": "r#1", "N2": "r#2"}
+        urls = {"https://docs.mattermost.com/a#x": {"r#1"}}
+        text = " - Added [a](https://docs.mattermost.com/a#x). [[N1]]\n - Extended [a](https://docs.mattermost.com/a). [[N2]]\n" \
+               " - See [other](https://example.com). [[N2]]\n"
+        cleaned = gc.drop_misplaced_doc_links(text, urls, sources)
+        self.assertEqual(cleaned.split("\n")[0], " - Added [a](https://docs.mattermost.com/a#x). [[N1]]")
+        self.assertEqual(cleaned.split("\n")[1], " - Extended a. [[N2]]")
+        self.assertIn("[other](https://example.com)", cleaned)
+
+    def test_the_first_placement_of_a_note_wins(self):
+        text = "### A\n - One. [[N1]]\n### B\n - One again. [[N1]]\n - Two. [[N2]]\n### Go Version\n - Go. [[N3]]\n"
+        cleaned = gc.drop_repeated_notes(text)
+        self.assertNotIn("One again", cleaned)
+        self.assertIn("Two.", cleaned)
+        self.assertEqual(cleaned.count("[[N1]]"), 1)
 
 
 class GoVersionPruneTest(unittest.TestCase):
