@@ -4,13 +4,14 @@
 package entities
 
 import (
+	"cmp"
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
 	"net/url"
 	"regexp"
-	"sort"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -163,11 +164,11 @@ func ReplaceTerms(pluginID, typeID string, terms []model.EntityTerm) (string, bo
 
 func hashTerms(terms []storedTerm) string {
 	sorted := append([]storedTerm(nil), terms...)
-	sort.Slice(sorted, func(i, j int) bool {
-		if sorted[i].typeID != sorted[j].typeID {
-			return sorted[i].typeID < sorted[j].typeID
+	slices.SortFunc(sorted, func(a, b storedTerm) int {
+		if c := cmp.Compare(a.typeID, b.typeID); c != 0 {
+			return c
 		}
-		return sorted[i].value < sorted[j].value
+		return cmp.Compare(a.value, b.value)
 	})
 	h := sha256.New()
 	for _, term := range sorted {
@@ -258,11 +259,11 @@ func (r *registry) rememberTerms() {
 func (r *registry) rememberProviders() {
 	h := sha256.New()
 	ids := append([]storedProvider(nil), r.providers...)
-	sort.Slice(ids, func(i, j int) bool {
-		if ids[i].id != ids[j].id {
-			return ids[i].id < ids[j].id
+	slices.SortFunc(ids, func(a, b storedProvider) int {
+		if c := cmp.Compare(a.id, b.id); c != 0 {
+			return c
 		}
-		return ids[i].typeID < ids[j].typeID
+		return cmp.Compare(a.typeID, b.typeID)
 	})
 	for _, provider := range ids {
 		fmt.Fprintf(h, "%s\n%s\n%t\n%s\n%d\n", provider.id, provider.typeID, provider.hasCard, provider.cache, int64(provider.cacheTTL/time.Second))
@@ -544,7 +545,7 @@ func AddMatcher(pluginID string, spec *model.EntityMatcher) error {
 	if !strings.HasPrefix(spec.ID, pluginID+".") || spec.ID == pluginID+"." {
 		return fmt.Errorf("matcher id must start with the plugin id")
 	}
-	if len(spec.Pattern) == 0 || len(spec.Pattern) > maxPatternBytes {
+	if spec.Pattern == "" || len(spec.Pattern) > maxPatternBytes {
 		return fmt.Errorf("pattern length is not allowed")
 	}
 	compiled, err := regexp.Compile(spec.Pattern)
@@ -656,13 +657,7 @@ func Present(entities []*model.PostEntity, ctx ReadContext) []*model.PostEntity 
 			continue
 		}
 		next := *entity
-		next.HasCard = false
-		for _, typeID := range entity.TypeIDs {
-			if reg.typeHasCard(typeID) {
-				next.HasCard = true
-				break
-			}
-		}
+		next.HasCard = slices.ContainsFunc(entity.TypeIDs, reg.typeHasCard)
 		out = append(out, &next)
 	}
 	return out

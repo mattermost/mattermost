@@ -102,10 +102,9 @@ func TestDetectUTF16Offsets(t *testing.T) {
 	entities, _ := Detect(message)
 	require.Len(t, entities, 1)
 	require.Equal(t, "CVE-2020-1234", entities[0].Value)
-	encoded := []rune(message)
 	utf16Start := 0
-	for _, r := range encoded {
-		if string(r) == "C" {
+	for _, r := range message {
+		if r == 'C' {
 			break
 		}
 		if r > 0xFFFF {
@@ -313,7 +312,7 @@ func TestValidateStopsAfterTheEntityCap(t *testing.T) {
 
 	var calls int
 	var body strings.Builder
-	for i := 0; i < maxEntities+20; i++ {
+	for i := range maxEntities + 20 {
 		fmt.Fprintf(&body, " %06dZ", i)
 	}
 	_, _, incomplete := DetectAccepted(body.String(), func(string, string, string) (bool, error) {

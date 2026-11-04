@@ -15,8 +15,10 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
+// Entity API tests use t.Setenv("MM_ENTITIES"), which cannot be combined with
+// t.Parallel (Go forbids Setenv after Parallel and vice versa).
+
 func TestGetEntityCardRequiresSession(t *testing.T) {
-	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 	t.Setenv("MM_ENTITIES", "1")
 
@@ -27,7 +29,6 @@ func TestGetEntityCardRequiresSession(t *testing.T) {
 }
 
 func TestGetEntityCardFeatureOff(t *testing.T) {
-	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 	t.Setenv("MM_ENTITIES", "0")
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -43,7 +44,6 @@ func TestGetEntityCardFeatureOff(t *testing.T) {
 }
 
 func TestGetEntityCardHappyPath(t *testing.T) {
-	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 	t.Setenv("MM_ENTITIES", "1")
 
@@ -61,7 +61,6 @@ func TestGetEntityCardHappyPath(t *testing.T) {
 }
 
 func TestGetEntityCardFromPostRequiresReadAccess(t *testing.T) {
-	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 	t.Setenv("MM_ENTITIES", "1")
 
@@ -86,7 +85,6 @@ func TestGetEntityCardFromPostRequiresReadAccess(t *testing.T) {
 }
 
 func TestGetEntityCardForOccurrence(t *testing.T) {
-	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 	t.Setenv("MM_ENTITIES", "1")
 
@@ -114,7 +112,6 @@ func TestGetEntityCardForOccurrence(t *testing.T) {
 }
 
 func TestGetEntityPostsRequiresSession(t *testing.T) {
-	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 	t.Setenv("MM_ENTITIES", "1")
 
@@ -125,7 +122,6 @@ func TestGetEntityPostsRequiresSession(t *testing.T) {
 }
 
 func TestGetEntityPostsFeatureOff(t *testing.T) {
-	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 	t.Setenv("MM_ENTITIES", "0")
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -141,7 +137,6 @@ func TestGetEntityPostsFeatureOff(t *testing.T) {
 }
 
 func TestGetEntityPostsRejectsOversizedBody(t *testing.T) {
-	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 	t.Setenv("MM_ENTITIES", "1")
 
@@ -158,7 +153,6 @@ func TestGetEntityPostsRejectsOversizedBody(t *testing.T) {
 }
 
 func TestGetEntityPostsHappyPathAndSkipsUnread(t *testing.T) {
-	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 	t.Setenv("MM_ENTITIES", "1")
 
@@ -196,7 +190,6 @@ func TestGetEntityPostsHappyPathAndSkipsUnread(t *testing.T) {
 }
 
 func TestGetPostIncludesEntityEtag(t *testing.T) {
-	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 	t.Setenv("MM_ENTITIES", "1")
 
