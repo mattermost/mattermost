@@ -194,6 +194,8 @@ func (a *App) CanSetPostPropertyValueOnCreate(rctx request.CTX, userID string, f
 // PreparePostForClient and before handlePostEvents, so nobody has been told the post exists
 // and nobody but the author can see it.
 func (a *App) setPostPropertyValuesOnCreate(rctx request.CTX, post *model.Post, values []*model.PropertyValue) *model.AppError {
+	rctx = rctxWithSessionCallerID(rctx)
+
 	for _, value := range values {
 		value.TargetID = post.Id
 		value.TargetType = model.PropertyValueTargetTypePost
