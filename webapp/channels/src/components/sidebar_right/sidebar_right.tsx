@@ -154,6 +154,7 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
             (this.props.isChannelInfo !== prevProps.isChannelInfo) ||
             (this.props.isChannelMembers !== prevProps.isChannelMembers) ||
             (this.props.isPostEditHistory !== prevProps.isPostEditHistory) ||
+            (this.props.isEntityView !== prevProps.isEntityView) ||
             (this.props.rhsChannel?.id !== prevProps.rhsChannel?.id) ||
             (this.props.teamId !== prevProps.teamId)
         );

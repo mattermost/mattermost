@@ -261,6 +261,9 @@ const DEFAULT_OPTIONS: TextFormattingOptions = {
 export const cjkrPattern = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\u3400-\u4dbf\uac00-\ud7a3\u1100-\u11ff\u3130-\u318f\u0400-\u04ff\u0500-\u052f\u2de0-\u2dff\u0e00-\u0e7f]/;
 
 function applyEntitySentinels(text: string, entities: PostEntity[]): string {
+    if (text.includes('\uE000') || text.includes('\uE001')) {
+        return text;
+    }
     const indexed = entities.map((entity, index) => ({entity, index}));
     indexed.sort((a, b) => b.entity.start - a.entity.start);
     let output = text;
@@ -268,10 +271,18 @@ function applyEntitySentinels(text: string, entities: PostEntity[]): string {
         if (entity.start < 0 || entity.end > output.length || entity.start >= entity.end) {
             continue;
         }
-        if (output.slice(entity.start, entity.end) !== entity.value) {
-            continue;
+        const span = output.slice(entity.start, entity.end);
+        let from = entity.start;
+        let to = entity.end;
+        if (span !== entity.value) {
+            const offset = span.indexOf(entity.value);
+            if (offset < 0) {
+                continue;
+            }
+            from = entity.start + offset;
+            to = from + entity.value.length;
         }
-        output = `${output.slice(0, entity.start)}\uE000${index}\uE001${output.slice(entity.end)}`;
+        output = `${output.slice(0, from)}\uE000${index}\uE001${output.slice(to)}`;
     }
     return output;
 }
@@ -309,7 +320,7 @@ export function formatText(
 
     let output = text;
     const options = Object.assign({}, inputOptions);
-    if (options.entities && options.entities.length > 0) {
+    if (options.entities && options.entities.length > 0 && !output.includes('\uE000') && !output.includes('\uE001')) {
         output = applyEntitySentinels(output, options.entities);
     }
     const hasPhrases = (/"([^"]*)"/).test(options.searchTerm || '');
@@ -376,11 +387,15 @@ export function formatText(
         output = `<span class="all-emoji">${output.trim()}</span>`;
     }
 
-    if (options.entities && options.entities.length > 0) {
-        output = output.replace(/\uE000(\d+)\uE001/g, (_match: string, index: string) => {
-            const entity = options.entities?.[Number(index)];
-            return entity ? escapeHtml(entity.value) : '';
-        });
+    if (options.entities && options.entities.length > 0 && (output.includes('\uE000') || output.includes('\uE001'))) {
+        // Only restore sentinels we inserted. Author text that already carried these
+        // code points skipped applyEntitySentinels and must be left alone.
+        if (!text.includes('\uE000') && !text.includes('\uE001')) {
+            output = output.replace(/\uE000(\d+)\uE001/g, (_match: string, index: string) => {
+                const entity = options.entities?.[Number(index)];
+                return entity ? escapeHtml(entity.value) : '';
+            });
+        }
     }
 
     if (options.postId) {

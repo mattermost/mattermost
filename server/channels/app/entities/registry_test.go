@@ -171,3 +171,22 @@ func TestPluginCannotClaimAnotherPlugin(t *testing.T) {
 		Pattern: `CVE-[0-9]{4}-[0-9]{4,7}`,
 	}))
 }
+
+func TestValueGroupIgnoresParenthesesInsideClasses(t *testing.T) {
+	const pluginID = "com.example.brackets"
+	t.Cleanup(func() { RemovePlugin(pluginID) })
+	typeID := pluginID + ".freq"
+	require.NoError(t, AddType(pluginID, &model.EntityType{ID: typeID, DisplayName: "Frequency"}))
+	require.NoError(t, AddMatcher(pluginID, &model.EntityMatcher{
+		ID:         pluginID + ".freq",
+		TypeID:     typeID,
+		Pattern:    `FREQ:[(]([0-9]+)[)]`,
+		ValueGroup: 1,
+	}))
+	found, _, incomplete := DetectAccepted("tune FREQ:(1234) now", func(string, string, string) (bool, error) {
+		return true, nil
+	})
+	require.False(t, incomplete)
+	require.Len(t, found, 1)
+	require.Equal(t, "1234", found[0].Value)
+}

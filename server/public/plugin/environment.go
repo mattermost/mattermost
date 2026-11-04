@@ -471,12 +471,12 @@ func (env *Environment) SetDeactivated(fn func(id string)) {
 
 func (env *Environment) deactivateAndTeardown(rp registeredPlugin) bool {
 	id := rp.BundleInfo.Manifest.Id
-	if env.deactivated != nil {
-		env.deactivated(id)
-	}
 
 	if rp.supervisor == nil || !env.IsActive(id) {
 		env.setPluginState(id, model.PluginStateNotRunning)
+		if env.deactivated != nil {
+			env.deactivated(id)
+		}
 		return false
 	}
 
@@ -496,6 +496,9 @@ func (env *Environment) deactivateAndTeardown(rp registeredPlugin) bool {
 
 	env.setPluginState(id, model.PluginStateNotRunning)
 	rp.supervisor.Shutdown()
+	if env.deactivated != nil {
+		env.deactivated(id)
+	}
 
 	return true
 }

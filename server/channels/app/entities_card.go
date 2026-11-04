@@ -122,9 +122,11 @@ func (a *App) GetEntityCardForPost(rctx request.CTX, postID, occurrence string) 
 	if entity == nil || len(entity.TypeIDs) == 0 {
 		return nil, model.NewAppError("GetEntityCardForPost", "api.context.404.app_error", nil, "", http.StatusNotFound)
 	}
-	if remote := entities.ProviderFor(entity.TypeIDs[0]); remote != nil {
-		if got := a.lookupEntityProvider(rctx, remote, entity.TypeIDs[0], entity.Value, post.Id, post.CreateAt); got != nil {
-			return got, nil
+	for _, typeID := range entity.TypeIDs {
+		if remote := entities.ProviderFor(typeID); remote != nil {
+			if got := a.lookupEntityProvider(rctx, remote, typeID, entity.Value, post.Id, post.CreateAt); got != nil {
+				return got, nil
+			}
 		}
 	}
 	for _, typeID := range entity.TypeIDs {
