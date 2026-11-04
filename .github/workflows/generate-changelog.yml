@@ -52,7 +52,7 @@ name: Generate Changelog
 # by the model; otherwise it lists what is missing in the run summary.
 #
 # The digest job reads RELEASE_AGENT_MM_TOKEN and RELEASE_AGENT_MM_URL, the release
-# agent's Hub bot token and URL, from the release-automation environment, limited to master.
+# agent's Hub bot token and URL, which are repository-level (Settings → Secrets and variables → Actions).
 on:
   schedule:
     - cron: '0 6 * * 1-5'
@@ -446,13 +446,11 @@ jobs:
           if-no-files-found: error
 
   # One digest post per release in its Hub channel, edited by each scheduled run. It runs
-  # on its own so the Hub token (from the release-automation environment) is not in the
-  # generate job. Owner names and note details go to Hub; the summary has counts only.
+  # on its own so the Hub token is not in the generate job. Owner names and note details go to Hub; the summary has counts only.
   digest:
     needs: [resolve, generate-changelog]
     if: ${{ !cancelled() && needs.generate-changelog.result == 'success' && github.event_name == 'schedule' && needs.resolve.outputs.mode == 'auto' && needs.generate-changelog.outputs.pr_number != '' }}
     runs-on: ubuntu-latest
-    environment: release-automation
     permissions:
       contents: read
     steps:
