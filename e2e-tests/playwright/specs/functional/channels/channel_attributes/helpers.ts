@@ -44,11 +44,11 @@ export function attributeName(suffix: string, uniqueId: string): string {
     return `${FIELD_PREFIX}_${suffix}_${uniqueId}`.replace(/[^A-Za-z0-9_]/g, '_');
 }
 
-export async function backfillAndRequireChannelAttribute(
+export async function backfillChannelAttribute(
     adminClient: Client4,
     field: PropertyField,
     value: unknown,
-): Promise<PropertyField> {
+): Promise<void> {
     const perPage = 200;
     let page = 0;
     let visited = 0;
@@ -75,6 +75,14 @@ export async function backfillAndRequireChannelAttribute(
     for (const channelID of localChannelIDs) {
         await setChannelValue(adminClient, channelID, field, value);
     }
+}
+
+export async function backfillAndRequireChannelAttribute(
+    adminClient: Client4,
+    field: PropertyField,
+    value: unknown,
+): Promise<PropertyField> {
+    await backfillChannelAttribute(adminClient, field, value);
 
     return adminClient.patchPropertyField(GROUP, 'channel', field.id, {
         attrs: {...field.attrs, required: true},

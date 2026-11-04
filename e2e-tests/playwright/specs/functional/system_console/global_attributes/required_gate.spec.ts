@@ -23,6 +23,7 @@ import {expect, test, getAdminClient} from '@mattermost/playwright-lib';
 
 import {
     attributeName,
+    backfillChannelAttribute,
     createAttribute,
     deleteAttributes,
     optionId as attributeOptionId,
@@ -261,12 +262,9 @@ test.describe(
         /**
          * @objective Verify Required becomes settable once every channel has a value.
          *
-         * Best-effort: the missing-values scan is server-wide, not scoped to this
-         * test's own channels, so this only completes when the server this spec
-         * runs against has no other channel lacking a value for a brand-new
-         * field. On a long-lived, channel-polluted shared server that is not
-         * guaranteed, so the test skips itself rather than asserting a false
-         * failure -- see MM-70717's follow-up doc §11.2.3.
+         * The missing-values scan is server-wide, so the test first backfills every
+         * active local channel (without setting Required) to make the table fully
+         * compliant regardless of what other specs left on the server.
          */
         test('once every channel has a value, Required can be turned on', async ({pw}) => {
             await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
@@ -281,11 +279,17 @@ test.describe(
                 displayName: `Compliant ${suffix}`,
             });
             const channel = await createComplianceChannel(adminClient, team, suffix);
+            const value = optionId(pair.templateField, 'Value A');
             await adminClient.patchPropertyValues('access_control', 'channel', channel.id, [
-                {field_id: pair.channelField.id, value: optionId(pair.templateField, 'Value A')},
+                {field_id: pair.channelField.id, value},
             ] as Parameters<typeof adminClient.patchPropertyValues>[3]);
 
             try {
+                // Default channels (town-square, off-topic) from this and earlier specs'
+                // initSetup teams stay active and have no value for a brand-new field,
+                // so backfill them without setting Required.
+                await backfillChannelAttribute(adminClient, pair.channelField, value);
+
                 const {systemConsolePage} = await pw.testBrowser.login(adminUser);
                 const {page, globalAttributes} = systemConsolePage;
                 const {attributeAppliesToChannels} = globalAttributes;
@@ -298,11 +302,7 @@ test.describe(
                     'access_control',
                     pair.channelField.id,
                 );
-                test.skip(
-                    summary.missing_channel_count > 0,
-                    'Another active channel on this server already lacks a value for this brand-new field; ' +
-                        'only testable on an otherwise fully-compliant channel table.',
-                );
+                expect(summary.missing_channel_count).toBe(0);
                 await expect(attributeAppliesToChannels.missingValuesBanner).toBeHidden();
 
                 await attributeAppliesToChannels.setRequired(true);
