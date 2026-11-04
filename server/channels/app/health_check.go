@@ -131,9 +131,8 @@ func (a *App) StartHealthCheckRun(rctx request.CTX) (*model.Job, *model.AppError
 	}
 
 	// CreateJobOnce saves atomically and creates nothing if a run is already pending, or another
-	// request or the scheduler has just created one; that run is returned instead. The lookup reads
-	// the replica, which can miss a run that was just created, or the run can finish in between:
-	// then a second CreateJobOnce either starts a run or finds that one still there.
+	// request or the scheduler has just created one; that run is returned instead. If that run
+	// finishes before it can be read, a second CreateJobOnce starts a run or finds the next one.
 	for range 2 {
 		job, appErr := a.Srv().Jobs.CreateJobOnce(rctx, model.JobTypeHealthCheck, nil)
 		if appErr != nil || job != nil {

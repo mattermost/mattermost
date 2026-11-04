@@ -8853,7 +8853,7 @@
   {
     "id": "app.health_check.start_run.conflict.app_error",
     "translation": "A health check run is already starting. Try again in a moment.",
-    "description": "Error when a system admin asked to run the health check now while another run was being started and the server could not read it back yet."
+    "description": "Error when a system admin asked to run the health check now while other runs kept starting and finishing, so the server could neither start a run nor return the active one."
   },
   {
     "id": "app.health_finding.get.app_error",

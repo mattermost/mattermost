@@ -140,20 +140,20 @@ func TestStartHealthCheckRun(t *testing.T) {
 		assert.Equal(t, 0, countJobs(t, th))
 	})
 
-	// lagReplica makes the job server's lookup of the active run miss, as a lagging read replica
-	// would, the given number of times, calling beforeMiss first each time.
-	lagReplica := func(t *testing.T, th *TestHelper, misses int, beforeMiss func()) {
+	// missLookup makes the job server's lookup of the active run miss the given number of times,
+	// as if the run had just finished, calling beforeMiss first each time.
+	missLookup := func(t *testing.T, th *TestHelper, misses int, beforeMiss func()) {
 		t.Helper()
 		jobServer := th.App.Srv().Jobs
 		orig := jobServer.Store
-		jobServer.Store = &laggingJobStore{Store: orig, misses: misses, beforeMiss: beforeMiss}
+		jobServer.Store = &missingJobStore{Store: orig, misses: misses, beforeMiss: beforeMiss}
 		t.Cleanup(func() { jobServer.Store = orig })
 	}
 
-	t.Run("returns the pending run once the replica has caught up", func(t *testing.T) {
+	t.Run("returns the pending run when a lookup misses it once", func(t *testing.T) {
 		th := setup(t)
 		pending := saveJob(t, th, &model.Job{Status: model.JobStatusPending})
-		lagReplica(t, th, 1, nil)
+		missLookup(t, th, 1, nil)
 
 		job, appErr := th.App.StartHealthCheckRun(th.Context)
 		require.Nil(t, appErr)
@@ -164,7 +164,7 @@ func TestStartHealthCheckRun(t *testing.T) {
 	t.Run("starts a run when the blocking run finished before it could be read", func(t *testing.T) {
 		th := setup(t)
 		pending := saveJob(t, th, &model.Job{Status: model.JobStatusPending})
-		lagReplica(t, th, 1, func() {
+		missLookup(t, th, 1, func() {
 			_, err := th.App.Srv().Store().Job().UpdateStatus(pending.Id, model.JobStatusSuccess)
 			require.NoError(t, err)
 		})
@@ -176,10 +176,10 @@ func TestStartHealthCheckRun(t *testing.T) {
 		assert.Equal(t, 2, countJobs(t, th))
 	})
 
-	t.Run("answers 409 when the blocking run still cannot be read", func(t *testing.T) {
+	t.Run("answers 409 when the lookup keeps missing", func(t *testing.T) {
 		th := setup(t)
 		saveJob(t, th, &model.Job{Status: model.JobStatusPending})
-		lagReplica(t, th, 2, nil)
+		missLookup(t, th, 2, nil)
 
 		_, appErr := th.App.StartHealthCheckRun(th.Context)
 		require.NotNil(t, appErr)
@@ -188,22 +188,22 @@ func TestStartHealthCheckRun(t *testing.T) {
 	})
 }
 
-type laggingJobStore struct {
+type missingJobStore struct {
 	store.Store
 	misses     int
 	beforeMiss func()
 }
 
-func (s *laggingJobStore) Job() store.JobStore {
-	return &laggingJobs{JobStore: s.Store.Job(), parent: s}
+func (s *missingJobStore) Job() store.JobStore {
+	return &missingJobs{JobStore: s.Store.Job(), parent: s}
 }
 
-type laggingJobs struct {
+type missingJobs struct {
 	store.JobStore
-	parent *laggingJobStore
+	parent *missingJobStore
 }
 
-func (j *laggingJobs) GetNewestJobByStatusesAndType(statuses []string, jobType string) (*model.Job, error) {
+func (j *missingJobs) GetNewestJobByStatusesAndType(statuses []string, jobType string) (*model.Job, error) {
 	if j.parent.misses > 0 {
 		j.parent.misses--
 		if j.parent.beforeMiss != nil {

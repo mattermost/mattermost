@@ -85,8 +85,8 @@
         A `health_check` job runs the Health Dashboard check now instead of waiting for the hourly
         schedule. It needs the `HealthDashboard` feature flag and an Enterprise license; otherwise the
         server responds with 501. If a `health_check` run is already pending or in progress, no second
-        run is started and the response is that run. In the rare case that run was just created and
-        cannot be read back yet, the server responds with 409; try again.
+        run is started and the response is that run. In the rare case that runs keep starting and
+        finishing while the request is handled, the server responds with 409; try again.
       operationId: CreateJob
       requestBody:
         content:
@@ -119,7 +119,7 @@
         "403":
           $ref: "#/components/responses/Forbidden"
         "409":
-          description: The job type is `health_check`, and a run that is being started could not be read back yet. Try again.
+          description: The job type is `health_check`, and runs kept starting and finishing while the request was handled. Try again.
           content:
             application/json:
               schema:
