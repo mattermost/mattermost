@@ -3,9 +3,16 @@
 
 import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {createPortal} from 'react-dom';
-import {useDispatch} from 'react-redux';
+import {useIntl} from 'react-intl';
+import {useDispatch, useSelector} from 'react-redux';
+
+import type {EntityCard} from '@mattermost/types/posts';
+
+import {Client4} from 'mattermost-redux/client';
+import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 
 import {showEntity} from 'actions/views/rhs';
+import {isUseMilitaryTime} from 'selectors/preferences';
 
 import {entityLabel} from './labels';
 
@@ -21,6 +28,8 @@ type Props = {
     children?: React.ReactNode;
 };
 
+const timeCardCache = new Map<string, EntityCard>();
+
 function entityHref(url?: string): string | undefined {
     if (!url || /[\s\\]/.test(url) || url.includes('..')) {
         return undefined;
@@ -32,6 +41,25 @@ function entityHref(url?: string): string | undefined {
         return url;
     }
     return undefined;
+}
+
+function formatInstant(instant: number, timeZone: string | undefined, military: boolean, intl: ReturnType<typeof useIntl>) {
+    const date = new Date(instant);
+    const zone = timeZone || undefined;
+    const time = intl.formatTime(date, {
+        timeZone: zone,
+        hour: 'numeric',
+        minute: '2-digit',
+        hourCycle: military ? 'h23' : 'h12',
+        timeZoneName: 'short',
+    });
+    const day = intl.formatDate(date, {
+        timeZone: zone,
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+    });
+    return `${day}, ${time}`;
 }
 
 const HOVER_OPEN_MS = 400;
@@ -86,6 +114,9 @@ function placeCard(anchor: DOMRect, cardBox: DOMRect) {
 
 export default function EntityMention({typeId, value, url, label: labelProp, title, hasCard, postId, occurrence, children}: Props) {
     const dispatch = useDispatch();
+    const intl = useIntl();
+    const timezone = useSelector(getCurrentTimezone);
+    const military = useSelector(isUseMilitaryTime);
     const anchorRef = useRef<HTMLElement>(null);
     const cardRef = useRef<HTMLDivElement>(null);
     const openTimer = useRef<ReturnType<typeof window.setTimeout>>();
@@ -93,8 +124,10 @@ export default function EntityMention({typeId, value, url, label: labelProp, tit
     const [open, setOpen] = useState(false);
     const [placed, setPlaced] = useState(false);
     const [position, setPosition] = useState({top: 0, left: 0});
+    const [hoverCard, setHoverCard] = useState<EntityCard | null>(null);
     const safeURL = entityHref(url);
     const label = labelProp || entityLabel(typeId);
+    const cacheKey = `${typeId}\0${value}`;
 
     const clearTimers = () => {
         window.clearTimeout(openTimer.current);
@@ -116,6 +149,32 @@ export default function EntityMention({typeId, value, url, label: labelProp, tit
     useEffect(() => clearTimers, []);
 
     useEffect(() => {
+        if (!open || !hasCard) {
+            return undefined;
+        }
+        const cached = timeCardCache.get(cacheKey);
+        if (cached) {
+            setHoverCard(cached);
+            return undefined;
+        }
+        let cancel = false;
+        Client4.getEntityCard(typeId, value, postId, occurrence).then((next) => {
+            if (cancel) {
+                return;
+            }
+            timeCardCache.set(cacheKey, next);
+            setHoverCard(next);
+        }).catch(() => {
+            if (!cancel) {
+                setHoverCard(null);
+            }
+        });
+        return () => {
+            cancel = true;
+        };
+    }, [open, hasCard, cacheKey, typeId, value, postId, occurrence]);
+
+    useEffect(() => {
         if (!open) {
             return undefined;
         }
@@ -131,7 +190,7 @@ export default function EntityMention({typeId, value, url, label: labelProp, tit
             window.removeEventListener('scroll', update, true);
             window.removeEventListener('resize', update);
         };
-    }, [open]);
+    }, [open, hoverCard]);
 
     useLayoutEffect(() => {
         if (!open || !anchorRef.current || !cardRef.current) {
@@ -141,7 +200,7 @@ export default function EntityMention({typeId, value, url, label: labelProp, tit
         const next = placeCard(anchorRef.current.getBoundingClientRect(), cardRef.current.getBoundingClientRect());
         setPosition(next);
         setPlaced(true);
-    }, [open]);
+    }, [open, hoverCard]);
 
     const openSidebar = (event: React.SyntheticEvent) => {
         event.preventDefault();
@@ -150,6 +209,9 @@ export default function EntityMention({typeId, value, url, label: labelProp, tit
         setOpen(false);
         dispatch(showEntity({typeId, value, url: safeURL, label, postId, occurrence}));
     };
+
+    const localTime = hoverCard?.instant ? formatInstant(hoverCard.instant, timezone, military, intl) : '';
+    const primary = localTime || (title && title !== value ? title : value);
 
     const tip = open ? createPortal(
         <div
@@ -162,10 +224,12 @@ export default function EntityMention({typeId, value, url, label: labelProp, tit
             onClick={openSidebar}
         >
             <span style={{display: 'block', fontWeight: 600}}>{label}</span>
-            {title && title !== value ? (
-                <span style={{display: 'block'}}>{title}</span>
-            ) : (
-                <span style={{display: 'block'}}>{value}</span>
+            <span
+                style={{display: 'block'}}
+                data-testid='entity-mention-card-primary'
+            >{primary}</span>
+            {localTime && value !== localTime && (
+                <span style={{display: 'block', marginTop: 4, opacity: 0.64, fontSize: 12}}>{value}</span>
             )}
             {safeURL && (
                 <a

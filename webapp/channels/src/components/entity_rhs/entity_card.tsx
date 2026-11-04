@@ -2,12 +2,16 @@
 // See LICENSE.txt for license information.
 
 import React, {useMemo, useState} from 'react';
+import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import type {EntityCard} from '@mattermost/types/posts';
 
+import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
+
 import {BlockRenderer} from 'components/block_renderer';
 import {translateMMBlocks} from 'components/block_renderer/translation/mm_block';
+import {isUseMilitaryTime} from 'selectors/preferences';
 
 import type {GlobalState} from 'types/store';
 
@@ -133,7 +137,25 @@ export type EntityOpenTarget = {
     label?: string;
 };
 
+function formatCardInstant(instant: number, timeZone: string | undefined, military: boolean, intl: ReturnType<typeof useIntl>) {
+    const date = new Date(instant);
+    const zone = timeZone || undefined;
+    return intl.formatDate(date, {
+        timeZone: zone,
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hourCycle: military ? 'h23' : 'h12',
+        timeZoneName: 'short',
+    });
+}
+
 export default function EntityCardView({card, onOpen, reload}: {card: EntityCard; onOpen?: (target: EntityOpenTarget) => void; reload?: () => void}) {
+    const intl = useIntl();
+    const timezone = useSelector(getCurrentTimezone);
+    const military = useSelector(isUseMilitaryTime);
     const parts = useSelector((state: GlobalState) => state.plugins.components.EntityCardPart);
     const mapParts = parts.filter((part) => part.part === 'map');
     const clockParts = parts.filter((part) => part.part === 'clocks');
@@ -146,11 +168,13 @@ export default function EntityCardView({card, onOpen, reload}: {card: EntityCard
         [card.blocks],
     );
     const hasBlockBody = bodyBlocks.length > 0;
+    const localInstant = card.instant ? formatCardInstant(card.instant, timezone, military, intl) : '';
+    const heading = localInstant || card.title;
 
     return (
         <div data-testid='entity-card'>
-            <h3 style={title}>{card.title}</h3>
-            {card.title !== card.value && <p style={ident}>{card.value}</p>}
+            <h3 style={title}>{heading}</h3>
+            {(localInstant || card.title !== card.value) && <p style={ident}>{card.value}</p>}
             {(severity || card.exploited) && (
                 <div style={{display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10}}>
                     {severity && (
