@@ -396,6 +396,7 @@ func queryLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.AddMeta("page", c.Params.Page)
 	auditRec.AddMeta("logs_per_page", c.Params.LogsPerPage)
+	auditRec.Success()
 
 	if _, err := w.Write(model.ToJSON(logsJSON)); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
@@ -419,6 +420,7 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	model.AddEventParameterToAuditRec(auditRec, "page", c.Params.Page)
 	model.AddEventParameterToAuditRec(auditRec, "logs_per_page", c.Params.LogsPerPage)
+	auditRec.Success()
 
 	if _, err := w.Write([]byte(model.ArrayToJSON(lines))); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))

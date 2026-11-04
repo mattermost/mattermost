@@ -627,6 +627,42 @@ func TestQueryLogs(t *testing.T) {
 	})
 }
 
+func TestLogsAudit(t *testing.T) {
+	logFile, err := os.CreateTemp("", "logs_audit.log")
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		require.NoError(t, logFile.Close())
+		require.NoError(t, os.Remove(logFile.Name()))
+	})
+
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.ExperimentalAuditSettings.FileEnabled = new(true)
+		cfg.ExperimentalAuditSettings.FileName = new(logFile.Name())
+	})
+
+	_, _, err = th.SystemAdminClient.GetLogs(context.Background(), 0, 1)
+	require.NoError(t, err)
+	_, _, err = th.SystemAdminClient.QueryLogs(context.Background(), 0, 1, &model.LogFilter{})
+	require.NoError(t, err)
+
+	require.NoError(t, th.Server.Audit.Flush())
+	require.NoError(t, logFile.Sync())
+	data, err := os.ReadFile(logFile.Name())
+	require.NoError(t, err)
+
+	for _, event := range []string{model.AuditEventGetLogs, model.AuditEventQueryLogs} {
+		var entries []*AuditEntry
+		for line := range strings.SplitSeq(string(data), "\n") {
+			if entry := FindAuditEntry(line, event, th.SystemAdminUser.Id); entry != nil {
+				entries = append(entries, entry)
+			}
+		}
+
+		require.Len(t, entries, 1, event)
+		assert.Equal(t, model.AuditStatusSuccess, entries[0].Status, event)
+	}
+}
+
 func TestDownloadLogs(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
