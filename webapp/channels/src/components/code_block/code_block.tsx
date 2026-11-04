@@ -45,7 +45,7 @@ const CodeBlock: React.FC<Props> = ({code, language, searchedContent, channelId}
 
     let header: JSX.Element = <></>;
     let lineNumbers: JSX.Element = <></>;
-    if (SyntaxHighlighting.canHighlight(usedLanguage)) {
+    if (SyntaxHighlighting.canHighlightCode(usedLanguage, code)) {
         header = (
             <span className='post-code__language'>
                 {SyntaxHighlighting.getLanguageName(usedLanguage)}
