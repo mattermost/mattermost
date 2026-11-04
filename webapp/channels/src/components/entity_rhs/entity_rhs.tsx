@@ -59,13 +59,18 @@ export default function EntityRhs() {
     }
     const trail = entityKey === seenEntityKey ? deeper : [];
 
-    const frame: EntityFrame | undefined = trail.length > 0 ? trail[trail.length - 1] : (entity ? {
-        typeId: entity.typeId,
-        value: entity.value,
-        label: entity.label,
-        postId: entity.postId,
-        occurrence: entity.occurrence,
-    } : undefined);
+    let frame: EntityFrame | undefined;
+    if (trail.length > 0) {
+        frame = trail[trail.length - 1];
+    } else if (entity) {
+        frame = {
+            typeId: entity.typeId,
+            value: entity.value,
+            label: entity.label,
+            postId: entity.postId,
+            occurrence: entity.occurrence,
+        };
+    }
 
     const frameTypeId = frame?.typeId;
     const frameValue = frame?.value;
