@@ -35,6 +35,9 @@ export type Props = {
     findings: HealthFinding[];
     mutedFindings: HealthFinding[];
     lastEvaluatedAt: number;
+
+    // Jobs in the store by ID. job_updated WebSocket events keep the run the page follows up to date.
+    jobs: Record<string, Job>;
     actions: {
         getHealthFindings: (filter?: HealthFindingFilter) => Promise<ActionResult<HealthFindingList>>;
         muteHealthFinding: (fingerprint: string) => Promise<ActionResult>;
@@ -45,9 +48,9 @@ export type Props = {
     };
 };
 
-// How often a run's status is checked while it runs. A run is picked up within about 15 seconds
-// and then takes seconds to a minute or two, so this keeps the page responsive without much load.
-export const HEALTH_CHECK_POLL_INTERVAL = 3000;
+// The run's job_updated WebSocket events report its progress. This slow re-read is a backstop for
+// an event missed while the WebSocket was reconnecting.
+export const HEALTH_CHECK_BACKSTOP_INTERVAL = 60 * 1000;
 
 // A run in progress with no activity for this long belongs to a node that died mid-run; the server
 // closes it as failed on the next run (health_check.StaleInProgressAfter).
@@ -96,7 +99,7 @@ const unmuteErrorMessage = defineMessage({
     defaultMessage: 'The finding could not be unmuted, so it is still muted. Try again.',
 });
 
-const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, actions}: Props) => {
+const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, jobs, actions}: Props) => {
     const [loading, setLoading] = useState(true);
     const [failed, setFailed] = useState(false);
     const [now, setNow] = useState(Date.now);
@@ -106,7 +109,8 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, actions}: Pr
     const [showMuted, setShowMuted] = useState(false);
     const [muteError, setMuteError] = useState<MessageDescriptor | null>(null);
     const [starting, setStarting] = useState(false);
-    const [activeRun, setActiveRun] = useState<Job | null>(null);
+    const [runId, setRunId] = useState<string | null>(null);
+    const run = runId ? jobs[runId] : undefined;
     const [runError, setRunError] = useState<RunError | null>(null);
     const idPrefix = useId();
     const panelId = `${idPrefix}-panel`;
@@ -121,7 +125,7 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, actions}: Pr
         // Pick up a run that is already going, whoever started it, so the page shows it running.
         actions.getJobsByType('health_check', 0, 1).then(({data}) => {
             if (data?.[0] && isRunActive(data[0])) {
-                setActiveRun((current) => current ?? data[0]);
+                setRunId((current) => current ?? data[0].id);
             }
         });
     }, [actions]);
@@ -143,42 +147,24 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, actions}: Pr
         setNow(Date.now());
     }, [actions]);
 
-    // Polls the run being followed until it finishes. Unmounting stops the loop.
+    // Reports the run being followed once it has finished. The store copy is updated by its
+    // job_updated events, by startRun and by the backstop below.
     useEffect(() => {
-        if (!activeRun) {
+        if (run && !isRunActive(run)) {
+            setRunId(null);
+            finishRun(run);
+        }
+    }, [run, finishRun]);
+
+    // Re-reads the run now and then while it is followed, in case an event was missed. A failed
+    // read waits for the next event or the next re-read.
+    useEffect(() => {
+        if (!runId) {
             return undefined;
         }
-
-        let stopped = false;
-        let timer: ReturnType<typeof setTimeout>;
-
-        const poll = async () => {
-            const {data, error} = await actions.getJob(activeRun.id);
-            if (stopped) {
-                return;
-            }
-
-            // A 404 means a lagging read replica hasn't seen the new run yet.
-            if ((error && error.status_code === 404) || (data && isRunActive(data))) {
-                timer = setTimeout(poll, HEALTH_CHECK_POLL_INTERVAL);
-                return;
-            }
-            if (error || !data) {
-                setRunError({message: runReloadErrorMessage});
-            } else {
-                await finishRun(data);
-            }
-            if (!stopped) {
-                setActiveRun(null);
-            }
-        };
-        timer = setTimeout(poll, HEALTH_CHECK_POLL_INTERVAL);
-
-        return () => {
-            stopped = true;
-            clearTimeout(timer);
-        };
-    }, [activeRun, actions, finishRun]);
+        const timer = setInterval(() => actions.getJob(runId), HEALTH_CHECK_BACKSTOP_INTERVAL);
+        return () => clearInterval(timer);
+    }, [runId, actions]);
 
     const startRun = useCallback(async () => {
         setStarting(true);
@@ -188,12 +174,10 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, actions}: Pr
 
         if (error || !data) {
             setRunError({message: runStartErrorMessage});
-        } else if (isRunActive(data)) {
-            setActiveRun(data);
         } else {
-            await finishRun(data);
+            setRunId(data.id);
         }
-    }, [actions, finishRun]);
+    }, [actions]);
 
     const changeTab = useCallback((next: HealthFindingTab) => {
         setTab(next);
@@ -227,7 +211,7 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, actions}: Pr
 
     const rowState = {now, expanded, onToggle: toggle, onMute: mute, onUnmute: unmute};
 
-    const running = starting || activeRun !== null;
+    const running = starting || runId !== null;
     const runButton = (
         <button
             type='button'

@@ -18,6 +18,7 @@ function mapStateToProps(state: GlobalState) {
         findings: getFindings(state),
         mutedFindings: getMutedFindings(state),
         lastEvaluatedAt: getLastEvaluatedAt(state),
+        jobs: state.entities.jobs.jobs,
     };
 }
 
