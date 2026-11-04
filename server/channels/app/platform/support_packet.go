@@ -173,11 +173,11 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 	}
 	// recordProbe waits for a probe and returns its status and error. A probe that did not complete fails
 	// its section and gets an empty status, so readers treat it as unknown rather than failed.
-	recordProbe := func(section model.NodeSection, wait func() (probeOutcome, error)) (status, errMsg string) {
-		if wait == nil {
+	recordProbe := func(section model.NodeSection, probe func() (probeOutcome, error)) (status, errMsg string) {
+		if probe == nil {
 			return model.StatusDisabled, ""
 		}
-		outcome, probeErr := wait()
+		outcome, probeErr := probe()
 		if probeErr != nil {
 			fail(section, probeErr)
 			return "", probeErr.Error()
@@ -367,14 +367,14 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 	/* OAuth2 / OpenID Connect Providers */
 	for _, provider := range []struct {
 		status *model.OAuthProviderStatus
-		wait   func() (probeOutcome, error)
+		probe  func() (probeOutcome, error)
 	}{
 		{&d.OAuthProviders.GitLab, probes.gitLab},
 		{&d.OAuthProviders.Google, probes.google},
 		{&d.OAuthProviders.Office365, probes.office365},
 		{&d.OAuthProviders.OpenID, probes.openID},
 	} {
-		provider.status.Status, provider.status.Error = recordProbe(model.SectionOAuthProbes, provider.wait)
+		provider.status.Status, provider.status.Error = recordProbe(model.SectionOAuthProbes, provider.probe)
 	}
 
 	/* Push Notifications */
@@ -479,11 +479,11 @@ func (ps *PlatformService) startNetworkProbes(rctx request.CTX) *networkProbes {
 		if !model.SafeDereference(sso.Enable) {
 			return nil
 		}
-		wait := startProbe(ctx, func(ctx context.Context) probeOutcome {
+		probe := startProbe(ctx, func(ctx context.Context) probeOutcome {
 			return probeOutcome(probeOAuthProvider(ctx, sso))
 		})
 		return func() (probeOutcome, error) {
-			outcome, err := wait()
+			outcome, err := probe()
 			return outcome, errors.Wrap(err, name)
 		}
 	}
