@@ -14,6 +14,7 @@ import (
 	"net/http/httptest"
 	"runtime"
 	"slices"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -1166,6 +1167,49 @@ func authenticationChallengeRequest(seq int64, token string) *model.WebSocketReq
 	}
 }
 
+// dialBoundPlatformWebConn builds a connection the way an upgraded socket does:
+// the session user and token are already set, and the caller registers it.
+func dialBoundPlatformWebConn(t *testing.T, th *TestHelper, addr net.Addr, session *model.Session) *WebConn {
+	t.Helper()
+
+	ws, _, err := websocket.DefaultDialer.Dial("ws://"+addr.String()+"/ws", nil)
+	require.NoError(t, err)
+
+	wc := th.Service.NewWebConn(&WebConnConfig{
+		WebSocket:    ws,
+		Session:      *session,
+		TFunc:        i18n.IdentityTfunc(),
+		Locale:       "en",
+		Active:       true,
+		ConnectionID: model.NewId(),
+	}, th.Suite, &hookRunner{})
+	require.Equal(t, session.UserId, wc.UserId)
+	require.Equal(t, session.Token, wc.GetSessionToken())
+	return wc
+}
+
+// closeSendChannel closes the send channel once.
+func closeSendChannel(t *testing.T, wc *WebConn) {
+	t.Helper()
+	require.True(t, wc.sendClosed.CompareAndSwap(false, true))
+	close(wc.send)
+}
+
+func waitForHelloFrame(frames <-chan []byte, timeout time.Duration) bool {
+	timer := time.NewTimer(timeout)
+	defer timer.Stop()
+	for {
+		select {
+		case frame := <-frames:
+			if bytes.Contains(frame, []byte(`"event":"hello"`)) {
+				return true
+			}
+		case <-timer.C:
+			return false
+		}
+	}
+}
+
 func dialPlatformWebConn(t *testing.T, th *TestHelper, addr net.Addr) *WebConn {
 	t.Helper()
 
@@ -1278,9 +1322,17 @@ func TestServeWebSocketAuthenticationChallenge(t *testing.T) {
 		secondChallenge bool
 		invalidate      bool
 		otherUser       bool
+		alreadyBound    bool
+		// secondPayload replaces the token on the later challenge.
+		// "empty", "non-string", and "repeated" cover the shapes of that request.
+		secondPayload string
 	}{
 		{
 			name: "registers the connection for a valid session",
+		},
+		{
+			name:         "one challenge on a connection that already has a session",
+			alreadyBound: true,
 		},
 		{
 			name:            "second challenge while the session token is set",
@@ -1297,6 +1349,22 @@ func TestServeWebSocketAuthenticationChallenge(t *testing.T) {
 			invalidate:      true,
 			otherUser:       true,
 		},
+		{
+			name:            "second challenge with an empty token",
+			secondChallenge: true,
+			secondPayload:   "empty",
+		},
+		{
+			name:            "second challenge with a non-string token",
+			secondChallenge: true,
+			secondPayload:   "non-string",
+		},
+		{
+			name:            "second challenge with repeated token values",
+			secondChallenge: true,
+			otherUser:       true,
+			secondPayload:   "repeated",
+		},
 	}
 
 	for _, tc := range testCases {
@@ -1309,6 +1377,33 @@ func TestServeWebSocketAuthenticationChallenge(t *testing.T) {
 			frames := make(chan []byte, 8)
 			s := httptest.NewServer(socketFramesUntilClose(frames))
 			t.Cleanup(s.Close)
+
+			if tc.alreadyBound {
+				session := createUserSession(t, th, th.BasicUser.Id)
+				wc := dialBoundPlatformWebConn(t, th, s.Listener.Addr(), session)
+				require.NoError(t, th.Service.HubRegister(wc))
+				waitForSessionRegistered(t, th, session)
+				require.Equal(t, 1, th.Service.WebConnCountForUser(th.BasicUser.Id))
+
+				go wc.Pump()
+				t.Cleanup(func() { wc.Close() })
+				require.True(t, waitForHelloFrame(frames, 2*time.Second), "socket did not deliver a frame")
+
+				drainSocketFrames(frames)
+				other := createUserSession(t, th, th.BasicUser2.Id)
+				th.Service.WebSocketRouter.ServeWebSocket(wc, authenticationChallengeRequest(1, other.Token))
+
+				// One challenge leaves the original registration in place.
+				require.False(t, waitForHelloFrame(frames, 400*time.Millisecond), "connection was registered again")
+				require.False(t, pumpExited(wc), "websocket closed")
+				require.Equal(t, th.BasicUser.Id, wc.UserId)
+				require.Equal(t, session.Token, wc.GetSessionToken())
+				require.Equal(t, 1, th.Service.WebConnCountForUser(th.BasicUser.Id))
+				require.Zero(t, th.Service.WebConnCountForUser(th.BasicUser2.Id))
+				require.True(t, th.Service.SessionIsRegistered(*session))
+				require.False(t, th.Service.SessionIsRegistered(*other))
+				return
+			}
 
 			wc := dialPlatformWebConn(t, th, s.Listener.Addr())
 			pumpStarted := false
@@ -1349,7 +1444,17 @@ func TestServeWebSocketAuthenticationChallenge(t *testing.T) {
 			second := createUserSession(t, th, secondUserID)
 			before := th.Service.WebConnCountForUser(th.BasicUser.Id)
 
-			th.Service.WebSocketRouter.ServeWebSocket(wc, authenticationChallengeRequest(2, second.Token))
+			req := authenticationChallengeRequest(2, second.Token)
+			switch tc.secondPayload {
+			case "empty":
+				req.Data["token"] = ""
+			case "non-string":
+				req.Data["token"] = true
+			case "repeated":
+				req.Data["token"] = second.Token
+				req.Data["tokens"] = []any{second.Token, second.Token}
+			}
+			th.Service.WebSocketRouter.ServeWebSocket(wc, req)
 
 			// A later challenge closes the socket and leaves the original binding unchanged.
 			assert.Eventually(t, func() bool {
@@ -1361,6 +1466,126 @@ func TestServeWebSocketAuthenticationChallenge(t *testing.T) {
 			assert.False(t, th.Service.SessionIsRegistered(*second))
 		})
 	}
+
+	t.Run("concurrent challenges register one connection", func(t *testing.T) {
+		s := httptest.NewServer(socketFramesUntilClose(nil))
+		t.Cleanup(s.Close)
+
+		for range 10 {
+			require.Eventually(t, func() bool {
+				return th.Service.WebConnCountForUser(th.BasicUser.Id) == 0 &&
+					th.Service.WebConnCountForUser(th.BasicUser2.Id) == 0
+			}, 2*time.Second, 10*time.Millisecond)
+
+			wc := dialPlatformWebConn(t, th, s.Listener.Addr())
+			pumped := false
+			t.Cleanup(func() {
+				if !pumped {
+					go wc.Pump()
+				}
+				wc.Close()
+			})
+			sessionA := createUserSession(t, th, th.BasicUser.Id)
+			sessionB := createUserSession(t, th, th.BasicUser2.Id)
+
+			var wg sync.WaitGroup
+			wg.Add(2)
+			go func() {
+				defer wg.Done()
+				th.Service.WebSocketRouter.ServeWebSocket(wc, authenticationChallengeRequest(1, sessionA.Token))
+			}()
+			go func() {
+				defer wg.Done()
+				th.Service.WebSocketRouter.ServeWebSocket(wc, authenticationChallengeRequest(2, sessionB.Token))
+			}()
+
+			done := make(chan struct{})
+			go func() {
+				wg.Wait()
+				close(done)
+			}()
+			select {
+			case <-done:
+			case <-time.After(5 * time.Second):
+				require.FailNow(t, "authentication challenge did not return")
+			}
+
+			countA := th.Service.WebConnCountForUser(th.BasicUser.Id)
+			countB := th.Service.WebConnCountForUser(th.BasicUser2.Id)
+			require.Equal(t, 1, countA+countB)
+			require.False(t, countA > 0 && countB > 0)
+			require.NotEqual(t, th.Service.SessionIsRegistered(*sessionA), th.Service.SessionIsRegistered(*sessionB))
+
+			go wc.Pump()
+			pumped = true
+			wc.Close()
+		}
+	})
+}
+
+// TestHubRegisterWithClosedSend checks that registration returns an error
+// once the send channel is closed, and that another connection still receives events.
+func TestHubRegisterWithClosedSend(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.Suite = &sessionLookupSuite{mockSuite: &mockSuite{}, ps: th.Service}
+
+	preWarmStatusOnline(th, th.BasicUser.Id)
+
+	s := httptest.NewServer(socketFramesUntilClose(nil))
+	t.Cleanup(s.Close)
+
+	bystanderSession := createUserSession(t, th, th.BasicUser.Id)
+	bystander := dialPlatformWebConn(t, th, s.Listener.Addr())
+	th.Service.WebSocketRouter.ServeWebSocket(bystander, authenticationChallengeRequest(1, bystanderSession.Token))
+	waitForSessionRegistered(t, th, bystanderSession)
+	t.Cleanup(func() {
+		go bystander.Pump()
+		bystander.Close()
+	})
+
+	wc := dialPlatformWebConn(t, th, s.Listener.Addr())
+	t.Cleanup(func() { wc.WebSocket.Close() })
+	wc.UserId = th.BasicUser.Id
+	closeSendChannel(t, wc)
+
+	for range 2 {
+		returned := make(chan error, 1)
+		go func() {
+			returned <- th.Service.HubRegister(wc)
+		}()
+		select {
+		case err := <-returned:
+			require.Error(t, err)
+		case <-time.After(2 * time.Second):
+			require.FailNow(t, "registration did not return")
+		}
+	}
+
+	challengeConn := dialPlatformWebConn(t, th, s.Listener.Addr())
+	t.Cleanup(func() { challengeConn.WebSocket.Close() })
+	closeSendChannel(t, challengeConn)
+	challengeSession := createUserSession(t, th, th.BasicUser.Id)
+	returned := make(chan struct{})
+	go func() {
+		th.Service.WebSocketRouter.ServeWebSocket(challengeConn, authenticationChallengeRequest(1, challengeSession.Token))
+		close(returned)
+	}()
+	select {
+	case <-returned:
+	case <-time.After(2 * time.Second):
+		require.FailNow(t, "authentication challenge did not return")
+	}
+	require.False(t, th.Service.SessionIsRegistered(*challengeSession))
+	require.Equal(t, 1, th.Service.WebConnCountForUser(th.BasicUser.Id))
+
+	marker := model.NewId()
+	event := model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", th.BasicUser.Id, nil, "")
+	event.Add("post", marker)
+	hub := th.Service.GetHubForUserId(th.BasicUser.Id)
+	require.NotNil(t, hub)
+	hub.Broadcast(event)
+	require.True(t, waitForPostedMarker(bystander.send, marker, 2*time.Second))
 }
 
 // overflowSendBuffer queues messages until the connection is no longer registered.
