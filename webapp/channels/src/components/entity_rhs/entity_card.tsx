@@ -9,9 +9,11 @@ import type {EntityCard} from '@mattermost/types/posts';
 
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 
+import {isUseMilitaryTime} from 'selectors/preferences';
+
 import {BlockRenderer} from 'components/block_renderer';
 import {translateMMBlocks} from 'components/block_renderer/translation/mm_block';
-import {isUseMilitaryTime} from 'selectors/preferences';
+import ExternalLink from 'components/external_link';
 
 import type {GlobalState} from 'types/store';
 
@@ -104,12 +106,39 @@ function ValueText({value}: {value: string}) {
         return <>{value}</>;
     }
     return (
-        <a
+        <ExternalLink
             href={href}
-            target='_blank'
-            rel='noopener noreferrer'
-        >{value}</a>
+            location='entity_card'
+        >{value}</ExternalLink>
     );
+}
+
+function RelatedValue({
+    link,
+    onOpen,
+}: {
+    link: NonNullable<EntityCard['related']>[number];
+    onOpen?: (target: EntityOpenTarget) => void;
+}) {
+    if (link.type_id && link.text && onOpen) {
+        return (
+            <button
+                type='button'
+                onClick={() => onOpen({typeId: link.type_id!, value: link.text!, label: link.label})}
+                style={{background: 'none', border: 'none', padding: 0, font: 'inherit', color: 'var(--link-color)', cursor: 'pointer', textAlign: 'left'}}
+            >{link.text}</button>
+        );
+    }
+    const href = link.url ? externalHref(link.url) : '';
+    if (href) {
+        return (
+            <ExternalLink
+                href={href}
+                location='entity_card'
+            >{link.text || link.label}</ExternalLink>
+        );
+    }
+    return <span>{link.text}</span>;
 }
 
 const Summary = ({text}: {text: string}) => {
@@ -254,12 +283,11 @@ export default function EntityCardView({card, onOpen, reload}: {card: EntityCard
             )}
             {cardHref && !urlInRows && (
                 <p style={{marginTop: 16}}>
-                    <a
+                    <ExternalLink
                         href={cardHref}
-                        target='_blank'
-                        rel='noopener noreferrer'
+                        location='entity_card'
                         data-testid='entity-card-link'
-                    >{card.url}</a>
+                    >{card.url}</ExternalLink>
                 </p>
             )}
             {!hasBlockBody && card.vector && card.vector.length > 0 && (
@@ -285,19 +313,10 @@ export default function EntityCardView({card, onOpen, reload}: {card: EntityCard
                                 style={{display: 'flex', gap: 8, padding: '6px 0', borderBottom: '1px solid rgba(var(--center-channel-color-rgb), 0.04)'}}
                             >
                                 <span style={{...ident, margin: 0}}>{link.label}</span>
-                                {link.type_id && link.text && onOpen ? (
-                                    <button
-                                        type='button'
-                                        onClick={() => onOpen({typeId: link.type_id!, value: link.text!, label: link.label})}
-                                        style={{background: 'none', border: 'none', padding: 0, font: 'inherit', color: 'var(--link-color)', cursor: 'pointer', textAlign: 'left'}}
-                                    >{link.text}</button>
-                                ) : link.url && externalHref(link.url) ? (
-                                    <a
-                                        href={externalHref(link.url)}
-                                        target='_blank'
-                                        rel='noopener noreferrer'
-                                    >{link.text || link.label}</a>
-                                ) : <span>{link.text}</span>}
+                                <RelatedValue
+                                    link={link}
+                                    onOpen={onOpen}
+                                />
                             </li>
                         ))}
                     </ul>
@@ -319,20 +338,18 @@ export default function EntityCardView({card, onOpen, reload}: {card: EntityCard
                                 style={{padding: '6px 0', borderBottom: '1px solid rgba(var(--center-channel-color-rgb), 0.04)'}}
                             >
                                 {item.url ? (
-                                    <a
+                                    <ExternalLink
                                         href={item.url}
-                                        target='_blank'
-                                        rel='noopener noreferrer'
-                                    >{hostOf(item.url)}</a>
+                                        location='entity_card'
+                                    >{hostOf(item.url)}</ExternalLink>
                                 ) : <span>{item.head}</span>}
                                 {item.text && <div style={{opacity: 0.64}}>{item.text}</div>}
                             </div>
                         )) : section.url && (
-                            <a
+                            <ExternalLink
                                 href={section.url}
-                                target='_blank'
-                                rel='noopener noreferrer'
-                            >{'Open the full list'}</a>
+                                location='entity_card'
+                            >{'Open the full list'}</ExternalLink>
                         )}
                     </div>
                 </details>

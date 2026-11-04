@@ -10,8 +10,8 @@ import type {ProductIdentifier} from '@mattermost/types/products';
 import type {Team} from '@mattermost/types/teams';
 
 import ChannelInfoRhs from 'components/channel_info_rhs';
-import EntityRhs from 'components/entity_rhs/entity_rhs';
 import ChannelMembersRhs from 'components/channel_members_rhs';
+import EntityRhs from 'components/entity_rhs/entity_rhs';
 import FileUploadOverlay from 'components/file_upload_overlay';
 import {DropOverlayIdRHS} from 'components/file_upload_overlay/file_upload_overlay';
 import LoadingScreen from 'components/loading_screen';
