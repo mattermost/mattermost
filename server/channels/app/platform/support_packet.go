@@ -171,20 +171,18 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 		rErr = multierror.Append(rErr, failure)
 		sectionErrors[section] = multierror.Append(sectionErrors[section], failure)
 	}
-	// recordProbe records a probe's outcome. A probe that did not complete fails its section and keeps
-	// an empty status, so readers treat it as unknown rather than failed.
-	recordProbe := func(section model.NodeSection, wait func() (probeOutcome, error), status, errMsg *string) {
+	// recordProbe waits for a probe and returns its status and error. A probe that did not complete fails
+	// its section and gets an empty status, so readers treat it as unknown rather than failed.
+	recordProbe := func(section model.NodeSection, wait func() (probeOutcome, error)) (status, errMsg string) {
 		if wait == nil {
-			*status = model.StatusDisabled
-			return
+			return model.StatusDisabled, ""
 		}
 		outcome, probeErr := wait()
 		if probeErr != nil {
 			fail(section, probeErr)
-			*errMsg = probeErr.Error()
-			return
+			return "", probeErr.Error()
 		}
-		*status, *errMsg = outcome.Status, outcome.Error
+		return outcome.Status, outcome.Error
 	}
 
 	// Start the network probes first so that they overlap with the local collection below.
@@ -290,7 +288,7 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 	}
 
 	/* File store */
-	recordProbe(model.SectionFilestoreConn, probes.fileStore, &d.FileStore.Status, &d.FileStore.Error)
+	d.FileStore.Status, d.FileStore.Error = recordProbe(model.SectionFilestoreConn, probes.fileStore)
 	d.FileStore.Driver = ps.FileBackend().DriverName()
 	if d.FileStore.Driver == model.ImageDriverLocal {
 		dir := model.SafeDereference(ps.Config().FileSettings.Directory)
@@ -361,10 +359,10 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 		d.ElasticSearch.ServerVersion = se.GetFullVersion()
 		d.ElasticSearch.ServerPlugins = se.GetPlugins()
 	}
-	recordProbe(model.SectionSearchProbe, probes.search, &d.ElasticSearch.Status, &d.ElasticSearch.Error)
+	d.ElasticSearch.Status, d.ElasticSearch.Error = recordProbe(model.SectionSearchProbe, probes.search)
 
 	/* Email Notifications */
-	recordProbe(model.SectionSMTPProbe, probes.smtp, &d.Notifications.Email.Status, &d.Notifications.Email.Error)
+	d.Notifications.Email.Status, d.Notifications.Email.Error = recordProbe(model.SectionSMTPProbe, probes.smtp)
 
 	/* OAuth2 / OpenID Connect Providers */
 	for _, provider := range []struct {
@@ -376,11 +374,11 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 		{&d.OAuthProviders.Office365, probes.office365},
 		{&d.OAuthProviders.OpenID, probes.openID},
 	} {
-		recordProbe(model.SectionOAuthProbes, provider.wait, &provider.status.Status, &provider.status.Error)
+		provider.status.Status, provider.status.Error = recordProbe(model.SectionOAuthProbes, provider.wait)
 	}
 
 	/* Push Notifications */
-	recordProbe(model.SectionPushProbe, probes.push, &d.Notifications.Push.Status, &d.Notifications.Push.Error)
+	d.Notifications.Push.Status, d.Notifications.Push.Error = recordProbe(model.SectionPushProbe, probes.push)
 
 	return &model.NodeDiagnostics{Diagnostics: &d, Errors: sectionErrors}, rErr.ErrorOrNil()
 }
