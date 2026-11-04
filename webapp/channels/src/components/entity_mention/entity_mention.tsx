@@ -37,6 +37,7 @@ type CardCacheEntry = {
 const CARD_CACHE_TTL_MS = 5 * 60 * 1000;
 const CARD_CACHE_MAX = 200;
 const timeCardCache = new Map<string, CardCacheEntry>();
+let cardCacheGeneration = 0;
 
 function readCardCache(key: string): EntityCard | undefined {
     const entry = timeCardCache.get(key);
@@ -50,7 +51,10 @@ function readCardCache(key: string): EntityCard | undefined {
     return entry.card;
 }
 
-function writeCardCache(key: string, card: EntityCard) {
+function writeCardCache(key: string, card: EntityCard, generation: number) {
+    if (generation !== cardCacheGeneration) {
+        return;
+    }
     if (timeCardCache.size >= CARD_CACHE_MAX) {
         const oldest = timeCardCache.keys().next().value;
         if (oldest !== undefined) {
@@ -61,6 +65,7 @@ function writeCardCache(key: string, card: EntityCard) {
 }
 
 export function clearEntityCardCache() {
+    cardCacheGeneration += 1;
     timeCardCache.clear();
 }
 
@@ -196,14 +201,15 @@ export default function EntityMention({typeId, value, url, label: labelProp, tit
             return undefined;
         }
         let cancel = false;
+        const generation = cardCacheGeneration;
         Client4.getEntityCard(typeId, value, postId, occurrence).then((next) => {
-            if (cancel) {
+            if (cancel || generation !== cardCacheGeneration) {
                 return;
             }
-            writeCardCache(cacheKey, next);
+            writeCardCache(cacheKey, next, generation);
             setHoverCardState({key: cacheKey, card: next});
         }).catch(() => {
-            if (!cancel) {
+            if (!cancel && generation === cardCacheGeneration) {
                 setHoverCardState(null);
             }
         });
