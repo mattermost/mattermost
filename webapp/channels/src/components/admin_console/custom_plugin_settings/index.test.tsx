@@ -1,19 +1,37 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import nock from 'nock';
 import React from 'react';
 import type {match} from 'react-router-dom';
 
 import type {CloudState} from '@mattermost/types/cloud';
 import type {PluginSettings} from '@mattermost/types/config';
 
+import {Client4} from 'mattermost-redux/client';
 import PluginState from 'mattermost-redux/constants/plugins';
 
 import CustomPluginSettings from 'components/admin_console/custom_plugin_settings';
 
-import {screen, renderWithContext} from 'tests/react_testing_utils';
+import {screen, renderWithContext, waitFor} from 'tests/react_testing_utils';
+
+Client4.setUrl('http://localhost:8065');
 
 describe('custom plugin sections and settings', () => {
+    let pluginStatusesResponse: unknown[];
+
+    beforeAll(() => {
+        nock(Client4.getBaseRoute()).persist().get('/plugins/statuses').reply(200, () => pluginStatusesResponse);
+    });
+
+    beforeEach(() => {
+        pluginStatusesResponse = [];
+    });
+
+    afterAll(() => {
+        nock.cleanAll();
+    });
+
     const plugin = {
         id: 'testplugin',
         name: 'testplugin',
@@ -125,6 +143,15 @@ describe('custom plugin sections and settings', () => {
 
     it('keeps failed-to-start details out of the status badge', () => {
         const error = 'unable to generate plugin checksum: no such file or directory';
+        pluginStatusesResponse = [{
+            plugin_id: 'testplugin',
+            cluster_id: 'cluster1',
+            state: PluginState.PLUGIN_STATE_FAILED_TO_START,
+            error,
+            name: 'testplugin',
+            description: '',
+            version: '',
+        }];
 
         renderWithContext(
             <CustomPluginSettings
@@ -160,6 +187,41 @@ describe('custom plugin sections and settings', () => {
         expect(screen.getByTestId('admin-console-header')).toContainElement(badge);
         expect(screen.getByTestId('plugin-metadata-status-error')).toHaveTextContent(error);
         expect(document.querySelector('[class*="section-notice--type-warning"]')).toBeInTheDocument();
+    });
+
+    it('fetches plugin statuses on mount so a failed plugin shows as failed on a direct visit', async () => {
+        const error = 'unable to generate plugin checksum: no such file or directory';
+        pluginStatusesResponse = [{
+            plugin_id: 'testplugin',
+            cluster_id: 'cluster1',
+            state: PluginState.PLUGIN_STATE_FAILED_TO_START,
+            error,
+            name: 'testplugin',
+            description: '',
+            version: '',
+        }];
+
+        renderWithContext(
+            <CustomPluginSettings
+                {...baseProps}
+                patchConfig={jest.fn()}
+            />,
+            {
+                entities: {
+                    admin: {
+                        plugins: {
+                            testplugin: {...plugin, active: false},
+                        },
+                        pluginStatuses: {},
+                    },
+                },
+            },
+        );
+
+        await waitFor(() => {
+            expect(screen.getByTestId('plugin-metadata-status')).toHaveTextContent('Failed to start');
+        });
+        expect(screen.getByTestId('plugin-metadata-status-error')).toHaveTextContent(error);
     });
 
     it('renders top-level settings together with sections', () => {
