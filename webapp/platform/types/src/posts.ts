@@ -116,6 +116,7 @@ export type EntityCard = {
     vector?: Array<{metric: string; value: string; severe?: boolean}>;
     related?: Array<{label: string; text?: string; url?: string; type_id?: string}>;
     sections?: Array<{title: string; count: number; url?: string; items?: Array<{head?: string; text?: string; url?: string}>}>;
+
     /** Mattermost Blocks body. When set, preferred over summary/rows/vector/sections. */
     blocks?: unknown[];
     url?: string;

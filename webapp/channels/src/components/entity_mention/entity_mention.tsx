@@ -31,7 +31,7 @@ type Props = {
 const timeCardCache = new Map<string, EntityCard>();
 
 function entityHref(url?: string): string | undefined {
-    if (!url || /[\s\\]/.test(url) || url.includes('..')) {
+    if (!url || (/[\s\\]/).test(url) || url.includes('..')) {
         return undefined;
     }
     if (url.startsWith('https://') || url.startsWith('http://')) {

@@ -243,9 +243,11 @@ func (_m *Hooks) EntityLookup(c *plugin.Context, req *model.EntityLookupRequest)
 // EntityValidate provides a mock function with given fields: c, req
 func (_m *Hooks) EntityValidate(c *plugin.Context, req *model.EntityValidateRequest) (bool, error) {
 	ret := _m.Called(c, req)
+
 	if len(ret) == 0 {
 		panic("no return value specified for EntityValidate")
 	}
+
 	var r0 bool
 	var r1 error
 	if rf, ok := ret.Get(0).(func(*plugin.Context, *model.EntityValidateRequest) (bool, error)); ok {
@@ -254,13 +256,15 @@ func (_m *Hooks) EntityValidate(c *plugin.Context, req *model.EntityValidateRequ
 	if rf, ok := ret.Get(0).(func(*plugin.Context, *model.EntityValidateRequest) bool); ok {
 		r0 = rf(c, req)
 	} else {
-		r0 = ret.Bool(0)
+		r0 = ret.Get(0).(bool)
 	}
+
 	if rf, ok := ret.Get(1).(func(*plugin.Context, *model.EntityValidateRequest) error); ok {
 		r1 = rf(c, req)
 	} else {
 		r1 = ret.Error(1)
 	}
+
 	return r0, r1
 }
 

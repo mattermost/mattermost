@@ -8,8 +8,8 @@ import React from 'react';
 import type {PostActionIntegrationFormat} from '@mattermost/types/integration_actions';
 
 import AtMention from 'components/at_mention';
-import EntityMention from 'components/entity_mention/entity_mention';
 import CodeBlock from 'components/code_block/code_block';
+import EntityMention from 'components/entity_mention/entity_mention';
 import InlineActionButton from 'components/inline_action_button';
 import InlineEntityLink from 'components/inline_entity_link';
 import LatexBlock from 'components/latex_block';
