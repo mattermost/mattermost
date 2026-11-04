@@ -194,14 +194,14 @@ export function rolesChanged(currentRoles: string, nextRoles: string): boolean {
 export function getBotCreateRedirectUrl(
     teamName: string,
     botUserId: string,
-    token: string | undefined,
+    hasToken: boolean,
     warnings: Omit<BotCreateWarnings, 'tokenFailed'>,
 ): string {
-    const serialized = serializeBotCreateWarnings({...warnings, tokenFailed: !token});
+    const serialized = serializeBotCreateWarnings({...warnings, tokenFailed: !hasToken});
     const param = serialized ? `${BOT_CREATE_WARNINGS_PARAM}=${serialized}` : '';
 
-    if (!token) {
+    if (!hasToken) {
         return `/${teamName}/integrations/bots${param ? `?${param}` : ''}`;
     }
-    return `/${teamName}/integrations/confirm?type=bots&id=${botUserId}&token=${token}${param ? `&${param}` : ''}`;
+    return `/${teamName}/integrations/confirm?type=bots&id=${botUserId}${param ? `&${param}` : ''}`;
 }

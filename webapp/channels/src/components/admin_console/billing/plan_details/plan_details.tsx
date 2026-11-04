@@ -58,14 +58,6 @@ export const PlanDetailsTopElements = ({
             />
         );
         break;
-    case CloudProducts.STARTER:
-        productName = (
-            <FormattedMessage
-                id='admin.billing.subscription.planDetails.productName.cloudFree'
-                defaultMessage='Cloud Free'
-            />
-        );
-        break;
     case CloudProducts.ADVANCED:
         productName = (
             <FormattedMessage
@@ -117,11 +109,6 @@ export const PlanDetailsTopElements = ({
     );
 
     const getBadge = () => {
-        // no badges to show if the plan is Cloud Free
-        if (subscriptionPlan === CloudProducts.STARTER) {
-            return null;
-        }
-
         if (isFreeTrial) {
             return trialBadge;
         }

@@ -76,6 +76,16 @@ export const PreviousViewedTypes = {
     THREADS: 'threads',
 };
 
+export const MarkdownViews = {
+    RENDERED: 'rendered',
+    RAW: 'raw',
+} as const;
+
+// Holds a code block's raw Markdown while it is shown rendered, since the source isn't in the DOM then
+export const MARKDOWN_SOURCE_ATTRIBUTE = 'data-markdown-source';
+
+export type MarkdownView = typeof MarkdownViews[keyof typeof MarkdownViews];
+
 export const Preferences = {
     CATEGORY_CHANNEL_OPEN_TIME: 'channel_open_time',
     CATEGORY_DIRECT_CHANNEL_SHOW: ReduxPreferences.CATEGORY_DIRECT_CHANNEL_SHOW,
@@ -144,7 +154,6 @@ export const Preferences = {
     SELECTED_AGENT: 'selected_agent',
     ONE_CLICK_REACTIONS_ENABLED: 'one_click_reactions_enabled',
     ONE_CLICK_REACTIONS_ENABLED_DEFAULT: 'true',
-    CLOUD_TRIAL_END_BANNER: 'cloud_trial_end_banner',
     THREE_DAYS_LEFT_TRIAL_MODAL: 'three_days_left_trial_modal',
 
     // For one off things that have a special, attention-grabbing UI until you interact with them
@@ -411,6 +420,7 @@ export const ModalIdentifiers = {
     NEW_CHANNEL_MODAL: 'new_channel_modal',
     DND_CUSTOM_TIME_PICKER: 'dnd_custom_time_picker',
     POST_REMINDER_CUSTOM_TIME_PICKER: 'post_reminder_custom_time_picker',
+    POST_ATTRIBUTES: 'post_attributes',
     CUSTOM_STATUS: 'custom_status',
     COMMERCIAL_SUPPORT: 'commercial_support',
     NO_INTERNET_CONNECTION: 'no_internet_connection',
@@ -438,8 +448,6 @@ export const ModalIdentifiers = {
     FEATURE_RESTRICTED_MODAL: 'feature_restricted_modal',
     FORWARD_POST_MODAL: 'forward_post_modal',
     JOIN_PUBLIC_CHANNEL_MODAL: 'join_public_channel_modal',
-    CLOUD_INVOICE_PREVIEW: 'cloud_invoice_preview',
-    BILLING_HISTORY: 'billing_history',
     RESTORE_POST_MODAL: 'restore_post',
     INFO_TOAST: 'info_toast',
     MARK_ALL_THREADS_AS_READ: 'mark_all_threads_as_read_modal',
@@ -584,6 +592,13 @@ export const CloudProductToSku = {
     [CloudProducts.ENTERPRISE]: LicenseSkus.Enterprise,
 };
 
+// Mirrors the --z-index-* variables in sass/base/_css_variables.scss, for
+// components that take a numeric zIndex prop such as Compass Combobox.
+export const ZIndex = {
+    MENU: 1100,
+    POPOVER: 1200,
+} as const;
+
 export const A11yClassNames = {
     REGION: 'a11y__region',
     SECTION: 'a11y__section',
@@ -697,7 +712,6 @@ export const Threads = {
 };
 
 export const CloudBanners = {
-    HIDE: 'hide',
     TRIAL: 'trial',
     UPGRADE_FROM_TRIAL: 'upgrade_from_trial',
     THREE_DAYS_LEFT_TRIAL_MODAL_DISMISSED: 'dismiss_3_days_left_trial_modal',
@@ -2100,7 +2114,6 @@ export const ConsolePages = {
     WEB_SERVER: '/admin_console/environment/web_server',
     PUSH_NOTIFICATION_CENTER: '/admin_console/environment/push_notification_server',
     SMTP: '/admin_console/environment/smtp',
-    BILLING_HISTORY: '/admin_console/billing/billing_history',
 };
 
 export const WindowSizes = {
