@@ -81,6 +81,17 @@ describe('AttributeDetails', () => {
         }),
     );
 
+    it('renders Definition and Applies to as Compass AdminPanels', () => {
+        const {container} = renderComponent();
+
+        expect(container.querySelector('#attribute_definition.AdminPanel')).toBeInTheDocument();
+        expect(container.querySelector('#attribute_applies_to.AdminPanel')).toBeInTheDocument();
+        expect(screen.getByRole('heading', {name: 'Definition'})).toBeInTheDocument();
+        expect(screen.getByText('Display name, type, and options.')).toBeInTheDocument();
+        expect(screen.getByRole('heading', {name: 'Applies to'})).toBeInTheDocument();
+        expect(screen.getByText('Resources this attribute applies to, and who can set the value on each.')).toBeInTheDocument();
+    });
+
     it('renders the empty auto-slug caption as a dash, not the _copy sentinel', () => {
         renderComponent();
         expect(screen.getByTestId('attributeUniqueNameCaption')).toHaveTextContent('Unique name:');
