@@ -168,8 +168,8 @@ describe('GlobalAttributesTable', () => {
             resolveUser = resolve;
         });
 
-        getPropertyFields.mockImplementation((_group, objectType, _targetType, _targetId, opts) => {
-            if (opts?.cursorId) {
+        getPropertyFields.mockImplementation((_group, objectType, query) => {
+            if (query?.cursorId) {
                 return Promise.resolve([]);
             }
             if (objectType === 'template') {
@@ -208,8 +208,8 @@ describe('GlobalAttributesTable', () => {
             resolveUser = resolve;
         });
 
-        getPropertyFields.mockImplementation((_group, objectType, _targetType, _targetId, opts) => {
-            if (opts?.cursorId) {
+        getPropertyFields.mockImplementation((_group, objectType, query) => {
+            if (query?.cursorId) {
                 return Promise.resolve([]);
             }
             if (objectType === 'template') {
@@ -227,9 +227,7 @@ describe('GlobalAttributesTable', () => {
             expect(getPropertyFields).toHaveBeenCalledWith(
                 'access_control',
                 'template',
-                'system',
-                undefined,
-                expect.anything(),
+                expect.objectContaining({targetType: 'system'}),
             );
         });
         expect(screen.getByTestId('loading-screen')).toBeInTheDocument();
@@ -255,12 +253,9 @@ describe('GlobalAttributesTable', () => {
             expect(getPropertyFields).toHaveBeenCalled();
         });
 
-        expect(getPropertyFields.mock.calls[0].slice(0, 4)).toEqual([
-            'access_control',
-            'template',
-            'system',
-            undefined,
-        ]);
+        expect(getPropertyFields.mock.calls[0][0]).toEqual('access_control');
+        expect(getPropertyFields.mock.calls[0][1]).toEqual('template');
+        expect(getPropertyFields.mock.calls[0][2]).toMatchObject({targetType: 'system'});
     });
 
     it('renders one row per returned field, including fields under a real group UUID', async () => {
@@ -320,8 +315,8 @@ describe('GlobalAttributesTable', () => {
         // component fetches the template scope first and the resource scopes after
         // it, each paging until it sees an empty page.
         function mockScopedFields(scopes: {template?: PropertyField[]; user?: PropertyField[]; channel?: PropertyField[]; post?: PropertyField[]}) {
-            getPropertyFields.mockImplementation((_group, objectType, _targetType, _targetId, opts) => {
-                if (opts?.cursorId) {
+            getPropertyFields.mockImplementation((_group, objectType, query) => {
+                if (query?.cursorId) {
                     return Promise.resolve([]);
                 }
                 return Promise.resolve(scopes[objectType as keyof typeof scopes] ?? []);
@@ -385,8 +380,8 @@ describe('GlobalAttributesTable', () => {
             const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
             const cachedChannelField = makeField({id: 'c1', name: 'cached_channel_field', object_type: 'channel'});
-            getPropertyFields.mockImplementation((_group, objectType, _targetType, _targetId, opts) => {
-                if (opts?.cursorId) {
+            getPropertyFields.mockImplementation((_group, objectType, query) => {
+                if (query?.cursorId) {
                     return Promise.resolve([]);
                 }
                 if (objectType === 'channel') {
@@ -509,8 +504,8 @@ describe('GlobalAttributesTable', () => {
 
     it('renders Applies-to chips for the resources a field is linked to', async () => {
         const template = makeField({id: 'template-1', name: 'department'});
-        getPropertyFields.mockImplementation((_group, objectType, _targetType, _targetId, opts) => {
-            if (opts?.cursorId) {
+        getPropertyFields.mockImplementation((_group, objectType, query) => {
+            if (query?.cursorId) {
                 return Promise.resolve([]);
             }
             if (objectType === 'template') {
@@ -549,8 +544,8 @@ describe('GlobalAttributesTable', () => {
     // the PostAttributes gate alone, not to every scope being off.
     it('skips the post scope entirely when the PostAttributes flag is off', async () => {
         const template = makeField({id: 'template-1', name: 'department'});
-        getPropertyFields.mockImplementation((_group, objectType, _targetType, _targetId, opts) => {
-            if (opts?.cursorId) {
+        getPropertyFields.mockImplementation((_group, objectType, query) => {
+            if (query?.cursorId) {
                 return Promise.resolve([]);
             }
             if (objectType === 'template') {
@@ -588,8 +583,8 @@ describe('GlobalAttributesTable', () => {
             object_type: 'user',
             linked_field_id: template.id,
         });
-        getPropertyFields.mockImplementation((_group, objectType, _targetType, _targetId, opts) => {
-            if (opts?.cursorId) {
+        getPropertyFields.mockImplementation((_group, objectType, query) => {
+            if (query?.cursorId) {
                 return Promise.resolve([]);
             }
             if (objectType === 'template') {
@@ -638,8 +633,8 @@ describe('GlobalAttributesTable', () => {
             object_type: 'channel',
             linked_field_id: template.id,
         });
-        getPropertyFields.mockImplementation((_group, objectType, _targetType, _targetId, opts) => {
-            if (opts?.cursorId) {
+        getPropertyFields.mockImplementation((_group, objectType, query) => {
+            if (query?.cursorId) {
                 return Promise.resolve([]);
             }
             if (objectType === 'template') {
@@ -1054,8 +1049,8 @@ describe('GlobalAttributesTable', () => {
         describe('owned attributes', () => {
             const mockTemplateWithUserField = (userFieldAttrs?: PropertyField['attrs']) => {
                 const template = makeField({id: 'template-1', name: 'department'});
-                getPropertyFields.mockImplementation((_group, objectType, _targetType, _targetId, opts) => {
-                    if (opts?.cursorId) {
+                getPropertyFields.mockImplementation((_group, objectType, query) => {
+                    if (query?.cursorId) {
                         return Promise.resolve([]);
                     }
                     if (objectType === 'template') {
@@ -1096,8 +1091,8 @@ describe('GlobalAttributesTable', () => {
             });
 
             it('names the owners of a standalone user attribute', async () => {
-                getPropertyFields.mockImplementation((_group, objectType, _targetType, _targetId, opts) => {
-                    if (opts?.cursorId || objectType !== 'user') {
+                getPropertyFields.mockImplementation((_group, objectType, query) => {
+                    if (query?.cursorId || objectType !== 'user') {
                         return Promise.resolve([]);
                     }
                     return Promise.resolve([makeField({
@@ -1116,8 +1111,8 @@ describe('GlobalAttributesTable', () => {
             });
 
             it('shows the owner alongside an LDAP/SAML link on a standalone user attribute, without scopes', async () => {
-                getPropertyFields.mockImplementation((_group, objectType, _targetType, _targetId, opts) => {
-                    if (opts?.cursorId || objectType !== 'user') {
+                getPropertyFields.mockImplementation((_group, objectType, query) => {
+                    if (query?.cursorId || objectType !== 'user') {
                         return Promise.resolve([]);
                     }
                     return Promise.resolve([makeField({
@@ -1418,8 +1413,8 @@ describe('GlobalAttributesTable', () => {
 
             const channelField = makeField({id: 'c1', name: 'channel_field', object_type: 'channel', attrs: {display_name: 'Channel Field'}});
 
-            getPropertyFields.mockImplementation((_group, objectType, _targetType, _targetId, opts) => {
-                if (opts?.cursorId) {
+            getPropertyFields.mockImplementation((_group, objectType, query) => {
+                if (query?.cursorId) {
                     return Promise.resolve([]);
                 }
                 return Promise.resolve(objectType === 'channel' ? [channelField] : []);
@@ -1686,8 +1681,8 @@ describe('GlobalAttributesTable', () => {
 
             function mockOwnedTemplate(owners: PropertyFieldOwner[]) {
                 const template = makeField({id: 'template-1', name: 'department'});
-                getPropertyFields.mockImplementation((_group, objectType, _targetType, _targetId, opts) => {
-                    if (opts?.cursorId) {
+                getPropertyFields.mockImplementation((_group, objectType, query) => {
+                    if (query?.cursorId) {
                         return Promise.resolve([]);
                     }
                     if (objectType === 'template') {
@@ -1746,8 +1741,8 @@ describe('GlobalAttributesTable', () => {
             });
 
             it('disables Delete on a standalone user attribute owned by a service', async () => {
-                getPropertyFields.mockImplementation((_group, objectType, _targetType, _targetId, opts) => {
-                    if (opts?.cursorId || objectType !== 'user') {
+                getPropertyFields.mockImplementation((_group, objectType, query) => {
+                    if (query?.cursorId || objectType !== 'user') {
                         return Promise.resolve([]);
                     }
                     return Promise.resolve([makeField({id: 'user-1', name: 'standalone', object_type: 'user', attrs: {owners: [owner('svc-sync', 'service')]}})]);
@@ -1794,8 +1789,8 @@ describe('GlobalAttributesTable', () => {
             });
 
             it('keeps Delete disabled on a template row while the user fields have not loaded', async () => {
-                getPropertyFields.mockImplementation((_group, objectType, _targetType, _targetId, opts) => {
-                    if (opts?.cursorId) {
+                getPropertyFields.mockImplementation((_group, objectType, query) => {
+                    if (query?.cursorId) {
                         return Promise.resolve([]);
                     }
                     if (objectType === 'template') {
@@ -1959,8 +1954,8 @@ describe('GlobalAttributesTable', () => {
         // fetched first and the resource scopes after it, each paging until it sees
         // an empty page.
         function mockTemplatesAndUserFields(templates: PropertyField[], userFields: PropertyField[]) {
-            getPropertyFields.mockImplementation((_group, objectType, _targetType, _targetId, opts) => {
-                if (opts?.cursorId) {
+            getPropertyFields.mockImplementation((_group, objectType, query) => {
+                if (query?.cursorId) {
                     return Promise.resolve([]);
                 }
                 if (objectType === 'template') {
@@ -2149,8 +2144,8 @@ describe('GlobalAttributesTable', () => {
             const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
             const cachedClearanceField = makeClearanceUserField({linked_field_id: classificationTemplate.id});
-            getPropertyFields.mockImplementation((_group, objectType, _targetType, _targetId, opts) => {
-                if (opts?.cursorId) {
+            getPropertyFields.mockImplementation((_group, objectType, query) => {
+                if (query?.cursorId) {
                     return Promise.resolve([]);
                 }
                 if (objectType === 'template') {
@@ -2197,8 +2192,8 @@ describe('GlobalAttributesTable', () => {
             });
 
             const cachedClearanceField = makeClearanceUserField({linked_field_id: classificationTemplate.id});
-            getPropertyFields.mockImplementation((_group, objectType, _targetType, _targetId, opts) => {
-                if (opts?.cursorId) {
+            getPropertyFields.mockImplementation((_group, objectType, query) => {
+                if (query?.cursorId) {
                     return Promise.resolve([]);
                 }
                 if (objectType === 'template') {
@@ -2287,8 +2282,8 @@ describe('GlobalAttributesTable', () => {
                 attrs: {display_name: 'User Clearance'},
             });
 
-            getPropertyFields.mockImplementation((_group, objectType, _targetType, _targetId, opts) => {
-                if (opts?.cursorId) {
+            getPropertyFields.mockImplementation((_group, objectType, query) => {
+                if (query?.cursorId) {
                     return Promise.resolve([]);
                 }
                 if (objectType === 'user') {

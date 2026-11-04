@@ -11,6 +11,9 @@ import type {LogObjectWithAdditionalInfo} from './types';
 export const LEVEL_GROUPS = ['error', 'warn', 'info', 'debug'] as const;
 export type LevelGroup = typeof LEVEL_GROUPS[number];
 
+// The server rejects longer terms (model.LogFilterSearchMaxLength)
+export const SEARCH_MAX_LENGTH = 256;
+
 const GROUP_LEVELS: Record<LevelGroup, readonly LogLevelEnum[]> = {
     error: [LogLevelEnum.PANIC, LogLevelEnum.FATAL, LogLevelEnum.CRITICAL, LogLevelEnum.ERROR],
     warn: [LogLevelEnum.WARN],
