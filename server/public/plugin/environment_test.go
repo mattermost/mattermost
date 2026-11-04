@@ -141,3 +141,18 @@ func TestHasPluginImplementing(t *testing.T) {
 		require.False(t, env.HasPluginImplementing(MessageHasBeenPostedID))
 	})
 }
+
+func TestReattachMinServerVersion(t *testing.T) {
+	env := Environment{logger: mlog.CreateConsoleTestLogger(t)}
+	manifest := &model.Manifest{
+		Id:               "reattach-plugin",
+		MinServerVersion: "999.0.0",
+		Server:           &model.ManifestServer{},
+	}
+
+	err := env.Reattach(manifest, &model.PluginReattachConfig{})
+
+	require.Error(t, err)
+	require.False(t, env.IsActive(manifest.Id))
+	require.Equal(t, model.PluginStateFailedToStart, env.GetPluginState(manifest.Id))
+}

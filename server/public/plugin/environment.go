@@ -435,7 +435,7 @@ func (env *Environment) Reattach(manifest *model.Manifest, pluginReattachConfig 
 
 	err := checkMinServerVersion(pluginInfo)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	if !pluginInfo.Manifest.HasServer() {
