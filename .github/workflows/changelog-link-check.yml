@@ -1,0 +1,34 @@
+name: Changelog Link Check
+
+# Fails a PR that adds a docs.mattermost.com link to a changelog entry when the page
+# is not served, or the #anchor is not a heading or id on it. Pages are rebuilt from
+# the docs sources in the PR's merge commit (the docs/main and docs/develop paths, slugs
+# and the legacy redirects), so a page added in the same PR counts. Only lines the PR
+# adds are checked.
+
+on:
+  pull_request:
+    paths:
+      - "docs/main/product-overview/mattermost-v*-changelog.mdx"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: changelog-link-check-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  check-links:
+    name: Check docs links
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+          # The merge commit and its first parent, the base branch the PR merges into.
+          fetch-depth: 2
+
+      - name: Check links added to the changelog
+        run: python3 .github/scripts/changelog_release.py check-links HEAD^1

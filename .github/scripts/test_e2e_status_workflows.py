@@ -29,7 +29,8 @@ TRUSTED_READER = './.e2e-trusted/.github/actions/e2e-status-lanes'
 READER_FORBIDDEN_REFS = {'${{ inputs.commit_sha }}', '${{ needs.resolve-pr.outputs.head_sha }}',
                         '${{ github.event.pull_request.head.sha }}', '${{ github.event.repository.default_branch }}'}
 LOCK = {'group': 'e2e-status-publish-${{ inputs.commit_sha }}', 'cancel-in-progress': False, 'queue': 'max'}
-PERMISSIONS = {'contents': 'read', 'statuses': 'write', 'pull-requests': 'read'}
+# actions: read lets triage read the run's failed jobs before it asks for an automatic re-run.
+PERMISSIONS = {'contents': 'read', 'statuses': 'write', 'pull-requests': 'read', 'actions': 'read'}
 
 
 def workflow(name):
@@ -191,8 +192,10 @@ class StatusPublicationContract(unittest.TestCase):
         self.assertEqual(result['with']['use-staging'], triage['with']['use-staging'])
         self.assertIn('inputs.execution_success', triage['with']['mode'])
         self.assertIn("steps.result.outputs.reports-complete == 'true'", triage['with']['mode'])
+        # A re-run that kept the first attempt's identity never enforces (see the comment on mode).
+        self.assertIn('fromJSON(inputs.composite_identity_json).gh_run_attempt == github.run_attempt', triage['with']['mode'])
         self.assertTrue(triage['with']['mode'].endswith("|| 'report-only' }}"))
-        self.assertIn("vars.E2E_TRIAGE_MODE || 'report-only'", triage['with']['mode'])
+        self.assertIn("vars.E2E_TRIAGE_MODE || 'enforce'", triage['with']['mode'])
         self.assertIn("steps.result.outputs.state != 'success'", triage['if'])
         self.assertEqual(triage['with']['triage-lanes'], '${{ steps.lanes.outputs.triage-lanes }}')
         self.assertEqual(triage['with']['triage-status-context'], '${{ steps.lanes.outputs.triage-context }}')
