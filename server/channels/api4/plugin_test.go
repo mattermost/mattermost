@@ -4,8 +4,10 @@
 package api4
 
 import (
+	"archive/tar"
 	"bytes"
 	"cmp"
+	"compress/gzip"
 	"context"
 	"encoding/base64"
 	"encoding/json"
@@ -285,6 +287,129 @@ func TestPlugin(t *testing.T) {
 		resp, err = client.RemovePlugin(context.Background(), "bad.id")
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
+	})
+}
+
+func makeWebappOnlyPluginBundle(t *testing.T, id string, preAuth bool) []byte {
+	t.Helper()
+
+	manifest := &model.Manifest{
+		Id:          id,
+		Name:        id,
+		Version:     "1.0.0",
+		Description: "description of " + id,
+		HomepageURL: "https://example.com/" + id,
+		Props:       map[string]any{"secret": "value"},
+		Webapp: &model.ManifestWebapp{
+			BundlePath: "webapp/main.js",
+			PreAuth:    preAuth,
+		},
+	}
+	manifestJSON, err := json.Marshal(manifest)
+	require.NoError(t, err)
+
+	files := map[string]string{
+		"plugin.json":    string(manifestJSON),
+		"webapp/main.js": "window.registerPlugin('" + id + "', {});",
+	}
+
+	var buf bytes.Buffer
+	gzWriter := gzip.NewWriter(&buf)
+	tarWriter := tar.NewWriter(gzWriter)
+	for _, name := range []string{"plugin.json", "webapp/main.js"} {
+		require.NoError(t, tarWriter.WriteHeader(&tar.Header{Name: id + "/" + name, Mode: 0600, Size: int64(len(files[name]))}))
+		_, err = tarWriter.Write([]byte(files[name]))
+		require.NoError(t, err)
+	}
+	require.NoError(t, tarWriter.Close())
+	require.NoError(t, gzWriter.Close())
+
+	return buf.Bytes()
+}
+
+func TestGetWebappPluginsUnauthenticated(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = true
+		*cfg.PluginSettings.EnableUploads = true
+		*cfg.PluginSettings.RequirePluginSignature = false
+	})
+
+	const preAuthID = "com.mattermost.test-preauth"
+	const postAuthID = "com.mattermost.test-postauth"
+
+	for id, preAuth := range map[string]bool{preAuthID: true, postAuthID: false} {
+		manifest, _, err := th.SystemAdminClient.UploadPluginForced(context.Background(), bytes.NewReader(makeWebappOnlyPluginBundle(t, id, preAuth)))
+		require.NoError(t, err)
+		require.Equal(t, id, manifest.Id)
+		t.Cleanup(func() {
+			_, removeErr := th.SystemAdminClient.RemovePlugin(context.Background(), id)
+			require.NoError(t, removeErr)
+		})
+
+		_, err = th.SystemAdminClient.EnablePlugin(context.Background(), id)
+		require.NoError(t, err)
+	}
+
+	ids := func(manifests []*model.Manifest) []string {
+		result := []string{}
+		for _, m := range manifests {
+			if m.Id == preAuthID || m.Id == postAuthID {
+				result = append(result, m.Id)
+			}
+		}
+		slices.Sort(result)
+		return result
+	}
+
+	setRestricted := func(restricted bool) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.RestrictUnauthenticatedWebappPlugins = restricted
+		})
+	}
+
+	t.Run("unauthenticated with restriction enabled only gets trimmed pre-auth manifests", func(t *testing.T) {
+		setRestricted(true)
+
+		manifests, _, err := th.CreateClient().GetWebappPlugins(context.Background())
+		require.NoError(t, err)
+		require.Len(t, manifests, 1)
+
+		m := manifests[0]
+		assert.Equal(t, preAuthID, m.Id)
+		assert.Equal(t, preAuthID, m.Name)
+		assert.Equal(t, "1.0.0", m.Version)
+		require.NotNil(t, m.Webapp)
+		assert.True(t, m.Webapp.PreAuth)
+		assert.True(t, strings.HasPrefix(m.Webapp.BundlePath, "/static/"+preAuthID+"/"))
+		assert.Empty(t, m.Description)
+		assert.Empty(t, m.HomepageURL)
+		assert.Nil(t, m.Props)
+	})
+
+	t.Run("unauthenticated with restriction disabled gets all manifests", func(t *testing.T) {
+		setRestricted(false)
+		t.Cleanup(func() { setRestricted(true) })
+
+		manifests, _, err := th.CreateClient().GetWebappPlugins(context.Background())
+		require.NoError(t, err)
+		assert.Equal(t, []string{postAuthID, preAuthID}, ids(manifests))
+	})
+
+	t.Run("authenticated with restriction enabled gets all manifests", func(t *testing.T) {
+		setRestricted(true)
+
+		manifests, _, err := th.Client.GetWebappPlugins(context.Background())
+		require.NoError(t, err)
+		assert.Equal(t, []string{postAuthID, preAuthID}, ids(manifests))
+
+		for _, m := range manifests {
+			if m.Id == postAuthID {
+				assert.Equal(t, map[string]any{"secret": "value"}, m.Props)
+			}
+		}
 	})
 }
 

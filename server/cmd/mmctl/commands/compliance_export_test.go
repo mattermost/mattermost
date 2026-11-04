@@ -6,12 +6,16 @@ package commands
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 	"github.com/spf13/cobra"
+	"github.com/stretchr/testify/assert"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -303,6 +307,128 @@ func (s *MmctlUnitTestSuite) TestComplianceExportDownloadCmdF() {
 		_, err = os.Stat(mockJob.Id + "BAR.zip")
 		s.Error(err)
 		s.True(os.IsNotExist(err))
+	})
+
+	s.Run("uses last path element of server filename", func() {
+		const jobID = "exportjob1"
+		const body = "compliance export bytes"
+		for _, tc := range serverFilenameCases() {
+			s.Run(tc.name, func() {
+				printer.Clean()
+
+				root := s.T().TempDir()
+				workDir := filepath.Join(root, "work")
+				s.Require().NoError(os.Mkdir(workDir, 0o700))
+				s.T().Chdir(workDir)
+
+				absPath := filepath.Join(root, "outside", tc.baseName)
+				s.Require().NoError(os.Mkdir(filepath.Dir(absPath), 0o700))
+
+				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					assert.Equal(s.T(), "/api/v4/jobs/"+jobID+"/download", r.URL.Path)
+					w.Header().Set("Content-Disposition", tc.disposition(absPath))
+					_, _ = w.Write([]byte(body))
+				}))
+				s.T().Cleanup(server.Close)
+
+				cmd := makeCmd()
+				cmd.Flags().Int("num-retries", 0, "")
+				err := complianceExportDownloadCmdF(model.NewAPIv4Client(server.URL), cmd, []string{jobID})
+				assertDownloadUsedBaseName(s.T(), workDir, tc.baseName, unexpectedDownloadPaths(workDir, absPath, tc.baseName), []byte(body), err)
+			})
+		}
+	})
+
+	s.Run("uses job file name when server filename is empty", func() {
+		const jobID = "exportjob1"
+		const body = "compliance export bytes"
+		const localName = jobID + ".zip"
+		for _, tc := range emptyServerFilenameCases() {
+			s.Run(tc.name, func() {
+				printer.Clean()
+
+				root := s.T().TempDir()
+				workDir := filepath.Join(root, "work")
+				s.Require().NoError(os.Mkdir(workDir, 0o700))
+				s.T().Chdir(workDir)
+
+				absPath := filepath.Join(root, "outside", "packet.zip")
+				s.Require().NoError(os.Mkdir(filepath.Dir(absPath), 0o700))
+
+				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					assert.Equal(s.T(), "/api/v4/jobs/"+jobID+"/download", r.URL.Path)
+					w.Header().Set("Content-Disposition", tc.disposition)
+					_, _ = w.Write([]byte(body))
+				}))
+				s.T().Cleanup(server.Close)
+
+				cmd := makeCmd()
+				cmd.Flags().Int("num-retries", 0, "")
+				err := complianceExportDownloadCmdF(model.NewAPIv4Client(server.URL), cmd, []string{jobID})
+				assertDownloadUsedBaseName(s.T(), workDir, localName, unexpectedDownloadPaths(workDir, absPath, localName), []byte(body), err)
+			})
+		}
+	})
+
+	s.Run("uses job file name when the response has no filename header", func() {
+		const jobID = "exportjob1"
+		const body = "compliance export bytes"
+		const localName = jobID + ".zip"
+
+		printer.Clean()
+
+		root := s.T().TempDir()
+		workDir := filepath.Join(root, "work")
+		s.Require().NoError(os.Mkdir(workDir, 0o700))
+		s.T().Chdir(workDir)
+
+		absPath := filepath.Join(root, "outside", "packet.zip")
+		s.Require().NoError(os.Mkdir(filepath.Dir(absPath), 0o700))
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(s.T(), "/api/v4/jobs/"+jobID+"/download", r.URL.Path)
+			_, _ = w.Write([]byte(body))
+		}))
+		s.T().Cleanup(server.Close)
+
+		cmd := makeCmd()
+		cmd.Flags().Int("num-retries", 0, "")
+		err := complianceExportDownloadCmdF(model.NewAPIv4Client(server.URL), cmd, []string{jobID})
+		assertDownloadUsedBaseName(s.T(), workDir, localName, unexpectedDownloadPaths(workDir, absPath, localName), []byte(body), err)
+	})
+
+	s.Run("keeps downloaded file when suggested name exists", func() {
+		const jobID = "exportjob1"
+		const body = "compliance export bytes"
+		const localName = jobID + ".zip"
+
+		printer.Clean()
+
+		root := s.T().TempDir()
+		workDir := filepath.Join(root, "work")
+		s.Require().NoError(os.Mkdir(workDir, 0o700))
+		s.T().Chdir(workDir)
+
+		absPath := filepath.Join(root, "outside", "packet.zip")
+		s.Require().NoError(os.Mkdir(filepath.Dir(absPath), 0o700))
+		s.Require().NoError(os.WriteFile(filepath.Join(workDir, "packet.zip"), []byte("keep me"), 0o600))
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(s.T(), "/api/v4/jobs/"+jobID+"/download", r.URL.Path)
+			w.Header().Set("Content-Disposition", `attachment; filename="../packet.zip"`)
+			_, _ = w.Write([]byte(body))
+		}))
+		s.T().Cleanup(server.Close)
+
+		cmd := makeCmd()
+		cmd.Flags().Int("num-retries", 0, "")
+		err := complianceExportDownloadCmdF(model.NewAPIv4Client(server.URL), cmd, []string{jobID})
+		s.Require().NoError(err)
+		assertDownloadUsedBaseName(s.T(), workDir, localName, unexpectedDownloadPaths(workDir, absPath, localName), []byte(body), err)
+
+		got, readErr := os.ReadFile(filepath.Join(workDir, "packet.zip"))
+		s.Require().NoError(readErr)
+		s.Equal([]byte("keep me"), got)
 	})
 }
 

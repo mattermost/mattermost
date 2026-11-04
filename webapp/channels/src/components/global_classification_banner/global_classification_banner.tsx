@@ -11,6 +11,7 @@ import {fetchPropertyFields, fetchSystemPropertyValues} from 'mattermost-redux/a
 import {ACCESS_CONTROL_PROPERTY_GROUP, DISPLAY_BANNER_BOTTOM, DISPLAY_BANNER_TOP} from 'mattermost-redux/constants/properties';
 import {getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 import {getPropertyValueForTargetField} from 'mattermost-redux/selectors/entities/properties';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {getContrastingSimpleColor} from 'mattermost-redux/utils/theme_utils';
 
 import {
@@ -45,6 +46,7 @@ function selectLinkedSystemField(state: GlobalState): PropertyField | undefined 
 export default function GlobalClassificationBanner({position}: Props) {
     const dispatch = useDispatch();
     const featureEnabled = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'ClassificationMarkings') === 'true');
+    const currentUserId = useSelector(getCurrentUserId);
     const linkedField = useSelector(selectLinkedSystemField);
     const systemValue = useSelector((state: GlobalState) => {
         if (!linkedField) {
@@ -59,8 +61,9 @@ export default function GlobalClassificationBanner({position}: Props) {
     //
     // The effect must re-run when linkedField arrives in the store so the values
     // fetch can proceed (it depends on linkedField being present).
+    // Both endpoints require a session, so logged out pages such as the login page skip the fetch.
     useEffect(() => {
-        if (!featureEnabled) {
+        if (!featureEnabled || !currentUserId) {
             return;
         }
         if (!linkedField) {
@@ -74,7 +77,7 @@ export default function GlobalClassificationBanner({position}: Props) {
         if (linkedField && !systemValue) {
             dispatch(fetchSystemPropertyValues(ACCESS_CONTROL_PROPERTY_GROUP));
         }
-    }, [featureEnabled, linkedField, systemValue, dispatch]);
+    }, [featureEnabled, currentUserId, linkedField, systemValue, dispatch]);
 
     // Display conditions are encoded in the linked field's attrs.actions.
     const actions = (linkedField?.attrs?.actions as string[] | undefined) ?? [];
