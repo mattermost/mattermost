@@ -1,10 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {useSelector} from 'react-redux';
 
 import type {EntityCard} from '@mattermost/types/posts';
+
+import {BlockRenderer} from 'components/block_renderer';
+import {translateMMBlocks} from 'components/block_renderer/translation/mm_block';
 
 import type {GlobalState} from 'types/store';
 
@@ -138,6 +141,11 @@ export default function EntityCardView({card, onOpen, reload}: {card: EntityCard
     const severity = card.severity && severityStyle[card.severity] ? card.severity : '';
     const cardHref = card.url ? externalHref(card.url) : '';
     const urlInRows = Boolean(cardHref && card.rows?.some((row) => row.value === card.url));
+    const bodyBlocks = useMemo(
+        () => (Array.isArray(card.blocks) && card.blocks.length > 0 ? translateMMBlocks(card.blocks) : []),
+        [card.blocks],
+    );
+    const hasBlockBody = bodyBlocks.length > 0;
 
     return (
         <div data-testid='entity-card'>
@@ -164,7 +172,21 @@ export default function EntityCardView({card, onOpen, reload}: {card: EntityCard
                     )}
                 </div>
             )}
-            {card.summary && <Summary text={card.summary}/>}
+            {hasBlockBody ? (
+                <div
+                    style={{marginTop: 16}}
+                    data-testid='entity-card-blocks'
+                >
+                    <BlockRenderer
+                        blocks={bodyBlocks}
+                        postId=''
+                        onAction={async () => undefined}
+                        interactionsDisabled={true}
+                    />
+                </div>
+            ) : (
+                card.summary && <Summary text={card.summary}/>
+            )}
             {card.map && (card.map.points?.length || card.map.geojson) && (
                 mapParts.length > 0 ? mapParts.map((part) => {
                     const Part = part.component;
@@ -191,7 +213,7 @@ export default function EntityCardView({card, onOpen, reload}: {card: EntityCard
                     />
                 );
             })}
-            {card.rows && card.rows.length > 0 && (
+            {!hasBlockBody && card.rows && card.rows.length > 0 && (
                 <table style={{width: '100%', borderCollapse: 'collapse', marginTop: 16}}>
                     <tbody>
                         {card.rows.map((row) => (
@@ -216,7 +238,7 @@ export default function EntityCardView({card, onOpen, reload}: {card: EntityCard
                     >{card.url}</a>
                 </p>
             )}
-            {card.vector && card.vector.length > 0 && (
+            {!hasBlockBody && card.vector && card.vector.length > 0 && (
                 <>
                     <p style={{...labelCell, display: 'block', width: 'auto', borderTop: 'none', margin: '24px 0 8px', padding: 0}}>{'Vector, decoded'}</p>
                     <dl style={{display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: '4px 12px', margin: 0, fontSize: 13}}>
@@ -257,7 +279,7 @@ export default function EntityCardView({card, onOpen, reload}: {card: EntityCard
                     </ul>
                 </>
             )}
-            {card.sections?.map((section) => (
+            {!hasBlockBody && card.sections?.map((section) => (
                 <details
                     key={section.title}
                     style={{marginTop: 16, borderTop: rule, paddingTop: 12}}

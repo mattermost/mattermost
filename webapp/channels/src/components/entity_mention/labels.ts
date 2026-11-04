@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 const labels: Record<string, string> = {
+    'mm.time': 'Time',
     'mm.vuln': 'Vulnerability',
     'mm.ip': 'IP address',
     'mm.attack': 'ATT&CK',

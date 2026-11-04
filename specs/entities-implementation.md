@@ -522,13 +522,15 @@ or change.
 
 ## 10. Divergence from the spec
 
-The spec still says core ships `mm.vuln`, `mm.ip`, and `mm.attack`, and that
-Conflux fills a core type `mm.term` through an Aho-Corasick dictionary of
-about 100,000 terms. The branch does none of that.
+The earlier framework draft said core would ship `mm.vuln`, `mm.ip`, and
+`mm.attack`, and that Conflux would fill a core type `mm.term` through an
+Aho-Corasick dictionary of about 100,000 terms. The branch does not do that.
 
 Built instead: plugin-owned types, exact-term autolinks capped at 500 per
-plugin, a word-map scan, Postgres for the dictionary, a per-type generation,
-the posts refetch endpoint, and provider cache modes.
+plugin, a word-map scan, parse-on-read with no entity tables, the posts
+refetch endpoint, provider cache modes, optional Mattermost Blocks on the
+card body, and one core example type `mm.time` (RFC 3339 with timezone) so
+underline + card work without a plugin.
 
 Not built: stacked providers, the async re-detect queue for matcher changes,
 `post_entities_updated`, cluster

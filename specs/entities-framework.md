@@ -415,28 +415,43 @@ an array of occurrences in the request, but not implemented in v1.
 
 ### 6.6 Card schema (sketch)
 
+Cards keep a small fixed envelope for chrome that is not the body:
+
+- `title`, `value`, `severity` / `score` / `exploited`
+- `related` (sibling entities)
+- `map` and `instant` (plugin map / clocks panels)
+
+The body is preferably Mattermost Blocks (`blocks`). When `blocks` is present,
+the client renders it with `BlockRenderer` (interactions disabled) and skips
+`summary`, `rows`, `vector`, and `sections`. Core strips interactive block
+types (`button`, `static_select`) on normalize. Plugins that still return the
+older row/section shape keep working until they migrate.
+
 ```json
 {
-  "schema": 1,
-  "provider": "com.mattermost.plugin-tactical-fusion.threat",
-  "ttl_seconds": 1800,
-  "title": "Threat reports",
-  "rows": [
-    {"key": "Autonomous system", "value": "AS209605 HOSTBALTIC"},
-    {"key": "Country", "value": "LT"}
+  "type_id": "mm.time",
+  "value": "2024-06-01T15:04:05Z",
+  "title": "Timestamp",
+  "instant": 1717254245000,
+  "blocks": [
+    {"type": "text", "text": "**UTC:** 2024-06-01T15:04:05Z"},
+    {"type": "text", "text": "Local offset in the token: +00:00", "is_subtle": true}
   ],
-  "badges": [{"text": "Known exploited", "tone": "danger"}],
-  "links": [{"text": "CISA AA23-325A", "url": "https://www.cisa.gov/..."}],
-  "actions": [{"kind": "copy", "text": "Copy", "value": "141.98.9.137"}]
+  "related": [{"type_id": "…", "value": "…", "label": "…"}]
 }
 ```
 
-Link and action URLs must be absolute http or https, or relative under
-`/plugins/<provider plugin id>/`. Anything else is stripped.
+Link URLs on the envelope must be absolute http or https, or a root-relative
+path. Anything else is stripped.
 
-The webapp renders this generically. A provider with a registered webapp Hover or
-Panel component replaces the generic rendering of its own section only. A map is
-a provider's own component, not part of the generic card.
+Core ships one built-in example, `mm.time` (RFC 3339 with a required timezone),
+so underline + card can be exercised without a plugin. Domain detectors stay
+plugin-owned.
+
+The webapp renders the envelope generically. A provider with a registered
+webapp Hover or Panel component replaces the generic rendering of its own
+section only. A map / clocks panel is a registered part, not part of the
+block tree.
 
 ### 6.7 Webapp
 

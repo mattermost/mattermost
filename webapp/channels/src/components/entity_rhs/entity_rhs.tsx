@@ -30,8 +30,10 @@ function isRich(card: EntityCard) {
         card.vector?.length ||
         card.related?.length ||
         card.sections?.length ||
+        card.blocks?.length ||
         card.map?.points?.length ||
-        card.map?.geojson,
+        card.map?.geojson ||
+        card.instant,
     );
 }
 
