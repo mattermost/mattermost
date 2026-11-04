@@ -92,6 +92,35 @@ describe('components/admin_console/custom_plugin_settings/PluginEnableButton', (
         openSpy.mockRestore();
     });
 
+    it('links to the plugin logs, even for admins who cannot change the plugin', () => {
+        renderWithContext(
+            <PluginEnableButton
+                id='PluginSettings.PluginStates.com+mattermost+calls.Enable'
+                disabled={true}
+                logsPath='/admin_console/reporting/server_logs?field.plugin_id=com.mattermost.calls'
+                value={true}
+                actions={{disablePlugin: jest.fn(), enablePlugin: jest.fn(), removePlugin: jest.fn()}}
+            />,
+        );
+
+        expect(screen.getByRole('link', {name: 'View logs'})).toHaveAttribute('href', '/admin_console/reporting/server_logs?field.plugin_id=com.mattermost.calls');
+        expect(screen.getByRole('switch', {name: 'Disable plugin'})).toBeDisabled();
+        expect(screen.getByRole('button', {name: 'Plugin actions'})).toBeDisabled();
+    });
+
+    it('leaves out the logs link without access to the logs', () => {
+        renderWithContext(
+            <PluginEnableButton
+                id='PluginSettings.PluginStates.com+mattermost+calls.Enable'
+                disabled={false}
+                value={true}
+                actions={{disablePlugin: jest.fn(), enablePlugin: jest.fn(), removePlugin: jest.fn()}}
+            />,
+        );
+
+        expect(screen.queryByRole('link', {name: 'View logs'})).not.toBeInTheDocument();
+    });
+
     it('shows a loading state while enabling', async () => {
         let resolveEnable: (value: {data: true}) => void = () => {};
         const disablePlugin = jest.fn();
