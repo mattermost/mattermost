@@ -127,6 +127,18 @@ To view or update an individual user's values, see [Manage user attributes](/adm
 - **Display location**: Where the value is shown in the channel: **Header**, **Channel Info**, or **Banner**. You can select more than one location. The value is always shown in **Channel Info**.
 - **Required**: When enabled, a channel must have a value for this attribute before it can be created. Available only when the `ChannelAttributesRequired` feature flag is also enabled.
 
+### Posts
+
+From Mattermost v12.2, **Posts** is available when the `PostAttributes` feature flag is enabled. When an attribute applies to **Posts**, its values are shown as chips directly beneath the post message in the channel and in the right-hand sidebar. Up to two chips are shown per post; when more values are set, the remaining count appears as a **+N** badge. Hovering the chip row opens a card that lists every attribute on the post, including those the row had no room to display. If the server cannot retrieve a post's attribute values, the chip row shows an **Attributes unavailable** state rather than partial or stale values.
+
+Supported field types for post chips are **Text**, **Select**, **Multiselect**, **Ranked**, and **User**. Unsupported types are skipped and do not appear in the chip row or hover card.
+
+- **Who can set the value**: Controls which users can edit a post's attribute values. The options are **Member** (any channel member), **Creator** (the post author), **Admin** (channel or system admin), and **System Administrator**. The server enforces this permission on every write; the edit modal reflects it by showing read-only controls for values the current user cannot change.
+
+To edit a post's attributes, select **… \> Post attributes** from the post's actions menu. The modal lists every attribute that applies to the post and lets permitted users change or clear values. A **+ Add attribute** picker surfaces fields that apply to the post but have no value set yet.
+
+Attribute value changes made by another session arrive over WebSocket and update the chips and modal immediately, without a page reload.
+
 ## Edit an attribute
 
 Select an attribute's row, or select **More actions** \> **Edit attribute**, make your changes, and select **Save**.
