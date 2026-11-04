@@ -1005,10 +1005,11 @@ describe('components/PluginManagement', () => {
     });
 
     describe('server logs links', () => {
-        const renderWithLogs = (canViewServerLogs: boolean) => {
+        const renderWithLogs = (canReadLogs: boolean, restrictSystemAdmin = false) => {
             const props = {
                 ...defaultProps,
-                canViewServerLogs,
+                config: {...defaultProps.config, ExperimentalSettings: {RestrictSystemAdmin: restrictSystemAdmin}},
+                consoleAccess: {read: {'reporting.server_logs': canReadLogs}, write: {}},
                 pluginStatuses: {
                     ...defaultProps.pluginStatuses,
                     plugin_0: {...defaultProps.pluginStatuses.plugin_0, state: PluginState.PLUGIN_STATE_FAILED_TO_START},
@@ -1037,8 +1038,11 @@ describe('components/PluginManagement', () => {
             }
         });
 
-        test('leaves the links out for admins who cannot open the server logs', () => {
-            renderWithLogs(false);
+        test.each([
+            ['without access to the server logs', false, false],
+            ['when system admins are restricted', true, true],
+        ])('leaves the links out %s', (_, canReadLogs, restrictSystemAdmin) => {
+            renderWithLogs(canReadLogs, restrictSystemAdmin);
 
             expect(screen.queryByRole('link', {name: 'View logs'})).not.toBeInTheDocument();
         });

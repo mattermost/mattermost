@@ -15,7 +15,6 @@ import type {PluginRedux, PluginStatusRedux} from '@mattermost/types/plugins';
 import type {Role} from '@mattermost/types/roles';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {RESOURCE_KEYS} from 'mattermost-redux/constants/permissions_sysconsole';
 import PluginState from 'mattermost-redux/constants/plugins';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
@@ -50,7 +49,7 @@ import {mappingValueFromRoles, rolesFromMapping} from 'utils/policy_roles_adapte
 
 import PluginMetadataPanel from './plugin_metadata_panel/plugin_metadata_panel';
 import ProductionWarning from './production_warning';
-import {pluginLogsPath} from './server_logs/url_filters';
+import {canViewServerLogs, pluginLogsPath} from './server_logs/url_filters';
 import Setting from './setting';
 import type {AdminDefinitionConfigSchemaSection, AdminDefinitionSetting, AdminDefinitionSettingBanner, AdminDefinitionSettingDropdownOption, AdminDefinitionSubSectionSchema, ConsoleAccess} from './types';
 
@@ -376,12 +375,6 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
         );
     };
 
-    // The same rules that hide the Server Logs page
-    canViewServerLogs = () => {
-        return Boolean(this.props.consoleAccess?.read?.[RESOURCE_KEYS.REPORTING.SERVER_LOGS]) &&
-            !this.props.config.ExperimentalSettings?.RestrictSystemAdmin;
-    };
-
     renderPluginMetadata = () => {
         if (!this.props.plugin) {
             return null;
@@ -425,7 +418,7 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                                 homepageUrl={this.props.plugin.homepage_url}
                                 saveNeeded={this.state.saveNeeded}
                                 value={this.props.plugin.active}
-                                logsPath={this.canViewServerLogs() ? pluginLogsPath(this.props.plugin.id) : undefined}
+                                logsPath={canViewServerLogs(this.props.config, this.props.consoleAccess) ? pluginLogsPath(this.props.plugin.id) : undefined}
                             />
                         )}
                     </div>

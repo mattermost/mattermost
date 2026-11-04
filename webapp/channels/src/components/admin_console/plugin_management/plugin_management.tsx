@@ -31,10 +31,11 @@ import BooleanSetting from '../boolean_setting';
 import OLDAdminSettings from '../old_admin_settings';
 import type {BaseProps, BaseState} from '../old_admin_settings';
 import PluginMetadataPanel, {formatPluginVersion} from '../plugin_metadata_panel/plugin_metadata_panel';
-import {pluginLogsPath} from '../server_logs/url_filters';
+import {canViewServerLogs, pluginLogsPath} from '../server_logs/url_filters';
 import SettingSet from '../setting_set';
 import SettingsGroup from '../settings_group';
 import TextSetting from '../text_setting';
+import type {ConsoleAccess} from '../types';
 
 import './plugin_management.scss';
 
@@ -525,8 +526,7 @@ type Props = BaseProps & {
     appsFeatureFlagEnabled: boolean;
     license?: ClientLicense;
 
-    // Whether the admin can open the server logs
-    canViewServerLogs?: boolean;
+    consoleAccess?: ConsoleAccess;
     actions: {
         uploadPlugin: (fileData: File, force: boolean) => Promise<ActionResult>;
         removePlugin: (pluginId: string) => Promise<ActionResult>;
@@ -1212,7 +1212,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
                         license={this.props.license}
                         isDisabled={this.props.isDisabled}
                         configEnabled={Boolean(this.props.config.PluginSettings?.PluginStates?.[pluginStatus.id]?.Enable)}
-                        showLogsLink={this.props.canViewServerLogs}
+                        showLogsLink={canViewServerLogs(this.props.config, this.props.consoleAccess)}
                     />
                 );
             });

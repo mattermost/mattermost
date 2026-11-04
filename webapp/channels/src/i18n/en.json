@@ -12805,7 +12805,7 @@
   },
   "admin.plugin.viewLogs": {
     "defaultMessage": "View logs",
-    "description": ""
+    "description": "Link and button on the System Console plugin pages (Plugin Management and each plugin's settings page) that open the Server Logs page showing only the log entries that plugin wrote."
   },
   "admin.plugins.pluginManagement": {
     "defaultMessage": "Plugin Management",
