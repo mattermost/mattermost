@@ -5141,4 +5141,21 @@ describe('RECEIVED_POST_ENTITIES', () => {
         expect(nextState.post1.metadata.entities).toEqual(entities);
         expect(nextState.missing).toBeUndefined();
     });
+
+    it('skips client-deleted placeholders', () => {
+        const post = TestHelper.getPostMock({
+            id: 'post1',
+            message: '',
+            state: Posts.POST_DELETED,
+        });
+        const state = deepFreeze({post1: post});
+        const entities = [{id: '0:3', start: 0, end: 3, value: 'MLT', type_ids: ['plugin.acronym'], matcher_id: ''}];
+
+        const nextState = reducers.handlePosts(state, {
+            type: PostTypes.RECEIVED_POST_ENTITIES,
+            data: {post1: entities},
+        });
+
+        expect(nextState).toBe(state);
+    });
 });

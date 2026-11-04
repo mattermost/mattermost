@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/url"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -205,8 +206,16 @@ func TestGetPostIncludesEntityEtag(t *testing.T) {
 	require.NotEmpty(t, got.Metadata.Entities)
 	etag := resp.Header.Get(model.HeaderEtagServer)
 	require.NotEmpty(t, etag)
-	require.Contains(t, etag, ".")
 
+	t.Setenv("MM_ENTITIES", "0")
+	_, respOff, err := th.Client.GetPost(context.Background(), created.Id, "")
+	require.NoError(t, err)
+	etagOff := respOff.Header.Get(model.HeaderEtagServer)
+	require.NotEmpty(t, etagOff)
+	require.NotEqual(t, etagOff, etag)
+	require.True(t, strings.HasPrefix(etag, etagOff+"."))
+
+	t.Setenv("MM_ENTITIES", "1")
 	_, resp, err = th.Client.GetPost(context.Background(), created.Id, etag)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusNotModified, resp.StatusCode)

@@ -76,6 +76,12 @@ export default function EntityRhs() {
     const frameValue = frame?.value;
     const framePostId = frame?.postId;
     const frameOccurrence = frame?.occurrence;
+    const frameKey = frameTypeId ? `${frameTypeId}\0${frameValue}\0${framePostId}\0${frameOccurrence}` : '';
+    const [seenFrameKey, setSeenFrameKey] = useState(frameKey);
+    if (frameKey !== seenFrameKey) {
+        setSeenFrameKey(frameKey);
+        setCard(undefined);
+    }
 
     useEffect(() => {
         if (!frameTypeId || frameValue === undefined) {
