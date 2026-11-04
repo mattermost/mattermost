@@ -922,6 +922,41 @@ class MainTest(unittest.TestCase):
         self.assertIn("body_changed=true", (self.tmp / "gh_output").read_text())
 
 
+    def test_a_note_only_under_go_version_is_retried(self):
+        gc.polish_with_ai = lambda notes: (self.FIRST_ANSWER + "\n### Go Version\n - Go bump. [[N2]]\n", True)
+        asked = []
+        gc.place_missing_with_ai = lambda notes: asked.append([n["id"] for n in notes]) or (self.RETRY_ANSWER, True)
+        gc.main()
+        self.assertEqual(asked, [["N2"]])
+        self.assertIn("Fixed an issue found later.", self.changelog.read_text())
+        self.assertIn("mattermost/mattermost#2", self._recorded())
+
+    def test_a_failed_retry_request_does_not_stop_the_run(self):
+        gc.polish_with_ai = lambda notes: (self.FIRST_ANSWER, True)
+
+        def fail(notes):
+            raise ConnectionError("down")
+        gc.place_missing_with_ai = fail
+        gc.main()
+        self.assertIn("Added the first thing.", self.changelog.read_text())
+        self.assertEqual(len(self._payload()["readiness"]["not_placed"]), 1)
+
+    def test_a_retry_answer_keeps_valid_bullets_next_to_a_bullet_with_no_section(self):
+        gc.polish_with_ai = lambda notes: (self.FIRST_ANSWER, True)
+        gc.place_missing_with_ai = lambda notes: (" - Orphan before any heading. [[N2]]\n" + self.RETRY_ANSWER, True)
+        gc.main()
+        content = self.changelog.read_text()
+        self.assertIn("Fixed an issue found later.", content)
+        self.assertNotIn("Orphan before any heading", content)
+
+    def test_a_retry_that_repeats_only_improvements_adds_no_empty_section(self):
+        text = gc.drop_bulletless_sections(gc.keep_requested_bullets(gc.normalize_formatting(
+            "### Improvements\nSee BLOG_POST_LINK on the highlights.\n#### User Interface\n - Repeated. [[N1]]\n"
+            "### Bug Fixes\n - Wanted. [[N2]]\n"), {"N2"}))
+        self.assertNotIn("Improvements", text)
+        self.assertIn("### Bug Fixes\n - Wanted. [[N2]]", text)
+
+
 class RetryFilterTest(unittest.TestCase):
     def test_star_and_plus_bullets_for_other_notes_are_dropped(self):
         text = "### Bug Fixes\n* Repeated star bullet. [[N1]]\n + Repeated plus bullet. [[N1]]\n - Wanted. [[N2]]\n"

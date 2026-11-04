@@ -1885,25 +1885,52 @@ def render_fragment(notes: list[dict], sources_by_id: dict) -> tuple[str, list[d
     polished = escape_mdx_unsafe(normalize_formatting(raw_polished))
     polished, items, referenced = extract_source_markers(polished, sources_by_id)
 
+    items, referenced = _drop_go_version(items, referenced)
+
     missing = dropped_notes(notes, referenced) if ai_polished else []
     if missing:
         print(f"⚠️  The model left out {len(missing)} note(s): {', '.join(note['id'] for note in missing)}")
         polished, items, referenced = _place_missing(polished, items, referenced, missing, sources_by_id)
-
-    # The Go Version section is written from the release branch's build image: whatever
-    # the model put under that heading is replaced (create) or removed (update). A PR
-    # attributed only there is not in the text, so it must not be recorded as included.
-    kept = [item for item in items if item["section"] != "Go Version"]
-    if len(kept) != len(items):
-        # By note ID, not by PR: another note of the same PR may be placed elsewhere.
-        kept_ids = {note_id for item in kept for note_id in item["ids"]}
-        gone_ids = {note_id for item in items if item["section"] == "Go Version" for note_id in item["ids"]}
-        referenced = referenced - (gone_ids - kept_ids)
-        items = kept
     return polished, items, referenced, ai_polished
 
 
 _RETRY_WRAPPER = "## Release v0.0"
+
+
+def _drop_go_version(items: list[dict], referenced: set) -> tuple[list[dict], set]:
+    """Forget the bullets under ``### Go Version`` and the notes only they carried.
+
+    That section is written from the release branch's build image: whatever the model put
+    under it is replaced (create) or removed (update). A note attributed only there is not
+    in the text, so it counts as dropped (and is retried), not as placed. Notes are pruned
+    by ID, not by PR: another note of the same PR may be placed elsewhere.
+    """
+    kept = [item for item in items if item["section"] != "Go Version"]
+    if len(kept) == len(items):
+        return items, referenced
+    kept_ids = {note_id for item in kept for note_id in item["ids"]}
+    gone_ids = {note_id for item in items if item["section"] == "Go Version" for note_id in item["ids"]}
+    return kept, referenced - (gone_ids - kept_ids)
+
+
+def drop_bulletless_sections(text: str) -> str:
+    """Rebuild ``text`` without ``###``/``####`` sections that have no bullet, and without text before the first heading.
+
+    Filtering a retry answer can leave a heading, such as ``### Improvements`` with its blog
+    post line, with nothing under it, and the merge would add that empty section.
+    """
+    def has_bullet(lines):
+        return any(_BULLET_RE.match(line) for line in lines)
+
+    out = []
+    for section in parse_fragment(text):
+        subsections = [sub for sub in section["subsections"] if has_bullet(sub["lines"])]
+        if not subsections and not has_bullet(section["lines"]):
+            continue
+        out += [f"### {section['title']}"] + section["lines"]
+        for sub in subsections:
+            out += [f"#### {sub['title']}"] + sub["lines"]
+    return "\n".join(out) + "\n"
 
 
 def keep_requested_bullets(text: str, wanted: set) -> str:
@@ -1934,14 +1961,20 @@ def _place_missing(polished: str, items: list[dict], referenced: set, missing: l
     A note counts as placed only if its bullet reached the text: an answer with no section
     heading has nowhere to go, so it is discarded and the notes stay dropped.
     """
-    retry_raw, asked = place_missing_with_ai(missing)
+    try:
+        retry_raw, asked = place_missing_with_ai(missing)
+    except Exception as err:  # the first answer is usable, so a failed retry must not stop the run
+        print(f"::warning title=Retry request failed::{type(err).__name__}; the notes stay unplaced")
+        return polished, items, referenced
     if not asked or not retry_raw.strip():
         return polished, items, referenced
     # Only the notes that were asked for: the model may repeat one the first answer already
     # placed, and a repeated childless bullet would be inserted a second time.
     wanted = {note["id"] for note in missing}
-    retry_text = escape_mdx_unsafe(normalize_formatting(keep_requested_bullets(normalize_formatting(retry_raw), wanted)))
+    retry_text = drop_bulletless_sections(keep_requested_bullets(normalize_formatting(retry_raw), wanted))
+    retry_text = escape_mdx_unsafe(normalize_formatting(retry_text))
     retry_text, retry_items, retry_referenced = extract_source_markers(retry_text, sources_by_id)
+    retry_items, retry_referenced = _drop_go_version(retry_items, retry_referenced)
     if not retry_referenced & wanted:
         return polished, items, referenced
     merged = merge_into_entry(f"{_RETRY_WRAPPER}\n\n{polished}", "v0.0", retry_text)
