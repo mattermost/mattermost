@@ -93,12 +93,14 @@ const SearchBox = forwardRef(
         const [searchTeam, setSearchTeam] = useState<string>(initialSearchTeam);
         const defaultSearchType = useSelector(getDefaultSearchType);
         const pluginSearchButtons = useSelector(getSearchButtons);
-        const [searchType, setSearchType] = useState<string>(() => {
-            const isKnownType = initialSearchType === 'messages' ||
-                initialSearchType === 'files' ||
-                pluginSearchButtons.some((button) => button.pluginId === initialSearchType);
-            return isKnownType ? initialSearchType : defaultSearchType;
-        });
+        const resolveSearchType = (type: string) => {
+            const isKnownType = type === 'messages' ||
+                type === 'files' ||
+                pluginSearchButtons.some((button) => button.pluginId === type);
+            return isKnownType ? type : defaultSearchType;
+        };
+        const [selectedSearchType, setSearchType] = useState<string>(() => resolveSearchType(initialSearchType));
+        const searchType = resolveSearchType(selectedSearchType);
 
         const hasMoreThanOneTeam = myTeams.length > 1;
 

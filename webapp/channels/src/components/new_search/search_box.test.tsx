@@ -6,10 +6,12 @@ import React from 'react';
 import type {Team} from '@mattermost/types/teams';
 
 import {
+    act,
     renderWithContext,
     screen,
     userEvent,
 } from 'tests/react_testing_utils';
+import {ActionTypes} from 'utils/constants';
 
 import SearchBox from './search_box';
 
@@ -152,6 +154,27 @@ describe('components/new_search/SearchBox', () => {
 
             await userEvent.keyboard('{Enter}');
             expect(onSearch).toHaveBeenCalledWith(expected, 'teamId', '');
+        });
+
+        test('falls back to messages when the selected plugin type is unregistered while open', async () => {
+            const onSearch = jest.fn();
+            const {store} = renderWithContext(
+                <SearchBox
+                    {...baseProps}
+                    onSearch={onSearch}
+                    initialSearchType=''
+                />,
+                pluginState(10),
+            );
+            expect(screen.getByText('Ask AI')).toBeInTheDocument();
+
+            act(() => {
+                store.dispatch({type: ActionTypes.REMOVED_PLUGIN_COMPONENT, id: 'ai'});
+            });
+
+            expect(screen.queryByText('Ask AI')).not.toBeInTheDocument();
+            await userEvent.keyboard('{Enter}');
+            expect(onSearch).toHaveBeenCalledWith('messages', 'teamId', '');
         });
 
         test('opens on messages when no plugin search type is registered', async () => {
