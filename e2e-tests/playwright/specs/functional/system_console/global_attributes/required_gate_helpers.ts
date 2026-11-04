@@ -23,7 +23,8 @@ export const ATTRIBUTE_DETAILS_PATH = `${GLOBAL_ATTRIBUTES_PATH}/attribute_detai
  * no singular getPropertyField, only the paginated list.
  */
 export async function getChannelPropertyField(adminClient: Client4, fieldId: string): Promise<PropertyField> {
-    const fields = await adminClient.getPropertyFields(PROPERTY_GROUP, 'channel', TARGET_TYPE, undefined, {
+    const fields = await adminClient.getPropertyFields(PROPERTY_GROUP, 'channel', {
+        targetType: TARGET_TYPE,
         perPage: 200,
     });
     const field = fields.find((f) => f.id === fieldId);
@@ -136,7 +137,8 @@ export async function deleteChannelAttributeField(
  */
 export async function purgeRequiredGateFields(adminClient: Client4): Promise<void> {
     try {
-        const channelFields = await adminClient.getPropertyFields(PROPERTY_GROUP, 'channel', TARGET_TYPE, undefined, {
+        const channelFields = await adminClient.getPropertyFields(PROPERTY_GROUP, 'channel', {
+            targetType: TARGET_TYPE,
             perPage: 200,
         });
         for (const field of channelFields.filter((f) => f.name.startsWith(FIELD_PREFIX) && f.delete_at === 0)) {
@@ -146,7 +148,8 @@ export async function purgeRequiredGateFields(adminClient: Client4): Promise<voi
         // May not exist.
     }
     try {
-        const templateFields = await adminClient.getPropertyFields(PROPERTY_GROUP, 'template', TARGET_TYPE, undefined, {
+        const templateFields = await adminClient.getPropertyFields(PROPERTY_GROUP, 'template', {
+            targetType: TARGET_TYPE,
             perPage: 200,
         });
         for (const field of templateFields.filter((f) => f.name.startsWith(FIELD_PREFIX) && f.delete_at === 0)) {
