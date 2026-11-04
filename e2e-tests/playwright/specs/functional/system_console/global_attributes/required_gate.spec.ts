@@ -75,6 +75,7 @@ test.describe(
             const {team} = await pw.initSetup();
             const pair = await createChannelAttributeField(adminClient, fieldName('blocked', suffix), {
                 options: ['Value A'],
+                displayName: `Blocked ${suffix}`,
             });
             await createComplianceChannel(adminClient, team, suffix);
 
@@ -134,6 +135,7 @@ test.describe(
             const pair = await createChannelAttributeField(adminClient, fieldName('escape', suffix), {
                 options: ['Value A'],
                 required: true,
+                displayName: `Escape ${suffix}`,
             });
             await adminClient.unarchiveChannel(channel.id);
 
@@ -262,6 +264,7 @@ test.describe(
             const {team} = await pw.initSetup();
             const pair = await createChannelAttributeField(adminClient, fieldName('compliant', suffix), {
                 options: ['Value A'],
+                displayName: `Compliant ${suffix}`,
             });
             const channel = await createComplianceChannel(adminClient, team, suffix);
             await adminClient.patchPropertyValues('access_control', 'channel', channel.id, [
