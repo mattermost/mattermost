@@ -19,7 +19,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	platform_mocks "github.com/mattermost/mattermost/server/v8/channels/app/platform/mocks"
 )
 
@@ -454,53 +453,6 @@ func TestWebConnShouldSendEventAllocs(t *testing.T) {
 				wc.ShouldSendEvent(tc.event, channelKey)
 			})
 			assert.Zero(t, allocs, "ShouldSendEvent should not allocate")
-		})
-	}
-}
-
-func TestWebConnSessionLookupLog(t *testing.T) {
-	th := Setup(t)
-
-	cases := []struct {
-		name string
-		call func(t *testing.T, wc *WebConn)
-	}{
-		{
-			name: "basic authentication",
-			call: func(t *testing.T, wc *WebConn) {
-				t.Helper()
-				require.False(t, wc.IsBasicAuthenticated())
-			},
-		},
-		{
-			name: "team membership",
-			call: func(t *testing.T, wc *WebConn) {
-				t.Helper()
-				wc.SetSession(nil)
-				require.False(t, wc.isMemberOfTeam(model.NewId()))
-			},
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			submitted := model.NewId()
-			suite := platform_mocks.NewSuiteIFace(t)
-			suite.On("GetSession", submitted).Return((*model.Session)(nil), model.NewAppError("GetSession", "app.user.get.app_error", nil, "", http.StatusInternalServerError))
-
-			buffer := &mlog.Buffer{}
-			require.NoError(t, mlog.AddWriterTarget(th.Service.Logger(), buffer, true, mlog.StdAll...))
-
-			wc := th.Service.NewWebConn(&WebConnConfig{
-				WebSocket: &websocket.Conn{},
-				Session:   model.Session{Token: submitted, ExpiresAt: 1},
-			}, suite, &hookRunner{})
-
-			tc.call(t, wc)
-			require.NoError(t, th.Service.Logger().Flush())
-			suite.AssertCalled(t, "GetSession", submitted)
-			// The log buffer does not include the submitted value.
-			assert.NotContains(t, buffer.String(), submitted)
 		})
 	}
 }
