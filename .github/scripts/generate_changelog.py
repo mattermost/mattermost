@@ -1907,43 +1907,23 @@ _RETRY_WRAPPER = "## Release v0.0"
 
 
 def keep_requested_bullets(text: str, wanted: set) -> str:
-    """Keep only the bullets of ``text`` that name a note in ``wanted``.
+    """Drop the bullets of ``text`` whose markers name only notes outside ``wanted``.
 
-    ``text`` must already be normalized (``-`` bullets). A bullet is judged on every
-    marker in its block, continuation lines included. A bullet with no marker of its own
-    is kept only as the parent of a kept bullet, such as a plan label.
+    ``text`` must already be normalized (``-`` bullets). A bullet with no marker is
+    kept, since it may be a plan-label parent of marked bullets. A bullet's
+    continuation lines go with it.
     """
-    lines = text.split("\n")
-    blocks = []  # (first line index, indent, last line index, ids)
-    index = 0
-    while index < len(lines):
-        match = _BULLET_RE.match(lines[index])
-        if not match:
-            index += 1
-            continue
-        end = index + 1
-        while end < len(lines) and lines[end].strip() and not _BULLET_RE.match(lines[end]) and lines[end].startswith(" "):
-            end += 1
-        ids = {part.strip() for line in lines[index:end] for m in _SOURCE_MARKER_RE.finditer(line)
-               for part in m.group(1).split(",")}
-        blocks.append((index, len(lines[index]) - len(lines[index].lstrip(" ")), end, ids))
-        index = end
-
-    drop = set()
-    for position, (start, indent, end, ids) in enumerate(blocks):
-        if ids:
-            keep = bool(ids & wanted)
-        else:
-            keep = False
-            for _, other_indent, _, other_ids in blocks[position + 1:]:
-                if other_indent <= indent:
-                    break
-                if other_ids & wanted:
-                    keep = True
-                    break
-        if not keep:
-            drop.update(range(start, end))
-    return "\n".join(line for i, line in enumerate(lines) if i not in drop)
+    out = []
+    skipping = False
+    for line in text.split("\n"):
+        if _BULLET_RE.match(line):
+            ids = {part.strip() for match in _SOURCE_MARKER_RE.finditer(line) for part in match.group(1).split(",")}
+            skipping = bool(ids) and not ids & wanted
+        elif not line.strip() or not line.startswith(" "):
+            skipping = False
+        if not skipping:
+            out.append(line)
+    return "\n".join(out)
 
 
 def _place_missing(polished: str, items: list[dict], referenced: set, missing: list[dict],

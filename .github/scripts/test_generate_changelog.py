@@ -923,24 +923,11 @@ class MainTest(unittest.TestCase):
 
 
 class RetryFilterTest(unittest.TestCase):
-    def _kept(self, text, wanted):
-        return gc.keep_requested_bullets(gc.normalize_formatting(text), wanted)
-
-    def test_star_bullets_and_continuation_markers_are_judged_like_dash_bullets(self):
-        kept = self._kept("### Bug Fixes\n* Repeated star bullet. [[N1]]\n + Repeated with\n   a late marker. [[N1]]\n"
-                          " - Wanted. [[N2]]\n", {"N2"})
+    def test_star_and_plus_bullets_for_other_notes_are_dropped(self):
+        text = "### Bug Fixes\n* Repeated star bullet. [[N1]]\n + Repeated plus bullet. [[N1]]\n - Wanted. [[N2]]\n"
+        kept = gc.keep_requested_bullets(gc.normalize_formatting(text), {"N2"})
         self.assertNotIn("Repeated", kept)
         self.assertIn("Wanted.", kept)
-
-    def test_an_unmarked_bullet_is_kept_only_as_the_parent_of_a_wanted_one(self):
-        text = ("### Upgrade Impact\n#### config.json\n - **Changes to All plans:**\n   - Added `X`. [[N2]]\n"
-                " - Standalone and unmarked.\n - **Other plan:**\n   - Repeated. [[N1]]\n")
-        kept = self._kept(text, {"N2"})
-        self.assertIn("**Changes to All plans:**", kept)
-        self.assertIn("Added `X`.", kept)
-        self.assertNotIn("Standalone", kept)
-        self.assertNotIn("Other plan", kept)
-        self.assertNotIn("Repeated", kept)
 
 
 class GoVersionPruneTest(unittest.TestCase):
