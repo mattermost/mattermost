@@ -119,8 +119,8 @@ export default function EntityMention({typeId, value, url, label: labelProp, tit
     const military = useSelector(isUseMilitaryTime);
     const anchorRef = useRef<HTMLElement>(null);
     const cardRef = useRef<HTMLDivElement>(null);
-    const openTimer = useRef<ReturnType<typeof window.setTimeout>>();
-    const closeTimer = useRef<ReturnType<typeof window.setTimeout>>();
+    const openTimer = useRef<number | undefined>(undefined);
+    const closeTimer = useRef<number | undefined>(undefined);
     const [open, setOpen] = useState(false);
     const [placed, setPlaced] = useState(false);
     const [position, setPosition] = useState({top: 0, left: 0});
@@ -130,19 +130,21 @@ export default function EntityMention({typeId, value, url, label: labelProp, tit
     const cacheKey = `${typeId}\0${value}`;
 
     const clearTimers = () => {
-        window.clearTimeout(openTimer.current);
-        window.clearTimeout(closeTimer.current);
+        if (openTimer.current !== undefined) {
+            window.clearTimeout(openTimer.current);
+        }
+        if (closeTimer.current !== undefined) {
+            window.clearTimeout(closeTimer.current);
+        }
     };
 
     const scheduleOpen = () => {
-        window.clearTimeout(closeTimer.current);
-        window.clearTimeout(openTimer.current);
+        clearTimers();
         openTimer.current = window.setTimeout(() => setOpen(true), HOVER_OPEN_MS);
     };
 
     const scheduleClose = () => {
-        window.clearTimeout(openTimer.current);
-        window.clearTimeout(closeTimer.current);
+        clearTimers();
         closeTimer.current = window.setTimeout(() => setOpen(false), HOVER_CLOSE_MS);
     };
 

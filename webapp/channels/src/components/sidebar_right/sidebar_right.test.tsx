@@ -37,6 +37,7 @@ describe('components/sidebar_right', () => {
         isChannelInfo: false,
         isChannelMembers: false,
         isPluginView: false,
+        isEntityView: false,
         isPostEditHistory: false,
         previousRhsState: null,
         rhsChannel: channel,

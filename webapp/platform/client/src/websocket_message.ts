@@ -13,6 +13,7 @@ export type WebSocketMessage = (
     Messages.PostEdited |
     Messages.PostDeleted |
     Messages.PostUnread |
+    Messages.EntitiesDictionaryChanged |
     Messages.BurnOnReadPostRevealed |
     Messages.BurnOnReadPostBurned |
     Messages.BurnOnReadPostAllRevealed |

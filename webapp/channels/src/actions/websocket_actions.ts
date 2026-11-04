@@ -470,7 +470,7 @@ export function handleEvent(msg: WebSocketMessage) {
         handlePostEditEvent(msg);
         break;
 
-    case 'entities_dictionary_changed':
+    case WebSocketEvents.EntitiesDictionaryChanged:
         dispatch(handleEntitiesDictionaryChanged());
         break;
 

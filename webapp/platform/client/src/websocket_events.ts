@@ -7,6 +7,7 @@ export const enum WebSocketEvents {
     PostEdited = 'post_edited',
     PostDeleted = 'post_deleted',
     PostUnread = 'post_unread',
+    EntitiesDictionaryChanged = 'entities_dictionary_changed',
     BurnOnReadPostRevealed = 'post_revealed',
     BurnOnReadPostBurned = 'post_burned',
     BurnOnReadPostAllRevealed = 'burn_on_read_all_revealed',
