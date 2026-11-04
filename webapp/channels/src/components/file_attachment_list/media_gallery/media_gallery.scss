@@ -159,6 +159,8 @@
 
 // Sized in CSS rather than from a measured width so the post list sees the
 // final height on first render, including in narrow containers like the RHS.
+// CSS has no hysteresis, so the RHS reserves its scrollbar gutter to keep a
+// scrollbar appearing from toggling the row height near 480px.
 @container media-gallery (width < 480px) {
     .MediaGallery__rows {
         --media-gallery-row-height: 144px;
