@@ -171,6 +171,38 @@ describe('ChannelsWithoutValueModal', () => {
         expect(screen.getByRole('button', {name: 'Shared (3)'})).toBeInTheDocument();
     });
 
+    it('shows a page-level empty message, not the all-clear, when the filter matches nothing on this page', async () => {
+        mockedFetch.mockResolvedValue(page({
+            total_count: 30,
+            channels: [{
+                channel_id: 'c1',
+                channel_name: 'ops-planning',
+                channel_display_name: 'ops-planning',
+                channel_type: 'O',
+                team_id: 't1',
+                team_display_name: 'Team 1',
+                is_local: true,
+                channel_admins: [],
+            }],
+        }));
+
+        renderWithContext(
+            <ChannelsWithoutValueModal
+                fieldId='field1'
+                totalCount={30}
+                sharedCount={3}
+                onExited={onExited}
+            />,
+        );
+
+        await waitFor(() => expect(screen.getByText('ops-planning')).toBeInTheDocument());
+
+        await userEvent.click(screen.getByRole('button', {name: 'Shared (3)'}));
+
+        expect(screen.getByText('No matching channels on this page')).toBeInTheDocument();
+        expect(screen.queryByText('Every channel has a value')).not.toBeInTheDocument();
+    });
+
     it('calls onExited when Close is clicked', async () => {
         mockedFetch.mockResolvedValue(page());
 

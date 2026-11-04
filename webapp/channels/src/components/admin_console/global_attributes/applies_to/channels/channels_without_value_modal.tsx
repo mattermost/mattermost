@@ -243,11 +243,19 @@ function ChannelsWithoutValueModal({fieldId, attributeDisplayName, totalCount: s
                     </button>
                 </div>
             )}
-            {!loading && !failed && visibleChannels.length === 0 && (
+            {!loading && !failed && totalCount === 0 && (
                 <div className='ChannelsWithoutValueModal__empty'>
                     <FormattedMessage
                         id='admin.global_attributes.applies_to.channels.without_value.empty'
                         defaultMessage='Every channel has a value'
+                    />
+                </div>
+            )}
+            {!loading && !failed && totalCount > 0 && visibleChannels.length === 0 && (
+                <div className='ChannelsWithoutValueModal__empty'>
+                    <FormattedMessage
+                        id='admin.global_attributes.applies_to.channels.without_value.empty_filtered_page'
+                        defaultMessage='No matching channels on this page'
                     />
                 </div>
             )}

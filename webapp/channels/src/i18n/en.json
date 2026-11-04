@@ -5935,6 +5935,10 @@
     "defaultMessage": "Every channel has a value",
     "description": "Empty state of the System Console \"Channels without a value\" modal, opened from the Required banner of a channel attribute when no channel is missing a value anymore."
   },
+  "admin.global_attributes.applies_to.channels.without_value.empty_filtered_page": {
+    "defaultMessage": "No matching channels on this page",
+    "description": "Empty state of the System Console \"Channels without a value\" modal, shown when the selected Local or Shared filter matches no channel on the current page although other pages still have channels missing a value."
+  },
   "admin.global_attributes.applies_to.channels.without_value.error": {
     "defaultMessage": "The channel list couldn't be loaded.",
     "description": "Error message in the System Console \"Channels without a value\" modal, opened from the Required banner of a channel attribute when the list of channels failed to load."

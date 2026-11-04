@@ -234,11 +234,15 @@ test.describe('System Console - notify all channel admins', {tag: ['@system_cons
             await expect(attributeAppliesToChannels.missingValuesBanner).toContainText('Notified');
 
             // * The DM the channel admin receives names the display name too
-            const systemBot = await adminClient.getUserByUsername(SYSTEM_BOT_USERNAME);
-            const dm = await adminClient.createDirectChannel([user.id, systemBot.id]);
             await expect
                 .poll(
                     async () => {
+                        // The bot is created lazily by the background send, so it may not exist yet.
+                        const systemBot = await adminClient.getUserByUsername(SYSTEM_BOT_USERNAME).catch(() => null);
+                        if (!systemBot) {
+                            return '';
+                        }
+                        const dm = await adminClient.createDirectChannel([user.id, systemBot.id]);
                         const {posts} = await adminClient.getPosts(dm.id);
                         return (
                             Object.values(posts).find((post) => post.message.includes(channel.display_name))?.message ??

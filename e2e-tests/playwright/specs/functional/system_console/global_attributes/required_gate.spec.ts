@@ -16,6 +16,9 @@
  * what happens once such a field already exists and is edited.
  */
 
+import type {Client4} from '@mattermost/client';
+import type {Channel} from '@mattermost/types/channels';
+
 import {expect, test, getAdminClient} from '@mattermost/playwright-lib';
 
 import {
@@ -38,6 +41,14 @@ import {
     optionId,
     purgeRequiredGateFields,
 } from './required_gate_helpers';
+
+// Archived channels are not counted by the gate, so archiving keeps the
+// server-wide missing-values count from leaking into later tests and specs.
+async function archiveChannels(adminClient: Client4, channels: Channel[]) {
+    for (const channel of channels) {
+        await adminClient.deleteChannel(channel.id).catch(() => undefined);
+    }
+}
 
 test.describe(
     'System Console - the required-channel-attribute gate',
@@ -77,7 +88,7 @@ test.describe(
                 options: ['Value A'],
                 displayName: `Blocked ${suffix}`,
             });
-            await createComplianceChannel(adminClient, team, suffix);
+            const channel = await createComplianceChannel(adminClient, team, suffix);
 
             try {
                 const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -113,6 +124,7 @@ test.describe(
                 expect(reloaded.attrs?.required).not.toBe(true);
                 expect(reloaded.attrs?.actions).toEqual(['display_label_header']);
             } finally {
+                await archiveChannels(adminClient, [channel]);
                 await deleteChannelAttributeField(adminClient, pair);
             }
         });
@@ -160,6 +172,7 @@ test.describe(
                 const reloaded = await getChannelPropertyField(adminClient, pair.channelField.id);
                 expect(reloaded.attrs?.required).not.toBe(true);
             } finally {
+                await archiveChannels(adminClient, [channel]);
                 await deleteChannelAttributeField(adminClient, pair);
             }
         });
@@ -240,6 +253,7 @@ test.describe(
                 await expect(modal.row(channel.display_name)).toHaveCount(0);
                 await modal.close();
             } finally {
+                await archiveChannels(adminClient, [channel]);
                 await deleteChannelAttributeField(adminClient, pair);
             }
         });
@@ -280,12 +294,16 @@ test.describe(
                 await expect(globalAttributes.displayNameInput).toBeVisible();
                 await attributeAppliesToChannels.expand();
 
-                const stillBlocked = await attributeAppliesToChannels.missingValuesBanner.isVisible();
+                const summary = await adminClient.getChannelAttributeComplianceSummary(
+                    'access_control',
+                    pair.channelField.id,
+                );
                 test.skip(
-                    stillBlocked,
+                    summary.missing_channel_count > 0,
                     'Another active channel on this server already lacks a value for this brand-new field; ' +
                         'only testable on an otherwise fully-compliant channel table.',
                 );
+                await expect(attributeAppliesToChannels.missingValuesBanner).toBeHidden();
 
                 await attributeAppliesToChannels.setRequired(true);
                 await expect(attributeAppliesToChannels.requiredToggle).toBeChecked();
@@ -296,6 +314,7 @@ test.describe(
                 const reloaded = await getChannelPropertyField(adminClient, pair.channelField.id);
                 expect(reloaded.attrs?.required).toBe(true);
             } finally {
+                await archiveChannels(adminClient, [channel]);
                 await deleteChannelAttributeField(adminClient, pair);
             }
         });
@@ -350,6 +369,7 @@ test.describe(
                 await expect(modal.row(channel.display_name)).toHaveCount(0);
                 await modal.close();
             } finally {
+                await archiveChannels(adminClient, [channel]);
                 await deleteAttributes(adminClient, [field]);
             }
         });
@@ -399,6 +419,7 @@ test.describe(
                 await expect(attributeAppliesToChannels.missingValuesBanner).not.toHaveClass(/warning/);
                 await expect(attributeAppliesToChannels.missingValuesBanner).toContainText('New channels must set one');
             } finally {
+                await archiveChannels(adminClient, [channel]);
                 await deleteChannelAttributeField(adminClient, pair);
             }
         });
@@ -421,11 +442,15 @@ test.describe(
             });
 
             // The count is server-wide; these 21 guarantee more than one page.
-            for (let i = 0; i < 21; i++) {
-                await createComplianceChannel(adminClient, team, `${suffix}p${i}`, `Paging ${suffix} ${i}`);
-            }
+            const pagingChannels: Channel[] = [];
 
             try {
+                for (let i = 0; i < 21; i++) {
+                    pagingChannels.push(
+                        await createComplianceChannel(adminClient, team, `${suffix}p${i}`, `Paging ${suffix} ${i}`),
+                    );
+                }
+
                 const {systemConsolePage} = await pw.testBrowser.login(adminUser);
                 const {page, globalAttributes} = systemConsolePage;
                 const {attributeAppliesToChannels} = globalAttributes;
@@ -461,6 +486,7 @@ test.describe(
 
                 await modal.close();
             } finally {
+                await archiveChannels(adminClient, pagingChannels);
                 await deleteChannelAttributeField(adminClient, pair);
             }
         });

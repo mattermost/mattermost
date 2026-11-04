@@ -8,6 +8,11 @@
  * so a channel missing a value for a field still marked Required has nothing
  * to be warned about. Its own file because it needs the sub-flag off, unlike
  * unarchive_required_attribute_warning.spec.ts.
+ *
+ * This file calls ensureFeatureFlag with two combinations on purpose. The server
+ * reads the sub-flag at runtime, but the Testcontainers server sets it through an
+ * MM_FEATUREFLAGS_* env var, and the config store re-applies env overrides on every
+ * config save, so patchConfig cannot turn it off. Only a restart can.
  */
 
 import {expect, test, getAdminClient} from '@mattermost/playwright-lib';
