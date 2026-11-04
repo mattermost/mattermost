@@ -223,25 +223,37 @@ class AttributionTest(unittest.TestCase):
         self.assertIn("for mobile clients", cleaned)
         self.assertEqual(items[0]["sources"], ["mattermost/mattermost#1"])
 
-    def test_unattributed_note_refuses_the_run_and_is_not_included(self):
-        sources = {
-            "N1": "mattermost/mattermost#1",
-            "N2": "mattermost/mattermost#2",
-        }
+    def test_several_markers_on_one_bullet_attribute_it_to_each_note(self):
+        sources = {"N1": "mattermost/mattermost#1", "N2": "mattermost/mattermost#2", "N3": "mattermost/mattermost#3"}
+        text = "### Bug Fixes\n - Fixed two related issues. [[N1]][[N2]]\n - Fixed another. [[N3, N3]]\n"
+        cleaned, items, referenced = gc.extract_source_markers(text, sources)
+        self.assertEqual(referenced, {"N1", "N2", "N3"})
+        self.assertNotIn("[[", cleaned)
+        self.assertEqual(len(items), 2)
+        self.assertEqual(items[0]["sources"], ["mattermost/mattermost#1", "mattermost/mattermost#2"])
+
+    def test_dropped_note_is_listed_and_its_pr_is_not_recorded(self):
+        notes = [{"id": "N1", "source": "mattermost/mattermost#1", "text": "a"},
+                 {"id": "N2", "source": "mattermost/mattermost#2", "text": "b"}]
+        sources = {n["id"]: n["source"] for n in notes}
+        self.assertEqual([n["id"] for n in gc.dropped_notes(notes, {"N1"})], ["N2"])
+        self.assertEqual(gc.unattributed_sources(sources, {"N1"}), ["mattermost/mattermost#2"])
+        self.assertEqual(gc._sources_of(sources, {"N1"}), {"mattermost/mattermost#1"})
+
+    def test_a_recorded_pr_with_no_bullet_refuses_the_run(self):
+        items = [{"sources": ["mattermost/mattermost#1"]}]
+        gc.require_recorded_sources_placed({"mattermost/mattermost#1"}, items)
         with self.assertRaises(RuntimeError) as caught:
-            gc.require_sources_attributed(sources, {"N1"})
+            gc.require_recorded_sources_placed({"mattermost/mattermost#1", "mattermost/mattermost#2"}, items)
         self.assertIn("mattermost/mattermost#2", str(caught.exception))
 
-        included = {sources[note_id] for note_id in {"N1"} if note_id in sources}
-        self.assertEqual(included, {"mattermost/mattermost#1"})
-        self.assertEqual(gc.unattributed_sources(sources, {"N1"}), ["mattermost/mattermost#2"])
-
-        # A second note from a PR that was only partly marked still fails the run.
-        shared = {"N1": "mattermost/mattermost#1", "N2": "mattermost/mattermost#1"}
-        with self.assertRaises(RuntimeError):
-            gc.require_sources_attributed(shared, {"N1"})
-
-        gc.require_sources_attributed(sources, {"N1", "N2"})
+    def test_not_placed_block_is_rebuilt_each_run_and_removed_when_empty(self):
+        dropped = [{"source": "mattermost/mattermost#2", "text": "Fixed `x`\nlater"}]
+        body = gc.render_not_placed("Body\n", dropped)
+        self.assertIn("- `mattermost/mattermost#2`: Fixed 'x' later", body)
+        again = gc.render_not_placed(body, dropped)
+        self.assertEqual(again.count("<!-- changelog-not-placed -->"), 1)
+        self.assertNotIn("not-placed", gc.render_not_placed(body, []))
 
 
 NOTE_BODY = "#### Summary\nx\n\n#### Release Note\n```release-note\nAdded a thing.\n```\n"
@@ -384,7 +396,7 @@ class MainTest(unittest.TestCase):
         self.out = self.tmp / "out"
         self.saved = {
             name: getattr(gc, name)
-            for name in ("get_milestone_number", "repo_is_private", "docs_site", "get_merged_prs", "get_pr_details", "polish_with_ai", "VERSION", "MILESTONE_TITLE", "REPOS")
+            for name in ("get_milestone_number", "repo_is_private", "docs_site", "get_merged_prs", "get_pr_details", "polish_with_ai", "place_missing_with_ai", "VERSION", "MILESTONE_TITLE", "REPOS")
         }
         self.saved_derived = gc.changelog_release.derived_notes
         self.saved_show = gc.changelog_release.git_show
@@ -777,6 +789,104 @@ class MainTest(unittest.TestCase):
         go = [group for group in self._payload()["sections"] if group["section"] == "Go Version"]
         self.assertEqual(go, [{"section": "Go Version", "subsection": None, "items": [
             {"text": "v12.1 is built with Go ``v1.27.1``.", "sources": []}]}])
+
+
+    # Notes in these tests: N1 is PR 1, N2 is PR 2, N3 is the derived Calls plugin note.
+    FIRST_ANSWER = ("### Improvements\n\n#### User Interface\n - Added the first thing. [[N1]]\n"
+                    " - Pre-packaged Calls plugin version [v1.12.6](https://example.com). [[N3]]\n")
+    RETRY_ANSWER = "### Bug Fixes\n - Fixed an issue found later. [[N2]]\n"
+
+    def _polish_dropping_n2(self):
+        self.asked = []
+        gc.polish_with_ai = lambda notes: (self.FIRST_ANSWER, True)
+
+        def place(notes):
+            self.asked.append([note["id"] for note in notes])
+            return self.RETRY_ANSWER, True
+        gc.place_missing_with_ai = place
+
+    def _recorded(self):
+        return gc.parse_sources_comment((self.out / "pr_body.md").read_text())
+
+    def test_a_note_the_model_drops_is_placed_by_the_retry(self):
+        self._polish_dropping_n2()
+        gc.main()
+        self.assertEqual(self.asked, [["N2"]], "only the dropped note is sent back")
+        content = self.changelog.read_text()
+        self.assertIn("### Bug Fixes\n - Fixed an issue found later.", content)
+        self.assertNotIn("[[N", content)
+        payload = self._payload()
+        self.assertEqual(payload["readiness"]["not_placed"], [])
+        self.assertEqual(payload["sources_unattributed"], [])
+        self.assertIn("mattermost/mattermost#2", self._recorded())
+        self.assertNotIn("Not placed by the model", (self.out / "summary.md").read_text())
+        self.assertNotIn("did not place", (self.out / "pr_body.md").read_text())
+
+    def test_a_note_the_retry_also_drops_is_listed_and_not_recorded(self):
+        gc.polish_with_ai = lambda notes: (self.FIRST_ANSWER, True)
+        gc.place_missing_with_ai = lambda notes: ("### Bug Fixes\n - Something unrelated. [[N9]]\n", True)
+        gc.main()
+        content = self.changelog.read_text()
+        self.assertIn("Added the first thing.", content)
+        self.assertNotIn("Fixed an issue found later", content)
+        payload = self._payload()
+        self.assertEqual(payload["sources_unattributed"], ["mattermost/mattermost#2"])
+        self.assertEqual([(n["source"], n["recorded"]) for n in payload["readiness"]["not_placed"]],
+                         [("mattermost/mattermost#2", False)])
+        self.assertEqual(payload["metrics"]["notes_not_placed"], 1)
+        self.assertEqual(self._recorded(), {"mattermost/mattermost#1", "plugin:mattermost-plugin-calls@v1.12.6"})
+        body = (self.out / "pr_body.md").read_text()
+        self.assertIn("did not place", body)
+        self.assertIn("`mattermost/mattermost#2`: Fixed an issue found later.", body)
+        self.assertIn("### Not placed by the model: 1 note(s)", (self.out / "summary.md").read_text())
+
+    def test_a_dry_run_reports_the_dropped_note_and_still_writes_the_preview(self):
+        os.environ["DRY_RUN"] = "true"
+        gc.polish_with_ai = lambda notes: (self.FIRST_ANSWER, True)
+        gc.place_missing_with_ai = lambda notes: ("", True)
+        gc.main()
+        self.assertIn("Added the first thing.", (self.out / "entry.mdx").read_text())
+        self.assertIn("### Not placed by the model: 1 note(s)", (self.out / "summary.md").read_text())
+        self.assertNotIn("did not place", (self.out / "pr_body.md").read_text())
+        self.assertNotIn("mattermost/mattermost#2", self._recorded())
+
+    def test_a_retry_answer_with_no_section_is_discarded(self):
+        gc.polish_with_ai = lambda notes: (self.FIRST_ANSWER, True)
+        gc.place_missing_with_ai = lambda notes: (" - Fixed an issue found later. [[N2]]\n", True)
+        gc.main()
+        self.assertNotIn("Fixed an issue found later", self.changelog.read_text())
+        self.assertNotIn("mattermost/mattermost#2", self._recorded())
+        self.assertEqual(len(self._payload()["readiness"]["not_placed"]), 1)
+
+    def test_one_bullet_can_carry_several_markers_without_a_retry(self):
+        self.asked = []
+        gc.polish_with_ai = lambda notes: (
+            "### Improvements\n\n#### User Interface\n - Added the first thing and fixed a later issue. [[N1]][[N2]]\n"
+            " - Pre-packaged Calls plugin version [v1.12.6](https://example.com). [[N3,N3]]\n", True)
+        gc.place_missing_with_ai = lambda notes: self.asked.append(notes) or ("", True)
+        gc.main()
+        self.assertEqual(self.asked, [])
+        self.assertEqual(self._payload()["readiness"]["not_placed"], [])
+        self.assertTrue({"mattermost/mattermost#1", "mattermost/mattermost#2"} <= self._recorded())
+        item = next(i for group in self._payload()["sections"] for i in group["items"] if "first thing" in i["text"])
+        self.assertEqual(item["sources"], ["mattermost/mattermost#1", "mattermost/mattermost#2"])
+
+    def test_an_opt_out_label_wins_over_a_release_note_block(self):
+        self.prs.append(self._pr(6, NOTE_BODY.replace("Added a thing.", "Should not be in the changelog."),
+                                 "2026-10-19T14:00:00Z", ["release-note", "Changelog/Not Needed"]))
+        sent = []
+
+        def polish(notes):
+            sent.extend(notes)
+            return gc._raw_bullets(notes), False
+        gc.polish_with_ai = polish
+        gc.main()
+        self.assertEqual(len(sent), 3)
+        self.assertNotIn("Should not be in the changelog.", self.changelog.read_text())
+        payload = self._payload()
+        self.assertIn("mattermost/mattermost#6", [pr["source"] for pr in payload["prs_without_notes"]])
+        self.assertNotIn("mattermost/mattermost#6", [pr["source"] for pr in payload["prs_flagged"]])
+        self.assertNotIn("mattermost/mattermost#6", self._recorded())
 
 
 if __name__ == "__main__":

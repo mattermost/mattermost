@@ -186,7 +186,7 @@ Here are your instructions:
 
 11.  **Focus:** Output only the section content (headings and bullet points). Do not include the release version header line or any introductory or concluding remarks from yourself.
 
-12.  **Source markers:** Each raw release note begins with an ID in square brackets, such as `[N12]`. End every bullet you write with the ID of the note it came from in double square brackets, separated from the text by one space: ` - Fixed an issue where the channel header was hidden. [[N12]]`. If a bullet combines several notes, list every ID: `[[N3,N7]]`. Do not put a marker on headings, on the `See BLOG_POST_LINK` line, on the config.json description paragraph, on plan-label bullets such as ` - **Changes to All plans:**`, or on the Database Schema Changes summary bullet; put it on the bullets nested beneath them instead. Never write a marker anywhere else. Markers are removed automatically before publishing.
+12.  **Source markers:** Each raw release note begins with an ID in square brackets, such as `[N12]`. Every note you are given must appear in your output: end every bullet you write with the ID of the note it came from in double square brackets, separated from the text by one space: ` - Fixed an issue where the channel header was hidden. [[N12]]`. A note with no marker on any bullet is treated as left out of the changelog, so check before you answer that every ID you were given appears at least once. If a bullet combines several related notes, it must carry the ID of every note it combines, either in one marker or in several: `[[N3,N7]]` or `[[N3]][[N7]]`. Never merge a note into another bullet without adding its ID to that bullet. Do not put a marker on headings, on the `See BLOG_POST_LINK` line, on the config.json description paragraph, on plan-label bullets such as ` - **Changes to All plans:**`, or on the Database Schema Changes summary bullet; put it on the bullets nested beneath them instead. Never write a marker anywhere else. Markers are removed automatically before publishing.
 
 13.  **Notes read from the release diff:** Some notes were not written by a developer but read from the code or the performance team's report: pre-packaged plugin version changes, added or removed WebSocket events, database schema migrations (given as SQL), and the benchmarking result. Place each in its section: plugin versions at the top of `#### User Interface` (keep the plugin bullet text and link exactly as given), WebSocket events under `### WebSocket Event Changes`, migrations under `#### Database Schema Changes`, and the benchmarking result as the first bullet of `#### Performance` under `### Improvements`, kept exactly as given. When a developer's note already describes the same change, write one bullet that combines them and carries both IDs, rather than two bullets saying the same thing.
 
@@ -503,14 +503,48 @@ def polish_with_ai(notes: list[dict]) -> tuple[str, bool]:
         return _raw_bullets(notes), False
 
     print("✨ Sending notes to Claude for categorization and proofreading...")
-    client = anthropic.Anthropic(api_key=api_key)
+    user_message = f"Here are the raw release notes to process:\n\n{_notes_text(notes)}"
+    return _ask_claude(anthropic, api_key, user_message), True
 
-    raw_text = "\n\n---\n\n".join(
+
+def _notes_text(notes: list[dict]) -> str:
+    """The notes as the model reads them: each with its ID, and its docs page when one was found."""
+    return "\n\n---\n\n".join(
         f"[{note['id']}] {note['text']}" + (f"\nDocs page: {note['docs_url']}" if note.get("docs_url") else "")
         for note in notes
     )
-    user_message = f"Here are the raw release notes to process:\n\n{raw_text}"
 
+
+def place_missing_with_ai(notes: list[dict]) -> tuple[str, bool]:
+    """Ask the model again for only the ``notes`` it left out of its first answer.
+
+    The first answer drops one or two notes now and then, a different few each run, so
+    one more request with just those notes is enough in practice. Each must be placed
+    in its ``###`` section (and ``####`` subsection) like any other note. Returns the
+    text and whether the model was asked at all, like ``polish_with_ai``.
+    """
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    if not api_key:
+        return "", False
+    try:
+        import anthropic
+    except ImportError:
+        return "", False
+
+    print(f"🔁 Asking Claude to place {len(notes)} note(s) it left out: {', '.join(n['id'] for n in notes)}")
+    user_message = (
+        "Your first answer left out the release notes below: none of their IDs appeared on any bullet. "
+        "Write the bullets for these notes only, each under its own `###` section heading (and `####` "
+        "subsection heading where the rules call for one), and end every bullet with the ID of the note it "
+        "came from, such as [[N12]]. Every note below must appear. Do not repeat any other note.\n\n"
+        f"{_notes_text(notes)}"
+    )
+    return _ask_claude(anthropic, api_key, user_message), True
+
+
+def _ask_claude(anthropic, api_key: str, user_message: str) -> str:
+    """Send one request with the changelog system prompt and return the text of the answer."""
+    client = anthropic.Anthropic(api_key=api_key)
     response = client.messages.create(
         model="claude-sonnet-4-6",
         # A full feature release runs well past 4096 output tokens — the v12.0 entry is
@@ -529,7 +563,7 @@ def polish_with_ai(notes: list[dict]) -> tuple[str, bool]:
             f"notes across more than one request."
         )
 
-    return response.content[0].text.strip(), True
+    return response.content[0].text.strip()
 
 
 def normalize_formatting(text: str) -> str:
@@ -993,22 +1027,60 @@ def unattributed_sources(sources_by_id: dict, referenced: set) -> list[str]:
     return sorted(missing, key=_source_sort_key)
 
 
-def require_sources_attributed(sources_by_id: dict, referenced: set) -> None:
-    """Fail before writing when any note has no source marker.
+def _sources_of(sources_by_id: dict, referenced: set) -> set:
+    """The PRs (or derived keys) that at least one marker named."""
+    return {sources_by_id[note_id] for note_id in referenced if note_id in sources_by_id}
 
-    Recording that PR in the changelog-sources comment would make the next run skip it,
-    so a note the model dropped would never be added. Raising leaves the file and the
+
+def dropped_notes(notes: list[dict], referenced: set) -> list[dict]:
+    """The notes the model gave no bullet: their ID never appeared on a marker."""
+    return [note for note in notes if note["id"] not in referenced]
+
+
+def require_recorded_sources_placed(recorded: set, items: list[dict]) -> None:
+    """Fail before writing when a PR about to be recorded as a source has no bullet in the text.
+
+    A dropped note is not an error: its PR is simply left out of ``recorded`` so the next
+    run tries it again. What must never happen is the opposite, a PR recorded in the
+    changelog-sources comment although none of the bullets written is attributed to it,
+    because the next run would then skip it for good. Raising leaves the file and the
     open PR untouched.
     """
-    missing = unattributed_sources(sources_by_id, referenced)
-    if not missing:
-        return
-    raise RuntimeError(
-        "Refusing to write the changelog: "
-        f"{len(missing)} PR(s) produced no [[N#]] source marker ({', '.join(missing)}). "
-        "Recording them as included would make the next run skip their release notes. "
-        "Nothing was written."
-    )
+    placed = {source for item in items for source in item["sources"]}
+    unplaced = sorted(set(recorded) - placed, key=_source_sort_key)
+    if unplaced:
+        raise RuntimeError(
+            "Refusing to write the changelog: "
+            f"{len(unplaced)} PR(s) would be recorded as included with no note in the text "
+            f"({', '.join(unplaced)}). The next run would skip their release notes. Nothing was written."
+        )
+
+
+_NOT_PLACED_RE = re.compile(r"\n*<!-- changelog-not-placed -->.*?<!-- /changelog-not-placed -->\n*", re.DOTALL)
+
+
+def render_not_placed(body: str, dropped: list[dict]) -> str:
+    """Write the notes the model left out into a PR body for a reviewer, replacing the last list.
+
+    The block is rebuilt on every run, so it only ever lists what the latest run left out,
+    and disappears once a later run places every note.
+    """
+    body = _NOT_PLACED_RE.sub("\n\n", body).rstrip() + "\n"
+    if not dropped:
+        return body
+    lines = [
+        "<!-- changelog-not-placed -->",
+        "### Release notes the model did not place",
+        "",
+        "These notes were left out of the changelog text, even after asking again. A PR with no note in the text "
+        "is not in the changelog-sources list, so the next run tries it again. Add the others by hand, or fix the note.",
+        "",
+    ]
+    for note in dropped:
+        excerpt = " ".join(note["text"].split())[:160].replace("`", "'")
+        lines.append(f"- `{note['source']}`: {excerpt}")
+    lines += ["<!-- /changelog-not-placed -->", ""]
+    return body + "\n" + "\n".join(lines)
 
 
 # ── Update mode: add new bullets to an existing entry ───────────────────────────────
@@ -1684,6 +1756,18 @@ def render_status(readiness: dict) -> list[str]:
             lines.append(_status_item("fail", problem["url"], problem["problem"]))
         lines.append("")
 
+    not_placed = readiness.get("not_placed", [])
+    if not_placed:
+        lines += [f"### Not placed by the model: {len(not_placed)} note(s)", "",
+                  "The model left these out of the changelog text, even after being asked again. "
+                  "The model may have folded one into a bullet without its ID, so search the text before adding it. "
+                  "A PR with none of its notes placed is left out of the changelog-sources list, "
+                  "so the next run tries it again.", ""]
+        for note in not_placed:
+            kept = "" if not note["recorded"] else " (another note of this PR was placed, so the PR is recorded; add this one by hand)"
+            lines.append(f"- {pr(note['source'])}{kept}: \"{note['excerpt'].replace('`', chr(39))}\"")
+        lines.append("")
+
     blocking = [check for check in readiness["preflight"] if check["status"] == "fail" and check["blocking"]]
     lines += [f"**Generator status: {'NOT READY (preflight failing)' if blocking else 'ready to run'}**", ""]
     return lines
@@ -1755,11 +1839,6 @@ def render_summary(payload: dict, entry: str) -> str:
     lines += [f"| {key.replace('_', ' ')} | {value} |" for key, value in metrics.items()]
     lines.append("")
 
-    if payload["sources_unattributed"]:
-        lines += ["### Notes no bullet was attributed to", ""]
-        lines += [f"- {_pr_link(source, private)}" for source in payload["sources_unattributed"]]
-        lines.append("")
-
     if entry.strip():
         lines += ["Added to the open changelog PR:" if payload["mode"] == "update" else "Generated entry:", ""]
         lines += ["````mdx", entry.rstrip(), "````", ""]
@@ -1803,7 +1882,44 @@ def render_fragment(notes: list[dict], sources_by_id: dict) -> tuple[str, list[d
     # [[N1]] markers pass through both untouched and are stripped afterwards.
     polished = escape_mdx_unsafe(normalize_formatting(raw_polished))
     polished, items, referenced = extract_source_markers(polished, sources_by_id)
+
+    missing = dropped_notes(notes, referenced) if ai_polished else []
+    if missing:
+        print(f"⚠️  The model left out {len(missing)} note(s): {', '.join(note['id'] for note in missing)}")
+        polished, items, referenced = _place_missing(polished, items, referenced, missing, sources_by_id)
     return polished, items, referenced, ai_polished
+
+
+_RETRY_WRAPPER = "## Release v0.0"
+
+
+def _place_missing(polished: str, items: list[dict], referenced: set, missing: list[dict],
+                   sources_by_id: dict) -> tuple[str, list[dict], set]:
+    """Retry once with only the dropped notes and merge what comes back into ``polished``.
+
+    The answer is merged the way update mode merges a fragment, into the section it names.
+    A note counts as placed only if its bullet reached the text: an answer with no section
+    heading has nowhere to go, so it is discarded and the notes stay dropped.
+    """
+    retry_raw, asked = place_missing_with_ai(missing)
+    if not asked or not retry_raw.strip():
+        return polished, items, referenced
+    retry_text = escape_mdx_unsafe(normalize_formatting(retry_raw))
+    retry_text, retry_items, retry_referenced = extract_source_markers(retry_text, sources_by_id)
+    # Only the notes that were asked for: the model may repeat one the first answer placed.
+    wanted = {note["id"] for note in missing}
+    if not retry_referenced & wanted:
+        return polished, items, referenced
+    merged = merge_into_entry(f"{_RETRY_WRAPPER}\n\n{polished}", "v0.0", retry_text)
+    try:
+        require_fragment_merged(retry_text, merged)
+    except RuntimeError as err:
+        print(f"::warning title=Retry answer discarded::{err}")
+        return polished, items, referenced
+    still_missing = sorted(wanted - retry_referenced)
+    if still_missing:
+        print(f"⚠️  The retry still left out {len(still_missing)} note(s): {', '.join(still_missing)}")
+    return merged.split("\n", 2)[2], items + retry_items, referenced | retry_referenced
 
 
 def blog_post_link() -> str:
@@ -1869,7 +1985,11 @@ def main():
             source = f"{repo}#{pr['number']}"
             body = pr.get("body") or ""
             milestone_prs[source] = {"title": pr["title"], "body": body}
-            notes = extract_release_notes(body)
+            labels = {label["name"] for label in pr.get("labels") or []}
+            # An opt-out label wins over a release-note block, which some PRs carry from
+            # the template next to Changelog/Not Needed.
+            opted_out = bool(labels & NO_NOTE_LABELS)
+            notes = None if opted_out else extract_release_notes(body)
             merged_at = (pr.get("pull_request") or {}).get("merged_at")
             if notes:
                 for note in notes:
@@ -1889,8 +2009,8 @@ def main():
                 print(f"   ✅ #{pr['number']}: {pr['title']}")
             else:
                 no_notes_prs.append((repo, pr))
-                print(f"   ⏭️  #{pr['number']}: {pr['title']} (NONE / no notes)")
-            reason = flag_reason(release_note_status(body), {label["name"] for label in pr.get("labels") or []})
+                print(f"   ⏭️  #{pr['number']}: {pr['title']} ({'opt-out label' if opted_out else 'NONE / no notes'})")
+            reason = flag_reason(release_note_status(body), labels)
             if reason:
                 origin = cherry_picked_from(pr["title"])
                 flagged_prs.append({
@@ -2113,7 +2233,7 @@ def main():
             fragment = fragment.replace("BLOG_POST_LINK", blog_post_link())
             if ai_polished:
                 check_for_truncation(fragment)
-            require_sources_attributed(sources_by_id, referenced)
+            require_recorded_sources_placed(_sources_of(sources_by_id, referenced), items)
             updated = merge_into_entry(updated, version_short, fragment)
             require_fragment_merged(fragment, updated)
             entry = fragment
@@ -2218,8 +2338,7 @@ def main():
         # at all.
         if ai_polished:
             check_for_truncation(entry)
-        if all_notes:
-            require_sources_attributed(sources_by_id, referenced)
+        require_recorded_sources_placed(_sources_of(sources_by_id, referenced), items)
 
         header = CHANGELOG_HEADER_TEMPLATE.format(major=major_version(VERSION))
         insert_changelog_entry(entry, changelog_path, header=header)
@@ -2228,14 +2347,26 @@ def main():
         prs_with_notes = total_prs - len(no_notes_prs)
         print(f"✅ Changelog updated with notes from {prs_with_notes} PR(s) across {len(REPOS)} repo(s)")
 
-    # require_sources_attributed already refused the run when a note had no marker.
-    # Only PRs that a bullet actually referenced are recorded, so a dropped note is
-    # sent again on the next run instead of being skipped forever.
+    # A note the model dropped, even after the retry, does not fail the run. Only PRs
+    # that a bullet actually referenced are recorded, so a PR whose notes were all dropped
+    # is sent again on the next run instead of being skipped forever.
     unattributed = unattributed_sources(sources_by_id, referenced)
-    included |= {sources_by_id[note_id] for note_id in referenced if note_id in sources_by_id}
+    recorded_now = _sources_of(sources_by_id, referenced)
+    included |= recorded_now
+    not_placed = [
+        {"source": note["source"], "id": note["id"], "excerpt": " ".join(note["text"].split())[:160],
+         "recorded": note["source"] in recorded_now}
+        for note in dropped_notes(all_notes, referenced)
+    ] if ai_polished else []
+    for note in not_placed:
+        print(f"::warning title=Release note not placed::{note['source']}: the model left this note out of the changelog")
+    readiness["not_placed"] = not_placed
     # proposed_before is only left set when the run proposed a list instead of updating.
     if not proposed_before:
         pr_body = render_pr_body(pr_body, included)
+        # A dry run pushes nothing; its report carries the list instead of the PR body.
+        if os.environ.get("DRY_RUN", "").strip().lower() != "true":
+            pr_body = render_not_placed(pr_body, dropped_notes(all_notes, referenced) if ai_polished else [])
 
     urls = changelog_release.docs_urls(entry)
     readiness["links_checked"] = len(urls)
@@ -2300,6 +2431,7 @@ def main():
             "bullets_corrected": len(extra_items),
             "bullets_needing_review": sum(item["status"] == "needs_review" for item in reconciled),
             "sources_unattributed": len(unattributed),
+            "notes_not_placed": len(not_placed),
             "ai_polished": ai_polished,
             "duration_seconds": round(time.monotonic() - started, 1),
         },
