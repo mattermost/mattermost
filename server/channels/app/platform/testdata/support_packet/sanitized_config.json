@@ -740,6 +740,7 @@
         "MobileSSOCodeExchange": false,
         "EnableShiftEscapeToMarkAllRead": false,
         "AutoTranslation": false,
+        "Entities": false,
         "ClassificationMarkings": false,
         "BurnOnRead": false,
         "EnableAIPluginBridge": false,
