@@ -9,14 +9,19 @@ import (
 	"encoding/xml"
 	"errors"
 	"io"
+	"slices"
 	"strings"
 	"sync"
-
-	"code.sajari.com/docconv/v2"
 )
 
-// officePartReadLimit is the per-part read cap for content-type metadata.
+// officePartReadLimit is the per-part read cap for content-type metadata and part XML.
 const officePartReadLimit int64 = 20 << 20
+
+var (
+	ooxmlBreakElements = []string{"br", "p", "tab"}
+	ooxmlSkipElements  = []string{"instrText", "script"}
+	odtBreakElements   = []string{"br", "p", "tab"}
+)
 
 type officeOverride struct {
 	PartName    string `xml:"PartName,attr"`
@@ -166,7 +171,9 @@ func extractOOXMLText(ctx context.Context, extension string, zr *zip.Reader, lim
 			continue
 		}
 		seen[offset] = struct{}{}
-		text, err := readOfficePart(ctx, f, docconv.DocxXMLToText)
+		text, err := readOfficePart(ctx, f, func(r io.Reader) (string, error) {
+			return officeXMLToText(ctx, r, ooxmlBreakElements, ooxmlSkipElements, limit)
+		})
 		if contextErr(ctx) != nil {
 			return b.String(), nil
 		}
@@ -197,7 +204,9 @@ func extractODTText(ctx context.Context, zr *zip.Reader, limit int) (string, err
 		if b.Len() >= limit {
 			break
 		}
-		text, err := readOfficePart(ctx, f, odtXMLToText)
+		text, err := readOfficePart(ctx, f, func(r io.Reader) (string, error) {
+			return officeXMLToText(ctx, r, odtBreakElements, nil, limit)
+		})
 		if contextErr(ctx) != nil {
 			return b.String(), nil
 		}
@@ -211,8 +220,52 @@ func extractODTText(ctx context.Context, zr *zip.Reader, limit int) (string, err
 	return b.String(), nil
 }
 
-func odtXMLToText(r io.Reader) (string, error) {
-	return docconv.XMLToText(r, []string{"br", "p", "tab"}, []string{}, true)
+// officeXMLToText extracts character data from strict XML, emitting a newline
+// for each break element and dropping skip subtrees. It stops once limit bytes
+// are collected and returns ctx's error if ctx ends first.
+func officeXMLToText(ctx context.Context, r io.Reader, breaks, skip []string, limit int) (string, error) {
+	dec := xml.NewDecoder(io.LimitReader(r, officePartReadLimit))
+	var b strings.Builder
+	for b.Len() < limit {
+		if err := contextErr(ctx); err != nil {
+			return "", err
+		}
+		t, err := dec.Token()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return "", err
+		}
+
+		switch v := t.(type) {
+		case xml.CharData:
+			b.Write(v)
+		case xml.StartElement:
+			if slices.Contains(breaks, v.Name.Local) {
+				b.WriteByte('\n')
+			}
+			if !slices.Contains(skip, v.Name.Local) {
+				continue
+			}
+			for depth := 1; depth > 0; {
+				if err := contextErr(ctx); err != nil {
+					return "", err
+				}
+				t, err := dec.Token()
+				if err != nil {
+					return "", err
+				}
+				switch t.(type) {
+				case xml.StartElement:
+					depth++
+				case xml.EndElement:
+					depth--
+				}
+			}
+		}
+	}
+	return b.String(), nil
 }
 
 func officeContentTypeIsText(extension, contentType string) bool {

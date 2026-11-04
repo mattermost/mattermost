@@ -1335,3 +1335,126 @@ func TestDocumentExtractionContext(t *testing.T) {
 		})
 	}
 }
+
+// repeatingReader yields unit over and over and counts the bytes handed out.
+type repeatingReader struct {
+	unit []byte
+	pos  int
+	read atomic.Int64
+}
+
+func (r *repeatingReader) Read(p []byte) (int, error) {
+	n := 0
+	for n < len(p) {
+		c := copy(p[n:], r.unit[r.pos:])
+		n += c
+		r.pos = (r.pos + c) % len(r.unit)
+	}
+	r.read.Add(int64(n))
+	return n, nil
+}
+
+func manyRunsPackage(t *testing.T, ext, run string, size int) []byte {
+	t.Helper()
+	switch ext {
+	case "docx":
+		payload := bytes.Repeat([]byte(run+"</w:t><w:t>"), size/len(run))
+		return buildRepeatedDocumentPackage(t, ext, 1, payload)
+	default:
+		payload := bytes.Repeat([]byte(run), size/len(run))
+		return buildRepeatedDocumentPackage(t, ext, 1, payload)
+	}
+}
+
+func TestOfficeManyShortRuns(t *testing.T) {
+	const partSize = 16 << 20
+
+	cases := []struct {
+		ext      string
+		emptyRun string
+		textRun  string
+	}{
+		{ext: "docx", emptyRun: "<w:r/>", textRun: "a"},
+		{ext: "odt", emptyRun: "<b/>", textRun: "<b>a</b>"},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.ext+" context ends during parsing", func(t *testing.T) {
+			pkg := manyRunsPackage(t, tc.ext, tc.emptyRun, partSize)
+
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Millisecond)
+			defer cancel()
+
+			start := time.Now()
+			text, err := extractOfficeText(ctx, tc.ext, bytes.NewReader(pkg), documentExtractLimit, testBudget())
+			require.NoError(t, err)
+			require.Empty(t, text)
+			require.Less(t, time.Since(start), 2*time.Second)
+		})
+
+		t.Run(tc.ext+" retained text limit", func(t *testing.T) {
+			pkg := manyRunsPackage(t, tc.ext, tc.textRun, partSize)
+
+			text, err := extractOfficeText(context.Background(), tc.ext, bytes.NewReader(pkg), documentExtractLimit, testBudget())
+			require.NoError(t, err)
+			require.Equal(t, int(maxArchiveExtractedText), len(text))
+
+			small := newExtractionBudget(4096, defaultMaxArchiveDepth)
+			text, err = extractOfficeText(context.Background(), tc.ext, bytes.NewReader(pkg), documentExtractLimit, small)
+			require.NoError(t, err)
+			require.Equal(t, 4096, len(text))
+		})
+	}
+
+	t.Run("parser stops reading when the context ends", func(t *testing.T) {
+		src := &repeatingReader{unit: []byte("<w:r/>")}
+		r := io.MultiReader(strings.NewReader(`<w:document xmlns:w="urn:w">`), src)
+
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Millisecond)
+		defer cancel()
+
+		start := time.Now()
+		_, err := officeXMLToText(ctx, r, ooxmlBreakElements, ooxmlSkipElements, 1<<20)
+		require.ErrorIs(t, err, context.DeadlineExceeded)
+		require.Less(t, time.Since(start), 2*time.Second)
+		require.Less(t, src.read.Load(), officePartReadLimit)
+	})
+
+	t.Run("parser stops reading at the retained limit", func(t *testing.T) {
+		src := &repeatingReader{unit: []byte("<w:t>a</w:t>")}
+		r := io.MultiReader(strings.NewReader(`<w:document xmlns:w="urn:w">`), src)
+
+		text, err := officeXMLToText(context.Background(), r, ooxmlBreakElements, ooxmlSkipElements, 1000)
+		require.NoError(t, err)
+		require.Len(t, text, 1000)
+		require.Less(t, src.read.Load(), int64(64<<10))
+	})
+}
+
+func TestOfficeXMLToText(t *testing.T) {
+	parse := func(xmlText string, skip []string) (string, error) {
+		return officeXMLToText(context.Background(), strings.NewReader(xmlText), ooxmlBreakElements, skip, 1<<20)
+	}
+
+	t.Run("breaks and skipped subtrees", func(t *testing.T) {
+		text, err := parse(`<d><p>one<br/>two<instrText>skip<x>deep</x></instrText></p><tab/><script>no</script>three</d>`, ooxmlSkipElements)
+		require.NoError(t, err)
+		require.Equal(t, "\none\ntwo\nthree", text)
+	})
+
+	t.Run("odt keeps skip-named elements", func(t *testing.T) {
+		text, err := parse(`<d><script>kept</script></d>`, nil)
+		require.NoError(t, err)
+		require.Equal(t, "kept", text)
+	})
+
+	t.Run("EOF inside a skipped subtree is an error", func(t *testing.T) {
+		_, err := parse(`<d><instrText>open`, ooxmlSkipElements)
+		require.Error(t, err)
+	})
+
+	t.Run("strict decoding", func(t *testing.T) {
+		_, err := parse(`<d>&bogus;</d>`, nil)
+		require.Error(t, err)
+	})
+}
