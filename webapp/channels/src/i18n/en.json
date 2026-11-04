@@ -9853,23 +9853,23 @@
   },
   "admin.logs.plugin": {
     "defaultMessage": "Plugin",
-    "description": ""
+    "description": "Label of the plugin filter on the System Console Server Logs page, where admins pick plugins to show only the log entries those plugins wrote."
   },
   "admin.logs.plugin.allLogs": {
     "defaultMessage": "All logs",
-    "description": ""
+    "description": "Default value of the plugin filter on the System Console Server Logs page, when no plugin is picked. Every log entry is shown, including the server's own entries that come from no plugin, so do not translate it as \"all plugins\"."
   },
   "admin.logs.plugin.dropdownAriaLabel": {
     "defaultMessage": "Plugin menu",
-    "description": ""
+    "description": "Accessible name read by screen readers for the open plugin filter menu on the System Console Server Logs page."
   },
   "admin.logs.plugin.menuButtonAriaLabel": {
     "defaultMessage": "Open menu to select which plugins to show logs from",
-    "description": ""
+    "description": "Accessible name read by screen readers for the button that opens the plugin filter menu on the System Console Server Logs page."
   },
   "admin.logs.plugin.selected": {
     "defaultMessage": "{count} plugins",
-    "description": ""
+    "description": "Value of the plugin filter on the System Console Server Logs page when several plugins are picked. {count} is the number of plugins picked, always 2 or more."
   },
   "admin.logs.pollInterval.10s": {
     "defaultMessage": "Every 10 seconds",

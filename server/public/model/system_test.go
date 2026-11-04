@@ -151,6 +151,17 @@ func TestLogFilterSearchJSON(t *testing.T) {
 	require.Contains(t, string(data), `"search":"websocket"`)
 }
 
+func TestLogFilterFieldDetail(t *testing.T) {
+	require.Equal(t, "field=plugin_id", logFilterFieldDetail("plugin_id"))
+
+	atLimit := strings.Repeat("é", LogFilterFieldMaxLength)
+	require.Equal(t, "field="+atLimit, logFilterFieldDetail(atLimit))
+
+	appErr := (&LogFilter{Fields: map[string][]string{strings.Repeat("a", 10*LogFilterFieldMaxLength): {"x"}}}).IsValid()
+	require.NotNil(t, appErr)
+	require.Equal(t, "field="+strings.Repeat("a", LogFilterFieldMaxLength)+"…", appErr.DetailedError)
+}
+
 // logFilterTestFields returns keys fields, each with values copies of value.
 func logFilterTestFields(keys, values int, value string) map[string][]string {
 	fields := make(map[string][]string, keys)

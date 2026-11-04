@@ -1022,6 +1022,7 @@ describe('components/admin_console/server_logs/Logs URL filters', () => {
         ['an invalid custom range in favor of a valid preset', 'range=60&from=bad&to=2026-10-20T12:00:00Z', {dateFrom: '2026-10-20 11:00:00.000 +00:00', dateTo: ''}],
         ['field filters the server would reject', `field.level=error&field.timestamp=x&field.=x&field.plugin_id=&field.user_id=${'a'.repeat(257)}`, {fields: {}}],
         ['repeated field values', 'field.plugin_id=github&field.plugin_id=github', {fields: {plugin_id: ['github']}}],
+        ['fields the viewer has no filter for, so they can\'t filter it unseen', 'field.user_id=abc&field.caller=x&field.plugin_id=github', {fields: {plugin_id: ['github']}}],
     ])('should ignore %s', async (_, query, expected) => {
         fakeNow('2026-10-20T12:00:00Z');
         localStorage.setItem('mm_admin_logs_prefs', JSON.stringify({enabledLevels: ['error']}));

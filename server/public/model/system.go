@@ -125,6 +125,15 @@ type LogFilter struct {
 	Fields map[string][]string `json:"fields,omitempty"`
 }
 
+// logFilterFieldDetail names a rejected field in an error's details, cut to LogFilterFieldMaxLength
+// characters so an oversized key doesn't end up in full in the server log.
+func logFilterFieldDetail(key string) string {
+	if utf8.RuneCountInString(key) > LogFilterFieldMaxLength {
+		key = string([]rune(key)[:LogFilterFieldMaxLength]) + "…"
+	}
+	return "field=" + key
+}
+
 // IsValid validates the log filter. Empty date bounds mean "unbounded", so only
 // a non-empty value that cannot be parsed with LogFilterDateLayout is rejected.
 func (f *LogFilter) IsValid() *AppError {
@@ -155,16 +164,16 @@ func (f *LogFilter) IsValid() *AppError {
 	for key, values := range f.Fields {
 		// Level and timestamp have filters of their own
 		if key == "" || key == "level" || key == "timestamp" || utf8.RuneCountInString(key) > LogFilterFieldMaxLength {
-			return NewAppError("LogFilter.IsValid", "model.log_filter.is_valid.field_name.app_error", map[string]any{"MaxLength": LogFilterFieldMaxLength}, "field="+key, http.StatusBadRequest)
+			return NewAppError("LogFilter.IsValid", "model.log_filter.is_valid.field_name.app_error", map[string]any{"MaxLength": LogFilterFieldMaxLength}, logFilterFieldDetail(key), http.StatusBadRequest)
 		}
 
 		if len(values) == 0 || len(values) > LogFilterFieldMaxValues {
-			return NewAppError("LogFilter.IsValid", "model.log_filter.is_valid.field_values.app_error", map[string]any{"MaxValues": LogFilterFieldMaxValues}, "field="+key, http.StatusBadRequest)
+			return NewAppError("LogFilter.IsValid", "model.log_filter.is_valid.field_values.app_error", map[string]any{"MaxValues": LogFilterFieldMaxValues}, logFilterFieldDetail(key), http.StatusBadRequest)
 		}
 
 		for _, value := range values {
 			if utf8.RuneCountInString(value) > LogFilterFieldMaxLength {
-				return NewAppError("LogFilter.IsValid", "model.log_filter.is_valid.field_value.app_error", map[string]any{"MaxLength": LogFilterFieldMaxLength}, "field="+key, http.StatusBadRequest)
+				return NewAppError("LogFilter.IsValid", "model.log_filter.is_valid.field_value.app_error", map[string]any{"MaxLength": LogFilterFieldMaxLength}, logFilterFieldDetail(key), http.StatusBadRequest)
 			}
 		}
 	}
