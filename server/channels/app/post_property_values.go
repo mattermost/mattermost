@@ -194,7 +194,9 @@ func (a *App) CanSetPostPropertyValueOnCreate(rctx request.CTX, userID string, f
 // PreparePostForClient and before handlePostEvents, so nobody has been told the post exists
 // and nobody but the author can see it.
 func (a *App) setPostPropertyValuesOnCreate(rctx request.CTX, post *model.Post, values []*model.PropertyValue) *model.AppError {
-	rctx = rctxWithSessionCallerID(rctx)
+	// The permission hook behind UpsertPropertyValues loads the post to resolve its channel
+	// and author. The post was saved a moment ago, so a replica may not have it yet.
+	rctx = RequestContextWithMaster(rctxWithSessionCallerID(rctx))
 
 	for _, value := range values {
 		value.TargetID = post.Id
