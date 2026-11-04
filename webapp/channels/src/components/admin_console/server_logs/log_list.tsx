@@ -109,7 +109,7 @@ const messages = defineMessages({
     liveTailOff: {id: 'admin.logs.liveTail.off', defaultMessage: 'Off'},
     allNodes: {id: 'admin.logs.allNodes', defaultMessage: 'All nodes'},
     node: {id: 'admin.logs.node', defaultMessage: 'Node'},
-    allPlugins: {id: 'admin.logs.allPlugins', defaultMessage: 'All plugins'},
+    allLogs: {id: 'admin.logs.plugin.allLogs', defaultMessage: 'All logs'},
     plugin: {id: 'admin.logs.plugin', defaultMessage: 'Plugin'},
 });
 
@@ -550,7 +550,7 @@ export default function LogList({
         }
     };
 
-    let pluginMenuValue = intl.formatMessage(messages.allPlugins);
+    let pluginMenuValue = intl.formatMessage(messages.allLogs);
     if (selectedPlugins.length === 1) {
         pluginMenuValue = plugins.find((plugin) => plugin.id === selectedPlugins[0])?.name ?? selectedPlugins[0];
     } else if (selectedPlugins.length > 1) {
@@ -655,7 +655,7 @@ export default function LogList({
                         role='menuitemradio'
                         aria-checked={selectedPlugins.length === 0}
                         forceCloseOnSelect={true}
-                        labels={<FormattedMessage {...messages.allPlugins}/>}
+                        labels={<FormattedMessage {...messages.allLogs}/>}
                         trailingElements={selectedPlugins.length === 0 && <i className='icon icon-check'/>}
                         onClick={() => onSelectedPluginsChange([])}
                     />
