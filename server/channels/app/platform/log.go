@@ -527,11 +527,11 @@ func toLowerASCII(c byte) byte {
 
 // logFields is a LogFilter's field filters, ready for every line a query scans.
 type logFields struct {
-	values map[string]map[string]struct{}
+	values map[string]model.StringSet
 
-	// Each key as the log encoders write it before its value. A line whose raw bytes lack one
-	// can't have that field. Keys the encoders might escape have none.
-	raw [][]byte
+	// For each field, the bytes one of which a line that can match must contain: the field written
+	// with each of its values, or only the field's name when a value or name could be escaped.
+	raw [][][]byte
 }
 
 func newLogFields(logFilter *model.LogFilter) *logFields {
@@ -539,31 +539,61 @@ func newLogFields(logFilter *model.LogFilter) *logFields {
 		return nil
 	}
 
-	fields := &logFields{values: make(map[string]map[string]struct{}, len(logFilter.Fields))}
+	fields := &logFields{values: make(map[string]model.StringSet, len(logFilter.Fields))}
 	for key, values := range logFilter.Fields {
-		set := make(map[string]struct{}, len(values))
+		set := make(model.StringSet, len(values))
 		for _, value := range values {
-			set[value] = struct{}{}
+			set.Add(value)
 		}
 		fields.values[key] = set
 
-		if !strings.ContainsFunc(key, func(r rune) bool {
-			return r < 0x20 || r >= utf8.RuneSelf || strings.ContainsRune("\"\\<>&", r)
-		}) {
-			fields.raw = append(fields.raw, []byte(`"`+key+`":`))
+		if !isUnescaped(key) {
+			continue
+		}
+		prefix := `"` + key + `":`
+		if !slices.ContainsFunc(values, func(v string) bool { return !isUnescaped(v) }) {
+			// A value is written quoted when it's a string, and bare when it's a number or boolean
+			var written [][]byte
+			for _, value := range values {
+				written = append(written, []byte(prefix+`"`+value+`"`), []byte(prefix+value))
+			}
+			fields.raw = append(fields.raw, written)
+		} else {
+			fields.raw = append(fields.raw, [][]byte{[]byte(prefix)})
 		}
 	}
 
 	return fields
 }
 
-// rejectsRaw reports whether the line's raw bytes show it lacks one of the fields.
+// isUnescaped reports whether the log encoders write s as is inside a JSON string.
+func isUnescaped(s string) bool {
+	return !strings.ContainsFunc(s, func(r rune) bool {
+		return r < 0x20 || r >= utf8.RuneSelf || strings.ContainsRune("\"\\<>&", r)
+	})
+}
+
+// rejectsRaw reports whether the line's raw bytes show it can't match one of the fields.
 func (f *logFields) rejectsRaw(line []byte) bool {
 	if f == nil {
 		return false
 	}
-	for _, raw := range f.raw {
-		if !bytes.Contains(line, raw) {
+	for _, written := range f.raw {
+		if !slices.ContainsFunc(written, func(w []byte) bool { return bytes.Contains(line, w) }) {
+			return true
+		}
+	}
+	return false
+}
+
+// rejects reports whether the entry lacks one of the fields, or has a value other than the given ones.
+func (f *logFields) rejects(entry map[string]json.RawMessage) bool {
+	if f == nil {
+		return false
+	}
+	for key, values := range f.values {
+		raw, ok := entry[key]
+		if !ok || !values.Has(string(logValue(raw))) {
 			return true
 		}
 	}
@@ -583,16 +613,8 @@ func isLogFilteredByContent(search *logSearch, fields *logFields, line []byte) b
 		return true
 	}
 
-	if fields != nil {
-		for key, values := range fields.values {
-			raw, ok := entry[key]
-			if !ok {
-				return true
-			}
-			if _, ok := values[string(logValue(raw))]; !ok {
-				return true
-			}
-		}
+	if fields.rejects(entry) {
+		return true
 	}
 
 	if search == nil {

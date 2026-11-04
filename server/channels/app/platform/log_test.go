@@ -672,6 +672,12 @@ func TestIsLogFilteredByFields(t *testing.T) {
 		})
 	}
 
+	t.Run("the raw check skips decoding lines with other values", func(t *testing.T) {
+		assert.True(t, newLogFields(&model.LogFilter{Fields: map[string][]string{"plugin_id": {"jira"}}}).rejectsRaw(line))
+		assert.True(t, newLogFields(&model.LogFilter{Fields: map[string][]string{"count": {"8"}}}).rejectsRaw(line))
+		assert.False(t, newLogFields(&model.LogFilter{Fields: map[string][]string{"plugin_id": {"jira", "github"}}}).rejectsRaw(line))
+	})
+
 	t.Run("combines with the search", func(t *testing.T) {
 		fields := newLogFields(&model.LogFilter{Fields: map[string][]string{"plugin_id": {"github"}}})
 		assert.False(t, isLogFilteredByContent(newLogSearch(&model.LogFilter{Search: "webhook"}), fields, line))
