@@ -9,6 +9,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import type {EntityCard} from '@mattermost/types/posts';
 
 import {Client4} from 'mattermost-redux/client';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 
 import {showEntity} from 'actions/views/rhs';
@@ -28,7 +29,40 @@ type Props = {
     children?: React.ReactNode;
 };
 
-const timeCardCache = new Map<string, EntityCard>();
+type CardCacheEntry = {
+    card: EntityCard;
+    until: number;
+};
+
+const CARD_CACHE_TTL_MS = 5 * 60 * 1000;
+const CARD_CACHE_MAX = 200;
+const timeCardCache = new Map<string, CardCacheEntry>();
+
+function readCardCache(key: string): EntityCard | undefined {
+    const entry = timeCardCache.get(key);
+    if (!entry) {
+        return undefined;
+    }
+    if (entry.until <= Date.now()) {
+        timeCardCache.delete(key);
+        return undefined;
+    }
+    return entry.card;
+}
+
+function writeCardCache(key: string, card: EntityCard) {
+    if (timeCardCache.size >= CARD_CACHE_MAX) {
+        const oldest = timeCardCache.keys().next().value;
+        if (oldest !== undefined) {
+            timeCardCache.delete(oldest);
+        }
+    }
+    timeCardCache.set(key, {card, until: Date.now() + CARD_CACHE_TTL_MS});
+}
+
+export function clearEntityCardCache() {
+    timeCardCache.clear();
+}
 
 function entityHref(url?: string): string | undefined {
     if (!url || (/[\s\\]/).test(url) || url.includes('..')) {
@@ -117,6 +151,7 @@ export default function EntityMention({typeId, value, url, label: labelProp, tit
     const intl = useIntl();
     const timezone = useSelector(getCurrentTimezone);
     const military = useSelector(isUseMilitaryTime);
+    const currentUserId = useSelector(getCurrentUserId);
     const anchorRef = useRef<HTMLElement>(null);
     const cardRef = useRef<HTMLDivElement>(null);
     const openTimer = useRef<number | undefined>(undefined);
@@ -127,7 +162,7 @@ export default function EntityMention({typeId, value, url, label: labelProp, tit
     const [hoverCard, setHoverCard] = useState<EntityCard | null>(null);
     const safeURL = entityHref(url);
     const label = labelProp || entityLabel(typeId);
-    const cacheKey = `${typeId}\0${value}`;
+    const cacheKey = `${currentUserId}\0${typeId}\0${value}\0${postId || ''}\0${occurrence || ''}`;
 
     const clearTimers = () => {
         if (openTimer.current !== undefined) {
@@ -154,7 +189,7 @@ export default function EntityMention({typeId, value, url, label: labelProp, tit
         if (!open || !hasCard) {
             return undefined;
         }
-        const cached = timeCardCache.get(cacheKey);
+        const cached = readCardCache(cacheKey);
         if (cached) {
             setHoverCard(cached);
             return undefined;
@@ -164,7 +199,7 @@ export default function EntityMention({typeId, value, url, label: labelProp, tit
             if (cancel) {
                 return;
             }
-            timeCardCache.set(cacheKey, next);
+            writeCardCache(cacheKey, next);
             setHoverCard(next);
         }).catch(() => {
             if (!cancel) {

@@ -690,6 +690,9 @@ export function openAtPrevious(previous: any): ThunkActionFunc<unknown> {
             const post = getPost(getState(), previous.selectedPostCardId);
             return post ? dispatch(selectPostCardFromRightHandSideSearchWithPreviousState(post, previous.previousRhsState)) : dispatch(openRHSSearch());
         }
+        if (previous.isEntityView && previous.selectedEntity) {
+            return dispatch(showEntity(previous.selectedEntity));
+        }
         if (previous.searchVisible) {
             return dispatch(showSearchResults());
         }

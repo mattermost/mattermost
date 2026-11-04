@@ -299,6 +299,27 @@ func TestValueGroupLooksUpTheCapturedText(t *testing.T) {
 	require.Error(t, err)
 }
 
+func TestValueGroupSkipsWhenTheGroupDidNotParticipate(t *testing.T) {
+	const pluginID = "com.example.alt"
+	t.Cleanup(func() { RemovePlugin(pluginID) })
+	require.NoError(t, AddType(pluginID, &model.EntityType{ID: pluginID + ".mark", DisplayName: "Mark"}))
+	require.NoError(t, AddMatcher(pluginID, &model.EntityMatcher{
+		ID:         pluginID + ".mark.alt",
+		TypeID:     pluginID + ".mark",
+		Pattern:    `(?:FOO:([0-9]+)|BAR)`,
+		ValueGroup: 1,
+	}))
+
+	found, _ := Detect("see FOO:12 and BAR here")
+	require.Len(t, found, 1)
+	require.Equal(t, "12", found[0].Value)
+}
+
+func TestImpossibleRFC3339IsNotPublished(t *testing.T) {
+	found, _ := Detect("shipped 2024-99-99T99:99:99Z today")
+	require.Empty(t, found)
+}
+
 func TestValidateStopsAfterTheEntityCap(t *testing.T) {
 	const pluginID = "com.example.budget"
 	t.Cleanup(func() { RemovePlugin(pluginID) })

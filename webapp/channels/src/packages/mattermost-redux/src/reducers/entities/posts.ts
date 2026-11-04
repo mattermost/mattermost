@@ -216,7 +216,7 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAc
         const nextState = {...state};
         Object.keys(entitiesByPost || {}).forEach((id) => {
             const post = state[id];
-            if (!post || post.delete_at > 0) {
+            if (!post || post.delete_at > 0 || post.state === Posts.POST_DELETED) {
                 return;
             }
             changed = true;

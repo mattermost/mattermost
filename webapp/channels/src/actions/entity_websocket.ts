@@ -29,6 +29,13 @@ export function handleEntitiesDictionaryChanged(): ActionFuncAsync {
             return {data: false};
         }
         const ids = recent.slice(0, maxEntityPosts);
+        const requestedAt = new Map<string, number>();
+        ids.forEach((id) => {
+            const post = getPost(state, id);
+            if (post) {
+                requestedAt.set(id, post.update_at);
+            }
+        });
         const requestSeq = ++entityRequestSeq;
         let result: {posts: Record<string, PostEntity[]>};
         try {
@@ -39,7 +46,11 @@ export function handleEntitiesDictionaryChanged(): ActionFuncAsync {
         const fresh = getState();
         const entities: Record<string, PostEntity[]> = {};
         Object.keys(result.posts || {}).forEach((id) => {
-            if (!getPost(fresh, id)) {
+            const post = getPost(fresh, id);
+            if (!post) {
+                return;
+            }
+            if (requestedAt.get(id) !== post.update_at) {
                 return;
             }
             if ((appliedEntitySeq.get(id) ?? 0) > requestSeq) {

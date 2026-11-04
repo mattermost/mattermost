@@ -171,10 +171,15 @@ func (a *App) InitPlugins(rctx request.CTX, pluginDir, webappPluginDir string) {
 }
 
 func (ch *Channels) dropPluginEntities(id string) {
-	before := entities.TermEpoch()
+	beforeTerms := entities.TermEpoch()
+	beforePatterns := entities.PatternGeneration()
+	beforeProviders := entities.ProviderGeneration()
 	entities.RemovePlugin(id)
-	if after := entities.TermEpoch(); after != before {
-		New(ServerConnector(ch)).publishDictionaryChanged("", after)
+	afterTerms := entities.TermEpoch()
+	afterPatterns := entities.PatternGeneration()
+	afterProviders := entities.ProviderGeneration()
+	if afterTerms != beforeTerms || afterPatterns != beforePatterns || afterProviders != beforeProviders {
+		New(ServerConnector(ch)).publishDictionaryChanged("", afterTerms)
 	}
 }
 

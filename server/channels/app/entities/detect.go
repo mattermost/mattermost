@@ -95,6 +95,9 @@ func DetectAccepted(message string, accept func(pluginID, typeID, value string) 
 			if overlapsProtected(mask, fullStart, fullEnd) || !boundaryAllows(m.boundary, scanned, fullStart, fullEnd) {
 				continue
 			}
+			if groupMissing(loc, m.valueGroup) || groupMissing(loc, m.spanGroup) {
+				continue
+			}
 			start, end := groupSpan(loc, m.spanGroup, m.valueGroup)
 			valueStart, valueEnd := groupSpan(loc, m.valueGroup, 0)
 			if start < 0 || valueStart < 0 || start >= end {
@@ -103,6 +106,11 @@ func DetectAccepted(message string, accept func(pluginID, typeID, value string) 
 			value := scanned[valueStart:valueEnd]
 			if strings.ContainsAny(value, markdownMeta) || strings.ContainsAny(scanned[start:end], markdownMeta) {
 				continue
+			}
+			if m.typeID == coreTimeTypeID {
+				if _, err := parseCoreTime(value); err != nil {
+					continue
+				}
 			}
 			if m.validate {
 				if accept == nil {
@@ -449,6 +457,10 @@ func autolinkSuffix(r rune) bool {
 	default:
 		return unicode.IsSpace(r)
 	}
+}
+
+func groupMissing(loc []int, group int) bool {
+	return group > 0 && (group*2+1 >= len(loc) || loc[group*2] < 0)
 }
 
 func groupSpan(loc []int, group, fallback int) (int, int) {

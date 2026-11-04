@@ -27,7 +27,7 @@ import {focusElement, getFirstFocusableChild} from 'utils/a11y_utils';
 import Constants from 'utils/constants';
 import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
 
-import type {RhsState} from 'types/store/rhs';
+import type {EntitySelection, RhsState} from 'types/store/rhs';
 
 export type Props = {
     isExpanded: boolean;
@@ -48,6 +48,7 @@ export type Props = {
     isEntityView: boolean;
     previousRhsState: RhsState;
     rhsChannel?: Channel;
+    selectedEntity: EntitySelection | null;
     selectedPostId: string;
     selectedPostCardId: string;
     isSavedPosts?: boolean;
@@ -102,6 +103,8 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
             isChannelInfo: this.props.isChannelInfo,
             isChannelMembers: this.props.isChannelMembers,
             isPostEditHistory: this.props.isPostEditHistory,
+            isEntityView: this.props.isEntityView,
+            selectedEntity: this.props.selectedEntity,
             selectedPostId: this.props.selectedPostId,
             selectedPostCardId: this.props.selectedPostCardId,
             previousRhsState: this.props.previousRhsState,
