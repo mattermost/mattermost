@@ -14,6 +14,19 @@ export type LevelGroup = typeof LEVEL_GROUPS[number];
 // The server rejects longer terms (model.LogFilterSearchMaxLength)
 export const SEARCH_MAX_LENGTH = 256;
 
+// The server's limits on field filters (model.LogFilterFieldsMaxKeys, LogFilterFieldMaxValues, LogFilterFieldMaxLength)
+export const FIELDS_MAX_KEYS = 10;
+export const FIELD_MAX_VALUES = 20;
+export const FIELD_MAX_LENGTH = 256;
+
+// The field every plugin's log entries carry
+export const PLUGIN_ID_FIELD = 'plugin_id';
+
+// Level and timestamp have filters of their own, so the server rejects them as field filters
+export function isFilterableField(key: string): boolean {
+    return key !== '' && key !== 'level' && key !== 'timestamp' && Array.from(key).length <= FIELD_MAX_LENGTH;
+}
+
 const GROUP_LEVELS: Record<LevelGroup, readonly LogLevelEnum[]> = {
     error: [LogLevelEnum.PANIC, LogLevelEnum.FATAL, LogLevelEnum.CRITICAL, LogLevelEnum.ERROR],
     warn: [LogLevelEnum.WARN],

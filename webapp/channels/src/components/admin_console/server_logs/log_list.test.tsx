@@ -9,7 +9,7 @@ import {fakeNow} from 'tests/helpers/date';
 import {renderWithContext, fireEvent, screen, waitFor, within} from 'tests/react_testing_utils';
 
 import LogList, {loadPrefs} from './log_list';
-import type {LogObjectWithAdditionalInfo} from './types';
+import type {LogObjectWithAdditionalInfo, PluginOption} from './types';
 
 const PREFS_KEY = 'mm_admin_logs_prefs';
 
@@ -70,6 +70,9 @@ const baseProps = {
     nodes: [] as string[],
     selectedNode: '',
     onSelectedNodeChange: jest.fn(),
+    plugins: [] as PluginOption[],
+    selectedPlugins: [] as string[],
+    onSelectedPluginsChange: jest.fn(),
 };
 
 // Holds the levels the way Logs does, since LogList only renders them

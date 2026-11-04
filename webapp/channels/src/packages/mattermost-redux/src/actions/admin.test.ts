@@ -56,6 +56,21 @@ describe('Actions.Admin', () => {
         expect(store.getState().entities.admin.logs).toEqual({default: [{level: 'info', msg: 'Websocket closed'}]});
     });
 
+    it('getLogs sends field filters, leaving out fields without values', async () => {
+        let body;
+        nock(Client4.getBaseRoute()).
+            post('/logs/query', (b) => {
+                body = b;
+                return true;
+            }).
+            query(true).
+            reply(200, {default: []});
+
+        await store.dispatch(Actions.getLogs({serverNames: [], logLevels: [], dateFrom: '', dateTo: '', fields: {plugin_id: ['github', 'mattermost-ai'], user_id: []}}));
+
+        expect(body).toEqual({server_names: [], log_levels: [], date_from: '', date_to: '', search: '', fields: {plugin_id: ['github', 'mattermost-ai']}});
+    });
+
     it('getPlainLogs', async () => {
         nock(Client4.getBaseRoute()).
             get('/logs').

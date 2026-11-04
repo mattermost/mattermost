@@ -18197,6 +18197,26 @@
     "description": "API error (400) returned to a system admin filtering server logs in the System Console when the end-date filter is unparseable. {{.Layout}} is the expected date format pattern (a Go time layout string) and must not be translated."
   },
   {
+    "id": "model.log_filter.is_valid.field_name.app_error",
+    "translation": "Invalid field filter. A field name must be at most {{.MaxLength}} characters, and can't be empty, \"level\" or \"timestamp\".",
+    "description": "API error (400) returned to a system admin filtering server logs in the System Console by a log field, such as a plugin ID, when the field name is not allowed. {{.MaxLength}} is the maximum number of characters. \"level\" and \"timestamp\" are log field names and must not be translated."
+  },
+  {
+    "id": "model.log_filter.is_valid.field_value.app_error",
+    "translation": "Invalid field filter. A field value must be at most {{.MaxLength}} characters.",
+    "description": "API error (400) returned to a system admin filtering server logs in the System Console by a log field, such as a plugin ID, when a value is too long. {{.MaxLength}} is the maximum number of characters."
+  },
+  {
+    "id": "model.log_filter.is_valid.field_values.app_error",
+    "translation": "Invalid field filter. Each field must have between 1 and {{.MaxValues}} values.",
+    "description": "API error (400) returned to a system admin filtering server logs in the System Console by a log field, such as a plugin ID, when a field has no values or too many. {{.MaxValues}} is the maximum number of values."
+  },
+  {
+    "id": "model.log_filter.is_valid.fields.app_error",
+    "translation": "Invalid field filter. At most {{.MaxKeys}} fields can be filtered on.",
+    "description": "API error (400) returned to a system admin filtering server logs in the System Console by log fields, such as a plugin ID, when too many fields are given. {{.MaxKeys}} is the maximum number of fields."
+  },
+  {
     "id": "model.log_filter.is_valid.search.app_error",
     "translation": "Invalid search filter. It must be at most {{.MaxLength}} characters.",
     "description": "API error (400) returned to a system admin searching server logs in the System Console when the search term is too long. {{.MaxLength}} is the maximum number of characters."

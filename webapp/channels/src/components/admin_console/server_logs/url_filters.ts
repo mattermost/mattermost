@@ -1,8 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {LogFieldFilters} from '@mattermost/types/admin';
+
 import type {TimeRange} from './types';
-import {LEVEL_GROUPS, SEARCH_MAX_LENGTH} from './utils';
+import {FIELDS_MAX_KEYS, FIELD_MAX_LENGTH, FIELD_MAX_VALUES, LEVEL_GROUPS, SEARCH_MAX_LENGTH, isFilterableField} from './utils';
 import type {LevelGroup} from './utils';
 
 // Only the filters are shared. Live tail and display preferences stay with each browser
@@ -11,9 +13,13 @@ export type UrlFilters = {
     enabledLevels: Set<string>;
     node: string;
     timeRange: TimeRange;
+    fields: LogFieldFilters;
 };
 
 const PARAMS = ['search', 'levels', 'node', 'range', 'from', 'to'] as const;
+
+// A field filter is one parameter per value, such as field.plugin_id=github
+const FIELD_PARAM_PREFIX = 'field.';
 
 // An offset is required so a shared range means the same moment in every timezone
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d{1,3})?)?(Z|[+-]\d{2}:\d{2})$/;
@@ -68,16 +74,45 @@ export function parseUrlFilters(query: string, presetMinutes: readonly number[])
         filters.timeRange = range;
     }
 
+    const fields = parseFields(params);
+    if (Object.keys(fields).length) {
+        filters.fields = fields;
+    }
+
     return filters;
+}
+
+// Leaves out what the server would reject, keeping the first fields and values up to its limits
+function parseFields(params: URLSearchParams): LogFieldFilters {
+    const fields: LogFieldFilters = {};
+    for (const [param, value] of params) {
+        if (!param.startsWith(FIELD_PARAM_PREFIX) || !value || Array.from(value).length > FIELD_MAX_LENGTH) {
+            continue;
+        }
+        const key = param.slice(FIELD_PARAM_PREFIX.length);
+        if (!isFilterableField(key)) {
+            continue;
+        }
+        const values = fields[key];
+        if (values) {
+            if (values.length < FIELD_MAX_VALUES && !values.includes(value)) {
+                values.push(value);
+            }
+        } else if (Object.keys(fields).length < FIELDS_MAX_KEYS) {
+            fields[key] = [value];
+        }
+    }
+    return fields;
 }
 
 // Keeps any other parameters, and leaves out filters at their defaults. Null removes every filter
 export function withUrlFilters(query: string, filters: UrlFilters | null): string {
     const params = new URLSearchParams(query);
     PARAMS.forEach((param) => params.delete(param));
+    Array.from(params.keys()).filter((param) => param.startsWith(FIELD_PARAM_PREFIX)).forEach((param) => params.delete(param));
 
     if (filters) {
-        const {search, enabledLevels, node, timeRange} = filters;
+        const {search, enabledLevels, node, timeRange, fields} = filters;
         if (search) {
             params.set('search', search);
         }
@@ -93,6 +128,9 @@ export function withUrlFilters(query: string, filters: UrlFilters | null): strin
             params.set('from', new Date(timeRange.from).toISOString());
             params.set('to', new Date(timeRange.to).toISOString());
         }
+        Object.entries(fields).forEach(([key, values]) => {
+            values.forEach((value) => params.append(FIELD_PARAM_PREFIX + key, value));
+        });
     }
 
     // Commas and colons are allowed in a query string, and keep shared links readable

@@ -35,14 +35,21 @@ import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
 
 import {General} from '../constants';
 
-function toLogFilterQuery({serverNames = [], logLevels = [], dateFrom, dateTo, search = ''}: LogFilter): LogFilterQuery {
-    return {
+function toLogFilterQuery({serverNames = [], logLevels = [], dateFrom, dateTo, search = '', fields}: LogFilter): LogFilterQuery {
+    const query: LogFilterQuery = {
         server_names: serverNames,
         log_levels: logLevels,
         date_from: dateFrom,
         date_to: dateTo,
         search,
     };
+
+    // The server rejects a field without values, so those are left out
+    const fieldEntries = Object.entries(fields ?? {}).filter(([, values]) => values.length > 0);
+    if (fieldEntries.length) {
+        query.fields = Object.fromEntries(fieldEntries);
+    }
+    return query;
 }
 
 export function getLogs(logFilter: LogFilter) {

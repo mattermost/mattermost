@@ -5,12 +5,16 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-import {getLogs, getNewLogs, getPlainLogs} from 'mattermost-redux/actions/admin';
+import {getLogs, getNewLogs, getPlainLogs, getPlugins} from 'mattermost-redux/actions/admin';
+import {Permissions} from 'mattermost-redux/constants';
 import * as Selectors from 'mattermost-redux/selectors/entities/admin';
+import {haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
 
 import type {GlobalState} from 'types/store';
 
 import Logs from './logs';
+
+const NO_PLUGINS = {};
 
 function mapStateToProps(state: GlobalState) {
     const config = Selectors.getConfig(state);
@@ -21,6 +25,8 @@ function mapStateToProps(state: GlobalState) {
         truncatedLogNodes: Selectors.getTruncatedLogNodes(state),
         plainLogs: Selectors.getPlainLogs(state),
         isPlainLogs: config.LogSettings?.FileJson === false,
+        plugins: state.entities.admin.plugins ?? NO_PLUGINS,
+        canReadPlugins: haveISystemPermission(state, {permission: Permissions.SYSCONSOLE_READ_PLUGINS}),
     };
 }
 
@@ -30,6 +36,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             getLogs,
             getNewLogs,
             getPlainLogs,
+            getPlugins,
         }, dispatch),
     };
 }

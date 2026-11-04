@@ -139,6 +139,7 @@ const logDateFromStopEntries = 100
 func (ps *PlatformService) GetLogsSkipSend(rctx request.CTX, page, perPage int, logFilter *model.LogFilter) ([]string, *model.AppError) {
 	var lines []string
 	search := newLogSearch(logFilter)
+	fields := newLogFields(logFilter)
 
 	if *ps.Config().LogSettings.EnableFile {
 		ps.Log().Flush()
@@ -201,8 +202,8 @@ func (ps *PlatformService) GetLogsSkipSend(rctx request.CTX, page, perPage int, 
 				continue
 			}
 
-			// A line that can't hold the search term needs no decoding, unless the date scan counts it
-			filtered := search.rejectsRaw(line)
+			// A line that can't match the search or fields needs no decoding, unless the date scan counts it
+			filtered := search.rejectsRaw(line) || fields.rejectsRaw(line)
 			if filtered && !hasDateFrom {
 				continue
 			}
@@ -228,7 +229,7 @@ func (ps *PlatformService) GetLogsSkipSend(rctx request.CTX, page, perPage int, 
 				filtered = isLogFilteredByLevel(logFilter, entry) || filtered
 				filtered = isLogFilteredByDate(rctx, logFilter, entry) || filtered
 			}
-			filtered = filtered || isLogFilteredBySearch(search, line)
+			filtered = filtered || isLogFilteredByContent(search, fields, line)
 
 			if !filtered {
 				lines = append(lines, string(line))
@@ -524,32 +525,97 @@ func toLowerASCII(c byte) byte {
 	return c
 }
 
-// isLogFilteredBySearch reports whether no value except level and timestamp contains the search
-// term. Values that aren't strings are compared as their JSON.
-func isLogFilteredBySearch(search *logSearch, line []byte) bool {
+// logFields is a LogFilter's field filters, ready for every line a query scans.
+type logFields struct {
+	values map[string]map[string]struct{}
+
+	// Each key as the log encoders write it before its value. A line whose raw bytes lack one
+	// can't have that field. Keys the encoders might escape have none.
+	raw [][]byte
+}
+
+func newLogFields(logFilter *model.LogFilter) *logFields {
+	if logFilter == nil || len(logFilter.Fields) == 0 {
+		return nil
+	}
+
+	fields := &logFields{values: make(map[string]map[string]struct{}, len(logFilter.Fields))}
+	for key, values := range logFilter.Fields {
+		set := make(map[string]struct{}, len(values))
+		for _, value := range values {
+			set[value] = struct{}{}
+		}
+		fields.values[key] = set
+
+		if !strings.ContainsFunc(key, func(r rune) bool {
+			return r < 0x20 || r >= utf8.RuneSelf || strings.ContainsRune("\"\\<>&", r)
+		}) {
+			fields.raw = append(fields.raw, []byte(`"`+key+`":`))
+		}
+	}
+
+	return fields
+}
+
+// rejectsRaw reports whether the line's raw bytes show it lacks one of the fields.
+func (f *logFields) rejectsRaw(line []byte) bool {
+	if f == nil {
+		return false
+	}
+	for _, raw := range f.raw {
+		if !bytes.Contains(line, raw) {
+			return true
+		}
+	}
+	return false
+}
+
+// isLogFilteredByContent reports whether the line fails the search or the field filters.
+// The search must be found in a value other than level and timestamp, and every field must equal
+// one of its values. Values that aren't strings are compared as their JSON.
+func isLogFilteredByContent(search *logSearch, fields *logFields, line []byte) bool {
+	if search == nil && fields == nil {
+		return false
+	}
+
+	var entry map[string]json.RawMessage
+	if err := json.Unmarshal(line, &entry); err != nil {
+		return true
+	}
+
+	if fields != nil {
+		for key, values := range fields.values {
+			raw, ok := entry[key]
+			if !ok {
+				return true
+			}
+			if _, ok := values[string(logValue(raw))]; !ok {
+				return true
+			}
+		}
+	}
+
 	if search == nil {
 		return false
 	}
 
-	var fields map[string]json.RawMessage
-	if err := json.Unmarshal(line, &fields); err != nil {
-		return true
-	}
-
-	for key, raw := range fields {
+	for key, raw := range entry {
 		if key == "level" || key == "timestamp" {
 			continue
 		}
-
-		value := []byte(raw)
-		var s string
-		if len(raw) > 0 && raw[0] == '"' && json.Unmarshal(raw, &s) == nil {
-			value = []byte(s)
-		}
-		if containsFold(value, search.term) {
+		if containsFold(logValue(raw), search.term) {
 			return false
 		}
 	}
 
 	return true
+}
+
+// logValue returns a decoded string value, or any other value as its JSON.
+func logValue(raw json.RawMessage) []byte {
+	var s string
+	if len(raw) > 0 && raw[0] == '"' && json.Unmarshal(raw, &s) == nil {
+		return []byte(s)
+	}
+	return raw
 }

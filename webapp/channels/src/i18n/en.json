@@ -9579,6 +9579,10 @@
     "defaultMessage": "All nodes",
     "description": "Option in the node selector on the System Console Server Logs page; shows log entries from every node in the cluster."
   },
+  "admin.logs.allPlugins": {
+    "defaultMessage": "All plugins",
+    "description": ""
+  },
   "admin.logs.clearFilters": {
     "defaultMessage": "Clear filters",
     "description": "Link shown when no log entries match the filters on the System Console Server Logs page; resets all filters."
@@ -9850,6 +9854,22 @@
   "admin.logs.plain.pageInfo": {
     "defaultMessage": "Showing page {page, number} · {count, plural, one {# line} other {# lines}}",
     "description": "Status line in the plain text log viewer on the System Console Server Logs page; shows the current page and how many log lines it holds."
+  },
+  "admin.logs.plugin": {
+    "defaultMessage": "Plugin",
+    "description": ""
+  },
+  "admin.logs.plugin.dropdownAriaLabel": {
+    "defaultMessage": "Plugin menu",
+    "description": ""
+  },
+  "admin.logs.plugin.menuButtonAriaLabel": {
+    "defaultMessage": "Open menu to select which plugins to show logs from",
+    "description": ""
+  },
+  "admin.logs.plugin.selected": {
+    "defaultMessage": "{count} plugins",
+    "description": ""
   },
   "admin.logs.pollInterval.10s": {
     "defaultMessage": "Every 10 seconds",
