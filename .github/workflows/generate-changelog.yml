@@ -307,6 +307,7 @@ jobs:
           PR_NUMBER: ${{ steps.pr.outputs.number }}
           CHANGED: ${{ steps.generate.outputs.changed }}
           BODY_CHANGED: ${{ steps.generate.outputs.body_changed }}
+          READ_BODY_FILE: ${{ steps.pr.outputs.body_file }}
           ADDED_PRS: ${{ steps.generate.outputs.added_prs }}
           ADDED_DERIVED: ${{ steps.generate.outputs.added_derived }}
           CORRECTED: ${{ steps.generate.outputs.corrected }}
@@ -321,8 +322,15 @@ jobs:
             if [ "$CHANGED" != "true" ]; then
               # The text is unchanged, but the body may list notes the model left out.
               if [ "$BODY_CHANGED" = "true" ]; then
-                gh pr edit "$PR_NUMBER" --repo mattermost/mattermost --body-file "$BODY_FILE"
-                echo "No new release notes in the text — updated the body of changelog PR #$PR_NUMBER"
+                # The new body was built from the copy read at the start of the run, so a
+                # reviewer's edit since then would be lost. Skip if the body has moved.
+                gh pr view "$PR_NUMBER" --repo mattermost/mattermost --json body --jq .body > "$RUNNER_TEMP/changelog-pr-body-now.md"
+                if cmp -s "$READ_BODY_FILE" "$RUNNER_TEMP/changelog-pr-body-now.md"; then
+                  gh pr edit "$PR_NUMBER" --repo mattermost/mattermost --body-file "$BODY_FILE"
+                  echo "No new release notes in the text — updated the body of changelog PR #$PR_NUMBER"
+                else
+                  echo "::warning title=Changelog PR body not updated::The body of PR #$PR_NUMBER was edited during the run, so the list of notes the model left out was not written. Re-run to refresh it."
+                fi
               else
                 echo "No new release notes — changelog PR #$PR_NUMBER left unchanged"
               fi

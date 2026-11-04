@@ -922,5 +922,41 @@ class MainTest(unittest.TestCase):
         self.assertIn("body_changed=true", (self.tmp / "gh_output").read_text())
 
 
+class RetryFilterTest(unittest.TestCase):
+    def _kept(self, text, wanted):
+        return gc.keep_requested_bullets(gc.normalize_formatting(text), wanted)
+
+    def test_star_bullets_and_continuation_markers_are_judged_like_dash_bullets(self):
+        kept = self._kept("### Bug Fixes\n* Repeated star bullet. [[N1]]\n + Repeated with\n   a late marker. [[N1]]\n"
+                          " - Wanted. [[N2]]\n", {"N2"})
+        self.assertNotIn("Repeated", kept)
+        self.assertIn("Wanted.", kept)
+
+    def test_an_unmarked_bullet_is_kept_only_as_the_parent_of_a_wanted_one(self):
+        text = ("### Upgrade Impact\n#### config.json\n - **Changes to All plans:**\n   - Added `X`. [[N2]]\n"
+                " - Standalone and unmarked.\n - **Other plan:**\n   - Repeated. [[N1]]\n")
+        kept = self._kept(text, {"N2"})
+        self.assertIn("**Changes to All plans:**", kept)
+        self.assertIn("Added `X`.", kept)
+        self.assertNotIn("Standalone", kept)
+        self.assertNotIn("Other plan", kept)
+        self.assertNotIn("Repeated", kept)
+
+
+class GoVersionPruneTest(unittest.TestCase):
+    def test_a_note_only_under_go_version_is_dropped_even_when_its_pr_has_another_bullet(self):
+        notes = [{"id": "N1", "source": "mattermost/mattermost#1", "text": "a"},
+                 {"id": "N2", "source": "mattermost/mattermost#1", "text": "b"}]
+        sources = {n["id"]: n["source"] for n in notes}
+        gc.polish_with_ai, saved = (lambda n: ("### Bug Fixes\n - Fixed it. [[N1]]\n### Go Version\n - Go bump. [[N2]]\n", True)), gc.polish_with_ai
+        try:
+            _, items, referenced, _ = gc.render_fragment(notes, sources)
+        finally:
+            gc.polish_with_ai = saved
+        self.assertEqual(referenced, {"N1"})
+        self.assertEqual([item["section"] for item in items], ["Bug Fixes"])
+        self.assertEqual([n["id"] for n in gc.dropped_notes(notes, referenced)], ["N2"])
+
+
 if __name__ == "__main__":
     unittest.main()
