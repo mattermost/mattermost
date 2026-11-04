@@ -105,7 +105,7 @@ func normalizeEntityCardMap(drawing *EntityCardMap) *EntityCardMap {
 		if len(points) >= limit {
 			break
 		}
-		if point.Lat < -90 || point.Lat > 90 || point.Lon < -180 || point.Lon > 180 {
+		if point.Lat != point.Lat || point.Lon != point.Lon || point.Lat < -90 || point.Lat > 90 || point.Lon < -180 || point.Lon > 180 {
 			continue
 		}
 		points = append(points, point)

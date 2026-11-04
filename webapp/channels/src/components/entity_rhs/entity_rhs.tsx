@@ -24,12 +24,14 @@ function isRich(card: EntityCard) {
     return Boolean(
         card.summary ||
         card.score ||
+        card.severity ||
         card.exploited ||
         card.rows?.length ||
         card.vector?.length ||
         card.related?.length ||
         card.sections?.length ||
-        card.map?.points?.length,
+        card.map?.points?.length ||
+        card.map?.geojson,
     );
 }
 
@@ -86,10 +88,10 @@ export default function EntityRhs() {
     }
 
     const openEntity = (target: EntityOpenTarget) => {
-        setDeeper((stack) => [...stack, {...target, postId: entity.postId}]);
+        setDeeper((stack) => [...stack, target]);
     };
 
-    const entityURL = entity.url && (entity.url.startsWith('https://') || (entity.url.startsWith('/') && !entity.url.startsWith('//') && !entity.url.includes('..'))) ? entity.url : undefined;
+    const entityURL = trail.length === 0 && entity.url && (entity.url.startsWith('https://') || (entity.url.startsWith('/') && !entity.url.startsWith('//') && !entity.url.includes('..'))) ? entity.url : undefined;
     const url = (card?.url && (card.url.startsWith('https://') || (card.url.startsWith('/') && !card.url.startsWith('//') && !card.url.includes('..'))) ? card.url : undefined) || entityURL;
 
     return (

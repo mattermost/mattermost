@@ -377,6 +377,10 @@ func capturingGroup(pattern string, want int) (string, bool) {
 			i++
 			continue
 		}
+		if pattern[i] == '[' {
+			i = endOfBracketClass(pattern, i)
+			continue
+		}
 		if pattern[i] != '(' {
 			continue
 		}
@@ -399,6 +403,19 @@ func capturingOpen(pattern string, i int) bool {
 	return i+3 < len(pattern) && pattern[i+2] == 'P' && pattern[i+3] == '<'
 }
 
+func endOfBracketClass(pattern string, open int) int {
+	for i := open + 1; i < len(pattern); i++ {
+		if pattern[i] == '\\' {
+			i++
+			continue
+		}
+		if pattern[i] == ']' {
+			return i
+		}
+	}
+	return len(pattern) - 1
+}
+
 func groupBody(pattern string, open int) (string, bool) {
 	start := open + 1
 	if capturingOpen(pattern, open) && open+1 < len(pattern) && pattern[open+1] == '?' {
@@ -412,6 +429,10 @@ func groupBody(pattern string, open int) (string, bool) {
 	for i := open; i < len(pattern); i++ {
 		if pattern[i] == '\\' {
 			i++
+			continue
+		}
+		if pattern[i] == '[' {
+			i = endOfBracketClass(pattern, i)
 			continue
 		}
 		switch pattern[i] {

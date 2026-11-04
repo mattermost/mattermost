@@ -148,7 +148,7 @@ export default class PostMarkdown extends React.PureComponent<Props> {
                 this.props.post?.edit_at,
                 this.props?.renderEmoticonsAsEmoji,
             ),
-            entities: this.props.post?.metadata?.entities,
+            entities: this.props.post && message === this.props.post.message ? this.props.post.metadata?.entities : undefined,
         };
 
         let highlightKeys;
