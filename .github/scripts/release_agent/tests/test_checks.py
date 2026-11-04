@@ -291,6 +291,124 @@ class NewRegressionsTest(unittest.TestCase):
         self.assertIsNone(leads.lead_for(issue("MM-1", team="Workflows", components=["Bookmarks Bar"])["fields"]))
 
 
+class FailingHub(FakeHub):
+    """A Hub whose every lookup raises, counting the calls."""
+
+    def __init__(self, fail_first=None):
+        super().__init__()
+        self.fail_first, self.calls = fail_first, 0
+
+    def _maybe_fail(self):
+        self.calls += 1
+        if self.fail_first is None or self.calls <= self.fail_first:
+            raise RuntimeError("Hub is down")
+
+    def user_by_username(self, username):
+        self._maybe_fail()
+        return super().user_by_username(username)
+
+    def user_by_email(self, email):
+        self._maybe_fail()
+        return super().user_by_email(email)
+
+    def search_users(self, term):
+        self._maybe_fail()
+        return super().search_users(term)
+
+
+class HubLookupFailureTest(unittest.TestCase):
+    def owners(self, hub, *issues):
+        jira = FakeJira({"fixVersion": list(issues)})
+        result = checks.open_release_items(context(jira=jira, hub=hub), RULES["open-release-items"])
+        return [i.owner for i in result.items]
+
+    def test_a_failed_lookup_says_hub_couldnt_be_checked_not_that_the_user_is_missing(self):
+        hub = FailingHub()
+        self.assertEqual(self.owners(hub, issue("MM-1", assignee="Ann Lee", email="ann@example.com"), issue("MM-2", team="Calls")),
+                         ["Ann Lee (couldn't check Hub)", "Jesse Hallam (couldn't check Hub)"])
+
+    def test_a_user_who_is_not_on_hub_is_still_not_found(self):
+        hub = FakeHub()
+        self.assertEqual(self.owners(hub, issue("MM-1", assignee="Ann Lee", email="ann@example.com")), ["Ann Lee (no Hub user found)"])
+
+    def test_the_lookup_is_retried_once(self):
+        hub = FailingHub(fail_first=1)
+        hub.users = [{"username": "jesse.hallam", "first_name": "Jesse", "last_name": "Hallam"}]
+        self.assertEqual(self.owners(hub, issue("MM-1", team="Calls")), ["@jesse.hallam"])
+        self.assertEqual(hub.calls, 2)
+
+    def test_it_gives_up_after_the_retry_and_does_not_ask_again_for_the_same_person(self):
+        hub = FailingHub()
+        self.owners(hub, issue("MM-1", team="Calls"), issue("MM-2", team="Calls"))
+        self.assertEqual(hub.calls, 2)
+
+    def test_a_missing_user_is_not_retried(self):
+        hub = FailingHub(fail_first=0)
+        self.owners(hub, issue("MM-1", team="Calls"))
+        self.assertEqual(hub.calls, 1)
+
+    def test_a_failed_lookup_raises_no_dev_lead_flag_for_a_missing_account(self):
+        rules_doc = {"rules": [{"query": {"dev_leads": {"routes": [{"teams": ["X"], "username": "a", "name": "A Lead"}]}}}]}
+        flags = checks.dev_lead_flags(rules_doc, FailingHub())
+        self.assertEqual(flags, ["Couldn't check that dev lead A Lead (`a`) is on Hub."])
+        self.assertFalse(any("no Hub account" in flag for flag in flags))
+
+    def test_the_dev_lead_check_is_retried_once_too(self):
+        hub = FailingHub(fail_first=1)
+        hub.users = [{"username": "a", "first_name": "", "last_name": ""}]
+        rules_doc = {"rules": [{"query": {"dev_leads": {"routes": [{"teams": ["X"], "username": "a"}]}}}]}
+        self.assertEqual((checks.dev_lead_flags(rules_doc, hub), hub.calls), ([], 2))
+
+
+class TruncatedSearchTest(unittest.TestCase):
+    """A search cut short makes the check an error: it can't confirm, so it must never pass."""
+
+    def pages(self, total, key="items"):
+        out = []
+        for start in range(0, total, 100):
+            items = [{"number": start + n, "title": "t", "state": "closed", "html_url": "u", "user": {"login": "d"},
+                      "assignees": [], "pull_request": {"merged_at": "2026-10-20T00:00:00Z"}}
+                     for n in range(min(100, total - start))]
+            out.append(({}, {"total_count": total, "incomplete_results": False, "items": items}))
+        return out
+
+    def github(self, total, searches=1):
+        from release_agent.clients import GitHub
+        from release_agent.tests.test_clients import RecordingHttp
+        return GitHub("t", RecordingHttp(self.pages(total) * searches))
+
+    def test_more_than_100_prs_in_a_milestone_are_all_checked(self):
+        # The check searches two repos, 130 PRs each.
+        result = checks.changelog_labels(context(self.github(130, searches=2)), RULES["changelog-labels"])
+        self.assertEqual((result.status, len(result.items)), (checks.FAIL, 260))
+
+    def test_a_search_over_the_limit_is_an_error_never_a_pass(self):
+        from release_agent import agent, posting
+        outcome = agent.evaluate(context(self.github(1500)), RULES["changelog-labels"], date(2026, 10, 28), date(2026, 11, 4))
+        self.assertEqual(outcome.state, posting.ERROR)
+        self.assertEqual(outcome.error, "GitHub results truncated at 1000, can't confirm")
+        self.assertIsNone(outcome.result)
+
+    def test_more_than_50_jira_issues_are_all_listed(self):
+        from release_agent.clients import Jira
+        from release_agent.tests.test_clients import RecordingHttp
+        issues = [{"key": f"MM-{n}", "fields": {"summary": "s", "status": {"name": "Open"}, "assignee": None,
+                                                 "components": [], "fixVersions": [], "labels": []}} for n in range(120)]
+        pages = [({}, {"issues": issues[i:i + 50], "nextPageToken": "t", "isLast": i + 50 >= 120}) for i in range(0, 120, 50)]
+        jira = Jira("https://jira", "e", "t", RecordingHttp(pages))
+        result = checks.resolved_tickets(context(jira=jira), RULES["resolved-tickets"])
+        self.assertEqual((result.status, len(result.items)), (checks.FAIL, 120))
+
+    def test_a_jira_search_over_the_limit_is_an_error(self):
+        from release_agent import agent, posting
+        from release_agent.clients import Jira
+        from release_agent.tests.test_clients import RecordingHttp
+        page = lambda n: ({}, {"issues": [{"key": f"MM-{n}-{i}", "fields": {}} for i in range(100)], "nextPageToken": "t", "isLast": False})
+        jira = Jira("https://jira", "e", "t", RecordingHttp([page(n) for n in range(11)]))
+        outcome = agent.evaluate(context(jira=jira), RULES["resolved-tickets"], date(2026, 11, 9), date(2026, 11, 10))
+        self.assertEqual((outcome.state, outcome.error), (posting.ERROR, "Jira results truncated at 1000, can't confirm"))
+
+
 class DevLeadFlagsTest(unittest.TestCase):
     RULES_DOC = {"rules": [{"query": {"dev_leads": {"routes": [
         {"teams": ["Calls"], "username": "jesse.hallam", "name": "Jesse Hallam"},

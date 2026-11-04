@@ -4,7 +4,7 @@ import unittest
 import urllib.error
 from unittest import mock
 
-from release_agent.clients import Confluence, GitHub, Http, Jira, Mattermost, Playbooks, ServiceError, error_message
+from release_agent.clients import Confluence, GitHub, Http, Jira, Mattermost, Playbooks, ServiceError, TruncatedError, error_message
 
 
 class RecordingHttp(Http):
@@ -71,6 +71,39 @@ class GitHubTest(unittest.TestCase):
         http = RecordingHttp([({}, {"tree": [{"path": "other", "type": "tree", "sha": "s1"}]})])
         self.assertEqual(GitHub("t", http).tree_files("o/r", "v1.0.0", "server/db"), set())
 
+    def search_pages(self, total, sizes=(100,)):
+        """Responses of a search with ``total`` results, ``sizes`` per page, then 100 each."""
+        pages, left, size = [], total, iter(sizes)
+        while left > 0:
+            take = min(next(size, 100), left)
+            pages.append(({}, {"total_count": total, "incomplete_results": False, "items": [{"n": 1}] * take}))
+            left -= take
+        return pages
+
+    def test_a_search_of_more_than_100_results_is_read_in_full(self):
+        http = RecordingHttp(self.search_pages(250))
+        self.assertEqual(len(GitHub("t", http).search_issues("q")), 250)
+        self.assertEqual([c[2]["page"] for c in http.calls], [1, 2, 3])
+
+    def test_results_past_githubs_1000_limit_are_an_error_not_a_pass(self):
+        http = RecordingHttp(self.search_pages(1500))
+        with self.assertRaises(TruncatedError) as raised:
+            GitHub("t", http).search_issues("q")
+        self.assertEqual(str(raised.exception), "GitHub results truncated at 1000, can't confirm")
+        self.assertEqual(len(http.calls), 10)
+
+    def test_exactly_1000_results_are_all_there_is(self):
+        self.assertEqual(len(GitHub("t", RecordingHttp(self.search_pages(1000))).search_issues("q")), 1000)
+
+    def test_incomplete_results_are_an_error(self):
+        http = RecordingHttp([({}, {"total_count": 3, "incomplete_results": True, "items": [{}] * 2})])
+        with self.assertRaisesRegex(TruncatedError, "truncated at 2"):
+            GitHub("t", http).search_issues("q")
+
+    def test_a_smaller_limit_is_enforced_too(self):
+        with self.assertRaisesRegex(TruncatedError, "truncated at 200"):
+            GitHub("t", RecordingHttp(self.search_pages(450))).search_issues("q", limit=200)
+
     def test_search_pages_until_short_page(self):
         http = RecordingHttp([({}, {"items": [{}] * 100}), ({}, {"items": [{}] * 3})])
         self.assertEqual(len(GitHub("t", http).search_issues("q")), 103)
@@ -92,6 +125,31 @@ class JiraTest(unittest.TestCase):
         self.assertEqual([i["key"] for i in issues], ["MM-1", "MM-2"])
         self.assertEqual(http.calls[1][3]["nextPageToken"], "n")
         self.assertEqual(http.calls[0][:2], ("POST", "/rest/api/3/search/jql"))
+
+
+class JiraPagingTest(unittest.TestCase):
+    def pages(self, total, per_page=50):
+        out, key = [], 0
+        while key < total:
+            take = min(per_page, total - key)
+            issues = [{"key": f"MM-{key + n}"} for n in range(take)]
+            key += take
+            out.append(({}, {"issues": issues, "nextPageToken": f"t{key}", "isLast": key >= total}))
+        return out
+
+    def test_more_than_50_issues_are_read_across_pages(self):
+        http = RecordingHttp(self.pages(120))
+        issues = Jira("https://jira", "e", "t", http).search("project = MM")
+        self.assertEqual((len(issues), len({i["key"] for i in issues})), (120, 120))
+        self.assertEqual([c[3].get("nextPageToken") for c in http.calls], [None, "t50", "t100"])
+
+    def test_a_limit_hit_with_more_to_read_is_an_error_not_a_pass(self):
+        with self.assertRaises(TruncatedError) as raised:
+            Jira("https://jira", "e", "t", RecordingHttp(self.pages(300))).search("project = MM", limit=100)
+        self.assertEqual(str(raised.exception), "Jira results truncated at 100, can't confirm")
+
+    def test_exactly_the_limit_with_nothing_more_is_complete(self):
+        self.assertEqual(len(Jira("https://jira", "e", "t", RecordingHttp(self.pages(100))).search("project = MM", limit=100)), 100)
 
 
 class ErrorMessageTest(unittest.TestCase):

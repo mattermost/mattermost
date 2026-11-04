@@ -18,6 +18,20 @@ class ServiceError(Exception):
         super().__init__(f"{service} request failed" + (f" (HTTP {status})" if status else ""))
 
 
+class TruncatedError(ServiceError):
+    """A search with more results than could be read: what it found is not all there is."""
+
+    def __init__(self, service: str, count: int):
+        super().__init__(service, None)
+        self.count = count
+        self.args = (f"{service} results truncated at {count}, can't confirm",)
+
+
+# GitHub search returns at most this many results, however many pages are asked for.
+GITHUB_SEARCH_LIMIT = 1000
+JIRA_SEARCH_LIMIT = 1000
+
+
 class Http:
     def __init__(self, service: str, base_url: str, headers: dict, timeout: int = 30, retries: int = 2):
         self.service, self.base_url = service, base_url.rstrip("/")
@@ -63,9 +77,11 @@ class Jira:
     def versions(self, project: str) -> list[dict]:
         return self.http.get(f"/rest/api/3/project/{urllib.parse.quote(project)}/versions") or []
 
-    def search(self, jql: str, fields: list[str], limit: int = 1000) -> list[dict]:
+    def search(self, jql: str, fields: list[str], limit: int = JIRA_SEARCH_LIMIT) -> list[dict]:
+        """Every issue the JQL matches, following ``nextPageToken`` until ``isLast``; more than
+        ``limit`` raises TruncatedError."""
         issues, token = [], None
-        while len(issues) < limit:
+        while True:
             body = {"jql": jql, "fields": fields, "maxResults": 100}
             if token:
                 body["nextPageToken"] = token
@@ -73,8 +89,9 @@ class Jira:
             issues.extend(result.get("issues", []))
             token = result.get("nextPageToken")
             if not token or result.get("isLast", True):
-                break
-        return issues[:limit]
+                return issues
+            if len(issues) >= limit:
+                raise TruncatedError("Jira", len(issues))
 
     def issue(self, key: str, fields: list[str]) -> dict:
         return self.http.get(f"/rest/api/3/issue/{urllib.parse.quote(key)}", fields=",".join(fields))
@@ -105,8 +122,22 @@ class GitHub:
     def pull(self, repo: str, number: int) -> dict:
         return self.http.get(f"/repos/{repo}/pulls/{number}")
 
-    def search_prs(self, query: str, limit: int = 20) -> list[dict]:
-        return (self.http.get("/search/issues", q=query, per_page=limit) or {}).get("items", [])[:limit]
+    def search_prs(self, query: str, limit: int = GITHUB_SEARCH_LIMIT) -> list[dict]:
+        """Every result of the search, page by page; more than ``limit`` (GitHub returns 1,000
+        at most), or results GitHub says are incomplete, raise TruncatedError."""
+        items, page = [], 1
+        while True:
+            result = self.http.get("/search/issues", q=query, per_page=100, page=page) or {}
+            batch = result.get("items", [])
+            items.extend(batch)
+            if result.get("incomplete_results"):
+                raise TruncatedError("GitHub", len(items))
+            total = result.get("total_count")
+            if (len(batch) < 100) if total is None else (len(items) >= total):
+                return items
+            if len(items) >= limit or not batch:
+                raise TruncatedError("GitHub", len(items))
+            page += 1
 
     def milestones(self, repo: str) -> list[dict]:
         items, page = [], 1

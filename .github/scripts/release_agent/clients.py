@@ -25,6 +25,21 @@ class ServiceError(Exception):
         super().__init__(f"{service} request failed" + (f" (HTTP {status})" if status else ""))
 
 
+class TruncatedError(ServiceError):
+    """A search that has more results than could be read. A check that gets this can't tell
+    that nothing is missing, so it reports an error, never a pass."""
+
+    def __init__(self, service: str, count: int):
+        super().__init__(service, None)
+        self.count = count
+        self.args = (f"{service} results truncated at {count}, can't confirm",)
+
+
+# GitHub search returns at most this many results, however many pages are asked for.
+GITHUB_SEARCH_LIMIT = 1000
+JIRA_SEARCH_LIMIT = 1000
+
+
 def error_message(body: str) -> str:
     """The error text in a JSON error body: Jira's errorMessages and errors, or a "message"."""
     try:
@@ -96,18 +111,30 @@ class GitHub:
             "X-GitHub-Api-Version": "2022-11-28",
         })
 
-    def search_issues(self, query: str, limit: int = 1000, sort: str | None = None) -> list[dict]:
+    def search_issues(self, query: str, limit: int = GITHUB_SEARCH_LIMIT, sort: str | None = None) -> list[dict]:
+        """Every result of the search, page by page. When there are more than ``limit`` (GitHub
+        returns 1,000 at most), or GitHub says the results are incomplete, it raises
+        TruncatedError rather than return part of them."""
         items, page = [], 1
-        while len(items) < limit:
+        while True:
             params = {"q": query, "per_page": 100, "page": page}
             if sort:
                 params.update(sort=sort, order="desc")
-            batch = self.http.get("/search/issues", **params).get("items", [])
+            result = self.http.get("/search/issues", **params) or {}
+            batch = result.get("items", [])
             items.extend(batch)
-            if len(batch) < 100:
-                break
+            if result.get("incomplete_results"):
+                raise TruncatedError("GitHub", len(items))
+            total = result.get("total_count")
+            if total is None:
+                done = len(batch) < 100
+            else:
+                done = len(items) >= total
+            if done:
+                return items
+            if len(items) >= limit or not batch:
+                raise TruncatedError("GitHub", len(items))
             page += 1
-        return items[:limit]
 
     def pull(self, repo: str, number: int) -> dict:
         return self.http.get(f"/repos/{repo}/pulls/{number}")
@@ -186,10 +213,12 @@ class Jira:
         auth = base64.b64encode(f"{email}:{token}".encode()).decode()
         self.http = http or Http("Jira", self.base_url, {"Authorization": f"Basic {auth}"})
 
-    def search(self, jql: str, limit: int = 1000, extra_fields: list | tuple = ()) -> list[dict]:
+    def search(self, jql: str, limit: int = JIRA_SEARCH_LIMIT, extra_fields: list | tuple = ()) -> list[dict]:
+        """Every issue the JQL matches, following ``nextPageToken`` until ``isLast``. When more
+        than ``limit`` remain it raises TruncatedError rather than return part of them."""
         issues, token = [], None
         fields = self.FIELDS + [f for f in extra_fields if f not in self.FIELDS]
-        while len(issues) < limit:
+        while True:
             body = {"jql": jql, "fields": fields, "maxResults": 100}
             if token:
                 body["nextPageToken"] = token
@@ -197,8 +226,9 @@ class Jira:
             issues.extend(result.get("issues", []))
             token = result.get("nextPageToken")
             if not token or result.get("isLast", True):
-                break
-        return issues[:limit]
+                return issues
+            if len(issues) >= limit:
+                raise TruncatedError("Jira", len(issues))
 
     def remote_links(self, key: str) -> list[dict]:
         return self.http.get(f"/rest/api/3/issue/{urllib.parse.quote(key)}/remotelink") or []

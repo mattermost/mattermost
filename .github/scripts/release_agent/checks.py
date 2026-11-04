@@ -129,8 +129,24 @@ def _parse_time(value: str) -> datetime:
 GITHUB_PR_URL = re.compile(r"https://github\.com/[\w.-]+/([\w.-]+)/pull/(\d+)")
 
 
+# A Hub lookup that failed, as opposed to one that found nobody (None).
+LOOKUP_FAILED = object()
+
+
+def lookup_with_retry(find):
+    """``find()``, tried twice. Returns what it returned, or LOOKUP_FAILED when both tries raised."""
+    for _ in range(2):
+        try:
+            return find()
+        except Exception:  # noqa: BLE001 - told apart from "not found" by the caller
+            continue
+    return LOOKUP_FAILED
+
+
 class HubPeople:
-    """Who to mention on Hub: "@username", or a plain name marked as not found there."""
+    """Who to mention on Hub: "@username", or a plain name marked as not found there, or as
+    not checked when the Hub request failed (twice). A failed lookup is kept for the run
+    so an outage isn't retried for every ticket."""
 
     def __init__(self, hub):
         self.hub, self.cache = hub, {}
@@ -138,8 +154,13 @@ class HubPeople:
     def by_username(self, username: str, name: str = "") -> str:
         if ("username", username) not in self.cache:
             self.cache[("username", username)] = self._lookup(lambda: self.hub.user_by_username(username))
-        found = self.cache[("username", username)]
-        return f"@{found['username']}" if found else self.not_found(name or username)
+        return self._show(self.cache[("username", username)], name or username)
+
+    @staticmethod
+    def _show(found, name: str) -> str:
+        if found is LOOKUP_FAILED:
+            return HubPeople.couldnt_check(name)
+        return f"@{found['username']}" if found else HubPeople.not_found(name)
 
     def by_assignee(self, assignee: dict) -> str:
         name = " ".join((assignee.get("displayName") or "").split())
@@ -147,8 +168,7 @@ class HubPeople:
         key = ("assignee", email or name.casefold())
         if key not in self.cache:
             self.cache[key] = self._lookup(lambda: (email and self.hub.user_by_email(email)) or self._by_name(name))
-        found = self.cache[key]
-        return f"@{found['username']}" if found else self.not_found(name)
+        return self._show(self.cache[key], name)
 
     def _by_name(self, name: str) -> dict | None:
         wanted = name.casefold()
@@ -158,15 +178,18 @@ class HubPeople:
 
     @staticmethod
     def _lookup(find):
-        try:
-            found = find()
-        except Exception:  # noqa: BLE001 - an unknown person is shown by name instead
-            return None
+        found = lookup_with_retry(find)
+        if found is LOOKUP_FAILED:
+            return found
         return found if found and not found.get("delete_at") else None
 
     @staticmethod
     def not_found(name: str) -> str:
         return f"{name} (no Hub user found)"
+
+    @staticmethod
+    def couldnt_check(name: str) -> str:
+        return f"{name} (couldn't check Hub)"
 
 
 def team_names(value) -> list[str]:
@@ -218,9 +241,9 @@ def dev_lead_flags(rules: dict, hub) -> list[str]:
                 continue
             seen.add(username)
             who = f"{route.get('name') or username} (`{username}`)"
-            try:
-                user = hub.user_by_username(username)
-            except Exception:  # noqa: BLE001 - reported, the run goes on
+            user = lookup_with_retry(lambda: hub.user_by_username(username))
+            if user is LOOKUP_FAILED:
+                # Not a missing account: the lookup itself failed, so say only that.
                 flags.append(f"Couldn't check that dev lead {who} is on Hub.")
                 continue
             if not user:
@@ -304,7 +327,7 @@ def cherry_picks_to_label(ctx: Context, rule: dict) -> Result:
                 linked.setdefault((match.group(1).lower(), int(match.group(2))), False)
         if not linked:
             for repo in repos:
-                for found in ctx.github.search_issues(f'repo:{repo} is:pr "{key}"', limit=20):
+                for found in ctx.github.search_issues(f'repo:{repo} is:pr "{key}"'):
                     linked.setdefault((repo, found["number"]), True)
         for (repo, number), by_title in sorted(linked.items()):
             if repo not in repos or (repo, number) in seen:
