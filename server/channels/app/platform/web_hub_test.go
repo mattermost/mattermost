@@ -1422,7 +1422,12 @@ func TestHubDeliveryDuringAuthenticationChallenges(t *testing.T) {
 	// through the same challenge path, then read its queue directly.
 	th.Service.WebSocketRouter.ServeWebSocket(bystander, authenticationChallengeRequest(1, bystanderSession.Token))
 	waitForSessionRegistered(t, th, bystanderSession)
-	t.Cleanup(func() { bystander.WebSocket.Close() })
+	t.Cleanup(func() {
+		// Pump so Close can finish. The queue is read directly above, so the
+		// pump starts only after the test function returns.
+		go bystander.Pump()
+		bystander.Close()
+	})
 
 	conns := make([]*WebConn, challengeCount)
 	sessions := make([]*model.Session, challengeCount)

@@ -37,7 +37,20 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 	}
 
 	if r.Action == string(model.WebsocketAuthenticationChallenge) {
+		// Handled once per connection. A later challenge closes the socket.
+		if !conn.authChallengeHandled.CompareAndSwap(false, true) {
+			conn.WebSocket.Close()
+			return
+		}
+
+		// A connection that already has a session token keeps its registration.
 		if conn.GetSessionToken() != "" {
+			return
+		}
+
+		// The session token is empty and a user is already set.
+		if conn.UserId != "" {
+			conn.WebSocket.Close()
 			return
 		}
 
