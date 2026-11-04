@@ -959,9 +959,14 @@ components:
         property_values_unavailable:
           type: boolean
           description: >
-            Present and `true` when the lookup of this post's property values failed; omitted
-            otherwise. It does **not** mean the post has no property values, it means they could
-            not be retrieved, and `property_values` is therefore absent or incomplete.
+            Present on every post the `propertyGroup` query parameter asked to hydrate, and
+            omitted otherwise. Deleted posts and burn-on-read posts the caller has not revealed
+            are never hydrated, so they omit it even when `propertyGroup` is set. `false` means
+            the lookup succeeded, so an absent `property_values` means the post has no values
+            in that group. `true` means the lookup failed: it does **not** mean the post has no
+            property values, it means they could not be retrieved, and `property_values` is
+            therefore absent or incomplete. When the field is omitted, the response says nothing
+            about the post's property values.
     TeamMap:
       type: object
       description: A mapping of teamIds to teams.
