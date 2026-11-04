@@ -358,8 +358,52 @@ describe('ChannelsResourceSettings', () => {
 
         await userEvent.click(screen.getByRole('button', {name: 'Notify all channel admins'}));
 
-        await waitFor(() => expect(screen.getByText(/more admins than one run can reach/)).toBeInTheDocument());
+        await waitFor(() => expect(screen.getByText(/more admins than one run can notify/)).toBeInTheDocument());
+        expect(screen.getByText(/Use View channel list to see the channels still missing a value/)).toBeInTheDocument();
+        expect(screen.queryByText(/click Notify again/i)).not.toBeInTheDocument();
         expect(screen.queryByText('Notification queued for 20000 channel admins.')).not.toBeInTheDocument();
+    });
+
+    it('does not carry a field\'s queued notification result over to a different field', async () => {
+        mockUseChannelMissingValues.mockReturnValue(missingValuesState({
+            summary: {totalCount: 30000, sharedCount: 0, uniqueAdminCount: 20000, noAdminCount: 0, messagePreview: 'preview', required: false},
+        }));
+        promptNotify.mockResolvedValue(true);
+        mockNotify.mockResolvedValue({queued_admin_count: 20000, queued_channel_count: 20000, channels_without_admin_count: 0, truncated: true});
+
+        const onChange = jest.fn();
+        const {rerender} = renderWithContext(
+            <ChannelsResourceSettings
+                value={DEFAULT_CHANNEL_RESOURCE_CONFIG}
+                onChange={onChange}
+                channelFieldId='field1'
+            />,
+            requiredEnabledState,
+        );
+
+        await userEvent.click(screen.getByRole('button', {name: 'Notify all channel admins'}));
+        await waitFor(() => expect(screen.getByText(/more admins than one run can notify/)).toBeInTheDocument());
+
+        rerender(
+            <ChannelsResourceSettings
+                value={DEFAULT_CHANNEL_RESOURCE_CONFIG}
+                onChange={onChange}
+                channelFieldId='field2'
+            />,
+        );
+
+        expect(screen.queryByText(/Notification queued/)).not.toBeInTheDocument();
+        expect(screen.getByText(/have a this attribute value yet/)).toBeInTheDocument();
+
+        // Returning to the original field must not resurrect the stale result.
+        rerender(
+            <ChannelsResourceSettings
+                value={DEFAULT_CHANNEL_RESOURCE_CONFIG}
+                onChange={onChange}
+                channelFieldId='field1'
+            />,
+        );
+        expect(screen.queryByText(/Notification queued/)).not.toBeInTheDocument();
     });
 
     it('does not act on a confirmation that resolves after the admin has switched to a different field', async () => {

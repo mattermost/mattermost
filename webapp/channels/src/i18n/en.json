@@ -5852,8 +5852,8 @@
     "description": "Success message in the System Console > Attribute Management > attribute details, Channels \"Applies to\" row, Required-toggle banner after reminders were queued for background delivery; {count} is the number of channel admins queued to receive a reminder."
   },
   "admin.global_attributes.applies_to.channels.missing_values.queued_truncated": {
-    "defaultMessage": "Notification queued for {count, plural, one {# channel admin} other {# channel admins}}. This attribute affects more admins than one run can reach -- click Notify again to reach the rest.",
-    "description": "Warning message in the System Console > Attribute Management > attribute details, Channels \"Applies to\" row, Required-toggle banner after reminders were queued but not every channel admin could be reached in one run; {count} is the number queued, and the admin can click Notify again later."
+    "defaultMessage": "Notification queued for {count, plural, one {# channel admin} other {# channel admins}}. Some channel admins were not reached because this attribute affects more admins than one run can notify. Use View channel list to see the channels still missing a value.",
+    "description": "Warning message in the System Console > Attribute Management > attribute details, Channels \"Applies to\" row, Required-toggle banner after reminders were queued but not every channel admin could be reached in one run; {count} is the number queued. \"View channel list\" is the label of the banner's other button, which lists the channels still missing a value."
   },
   "admin.global_attributes.applies_to.channels.missing_values.title": {
     "defaultMessage": "Set channel attribute values",

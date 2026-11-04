@@ -85,7 +85,7 @@ const messages = defineMessages({
     },
     queuedTruncated: {
         id: 'admin.global_attributes.applies_to.channels.missing_values.queued_truncated',
-        defaultMessage: 'Notification queued for {count, plural, one {# channel admin} other {# channel admins}}. This attribute affects more admins than one run can reach -- click Notify again to reach the rest.',
+        defaultMessage: 'Notification queued for {count, plural, one {# channel admin} other {# channel admins}}. Some channel admins were not reached because this attribute affects more admins than one run can notify. Use View channel list to see the channels still missing a value.',
     },
     notifyFailed: {
         id: 'admin.global_attributes.applies_to.channels.missing_values.notify_failed',

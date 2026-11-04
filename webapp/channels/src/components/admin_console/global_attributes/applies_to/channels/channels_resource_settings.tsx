@@ -30,6 +30,13 @@ import './channels_resource_settings.scss';
 const LOCATIONS_LABEL_ID = 'channelsResourceLocationsLabel';
 const MISSING_VALUES_BANNER_BODY_ID = 'channelsResourceMissingValuesBannerBody';
 
+type NotifyState = {
+    fieldId?: string;
+    status: NotifyStatus;
+    queuedAdminCount?: number;
+    truncated: boolean;
+};
+
 type Props = {
     value: ChannelResourceConfig;
     onChange: (next: ChannelResourceConfig) => void;
@@ -82,9 +89,14 @@ const ChannelsResourceSettings = ({value, onChange, ordered, disabled, channelFi
     const openChannelsWithoutValueModal = useChannelsWithoutValueModal();
     const promptNotifyChannelAdmins = useNotifyChannelAdmins();
 
-    const [notifyStatus, setNotifyStatus] = useState<NotifyStatus>('idle');
-    const [queuedAdminCount, setQueuedAdminCount] = useState<number>();
-    const [queuedTruncated, setQueuedTruncated] = useState(false);
+    // Tagged with the field it belongs to: this instance can be re-pointed at
+    // a different attribute via props, and the previous field's status or
+    // queued counts must not show on the new field's banner.
+    const [notifyState, setNotifyState] = useState<NotifyState>({fieldId: undefined, status: 'idle', truncated: false});
+    const currentNotifyState: NotifyState = notifyState.fieldId === channelFieldId ? notifyState : {fieldId: channelFieldId, status: 'idle', truncated: false};
+    const notifyStatus = currentNotifyState.status;
+    const queuedAdminCount = currentNotifyState.queuedAdminCount;
+    const queuedTruncated = currentNotifyState.truncated;
     const [attentionKey, setAttentionKey] = useState(0);
     const [attemptedEnable, setAttemptedEnable] = useState(false);
     const bannerRef = useRef<HTMLDivElement>(null);
@@ -100,6 +112,13 @@ const ChannelsResourceSettings = ({value, onChange, ordered, disabled, channelFi
     }, []);
     const channelFieldIdRef = useRef(channelFieldId);
     channelFieldIdRef.current = channelFieldId;
+
+    // The derived currentNotifyState above already hides a stale result for
+    // the render in which the field changes; this drops it so switching back
+    // to the earlier field does not resurrect it.
+    useEffect(() => {
+        setNotifyState((prev) => (prev.fieldId === channelFieldId ? prev : {fieldId: channelFieldId, status: 'idle', truncated: false}));
+    }, [channelFieldId]);
 
     const missingCount = missingValues.summary?.totalCount ?? 0;
     const sharedCount = missingValues.summary?.sharedCount ?? 0;
@@ -147,7 +166,7 @@ const ChannelsResourceSettings = ({value, onChange, ordered, disabled, channelFi
         // just the POST await after it): the admin can switch fields or
         // this row can collapse/unmount while the confirmation modal itself
         // is still open, and the first thing that runs on the other side of
-        // that await -- setNotifyStatus('notifying') -- must not skip the
+        // that await -- setNotifyState({status: 'notifying'}) -- must not skip the
         // same check the rest of this function already applies.
         const stillCurrent = () => mountedRef.current && channelFieldIdRef.current === notifyFieldId;
 
@@ -162,17 +181,20 @@ const ChannelsResourceSettings = ({value, onChange, ordered, disabled, channelFi
             return;
         }
 
-        setNotifyStatus('notifying');
+        setNotifyState({fieldId: notifyFieldId, status: 'notifying', truncated: false});
         try {
             const result = await notifyChannelAdminsOfMissingValue(notifyFieldId);
             if (stillCurrent()) {
-                setQueuedAdminCount(result.queued_admin_count);
-                setQueuedTruncated(result.truncated);
-                setNotifyStatus('queued');
+                setNotifyState({
+                    fieldId: notifyFieldId,
+                    status: 'queued',
+                    queuedAdminCount: result.queued_admin_count,
+                    truncated: result.truncated,
+                });
             }
         } catch {
             if (stillCurrent()) {
-                setNotifyStatus('notify_failed');
+                setNotifyState({fieldId: notifyFieldId, status: 'notify_failed', truncated: false});
             }
         }
         if (stillCurrent()) {
