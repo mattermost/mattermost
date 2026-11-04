@@ -14347,6 +14347,11 @@
     "description": "SAML login error when the Service Provider private key file is missing; 'Service Provider' is a SAML term for the Mattermost side."
   },
   {
+    "id": "ent.saml.configure.not_configured.app_error",
+    "translation": "SAML is not configured correctly. Please contact your System Administrator.",
+    "description": "SAML error when the Service Provider could not be configured, e.g. because a stored certificate or key failed to load; 'Service Provider' is a SAML term for the Mattermost side."
+  },
+  {
     "id": "ent.saml.configure.not_encrypted_response.app_error",
     "translation": "SAML login was unsuccessful as the Identity Provider response is not encrypted. Please contact your System Administrator.",
     "description": "SAML login error when the Identity Provider sent an unencrypted response but encryption is required."
