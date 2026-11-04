@@ -1198,6 +1198,7 @@ export const PermissionsScope = {
     [Permissions.MANAGE_OWN_OUTGOING_WEBHOOKS]: 'team_scope',
     [Permissions.MANAGE_OTHERS_OUTGOING_WEBHOOKS]: 'team_scope',
     [Permissions.MANAGE_OAUTH]: 'system_scope',
+    [Permissions.MANAGE_OUTGOING_OAUTH_CONNECTIONS]: 'system_scope',
     [Permissions.CREATE_POST]: 'channel_scope',
     [Permissions.CREATE_POST_PUBLIC]: 'channel_scope',
     [Permissions.EDIT_POST]: 'channel_scope',

@@ -10,7 +10,7 @@ import Permissions from 'mattermost-redux/constants/permissions';
 import {PermissionSystemSchemeSettings} from 'components/admin_console/permission_schemes_settings/permission_system_scheme_settings/permission_system_scheme_settings';
 
 import {defaultIntl} from 'tests/helpers/intl-test-helper';
-import {act, renderWithContext, screen} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {DefaultRolePermissions} from 'utils/constants';
 
 describe('components/admin_console/permission_schemes_settings/permission_system_scheme_settings/permission_system_scheme_settings', () => {
@@ -222,6 +222,30 @@ describe('components/admin_console/permission_schemes_settings/permission_system
             await (ref2.current as any).handleSubmit();
         });
         expect(editRole).toHaveBeenCalledTimes(11);
+    });
+
+    test('should save manage_outgoing_oauth_connections to system_user when granted to all members', async () => {
+        const editRole = jest.fn().mockImplementation(() => Promise.resolve({data: {}}));
+        const roles = Object.fromEntries(Object.keys(defaultProps.roles).map((name) => [name, {...defaultRole, name}]));
+        renderWithContext(
+            <PermissionSystemSchemeSettings
+                {...defaultProps}
+                roles={roles}
+                actions={{...defaultProps.actions, editRole}}
+            />,
+            {entities: {general: {config: {EnableOutgoingOAuthConnections: 'true'}}}},
+        );
+
+        const allMembersRow = document.getElementById(`all_users-integrations-${Permissions.MANAGE_OUTGOING_OAUTH_CONNECTIONS}`)!;
+        expect(allMembersRow).toHaveTextContent('Manage Outgoing OAuth Credentials');
+        await userEvent.click(allMembersRow);
+        await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+        const savedRoles: Role[] = editRole.mock.calls.map(([role]) => role);
+        expect(savedRoles.find((role) => role.name === 'system_user')!.permissions).toContain(Permissions.MANAGE_OUTGOING_OAUTH_CONNECTIONS);
+        for (const role of savedRoles.filter((r) => r.name !== 'system_user')) {
+            expect(role.permissions).not.toContain(Permissions.MANAGE_OUTGOING_OAUTH_CONNECTIONS);
+        }
     });
 
     test('should show error if editRole fails', async () => {
