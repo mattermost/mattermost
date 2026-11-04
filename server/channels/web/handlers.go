@@ -25,8 +25,13 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
+// tokenDigest returns a stable, non-reversible identifier for a token, usable for correlation.
 func tokenDigest(token string) string {
-	return utils.TokenDigest(token)
+	if token == "" {
+		return "<none>"
+	}
+
+	return utils.HashSha256(token)[:16]
 }
 
 func GetHandlerName(h func(*Context, http.ResponseWriter, *http.Request)) string {

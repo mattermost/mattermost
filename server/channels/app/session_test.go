@@ -47,8 +47,8 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 
 	rsession, err = th.App.GetSession(session.Token)
 	require.NotNil(t, err)
-	assert.Equal(t, "api.context.invalid_token.error", err.Id)
-	assert.Equal(t, "idle timeout", err.DetailedError)
+	assert.Equal(t, "api.context.invalid_session.error", err.Id)
+	assert.Equal(t, "idle timeout, session_id="+session.Id, err.DetailedError)
 	assert.Nil(t, rsession)
 	assertErrorTextOmitsSubmittedValue(t, err, session.Token)
 
@@ -165,8 +165,7 @@ func TestGetSessionErrorText(t *testing.T) {
 		require.Nil(t, session)
 		require.NotNil(t, appErr)
 		require.Equal(t, http.StatusUnauthorized, appErr.StatusCode)
-		assert.Contains(t, appErr.Error(), "<none>")
-		assert.Contains(t, appErr.SystemMessage(i18n.TDefault), "<none>")
+		assert.Equal(t, "Invalid or expired session.", appErr.SystemMessage(i18n.TDefault))
 	})
 
 	t.Run("stored value differs from submitted value", func(t *testing.T) {
@@ -178,8 +177,7 @@ func TestGetSessionErrorText(t *testing.T) {
 		require.Nil(t, got)
 		require.NotNil(t, appErr)
 		require.Equal(t, http.StatusUnauthorized, appErr.StatusCode)
-		require.Equal(t, "session token is different from the one in DB", appErr.DetailedError)
-		assertErrorTextOmitsSubmittedValue(t, appErr, session.Id)
+		require.Equal(t, "session token is different from the one in DB, session_id="+session.Id, appErr.DetailedError)
 		assertErrorTextOmitsSubmittedValue(t, appErr, session.Token)
 
 		got, appErr = th.App.GetSession(session.Token)
@@ -196,6 +194,8 @@ func TestGetSessionErrorText(t *testing.T) {
 		require.NotNil(t, appErr)
 		require.Equal(t, http.StatusUnauthorized, appErr.StatusCode)
 		assertErrorTextOmitsSubmittedValue(t, appErr, token.Token)
+		assert.Contains(t, appErr.Error(), "token_id="+token.Id)
+		assert.Contains(t, appErr.Error(), "user_id="+th.BasicUser.Id)
 	})
 
 	t.Run("expired session", func(t *testing.T) {
@@ -209,6 +209,7 @@ func TestGetSessionErrorText(t *testing.T) {
 		require.NotNil(t, appErr)
 		require.Equal(t, http.StatusUnauthorized, appErr.StatusCode)
 		assertErrorTextOmitsSubmittedValue(t, appErr, session.Token)
+		assert.Contains(t, appErr.Error(), "session_id="+session.Id)
 	})
 
 	t.Run("user lookup failure", func(t *testing.T) {
@@ -231,6 +232,8 @@ func TestGetSessionErrorText(t *testing.T) {
 		require.NotNil(t, appErr)
 		require.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
 		assertErrorTextOmitsSubmittedValue(t, appErr, token.Token)
+		assert.Contains(t, appErr.Error(), "token_id="+token.Id)
+		assert.Contains(t, appErr.Error(), "user_id="+user.Id)
 	})
 
 	t.Run("active access token returns a session", func(t *testing.T) {
@@ -500,7 +503,7 @@ func TestGetCloudSession(t *testing.T) {
 		session, err := th.App.GetCloudSession(submitted)
 		require.Nil(t, session)
 		require.NotNil(t, err)
-		require.Equal(t, "api.context.invalid_token.error", err.Id)
+		require.Equal(t, "api.context.invalid_session.error", err.Id)
 		assertErrorTextOmitsSubmittedValue(t, err, submitted)
 	})
 
@@ -511,7 +514,7 @@ func TestGetCloudSession(t *testing.T) {
 		session, err := th.App.GetCloudSession(submitted)
 		require.Nil(t, session)
 		require.NotNil(t, err)
-		require.Equal(t, "api.context.invalid_token.error", err.Id)
+		require.Equal(t, "api.context.invalid_session.error", err.Id)
 		assertErrorTextOmitsSubmittedValue(t, err, submitted)
 	})
 }
@@ -546,6 +549,7 @@ func TestGetRemoteClusterSession(t *testing.T) {
 		require.NotNil(t, err)
 		require.Nil(t, session)
 		assertErrorTextOmitsSubmittedValue(t, err, submitted)
+		assert.Contains(t, err.Error(), "remote_id="+remoteID)
 	})
 
 	t.Run("Invalid remote id should return error", func(t *testing.T) {

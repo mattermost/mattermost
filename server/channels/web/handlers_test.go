@@ -1499,7 +1499,8 @@ func TestHandlerServeDoesNotLogRawToken(t *testing.T) {
 		require.NoError(t, th.TestLogger.Flush())
 		// The log buffer does not include the submitted value.
 		assert.NotContains(t, buffer.String(), created.Token)
-		assert.Contains(t, buffer.String(), tokenDigest(created.Token))
+		assert.Contains(t, buffer.String(), "token_id="+created.Id)
+		assert.Contains(t, buffer.String(), "user_id="+th.BasicUser.Id)
 	})
 }
 

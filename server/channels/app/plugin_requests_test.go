@@ -21,7 +21,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
-	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 )
 
@@ -363,7 +362,6 @@ func TestServePluginRequest(t *testing.T) {
 			}
 		}
 		require.True(t, foundInvalidTokenLog, "expected invalid-token debug log")
-		assert.Contains(t, logOutput, utils.TokenDigest(invalidToken))
 	})
 
 	t.Run("MFA required - treats as unauthenticated", func(t *testing.T) {

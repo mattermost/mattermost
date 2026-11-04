@@ -12,7 +12,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
-	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 // botHasUserOwnerSQL mirrors model.Bot.HasUserOwner: an id-shaped OwnerId is a
@@ -173,11 +172,10 @@ func (s SqlUserAccessTokenStore) GetByToken(tokenString string) (*model.UserAcce
 	query := s.userAccessTokensSelectQuery.Where(sq.Eq{"Token": tokenString})
 
 	if err := s.GetReplica().GetBuilder(&token, query); err != nil {
-		tokenID := utils.TokenDigest(tokenString)
 		if err == sql.ErrNoRows {
-			return nil, store.NewErrNotFound("UserAccessToken", fmt.Sprintf("token=%s", tokenID))
+			return nil, store.NewErrNotFound("UserAccessToken", "token")
 		}
-		return nil, errors.Wrapf(err, "failed to get UserAccessToken with token=%s", tokenID)
+		return nil, errors.Wrap(err, "failed to get UserAccessToken by token")
 	}
 
 	return &token, nil

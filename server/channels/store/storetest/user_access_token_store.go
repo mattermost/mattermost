@@ -107,7 +107,6 @@ func testUserAccessTokenGetByTokenErrorText(t *testing.T, ss store.Store) {
 	_, emptyErr := ss.UserAccessToken().GetByToken("")
 	require.Error(t, emptyErr)
 	require.ErrorAs(t, emptyErr, &nfErr)
-	require.Contains(t, emptyErr.Error(), "token=<none>")
 }
 
 func testUserAccessTokenDisableEnable(t *testing.T, rctx request.CTX, ss store.Store) {

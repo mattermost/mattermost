@@ -14,12 +14,3 @@ func HashSha256(text string) string {
 
 	return hex.EncodeToString(hash.Sum(nil))
 }
-
-// TokenDigest returns a stable, non-reversible identifier for a token, usable for correlation.
-func TokenDigest(token string) string {
-	if token == "" {
-		return "<none>"
-	}
-
-	return HashSha256(token)[:16]
-}
