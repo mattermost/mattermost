@@ -172,7 +172,7 @@ func extractOOXMLText(ctx context.Context, extension string, zr *zip.Reader, lim
 		}
 		seen[offset] = struct{}{}
 		text, err := readOfficePart(ctx, f, func(r io.Reader) (string, error) {
-			return officeXMLToText(ctx, r, ooxmlBreakElements, ooxmlSkipElements, limit)
+			return officeXMLToText(ctx, r, ooxmlBreakElements, ooxmlSkipElements, limit, officePartReadLimit)
 		})
 		if contextErr(ctx) != nil {
 			return b.String(), nil
@@ -205,7 +205,7 @@ func extractODTText(ctx context.Context, zr *zip.Reader, limit int) (string, err
 			break
 		}
 		text, err := readOfficePart(ctx, f, func(r io.Reader) (string, error) {
-			return officeXMLToText(ctx, r, odtBreakElements, nil, limit)
+			return officeXMLToText(ctx, r, odtBreakElements, nil, limit, officePartReadLimit)
 		})
 		if contextErr(ctx) != nil {
 			return b.String(), nil
@@ -220,11 +220,32 @@ func extractODTText(ctx context.Context, zr *zip.Reader, limit int) (string, err
 	return b.String(), nil
 }
 
+var errOfficePartCap = errors.New("office part read cap reached")
+
+// capReader reads up to remaining bytes, then fails with errOfficePartCap.
+type capReader struct {
+	r         io.Reader
+	remaining int64
+}
+
+func (c *capReader) Read(p []byte) (int, error) {
+	if c.remaining <= 0 {
+		return 0, errOfficePartCap
+	}
+	if int64(len(p)) > c.remaining {
+		p = p[:c.remaining]
+	}
+	n, err := c.r.Read(p)
+	c.remaining -= int64(n)
+	return n, err
+}
+
 // officeXMLToText extracts character data from strict XML, emitting a newline
 // for each break element and dropping skip subtrees. It stops once limit bytes
-// are collected and returns ctx's error if ctx ends first.
-func officeXMLToText(ctx context.Context, r io.Reader, breaks, skip []string, limit int) (string, error) {
-	dec := xml.NewDecoder(io.LimitReader(r, officePartReadLimit))
+// are collected or readCap bytes are read, keeping the text gathered so far,
+// and returns ctx's error if ctx ends first.
+func officeXMLToText(ctx context.Context, r io.Reader, breaks, skip []string, limit int, readCap int64) (string, error) {
+	dec := xml.NewDecoder(&capReader{r: r, remaining: readCap})
 	var b strings.Builder
 	for b.Len() < limit {
 		if err := contextErr(ctx); err != nil {
@@ -234,6 +255,9 @@ func officeXMLToText(ctx context.Context, r io.Reader, breaks, skip []string, li
 		if err != nil {
 			if err == io.EOF {
 				break
+			}
+			if errors.Is(err, errOfficePartCap) {
+				return truncateUTF8(b.String()), nil
 			}
 			return "", err
 		}
@@ -254,6 +278,9 @@ func officeXMLToText(ctx context.Context, r io.Reader, breaks, skip []string, li
 				}
 				t, err := dec.Token()
 				if err != nil {
+					if errors.Is(err, errOfficePartCap) {
+						return truncateUTF8(b.String()), nil
+					}
 					return "", err
 				}
 				switch t.(type) {

@@ -1414,7 +1414,7 @@ func TestOfficeManyShortRuns(t *testing.T) {
 		defer cancel()
 
 		start := time.Now()
-		_, err := officeXMLToText(ctx, r, ooxmlBreakElements, ooxmlSkipElements, 1<<20)
+		_, err := officeXMLToText(ctx, r, ooxmlBreakElements, ooxmlSkipElements, 1<<20, officePartReadLimit)
 		require.ErrorIs(t, err, context.DeadlineExceeded)
 		require.Less(t, time.Since(start), 2*time.Second)
 		require.Less(t, src.read.Load(), officePartReadLimit)
@@ -1424,7 +1424,7 @@ func TestOfficeManyShortRuns(t *testing.T) {
 		src := &repeatingReader{unit: []byte("<w:t>a</w:t>")}
 		r := io.MultiReader(strings.NewReader(`<w:document xmlns:w="urn:w">`), src)
 
-		text, err := officeXMLToText(context.Background(), r, ooxmlBreakElements, ooxmlSkipElements, 1000)
+		text, err := officeXMLToText(context.Background(), r, ooxmlBreakElements, ooxmlSkipElements, 1000, officePartReadLimit)
 		require.NoError(t, err)
 		require.Len(t, text, 1000)
 		require.Less(t, src.read.Load(), int64(64<<10))
@@ -1433,7 +1433,7 @@ func TestOfficeManyShortRuns(t *testing.T) {
 
 func TestOfficeXMLToText(t *testing.T) {
 	parse := func(xmlText string, skip []string) (string, error) {
-		return officeXMLToText(context.Background(), strings.NewReader(xmlText), ooxmlBreakElements, skip, 1<<20)
+		return officeXMLToText(context.Background(), strings.NewReader(xmlText), ooxmlBreakElements, skip, 1<<20, officePartReadLimit)
 	}
 
 	t.Run("breaks and skipped subtrees", func(t *testing.T) {
@@ -1455,6 +1455,50 @@ func TestOfficeXMLToText(t *testing.T) {
 
 	t.Run("strict decoding", func(t *testing.T) {
 		_, err := parse(`<d>&bogus;</d>`, nil)
+		require.Error(t, err)
+	})
+}
+
+func TestOfficeXMLToTextReadCap(t *testing.T) {
+	parse := func(xmlText string, skip []string, readCap int64) (string, error) {
+		return officeXMLToText(context.Background(), strings.NewReader(xmlText), ooxmlBreakElements, skip, 1<<20, readCap)
+	}
+
+	t.Run("text before the cap is kept", func(t *testing.T) {
+		const doc = `<d><t>one</t><t>two</t><t>three</t></d>`
+		text, err := parse(doc, ooxmlSkipElements, int64(strings.Index(doc, "<t>three")+len("<t>thr")))
+		require.NoError(t, err)
+		require.Equal(t, "onetwothr", text)
+	})
+
+	t.Run("cap inside a skipped subtree keeps earlier text", func(t *testing.T) {
+		const doc = `<d><t>one</t><instrText>skipped<x>deep</x></instrText><t>two</t></d>`
+		text, err := parse(doc, ooxmlSkipElements, int64(strings.Index(doc, "deep")))
+		require.NoError(t, err)
+		require.Equal(t, "one", text)
+	})
+
+	t.Run("document within the cap is unaffected", func(t *testing.T) {
+		const doc = `<d><t>one</t></d>`
+		text, err := parse(doc, ooxmlSkipElements, int64(len(doc)))
+		require.NoError(t, err)
+		require.Equal(t, "one", text)
+	})
+
+	t.Run("malformed XML before the cap still errors", func(t *testing.T) {
+		_, err := parse(`<d><t>one</x></d>`, ooxmlSkipElements, 1<<20)
+		require.Error(t, err)
+		require.NotErrorIs(t, err, errOfficePartCap)
+	})
+
+	t.Run("malformed XML inside a skipped subtree still errors", func(t *testing.T) {
+		_, err := parse(`<d><t>one</t><instrText><a></b></instrText></d>`, ooxmlSkipElements, 1<<20)
+		require.Error(t, err)
+		require.NotErrorIs(t, err, errOfficePartCap)
+	})
+
+	t.Run("truncated document without a cap still errors", func(t *testing.T) {
+		_, err := parse(`<d><t>one</t>`, ooxmlSkipElements, 1<<20)
 		require.Error(t, err)
 	})
 }
