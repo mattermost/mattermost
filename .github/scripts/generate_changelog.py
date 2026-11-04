@@ -44,7 +44,8 @@ Expects these environment variables:
   OUTPUT_DIR        - (optional) Directory for machine-readable output: entry.mdx (the
                       text written), sections.json (each section's bullets and the PRs
                       they came from) and pr_body.md (the body the changelog PR should
-                      have). Nothing is written there if unset.
+                      have), summary.md and, when the model was asked, model_output.md (its
+                      raw answers). Nothing is written there if unset.
 
 The target changelog is an MDX file: it opens with YAML frontmatter, imports MDX
 components, and uses JSX elements such as <Note> and <Important>. Generated content
@@ -1823,8 +1824,8 @@ def _docs_link(url: str, title: str | None) -> str:
     return f"[{title or url.removeprefix(changelog_release.DOCS_SITE) or '/'}]({url})"
 
 
-def write_outputs(output_dir: str, entry: str, payload: dict, pr_body: str) -> None:
-    """Write entry.mdx, sections.json, pr_body.md and summary.md for the workflow to publish."""
+def write_outputs(output_dir: str, entry: str, payload: dict, pr_body: str, model_output: str = "") -> None:
+    """Write entry.mdx, sections.json, pr_body.md, summary.md and, when the model was asked, model_output.md."""
     if not output_dir:
         return
     os.makedirs(output_dir, exist_ok=True)
@@ -1837,6 +1838,9 @@ def write_outputs(output_dir: str, entry: str, payload: dict, pr_body: str) -> N
         f.write(pr_body)
     with open(os.path.join(output_dir, "summary.md"), "w", encoding="utf-8") as f:
         f.write(render_summary(payload, entry))
+    if model_output:
+        with open(os.path.join(output_dir, "model_output.md"), "w", encoding="utf-8") as f:
+            f.write(model_output)
 
 
 def _pr_link(source: str, private=()) -> str:
@@ -1889,7 +1893,7 @@ def render_summary(payload: dict, entry: str) -> str:
         lines += ["````mdx", entry.rstrip(), "````", ""]
     lines.append(
         "Each section's bullets and their sources are in `sections.json` in the "
-        "`changelog-output` artifact."
+        "`changelog-output` artifact, next to the model's raw answers in `model_output.md`."
     )
     return "\n".join(lines) + "\n"
 
@@ -1914,6 +1918,28 @@ def default_pr_body() -> str:
     )
 
 
+# What the model answered in this run, in order, kept for the run artifact. Without it a
+# note that went missing cannot be traced: the logs do not carry the answer.
+MODEL_ANSWERS: list[dict] = []
+
+
+def render_model_output(sources_by_id: dict) -> str:
+    """The model's raw answers, with the note ID each source was sent as, for ``model_output.md``.
+
+    Everything in it ends up in the published changelog text or is a note's own text, so it
+    exposes nothing the changelog does not. Empty when the model was not asked.
+    """
+    if not MODEL_ANSWERS:
+        return ""
+    lines = ["# Model output", "", "Raw answers before any cleanup, in the order they were received.", "",
+             "| Note ID | Source |", "|:---|:---|"]
+    lines += [f"| {note_id} | {source} |" for note_id, source in sources_by_id.items()]
+    for number, answer in enumerate(MODEL_ANSWERS, start=1):
+        lines += ["", f"## Answer {number}: {answer['kind']} ({', '.join(answer['ids'])})", "", "````markdown",
+                  answer["text"], "````"]
+    return "\n".join(lines) + "\n"
+
+
 def render_fragment(notes: list[dict], sources_by_id: dict) -> tuple[str, list[dict], set, bool]:
     """Polish ``notes`` into MDX-safe changelog text and attribute each bullet to its PRs.
 
@@ -1922,6 +1948,8 @@ def render_fragment(notes: list[dict], sources_by_id: dict) -> tuple[str, list[d
     was AI-polished.
     """
     raw_polished, ai_polished = polish_with_ai(notes)
+    if ai_polished:
+        MODEL_ANSWERS.append({"kind": "first answer", "ids": [note["id"] for note in notes], "text": raw_polished})
     # normalize_formatting fixes layout; escape_mdx_unsafe makes the prose MDX-safe.
     # Both are applied to the generated fragment only, never to file contents. The
     # [[N1]] markers pass through both untouched and are stripped afterwards.
@@ -2093,6 +2121,9 @@ def _place_missing(polished: str, items: list[dict], referenced: set, missing: l
     except Exception as err:  # the first answer is usable, so a failed retry must not stop the run
         print(f"::warning title=Retry request failed::{type(err).__name__}; the notes stay unplaced")
         return polished, items, referenced
+    if asked:
+        MODEL_ANSWERS.append({"kind": "retry for the notes it left out", "ids": [note["id"] for note in missing],
+                              "text": retry_raw})
     if not asked or not retry_raw.strip():
         return polished, items, referenced
     # Only the notes that were asked for: the model may repeat one the first answer already
@@ -2135,6 +2166,7 @@ def main():
     if mode not in ("create", "update"):
         raise RuntimeError(f"MODE must be 'create' or 'update', not {mode!r}")
     output_dir = os.environ.get("OUTPUT_DIR", "").strip()
+    MODEL_ANSWERS.clear()
 
     print(f"🔍 Milestone: {MILESTONE_TITLE} | Repos: {', '.join(REPOS)} | Mode: {mode}\n")
 
@@ -2641,7 +2673,7 @@ def main():
             "duration_seconds": round(time.monotonic() - started, 1),
         },
     }
-    write_outputs(output_dir, entry, payload, pr_body)
+    write_outputs(output_dir, entry, payload, pr_body, render_model_output(sources_by_id))
     set_github_output("changed", "true" if changed else "false")
     # The PR body can change when the text does not, such as when every new note was
     # left out of the text and only the not-placed list is new.

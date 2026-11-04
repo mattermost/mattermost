@@ -1003,6 +1003,20 @@ class MainTest(unittest.TestCase):
         self.assertNotIn("Docs page", self.changelog.read_text())
         self.assertIn("Fixed an issue found later.", self.changelog.read_text())
 
+    def test_the_models_raw_answers_are_saved_in_the_artifact(self):
+        self._polish_dropping_n2()
+        gc.main()
+        saved = (self.out / "model_output.md").read_text()
+        self.assertIn("| N2 | mattermost/mattermost#2 |", saved)
+        self.assertIn("## Answer 1: first answer (N1, N2, N3)", saved)
+        self.assertIn("Added the first thing. [[N1]]", saved)
+        self.assertIn("## Answer 2: retry for the notes it left out (N2)", saved)
+        self.assertIn("Fixed an issue found later. [[N2]]", saved)
+
+    def test_no_model_output_file_when_the_model_was_not_asked(self):
+        gc.main()
+        self.assertFalse((self.out / "model_output.md").exists())
+
 
 class RetryFilterTest(unittest.TestCase):
     def test_star_and_plus_bullets_for_other_notes_are_dropped(self):
