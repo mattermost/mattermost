@@ -14,6 +14,7 @@ import (
 	"net/http/httptest"
 	"runtime"
 	"slices"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -24,6 +25,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	platform_mocks "github.com/mattermost/mattermost/server/v8/channels/app/platform/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 )
@@ -1127,4 +1129,350 @@ func TestConnSet(t *testing.T) {
 // forChannel returns the connections for channelID, decoding it as the hub does.
 func forChannel(connIndex *hubConnectionIndex, channelID string) iter.Seq[*WebConn] {
 	return connIndex.ForChannel(decodeChannelID(channelID))
+}
+
+// sessionLookupSuite resolves session tokens through the platform service.
+type sessionLookupSuite struct {
+	*mockSuite
+	ps *PlatformService
+}
+
+func (s *sessionLookupSuite) GetSession(token string) (*model.Session, *model.AppError) {
+	session, err := s.ps.GetSession(request.EmptyContext(s.ps.Log()), token)
+	if err != nil || session == nil || session.Id == "" {
+		return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", nil, "", http.StatusUnauthorized)
+	}
+	return session, nil
+}
+
+func createUserSession(t *testing.T, th *TestHelper, userID string) *model.Session {
+	t.Helper()
+
+	session, err := th.Service.CreateSession(th.Context, &model.Session{
+		UserId: userID,
+	})
+	require.NoError(t, err)
+
+	session.ExpiresAt = model.GetMillis() + time.Hour.Milliseconds()
+	require.NoError(t, th.Service.AddSessionToCache(session))
+	return session
+}
+
+func authenticationChallengeRequest(seq int64, token string) *model.WebSocketRequest {
+	return &model.WebSocketRequest{
+		Seq:    seq,
+		Action: string(model.WebsocketAuthenticationChallenge),
+		Data:   map[string]any{"token": token},
+	}
+}
+
+func dialPlatformWebConn(t *testing.T, th *TestHelper, addr net.Addr) *WebConn {
+	t.Helper()
+
+	ws, _, err := websocket.DefaultDialer.Dial("ws://"+addr.String()+"/ws", nil)
+	require.NoError(t, err)
+
+	wc := th.Service.NewWebConn(&WebConnConfig{
+		WebSocket:    ws,
+		Session:      model.Session{},
+		TFunc:        i18n.IdentityTfunc(),
+		Locale:       "en",
+		ConnectionID: model.NewId(),
+	}, th.Suite, &hookRunner{})
+	require.Empty(t, wc.UserId)
+	require.Empty(t, wc.GetSessionToken())
+	return wc
+}
+
+// socketFramesUntilClose records frames written to the socket.
+func socketFramesUntilClose(frames chan<- []byte) http.HandlerFunc {
+	upgrader := &websocket.Upgrader{
+		ReadBufferSize:  1024,
+		WriteBufferSize: 1024,
+	}
+	return func(w http.ResponseWriter, r *http.Request) {
+		conn, err := upgrader.Upgrade(w, r, nil)
+		if err != nil {
+			return
+		}
+		defer conn.Close()
+		for {
+			_, data, err := conn.ReadMessage()
+			if err != nil {
+				return
+			}
+			select {
+			case frames <- data:
+			default:
+			}
+		}
+	}
+}
+
+func waitForSocketFrame(frames <-chan []byte, timeout time.Duration) bool {
+	timer := time.NewTimer(timeout)
+	defer timer.Stop()
+	select {
+	case <-frames:
+		return true
+	case <-timer.C:
+		return false
+	}
+}
+
+func drainSocketFrames(frames <-chan []byte) {
+	for {
+		select {
+		case <-frames:
+		default:
+			return
+		}
+	}
+}
+
+func waitForSessionRegistered(t *testing.T, th *TestHelper, session *model.Session) {
+	t.Helper()
+	require.Eventually(t, func() bool {
+		return th.Service.SessionIsRegistered(*session)
+	}, 2*time.Second, 10*time.Millisecond)
+}
+
+// reloadClearedSession removes the session, waits until the cached expiry is
+// reset, and reloads authentication so a missing session clears the token.
+func reloadClearedSession(t *testing.T, th *TestHelper, wc *WebConn, session *model.Session, stillIndexed bool) {
+	t.Helper()
+
+	require.NoError(t, th.Service.RevokeSession(th.Context, session))
+	if !stillIndexed {
+		wc.InvalidateCache()
+	}
+	require.Eventually(t, func() bool {
+		return wc.GetSession() == nil && wc.GetSessionExpiresAt() == 0
+	}, 2*time.Second, 10*time.Millisecond)
+	require.False(t, wc.IsBasicAuthenticated())
+	require.Empty(t, wc.GetSessionToken())
+}
+
+func pumpExited(wc *WebConn) bool {
+	select {
+	case <-wc.pumpFinished:
+		return true
+	default:
+		return false
+	}
+}
+
+// TestServeWebSocketAuthenticationChallenge checks that one authentication
+// challenge binds the connection, and that a later challenge leaves that
+// binding in place.
+func TestServeWebSocketAuthenticationChallenge(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.Suite = &sessionLookupSuite{mockSuite: &mockSuite{}, ps: th.Service}
+
+	preWarmStatusOnline(th, th.BasicUser.Id)
+	preWarmStatusOnline(th, th.BasicUser2.Id)
+
+	testCases := []struct {
+		name            string
+		secondChallenge bool
+		invalidate      bool
+		otherUser       bool
+	}{
+		{
+			name: "registers the connection for a valid session",
+		},
+		{
+			name:            "second challenge while the session token is set",
+			secondChallenge: true,
+		},
+		{
+			name:            "second challenge after the session is invalidated",
+			secondChallenge: true,
+			invalidate:      true,
+		},
+		{
+			name:            "second challenge for another user after the session is invalidated",
+			secondChallenge: true,
+			invalidate:      true,
+			otherUser:       true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			require.Eventually(t, func() bool {
+				return th.Service.WebConnCountForUser(th.BasicUser.Id) == 0 &&
+					th.Service.WebConnCountForUser(th.BasicUser2.Id) == 0
+			}, 2*time.Second, 10*time.Millisecond)
+
+			frames := make(chan []byte, 8)
+			s := httptest.NewServer(socketFramesUntilClose(frames))
+			t.Cleanup(s.Close)
+
+			wc := dialPlatformWebConn(t, th, s.Listener.Addr())
+			pumpStarted := false
+			t.Cleanup(func() {
+				if pumpStarted {
+					wc.Close()
+					return
+				}
+				wc.WebSocket.Close()
+			})
+
+			session := createUserSession(t, th, th.BasicUser.Id)
+			th.Service.WebSocketRouter.ServeWebSocket(wc, authenticationChallengeRequest(1, session.Token))
+
+			require.Equal(t, th.BasicUser.Id, wc.UserId)
+			require.Equal(t, session.Token, wc.GetSessionToken())
+			waitForSessionRegistered(t, th, session)
+			require.Equal(t, 1, th.Service.WebConnCountForUser(th.BasicUser.Id))
+
+			go wc.Pump()
+			pumpStarted = true
+			require.True(t, waitForSocketFrame(frames, 2*time.Second), "socket did not deliver a frame")
+			require.False(t, pumpExited(wc), "websocket closed")
+
+			if !tc.secondChallenge {
+				return
+			}
+
+			drainSocketFrames(frames)
+			if tc.invalidate {
+				reloadClearedSession(t, th, wc, session, true)
+			}
+
+			secondUserID := th.BasicUser.Id
+			if tc.otherUser {
+				secondUserID = th.BasicUser2.Id
+			}
+			second := createUserSession(t, th, secondUserID)
+			before := th.Service.WebConnCountForUser(th.BasicUser.Id)
+
+			th.Service.WebSocketRouter.ServeWebSocket(wc, authenticationChallengeRequest(2, second.Token))
+
+			// A later challenge closes the socket and leaves the original binding unchanged.
+			assert.Eventually(t, func() bool {
+				return pumpExited(wc)
+			}, time.Second, 10*time.Millisecond, "websocket was not closed")
+			assert.Equal(t, th.BasicUser.Id, wc.UserId)
+			assert.LessOrEqual(t, th.Service.WebConnCountForUser(th.BasicUser.Id), before)
+			assert.Zero(t, th.Service.WebConnCountForUser(th.BasicUser2.Id))
+			assert.False(t, th.Service.SessionIsRegistered(*second))
+		})
+	}
+}
+
+// overflowSendBuffer queues messages until the connection is no longer registered.
+func overflowSendBuffer(t *testing.T, th *TestHelper, wc *WebConn, session *model.Session) {
+	t.Helper()
+
+	hub := th.Service.GetHubForUserId(wc.UserId)
+	require.NotNil(t, hub)
+	for i := range sendQueueSize + 5 {
+		hub.SendMessage(wc, model.NewWebSocketResponse(model.StatusOk, int64(i+1), nil))
+	}
+	require.Eventually(t, func() bool {
+		return !th.Service.SessionIsRegistered(*session)
+	}, 2*time.Second, 10*time.Millisecond)
+}
+
+func waitForPostedMarker(send <-chan model.WebSocketMessage, marker string, timeout time.Duration) bool {
+	timer := time.NewTimer(timeout)
+	defer timer.Stop()
+	for {
+		select {
+		case msg, ok := <-send:
+			if !ok {
+				return false
+			}
+			evt, ok := msg.(*model.WebSocketEvent)
+			if !ok || evt == nil {
+				continue
+			}
+			post, _ := evt.GetData()["post"].(string)
+			if post == marker {
+				return true
+			}
+		case <-timer.C:
+			return false
+		}
+	}
+}
+
+// TestHubDeliveryDuringAuthenticationChallenges checks that further
+// authentication challenges leave an already registered connection receiving
+// events, and that the number of calls still running stays below the number
+// of challenges.
+func TestHubDeliveryDuringAuthenticationChallenges(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.Suite = &sessionLookupSuite{mockSuite: &mockSuite{}, ps: th.Service}
+
+	const challengeCount = 20
+
+	preWarmStatusOnline(th, th.BasicUser.Id)
+
+	s := httptest.NewServer(socketFramesUntilClose(nil))
+	t.Cleanup(s.Close)
+
+	bystanderSession := createUserSession(t, th, th.BasicUser.Id)
+	bystander := dialPlatformWebConn(t, th, s.Listener.Addr())
+	// The first dial creates an unauthenticated conn. Register the bystander
+	// through the same challenge path, then read its queue directly.
+	th.Service.WebSocketRouter.ServeWebSocket(bystander, authenticationChallengeRequest(1, bystanderSession.Token))
+	waitForSessionRegistered(t, th, bystanderSession)
+	t.Cleanup(func() { bystander.WebSocket.Close() })
+
+	conns := make([]*WebConn, challengeCount)
+	sessions := make([]*model.Session, challengeCount)
+	for i := range challengeCount {
+		sessions[i] = createUserSession(t, th, th.BasicUser.Id)
+		conns[i] = dialPlatformWebConn(t, th, s.Listener.Addr())
+		returned := make(chan struct{})
+		go func(wc *WebConn, token string) {
+			th.Service.WebSocketRouter.ServeWebSocket(wc, authenticationChallengeRequest(1, token))
+			close(returned)
+		}(conns[i], sessions[i].Token)
+		select {
+		case <-returned:
+		case <-time.After(5 * time.Second):
+			require.FailNow(t, "authentication challenge did not return")
+		}
+		waitForSessionRegistered(t, th, sessions[i])
+		t.Cleanup(func() { conns[i].WebSocket.Close() })
+	}
+
+	for i := range challengeCount {
+		overflowSendBuffer(t, th, conns[i], sessions[i])
+		reloadClearedSession(t, th, conns[i], sessions[i], false)
+		sessions[i] = createUserSession(t, th, th.BasicUser.Id)
+	}
+
+	var running atomic.Int32
+	for i := range challengeCount {
+		running.Add(1)
+		go func(wc *WebConn, token string, seq int64) {
+			defer running.Add(-1)
+			th.Service.WebSocketRouter.ServeWebSocket(wc, authenticationChallengeRequest(seq, token))
+		}(conns[i], sessions[i].Token, int64(i+2))
+	}
+
+	deadline := time.Now().Add(3 * time.Second)
+	for running.Load() > 0 && time.Now().Before(deadline) {
+		time.Sleep(20 * time.Millisecond)
+	}
+	stillRunning := int(running.Load())
+
+	marker := model.NewId()
+	event := model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", th.BasicUser.Id, nil, "")
+	event.Add("post", marker)
+	hub := th.Service.GetHubForUserId(th.BasicUser.Id)
+	require.NotNil(t, hub)
+	hub.Broadcast(event)
+
+	delivered := waitForPostedMarker(bystander.send, marker, 2*time.Second)
+	require.Truef(t, delivered && stillRunning < challengeCount,
+		"hub delivered event to registered connections=%v, authentication challenge calls still running=%d",
+		delivered, stillRunning)
 }
