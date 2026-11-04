@@ -20,7 +20,7 @@ const (
 	coreTimeTypeID         = "mm.time"
 	coreTimeRFC3339ID      = "mm.time.rfc3339"
 	coreTimeClockZoneID    = "mm.time.clock_zone"
-	coreTimeRFC3339Pattern = `[0-9]{4}-[0-9]{2}-[0-9]{2}[Tt][0-9]{2}:[0-9]{2}(?::[0-9]{2}(?:\.[0-9]{1,9})?)?(?:[Zz]|[+-][0-9]{2}:[0-9]{2})`
+	coreTimeRFC3339Pattern = `[0-9]{4}-[0-9]{2}-[0-9]{2}[Tt][0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]{1,9})?(?:[Zz]|[+-][0-9]{2}:[0-9]{2})`
 	// Clock + required zone keeps bare times and issue ids from matching.
 	// Accepts 16:30 CET, 16.30 CET, 4:30pm CET, 4.30 p.m. CET, 4pm CET.
 	coreTimeClockZonePattern = `(?i)(?:(?:[01]?\d|2[0-3])[:.][0-5]\d(?::[0-5]\d)?(?:\s*[ap]\.?m\.?)?|(?:0?[1-9]|1[0-2])(?:[:.][0-5]\d)?\s*[ap]\.?m\.?)\s*(?:UTC|GMT|Z|CET|CEST|EET|EEST|WET|WEST|BST|EST|EDT|CST|CDT|MST|MDT|PST|PDT|AKST|AKDT|HST|IST|JST|KST|AEST|AEDT|ACST|ACDT|AWST|NZST|NZDT)`
@@ -136,10 +136,11 @@ func parseCoreTime(value string) (time.Time, error) {
 	if value == "" {
 		return time.Time{}, fmt.Errorf("unsupported entity")
 	}
-	if parsed, err := time.Parse(time.RFC3339Nano, value); err == nil {
+	normalized := strings.ToUpper(value)
+	if parsed, err := time.Parse(time.RFC3339Nano, normalized); err == nil {
 		return parsed, nil
 	}
-	if parsed, err := time.Parse(time.RFC3339, value); err == nil {
+	if parsed, err := time.Parse(time.RFC3339, normalized); err == nil {
 		return parsed, nil
 	}
 	if parsed, err := parseCoreTimeClockZone(value); err == nil {

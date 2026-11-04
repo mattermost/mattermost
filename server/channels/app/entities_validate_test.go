@@ -21,13 +21,17 @@ func TestEntityValidateCacheKeepsThePostTime(t *testing.T) {
 		validateMu.Unlock()
 	})
 
-	rememberAccept("com.example", "com.example.dtg", "311200Z", 1_700_000_000_000, true)
-	ok, hit := cachedAccept("com.example", "com.example.dtg", "311200Z", 1_700_000_000_000)
+	generation := entities.PatternGeneration()
+	rememberAccept("com.example", "com.example.dtg", "311200Z", 1_700_000_000_000, generation, true)
+	ok, hit := cachedAccept("com.example", "com.example.dtg", "311200Z", 1_700_000_000_000, generation)
 	require.True(t, hit)
 	require.True(t, ok)
 
-	_, otherMonth := cachedAccept("com.example", "com.example.dtg", "311200Z", 1_697_000_000_000)
+	_, otherMonth := cachedAccept("com.example", "com.example.dtg", "311200Z", 1_697_000_000_000, generation)
 	require.False(t, otherMonth)
+
+	_, otherGeneration := cachedAccept("com.example", "com.example.dtg", "311200Z", 1_700_000_000_000, generation+"x")
+	require.False(t, otherGeneration)
 }
 
 func TestEphemeralPostsAreNotScanned(t *testing.T) {

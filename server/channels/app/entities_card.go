@@ -139,6 +139,7 @@ func (a *App) GetEntityCardForPost(rctx request.CTX, postID, occurrence, preferr
 			typeIDs = ordered
 		}
 	}
+	var thin *model.EntityCard
 	for _, typeID := range typeIDs {
 		card, remote, err := entities.Prepare(rctx.Context(), typeID, entity.Value)
 		if err != nil {
@@ -154,8 +155,16 @@ func (a *App) GetEntityCardForPost(rctx request.CTX, postID, occurrence, preferr
 		}
 		if card != nil {
 			model.NormalizeEntityCard(card)
-			return card, nil
+			if model.EntityCardHasBody(card) || card.Instant != 0 {
+				return card, nil
+			}
+			if thin == nil {
+				thin = card
+			}
 		}
+	}
+	if thin != nil {
+		return thin, nil
 	}
 	return &model.EntityCard{TypeID: entity.TypeIDs[0], Value: entity.Value, Title: entity.Value}, nil
 }
@@ -184,12 +193,20 @@ func (a *App) lookupEntityProvider(rctx request.CTX, remote *entities.Remote, ty
 			return &cached
 		}
 	}
+	slot, _ := providerLookupSlot.LoadOrStore(remote.ProviderID, make(chan struct{}, entityProviderLookupCap))
+	slots := slot.(chan struct{})
+	select {
+	case slots <- struct{}{}:
+	default:
+		return nil
+	}
 	type lookupResult struct {
 		card *model.EntityCard
 		err  error
 	}
 	done := make(chan lookupResult, 1)
 	go func() {
+		defer func() { <-slots }()
 		card, err := hooks.EntityLookup(&plugin.Context{}, &model.EntityLookupRequest{
 			ProviderID: remote.ProviderID,
 			TypeID:     typeID,
@@ -227,8 +244,12 @@ func (a *App) RegisterPluginEntityType(pluginID string, t *model.EntityType) *mo
 	if !a.entitiesEnabled() {
 		return model.NewAppError("RegisterPluginEntityType", model.EntitiesDisabledError, nil, "", http.StatusNotImplemented)
 	}
+	before := entities.TermEpoch()
 	if err := entities.AddType(pluginID, t); err != nil {
 		return model.NewAppError("RegisterPluginEntityType", "api.context.invalid_body_param.app_error", map[string]any{"Name": "type"}, err.Error(), http.StatusBadRequest)
+	}
+	if after := entities.TermEpoch(); after != before && t != nil {
+		a.publishDictionaryChanged(t.ID, after)
 	}
 	return nil
 }

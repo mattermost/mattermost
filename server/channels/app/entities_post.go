@@ -24,26 +24,29 @@ import (
 )
 
 const (
-	entityMemoCap          = 8192
-	entityMemoBytes        = 8 << 20
-	entityRefreshCap       = 4
-	entityCacheWriteCap    = 256
-	validateCacheCap       = 4096
-	validateCacheTTL       = 30 * time.Second
-	entityProviderBudget   = 2 * time.Second
-	entityIncompleteTTL    = 30 * time.Second
-	entityPluginDownTTL    = 10 * time.Second
-	entityPatternTTL       = 24 * time.Hour
-	entityPageValidateCap  = 100
-	entityPageScanParallel = 4
-	entityPatternCacheSize = 8192
+	entityMemoCap               = 8192
+	entityMemoBytes             = 8 << 20
+	entityRefreshCap            = 4
+	entityCacheWriteCap         = 256
+	validateCacheCap            = 4096
+	validateCacheTTL            = 30 * time.Second
+	entityProviderBudget        = 2 * time.Second
+	entityIncompleteTTL         = 30 * time.Second
+	entityPluginDownTTL         = 10 * time.Second
+	entityPatternTTL            = 24 * time.Hour
+	entityPageValidateCap       = 100
+	entityPageScanParallel      = 4
+	entityPatternCacheSize      = 8192
+	entityPatternCacheReadWait  = 200 * time.Millisecond
+	entityValidateInflightCap   = 4
+	entityProviderLookupCap     = 4
 )
 
 func (a *App) AppendEntityEtag(etag string) string {
 	if !a.entitiesEnabled() {
 		return etag
 	}
-	return etag + "." + entities.PatternGeneration() + "." + entities.TermEpoch()
+	return etag + "." + entities.PatternGeneration() + "." + entities.TermEpoch() + "." + entities.ProviderGeneration()
 }
 
 func (a *App) entitiesEnabled() bool {
@@ -265,6 +268,9 @@ var (
 
 	pluginDownMu sync.Mutex
 	pluginDown   = map[string]int64{}
+
+	validateInflight   sync.Map
+	providerLookupSlot sync.Map
 )
 
 type validateHit struct {
@@ -273,9 +279,10 @@ type validateHit struct {
 }
 
 type patternWrite struct {
-	store cache.Cache
-	key   string
-	value model.EntityPatternCache
+	store  cache.Cache
+	key    string
+	value  model.EntityPatternCache
+	logger mlog.LoggerIFace
 }
 
 type patternScan struct {
@@ -428,7 +435,20 @@ func (a *App) readPatternCache(misses []*entityMiss) []*patternHit {
 		keys[i] = patternCacheKey(miss.post.Id, miss.hash)
 		ptrs[i] = &values[i]
 	}
-	errs := store.GetMulti(keys, ptrs)
+	type multiResult struct {
+		errs []error
+	}
+	done := make(chan multiResult, 1)
+	go func() {
+		done <- multiResult{errs: store.GetMulti(keys, ptrs)}
+	}()
+	var errs []error
+	select {
+	case <-time.After(entityPatternCacheReadWait):
+		return out
+	case result := <-done:
+		errs = result.errs
+	}
 	for i, err := range errs {
 		if err != nil || values[i].Generation == "" && len(values[i].Patterns) == 0 && len(values[i].Protected) == 0 {
 			continue
@@ -452,6 +472,7 @@ func patternCacheKey(postID, hash string) string {
 func (a *App) scanAndRemember(rctx request.CTX, post *model.Post, hash, generation, termEpoch string, deadline time.Time, calls *atomic.Int32, serve *EntityServeState) []*model.PostEntity {
 	found, protected, incomplete := a.scanPostPatterns(rctx, post, hash, generation, deadline, calls)
 	merged := entities.ApplyTerms(post.Message, protected, found)
+	persist := !entityAcceptAll(rctx)
 	hit := patternHit{
 		generation: generation,
 		protected:  protected,
@@ -461,15 +482,17 @@ func (a *App) scanAndRemember(rctx request.CTX, post *model.Post, hash, generati
 	if incomplete {
 		hit.until = time.Now().Add(entityIncompleteTTL).UnixMilli()
 		serve.mark()
-	} else {
+	} else if persist {
 		appliedMemo.put(appliedKey(post.Id, hash, termEpoch), appliedHit{generation: generation, list: clonePostEntities(merged)}, entityListBytes(merged))
-		a.enqueuePatternWrite(patternCacheKey(post.Id, hash), model.EntityPatternCache{
+		a.enqueuePatternWrite(rctx, patternCacheKey(post.Id, hash), model.EntityPatternCache{
 			Generation: generation,
 			Protected:  append([][2]int(nil), protected...),
 			Patterns:   clonePostEntities(found),
 		})
 	}
-	patternMemo.put(patternKey(post.Id, hash), hit, entityListBytes(hit.patterns))
+	if persist {
+		patternMemo.put(patternKey(post.Id, hash), hit, entityListBytes(hit.patterns)+len(hit.protected)*16)
+	}
 	return merged
 }
 
@@ -516,13 +539,16 @@ func (a *App) refreshEntitiesLater(rctx request.CTX, post *model.Post) {
 		ctx := request.EmptyContext(logger)
 		found, protected, incomplete := a.scanPostPatterns(ctx, fresh, hash, generation, deadline, &calls)
 		if incomplete {
+			if prev, ok := patternMemo.get(patternKey(fresh.Id, hash)); ok && !prev.(patternHit).incomplete {
+				return
+			}
 			patternMemo.put(patternKey(fresh.Id, hash), patternHit{
 				generation: generation,
 				protected:  protected,
 				patterns:   clonePostEntities(found),
 				incomplete: true,
 				until:      time.Now().Add(entityIncompleteTTL).UnixMilli(),
-			}, entityListBytes(found))
+			}, entityListBytes(found)+len(protected)*16)
 			return
 		}
 		appliedMemo.dropPrefix(fresh.Id + "\n" + hash + "\n")
@@ -530,8 +556,8 @@ func (a *App) refreshEntitiesLater(rctx request.CTX, post *model.Post) {
 			generation: generation,
 			protected:  protected,
 			patterns:   clonePostEntities(found),
-		}, entityListBytes(found))
-		a.enqueuePatternWrite(patternCacheKey(fresh.Id, hash), model.EntityPatternCache{
+		}, entityListBytes(found)+len(protected)*16)
+		a.enqueuePatternWrite(ctx, patternCacheKey(fresh.Id, hash), model.EntityPatternCache{
 			Generation: generation,
 			Protected:  append([][2]int(nil), protected...),
 			Patterns:   clonePostEntities(found),
@@ -546,23 +572,31 @@ func (a *App) entityPatternCache() cache.Cache {
 	return a.ch.srv.entityPatternCache
 }
 
-func (a *App) enqueuePatternWrite(key string, value model.EntityPatternCache) {
+func (a *App) enqueuePatternWrite(rctx request.CTX, key string, value model.EntityPatternCache) {
 	store := a.entityPatternCache()
 	if store == nil {
 		return
+	}
+	var logger mlog.LoggerIFace
+	if rctx != nil {
+		logger = rctx.Logger()
 	}
 	patternWritesOnce.Do(func() {
 		go func() {
 			for job := range patternWrites {
 				if err := job.store.SetWithExpiry(job.key, job.value, entityPatternTTL); err != nil {
-					mlog.Debug("Failed to store entity pattern", mlog.Err(err))
+					if job.logger != nil {
+						job.logger.Debug("Failed to store entity pattern", mlog.Err(err))
+					} else {
+						mlog.Debug("Failed to store entity pattern", mlog.Err(err))
+					}
 				}
 				patternWriteCount.Add(1)
 			}
 		}()
 	})
 	select {
-	case patternWrites <- patternWrite{store: store, key: key, value: value}:
+	case patternWrites <- patternWrite{store: store, key: key, value: value, logger: logger}:
 	default:
 	}
 }
@@ -597,7 +631,8 @@ func (a *App) acceptEntityValue(rctx request.CTX, pluginID, typeID, value string
 			return false, fmt.Errorf("entity validation budget is exhausted")
 		}
 	}
-	if ok, hit := cachedAccept(pluginID, typeID, value, createAt); hit {
+	generation := entities.PatternGeneration()
+	if ok, hit := cachedAccept(pluginID, typeID, value, createAt, generation); hit {
 		return ok, nil
 	}
 	if pluginUnavailable(pluginID) {
@@ -613,6 +648,13 @@ func (a *App) acceptEntityValue(rctx request.CTX, pluginID, typeID, value string
 		markPluginDown(pluginID)
 		return false, fmt.Errorf("plugin is unavailable")
 	}
+	slot, _ := validateInflight.LoadOrStore(pluginID, make(chan struct{}, entityValidateInflightCap))
+	slots := slot.(chan struct{})
+	select {
+	case slots <- struct{}{}:
+	default:
+		return false, fmt.Errorf("entity validation is busy")
+	}
 	type validateResult struct {
 		ok      bool
 		callErr error
@@ -620,6 +662,7 @@ func (a *App) acceptEntityValue(rctx request.CTX, pluginID, typeID, value string
 	}
 	done := make(chan validateResult, 1)
 	go func() {
+		defer func() { <-slots }()
 		ok, callErr, rpcErr := hooks.EntityValidateWithRPCErr(&plugin.Context{}, &model.EntityValidateRequest{
 			TypeID:   typeID,
 			Value:    value,
@@ -642,7 +685,7 @@ func (a *App) acceptEntityValue(rctx request.CTX, pluginID, typeID, value string
 		if result.callErr != nil {
 			return false, result.callErr
 		}
-		rememberAccept(pluginID, typeID, value, createAt, result.ok)
+		rememberAccept(pluginID, typeID, value, createAt, generation, result.ok)
 		return result.ok, nil
 	}
 }
@@ -659,12 +702,12 @@ func markPluginDown(pluginID string) {
 	pluginDown[pluginID] = model.GetMillis() + entityPluginDownTTL.Milliseconds()
 }
 
-func entityValidateKey(pluginID, typeID, value string, createAt int64) string {
-	return pluginID + "\x00" + typeID + "\x00" + value + "\x00" + fmt.Sprint(createAt)
+func entityValidateKey(pluginID, typeID, value string, createAt int64, generation string) string {
+	return pluginID + "\x00" + typeID + "\x00" + value + "\x00" + fmt.Sprint(createAt) + "\x00" + generation
 }
 
-func cachedAccept(pluginID, typeID, value string, createAt int64) (bool, bool) {
-	key := entityValidateKey(pluginID, typeID, value, createAt)
+func cachedAccept(pluginID, typeID, value string, createAt int64, generation string) (bool, bool) {
+	key := entityValidateKey(pluginID, typeID, value, createAt, generation)
 	now := model.GetMillis()
 	validateMu.Lock()
 	defer validateMu.Unlock()
@@ -675,8 +718,8 @@ func cachedAccept(pluginID, typeID, value string, createAt int64) (bool, bool) {
 	return hit.ok, true
 }
 
-func rememberAccept(pluginID, typeID, value string, createAt int64, ok bool) {
-	key := entityValidateKey(pluginID, typeID, value, createAt)
+func rememberAccept(pluginID, typeID, value string, createAt int64, generation string, ok bool) {
+	key := entityValidateKey(pluginID, typeID, value, createAt, generation)
 	validateMu.Lock()
 	defer validateMu.Unlock()
 	if len(validateCache) >= validateCacheCap {
