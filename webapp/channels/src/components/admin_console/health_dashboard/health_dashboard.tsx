@@ -7,6 +7,8 @@ import {defineMessage, FormattedMessage} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 
 import {BellOffOutlineIcon, RefreshIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {HealthFinding, HealthFindingFilter, HealthFindingList} from '@mattermost/types/health';
 import type {Job, JobType, JobTypeBase} from '@mattermost/types/jobs';
 
@@ -213,18 +215,15 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, jobs, action
 
     const running = starting || runId !== null;
     const runButton = (
-        <button
-            type='button'
-            className={classNames('btn btn-secondary btn-sm HealthDashboard__rerun', {'HealthDashboard__rerun--running': running})}
+        <Button
+            emphasis='secondary'
+            size='small'
+            loading={running}
             disabled={running}
             aria-busy={running}
+            leadingIcon={<Icon glyph={<RefreshIcon/>}/>}
             onClick={startRun}
         >
-            <RefreshIcon
-                size={16}
-                color='currentColor'
-                aria-hidden={true}
-            />
             {running ? (
                 <FormattedMessage
                     id='admin.health_dashboard.run.running'
@@ -236,7 +235,7 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, jobs, action
                     defaultMessage='Re-run checks'
                 />
             )}
-        </button>
+        </Button>
     );
     const runErrorBanner = runError && (
         <AlertBanner
