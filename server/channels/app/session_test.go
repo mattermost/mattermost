@@ -553,10 +553,12 @@ func TestGetRemoteClusterSession(t *testing.T) {
 	})
 
 	t.Run("Invalid remote id should return error", func(t *testing.T) {
-		session, err := th.App.GetRemoteClusterSession(token, model.NewId())
+		unknownRemoteID := model.NewId()
+		session, err := th.App.GetRemoteClusterSession(token, unknownRemoteID)
 		require.NotNil(t, err)
 		require.Nil(t, session)
 		assertErrorTextOmitsSubmittedValue(t, err, token)
+		assert.NotContains(t, err.Error(), unknownRemoteID)
 	})
 }
 

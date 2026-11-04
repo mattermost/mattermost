@@ -81,7 +81,11 @@ func (a *App) GetRemoteClusterSession(token string, remoteId string) (*model.Ses
 		session.AddProp(model.SessionPropType, model.SessionTypeRemoteclusterToken)
 		return session, nil
 	}
-	return nil, model.NewAppError("GetRemoteClusterSession", "api.context.invalid_session.error", nil, "The provided token is invalid, remote_id="+remoteId, http.StatusUnauthorized)
+	detail := "The provided token is invalid"
+	if appErr == nil {
+		detail += ", remote_id=" + remoteId
+	}
+	return nil, model.NewAppError("GetRemoteClusterSession", "api.context.invalid_session.error", nil, detail, http.StatusUnauthorized)
 }
 
 func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
