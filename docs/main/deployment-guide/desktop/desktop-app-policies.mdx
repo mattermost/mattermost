@@ -3,7 +3,13 @@ title: "Desktop app policies"
 ---
 <PlanAvailability slug="all-commercial" />
 
-Policies let you set servers for your users, and control server management, update checks, and embedded media permissions. Users can't change policy values. To set them, see [Configure policies on Windows](/deployment-guide/desktop/windows-desktop-install#configure-policies) or [Configure policies on macOS](/deployment-guide/desktop/macos-desktop-install#configure-policies).
+Policies let you set servers for your users, and control server management, update checks, and embedded media permissions. Users can't change policy values through the app's interface. To set them, see [Configure policies on Windows](/deployment-guide/desktop/windows-desktop-install#configure-policies) or [Configure policies on macOS](/deployment-guide/desktop/macos-desktop-install#configure-policies).
+
+<Important>
+
+On Windows, user-level registry policies take precedence over machine-level policies. A user with write access to their `HKEY_CURRENT_USER\SOFTWARE\Policies\Mattermost` registry key can override machine-level `EnableServerManagement` and `EnableAutoUpdater` restrictions. If you need to enforce these policies reliably, restrict user access to their policy registry keys using Group Policy or other access controls.
+
+</Important>
 
 | Policy | What it does | Available from |
 |---|---|---|
@@ -12,4 +18,4 @@ Policies let you set servers for your users, and control server management, upda
 | `EnableAutoUpdater` | When disabled, the app doesn't check for updates or show update notifications. | Windows v5.1, macOS v6.2 |
 | `TrustedEmbeddedMediaOrigins` | Lets embedded content from another origin, such as a meeting service embedded in Mattermost, use the camera and microphone permission granted to a Mattermost server. It isn't needed for servers set with `DefaultServerList`. | v6.3 |
 
-The app reads policies when it starts, so changes take effect after Mattermost restarts. On Windows, the app reads machine policies and then user policies. If you set `EnableServerManagement` or `EnableAutoUpdater` at both levels, the user-level value is used.
+The app reads policies when it starts, so changes take effect after Mattermost restarts.
