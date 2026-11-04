@@ -4,11 +4,12 @@
 package entities
 
 import (
+	"cmp"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
 	"regexp"
-	"sort"
+	"slices"
 	"strings"
 	"unicode"
 	"unicode/utf16"
@@ -220,8 +221,8 @@ func mergeTermHits(patterns, terms []hit) []hit {
 		}
 		accepted = append(accepted, h)
 	}
-	sort.Slice(accepted, func(i, j int) bool {
-		return accepted[i].byteStart < accepted[j].byteStart
+	slices.SortFunc(accepted, func(a, b hit) int {
+		return cmp.Compare(a.byteStart, b.byteStart)
 	})
 	return accepted
 }
@@ -314,16 +315,16 @@ func appendTermHits(scanned string, mask []bool, hits []hit) []hit {
 }
 
 func resolve(hits []hit) []hit {
-	sort.Slice(hits, func(i, j int) bool {
-		li := hits[i].byteEnd - hits[i].byteStart
-		lj := hits[j].byteEnd - hits[j].byteStart
-		if li != lj {
-			return li > lj
+	slices.SortFunc(hits, func(a, b hit) int {
+		li := a.byteEnd - a.byteStart
+		lj := b.byteEnd - b.byteStart
+		if c := cmp.Compare(lj, li); c != 0 {
+			return c
 		}
-		if hits[i].byteStart != hits[j].byteStart {
-			return hits[i].byteStart < hits[j].byteStart
+		if c := cmp.Compare(a.byteStart, b.byteStart); c != 0 {
+			return c
 		}
-		return hits[i].matcherID < hits[j].matcherID
+		return cmp.Compare(a.matcherID, b.matcherID)
 	})
 	var accepted []hit
 	for _, h := range hits {
@@ -359,19 +360,14 @@ func resolve(hits []hit) []hit {
 		}
 		accepted = append(accepted, h)
 	}
-	sort.Slice(accepted, func(i, j int) bool {
-		return accepted[i].byteStart < accepted[j].byteStart
+	slices.SortFunc(accepted, func(a, b hit) int {
+		return cmp.Compare(a.byteStart, b.byteStart)
 	})
 	return accepted
 }
 
 func containsType(have []string, want string) bool {
-	for _, id := range have {
-		if id == want {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(have, want)
 }
 
 func boundaryOK(s string, start, end int) bool {
@@ -637,12 +633,12 @@ func markInlineCode(s string, mask []bool) {
 			continue
 		}
 		ticks := strings.Repeat("`", n)
-		close := strings.Index(s[i+n:], ticks)
-		if close < 0 {
+		closeAt := strings.Index(s[i+n:], ticks)
+		if closeAt < 0 {
 			i += n
 			continue
 		}
-		end := i + n + close + n
+		end := i + n + closeAt + n
 		mark(mask, i, end)
 		i = end
 	}

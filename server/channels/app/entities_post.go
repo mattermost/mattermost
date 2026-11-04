@@ -24,22 +24,22 @@ import (
 )
 
 const (
-	entityMemoCap               = 8192
-	entityMemoBytes             = 8 << 20
-	entityRefreshCap            = 4
-	entityCacheWriteCap         = 256
-	validateCacheCap            = 4096
-	validateCacheTTL            = 30 * time.Second
-	entityProviderBudget        = 2 * time.Second
-	entityIncompleteTTL         = 30 * time.Second
-	entityPluginDownTTL         = 10 * time.Second
-	entityPatternTTL            = 24 * time.Hour
-	entityPageValidateCap       = 100
-	entityPageScanParallel      = 4
-	entityPatternCacheSize      = 8192
-	entityPatternCacheReadWait  = 200 * time.Millisecond
-	entityValidateInflightCap   = 4
-	entityProviderLookupCap     = 4
+	entityMemoCap              = 8192
+	entityMemoBytes            = 8 << 20
+	entityRefreshCap           = 4
+	entityCacheWriteCap        = 256
+	validateCacheCap           = 4096
+	validateCacheTTL           = 30 * time.Second
+	entityProviderBudget       = 2 * time.Second
+	entityIncompleteTTL        = 30 * time.Second
+	entityPluginDownTTL        = 10 * time.Second
+	entityPatternTTL           = 24 * time.Hour
+	entityPageValidateCap      = 100
+	entityPageScanParallel     = 4
+	entityPatternCacheSize     = 8192
+	entityPatternCacheReadWait = 200 * time.Millisecond
+	entityValidateInflightCap  = 4
+	entityProviderLookupCap    = 4
 )
 
 func (a *App) AppendEntityEtag(etag string) string {
@@ -83,10 +83,7 @@ func shouldDetectEntities(post *model.Post) bool {
 	case "custom_tf_location", "custom_tf_airfields":
 		return true
 	}
-	if strings.HasPrefix(post.Type, "custom_") {
-		return false
-	}
-	return true
+	return !strings.HasPrefix(post.Type, "custom_")
 }
 
 type entityPageKey struct{}

@@ -5,6 +5,7 @@ package model
 
 import (
 	"encoding/json"
+	"maps"
 	"net/url"
 	"strings"
 )
@@ -217,9 +218,7 @@ func sanitizeEntityBlocks(blocks []any, depth int) []any {
 
 func copyEntityBlock(block map[string]any) map[string]any {
 	next := make(map[string]any, len(block))
-	for k, v := range block {
-		next[k] = v
-	}
+	maps.Copy(next, block)
 	return next
 }
 

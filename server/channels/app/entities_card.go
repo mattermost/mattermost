@@ -5,6 +5,7 @@ package app
 
 import (
 	"net/http"
+	"slices"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -91,10 +92,8 @@ func postContainsEntity(post *model.Post, typeID, value string) bool {
 		if entity == nil || entity.Value != value {
 			continue
 		}
-		for _, id := range entity.TypeIDs {
-			if id == typeID {
-				return true
-			}
+		if slices.Contains(entity.TypeIDs, typeID) {
+			return true
 		}
 	}
 	return false
@@ -187,7 +186,7 @@ func (a *App) lookupEntityProvider(rctx request.CTX, remote *entities.Remote, ty
 	cardCache := a.Srv().entityCardCache
 	if cacheable && cardCache != nil {
 		var cached model.EntityCard
-		if err := cardCache.Get(key, &cached); err == nil {
+		if cacheErr := cardCache.Get(key, &cached); cacheErr == nil {
 			cached.TypeID = typeID
 			cached.Value = value
 			return &cached
@@ -207,7 +206,7 @@ func (a *App) lookupEntityProvider(rctx request.CTX, remote *entities.Remote, ty
 	done := make(chan lookupResult, 1)
 	go func() {
 		defer func() { <-slots }()
-		card, err := hooks.EntityLookup(&plugin.Context{}, &model.EntityLookupRequest{
+		card, lookupErr := hooks.EntityLookup(&plugin.Context{}, &model.EntityLookupRequest{
 			ProviderID: remote.ProviderID,
 			TypeID:     typeID,
 			Value:      value,
@@ -215,7 +214,7 @@ func (a *App) lookupEntityProvider(rctx request.CTX, remote *entities.Remote, ty
 			PostID:     postID,
 			CreateAt:   createAt,
 		})
-		done <- lookupResult{card: card, err: err}
+		done <- lookupResult{card: card, err: lookupErr}
 	}()
 	var card *model.EntityCard
 	select {
