@@ -437,7 +437,7 @@ older row/section shape keep working until they migrate.
     {"type": "text", "text": "**UTC:** 2024-06-01T15:04:05Z"},
     {"type": "text", "text": "Local offset in the token: +00:00", "is_subtle": true}
   ],
-  "related": [{"type_id": "…", "value": "…", "label": "…"}]
+  "related": [{"type_id": "…", "text": "…", "label": "…"}]
 }
 ```
 

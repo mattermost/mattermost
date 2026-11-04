@@ -162,12 +162,12 @@ export default function EntityCardView({card, onOpen, reload}: {card: EntityCard
     const extraParts = parts.filter((part) => part.part !== 'map' && part.part !== 'clocks');
     const severity = card.severity && severityStyle[card.severity] ? card.severity : '';
     const cardHref = card.url ? externalHref(card.url) : '';
-    const urlInRows = Boolean(cardHref && card.rows?.some((row) => row.value === card.url));
     const bodyBlocks = useMemo(
         () => (Array.isArray(card.blocks) && card.blocks.length > 0 ? translateMMBlocks(card.blocks) : []),
         [card.blocks],
     );
     const hasBlockBody = bodyBlocks.length > 0;
+    const urlInRows = Boolean(!hasBlockBody && cardHref && card.rows?.some((row) => row.value === card.url));
     const localInstant = card.instant ? formatCardInstant(card.instant, timezone, military, intl) : '';
     const heading = localInstant || card.title;
 

@@ -76,6 +76,7 @@ type registry struct {
 	terms            []storedTerm
 	cachedGeneration string
 	cachedTermEpoch  string
+	cachedProviders  string
 }
 
 var reg = newRegistry()
@@ -86,6 +87,7 @@ func newRegistry() *registry {
 	}
 	r.rememberGeneration()
 	r.rememberTerms()
+	r.rememberProviders()
 	return r
 }
 
@@ -175,7 +177,8 @@ func hashTerms(terms []storedTerm) string {
 }
 
 func termValueOK(value string) bool {
-	if len(value) < 2 || len(value) > 32 {
+	runes := utf8.RuneCountInString(value)
+	if runes < 2 || runes > 32 {
 		return false
 	}
 	for i, r := range value {
@@ -240,8 +243,31 @@ func TermEpoch() string {
 	return reg.cachedTermEpoch
 }
 
+// ProviderGeneration is a hash of every registered card provider. It changes when
+// a provider is added, replaced, or removed, so clients and card caches refresh.
+func ProviderGeneration() string {
+	reg.mu.RLock()
+	defer reg.mu.RUnlock()
+	return reg.cachedProviders
+}
+
 func (r *registry) rememberTerms() {
 	r.cachedTermEpoch = hashTerms(r.terms)
+}
+
+func (r *registry) rememberProviders() {
+	h := sha256.New()
+	ids := append([]storedProvider(nil), r.providers...)
+	sort.Slice(ids, func(i, j int) bool {
+		if ids[i].id != ids[j].id {
+			return ids[i].id < ids[j].id
+		}
+		return ids[i].typeID < ids[j].typeID
+	})
+	for _, provider := range ids {
+		fmt.Fprintf(h, "%s\n%s\n%t\n%s\n%d\n", provider.id, provider.typeID, provider.hasCard, provider.cache, int64(provider.cacheTTL/time.Second))
+	}
+	r.cachedProviders = hex.EncodeToString(h.Sum(nil))[:16]
 }
 
 func (r *registry) rememberGeneration() {
@@ -762,6 +788,7 @@ func AddProvider(pluginID string, spec *model.EntityProvider) error {
 			cacheTTL: cacheTTL,
 		})
 	}
+	reg.rememberProviders()
 	return nil
 }
 
@@ -789,6 +816,7 @@ func RemovePlugin(pluginID string) {
 		}
 	}
 	reg.providers = providers
+	reg.rememberProviders()
 	terms := make([]storedTerm, 0, len(reg.terms))
 	for _, term := range reg.terms {
 		if term.owner != pluginID {

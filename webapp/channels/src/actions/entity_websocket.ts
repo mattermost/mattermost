@@ -11,6 +11,8 @@ import {getPost, getPostIdsInChannel} from 'mattermost-redux/selectors/entities/
 import type {ActionFuncAsync} from 'types/store';
 
 const maxEntityPosts = 200;
+let entityRequestSeq = 0;
+const appliedEntitySeq = new Map<string, number>();
 
 export function handleEntitiesDictionaryChanged(): ActionFuncAsync {
     return async (dispatch, getState) => {
@@ -27,6 +29,7 @@ export function handleEntitiesDictionaryChanged(): ActionFuncAsync {
             return {data: false};
         }
         const ids = recent.slice(0, maxEntityPosts);
+        const requestSeq = ++entityRequestSeq;
         let result: {posts: Record<string, PostEntity[]>};
         try {
             result = await Client4.getEntityPosts(ids);
@@ -39,6 +42,10 @@ export function handleEntitiesDictionaryChanged(): ActionFuncAsync {
             if (!getPost(fresh, id)) {
                 return;
             }
+            if ((appliedEntitySeq.get(id) ?? 0) > requestSeq) {
+                return;
+            }
+            appliedEntitySeq.set(id, requestSeq);
             entities[id] = result.posts[id];
         });
         if (Object.keys(entities).length > 0) {

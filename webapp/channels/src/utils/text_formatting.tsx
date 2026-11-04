@@ -296,7 +296,7 @@ function replaceEntitySentinels(text: string, tokens: Tokens, entities?: PostEnt
         if (!entity) {
             return '';
         }
-        const alias = `$MM_ENTITY${index}$`;
+        const alias = `\uE002${index}\uE003`;
         const urlAttr = entity.url ? ` data-entity-url="${escapeHtml(entity.url)}"` : '';
         const labelAttr = entity.display_name ? ` data-entity-label="${escapeHtml(entity.display_name)}"` : '';
         const titleAttr = entity.title ? ` data-entity-title="${escapeHtml(entity.title)}"` : '';

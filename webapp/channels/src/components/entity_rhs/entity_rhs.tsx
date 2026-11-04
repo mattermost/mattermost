@@ -12,8 +12,15 @@ import {closeRightHandSide} from 'actions/views/rhs';
 import {getSelectedEntity} from 'selectors/rhs';
 
 import {entityLabel} from 'components/entity_mention/labels';
+import ExternalLink from 'components/external_link';
 
 import EntityCardView, {type EntityOpenTarget} from './entity_card';
+
+function isAllowedEntityURL(url: string) {
+    return url.startsWith('https://') ||
+        url.startsWith('http://') ||
+        (url.startsWith('/') && !url.startsWith('//') && !url.includes('..'));
+}
 
 type EntityFrame = EntityOpenTarget & {
     postId?: string;
@@ -48,6 +55,7 @@ export default function EntityRhs() {
     if (entityKey !== seenEntityKey) {
         setSeenEntityKey(entityKey);
         setDeeper([]);
+        setCard(undefined);
     }
     const trail = entityKey === seenEntityKey ? deeper : [];
 
@@ -93,8 +101,8 @@ export default function EntityRhs() {
         setDeeper((stack) => [...stack, target]);
     };
 
-    const entityURL = trail.length === 0 && entity.url && (entity.url.startsWith('https://') || (entity.url.startsWith('/') && !entity.url.startsWith('//') && !entity.url.includes('..'))) ? entity.url : undefined;
-    const url = (card?.url && (card.url.startsWith('https://') || (card.url.startsWith('/') && !card.url.startsWith('//') && !card.url.includes('..'))) ? card.url : undefined) || entityURL;
+    const entityURL = trail.length === 0 && entity.url && isAllowedEntityURL(entity.url) ? entity.url : undefined;
+    const url = (card?.url && isAllowedEntityURL(card.url) ? card.url : undefined) || entityURL;
 
     return (
         <div
@@ -135,14 +143,13 @@ export default function EntityRhs() {
                         <div style={{fontSize: 20, fontWeight: 600}}>{frame?.value || entity.value}</div>
                         {card === null && <p style={{marginTop: 12, opacity: 0.72}}>{'No additional information'}</p>}
                         {url && card !== undefined && (
-                            <a
+                            <ExternalLink
                                 href={url}
-                                target='_blank'
-                                rel='noopener noreferrer'
+                                location='entity_rhs'
                                 data-testid='entity-rhs-link'
                             >
                                 {url}
-                            </a>
+                            </ExternalLink>
                         )}
                     </>
                 )}
