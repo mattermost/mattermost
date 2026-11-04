@@ -19,14 +19,12 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
-	"sync/atomic"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/sync/singleflight"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -1484,11 +1482,7 @@ func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {
 
 	t.Run("probe still running at the deadline", func(t *testing.T) {
 		release := make(chan struct{})
-		t.Cleanup(func() {
-			close(release)
-			// Wait for the abandoned probe so that later subtests start their own instead of joining it.
-			_, _, _ = th.Service.sharedProbes.Do(string(model.SectionLDAPProbe), func() (any, error) { return nil, nil })
-		})
+		t.Cleanup(func() { close(release) })
 		// The push probe reaches the real push proxy by default, which could outlast the short deadline.
 		th.Service.UpdateConfig(func(cfg *model.Config) {
 			cfg.EmailSettings.SendPushNotifications = model.NewPointer(false)
@@ -1563,108 +1557,85 @@ func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {
 	})
 }
 
-func TestStartProbe(t *testing.T) {
-	t.Run("returns the probe's result", func(t *testing.T) {
-		wait := startProbe(context.Background(), func(context.Context) int { return 42 })
-		value, err := wait()
-		require.NoError(t, err)
-		assert.Equal(t, 42, value)
+func TestStartNetworkProbes(t *testing.T) {
+	type outcome struct {
+		status, errMsg string
+		sectionErrs    []error
+	}
+	// collect runs a single probe in section SectionPushProbe and returns what it recorded.
+	collect := func(ctx context.Context, probe networkProbe) outcome {
+		var o outcome
+		probe.name, probe.section, probe.status, probe.errMsg = "push", model.SectionPushProbe, &o.status, &o.errMsg
+		startNetworkProbes(ctx, []networkProbe{probe}, func(section model.NodeSection, err error) {
+			assert.Equal(t, model.SectionPushProbe, section)
+			o.sectionErrs = append(o.sectionErrs, err)
+		})()
+		return o
+	}
+
+	t.Run("records a reachable service", func(t *testing.T) {
+		o := collect(context.Background(), networkProbe{run: func(context.Context) error { return nil }})
+		assert.Equal(t, outcome{status: model.StatusOk}, o)
+	})
+
+	t.Run("records an unreachable service without failing the section", func(t *testing.T) {
+		o := collect(context.Background(), networkProbe{run: func(context.Context) error { return errors.New("refused") }})
+		assert.Equal(t, outcome{status: model.StatusFail, errMsg: "refused"}, o)
+	})
+
+	t.Run("runs record after run and fails the section with its error", func(t *testing.T) {
+		var name string
+		o := collect(context.Background(), networkProbe{
+			run: func(context.Context) error { name = "OpenLDAP"; return nil },
+			record: func() error {
+				assert.Equal(t, "OpenLDAP", name)
+				return errors.New("vendor down")
+			},
+		})
+		assert.Equal(t, model.StatusOk, o.status)
+		require.Len(t, o.sectionErrs, 1)
+		assert.EqualError(t, o.sectionErrs[0], "vendor down")
+	})
+
+	t.Run("passes the context to the probe", func(t *testing.T) {
+		type key struct{}
+		ctx := context.WithValue(context.Background(), key{}, "value")
+		o := collect(ctx, networkProbe{run: func(ctx context.Context) error {
+			if ctx.Value(key{}) != "value" {
+				return errors.New("wrong context")
+			}
+			return nil
+		}})
+		assert.Equal(t, model.StatusOk, o.status, o.errMsg)
 	})
 
 	t.Run("gives up when the context ends", func(t *testing.T) {
 		release := make(chan struct{})
-		t.Cleanup(func() { close(release) })
-		ctx, cancel := context.WithCancel(context.Background())
-		wait := startProbe(ctx, func(context.Context) int {
-			<-release
-			return 42
-		})
-		cancel()
-
-		value, err := wait()
-		require.ErrorIs(t, err, context.Canceled)
-		assert.ErrorContains(t, err, "probe did not complete")
-		assert.Zero(t, value)
-	})
-
-	t.Run("passes the context to the probe", func(t *testing.T) {
-		ctx, cancel := context.WithCancel(context.Background())
+		defer close(release)
+		ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
 		defer cancel()
-		got := make(chan context.Context, 1)
-		wait := startProbe(ctx, func(ctx context.Context) int {
-			got <- ctx
-			return 0
+
+		recorded := false
+		o := collect(ctx, networkProbe{
+			run:    func(context.Context) error { <-release; return nil },
+			record: func() error { recorded = true; return nil },
 		})
-		_, err := wait()
-		require.NoError(t, err)
-
-		probeCtx := <-got
-		require.NoError(t, probeCtx.Err())
-		cancel()
-		require.ErrorIs(t, probeCtx.Err(), context.Canceled)
-	})
-
-	t.Run("does not start once the context has ended", func(t *testing.T) {
-		ctx, cancel := context.WithCancel(context.Background())
-		cancel()
-		started := false
-		wait := startProbe(ctx, func(context.Context) int {
-			started = true
-			return 42
-		})
-
-		_, err := wait()
-		require.ErrorIs(t, err, context.Canceled)
-		assert.False(t, started)
+		assert.Empty(t, o.status, "a probe that did not finish has no status")
+		assert.Equal(t, "push: probe did not complete: context deadline exceeded", o.errMsg)
+		require.Len(t, o.sectionErrs, 1)
+		assert.ErrorIs(t, o.sectionErrs[0], context.DeadlineExceeded)
+		assert.False(t, recorded)
 	})
 
 	t.Run("returns a panic as an error", func(t *testing.T) {
-		wait := startProbe(context.Background(), func(context.Context) int { panic("boom") })
-		_, err := wait()
-		assert.ErrorContains(t, err, "probe panicked: boom")
-	})
-}
-
-func TestStartSharedProbe(t *testing.T) {
-	t.Run("collections share a probe that is still running", func(t *testing.T) {
-		var (
-			group   singleflight.Group
-			calls   atomic.Int32
-			release = make(chan struct{})
-		)
-		probe := func() int {
-			calls.Add(1)
-			<-release
-			return 42
-		}
-
-		for range 3 {
-			ctx, cancel := context.WithCancel(context.Background())
-			wait := startSharedProbe(ctx, &group, "key", probe)
-			cancel()
-			_, err := wait()
-			require.ErrorIs(t, err, context.Canceled)
-		}
-
-		// A collection that starts while the probe is still running receives its result.
-		wait := startSharedProbe(context.Background(), &group, "key", probe)
-		close(release)
-		value, err := wait()
-		require.NoError(t, err)
-		assert.Equal(t, 42, value)
-		assert.EqualValues(t, 1, calls.Load())
-
-		// Once it has finished, the next collection runs the probe again.
-		value, err = startSharedProbe(context.Background(), &group, "key", probe)()
-		require.NoError(t, err)
-		assert.Equal(t, 42, value)
-		assert.EqualValues(t, 2, calls.Load())
+		o := collect(context.Background(), networkProbe{run: func(context.Context) error { panic("boom") }})
+		assert.Empty(t, o.status)
+		assert.Equal(t, "push: probe panicked: boom", o.errMsg)
+		require.Len(t, o.sectionErrs, 1)
 	})
 
-	t.Run("returns a panic as an error", func(t *testing.T) {
-		var group singleflight.Group
-		_, err := startSharedProbe(context.Background(), &group, "key", func() int { panic("boom") })()
-		assert.ErrorContains(t, err, "probe panicked: boom")
+	t.Run("records nothing without probes", func(t *testing.T) {
+		startNetworkProbes(context.Background(), nil, func(model.NodeSection, error) { t.Fatal("unexpected failure") })()
 	})
 }
 

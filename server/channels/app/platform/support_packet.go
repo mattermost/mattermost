@@ -5,6 +5,7 @@ package platform
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -20,7 +21,6 @@ import (
 	"github.com/goccy/go-yaml"
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
-	"golang.org/x/sync/singleflight"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -171,22 +171,8 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 		rErr = multierror.Append(rErr, failure)
 		sectionErrors[section] = multierror.Append(sectionErrors[section], failure)
 	}
-	// recordProbe waits for a probe and returns its status and error. A probe that did not complete fails
-	// its section and gets an empty status, so readers treat it as unknown rather than failed.
-	recordProbe := func(section model.NodeSection, probe func() (probeOutcome, error)) (status, errMsg string) {
-		if probe == nil {
-			return model.StatusDisabled, ""
-		}
-		outcome, probeErr := probe()
-		if probeErr != nil {
-			fail(section, probeErr)
-			return "", probeErr.Error()
-		}
-		return outcome.Status, outcome.Error
-	}
-
 	// Start the network probes first so that they overlap with the local collection below.
-	probes := ps.startNetworkProbes(rctx)
+	collectProbes := startNetworkProbes(rctx.Context(), ps.networkProbes(rctx, &d), fail)
 
 	d.Version = model.CurrentSupportPacketVersion
 
@@ -288,7 +274,6 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 	}
 
 	/* File store */
-	d.FileStore.Status, d.FileStore.Error = recordProbe(model.SectionFilestoreConn, probes.fileStore)
 	d.FileStore.Driver = ps.FileBackend().DriverName()
 	if d.FileStore.Driver == model.ImageDriverLocal {
 		dir := model.SafeDereference(ps.Config().FileSettings.Directory)
@@ -324,20 +309,6 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 		d.Cluster.NumberOfConnectedNodes = new(1)
 	}
 
-	/* LDAP */
-	if probes.ldap == nil {
-		d.LDAP.Status = model.StatusDisabled
-	} else if result, probeErr := probes.ldap(); probeErr != nil {
-		fail(model.SectionLDAPProbe, probeErr)
-		d.LDAP.Error = probeErr.Error()
-	} else {
-		d.LDAP.Status, d.LDAP.Error = result.Status, result.Error
-		d.LDAP.ServerName, d.LDAP.ServerVersion = result.serverName, result.serverVersion
-		if result.vendorErr != nil {
-			fail(model.SectionLDAPProbe, errors.Wrap(result.vendorErr, "error while getting LDAP vendor info"))
-		}
-	}
-
 	/* SAML */
 	if idpDescriptorURL := model.SafeDereference(ps.Config().SamlSettings.IdpDescriptorURL); idpDescriptorURL != "" {
 		d.SAML.ProviderType = detectSAMLProviderType(idpDescriptorURL)
@@ -359,147 +330,171 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 		d.ElasticSearch.ServerVersion = se.GetFullVersion()
 		d.ElasticSearch.ServerPlugins = se.GetPlugins()
 	}
-	d.ElasticSearch.Status, d.ElasticSearch.Error = recordProbe(model.SectionSearchProbe, probes.search)
 
-	/* Email Notifications */
-	d.Notifications.Email.Status, d.Notifications.Email.Error = recordProbe(model.SectionSMTPProbe, probes.smtp)
-
-	/* OAuth2 / OpenID Connect Providers */
-	for _, provider := range []struct {
-		status *model.OAuthProviderStatus
-		probe  func() (probeOutcome, error)
-	}{
-		{&d.OAuthProviders.GitLab, probes.gitLab},
-		{&d.OAuthProviders.Google, probes.google},
-		{&d.OAuthProviders.Office365, probes.office365},
-		{&d.OAuthProviders.OpenID, probes.openID},
-	} {
-		provider.status.Status, provider.status.Error = recordProbe(model.SectionOAuthProbes, provider.probe)
-	}
-
-	/* Push Notifications */
-	d.Notifications.Push.Status, d.Notifications.Push.Error = recordProbe(model.SectionPushProbe, probes.push)
+	collectProbes()
 
 	return &model.NodeDiagnostics{Diagnostics: &d, Errors: sectionErrors}, rErr.ErrorOrNil()
 }
 
-// probeOutcome is a network probe's result as diagnostics report it.
-type probeOutcome struct {
-	Status string
-	Error  string
+// networkProbe checks one external service on its own goroutine, so that a service that doesn't answer
+// can't hold up the collection.
+type networkProbe struct {
+	name    string
+	section model.NodeSection
+	// status and errMsg receive the result, which is OK, or Fail with the service's error.
+	status, errMsg *string
+	// run checks the service and returns its error, or nil if it is reachable.
+	run func(ctx context.Context) error
+	// record, if set, stores further results once run has returned, and returns an error that fails
+	// the section. It runs on the collecting goroutine, so it can read what run left in its closure.
+	record func() error
 }
 
-func probeOutcomeOf(err error) probeOutcome {
-	if err != nil {
-		return probeOutcome{Status: model.StatusFail, Error: err.Error()}
-	}
-	return probeOutcome{Status: model.StatusOk}
-}
-
-type ldapProbeOutcome struct {
-	probeOutcome
-	serverName    string
-	serverVersion string
-	vendorErr     error
-}
-
-// networkProbes holds the probes of one diagnostics collection, which run concurrently. Each field
-// waits for its probe; a nil field means the probe is disabled.
-type networkProbes struct {
-	fileStore func() (probeOutcome, error)
-	ldap      func() (ldapProbeOutcome, error)
-	search    func() (probeOutcome, error)
-	smtp      func() (probeOutcome, error)
-	gitLab    func() (probeOutcome, error)
-	google    func() (probeOutcome, error)
-	office365 func() (probeOutcome, error)
-	openID    func() (probeOutcome, error)
-	push      func() (probeOutcome, error)
-}
-
-// startNetworkProbes starts every enabled probe. A probe still running when rctx's context ends is
-// abandoned, so a deadline on that context bounds the collection however long the probes take.
-func (ps *PlatformService) startNetworkProbes(rctx request.CTX) *networkProbes {
-	ctx := rctx.Context()
+// networkProbes returns the enabled probes, and marks the disabled ones in d.
+func (ps *PlatformService) networkProbes(rctx request.CTX, d *model.SupportPacketDiagnostics) []networkProbe {
 	cfg := ps.Config()
-	probes := &networkProbes{}
+	var probes []networkProbe
+	add := func(enabled bool, probe networkProbe) {
+		if !enabled {
+			*probe.status = model.StatusDisabled
+			return
+		}
+		probes = append(probes, probe)
+	}
 
 	// Takes no context; S3 and Azure are bounded by their own request timeout.
-	probes.fileStore = startSharedProbe(ctx, &ps.sharedProbes, string(model.SectionFilestoreConn), func() probeOutcome {
-		return probeOutcomeOf(ps.FileBackend().TestConnection())
+	fileBackend := ps.FileBackend()
+	add(true, networkProbe{
+		name: "file store", section: model.SectionFilestoreConn, status: &d.FileStore.Status, errMsg: &d.FileStore.Error,
+		run: func(context.Context) error { return fileBackend.TestConnection() },
 	})
 
-	// Takes no context, so it can outlive the collection that started it.
-	if ldap := ps.LdapDiagnostic(); ldap != nil && (model.SafeDereference(cfg.LdapSettings.Enable) || model.SafeDereference(cfg.LdapSettings.EnableSync)) {
-		// The probe may outlive this collection and is shared with later ones, so it keeps only the logger.
-		logger := rctx.Logger()
-		probes.ldap = startSharedProbe(ctx, &ps.sharedProbes, string(model.SectionLDAPProbe), func() ldapProbeOutcome {
-			probeRctx := request.EmptyContext(logger)
-			result := ldapProbeOutcome{probeOutcome: probeOutcomeOf(nil), serverName: unknownDataPoint, serverVersion: unknownDataPoint}
-			if appErr := ldap.RunTest(probeRctx); appErr != nil {
-				result.probeOutcome = probeOutcomeOf(appErr)
-				return result
+	// Takes no context; LdapSettings.QueryTimeout bounds each LDAP request.
+	ldap := ps.LdapDiagnostic()
+	var serverName, serverVersion string
+	var vendorErr error
+	add(ldap != nil && (model.SafeDereference(cfg.LdapSettings.Enable) || model.SafeDereference(cfg.LdapSettings.EnableSync)), networkProbe{
+		name: "ldap", section: model.SectionLDAPProbe, status: &d.LDAP.Status, errMsg: &d.LDAP.Error,
+		run: func(context.Context) error {
+			if appErr := ldap.RunTest(rctx); appErr != nil {
+				return appErr
 			}
-
 			// Only if the LDAP test was successful, try to get the LDAP server info
-			serverName, serverVersion, err := ldap.GetVendorNameAndVendorVersion(probeRctx)
-			result.vendorErr = err
-			if serverName != "" {
-				result.serverName = serverName
-			}
-			if serverVersion != "" {
-				result.serverVersion = serverVersion
-			}
-			return result
-		})
-	}
+			serverName, serverVersion, vendorErr = ldap.GetVendorNameAndVendorVersion(rctx)
+			return nil
+		},
+		record: func() error {
+			d.LDAP.ServerName = cmp.Or(serverName, unknownDataPoint)
+			d.LDAP.ServerVersion = cmp.Or(serverVersion, unknownDataPoint)
+			return errors.Wrap(vendorErr, "error while getting LDAP vendor info")
+		},
+	})
 
-	if se := ps.SearchEngine.ElasticsearchEngine; se != nil && model.SafeDereference(cfg.ElasticsearchSettings.EnableIndexing) {
-		probes.search = startProbe(ctx, func(context.Context) probeOutcome {
+	se := ps.SearchEngine.ElasticsearchEngine
+	add(se != nil && model.SafeDereference(cfg.ElasticsearchSettings.EnableIndexing), networkProbe{
+		name: "search", section: model.SectionSearchProbe, status: &d.ElasticSearch.Status, errMsg: &d.ElasticSearch.Error,
+		run: func(context.Context) error {
 			if appErr := se.TestConfig(rctx, cfg); appErr != nil {
-				return probeOutcomeOf(appErr)
+				return appErr
 			}
-			return probeOutcomeOf(nil)
-		})
-	}
+			return nil
+		},
+	})
 
 	// Invitations, verification and password reset emails go through SMTP even with notification emails off.
-	if model.SafeDereference(cfg.EmailSettings.SendEmailNotifications) ||
+	mailCfg := supportPacketSMTPConfig(cfg)
+	add(model.SafeDereference(cfg.EmailSettings.SendEmailNotifications) ||
 		model.SafeDereference(cfg.EmailSettings.RequireEmailVerification) ||
 		model.SafeDereference(cfg.ServiceSettings.EnableEmailInvitations) ||
 		model.SafeDereference(cfg.EmailSettings.EnableSignInWithEmail) ||
-		model.SafeDereference(cfg.EmailSettings.EnableSignInWithUsername) {
-		mailCfg := supportPacketSMTPConfig(cfg)
-		probes.smtp = startProbe(ctx, func(ctx context.Context) probeOutcome {
-			return probeOutcomeOf(mail.TestConnection(ctx, mailCfg))
+		model.SafeDereference(cfg.EmailSettings.EnableSignInWithUsername), networkProbe{
+		name: "smtp", section: model.SectionSMTPProbe, status: &d.Notifications.Email.Status, errMsg: &d.Notifications.Email.Error,
+		run: func(ctx context.Context) error { return mail.TestConnection(ctx, mailCfg) },
+	})
+
+	for _, provider := range []struct {
+		name   string
+		sso    *model.SSOSettings
+		status *model.OAuthProviderStatus
+	}{
+		{"gitlab", &cfg.GitLabSettings, &d.OAuthProviders.GitLab},
+		{"google", &cfg.GoogleSettings, &d.OAuthProviders.Google},
+		{"office365", cfg.Office365Settings.SSOSettings(), &d.OAuthProviders.Office365},
+		{"openid", &cfg.OpenIdSettings, &d.OAuthProviders.OpenID},
+	} {
+		add(model.SafeDereference(provider.sso.Enable), networkProbe{
+			name: provider.name, section: model.SectionOAuthProbes, status: &provider.status.Status, errMsg: &provider.status.Error,
+			run: func(ctx context.Context) error { return probeOAuthProvider(ctx, provider.sso) },
 		})
 	}
 
-	oauthProbe := func(name string, sso *model.SSOSettings) func() (probeOutcome, error) {
-		if !model.SafeDereference(sso.Enable) {
-			return nil
-		}
-		probe := startProbe(ctx, func(ctx context.Context) probeOutcome {
-			return probeOutcome(probeOAuthProvider(ctx, sso))
-		})
-		return func() (probeOutcome, error) {
-			outcome, err := probe()
-			return outcome, errors.Wrap(err, name)
-		}
-	}
-	probes.gitLab = oauthProbe("gitlab", &cfg.GitLabSettings)
-	probes.google = oauthProbe("google", &cfg.GoogleSettings)
-	probes.office365 = oauthProbe("office365", cfg.Office365Settings.SSOSettings())
-	probes.openID = oauthProbe("openid", &cfg.OpenIdSettings)
-
-	if model.SafeDereference(cfg.EmailSettings.SendPushNotifications) {
-		pushServerURL := model.SafeDereference(cfg.EmailSettings.PushNotificationServer)
-		probes.push = startProbe(ctx, func(ctx context.Context) probeOutcome {
-			return probeOutcomeOf(ps.testPushProxyConnection(ctx, pushServerURL))
-		})
-	}
+	pushServerURL := model.SafeDereference(cfg.EmailSettings.PushNotificationServer)
+	add(model.SafeDereference(cfg.EmailSettings.SendPushNotifications), networkProbe{
+		name: "push", section: model.SectionPushProbe, status: &d.Notifications.Push.Status, errMsg: &d.Notifications.Push.Error,
+		run: func(ctx context.Context) error { return ps.testPushProxyConnection(ctx, pushServerURL) },
+	})
 
 	return probes
+}
+
+// startNetworkProbes runs the probes concurrently and returns a function that records their results. It
+// stops waiting when ctx ends: a probe still running then fails its section and keeps an empty status, so
+// readers treat it as unknown rather than failed. The abandoned probe must stop on its own.
+func startNetworkProbes(ctx context.Context, probes []networkProbe, fail func(model.NodeSection, error)) (collect func()) {
+	type result struct {
+		i   int
+		err error
+		// panicked is set when run panicked instead of returning.
+		panicked error
+	}
+	// Buffered so that an abandoned probe can still send its result and exit.
+	results := make(chan result, len(probes))
+	for i, probe := range probes {
+		go func() {
+			defer func() {
+				if r := recover(); r != nil {
+					results <- result{i: i, panicked: fmt.Errorf("probe panicked: %v", r)}
+				}
+			}()
+			results <- result{i: i, err: probe.run(ctx)}
+		}()
+	}
+
+	notCompleted := func(probe networkProbe, err error) {
+		err = errors.Wrap(err, probe.name)
+		fail(probe.section, err)
+		*probe.errMsg = err.Error()
+	}
+	return func() {
+		finished := make([]bool, len(probes))
+		for range probes {
+			select {
+			case r := <-results:
+				finished[r.i] = true
+				probe := probes[r.i]
+				if r.panicked != nil {
+					notCompleted(probe, r.panicked)
+					continue
+				}
+				*probe.status = model.StatusOk
+				if r.err != nil {
+					*probe.status, *probe.errMsg = model.StatusFail, r.err.Error()
+				}
+				if probe.record != nil {
+					if err := probe.record(); err != nil {
+						fail(probe.section, err)
+					}
+				}
+			case <-ctx.Done():
+				for i, probe := range probes {
+					if !finished[i] {
+						notCompleted(probe, errors.Wrap(context.Cause(ctx), "probe did not complete"))
+					}
+				}
+				return
+			}
+		}
+	}
 }
 
 func supportPacketSMTPConfig(cfg *model.Config) *mail.SMTPConfig {
@@ -520,91 +515,6 @@ func supportPacketSMTPConfig(cfg *model.Config) *mail.SMTPConfig {
 		FeedbackEmail:                     model.SafeDereference(emailSettings.FeedbackEmail),
 		ReplyToAddress:                    model.SafeDereference(emailSettings.ReplyToAddress),
 	}
-}
-
-type probeResult[T any] struct {
-	value T
-	err   error
-}
-
-// startProbe runs fn in its own goroutine and returns a function that waits for its result. The wait
-// gives up when ctx ends and returns why; fn is then abandoned and must stop on its own.
-func startProbe[T any](ctx context.Context, fn func(context.Context) T) func() (T, error) {
-	if ctx.Err() != nil {
-		return func() (T, error) { var zero T; return zero, probeNotCompleted(ctx) }
-	}
-
-	// Buffered so an abandoned probe can still deliver its result and exit.
-	done := make(chan probeResult[T], 1)
-	go func() {
-		value, err := callProbe(func() T { return fn(ctx) })
-		done <- probeResult[T]{value: value, err: err}
-	}()
-
-	return func() (T, error) {
-		result, ok := awaitProbe(ctx, done)
-		if !ok {
-			return result.value, probeNotCompleted(ctx)
-		}
-		return result.value, result.err
-	}
-}
-
-// startSharedProbe is startProbe for a probe that cannot be cancelled. While one is running under
-// key, later collections wait for it instead of starting another, so a stalled service holds one
-// abandoned probe rather than one per collection.
-func startSharedProbe[T any](ctx context.Context, group *singleflight.Group, key string, fn func() T) func() (T, error) {
-	if ctx.Err() != nil {
-		return func() (T, error) { var zero T; return zero, probeNotCompleted(ctx) }
-	}
-
-	done := group.DoChan(key, func() (any, error) {
-		value, err := callProbe(fn)
-		return value, err
-	})
-
-	return func() (T, error) {
-		result, ok := awaitProbe(ctx, done)
-		if !ok {
-			result.Err = probeNotCompleted(ctx)
-		}
-		if result.Err != nil {
-			var zero T
-			return zero, result.Err
-		}
-		return result.Val.(T), nil
-	}
-}
-
-// callProbe returns a panic in fn as an error, since probes do not run on the caller's goroutine.
-func callProbe[T any](fn func() T) (value T, err error) {
-	defer func() {
-		if r := recover(); r != nil {
-			err = fmt.Errorf("probe panicked: %v", r)
-		}
-	}()
-	return fn(), nil
-}
-
-// awaitProbe receives a probe's result from done, or reports false once ctx ends. A result that
-// arrives together with the end of ctx is still returned.
-func awaitProbe[R any](ctx context.Context, done <-chan R) (R, bool) {
-	select {
-	case result := <-done:
-		return result, true
-	case <-ctx.Done():
-		select {
-		case result := <-done:
-			return result, true
-		default:
-			var zero R
-			return zero, false
-		}
-	}
-}
-
-func probeNotCompleted(ctx context.Context) error {
-	return errors.Wrap(context.Cause(ctx), "probe did not complete")
 }
 
 func (ps *PlatformService) applyStoreDiagnostics(rctx request.CTX, diagnostics *model.SupportPacketDiagnostics) error {
@@ -653,25 +563,17 @@ func (ps *PlatformService) applyStoreDiagnostics(rctx request.CTX, diagnostics *
 // Otherwise it probes the TokenEndpoint host: any HTTP response (including
 // 4xx/5xx) is treated as reachable, since token endpoints typically reject GETs.
 // Callers only probe enabled providers.
-func probeOAuthProvider(ctx context.Context, sso *model.SSOSettings) model.OAuthProviderStatus {
+func probeOAuthProvider(ctx context.Context, sso *model.SSOSettings) error {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
 	if discoveryEndpoint := model.SafeDereference(sso.DiscoveryEndpoint); discoveryEndpoint != "" {
-		if err := probeOIDCDiscovery(ctx, discoveryEndpoint); err != nil {
-			return model.OAuthProviderStatus{Status: model.StatusFail, Error: err.Error()}
-		}
-		return model.OAuthProviderStatus{Status: model.StatusOk}
+		return probeOIDCDiscovery(ctx, discoveryEndpoint)
 	}
-
 	if tokenEndpoint := model.SafeDereference(sso.TokenEndpoint); tokenEndpoint != "" {
-		if err := probeOAuthTokenEndpoint(ctx, tokenEndpoint); err != nil {
-			return model.OAuthProviderStatus{Status: model.StatusFail, Error: err.Error()}
-		}
-		return model.OAuthProviderStatus{Status: model.StatusOk}
+		return probeOAuthTokenEndpoint(ctx, tokenEndpoint)
 	}
-
-	return model.OAuthProviderStatus{Status: model.StatusFail, Error: "no discovery or token endpoint configured"}
+	return errors.New("no discovery or token endpoint configured")
 }
 
 func probeOIDCDiscovery(ctx context.Context, discoveryURL string) error {
