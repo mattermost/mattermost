@@ -750,6 +750,19 @@ func (p *AccessControlPolicy) accessPolicyVersionV0_3() *AppError {
 			p.Type != AccessControlPolicyTypePermission && p.Type != AccessControlPolicyTypeChannel {
 			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.actions.channel_management_access_type.app_error", nil, fmt.Sprintf("channel_management_access is not allowed on %s policies", p.Type), 400)
 		}
+		// A system permission policy's subject carries only system_admin, system_guest or
+		// system_user, whatever custom roles the user also holds, and its rules are matched
+		// without a channel role. A channel-access rule on any other role, or one carrying
+		// a rule role (the channel-policy shape), would save but never apply, and for a
+		// read rule an admin would believe the channel restricted when it isn't.
+		if p.Type == AccessControlPolicyTypePermission && slices.ContainsFunc(rule.Actions, IsChannelPermissionAction) {
+			if len(p.Roles) != 1 || !slices.Contains([]string{SystemAdminRoleId, SystemGuestRoleId, SystemUserRoleId}, p.Roles[0]) {
+				return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.actions.channel_access_policy_role.app_error", nil, fmt.Sprintf("channel access actions require a %s, %s or %s policy role", SystemUserRoleId, SystemGuestRoleId, SystemAdminRoleId), 400)
+			}
+			if rule.Role != "" {
+				return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.actions.channel_access_rule_role.app_error", nil, "a channel access rule on a permission policy must not carry a rule role", 400)
+			}
+		}
 
 		if appErr := rule.validateRuleContract(); appErr != nil {
 			return appErr

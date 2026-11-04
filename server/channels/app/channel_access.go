@@ -609,7 +609,11 @@ func (a *App) channelAccessBaseSubject(rctx request.CTX, userID string) (*model.
 
 	var subject *model.Subject
 	var appErr *model.AppError
-	if rctx.Session().UserId == userID {
+	// Only a real session (one with an ID) speaks for the user's roles and session
+	// attributes. A stand-in that carries only the user ID, as background jobs such as
+	// recaps build, has no roles, and would evaluate a guest or an admin as system_user;
+	// such a request is evaluated on the user's stored roles instead.
+	if s := rctx.Session(); s.UserId == userID && s.Id != "" {
 		subject, appErr = a.BuildAccessControlSubjectForSession(rctx, "")
 	} else {
 		var user *model.User

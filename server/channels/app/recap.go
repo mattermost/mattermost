@@ -310,8 +310,9 @@ func (a *App) ProcessRecapChannelWithOptions(rctx request.CTX, recapID, channelI
 	}
 
 	// HasPermissionToChannel is RBAC only, so the channel's read rules are checked
-	// here too. The job has no session, so the user is evaluated on their attributes
-	// alone, and a rule that needs session attributes denies.
+	// here too. The job runs with a stand-in session carrying only the user ID, so the
+	// user is evaluated on their stored roles and attributes, and a rule that needs
+	// session attributes denies.
 	if !a.HasChannelReadAccess(rctx, userID, channel) {
 		return result, model.NewAppError("ProcessRecapChannel", "app.recap.permission_denied", nil, "", http.StatusForbidden)
 	}

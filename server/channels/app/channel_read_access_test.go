@@ -2014,3 +2014,29 @@ func TestUserBadgeCountIncludesDeniedChannels(t *testing.T) {
 	require.Equal(t, 1, badge)
 	mockACS.AssertNotCalled(t, "AccessEvaluation", mock.Anything, mock.Anything)
 }
+
+// Background jobs such as recaps run with a stand-in session that carries only the user
+// ID. It has no roles, so it must not be taken for the user's own session: the user is
+// evaluated on their stored roles, or a guest would be evaluated as system_user.
+func TestChannelAccessSubjectForStandInSessionUsesStoredRoles(t *testing.T) {
+	h := setupChannelReadAccessTest(t)
+	guest := h.th.CreateGuest(t)
+	h.th.LinkUserToTeam(t, guest, h.th.BasicTeam)
+	h.th.AddUserToChannel(t, guest, h.th.BasicChannel)
+
+	mockACS := h.mockACS(t)
+	governed(mockACS)
+	var gotRole string
+	mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+		return req.Action == model.AccessControlPolicyActionChannelReadAccess
+	})).
+		Run(func(args mock.Arguments) {
+			req := args.Get(1).(model.AccessRequest)
+			gotRole = req.Subject.RoleForScope(model.AccessControlSubjectScopeSystem)
+		}).
+		Return(model.AccessDecision{Decision: true}, nil)
+
+	rctx := h.th.Context.WithSession(&model.Session{UserId: guest.Id})
+	require.True(t, h.th.App.HasChannelReadAccess(rctx, guest.Id, h.th.BasicChannel))
+	require.Equal(t, model.SystemGuestRoleId, gotRole)
+}

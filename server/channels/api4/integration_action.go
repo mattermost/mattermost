@@ -94,9 +94,22 @@ func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetPermissionError(model.PermissionReadChannelContent)
 			return
 		}
+		// Clicking a button acts in the channel on the user's behalf (the integration
+		// commonly posts or updates the post), so it is a write, like a reaction.
+		if !requireChannelWriteAccess(c, channel) {
+			return
+		}
 	} else {
 		if ok, _ := c.App.SessionHasPermissionToReadPost(c.AppContext, *c.AppContext.Session(), c.Params.PostId); !ok {
 			c.SetPermissionError(model.PermissionReadChannelContent)
+			return
+		}
+		post, appErr := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+		if !requireChannelWriteAccessByID(c, post.ChannelId) {
 			return
 		}
 	}
@@ -163,6 +176,11 @@ func submitDialog(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
+	// Submitting a dialog or running one of its actions acts in the channel on the
+	// user's behalf, like a button click, so it is a write. Lookups stay reads.
+	if !requireChannelWriteAccess(c, channel) {
+		return
+	}
 
 	// Derive the team from the server-loaded channel, not the client-supplied
 	// TeamId — otherwise a client could omit TeamId on a team channel and skip
@@ -218,6 +236,11 @@ func executeDialogAction(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	if ok, _ := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel); !ok {
 		c.SetPermissionError(model.PermissionReadChannelContent)
+		return
+	}
+	// Submitting a dialog or running one of its actions acts in the channel on the
+	// user's behalf, like a button click, so it is a write. Lookups stay reads.
+	if !requireChannelWriteAccess(c, channel) {
 		return
 	}
 

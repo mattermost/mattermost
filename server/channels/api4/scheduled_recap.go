@@ -6,6 +6,7 @@ package api4
 import (
 	"encoding/json"
 	"net/http"
+	"slices"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -201,7 +202,7 @@ func updateScheduledRecap(c *Context, w http.ResponseWriter, r *http.Request) {
 	recap.Enabled = existingRecap.Enabled
 
 	if recap.ChannelMode == model.ChannelModeSpecific {
-		kept, ok := requireChannelReadAccessForIDs(c, recap.ChannelIds)
+		kept, ok := requireChannelReadAccessForAddedIDs(c, existingRecap.ChannelIds, recap.ChannelIds)
 		if !ok {
 			return
 		}
@@ -329,4 +330,39 @@ func resumeScheduledRecap(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(resumedRecap); err != nil {
 		c.Logger.Warn("Error encoding response", mlog.Err(err))
 	}
+}
+
+// requireChannelReadAccessForAddedIDs gates only the channels an update adds to a
+// scheduled recap. Channels it already had are kept as they are: a read denial can be
+// temporary (off the VPN, say), and every run checks each channel's access anyway, so
+// editing just the schedule while one is denied must not drop it for good. Added
+// channels the user can't read are left out, as on create; the update is refused only
+// when nothing would remain.
+func requireChannelReadAccessForAddedIDs(c *Context, existingIDs, channelIDs []string) (kept []string, ok bool) {
+	var added []string
+	for _, channelID := range channelIDs {
+		if !slices.Contains(existingIDs, channelID) {
+			added = append(added, channelID)
+		}
+	}
+	if len(added) == 0 {
+		return channelIDs, true
+	}
+
+	allowedAdded := c.App.FilterChannelIDsByReadAccess(c.AppContext, c.AppContext.Session().UserId, added)
+	kept = make([]string, 0, len(channelIDs))
+	for _, channelID := range channelIDs {
+		if slices.Contains(existingIDs, channelID) || slices.Contains(allowedAdded, channelID) {
+			kept = append(kept, channelID)
+		}
+	}
+	if len(kept) == 0 {
+		// Nothing survived, so the first added id is necessarily one of the denials;
+		// running it back through the enforcement gate records the witness
+		// SetPermissionError needs.
+		requireChannelReadAccessByID(c, added[0])
+		return nil, false
+	}
+
+	return kept, true
 }

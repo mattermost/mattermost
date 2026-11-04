@@ -275,6 +275,29 @@ func TestSearchAllowedActionsForCurrentUser(t *testing.T) {
 		require.Equal(t, model.AccessControlPolicyActionUploadFileAttachment, resp.Results[0].Action.Name)
 	})
 
+	t.Run("channel permission actions are allowed without Enterprise Advanced, as enforcement allows them", func(t *testing.T) {
+		enableABAC(t)
+		originalLicense := th.App.Srv().License()
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		t.Cleanup(func() { th.App.Srv().SetLicense(originalLicense) })
+		// No expectations: consulting the PDP for these actions would panic the mock.
+		withMockACS(t)
+
+		actions := []string{
+			model.AccessControlPolicyActionChannelReadAccess,
+			model.AccessControlPolicyActionChannelWriteAccess,
+			model.AccessControlPolicyActionChannelManagementAccess,
+		}
+		resp, appErr := th.App.SearchAllowedActionsForCurrentUser(rctx, model.ActionSearchRequest{
+			Resource: channelResource,
+			Actions:  actions,
+		})
+		require.Nil(t, appErr)
+		for _, action := range actions {
+			require.True(t, resp.Decisions[action].Allowed, action)
+		}
+	})
+
 	t.Run("discovery mode wrong resource type returns empty candidates without error", func(t *testing.T) {
 		disableABAC(t)
 

@@ -1252,6 +1252,11 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	auditRec.AddEventResultState(rpost)
 
+	// The updated post carries other users' reactions and files.
+	if !sessionCanReadChannel(c, rpost.ChannelId) {
+		rpost = postWithoutContent(rpost)
+	}
+
 	if err := rpost.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
@@ -1875,6 +1880,11 @@ func restorePostVersion(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	auditRec.AddEventResultState(updatedPost)
+
+	// The restored version is content the caller may not otherwise read.
+	if !sessionCanReadChannel(c, updatedPost.ChannelId) {
+		updatedPost = postWithoutContent(updatedPost)
+	}
 
 	if err := updatedPost.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))

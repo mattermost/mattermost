@@ -5662,8 +5662,10 @@ components:
           description: >
             Actions to evaluate (max 16). Omit or leave empty for discovery mode:
             the server evaluates all registered actions for the resource type and
-            returns the permitted set. Actions behind a disabled feature flag are
-            rejected with 400 when named explicitly, and are omitted from
+            returns the permitted set. Actions whose enforcement is inactive
+            (a disabled feature flag, attribute-based access control turned off,
+            or an insufficient license) are still accepted and are answered with
+            their inactive default, which is allowed, in both targeted and
             discovery mode.
           maxItems: 16
           items:

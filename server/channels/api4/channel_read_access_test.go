@@ -366,6 +366,87 @@ func TestChannelReadAccessRedactsWriteResponses(t *testing.T) {
 					require.Empty(t, patched.UserId)
 				}
 			})
+
+			t.Run("post update", func(t *testing.T) {
+				post := f.post.Clone()
+				updated, resp, err := f.th.Client.UpdatePost(context.Background(), post.Id, post)
+				require.NoError(t, err)
+				CheckOKStatus(t, resp)
+				require.Equal(t, f.post.Id, updated.Id)
+				if allow {
+					require.Equal(t, f.post.Message, updated.Message)
+				} else {
+					require.Empty(t, updated.Message)
+					require.Empty(t, updated.UserId)
+				}
+			})
+
+			t.Run("channel update", func(t *testing.T) {
+				channel := f.th.BasicChannel.DeepCopy()
+				channel.Purpose = "updated purpose " + model.NewId()
+				updated, resp, err := f.th.Client.UpdateChannel(context.Background(), channel)
+				require.NoError(t, err)
+				CheckOKStatus(t, resp)
+				require.Equal(t, f.th.BasicChannel.Id, updated.Id)
+				if allow {
+					require.Equal(t, f.th.BasicChannel.DisplayName, updated.DisplayName)
+				} else {
+					require.Empty(t, updated.Name)
+					require.Empty(t, updated.DisplayName)
+					require.Empty(t, updated.Purpose)
+				}
+			})
+
+			// Read access binds system admins too, and these two need permissions a basic
+			// user doesn't hold.
+			t.Run("channel privacy set to what it already is", func(t *testing.T) {
+				updated, resp, err := f.th.SystemAdminClient.UpdateChannelPrivacy(context.Background(), f.th.BasicChannel.Id, f.th.BasicChannel.Type)
+				require.NoError(t, err)
+				CheckOKStatus(t, resp)
+				require.Equal(t, f.th.BasicChannel.Id, updated.Id)
+				if allow {
+					require.Equal(t, f.th.BasicChannel.DisplayName, updated.DisplayName)
+				} else {
+					require.Empty(t, updated.DisplayName)
+					require.Empty(t, updated.Header)
+					require.Empty(t, updated.Purpose)
+				}
+			})
+
+			t.Run("channel restore", func(t *testing.T) {
+				channel := f.th.CreatePublicChannel(t)
+				_, err := f.th.SystemAdminClient.DeleteChannel(context.Background(), channel.Id)
+				require.NoError(t, err)
+
+				restored, resp, err := f.th.SystemAdminClient.RestoreChannel(context.Background(), channel.Id)
+				require.NoError(t, err)
+				CheckOKStatus(t, resp)
+				require.Equal(t, channel.Id, restored.Id)
+				if allow {
+					require.Equal(t, channel.DisplayName, restored.DisplayName)
+				} else {
+					require.Empty(t, restored.DisplayName)
+					require.Empty(t, restored.Name)
+				}
+			})
+
+			// Last: it rewrites the post the surfaces above act on.
+			t.Run("post version restore", func(t *testing.T) {
+				history, appErr := f.th.App.GetEditHistoryForPost(f.th.Context, f.post.Id)
+				require.Nil(t, appErr)
+				require.NotEmpty(t, history)
+
+				restored, resp, err := f.th.Client.RestorePostVersion(context.Background(), f.post.Id, history[0].Id)
+				require.NoError(t, err)
+				CheckOKStatus(t, resp)
+				require.Equal(t, f.post.Id, restored.Id)
+				if allow {
+					require.Equal(t, history[0].Message, restored.Message)
+				} else {
+					require.Empty(t, restored.Message)
+					require.Empty(t, restored.UserId)
+				}
+			})
 		})
 	}
 }
