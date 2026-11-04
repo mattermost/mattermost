@@ -1655,7 +1655,9 @@ func TestStartNetworkProbes(t *testing.T) {
 	})
 
 	t.Run("records nothing without probes", func(t *testing.T) {
-		startNetworkProbes(context.Background(), nil, func(model.NodeSection, error) { t.Fatal("unexpected failure") })()
+		failed := false
+		startNetworkProbes(context.Background(), nil, func(model.NodeSection, error) { failed = true })()
+		assert.False(t, failed)
 	})
 }
 
