@@ -364,9 +364,22 @@ export default function LogList({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- dayChanges marks a timer firing, which moves Date.now()
     }, [processedLogs, timezone, dayChanges]);
     useEffect(() => {
+        const recheck = () => setDayChanges((count) => count + 1);
+
         // Re-armed by dayChanges too, in case the timer fires early and nextDayAt stays the same
-        const timer = setTimeout(() => setDayChanges((count) => count + 1), Math.max(0, nextDayAt - Date.now()));
-        return () => clearTimeout(timer);
+        const timer = setTimeout(recheck, Math.max(0, nextDayAt - Date.now()));
+
+        // The timer can stall while the computer sleeps, so recheck once the page is back if midnight passed
+        const onVisible = () => {
+            if (document.visibilityState === 'visible' && Date.now() >= nextDayAt) {
+                recheck();
+            }
+        };
+        document.addEventListener('visibilitychange', onVisible);
+        return () => {
+            clearTimeout(timer);
+            document.removeEventListener('visibilitychange', onVisible);
+        };
     }, [nextDayAt, dayChanges]);
     const timeFormat = logRowTimeFormat(showDate, isMilitaryTime);
 

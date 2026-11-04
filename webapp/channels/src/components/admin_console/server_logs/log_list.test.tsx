@@ -1255,6 +1255,20 @@ describe('components/admin_console/server_logs/LogList', () => {
             expect(rowTimes()).toEqual(['2026-03-12 23:58:00.000']);
         });
 
+        test('should add the date when the page comes back after midnight before the timer fires', () => {
+            // Only the clock is faked, so the real midnight timer is still a minute away when the page comes back
+            fakeNow('2026-03-12T23:59:00.000Z');
+            renderListWith({logs: [makeLog('late', '2026-03-12T23:58:00.000Z')]}, {militaryTime: true});
+            expect(rowTimes()).toEqual(['23:58:00.000']);
+
+            jest.setSystemTime(new Date('2026-03-13T08:00:00.000Z'));
+            act(() => {
+                document.dispatchEvent(new Event('visibilitychange'));
+            });
+
+            expect(rowTimes()).toEqual(['2026-03-12 23:58:00.000']);
+        });
+
         test('should show the date on every page when any entry is from another day', () => {
             localStorage.setItem(PREFS_KEY, JSON.stringify({sortAsc: true, pageSize: 50}));
             const logs = [
