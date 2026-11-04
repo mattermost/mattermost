@@ -31,6 +31,7 @@ import BooleanSetting from '../boolean_setting';
 import OLDAdminSettings from '../old_admin_settings';
 import type {BaseProps, BaseState} from '../old_admin_settings';
 import PluginMetadataPanel, {formatPluginVersion} from '../plugin_metadata_panel/plugin_metadata_panel';
+import {pluginLogsPath} from '../server_logs/url_filters';
 import SettingSet from '../setting_set';
 import SettingsGroup from '../settings_group';
 import TextSetting from '../text_setting';
@@ -91,7 +92,25 @@ const PluginItemState = ({state}: {state: number}) => {
     }
 };
 
-const PluginItemStateDescription = ({state, error}: {state: number; error?: string}) => {
+// Links a failure notice to the plugin's errors in the server logs, for admins who can open them
+const PluginErrorsLink = ({pluginId}: {pluginId?: string}) => {
+    if (!pluginId) {
+        return null;
+    }
+    return (
+        <>
+            {' '}
+            <Link to={pluginLogsPath(pluginId, {errorsOnly: true})}>
+                <FormattedMessage
+                    id='admin.plugin.viewErrors'
+                    defaultMessage='View errors in the server logs'
+                />
+            </Link>
+        </>
+    );
+};
+
+const PluginItemStateDescription = ({state, error, logsPluginId}: {state: number; error?: string; logsPluginId?: string}) => {
     switch (state) {
     case PluginState.PLUGIN_STATE_NOT_RUNNING:
         return (
@@ -141,6 +160,7 @@ const PluginItemStateDescription = ({state, error}: {state: number; error?: stri
                         error: errorMessage,
                     }}
                 />
+                <PluginErrorsLink pluginId={logsPluginId}/>
             </div>
         );
     }
@@ -152,6 +172,7 @@ const PluginItemStateDescription = ({state, error}: {state: number; error?: stri
                     id='admin.plugin.state.failed_to_stay_running.description'
                     defaultMessage='This plugin crashed multiple times and is no longer running. Check your system logs for errors.'
                 />
+                <PluginErrorsLink pluginId={logsPluginId}/>
             </div>
         );
     case PluginState.PLUGIN_STATE_STOPPING:
@@ -204,6 +225,9 @@ type PluginItemProps = {
     isDisabled?: boolean;
 
     configEnabled: boolean;
+
+    // Whether to link to the plugin's entries in the server logs
+    showLogsLink?: boolean;
 };
 
 const messages = defineMessages({
@@ -266,6 +290,7 @@ const PluginItem = ({
     isDisabled,
     configEnabled,
     license,
+    showLogsLink = false,
 }: PluginItemProps) => {
     let activateButton: React.ReactNode;
     const activating = pluginStatus.state === PluginState.PLUGIN_STATE_STARTING;
@@ -333,6 +358,21 @@ const PluginItem = ({
         );
     }
 
+    let logsButton = null;
+    if (showLogsLink) {
+        logsButton = (
+            <span>
+                {' - '}
+                <Link to={pluginLogsPath(pluginStatus.id)}>
+                    <FormattedMessage
+                        id='admin.plugin.viewLogs'
+                        defaultMessage='View logs'
+                    />
+                </Link>
+            </span>
+        );
+    }
+
     let removeButtonText;
     if (removing) {
         removeButtonText = (
@@ -392,6 +432,7 @@ const PluginItem = ({
             key='state-description'
             state={pluginStatus.state}
             error={pluginStatus.error}
+            logsPluginId={showLogsLink ? pluginStatus.id : undefined}
         />,
     );
 
@@ -485,6 +526,7 @@ const PluginItem = ({
                 {activateButton}
                 {removeButton}
                 {settingsButton}
+                {logsButton}
             </div>
             <div>
                 {notices}
@@ -503,6 +545,9 @@ type Props = BaseProps & {
     plugins: any;
     appsFeatureFlagEnabled: boolean;
     license?: ClientLicense;
+
+    // Whether the admin can open the server logs
+    canViewServerLogs?: boolean;
     actions: {
         uploadPlugin: (fileData: File, force: boolean) => Promise<ActionResult>;
         removePlugin: (pluginId: string) => Promise<ActionResult>;
@@ -1188,6 +1233,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
                         license={this.props.license}
                         isDisabled={this.props.isDisabled}
                         configEnabled={Boolean(this.props.config.PluginSettings?.PluginStates?.[pluginStatus.id]?.Enable)}
+                        showLogsLink={this.props.canViewServerLogs}
                     />
                 );
             });

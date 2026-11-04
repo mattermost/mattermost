@@ -8,7 +8,7 @@ import PluginState from 'mattermost-redux/constants/plugins';
 import {PluginManagement} from 'components/admin_console/plugin_management/plugin_management';
 
 import {defaultIntl} from 'tests/helpers/intl-test-helper';
-import {act, createEvent, fireEvent, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {act, createEvent, fireEvent, renderWithContext, screen, userEvent, waitFor, within} from 'tests/react_testing_utils';
 
 describe('components/PluginManagement', () => {
     const defaultProps = {
@@ -1001,6 +1001,48 @@ describe('components/PluginManagement', () => {
             const row = screen.getByTestId('plugin_0');
             expect(row).toHaveTextContent('Enable');
             expect(row).not.toHaveTextContent('Not included in your license');
+        });
+    });
+
+    describe('server logs links', () => {
+        const renderWithLogs = (canViewServerLogs: boolean) => {
+            const props = {
+                ...defaultProps,
+                canViewServerLogs,
+                pluginStatuses: {
+                    ...defaultProps.pluginStatuses,
+                    plugin_0: {...defaultProps.pluginStatuses.plugin_0, state: PluginState.PLUGIN_STATE_FAILED_TO_START},
+                    plugin_1: {...defaultProps.pluginStatuses.plugin_1, state: PluginState.PLUGIN_STATE_FAILED_TO_STAY_RUNNING},
+                },
+            };
+            const ref = React.createRef<InstanceType<typeof PluginManagement>>();
+            renderWithContext(
+                <PluginManagement
+                    {...props}
+                    ref={ref}
+                />,
+            );
+            act(() => {
+                ref.current!.setState({loading: false} as any);
+            });
+        };
+
+        test('links each plugin to its entries, and a failed plugin to its errors', () => {
+            renderWithLogs(true);
+
+            for (const id of ['plugin_0', 'plugin_1']) {
+                const row = within(screen.getByTestId(id));
+                expect(row.getByRole('link', {name: 'View logs'})).toHaveAttribute('href', `/admin_console/reporting/server_logs?field.plugin_id=${id}`);
+                expect(row.getByRole('link', {name: 'View errors in the server logs'})).toHaveAttribute('href', `/admin_console/reporting/server_logs?levels=error,warn&field.plugin_id=${id}`);
+            }
+        });
+
+        test('leaves the links out for admins who cannot open the server logs', () => {
+            renderWithLogs(false);
+
+            expect(screen.queryByRole('link', {name: 'View logs'})).not.toBeInTheDocument();
+            expect(screen.queryByRole('link', {name: 'View errors in the server logs'})).not.toBeInTheDocument();
+            expect(screen.getByTestId('plugin_1')).toHaveTextContent('Check your system logs for errors.');
         });
     });
 });

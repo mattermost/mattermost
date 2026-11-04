@@ -15,7 +15,10 @@ import {
     enablePlugin,
     disablePlugin,
 } from 'mattermost-redux/actions/admin';
+import {Permissions} from 'mattermost-redux/constants';
+import {getConfig} from 'mattermost-redux/selectors/entities/admin';
 import {appsFeatureFlagEnabled} from 'mattermost-redux/selectors/entities/apps';
+import {haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
 
 import usePluginStatusesSync from 'components/common/hooks/usePluginStatusesSync';
 
@@ -26,6 +29,10 @@ function mapStateToProps(state: any) {
         plugins: state.entities.admin.plugins,
         pluginStatuses: state.entities.admin.pluginStatuses,
         appsFeatureFlagEnabled: appsFeatureFlagEnabled(state),
+
+        // The same rules that hide the Server Logs page
+        canViewServerLogs: haveISystemPermission(state, {permission: Permissions.SYSCONSOLE_READ_REPORTING_SERVER_LOGS}) &&
+            !getConfig(state).ExperimentalSettings?.RestrictSystemAdmin,
     };
 }
 

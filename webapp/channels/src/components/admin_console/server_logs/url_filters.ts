@@ -4,7 +4,7 @@
 import type {LogFieldFilters} from '@mattermost/types/admin';
 
 import type {TimeRange} from './types';
-import {FIELDS_MAX_KEYS, FIELD_MAX_LENGTH, FIELD_MAX_VALUES, LEVEL_GROUPS, SEARCH_MAX_LENGTH, isFilterableField} from './utils';
+import {FIELDS_MAX_KEYS, FIELD_MAX_LENGTH, FIELD_MAX_VALUES, LEVEL_GROUPS, PLUGIN_ID_FIELD, SEARCH_MAX_LENGTH, isFilterableField} from './utils';
 import type {LevelGroup} from './utils';
 
 // Only the filters are shared. Live tail and display preferences stay with each browser
@@ -136,4 +136,17 @@ export function withUrlFilters(query: string, filters: UrlFilters | null): strin
     // Commas and colons are allowed in a query string, and keep shared links readable
     const next = params.toString().replace(/%2C/g, ',').replace(/%3A/g, ':');
     return next ? `?${next}` : '';
+}
+
+export const SERVER_LOGS_PATH = '/admin_console/reporting/server_logs';
+
+// Opens the viewer on one plugin's entries, or only its errors and warnings. The filters it leaves out fall back to the saved prefs
+export function pluginLogsPath(pluginId: string, {errorsOnly = false}: {errorsOnly?: boolean} = {}): string {
+    return SERVER_LOGS_PATH + withUrlFilters('', {
+        search: '',
+        enabledLevels: new Set(errorsOnly ? ['error', 'warn'] : LEVEL_GROUPS),
+        node: '',
+        timeRange: null,
+        fields: {[PLUGIN_ID_FIELD]: [pluginId]},
+    });
 }
