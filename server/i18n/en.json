@@ -19658,12 +19658,12 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 150+",
+    "translation": "Version 156+",
     "description": "Compact version requirement label on the Chrome card of the 'unsupported browser' page; the number is the minimum Chrome version."
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 150+",
+    "translation": "Version 156+",
     "description": "Compact version requirement label on the Edge card of the 'unsupported browser' page; the number is the minimum Edge version."
   },
   {
