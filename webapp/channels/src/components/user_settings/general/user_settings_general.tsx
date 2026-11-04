@@ -7,11 +7,9 @@ import React, {PureComponent, type JSX} from 'react';
 import {defineMessage, defineMessages, FormattedDate, FormattedMessage, FormattedList, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 import {useSelector} from 'react-redux';
-import type {OnChangeValue, ActionMeta, StylesConfig} from 'react-select';
-import ReactSelect from 'react-select';
 
 import type {LockProfileFieldsSetting} from '@mattermost/types/config';
-import {valueRefersToOptions, type PropertyFieldOption} from '@mattermost/types/properties';
+import {valueRefersToOptions} from '@mattermost/types/properties';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -19,9 +17,11 @@ import type {LogErrorOptions} from 'mattermost-redux/actions/errors';
 import {LogErrorBarMode} from 'mattermost-redux/actions/errors';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import {isEmail} from 'mattermost-redux/utils/helpers';
+import {isPropertyFieldSyncedForAuthService} from 'mattermost-redux/utils/property_utils';
 
 import {getPluginDisplayName} from 'selectors/plugins';
 
+import {AttributeCombobox} from 'components/property_fields/attribute_combobox';
 import {asGraphValueIds} from 'components/property_fields/graph';
 import GraphProfileAttribute from 'components/property_fields/graph/graph_profile_attribute';
 import SettingItem from 'components/setting_item';
@@ -30,7 +30,7 @@ import SettingPicture from 'components/setting_picture';
 import Input from 'components/widgets/inputs/input/input';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
-import {AnnouncementBarMessages, AnnouncementBarTypes, AcceptedProfileImageTypes, Constants, ValidationErrors} from 'utils/constants';
+import {AnnouncementBarMessages, AnnouncementBarTypes, AcceptedProfileImageTypes, Constants, ValidationErrors, ZIndex} from 'utils/constants';
 import {getUserPropertyFieldLabel} from 'utils/properties';
 import {validHttpUrl} from 'utils/url';
 import * as Utils from 'utils/utils';
@@ -114,34 +114,6 @@ const holders = defineMessages({
         defaultMessage: 'Position',
     },
 });
-
-export type SelectOption = {
-    value: string;
-    label: string;
-};
-
-const selectStyles: StylesConfig<SelectOption, true> = {
-    valueContainer: (baseStyles) => ({
-        ...baseStyles,
-        height: 'auto',
-        minHeight: '38px',
-        flexWrap: 'wrap',
-        whiteSpace: 'normal',
-    }),
-    multiValue: (baseStyles) => ({
-        ...baseStyles,
-        margin: '2px',
-    }),
-    control: (baseStyles) => ({
-        ...baseStyles,
-        height: 'auto',
-        minHeight: '38px',
-    }),
-    multiValueLabel: (baseStyles) => ({
-        ...baseStyles,
-        padding: '2px 6px',
-    }),
-};
 
 export type Props = {
     intl: IntlShape;
@@ -534,25 +506,8 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
         }
     };
 
-    updateSelectAttribute = (selectedOption: OnChangeValue<SelectOption, boolean>, action: ActionMeta<SelectOption>, fieldID: string) => {
-        const attributeValues = {...this.state.customAttributeValues};
-
-        if (!selectedOption) {
-            attributeValues[fieldID] = '';
-        } else if (Array.isArray(selectedOption)) {
-            // Handle multi-select
-            attributeValues[fieldID] = selectedOption.
-                filter((option): option is SelectOption =>
-                    Boolean(option && Object.hasOwn(option, 'value'))).
-                map((option) => option.value);
-        } else if ('value' in selectedOption) {
-            // Handle single select
-            attributeValues[fieldID] = selectedOption.value || '';
-        } else {
-            attributeValues[fieldID] = '';
-        }
-
-        this.setState({customAttributeValues: attributeValues});
+    updateComboboxAttribute = (fieldID: string, value: string | string[]) => {
+        this.setState((prevState) => ({customAttributeValues: {...prevState.customAttributeValues, [fieldID]: value}}));
     };
 
     updateAttribute = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -898,6 +853,16 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                 <FormattedMessage
                     id='user.settings.general.loginOffice365'
                     defaultMessage='Login done through Entra ID ({email})'
+                    values={{
+                        email: this.state.originalEmail,
+                    }}
+                />
+            );
+        } else if (this.props.user.auth_service === Constants.OPENID_SERVICE) {
+            describe = (
+                <FormattedMessage
+                    id='user.settings.general.loginOpenId'
+                    defaultMessage='Login done through OpenID Connect ({email})'
                     values={{
                         email: this.state.originalEmail,
                     }}
@@ -1547,15 +1512,8 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                         });
                     }
 
-                    // Handle single select
                     const option = attribOptions.find((o) => o.id === attributeValue);
-                    if (option) {
-                        return {label: option?.name, value: option?.id};
-                    }
-                    if (optionsOmitted) {
-                        return {label: attributeValue, value: attributeValue};
-                    }
-                    return '';
+                    return {label: option?.name ?? attributeValue, value: attributeValue};
                 }
 
                 return attributeValue as string;
@@ -1592,8 +1550,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                 };
 
                 const isProtected = Boolean(attribute.attrs?.protected);
-                const isSynced = Boolean((this.props.user.auth_service === Constants.LDAP_SERVICE && attribute.attrs?.ldap) ||
-                    (this.props.user.auth_service === Constants.SAML_SERVICE && attribute.attrs?.saml));
+                const isSynced = isPropertyFieldSyncedForAuthService(attribute, this.props.user.auth_service);
                 const isAdminManaged = attribute.attrs?.managed === 'admin';
 
                 // Owner-managed fields (e.g. SCIM-provisioned) are written only
@@ -1664,30 +1621,23 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                     }
 
                     if (valueRefersToOptions(attribute)) {
-                        const attribOptions: PropertyFieldOption[] = (attribute.attrs!.options as PropertyFieldOption[]) ?? [];
-                        const opts = attribOptions.map((o) => {
-                            return {label: o.name, value: o.id} as SelectOption;
-                        });
+                        const comboboxId = 'customProfileAttribute_' + attribute.id;
+                        const draft = this.state.customAttributeValues[attribute.id];
 
                         inputs.push(
-                            <ReactSelect
-                                isMulti={attribute.type === 'multiselect' ? true : undefined}
+                            <AttributeCombobox
                                 key={sectionName}
-                                id={'customProfileAttribute_' + attribute.id}
-                                inputId={'customProfileAttribute_' + attribute.id + '_input'}
-                                className='react-select inlineSelect'
-                                classNamePrefix='react-select'
-                                options={opts}
-                                isClearable={true}
-                                isSearchable={false}
+                                id={comboboxId}
+                                testId={comboboxId}
+                                label={getUserPropertyFieldLabel(attribute)}
+                                options={attribute.attrs?.options ?? []}
                                 placeholder={formatMessage({
                                     id: 'user.settings.general.select',
                                     defaultMessage: 'Select',
                                 })}
-                                components={{IndicatorSeparator: null}}
-                                styles={selectStyles}
-                                value={getDisplayValue(this.state.customAttributeValues[attribute.id]) as SelectOption}
-                                onChange={(v, a) => this.updateSelectAttribute(v, a, attribute.id)}
+                                zIndex={ZIndex.MENU}
+                                {...(attribute.type === 'multiselect' ? {multiple: true, value: draft} : {value: typeof draft === 'string' ? draft : ''})}
+                                onChange={(value: string | string[]) => this.updateComboboxAttribute(attribute.id, value)}
                             />,
                         );
                     } else {

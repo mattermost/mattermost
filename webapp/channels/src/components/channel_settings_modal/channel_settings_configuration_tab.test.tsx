@@ -12,6 +12,7 @@ import useChannelClassificationBanner from 'components/common/hooks/useChannelCl
 import useClassificationMarkings from 'components/common/hooks/useClassificationMarkings';
 
 import {fireEvent, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {boardChannelsState} from 'utils/channel_kind_test_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelSettingsConfigurationTab from './channel_settings_configuration_tab';
@@ -141,7 +142,7 @@ describe('ChannelSettingsConfigurationTab', () => {
         // Check that the toggle is not enabled
         const toggle = screen.getByTestId('channelBannerToggle-button');
         expect(toggle).toBeInTheDocument();
-        expect(toggle).not.toHaveClass('active');
+        expect(toggle).not.toBeChecked();
 
         // Banner text and color inputs should not be visible when banner is disabled
         expect(screen.queryByTestId('channel_banner_banner_text_textbox')).not.toBeInTheDocument();
@@ -155,7 +156,7 @@ describe('ChannelSettingsConfigurationTab', () => {
         // Check that the toggle is enabled
         const toggle = screen.getByTestId('channelBannerToggle-button');
         expect(toggle).toBeInTheDocument();
-        expect(toggle).not.toHaveClass('active');
+        expect(toggle).not.toBeChecked();
 
         // Click the toggle to enable the banner
         await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
@@ -175,7 +176,7 @@ describe('ChannelSettingsConfigurationTab', () => {
         // Check that the toggle is enabled
         const toggle = screen.getByTestId('channelBannerToggle-button');
         expect(toggle).toBeInTheDocument();
-        expect(toggle).toHaveClass('active');
+        expect(toggle).toBeChecked();
 
         // Banner text and color inputs should be visible when banner is enabled
         expect(screen.getByTestId('channel_banner_banner_text_textbox')).toBeInTheDocument();
@@ -184,6 +185,26 @@ describe('ChannelSettingsConfigurationTab', () => {
         // Check that the color picker has the correct value
         expect(screen.getByTestId('color-inputColorValue')).toBeInTheDocument();
         expect(screen.getByTestId('color-inputColorValue')).toHaveValue('#ff0000');
+    });
+
+    it('says board rather than channel for a board', () => {
+        renderWithContext(
+            <ChannelSettingsConfigurationTab
+                {...baseProps}
+                canManageJoinLeaveMessages={true}
+                canManageSharedChannels={true}
+            />,
+            boardChannelsState(mockChannel.id),
+        );
+
+        expect(screen.getByText('Board Banner')).toBeInTheDocument();
+        expect(screen.getByText('When enabled, a customized banner will display at the top of the board.')).toBeInTheDocument();
+        expect(screen.getByText(/join and leave system messages are shown in this board for all users/)).toBeInTheDocument();
+        expect(screen.getByText('Collaborate with trusted organizations in this board.')).toBeInTheDocument();
+        expect(screen.queryByText('Channel Banner')).not.toBeInTheDocument();
+        expect(screen.queryByText('When enabled, a customized banner will display at the top of the channel.')).not.toBeInTheDocument();
+        expect(screen.queryByText(/shown in this channel/)).not.toBeInTheDocument();
+        expect(screen.queryByText('Collaborate with trusted organizations in this channel.')).not.toBeInTheDocument();
     });
 
     it('should show banner settings when toggle is clicked', async () => {
@@ -576,7 +597,7 @@ describe('ChannelSettingsConfigurationTab', () => {
 
             const toggle = screen.getByTestId('shareChannelWithWorkspacesToggle-button');
             await userEvent.click(toggle);
-            expect(toggle).toHaveClass('active');
+            expect(toggle).toBeChecked();
             expect(screen.getByText('Add workspace')).toBeInTheDocument();
 
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
@@ -589,7 +610,7 @@ describe('ChannelSettingsConfigurationTab', () => {
                 expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
             }, {timeout: 2000});
 
-            expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).not.toHaveClass('active');
+            expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).not.toBeChecked();
             expect(screen.queryByText('Add workspace')).not.toBeInTheDocument();
         });
 
@@ -623,7 +644,7 @@ describe('ChannelSettingsConfigurationTab', () => {
                 expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
             }, {timeout: 2000});
 
-            expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).not.toHaveClass('active');
+            expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).not.toBeChecked();
 
             await userEvent.click(screen.getByTestId('shareChannelWithWorkspacesToggle-button'));
             await userEvent.click(screen.getByRole('button', {name: /Add workspace/i}));
@@ -704,11 +725,11 @@ describe('ChannelSettingsConfigurationTab', () => {
             );
 
             await waitFor(() => {
-                expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).toHaveClass('active');
+                expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).toBeChecked();
             });
 
             await userEvent.click(screen.getByTestId('shareChannelWithWorkspacesToggle-button'));
-            expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).not.toHaveClass('active');
+            expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).not.toBeChecked();
 
             remotes = [{...remote}];
             getRemotesForChannel.mockImplementation(() => remotes);
@@ -720,7 +741,7 @@ describe('ChannelSettingsConfigurationTab', () => {
                 />,
             );
 
-            expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).not.toHaveClass('active');
+            expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).not.toBeChecked();
             expect(screen.getByRole('button', {name: 'Save'})).toBeInTheDocument();
         });
 
@@ -916,7 +937,7 @@ describe('ChannelSettingsConfigurationTab', () => {
             );
 
             await waitFor(() => {
-                expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).toHaveClass('active');
+                expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).toBeChecked();
             });
 
             await userEvent.click(screen.getByTestId('shareChannelWithWorkspacesToggle-button'));
@@ -937,7 +958,7 @@ describe('ChannelSettingsConfigurationTab', () => {
                 expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
             }, {timeout: 2000});
 
-            expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).not.toHaveClass('active');
+            expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).not.toBeChecked();
             expect(screen.queryByText('Add workspace')).not.toBeInTheDocument();
         });
 
@@ -970,7 +991,7 @@ describe('ChannelSettingsConfigurationTab', () => {
             );
 
             await waitFor(() => {
-                expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).toHaveClass('active');
+                expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).toBeChecked();
             });
 
             await userEvent.click(screen.getByTestId('shareChannelWithWorkspacesToggle-button'));
@@ -1102,7 +1123,7 @@ describe('ChannelSettingsConfigurationTab', () => {
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
             await waitFor(() => {
-                expect(screen.getByText(/There has been errors while sharing the channel with some workspaces\. Please try again\./)).toBeInTheDocument();
+                expect(screen.getByText(/There have been errors while sharing the channel with some workspaces\. Please try again\./)).toBeInTheDocument();
             });
         });
     });
@@ -1476,7 +1497,7 @@ describe('ChannelSettingsConfigurationTab', () => {
             await waitFor(() => {
                 expect(screen.queryByRole('button', {name: 'Reset'})).not.toBeInTheDocument();
             });
-            expect(toggle).toHaveClass('active');
+            expect(toggle).toBeChecked();
         });
 
         it('shows an error in the SaveChangesPanel when patchPropertyValues rejects', async () => {

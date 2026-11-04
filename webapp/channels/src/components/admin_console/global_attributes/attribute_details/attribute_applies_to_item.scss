@@ -25,11 +25,6 @@
     background: rgba(var(--center-channel-color-rgb), 0.03);
 }
 
-// Header already uses gap; Compass .btn + .btn would add a second 8px.
-.AttributeAppliesToItem__header .btn + .btn {
-    margin-left: 0;
-}
-
 .AttributeAppliesToItem__toggle {
     display: flex;
     min-width: 0;
@@ -105,7 +100,7 @@
     white-space: nowrap;
 }
 
-.btn.btn-sm.AttributeAppliesToItem__remove {
+.AttributeAppliesToItem__remove {
     height: 32px;
     flex-shrink: 0;
     align-self: center;

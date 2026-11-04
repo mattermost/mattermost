@@ -12,6 +12,7 @@ import DeploymentOnly from '@site/src/components/DeploymentOnly';
 import IMEDiagram from '@site/src/components/IMEDiagram';
 import DeploymentArchitectureBuilder from '@site/src/components/DeploymentArchitectureBuilder';
 import CompassIcon from '@site/src/components/CompassIcon';
+import Video from '@site/src/components/Video';
 import Hero from '@site/src/components/Hero';
 import Eyebrow from '@site/src/components/Eyebrow';
 import StatStrip from '@site/src/components/StatStrip';
@@ -46,6 +47,7 @@ export default {
   IMEDiagram,
   DeploymentArchitectureBuilder,
   CompassIcon,
+  Video,
   Hero,
   Eyebrow,
   StatStrip,

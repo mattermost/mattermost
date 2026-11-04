@@ -4,7 +4,7 @@
 import React, {useState, useRef, useEffect, type JSX} from 'react';
 import {FormattedMessage, defineMessages, injectIntl, type WrappedComponentProps} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
@@ -214,7 +214,7 @@ const SearchableSyncJobChannelList = (props: Props) => {
             nextButton = (
                 <Button
                     emphasis='tertiary'
-                    size='sm'
+                    size='small'
                     className='filter-control filter-control__next'
                     onClick={nextPage}
                     disabled={nextDisabled}
@@ -232,7 +232,7 @@ const SearchableSyncJobChannelList = (props: Props) => {
             previousButton = (
                 <Button
                     emphasis='tertiary'
-                    size='sm'
+                    size='small'
                     className='filter-control filter-control__prev'
                     onClick={previousPage}
                     aria-label={props.intl.formatMessage({id: 'more_channels.prev', defaultMessage: 'Previous'})}

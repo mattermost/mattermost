@@ -461,5 +461,28 @@
   "server": {
     "target": "server",
     "note": "The existing catalog uses 'server' (not 'poslužitelj'); declined normally ('serveru', 'servera')."
+  },
+  "health dashboard": {
+    "target": "Zdravlje sustava",
+    "note": "Page title and sidebar entry. In running text pair it with a declinable head noun rather than declining the name: 'funkcija Zdravlje sustava', 'stranica Zdravlje sustava'."
+  },
+  "health finding": {
+    "target": "nalaz zdravlja sustava",
+    "note": "Masculine; plural 'nalazi', genitive plural 'nalaza'. Shorten to 'nalaz' inside the health dashboard. One server string uses 'nalaz provjere stanja'; use 'nalaz zdravlja sustava'."
+  },
+  "Agents plugin": {
+    "target": "dodatak Agents",
+    "note": "Decline 'dodatak' and leave 'Agents' unchanged: 'dodatka Agents', 'u dodatku Agents'. With the brand: 'dodatak Mattermost Agents'."
+  },
+  "Hosted Push Notification Service": {
+    "target": "Hosted Push Notification Service",
+    "note": "Keep the English name undeclined and decline a preceding 'usluga': 'usluge Mattermost Hosted Push Notification Service', 'o usluzi ...'. HPNS stays as is."
+  },
+  "Test Push Notification Service": {
+    "target": "Test Push Notification Service",
+    "note": "Keep the English name undeclined and decline a preceding 'usluga': 'usluge Mattermost Test Push Notification Service', 'o usluzi ...'. TPNS stays as is."
+  },
+  "PushNotificationServer": {
+    "target": "PushNotificationServer"
   }
 }

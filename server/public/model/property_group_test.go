@@ -18,6 +18,7 @@ func TestPropertyGroupIsPSAv1(t *testing.T) {
 	}{
 		{"v1 group", PropertyGroupVersionV1, true},
 		{"v2 group", PropertyGroupVersionV2, false},
+		{"v3 group", PropertyGroupVersionV3, false},
 		{"zero-value version", 0, false},
 	}
 
@@ -37,6 +38,7 @@ func TestPropertyGroupIsPSAv2(t *testing.T) {
 	}{
 		{"v1 group", PropertyGroupVersionV1, false},
 		{"v2 group", PropertyGroupVersionV2, true},
+		{"v3 group", PropertyGroupVersionV3, false},
 		{"zero-value version", 0, false},
 	}
 
@@ -44,6 +46,26 @@ func TestPropertyGroupIsPSAv2(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			pg := &PropertyGroup{Version: tt.version}
 			assert.Equal(t, tt.expected, pg.IsPSAv2())
+		})
+	}
+}
+
+func TestPropertyGroupIsPSAv3(t *testing.T) {
+	tests := []struct {
+		name     string
+		version  int
+		expected bool
+	}{
+		{"v1 group", PropertyGroupVersionV1, false},
+		{"v2 group", PropertyGroupVersionV2, false},
+		{"v3 group", PropertyGroupVersionV3, true},
+		{"zero-value version", 0, false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			pg := &PropertyGroup{Version: tt.version}
+			assert.Equal(t, tt.expected, pg.IsPSAv3())
 		})
 	}
 }

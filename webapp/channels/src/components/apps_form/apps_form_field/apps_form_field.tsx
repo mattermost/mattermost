@@ -321,7 +321,9 @@ export default class AppsFormField extends React.PureComponent<Props> {
         case AppFieldTypes.ACTION_BUTTON: {
             return (
                 <AppsFormActionButton
+                    name={name}
                     label={field.label || field.name}
+                    description={field.description}
                     url={field.action_button_url || ''}
                     context={field.action_button_context}
                     channelId={this.props.channelId}

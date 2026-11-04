@@ -1,7 +1,7 @@
 .FeedbackModal {
     &__Container {
-        .radio-list > .radio {
-            margin-bottom: 20px;
+        .radio-list {
+            gap: 20px;
         }
     }
 

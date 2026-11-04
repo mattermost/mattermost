@@ -76,7 +76,7 @@ describe('Feature discovery cloud', () => {
         withTrialBefore('false');
         [...professionalPaidFeatures, ...enterprisePaidFeatures].forEach(({sidebarName, featureDiscoveryTitle}) => {
             cy.get('li').contains(sidebarName).click();
-            cy.get("div[data-testid='featureDiscovery_title']").should('contain', featureDiscoveryTitle);
+            cy.get("[data-testid='featureDiscovery_title']").should('contain', featureDiscoveryTitle);
             testForTrialButton();
         });
     });
@@ -92,7 +92,7 @@ describe('Feature discovery cloud', () => {
         withTrialBefore('false');
         professionalPaidFeatures.forEach(({sidebarName, featureDiscoveryTitle}) => {
             cy.get('li').contains(sidebarName).click();
-            cy.get("div[data-testid='featureDiscovery_title']").should('contain', featureDiscoveryTitle);
+            cy.get("[data-testid='featureDiscovery_title']").should('contain', featureDiscoveryTitle);
             testForUpgradeToProfessionalOption();
         });
     });
@@ -108,7 +108,7 @@ describe('Feature discovery cloud', () => {
         withTrialBefore('false');
         enterprisePaidFeatures.forEach(({sidebarName, featureDiscoveryTitle}) => {
             cy.get('li').contains(sidebarName).click();
-            cy.get("div[data-testid='featureDiscovery_title']").should('contain', featureDiscoveryTitle);
+            cy.get("[data-testid='featureDiscovery_title']").should('contain', featureDiscoveryTitle);
             cy.get("button[data-testid='featureDiscovery_primaryCallToAction']").should('contain', 'Contact sales');
         });
     });

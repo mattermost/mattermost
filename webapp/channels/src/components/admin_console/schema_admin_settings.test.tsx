@@ -383,6 +383,41 @@ describe('components/admin_console/SchemaAdminSettings', () => {
         expect(text.indexOf('Plugin section')).toBeLessThan(text.indexOf('Schema footer'));
     });
 
+    test('should stack schema sections in admin-console__schema-sections for content gap', () => {
+        const props = {
+            ...DefaultProps,
+            config,
+            environmentConfig,
+            schema: {
+                id: 'Config',
+                name: 'config',
+                sections: [
+                    {
+                        key: 'section-a',
+                        title: 'Section A',
+                        description: 'Description A',
+                        settings: [],
+                    },
+                    {
+                        key: 'section-b',
+                        title: 'Section B',
+                        description: 'Description B',
+                        settings: [],
+                    },
+                ],
+            } as AdminDefinitionSubSectionSchema,
+            patchConfig: jest.fn(),
+        };
+
+        const {container} = renderWithContext(<SchemaAdminSettings {...props}/>);
+        const stack = container.querySelector('.admin-console__schema-sections');
+
+        expect(stack).toBeInTheDocument();
+        expect(stack?.querySelectorAll(':scope > .AdminPanel.AdminSectionPanel')).toHaveLength(2);
+        expect(screen.getByRole('heading', {name: 'Section A'})).toBeInTheDocument();
+        expect(screen.getByRole('heading', {name: 'Section B'})).toBeInTheDocument();
+    });
+
     test('should render top-level settings and sections between the schema header and footer', () => {
         const props = {
             ...DefaultProps,
@@ -922,7 +957,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
             // The danger SectionNotice renders with its title and body copy.
             expect(screen.getByText(WARNING_TITLE)).toBeInTheDocument();
             expect(screen.getByText(WARNING_TEXT)).toBeInTheDocument();
-            expect(container.querySelector('.sectionNoticeContainer.danger')).toBeInTheDocument();
+            expect(container.querySelector('[class*="section-notice--type-danger"]')).toBeInTheDocument();
 
             // The normal help text still renders alongside the callout.
             expect(screen.getByText('danger-help-text')).toBeInTheDocument();
@@ -933,7 +968,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
 
             expect(screen.queryByText(WARNING_TITLE)).not.toBeInTheDocument();
             expect(screen.queryByText(WARNING_TEXT)).not.toBeInTheDocument();
-            expect(container.querySelector('.sectionNoticeContainer.danger')).not.toBeInTheDocument();
+            expect(container.querySelector('[class*="section-notice--type-danger"]')).not.toBeInTheDocument();
 
             // The normal help text is unaffected.
             expect(screen.getByText('danger-help-text')).toBeInTheDocument();
@@ -1030,7 +1065,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
             );
 
             expect(screen.getByText(WARNING_TITLE)).toBeInTheDocument();
-            expect(container.querySelector('.sectionNoticeContainer.danger')).toBeInTheDocument();
+            expect(container.querySelector('[class*="section-notice--type-danger"]')).toBeInTheDocument();
         });
 
         test('does not render the callout when the setting is disabled even at the insecure value', () => {
@@ -1065,7 +1100,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
             );
 
             expect(screen.queryByText(WARNING_TITLE)).not.toBeInTheDocument();
-            expect(container.querySelector('.sectionNoticeContainer.danger')).not.toBeInTheDocument();
+            expect(container.querySelector('[class*="section-notice--type-danger"]')).not.toBeInTheDocument();
         });
     });
 

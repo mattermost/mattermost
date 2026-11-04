@@ -7,6 +7,12 @@ cd "$(dirname "$0")"
 mme2e_log "Waiting for server image to be available"
 mme2e_wait_image "$SERVER_IMAGE" 4 30
 
+# Registries (quay.io, Docker Hub) answer a pull with 5xx for minutes at a time; `create` pulls once and fails the shard.
+if ! mme2e_wait_command_success "${MME2E_DC_SERVER} pull --quiet" "Pulling E2E images" 5 30; then
+  mme2e_log "Pulling E2E images failed, retry attempts exhausted. Giving up." >&2
+  exit 1
+fi
+
 # Launch mattermost-server, and wait for it to be healthy
 mme2e_log "Starting E2E containers"
 ${MME2E_DC_SERVER} create

@@ -11,6 +11,25 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestSupportPacketLicenseMinimumEnterprise(t *testing.T) {
+	t.Parallel()
+
+	for sku, expected := range map[string]bool{
+		"":                                false,
+		LicenseShortSkuE10:                false,
+		LicenseShortSkuE20:                false,
+		LicenseShortSkuProfessional:       false,
+		LicenseShortSkuEnterprise:         true,
+		LicenseShortSkuEnterpriseAdvanced: true,
+		LicenseShortSkuMattermostEntry:    true,
+	} {
+		assert.Equal(t, expected, (&SupportPacketLicense{SkuShortName: sku}).MinimumEnterprise(), sku)
+	}
+
+	var license *SupportPacketLicense
+	assert.False(t, license.MinimumEnterprise())
+}
+
 func TestSupportPacketStatsYAMLRoundTripPreservesNilAndZero(t *testing.T) {
 	t.Parallel()
 
@@ -97,4 +116,10 @@ func TestSupportPacketDiagnosticsYAMLOmitsNilAndKeepsZero(t *testing.T) {
 	assert.Equal(t, new(int64(0)), roundTrip.Server.OpenFileDescriptors)
 	assert.Equal(t, new(0), roundTrip.Database.MasterConnectionsInUse)
 	assert.Equal(t, new(uint64(0)), roundTrip.FileStore.AvailableMB)
+}
+
+func TestSupportPacketLicenseIsMattermostEntry(t *testing.T) {
+	assert.True(t, (&SupportPacketLicense{SkuShortName: LicenseShortSkuMattermostEntry}).IsMattermostEntry())
+	assert.False(t, (&SupportPacketLicense{SkuShortName: LicenseShortSkuEnterprise}).IsMattermostEntry())
+	assert.False(t, (*SupportPacketLicense)(nil).IsMattermostEntry())
 }

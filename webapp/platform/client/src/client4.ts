@@ -4,7 +4,7 @@
 /* eslint-disable max-lines */
 
 import type {AccessControlPolicy, CELExpressionError, AccessControlTestResult, AccessControlPoliciesResult, AccessControlPolicyChannelsResult, AccessControlVisualAST, AccessControlAttributes, AccessControlPolicyActiveUpdate, PolicySimulationResponse, PolicySimulationByUsersParams} from '@mattermost/types/access_control';
-import type {ClusterInfo, AnalyticsRow, SchemaMigration, LogFilterQuery} from '@mattermost/types/admin';
+import type {ClusterInfo, AnalyticsRow, SchemaMigration, LogFilterQuery, LogsByNode} from '@mattermost/types/admin';
 import type {Agent, LLMService} from '@mattermost/types/agents';
 import type {AppBinding, AppCallRequest, AppCallResponse} from '@mattermost/types/apps';
 import type {Audit} from '@mattermost/types/audits';
@@ -34,11 +34,8 @@ import type {
 import type {Options, StatusOK, ClientResponse, FetchPaginatedThreadOptions, OptsSignalExt} from '@mattermost/types/client4';
 import {LogLevel} from '@mattermost/types/client4';
 import type {
-    Address,
     Product,
     CloudCustomer,
-    CloudCustomerPatch,
-    Invoice,
     Limits,
     NotifyAdminRequest,
     Subscription,
@@ -89,6 +86,7 @@ import type {
     GroupStats,
     GroupMember,
 } from '@mattermost/types/groups';
+import type {HealthFindingFilter, HealthFindingList} from '@mattermost/types/health';
 import type {PostActionResponse} from '@mattermost/types/integration_actions';
 import type {
     Command,
@@ -542,10 +540,6 @@ export default class Client4 {
         return `${this.getBaseRoute()}/cloud`;
     }
 
-    getHostedCustomerRoute() {
-        return `${this.getBaseRoute()}/hosted_customer`;
-    }
-
     getUsageRoute() {
         return `${this.getBaseRoute()}/usage`;
     }
@@ -592,6 +586,10 @@ export default class Client4 {
 
     getDeliveryTrackingRoute() {
         return `${this.getBaseRoute()}/delivery_tracking`;
+    }
+
+    getHealthFindingsRoute() {
+        return `${this.getBaseRoute()}/health/findings`;
     }
 
     getCSRFFromCookie() {
@@ -3780,9 +3778,9 @@ export default class Client4 {
 
     // Admin Routes
 
-    getLogs = (logFilter: LogFilterQuery) => {
-        return this.doFetch<string[]>(
-            `${this.getBaseRoute()}/logs/query`,
+    getLogs = (logFilter: LogFilterQuery, page = 0, perPage = LOGS_PER_PAGE_DEFAULT) => {
+        return this.doFetch<LogsByNode>(
+            `${this.getBaseRoute()}/logs/query${buildQueryString({page, logs_per_page: perPage})}`,
             {method: 'post', body: JSON.stringify(logFilter)},
         );
     };
@@ -4709,20 +4707,6 @@ export default class Client4 {
         );
     };
 
-    updateCloudCustomer = (customerPatch: CloudCustomerPatch) => {
-        return this.doFetch<CloudCustomer>(
-            `${this.getCloudRoute()}/customer`,
-            {method: 'put', body: JSON.stringify(customerPatch)},
-        );
-    };
-
-    updateCloudCustomerAddress = (address: Address) => {
-        return this.doFetch<CloudCustomer>(
-            `${this.getCloudRoute()}/customer/address`,
-            {method: 'put', body: JSON.stringify(address)},
-        );
-    };
-
     notifyAdmin = (req: NotifyAdminRequest) => {
         return this.doFetchWithResponse<StatusOK>(
             `${this.getUsersRoute()}/notify-admin`,
@@ -4763,17 +4747,6 @@ export default class Client4 {
             `${this.getCloudRoute()}/preview/modal_data`,
             {method: 'get'},
         );
-    };
-
-    getInvoices = () => {
-        return this.doFetch<Invoice[]>(
-            `${this.getCloudRoute()}/subscription/invoices`,
-            {method: 'get'},
-        );
-    };
-
-    getInvoicePdfUrl = (invoiceId: string) => {
-        return `${this.getCloudRoute()}/subscription/invoices/${invoiceId}/pdf`;
     };
 
     getCloudLimits = () => {
@@ -5483,6 +5456,27 @@ export default class Client4 {
         return this.doFetch<StatusOK>(
             `${this.getDeliveryTrackingRoute()}/config`,
             {method: 'put', body: JSON.stringify(config)},
+        );
+    };
+
+    getHealthFindings = (filter: HealthFindingFilter = {}) => {
+        return this.doFetch<HealthFindingList>(
+            `${this.getHealthFindingsRoute()}${buildQueryString(filter)}`,
+            {method: 'get'},
+        );
+    };
+
+    muteHealthFinding = (fingerprint: string) => {
+        return this.doFetch<StatusOK>(
+            `${this.getHealthFindingsRoute()}/${fingerprint}/mute`,
+            {method: 'post'},
+        );
+    };
+
+    unmuteHealthFinding = (fingerprint: string) => {
+        return this.doFetch<StatusOK>(
+            `${this.getHealthFindingsRoute()}/${fingerprint}/mute`,
+            {method: 'delete'},
         );
     };
 

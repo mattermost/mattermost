@@ -164,7 +164,7 @@ test.describe('Post list scroll to permalink', () => {
                 for (let i = 0; i < 60; i++) {
                     await userClient.createTestPost({
                         channel_id: channel.id,
-                        message: `${testConfig.internalBaseURL}/${team.name}/pl/${firstPost.id}`,
+                        message: `${testConfig.siteURL}/${team.name}/pl/${firstPost.id}`,
                     });
                 }
             },
@@ -176,7 +176,7 @@ test.describe('Post list scroll to permalink', () => {
                 for (let i = 60; i < 120; i++) {
                     await userClient.createTestPost({
                         channel_id: channel.id,
-                        message: `${testConfig.internalBaseURL}/${team.name}/pl/${firstPost.id}`,
+                        message: `${testConfig.siteURL}/${team.name}/pl/${firstPost.id}`,
                     });
                 }
             },

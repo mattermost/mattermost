@@ -348,7 +348,7 @@ class ChannelHeaderPlug extends React.PureComponent<ChannelHeaderPlugProps, Chan
                                 />
                             }
                         >
-                            <>
+                            <span>
                                 <PluginChannelHeaderIcon
                                     id='pluginChannelHeaderIcon'
                                     className='icon icon--standard icon__pluginChannelHeader'
@@ -360,7 +360,7 @@ class ChannelHeaderPlug extends React.PureComponent<ChannelHeaderPlugProps, Chan
                                 >
                                     {items.length}
                                 </span>
-                            </>
+                            </span>
                         </WithTooltip>
                     </CustomToggle>
                     <CustomMenu

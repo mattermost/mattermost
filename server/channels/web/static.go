@@ -38,14 +38,21 @@ func (w *Web) InitStatic() {
 
 		staticHandler := staticFilesHandler(http.StripPrefix(path.Join(subpath, "static"), http.FileServer(http.Dir(staticDir))))
 		pluginHandler := staticFilesHandler(http.StripPrefix(path.Join(subpath, "static", "plugins"), http.FileServer(http.Dir(*w.srv.Config().PluginSettings.ClientDirectory))))
+		docsHandler := NewDocsHandler(staticDir, subpath)
 
-		if *w.srv.Config().ServiceSettings.WebserverMode == "gzip" {
+		if w.srv.Config().ServiceSettings.CompressResponses() {
 			staticHandler = gzhttp.GzipHandler(staticHandler)
 			pluginHandler = gzhttp.GzipHandler(pluginHandler)
+			docsHandler = gzhttp.GzipHandler(docsHandler)
 		}
 
 		w.MainRouter.PathPrefix("/static/plugins/").Handler(pluginHandler)
 		w.MainRouter.PathPrefix("/static/").Handler(staticHandler)
+		w.MainRouter.PathPrefix("/" + DocsURLPrefix + "/").Handler(docsHandler)
+		w.MainRouter.Handle("/"+DocsURLPrefix, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			r.URL.Path += "/"
+			http.Redirect(w, r, r.URL.String(), http.StatusFound)
+		}))
 		w.MainRouter.Handle("/robots.txt", http.HandlerFunc(robotsHandler))
 		w.MainRouter.Handle("/unsupported_browser.js", http.HandlerFunc(unsupportedBrowserScriptHandler))
 		w.MainRouter.Handle("/{anything:.*}", w.NewStaticHandler(root)).Methods(http.MethodGet, http.MethodHead)
@@ -127,21 +134,23 @@ func root(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// setStaticSecurityHeaders applies defaults shared by static and docs handlers.
+func setStaticSecurityHeaders(w http.ResponseWriter) {
+	w.Header().Set("Cache-Control", "max-age=31556926, public")
+	w.Header().Set("Permissions-Policy", "")
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	w.Header().Set("Referrer-Policy", "no-referrer")
+}
+
 func staticFilesHandler(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		//wrap our ResponseWriter with our no-cache 404-handler
 		w = &notFoundNoCacheResponseWriter{ResponseWriter: w}
 
+		setStaticSecurityHeaders(w)
 		if path.Base(r.URL.Path) == "remote_entry.js" {
 			w.Header().Set("Cache-Control", "no-cache, max-age=31556926, public")
-		} else {
-			w.Header().Set("Cache-Control", "max-age=31556926, public")
 		}
-
-		// Hardcoded sensible default values for these security headers. Feel free to override in proxy or ingress
-		w.Header().Set("Permissions-Policy", "")
-		w.Header().Set("X-Content-Type-Options", "nosniff")
-		w.Header().Set("Referrer-Policy", "no-referrer")
 
 		if strings.HasSuffix(r.URL.Path, "/") {
 			http.NotFound(w, r)

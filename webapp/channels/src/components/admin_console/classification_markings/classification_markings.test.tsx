@@ -763,15 +763,16 @@ describe('ClassificationMarkings component', () => {
         });
 
         renderWithContext(<ClassificationMarkings/>, ABAC_STATE);
-        await screen.findByTestId('clearanceAttributeCheckbox');
+        const checkbox = await screen.findByRole('checkbox', {name: 'Enable clearance attribute'});
 
-        expect(screen.getByTestId('clearanceAttributeCheckbox')).toBeChecked();
+        expect(checkbox).toHaveAttribute('data-testid', 'clearanceAttributeCheckbox');
+        expect(checkbox).toBeChecked();
         expect(
             screen.queryByRole('heading', {name: 'Classification markings are informational only'}),
         ).not.toBeInTheDocument();
 
         // ...and it comes back the moment enforcement is turned off again.
-        await userEvent.setup().click(screen.getByTestId('clearanceAttributeCheckbox'));
+        await userEvent.setup().click(checkbox);
         expect(
             await screen.findByRole('heading', {name: 'Classification markings are informational only'}),
         ).toBeInTheDocument();
@@ -1077,9 +1078,16 @@ describe('GlobalClassificationIndicators section', () => {
         });
         mockFieldsByObjectType({[CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [field]});
 
-        renderWithContext(<ClassificationMarkings/>, BASE_STATE);
+        const {container} = renderWithContext(<ClassificationMarkings/>, BASE_STATE);
         await screen.findByText('Global Classification Indicators');
 
+        // Preset and clearance settings sit in the enable form, not in a panel.
+        expect(container.querySelector('#classification_markings_settings')).not.toBeInTheDocument();
+
+        expect(container.querySelector('#classification_levels.AdminPanel')).toBeInTheDocument();
+        expect(container.querySelector('#global_classification_indicators.AdminPanel')).toBeInTheDocument();
+        expect(screen.getByRole('heading', {level: 2, name: 'Classification levels'})).toBeInTheDocument();
+        expect(screen.getByRole('heading', {level: 2, name: 'Global Classification Indicators'})).toBeInTheDocument();
         expect(screen.getByText('Configure the global classification banner')).toBeInTheDocument();
         expect(screen.getByText('Global Classification Banner')).toBeInTheDocument();
     });
@@ -2296,10 +2304,10 @@ describe('Clearance name shared with another attribute', () => {
         // the same icon and differs from this one in nothing a query by role or
         // text can see, so without this the warning could be dressed as a block
         // while still reading as a warning. SectionNotice puts its type on the
-        // container's class list.
-        const notice = section.getByRole('heading', {name: 'Another attribute already uses this name'}).closest('.sectionNoticeContainer');
-        expect(notice).toHaveClass('warning');
-        expect(notice).not.toHaveClass('danger');
+        // root's class list.
+        const notice = section.getByRole('heading', {name: 'Another attribute already uses this name'}).closest('[class*="section-notice--type-"]');
+        expect(notice?.className).toContain('section-notice--type-warning');
+        expect(notice?.className).not.toContain('section-notice--type-danger');
 
         // The half that matters: this one warns, it does not block. The server
         // accepts the user field this page creates, so the admin is still allowed

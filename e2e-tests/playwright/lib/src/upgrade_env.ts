@@ -16,6 +16,8 @@ export const UPGRADE_FROM_SERVER_IMAGE_ENV = 'PW_UPGRADE_FROM_SERVER_IMAGE';
 
 // Playwright forks workers without the CLI args, so `--project` is only visible to the runner.
 // The runner records the selection here, and workers inherit it through their environment.
+const UPGRADE_FROM_PROJECT_ENV = 'PW_UPGRADE_FROM_PROJECT';
+const UPGRADE_TO_PHASE_PROJECT_ENV = 'PW_UPGRADE_TO_PHASE_PROJECT';
 const UPGRADE_PATH_PROJECT_ENV = 'PW_UPGRADE_PATH_PROJECT';
 
 const UPGRADE_FROM_PROJECTS = new Set(['upgrade-from']);
@@ -38,14 +40,38 @@ function isProjectSelected(projectNames: Set<string>, argv: string[] = process.a
     return false;
 }
 
-/** Returns true when `--project` selects an upgrade-from project. */
+/**
+ * True when `--project` selects an upgrade-from project. Argv-only, so true only in the runner
+ * process — intentionally NOT true in a worker (see isUpgradeFromProjectActive() below for that).
+ * playwright.config.ts uses this one for its upgrade-from preflight (assertUpgradeFromFreshStart()
+ * + logUpgradeFromServerImage()), which must run exactly once, before global setup creates
+ * .env.testcontainers: were this project-active in a worker too (e.g. the "setup" project, an
+ * upgrade-from dependency), the config module reloading in that worker would re-run the "fresh
+ * start" check after the file already legitimately exists and fail it every time.
+ */
 export function isUpgradeFromProjectSelected(argv: string[] = process.argv): boolean {
     return isProjectSelected(UPGRADE_FROM_PROJECTS, argv);
 }
 
-/** Returns true when `--project` selects upgrade-swap-to or upgrade-to. */
+/** Returns true when `--project` selects upgrade-swap-to or upgrade-to. See isUpgradeFromProjectSelected() above. */
 export function isUpgradeToPhaseProjectSelected(argv: string[] = process.argv): boolean {
     return isProjectSelected(UPGRADE_TO_PHASE_PROJECTS, argv);
+}
+
+/**
+ * Worker-safe version of isUpgradeFromProjectSelected(): also true inside a worker process, via
+ * the env var exportUpgradePathProjectSelection() sets in the runner. Needed by code that must
+ * resolve the same way in a worker as in the runner — e.g. TestConfig's serverImage — since a
+ * worker's own argv never has `--project` (see isUpgradeFromProjectSelected() above for why that
+ * same env var isn't suitable for every caller).
+ */
+export function isUpgradeFromProjectActive(argv: string[] = process.argv): boolean {
+    return process.env[UPGRADE_FROM_PROJECT_ENV] === 'true' || isUpgradeFromProjectSelected(argv);
+}
+
+/** Worker-safe version of isUpgradeToPhaseProjectSelected(). See isUpgradeFromProjectActive() above. */
+export function isUpgradeToPhaseProjectActive(argv: string[] = process.argv): boolean {
+    return process.env[UPGRADE_TO_PHASE_PROJECT_ENV] === 'true' || isUpgradeToPhaseProjectSelected(argv);
 }
 
 /** True for any upgrade-path Playwright project (from, swap-to, or to), in the runner or a worker. */
@@ -59,6 +85,12 @@ export function isUpgradePathProjectSelected(argv: string[] = process.argv): boo
 
 /** Passes the runner's upgrade-path selection down to workers. Call from the Playwright config. */
 export function exportUpgradePathProjectSelection(): void {
+    if (isUpgradeFromProjectSelected()) {
+        process.env[UPGRADE_FROM_PROJECT_ENV] = 'true';
+    }
+    if (isUpgradeToPhaseProjectSelected()) {
+        process.env[UPGRADE_TO_PHASE_PROJECT_ENV] = 'true';
+    }
     if (isUpgradePathProjectSelected()) {
         process.env[UPGRADE_PATH_PROJECT_ENV] = 'true';
     }

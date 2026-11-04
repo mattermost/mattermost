@@ -44,7 +44,7 @@ describe('ResetToDefaultButton', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should not show if desktop notifications are same as default user notification settings', () => {
+    test('should hide but reserve space if desktop notifications are same as default user notification settings', () => {
         const props = {
             ...defaultProps,
             userNotifyProps: {
@@ -63,8 +63,13 @@ describe('ResetToDefaultButton', () => {
             },
         };
 
-        const {container} = renderWithContext(<ResetToDefaultButton {...props}/>);
-        expect(container).toBeEmptyDOMElement();
+        renderWithContext(<ResetToDefaultButton {...props}/>);
+        const button = screen.getByTestId('resetToDefaultButton-desktop');
+        expect(button).toBeInTheDocument();
+        expect(button).toBeDisabled();
+        expect(button).toHaveAttribute('aria-hidden', 'true');
+        expect(button).toHaveAttribute('tabindex', '-1');
+        expect(button).toHaveClass('ChannelNotificationModal__reset-btn--hidden');
     });
 
     test('should show if desktop notifications are not same as user notification settings', () => {
@@ -86,7 +91,10 @@ describe('ResetToDefaultButton', () => {
         };
 
         const {rerender} = renderWithContext(<ResetToDefaultButton {...props1}/>);
-        expect(screen.getByText('Reset to default')).toBeInTheDocument();
+        let button = screen.getByTestId('resetToDefaultButton-desktop');
+        expect(button).toBeVisible();
+        expect(button).toBeEnabled();
+        expect(button).not.toHaveClass('ChannelNotificationModal__reset-btn--hidden');
 
         const props2 = {
             ...props1,
@@ -99,10 +107,12 @@ describe('ResetToDefaultButton', () => {
         };
 
         rerender(<ResetToDefaultButton {...props2}/>);
-        expect(screen.getByText('Reset to default')).toBeInTheDocument();
+        button = screen.getByTestId('resetToDefaultButton-desktop');
+        expect(button).toBeVisible();
+        expect(button).toBeEnabled();
     });
 
-    test('should not show if mobile notifications are same as default user notification settings', () => {
+    test('should hide but reserve space if mobile notifications are same as default user notification settings', () => {
         const props = {
             ...defaultProps,
             sectionName: SectionName.Mobile,
@@ -118,8 +128,13 @@ describe('ResetToDefaultButton', () => {
             },
         };
 
-        const {container} = renderWithContext(<ResetToDefaultButton {...props}/>);
-        expect(container).toBeEmptyDOMElement();
+        renderWithContext(<ResetToDefaultButton {...props}/>);
+        const button = screen.getByTestId('resetToDefaultButton-mobile');
+        expect(button).toBeInTheDocument();
+        expect(button).toBeDisabled();
+        expect(button).toHaveAttribute('aria-hidden', 'true');
+        expect(button).toHaveAttribute('tabindex', '-1');
+        expect(button).toHaveClass('ChannelNotificationModal__reset-btn--hidden');
     });
 
     test('should show if mobile notifications are not same as user notification settings', () => {
@@ -139,10 +154,14 @@ describe('ResetToDefaultButton', () => {
         };
 
         const {rerender} = renderWithContext(<ResetToDefaultButton {...props}/>);
-        expect(screen.getByText('Reset to default')).toBeInTheDocument();
+        let button = screen.getByTestId('resetToDefaultButton-mobile');
+        expect(button).toBeVisible();
+        expect(button).toBeEnabled();
+        expect(button).not.toHaveClass('ChannelNotificationModal__reset-btn--hidden');
 
         const props2 = {
             ...defaultProps,
+            sectionName: SectionName.Mobile,
             userSelectedChannelNotifyProps: {
                 ...defaultProps.userSelectedChannelNotifyProps,
                 push: NotificationLevels.ALL,
@@ -151,7 +170,9 @@ describe('ResetToDefaultButton', () => {
         };
 
         rerender(<ResetToDefaultButton {...props2}/>);
-        expect(screen.getByText('Reset to default')).toBeInTheDocument();
+        button = screen.getByTestId('resetToDefaultButton-mobile');
+        expect(button).toBeVisible();
+        expect(button).toBeEnabled();
     });
 });
 

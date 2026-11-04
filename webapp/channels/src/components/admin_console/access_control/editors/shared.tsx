@@ -5,7 +5,9 @@ import React, {type JSX} from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {LockOutlineIcon, PlusIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {AccessControlTestResult} from '@mattermost/types/access_control';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
@@ -13,6 +15,7 @@ import {isSessionAttributeField} from '@mattermost/types/properties_user';
 
 import {searchUsersForExpression} from 'mattermost-redux/actions/access_control';
 import type {ActionResult} from 'mattermost-redux/types/actions';
+import {isPropertyFieldSynced} from 'mattermost-redux/utils/property_utils';
 
 import Markdown from 'components/markdown';
 
@@ -183,21 +186,11 @@ export function isGraphOperator(op: string): boolean {
 }
 
 // Whether a row's right-hand side may be the accessed channel's attribute
-// (resource.attributes.*) rather than literal values, given the operator and the
-// attribute's type. The comparison operators and the graph hierarchy predicates
-// always may. The multiselect list operators may only on a multiselect
-// attribute: on a graph attribute they mean exact membership against literal
-// option names, and the policy engine has no live-versus-live form for a pair of
-// graph attributes, so offering a target there would build a rule that fails to
-// save.
-export function operatorSupportsChannelTarget(op: string, attributeType?: string): boolean {
-    if (isGraphOperator(op)) {
-        return true;
-    }
-    if (isMultiselectOperator(op)) {
-        return attributeType !== 'graph';
-    }
-    return OPERATOR_CONFIG[op]?.type === 'comparison';
+// (resource.attributes.*) rather than literal values: true for the comparison
+// operators, the multiselect list operators and the graph hierarchy predicates.
+export function operatorSupportsChannelTarget(op: string): boolean {
+    return isGraphOperator(op) || isMultiselectOperator(op) ||
+        OPERATOR_CONFIG[op]?.type === 'comparison';
 }
 
 // Ordinal comparison operators exclusive to ranked attributes. IS_NOT is
@@ -241,11 +234,11 @@ export function isNativeField(field?: Pick<UserPropertyField, 'attrs'>): boolean
     return Boolean(field?.attrs?.native);
 }
 
-// True when an attribute's values come from a controlled source (LDAP/SAML sync,
+// True when an attribute's values come from a controlled source (AD/LDAP, SAML or OpenID Connect sync,
 // admin-managed, plugin-protected, or owner-managed integration) and so cannot be
 // set by users. Such attributes are safe to reference in access control policies.
 export function hasControlledAttributeValues(field: Pick<UserPropertyField, 'attrs'>): boolean {
-    const isSynced = Boolean(field.attrs?.ldap || field.attrs?.saml);
+    const isSynced = isPropertyFieldSynced(field);
     const isAdminManaged = field.attrs?.managed === 'admin';
     const isProtected = Boolean(field.attrs?.protected);
     const isOwnerManaged = (field.attrs?.owners?.length ?? 0) > 0;
@@ -375,17 +368,18 @@ const RESOURCE_SELECTOR = String.raw`resource\.attributes\.\w+`;
 const SIMPLE_CONDITION_PATTERNS: RegExp[] = [
     new RegExp(String.raw`^user\.(?:attributes|session)\.\w+\s*(==|!=|>=|<=|>|<)\s*(?:${CEL_STRING}|${RESOURCE_SELECTOR})$`),
 
-    // Multiselect list-vs-list against the accessed channel's attribute,
-    // stored verbatim as a member call: the receiver is the user's multiselect
-    // attribute and the single argument is a resource.attributes.* selector
-    // (never a literal — that form is the in-chain below).
+    // List-vs-list against the accessed channel's attribute, stored verbatim
+    // as a member call: the receiver is the user's multiselect attribute, or a
+    // graph attribute matched exactly against a channel graph attribute, and the
+    // single argument is a resource.attributes.* selector (never a literal —
+    // that form is the in-chain below).
     new RegExp(String.raw`^user\.(?:attributes|session)\.\w+\.(?:hasAnyOf|hasAllOf)\(${RESOURCE_SELECTOR}\)$`),
 
     // A graph hierarchy predicate: a member call on the user's graph attribute
     // whose single argument is a list of option names or the accessed channel's
     // graph attribute. Only the custom-profile namespace, since a session
-    // attribute is never a graph field. Exact membership on a graph attribute is
-    // the `in` form matched below, unchanged.
+    // attribute is never a graph field. Exact membership against literal options is
+    // the `in` form below; against a channel attribute it is the member call above.
     new RegExp(String.raw`^user\.attributes\.\w+\.(?:coversAll|coversAny|withinAll|withinAny)\((?:${CEL_STRING_LIST}|${RESOURCE_SELECTOR})\)$`),
 
     new RegExp(String.raw`^user\.(?:attributes|session)\.\w+\s+in\s+${CEL_STRING_LIST}$`),
@@ -513,11 +507,11 @@ export function TestButton({onClick, disabled, disabledTooltip, label}: TestButt
     const button = (
         <Button
             emphasis='tertiary'
-            size='sm'
+            size='small'
             onClick={onClick}
             disabled={disabled}
+            leadingIcon={<Icon glyph={<LockOutlineIcon/>}/>}
         >
-            <i className='icon icon-lock-outline'/>
             {label ?? (
                 <FormattedMessage
                     id='admin.access_control.table_editor.test_access_rule'
@@ -602,11 +596,11 @@ export function AddAttributeButton({onClick, disabled}: AddAttributeButtonProps)
     return (
         <Button
             emphasis='tertiary'
-            size='sm'
+            size='small'
             onClick={onClick}
             disabled={disabled}
+            leadingIcon={<Icon glyph={<PlusIcon/>}/>}
         >
-            <i className='icon icon-plus'/>
             <FormattedMessage
                 id='admin.access_control.table_editor.add_attribute'
                 defaultMessage='Add attribute'

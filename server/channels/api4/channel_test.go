@@ -459,6 +459,18 @@ func TestCreateChannelWithPropertyValues(t *testing.T) {
 		CheckCreatedStatus(t, resp)
 	})
 
+	t.Run("the field lookup names the caller", func(t *testing.T) {
+		field := createField(t, model.PropertyFieldTypeText, memberLevel, nil)
+		untaggedCalls := observeUntaggedPropertyCalls(t, th)
+
+		req, _ := newRequest(model.PropertyValuePatchItem{FieldID: field.ID, Value: json.RawMessage(`"SECRET"`)})
+		_, resp, err := th.Client.CreateChannelWithPropertyValues(context.Background(), req)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		require.Empty(t, untaggedCalls())
+	})
+
 	t.Run("a value for an unknown field is refused and creates nothing", func(t *testing.T) {
 		req, name := newRequest(model.PropertyValuePatchItem{FieldID: model.NewId(), Value: json.RawMessage(`"x"`)})
 		_, resp, err := th.Client.CreateChannelWithPropertyValues(context.Background(), req)
@@ -7339,6 +7351,7 @@ func TestGetChannelModerations(t *testing.T) {
 		// Playbooks DB job requires a plugin mock
 		pluginStore := mocks.PluginStore{}
 		pluginStore.On("List", mock.Anything, mock.Anything, mock.Anything).Return([]string{}, nil)
+		pluginStore.On("ListWithOptions", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return([]string{}, nil)
 		mockStore.On("Plugin").Return(&pluginStore)
 
 		mockSchemeStore := mocks.SchemeStore{}
@@ -7578,6 +7591,7 @@ func TestPatchChannelModerations(t *testing.T) {
 		// Playbooks DB job requires a plugin mock
 		pluginStore := mocks.PluginStore{}
 		pluginStore.On("List", mock.Anything, mock.Anything, mock.Anything).Return([]string{}, nil)
+		pluginStore.On("ListWithOptions", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return([]string{}, nil)
 		mockStore.On("Plugin").Return(&pluginStore)
 
 		mockSchemeStore := mocks.SchemeStore{}

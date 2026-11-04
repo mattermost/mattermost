@@ -7,6 +7,8 @@ import {useIntl} from 'react-intl';
 import ReactSelect from 'react-select';
 import type {OnChangeValue} from 'react-select';
 
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
+
 import type {BaseSettingItemProps} from './base_setting_item';
 import BaseSettingItem from './base_setting_item';
 import type {FieldsetCheckbox} from './checkbox_setting_item';
@@ -49,17 +51,16 @@ export default function CheckboxWithSelectSettingItem({
                 key={checkboxFieldData.name}
                 className='mm-modal-generic-section-item__fieldset-checkbox-ctr'
             >
-                <label className='mm-modal-generic-section-item__fieldset-checkbox'>
-                    <input
-                        className='mm-modal-generic-section-item__input-checkbox'
-                        data-testid={checkboxFieldData.dataTestId}
-                        type='checkbox'
-                        name={checkboxFieldData.name}
-                        checked={checkboxFieldValue}
-                        onChange={(e) => handleCheckboxChange(e.target.checked)}
-                    />
+                <Checkbox
+                    className='mm-modal-generic-section-item__fieldset-checkbox'
+                    data-testid={checkboxFieldData.dataTestId}
+                    name={checkboxFieldData.name}
+                    id={checkboxFieldData.name.replaceAll(' ', '-')}
+                    checked={checkboxFieldValue}
+                    onChange={(e) => handleCheckboxChange(e.target.checked)}
+                >
                     {checkboxFieldTitle}
-                </label>
+                </Checkbox>
             </fieldset>
             <fieldset className='mm-modal-generic-section-item__fieldset-react-select'>
                 <ReactSelect

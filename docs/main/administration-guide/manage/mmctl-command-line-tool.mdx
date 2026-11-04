@@ -989,6 +989,12 @@ Requires the [Enable API Channel Deletion](/administration-guide/configure/envir
 
 </Note>
 
+<Warning>
+
+Before permanently deleting a large number of channels, turn off [Elasticsearch indexing](/administration-guide/configure/environment-configuration-settings#enable-elasticsearch-indexing) and leave the Elasticsearch or OpenSearch cluster running. Each delete reindexes every channel member, and that indexing work can exhaust server memory on a delete of about 100,000 memberships. Restore indexing when the deletes finish, then run a bulk index.
+
+</Warning>
+
 **Format**
 
 ``` sh
@@ -3785,6 +3791,8 @@ Requires a Mattermost Enterprise license and the `HealthDashboard` feature flag,
 
 Report the findings of the server's latest health evaluation. By default only firing findings and findings that could not be evaluated are shown.
 
+With --packet, evaluate a Support Packet on this machine instead. No server connection is needed, and findings meant for support engineers are included. --packet can't be combined with --include-muted, because findings evaluated from a packet are never muted.
+
 **Format**
 
 ``` sh
@@ -3796,6 +3804,7 @@ mmctl health check [flags]
 ``` sh
 mmctl health check
 mmctl health check --include-resolved --include-muted
+mmctl health check --packet mm_support_packet.zip
 ```
 
 **Options**
@@ -3804,6 +3813,7 @@ mmctl health check --include-resolved --include-muted
 -h, --help               help for check
 --include-muted          Include muted findings
 --include-resolved       Include resolved findings
+--packet string          Path to a Support Packet zip to evaluate offline, without a server
 ```
 
 **Options inherited from parent commands**

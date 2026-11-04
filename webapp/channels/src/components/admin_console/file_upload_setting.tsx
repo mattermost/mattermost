@@ -4,7 +4,7 @@
 import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 
 import * as Utils from 'utils/utils';
 
@@ -64,19 +64,23 @@ const FileUploadSetting = ({
     const handleSubmit = useCallback((e: React.MouseEvent) => {
         e.preventDefault();
 
-        setIsUploading(true);
         const file = fileInputRef.current?.files?.[0];
-        if (file) {
-            onSubmit(id, file, (error) => {
-                if (isMounted.current) {
-                    setIsUploading(false);
-
-                    if (error && fileInputRef.current) {
-                        Utils.clearFileInput(fileInputRef.current);
-                    }
-                }
-            });
+        if (!file) {
+            return;
         }
+
+        setIsUploading(true);
+        onSubmit(id, file, (error) => {
+            if (isMounted.current) {
+                setIsUploading(false);
+
+                if (error && fileInputRef.current) {
+                    Utils.clearFileInput(fileInputRef.current);
+                    setIsFileSelected(false);
+                    setFileNameFromState(null);
+                }
+            }
+        });
     }, [id, onSubmit]);
 
     let serverError;
@@ -134,22 +138,14 @@ const FileUploadSetting = ({
                     emphasis='primary'
                     disabled={!isFileSelected}
                     onClick={handleSubmit}
+                    loading={isUploading}
                 >
-                    {
-                        isUploading && (
-                            <>
-                                <span className='glyphicon glyphicon-refresh glyphicon-refresh-animate'/>
-                                {uploadingText}
-                            </>
-                        )
-                    }
-                    {
-                        !isUploading &&
+                    {isUploading ? uploadingText : (
                         <FormattedMessage
                             id='admin.file_upload.uploadFile'
                             defaultMessage='Upload'
                         />
-                    }
+                    )}
                 </Button>
                 <div className='help-text m-0'>
                     {fileName}

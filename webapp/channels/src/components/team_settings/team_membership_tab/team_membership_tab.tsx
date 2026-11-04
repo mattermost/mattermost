@@ -5,6 +5,7 @@ import React, {useState, useEffect, useCallback, useMemo, useRef} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/types/access_control';
 import {getMembershipRule, buildRulesWithMembership, getAutoAddFromRules, hasEffectiveRules, autoAddModeForToggle} from '@mattermost/types/access_control';
 import type {JobType} from '@mattermost/types/jobs';
@@ -676,18 +677,13 @@ function TeamMembershipTab({
 
             <div className='TeamMembershipTab__autoAddSection'>
                 <div className='TeamMembershipTab__autoAddCheckboxContainer'>
-                    <input
-                        type='checkbox'
+                    <Checkbox
                         className='TeamMembershipTab__autoAddCheckbox'
                         checked={autoAddMembers}
                         onChange={handleAutoAddToggle}
                         disabled={isEmptyRulesState}
                         id='autoAddMembersCheckbox'
                         name='autoAddMembers'
-                    />
-                    <label
-                        htmlFor='autoAddMembersCheckbox'
-                        className='TeamMembershipTab__autoAddLabel'
                     >
                         <span className={`TeamMembershipTab__autoAddText${isEmptyRulesState ? ' disabled' : ''}`}>
                             {formatMessage({
@@ -695,7 +691,7 @@ function TeamMembershipTab({
                                 defaultMessage: 'Auto-add members based on access rules',
                             })}
                         </span>
-                    </label>
+                    </Checkbox>
                 </div>
                 <p className='TeamMembershipTab__autoAddDescription'>
                     {autoAddDescription}

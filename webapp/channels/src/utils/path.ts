@@ -18,3 +18,11 @@ export const TEAM_NAME_PATH_PATTERN = '[a-z0-9\\-_]+';
 // - User ID
 // - Email
 export const IDENTIFIER_PATH_PATTERN = '[@a-zA-Z\\-_0-9][@a-zA-Z\\-_0-9.:]*';
+
+// The System Console is no team, though it has integrations pages too.
+const BACKSTAGE_PATH_PATTERN = new RegExp(`^/(?!admin_console/)${TEAM_NAME_PATH_PATTERN}/(integrations|emoji)(/|$)`);
+
+/** Whether the path is a backstage page (Integrations, Custom Emoji), which has its own full-page layout. */
+export function isBackstagePath(pathname: string): boolean {
+    return BACKSTAGE_PATH_PATTERN.test(pathname);
+}

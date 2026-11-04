@@ -1502,6 +1502,43 @@ For clarity, the object is shown using regular JSON formatting, but in the data 
   </tr>
 </table>
 
+## Unmatched users report
+
+A scoped import (an import produced by a team- or channel-scoped export) can reference users, team memberships, or channel memberships that don't exist on the destination server. When this happens the import doesn't fail: a user that can't be matched to an existing account gets a shell account created (active or deactivated, depending on the `--imported-users` option), and a membership for a team or channel that isn't present on the destination is skipped. Each of these outcomes is recorded so you can review what didn't carry over.
+
+`mmctl import process` runs asynchronously and only returns the job ID. Once the job finishes, run [mmctl import job show](/administration-guide/manage/mmctl-command-line-tool#mmctl-import-job-show) to see the count and the path to a CSV report:
+
+``` sh
+3 import entries could not be matched on this server (unmatched users and skipped team or channel memberships).
+See the report for details: <import-file>.unmatched-users.csv
+```
+
+Where the report is written depends on how the import runs. In local mode (`mmctl import process --local`, typically with `--bypass-upload`), it's written to the local filesystem next to the import file. Otherwise it's written to your [file storage system](/administration-guide/configure/environment-configuration-settings#file-storage-system) under the configured import directory. Either way it's named `<import-file>.unmatched-users.csv` and has one row per unmatched user or membership, with the following columns:
+
+| Column | Description |
+| --- | --- |
+| `username` | The source username that couldn't be matched. |
+| `auth_service` | The user's authentication service, if any (for example, `ldap`, `saml`, `gitlab`). |
+| `team` | The team involved, for a skipped team or channel membership. |
+| `channel` | The channel involved, for a skipped channel membership. |
+| `reason` | Why the user or membership couldn't be matched. |
+| `action` | What the import did about it. |
+
+Possible `reason` values:
+
+- `username_not_found`: no account on the destination matched the source username.
+- `sso_auth_data_not_found`: no account on the destination matched the user's SSO identity (`auth_data`).
+- `team_not_found`: the membership referenced a team that doesn't exist on the destination.
+- `channel_not_found`: the membership referenced a channel that doesn't exist on the destination.
+
+Possible `action` values:
+
+- `created_active`: a shell account was created and left able to sign in (`--imported-users=active`).
+- `created_inactive`: a shell account was created but deactivated pending administrator review (`--imported-users=inactive`).
+- `membership_skipped`: the membership was skipped because its team or channel wasn't present on the destination.
+
+The report reflects a single run. If you re-import the same file, a user created as a shell on the first run is matched on the second and no longer appears in the report, while a membership for a team or channel that's still missing is reported again. The count and report path recorded on the import job are specific to each run, and a run that finds no unmatched users records no report. An earlier `.unmatched-users.csv` file isn't removed or overwritten when a later run has nothing to report, so a file left on disk may reflect a previous run rather than the latest one. Check the count on the import job to see whether the current run produced a report.
+
 ## Common issues
 
 Run the bulk import command as the *mattermost* user. Running it as *root* or any other user will cause issues with file permissions on imported attachments.

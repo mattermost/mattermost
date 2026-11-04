@@ -56,9 +56,5 @@
         display: flex;
         flex: 0 0 auto;
         gap: 8px;
-
-        .btn + .btn {
-            margin-left: 0;
-        }
     }
 }

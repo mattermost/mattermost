@@ -8,6 +8,7 @@ import {defineMessage} from 'react-intl';
 import {ChevronDownCircleOutlineIcon, EmailOutlineIcon, FormatListBulletedIcon, LinkVariantIcon, MenuVariantIcon, PoundIcon, SitemapIcon, SortAscendingIcon} from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
 import type {FieldValueType, PropertyField} from '@mattermost/types/properties';
+import {supportsExternalSync} from '@mattermost/types/properties';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 // Server-persisted field.type values Global Attributes can create or edit.
@@ -129,4 +130,11 @@ export function toServerFieldType(typeId: AttributeTypeId): AttributeFieldType {
 
 export function toValueType(typeId: AttributeTypeId): FieldValueType {
     return ATTRIBUTE_TYPE_DESCRIPTOR[typeId].valueType;
+}
+
+// Whether an attribute of this type can be linked to an external source as it
+// is. Phone, URL and email are text on the server, so they qualify; a type that
+// does not is converted to Text when a source is linked.
+export function canSyncAttributeType(typeId: AttributeTypeId): boolean {
+    return supportsExternalSync({type: toServerFieldType(typeId)});
 }

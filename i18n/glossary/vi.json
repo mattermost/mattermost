@@ -424,5 +424,28 @@
   },
   "server": {
     "target": "máy chủ"
+  },
+  "health dashboard": {
+    "target": "Tình trạng hệ thống",
+    "note": "Name of the System Console page; capitalize as a name. Server errors refer to it as 'Bảng Tình trạng hệ thống'. Consistent in existing translations."
+  },
+  "health finding": {
+    "target": "phát hiện kiểm tra tình trạng",
+    "note": "Shorten to 'phát hiện' inside the page itself (e.g. 'Không có phát hiện nghiêm trọng nào'). One webapp string says 'phát hiện về tình trạng' — use the target."
+  },
+  "Agents plugin": {
+    "target": "plugin Agents",
+    "note": "Consistent in existing translations; 'Mattermost Agents plugin' = 'Plugin Mattermost Agents'."
+  },
+  "Hosted Push Notification Service": {
+    "target": "Hosted Push Notification Service",
+    "note": "Service name; keep in English, introduced by the head noun 'dịch vụ': 'dịch vụ Mattermost Hosted Push Notification Service'. The acronym HPNS stays as is."
+  },
+  "Test Push Notification Service": {
+    "target": "Test Push Notification Service",
+    "note": "Service name; keep in English, introduced by 'dịch vụ' like Hosted Push Notification Service. The acronym TPNS stays as is."
+  },
+  "PushNotificationServer": {
+    "target": "PushNotificationServer"
   }
 }

@@ -759,6 +759,18 @@ func (s SqlSharedChannelStore) GetSingleUser(userID string, channelID string, re
 	return &scu, nil
 }
 
+func (s SqlSharedChannelStore) PermanentDeleteUsersByUser(userID string) error {
+	query := s.getQueryBuilder().
+		Delete("SharedChannelUsers").
+		Where(sq.Eq{"UserId": userID})
+
+	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
+		return errors.Wrapf(err, "failed to delete SharedChannelUsers with userId=%s", userID)
+	}
+
+	return nil
+}
+
 // GetUsersForUser fetches all shared channel user records based on userID,
 // excluding rows whose remote cluster has been deleted or no longer exists.
 func (s SqlSharedChannelStore) GetUsersForUser(userID string) ([]*model.SharedChannelUser, error) {

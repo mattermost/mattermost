@@ -116,6 +116,92 @@ func TestUpdatePost(t *testing.T) {
 	})
 }
 
+func TestGetThreadFollowers(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		api := &plugintest.API{}
+		defer api.AssertExpectations(t)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
+
+		api.On("GetThreadFollowers", "threadID").Return([]string{"user1", "user2"}, nil)
+
+		followers, err := client.Post.GetThreadFollowers("threadID")
+		require.NoError(t, err)
+		require.Equal(t, []string{"user1", "user2"}, followers)
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		api := &plugintest.API{}
+		defer api.AssertExpectations(t)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
+
+		api.On("GetThreadFollowers", "threadID").Return(nil, newAppError())
+
+		followers, err := client.Post.GetThreadFollowers("threadID")
+		require.EqualError(t, err, "here: id, an error occurred")
+		require.Nil(t, followers)
+	})
+}
+
+func TestSetThreadFollowing(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		api := &plugintest.API{}
+		defer api.AssertExpectations(t)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
+
+		api.On("SetThreadFollowing", "userID", "threadID", true).Return(nil)
+
+		require.NoError(t, client.Post.SetThreadFollowing("userID", "threadID", true))
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		api := &plugintest.API{}
+		defer api.AssertExpectations(t)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
+
+		api.On("SetThreadFollowing", "userID", "threadID", false).Return(newAppError())
+
+		require.EqualError(t, client.Post.SetThreadFollowing("userID", "threadID", false), "here: id, an error occurred")
+	})
+}
+
+func TestUpdatePostWithOptions(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		api := &plugintest.API{}
+		defer api.AssertExpectations(t)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
+
+		now := model.GetMillis()
+		options := &model.UpdatePostOptions{FileCreatorID: "userID"}
+		in := &model.Post{
+			Id: "postID",
+		}
+		out := in.Clone()
+		out.UpdateAt = now
+		api.On("UpdatePostWithOptions", in, options).Return(out, nil)
+
+		err := client.Post.UpdatePostWithOptions(in, options)
+		require.NoError(t, err)
+		require.Equal(t, out, in)
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		api := &plugintest.API{}
+		defer api.AssertExpectations(t)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
+
+		options := &model.UpdatePostOptions{FileCreatorID: "userID"}
+		in := &model.Post{
+			Id: "postID",
+		}
+		out := in.Clone()
+		api.On("UpdatePostWithOptions", in, options).Return(nil, newAppError())
+
+		err := client.Post.UpdatePostWithOptions(in, options)
+		require.EqualError(t, err, "here: id, an error occurred")
+		assert.Equal(t, out, in)
+	})
+}
+
 func TestDeletePost(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}

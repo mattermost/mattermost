@@ -15,7 +15,15 @@ export type FieldType = (
     // A multi-valued select whose options form a hierarchy. Manage Attributes
     // create may write options (and parent edges) when PropertyFieldGraph is on.
     // Other editors (CPA, board attributes) still do not author them.
-    'graph'
+    'graph' |
+
+    // A JSON number; null or absent is empty. Not allowed in the access control
+    // group, so CPA and Attribute Management never offer it.
+    'number' |
+
+    // A JSON boolean; false or absent is unchecked. Not allowed in the access
+    // control group either.
+    'checkbox'
 );
 
 export type FieldVisibility = 'always' | 'hidden' | 'when_set';
@@ -156,6 +164,15 @@ export const supportsOptions = (field: {type: FieldType}): boolean => {
 };
 
 export const supportsHierarchy = (field: {type: FieldType}): boolean => field.type === 'graph';
+
+// Whether an identity source can populate the field, mirroring
+// PropertyFieldType.SupportsExternalSync in model/property_field.go. Text and
+// select store the first value the source delivers and multiselect stores all
+// of them; a select or multiselect field's options are then owned by the sync.
+// Any other type has to become text before it can be linked to a source.
+export const supportsExternalSync = (field: {type: FieldType}): boolean => {
+    return field.type === 'text' || field.type === 'select' || field.type === 'multiselect';
+};
 
 // Whether a field's stored value is a list of option ids that has to be resolved
 // against attrs.options before it is shown. supportsOptions answers a narrower
