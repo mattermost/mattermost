@@ -224,5 +224,10 @@ describe('components/integrations/InstalledOutgoingWebhook', () => {
         expect(matchesFilter(TestHelper.getOutgoingWebhookMock({trigger_words: ['word', 'Trigger']}), TestHelper.getChannelMock(), 'trigger')).toEqual(true);
 
         expect(matchesFilter(TestHelper.getOutgoingWebhookMock(), TestHelper.getChannelMock({name: 'channel_name'}), 'channel')).toEqual(true);
+
+        expect(matchesFilter(TestHelper.getOutgoingWebhookMock({callback_urls: ['https://example.com/Callback']}), TestHelper.getChannelMock(), 'example.com/callback')).toEqual(true);
+        expect(matchesFilter(TestHelper.getOutgoingWebhookMock({callback_urls: ['https://a.com', 'https://b.org/hook']}), TestHelper.getChannelMock(), 'b.org')).toEqual(true);
+        expect(matchesFilter(TestHelper.getOutgoingWebhookMock({callback_urls: ['https://example.com']}), TestHelper.getChannelMock(), 'other.com')).toEqual(false);
+        expect(matchesFilter(TestHelper.getOutgoingWebhookMock({callback_urls: undefined}), TestHelper.getChannelMock(), 'example.com')).toEqual(false);
     });
 });

@@ -4,9 +4,10 @@
 import {screen} from '@testing-library/react';
 import React from 'react';
 
+import type {Channel} from '@mattermost/types/channels';
 import type {IncomingWebhook} from '@mattermost/types/integrations';
 
-import InstalledIncomingWebhook from 'components/integrations/installed_incoming_webhook';
+import InstalledIncomingWebhook, {matchesFilter} from 'components/integrations/installed_incoming_webhook';
 
 import {renderWithContext} from 'tests/react_testing_utils';
 
@@ -183,5 +184,20 @@ describe('components/integrations/InstalledIncomingWebhook', () => {
 
         expect(screen.getByText(/Last used on/i)).toBeInTheDocument();
         expect(screen.queryByText('Never used')).not.toBeInTheDocument();
+    });
+
+    test('matchesFilter should match on the webhook URL', () => {
+        const channel = {name: 'town-square'} as Channel;
+
+        // Full URL as copied from the page
+        expect(matchesFilter(incomingWebhook, channel, `http://localhost:8065/hooks/${incomingWebhook.id}`)).toEqual(true);
+
+        // Just the hook ID
+        expect(matchesFilter(incomingWebhook, channel, incomingWebhook.id)).toEqual(true);
+
+        // Partial path
+        expect(matchesFilter(incomingWebhook, channel, `/hooks/${incomingWebhook.id.substring(0, 6)}`)).toEqual(true);
+
+        expect(matchesFilter(incomingWebhook, channel, 'http://localhost:8065/hooks/doesnotexist')).toEqual(false);
     });
 });
