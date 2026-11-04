@@ -102,11 +102,11 @@ exports[`plugin tab all props are properly passed to the children 1`] = `
                 class="_section-notice__actions_1x4j7_53"
               >
                 <button
-                  class="_button_aa8j5_2 _button--emphasis-primary_aa8j5_70 _button--size-small_aa8j5_49"
+                  class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-small_we8pe_53"
                   type="button"
                 >
                   <span
-                    class="_button__label_aa8j5_31"
+                    class="_button__label_we8pe_31"
                   >
                     buttonText
                   </span>

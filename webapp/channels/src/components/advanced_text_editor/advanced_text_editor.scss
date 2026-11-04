@@ -251,3 +251,13 @@
     text-overflow: ellipsis;
     white-space: nowrap;
 }
+
+// Compass sets width/padding with a single hashed class, so match its
+// specificity plus an element selector to win regardless of load order.
+button.ToggleFormattingBarButton {
+    width: auto;
+
+    > span {
+        gap: 0;
+    }
+}

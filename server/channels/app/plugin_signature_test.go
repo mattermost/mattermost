@@ -38,7 +38,7 @@ func TestPluginPublicKeys(t *testing.T) {
 	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 	path, _ := fileutils.FindDir("tests")
-	publicKeyFilename := "test-public-key.plugin.gpg"
+	publicKeyFilename := "development-public-key.gpg"
 	publicKey, err := os.ReadFile(filepath.Join(path, publicKeyFilename))
 	require.NoError(t, err)
 	fileReader, err := os.Open(filepath.Join(path, publicKeyFilename))

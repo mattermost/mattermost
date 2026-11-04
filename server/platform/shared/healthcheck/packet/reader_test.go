@@ -201,7 +201,7 @@ func TestReadSnapshotFields(t *testing.T) {
 	require.True(t, ok)
 	assert.Equal(t, model.LicenseShortSkuEnterprise, license.SkuShortName)
 	assert.Equal(t, 500, license.Users)
-	idLoaded, ok := s.LicenseFeature(func(f *model.Features) *bool { return f.IDLoadedPushNotifications })
+	idLoaded, ok := s.LicenseFeature(healthcheck.FeatureIDLoaded)
 	require.True(t, ok)
 	assert.True(t, idLoaded)
 

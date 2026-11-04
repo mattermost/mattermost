@@ -29,18 +29,19 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
             <div
               class="loading__content"
             >
-              <p>
+              <span
+                class="LoadingSpinner with-text"
+                data-testid="loadingSpinner"
+                id="loadingSpinner"
+              >
+                <span
+                  aria-label="Loading Icon"
+                  class="_spinner_3elm7_10 spinner"
+                  role="status"
+                  style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
+                />
                 Loading
-              </p>
-              <div
-                class="round round-1"
-              />
-              <div
-                class="round round-2"
-              />
-              <div
-                class="round round-3"
-              />
+              </span>
             </div>
           </div>
           <div
@@ -468,13 +469,15 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
         class="admin-console-save"
       >
         <button
-          class="btn btn-primary"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
           type="submit"
         >
-          <span>
+          <span
+            class="_button__label_we8pe_31"
+          >
             Save
           </span>
         </button>
@@ -516,18 +519,19 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
             <div
               class="loading__content"
             >
-              <p>
+              <span
+                class="LoadingSpinner with-text"
+                data-testid="loadingSpinner"
+                id="loadingSpinner"
+              >
+                <span
+                  aria-label="Loading Icon"
+                  class="_spinner_3elm7_10 spinner"
+                  role="status"
+                  style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
+                />
                 Loading
-              </p>
-              <div
-                class="round round-1"
-              />
-              <div
-                class="round round-2"
-              />
-              <div
-                class="round round-3"
-              />
+              </span>
             </div>
           </div>
           <div
@@ -955,13 +959,15 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
         class="admin-console-save"
       >
         <button
-          class="btn btn-primary"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
           type="submit"
         >
-          <span>
+          <span
+            class="_button__label_we8pe_31"
+          >
             Save
           </span>
         </button>
@@ -1003,18 +1009,19 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
             <div
               class="loading__content"
             >
-              <p>
+              <span
+                class="LoadingSpinner with-text"
+                data-testid="loadingSpinner"
+                id="loadingSpinner"
+              >
+                <span
+                  aria-label="Loading Icon"
+                  class="_spinner_3elm7_10 spinner"
+                  role="status"
+                  style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
+                />
                 Loading
-              </p>
-              <div
-                class="round round-1"
-              />
-              <div
-                class="round round-2"
-              />
-              <div
-                class="round round-3"
-              />
+              </span>
             </div>
           </div>
           <div
@@ -1442,13 +1449,15 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
         class="admin-console-save"
       >
         <button
-          class="btn btn-primary"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
           type="submit"
         >
-          <span>
+          <span
+            class="_button__label_we8pe_31"
+          >
             Save
           </span>
         </button>
@@ -1490,18 +1499,19 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
             <div
               class="loading__content"
             >
-              <p>
+              <span
+                class="LoadingSpinner with-text"
+                data-testid="loadingSpinner"
+                id="loadingSpinner"
+              >
+                <span
+                  aria-label="Loading Icon"
+                  class="_spinner_3elm7_10 spinner"
+                  role="status"
+                  style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
+                />
                 Loading
-              </p>
-              <div
-                class="round round-1"
-              />
-              <div
-                class="round round-2"
-              />
-              <div
-                class="round round-3"
-              />
+              </span>
             </div>
           </div>
           <div
@@ -1929,13 +1939,15 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
         class="admin-console-save"
       >
         <button
-          class="btn btn-primary"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
           type="submit"
         >
-          <span>
+          <span
+            class="_button__label_we8pe_31"
+          >
             Save
           </span>
         </button>

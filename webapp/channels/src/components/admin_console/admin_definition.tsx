@@ -52,10 +52,8 @@ import {getRestrictedIndicator, it, usesLegacyOauth, validators} from './admin_d
 import AuditLoggingCertificateUploadSetting from './audit_logging';
 import Audits from './audits';
 import {searchableStrings as auditSearchableStrings} from './audits/audits';
-import BillingHistory, {searchableStrings as billingHistorySearchableStrings} from './billing/billing_history';
 import BillingSubscriptions, {searchableStrings as billingSubscriptionSearchableStrings} from './billing/billing_subscriptions';
 import CompanyInfo, {searchableStrings as billingCompanyInfoSearchableStrings} from './billing/company_info';
-import CompanyInfoEdit from './billing/company_info_edit';
 import BoardAttributes, {searchableStrings as boardAttributesSearchableStrings} from './board_attributes';
 import BrandImageSetting from './brand_image_setting/brand_image_setting';
 import ClassificationMarkings, {searchableStrings as classificationMarkingsSearchableStrings} from './classification_markings';
@@ -84,7 +82,6 @@ import {
     GuestAccessFeatureDiscovery,
     LDAPFeatureDiscovery,
     MobileSecurityFeatureDiscovery,
-    OpenIDCustomFeatureDiscovery,
     OpenIDFeatureDiscovery,
     SAMLFeatureDiscovery,
     SystemRolesFeatureDiscovery,
@@ -276,6 +273,21 @@ const adminDefinitionMessages = defineMessages({
     redis_db_desc: {id: 'admin.cacheSettings.redisDBDesc', defaultMessage: 'The database of the Redis server. E.g.: "0"'},
     redis_db_placeholder: {id: 'admin.cacheSettings.redisDBPlaceholder', defaultMessage: '0'},
 
+    redis_enable_tls_title: {id: 'admin.cacheSettings.redisEnableTLS', defaultMessage: 'Enable TLS'},
+    redis_enable_tls_desc: {id: 'admin.cacheSettings.redisEnableTLSDesc', defaultMessage: 'When true, connections to the Redis server use TLS.'},
+
+    redis_tls_skip_verify_title: {id: 'admin.cacheSettings.redisTLSSkipVerify', defaultMessage: 'Skip TLS Verification'},
+    redis_tls_skip_verify_desc: {id: 'admin.cacheSettings.redisTLSSkipVerifyDesc', defaultMessage: 'When true, the Redis server certificate is not verified. Not recommended for production.'},
+
+    redis_tls_ca_title: {id: 'admin.cacheSettings.redisTLSCA', defaultMessage: 'TLS CA Certificate Path'},
+    redis_tls_ca_desc: {id: 'admin.cacheSettings.redisTLSCADesc', defaultMessage: 'Path on each server to a PEM-encoded CA certificate used to verify the Redis server. Leave blank to use the system trust store.'},
+
+    redis_tls_client_cert_title: {id: 'admin.cacheSettings.redisTLSClientCert', defaultMessage: 'TLS Client Certificate Path'},
+    redis_tls_client_cert_desc: {id: 'admin.cacheSettings.redisTLSClientCertDesc', defaultMessage: 'Path on each server to a PEM-encoded client certificate for mutual TLS.'},
+
+    redis_tls_client_key_title: {id: 'admin.cacheSettings.redisTLSClientKey', defaultMessage: 'TLS Client Key Path'},
+    redis_tls_client_key_desc: {id: 'admin.cacheSettings.redisTLSClientKeyDesc', defaultMessage: 'Path on each server to the PEM-encoded private key for the client certificate.'},
+
     redis_clientcache_title: {id: 'admin.cacheSettings.redisClientCache', defaultMessage: 'Disable Client Cache'},
     redis_clientcache_desc: {id: 'admin.cacheSettings.redisClientCacheDesc', defaultMessage: 'When true, client-side caching is disabled.'},
 });
@@ -343,17 +355,6 @@ const AdminDefinition: AdminDefinitionType = {
                 isHidden: it.not(it.licensedForFeature('Cloud')),
                 isDisabled: it.not(it.userHasWritePermissionOnResource('billing')),
             },
-            billing_history: {
-                url: 'billing/billing_history',
-                title: defineMessage({id: 'admin.sidebar.billing_history', defaultMessage: 'Billing History'}),
-                searchableStrings: billingHistorySearchableStrings,
-                schema: {
-                    id: 'BillingHistory',
-                    component: BillingHistory,
-                },
-                isHidden: it.not(it.licensedForFeature('Cloud')),
-                isDisabled: it.not(it.userHasWritePermissionOnResource('billing')),
-            },
             company_info: {
                 url: 'billing/company_info',
                 title: defineMessage({id: 'admin.sidebar.company_info', defaultMessage: 'Company Information'}),
@@ -361,17 +362,6 @@ const AdminDefinition: AdminDefinitionType = {
                 schema: {
                     id: 'CompanyInfo',
                     component: CompanyInfo,
-                },
-
-                // cloud only view
-                isHidden: it.not(it.licensedForFeature('Cloud')),
-                isDisabled: it.not(it.userHasWritePermissionOnResource('billing')),
-            },
-            company_info_edit: {
-                url: 'billing/company_info_edit',
-                schema: {
-                    id: 'CompanyInfoEdit',
-                    component: CompanyInfoEdit,
                 },
 
                 // cloud only view
@@ -803,6 +793,8 @@ const AdminDefinition: AdminDefinitionType = {
                     sections: [
                         {
                             key: 'admin.accesscontrol.settings',
+                            title: defineMessage({id: 'admin.accesscontrol.sections.settings.title', defaultMessage: 'Access Control'}),
+                            description: defineMessage({id: 'admin.accesscontrol.sections.settings.description', defaultMessage: 'Enable attribute-based access control and related membership policy settings.'}),
                             settings: [
                                 {
                                     type: 'bool',
@@ -843,6 +835,7 @@ const AdminDefinition: AdminDefinitionType = {
                         {
                             key: 'admin.accesscontrol.session_attributes',
                             title: defineMessage({id: 'admin.accesscontrol.session_attributes', defaultMessage: 'Session Attributes'}),
+                            description: defineMessage({id: 'admin.accesscontrol.sections.session_attributes.description', defaultMessage: 'Configure how device identity is trusted and validated for session attributes.'}),
                             isHidden: it.any(
                                 it.configIsFalse('FeatureFlags', 'SessionAttributes'),
                                 it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
@@ -1976,6 +1969,56 @@ const AdminDefinition: AdminDefinitionType = {
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.HIGH_AVAILABILITY)),
                                 it.not(it.stateEquals('CacheSettings.CacheType', CacheTypes.REDIS)),
+                            ),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'CacheSettings.RedisEnableTLS',
+                            label: adminDefinitionMessages.redis_enable_tls_title,
+                            help_text: adminDefinitionMessages.redis_enable_tls_desc,
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.HIGH_AVAILABILITY)),
+                                it.not(it.stateEquals('CacheSettings.CacheType', CacheTypes.REDIS)),
+                            ),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'CacheSettings.RedisTLSSkipVerify',
+                            label: adminDefinitionMessages.redis_tls_skip_verify_title,
+                            help_text: adminDefinitionMessages.redis_tls_skip_verify_desc,
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.HIGH_AVAILABILITY)),
+                                it.not(it.stateIsTrue('CacheSettings.RedisEnableTLS')),
+                            ),
+                        },
+                        {
+                            type: 'text',
+                            key: 'CacheSettings.RedisTLSCA',
+                            label: adminDefinitionMessages.redis_tls_ca_title,
+                            help_text: adminDefinitionMessages.redis_tls_ca_desc,
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.HIGH_AVAILABILITY)),
+                                it.not(it.stateIsTrue('CacheSettings.RedisEnableTLS')),
+                            ),
+                        },
+                        {
+                            type: 'text',
+                            key: 'CacheSettings.RedisTLSClientCert',
+                            label: adminDefinitionMessages.redis_tls_client_cert_title,
+                            help_text: adminDefinitionMessages.redis_tls_client_cert_desc,
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.HIGH_AVAILABILITY)),
+                                it.not(it.stateIsTrue('CacheSettings.RedisEnableTLS')),
+                            ),
+                        },
+                        {
+                            type: 'text',
+                            key: 'CacheSettings.RedisTLSClientKey',
+                            label: adminDefinitionMessages.redis_tls_client_key_title,
+                            help_text: adminDefinitionMessages.redis_tls_client_key_desc,
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.HIGH_AVAILABILITY)),
+                                it.not(it.stateIsTrue('CacheSettings.RedisEnableTLS')),
                             ),
                         },
                         {
@@ -5540,7 +5583,6 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'dropdown',
                             key: 'openidType',
                             label: defineMessage({id: 'admin.openid.select', defaultMessage: 'Select service provider:'}),
-                            isHelpHidden: it.all(it.stateEquals('openidType', Constants.OPENID_SERVICE), it.licensedForCloudStarter),
                             options: [
                                 {
                                     value: 'off',
@@ -5750,7 +5792,7 @@ const AdminDefinition: AdminDefinitionType = {
                             label: defineMessage({id: 'admin.openid.buttonTextTitle', defaultMessage: 'Button Name:'}),
                             placeholder: defineMessage({id: 'admin.openid.buttonTextEx', defaultMessage: 'Custom Button Name'}),
                             help_text: defineMessage({id: 'admin.openid.buttonTextDesc', defaultMessage: 'The text that will show on the login button.'}),
-                            isHidden: it.any(it.not(it.stateEquals('openidType', Constants.OPENID_SERVICE)), it.licensedForCloudStarter),
+                            isHidden: it.not(it.stateEquals('openidType', Constants.OPENID_SERVICE)),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
                         },
                         {
@@ -5759,7 +5801,7 @@ const AdminDefinition: AdminDefinitionType = {
                             label: defineMessage({id: 'admin.openid.buttonColorTitle', defaultMessage: 'Button Color:'}),
                             help_text: defineMessage({id: 'admin.openid.buttonColorDesc', defaultMessage: 'Specify the color of the OpenID login button for white labeling purposes. Use a hex code with a #-sign before the code.'}),
                             help_text_markdown: false,
-                            isHidden: it.any(it.not(it.stateEquals('openidType', Constants.OPENID_SERVICE)), it.licensedForCloudStarter),
+                            isHidden: it.not(it.stateEquals('openidType', Constants.OPENID_SERVICE)),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
                         },
                         {
@@ -5769,7 +5811,7 @@ const AdminDefinition: AdminDefinitionType = {
                             placeholder: defineMessage({id: 'admin.openid.discovery.placeholder', defaultMessage: 'https://id.mydomain.com/.well-known/openid-configuration'}),
                             help_text: defineMessage({id: 'admin.openid.discoveryEndpointDesc', defaultMessage: 'Enter the URL of the discovery document of the OpenID Connect provider you want to connect with.'}),
                             help_text_markdown: false,
-                            isHidden: it.any(it.not(it.stateEquals('openidType', Constants.OPENID_SERVICE)), it.licensedForCloudStarter),
+                            isHidden: it.not(it.stateEquals('openidType', Constants.OPENID_SERVICE)),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
                         },
                         {
@@ -5778,7 +5820,7 @@ const AdminDefinition: AdminDefinitionType = {
                             label: defineMessage({id: 'admin.openid.clientIdTitle', defaultMessage: 'Client ID:'}),
                             help_text: defineMessage({id: 'admin.openid.clientIdDescription', defaultMessage: 'Obtaining the Client ID differs across providers. Please check your provider\'s documentation.'}),
                             placeholder: defineMessage({id: 'admin.openid.clientIdExample', defaultMessage: 'E.g.: "adf3sfa2-ag3f-sn4n-ids0-sh1hdax192qq"'}),
-                            isHidden: it.any(it.not(it.stateEquals('openidType', Constants.OPENID_SERVICE)), it.licensedForCloudStarter),
+                            isHidden: it.not(it.stateEquals('openidType', Constants.OPENID_SERVICE)),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
                         },
                         {
@@ -5787,7 +5829,7 @@ const AdminDefinition: AdminDefinitionType = {
                             label: defineMessage({id: 'admin.openid.clientSecretTitle', defaultMessage: 'Client Secret:'}),
                             help_text: defineMessage({id: 'admin.openid.clientSecretDescription', defaultMessage: 'Obtaining the Client Secret differs across providers. Please check your provider\'s documentation.'}),
                             placeholder: defineMessage({id: 'admin.openid.clientSecretExample', defaultMessage: 'E.g.: "H8sz0Az-dDs2p15-7QzD231"'}),
-                            isHidden: it.any(it.not(it.stateEquals('openidType', Constants.OPENID_SERVICE)), it.licensedForCloudStarter),
+                            isHidden: it.not(it.stateEquals('openidType', Constants.OPENID_SERVICE)),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
                         },
                         {
@@ -5796,7 +5838,7 @@ const AdminDefinition: AdminDefinitionType = {
                             label: defineMessage({id: 'admin.openid.additionalScopesTitle', defaultMessage: 'Additional Scopes:'}),
                             help_text: defineMessage({id: 'admin.openid.additionalScopesDescription', defaultMessage: 'Space-separated scopes to request in addition to profile, openid and email, for claims your provider releases only under another scope, such as groups.'}),
                             placeholder: defineMessage({id: 'admin.openid.additionalScopesExample', defaultMessage: 'E.g.: "groups"'}),
-                            isHidden: it.any(it.not(it.stateEquals('openidType', Constants.OPENID_SERVICE)), it.licensedForCloudStarter),
+                            isHidden: it.not(it.stateEquals('openidType', Constants.OPENID_SERVICE)),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
                         },
                         {
@@ -5836,13 +5878,6 @@ const AdminDefinition: AdminDefinitionType = {
                                 it.not(it.licensedForFeature('OpenId')),
                                 it.not(it.configIsTrue('FeatureFlags', 'OpenIdAttributeSync')),
                             ),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
-                        },
-                        {
-                            type: 'custom',
-                            key: 'OpenIDCustomFeatureDiscovery',
-                            component: OpenIDCustomFeatureDiscovery,
-                            isHidden: it.not(it.all(it.stateEquals('openidType', Constants.OPENID_SERVICE), it.licensedForCloudStarter)),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
                         },
                     ],

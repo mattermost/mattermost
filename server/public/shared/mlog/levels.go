@@ -69,6 +69,16 @@ var (
 	// Example usage: Logging that a post was included in a page of posts returned to a user.
 	LvlAuditDelivery = Level{ID: 104, Name: "audit-delivery"}
 
+	// MLvlAuditGeneral is the audit levels that make up general audit logging: every audit
+	// level except the opt-in LvlAuditDelivery. A target bound to any of them means audit
+	// logging is on.
+	MLvlAuditGeneral = []Level{
+		LvlAuditAPI,
+		LvlAuditContent,
+		LvlAuditPerms,
+		LvlAuditCLI,
+	}
+
 	MLvlAuditAll = []Level{
 		LvlAuditAPI,
 		LvlAuditContent,

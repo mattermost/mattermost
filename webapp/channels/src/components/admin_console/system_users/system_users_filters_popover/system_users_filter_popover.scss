@@ -1,5 +1,18 @@
 .systemUsersFilterContainer {
     flex-grow: 1;
+
+    // Held-open state, to match the filter button on the other admin lists.
+    // useRole puts aria-expanded on the trigger, so it is already the source
+    // of truth. Nested for specificity: Compass's own :hover rule would
+    // otherwise tie with the bare selector and win on source order.
+    .systemUsersFilterTrigger[aria-expanded='true'],
+    .systemUsersFilterTrigger[aria-expanded='true']:hover {
+        background-color: rgba(var(--link-color-rgb), 0.24);
+    }
+}
+
+.systemUsersFilterTrigger {
+    display: inline-flex;
 }
 
 .systemUsersFilterPopoverContainer {

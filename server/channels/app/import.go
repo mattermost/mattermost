@@ -247,10 +247,10 @@ func (a *App) BulkImportWithPath(rctx request.CTX, jsonlReader io.Reader, attach
 	return lineNumber, err
 }
 
-func (a *App) BulkImportWithPathAndOpts(rctx request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun, extractContent bool, workers int, importPath string, opts model.BulkImportOpts) (int, *model.AppError) {
+func (a *App) BulkImportWithPathAndOpts(rctx request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun, extractContent bool, workers int, importPath string, opts model.BulkImportOpts) (int, *imports.ImportReport, *model.AppError) {
 	report := &imports.ImportReport{}
 	lineNumber, err := a.bulkImport(rctx, jsonlReader, attachmentsReader, dryRun, extractContent, workers, importPath, opts.DestinationTeamName, opts.DestinationChannelName, opts.SkipPreflight, opts.ImportedUsers, opts.ResumeFromLine, opts.OnCheckpoint, report)
-	return lineNumber, err
+	return lineNumber, report, err
 }
 
 // bulkImport will extract attachments from attachmentsReader if it is

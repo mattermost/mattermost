@@ -5,10 +5,10 @@ package database
 
 import (
 	"strconv"
-	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/rules/internal/versions"
 )
 
 const poolSaturatedPercent = 90
@@ -57,32 +57,8 @@ var dbReplicaUnused = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityProbe,
 	Subject:    dataSourceReplicasSubject,
-	Eval:       healthcheck.Single(evalDBReplicaUnused),
-}
-
-// unlicensed returns the result for a server without any license, whose store ignores replicas.
-func unlicensed(s *healthcheck.Snapshot) (healthcheck.Result, bool) {
-	license, ok := s.License()
-	switch {
-	case !ok:
-		return healthcheck.Unknown(healthcheck.ReasonLicenseUnavailable), true
-	case license.SkuShortName == "" && license.Features == nil:
-		return healthcheck.Resolved(), true
-	default:
-		return healthcheck.Result{}, false
-	}
-}
-
-// majorVersion reads the leading integer of a server_version string such as "15.4 (Debian 15.4-1)".
-func majorVersion(version string) (int, bool) {
-	version = strings.TrimSpace(version)
-	end := strings.IndexFunc(version, func(r rune) bool { return r < '0' || r > '9' })
-	if end == -1 {
-		end = len(version)
-	}
-
-	major, err := strconv.Atoi(version[:end])
-	return major, err == nil
+	// The store ignores replicas without a license.
+	Eval: healthcheck.Licensed(healthcheck.AnyLicense, healthcheck.Single(evalDBReplicaUnused)),
 }
 
 func evalDBPostgresUnsupported(s *healthcheck.Snapshot) healthcheck.Result {
@@ -96,7 +72,7 @@ func evalDBPostgresUnsupported(s *healthcheck.Snapshot) healthcheck.Result {
 	}
 
 	version := *diag.Database.Version
-	major, ok := majorVersion(version)
+	major, ok := versions.Major(version)
 	switch {
 	case !ok:
 		return unknownDiagnostics()
@@ -144,9 +120,6 @@ func evalDBReplicaUnused(s *healthcheck.Snapshot) healthcheck.Result {
 	}
 	if len(cfg.SqlSettings.DataSourceReplicas) == 0 {
 		return healthcheck.Resolved()
-	}
-	if r, closed := unlicensed(s); closed {
-		return r
 	}
 
 	diag, ok := s.LeaderDiag(model.SectionDatabasePool)

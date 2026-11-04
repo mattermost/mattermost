@@ -7,11 +7,10 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
-	"os"
 	"path"
 	"time"
 
@@ -151,25 +150,14 @@ func (rcs *Service) sendFrameToRemote(timeout time.Duration, rc *model.RemoteClu
 	req.Header.Set(model.HeaderRemoteclusterId, rc.RemoteId)
 	req.Header.Set(model.HeaderRemoteclusterToken, rc.RemoteToken)
 
-	resp, err := rcs.httpClient.Do(req.WithContext(ctx))
+	body, err = rcs.sendRemoteRequest(req.WithContext(ctx))
 	if metrics := rcs.server.GetMetrics(); metrics != nil {
-		if err != nil || resp.StatusCode != http.StatusOK {
-			metrics.IncrementRemoteClusterMsgErrorsCounter(frame.RemoteId, os.IsTimeout(err))
+		if err != nil {
+			var timeoutErr interface{ Timeout() bool }
+			metrics.IncrementRemoteClusterMsgErrorsCounter(frame.RemoteId, errors.As(err, &timeoutErr) && timeoutErr.Timeout())
 		} else {
 			metrics.IncrementRemoteClusterMsgSentCounter(frame.RemoteId)
 		}
 	}
-	if err != nil {
-		return nil, fmt.Errorf("%w: %w", errRemoteUnreachable, err)
-	}
-	defer resp.Body.Close()
-	body, err = io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %w", errRemoteUnreachable, err)
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return body, fmt.Errorf("unexpected response: %d - %s", resp.StatusCode, resp.Status)
-	}
-	return body, nil
+	return body, err
 }
