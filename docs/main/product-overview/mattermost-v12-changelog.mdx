@@ -56,7 +56,6 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-1-is-now-availab
   - Pre-packaged Calls plugin version [v1.12.6](https://github.com/mattermost/mattermost-plugin-calls/releases/tag/v1.12.6). Fixed layout regressions in call menus and the Desktop screen share picker, and the self video thumbnail now shows on the left in 1:1 video calls.
   - Pre-packaged Dataminr plugin version [v3.0.0](https://github.com/mattermost/mattermost-plugin-dataminr/releases/tag/v3.0.0).
   - Pre-packaged Boards plugin version [v10.1.0](https://github.com/mattermost/mattermost-plugin-boards/releases/tag/v10.1.0).
-  - Pre-packaged Jira plugin version [v5.1.0](https://github.com/mattermost/mattermost-plugin-jira/releases/tag/v5.1.0).
   - Deprecated the ServiceNow plugin. It is no longer prepackaged with the server and is no longer offered in the onboarding wizard.
   - Improved System Console Sidebar Navigation user interface.
   - Updated ``ConfirmModal`` to use Compass UI buttons.
@@ -82,6 +81,9 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-1-is-now-availab
   - Added the ``pluginapi/testhelper`` package to the public module, enabling plugin authors to write integration tests using real Mattermost containers via testcontainers-go.
   - Added the ``UpdatePostWithOptions`` plugin API so a plugin can update a post with explicit update options, including attaching files uploaded by a specific user.
   - Updated API client request path segment handling.
+
+#### Performance
+ - Benchmarking test results showed no significant difference: a 0.18% decrease in the number of supported users for the new release, which lies within the ``[-5%, +5%]`` prediction interval. View the full raw data and methodology in our [Performance Reports repository](https://github.com/mattermost/performance-reports/tree/main/performance-comparisons/v12.1).
 
 #### Administration
   - Updated sign-in token handling for Cloud workspaces.
