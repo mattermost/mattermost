@@ -140,9 +140,9 @@ feature — any `.md`/`.mdx` file with a leading underscore in its name is
 excluded from the docs plugin's routing/sidebars and can be `import`ed
 into another MDX file and rendered as `<Component />`. `stage-agents-docs.mjs`
 uses this to reproduce Sphinx's `.. include:: /agents/docs/admin_guide.md`
-behavior: it stages `admin_guide.md`, `user_guide.md` and `data_handling.md`
+behavior: it stages `admin_guide.md`, `user_guide.md` and `what_agents_see.md`
 as normal (but `unlisted: true`) docs for direct-link parity, *and* as
-`_admin_guide_partial.mdx`/`_user_guide_partial.mdx`/`_data_handling_partial.mdx`
+`_admin_guide_partial.mdx`/`_user_guide_partial.mdx`/`_what_agents_see_partial.mdx`
 partials that `administration-guide/configure/agents-admin-guide.mdx`,
 `end-user-guide/agents.mdx` and
 `end-user-guide/collaborate/agents-context-management.mdx` import and render
