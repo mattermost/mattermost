@@ -4,7 +4,7 @@
 import type {LogFieldFilters} from '@mattermost/types/admin';
 
 import type {TimeRange} from './types';
-import {FIELDS_MAX_KEYS, FIELD_MAX_LENGTH, FIELD_MAX_VALUES, LEVEL_GROUPS, PLUGIN_ID_FIELD, SEARCH_MAX_LENGTH, isFilterableField} from './utils';
+import {FIELD_MAX_LENGTH, FIELD_MAX_VALUES, LEVEL_GROUPS, PLUGIN_ID_FIELD, SEARCH_MAX_LENGTH} from './utils';
 import type {LevelGroup} from './utils';
 
 // Only the filters are shared. Live tail and display preferences stay with each browser
@@ -82,7 +82,10 @@ export function parseUrlFilters(query: string, presetMinutes: readonly number[])
     return filters;
 }
 
-// Leaves out what the server would reject, keeping the first fields and values up to its limits
+// Only fields the viewer shows a filter for are read, so a link can't filter the view in a way the admin can't see or clear.
+// Values the server would reject are left out, keeping the first ones up to its limit
+const SHOWN_FIELDS: readonly string[] = [PLUGIN_ID_FIELD];
+
 function parseFields(params: URLSearchParams): LogFieldFilters {
     const fields: LogFieldFilters = {};
     for (const [param, value] of params) {
@@ -90,17 +93,14 @@ function parseFields(params: URLSearchParams): LogFieldFilters {
             continue;
         }
         const key = param.slice(FIELD_PARAM_PREFIX.length);
-        if (!isFilterableField(key)) {
+        if (!SHOWN_FIELDS.includes(key)) {
             continue;
         }
-        const values = fields[key];
-        if (values) {
-            if (values.length < FIELD_MAX_VALUES && !values.includes(value)) {
-                values.push(value);
-            }
-        } else if (Object.keys(fields).length < FIELDS_MAX_KEYS) {
-            fields[key] = [value];
+        const values = fields[key] ?? [];
+        if (values.length < FIELD_MAX_VALUES && !values.includes(value)) {
+            values.push(value);
         }
+        fields[key] = values;
     }
     return fields;
 }

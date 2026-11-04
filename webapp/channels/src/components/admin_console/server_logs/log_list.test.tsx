@@ -1197,3 +1197,41 @@ describe('components/admin_console/server_logs/LogList', () => {
         });
     });
 });
+
+describe('components/admin_console/server_logs/LogList plugin filter', () => {
+    const plugins = [{id: 'github', name: 'GitHub'}, {id: 'jira', name: 'Jira'}];
+
+    function renderPlugins(selectedPlugins: string[], onSelectedPluginsChange = jest.fn()) {
+        renderListWith({plugins, selectedPlugins, onSelectedPluginsChange});
+        return onSelectedPluginsChange;
+    }
+
+    function pluginMenuItem(name: string) {
+        fireEvent.click(screen.getByLabelText('Open menu to select which plugins to show logs from'));
+        return screen.getByRole('menuitemcheckbox', {name: new RegExp(`^${name}`)});
+    }
+
+    test('should count a plugin with no entries as a filter, and clear it with the others', () => {
+        const onSelectedPluginsChange = renderPlugins(['github']);
+
+        expect(screen.getByText(/No logs match your filters/)).toBeInTheDocument();
+        expect(screen.queryByText(/No logs found/)).not.toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole('button', {name: 'Clear filters'}));
+        expect(onSelectedPluginsChange).toHaveBeenCalledWith([]);
+    });
+
+    test('should narrow to one plugin on Ctrl/Cmd-click', () => {
+        const onSelectedPluginsChange = renderPlugins(['github', 'jira']);
+
+        fireEvent.click(pluginMenuItem('Jira'), {metaKey: true});
+        expect(onSelectedPluginsChange).toHaveBeenCalledWith(['jira']);
+    });
+
+    test('should restore all logs on Ctrl/Cmd-click of the only picked plugin, like the levels menu', () => {
+        const onSelectedPluginsChange = renderPlugins(['github']);
+
+        fireEvent.click(pluginMenuItem('GitHub'), {ctrlKey: true});
+        expect(onSelectedPluginsChange).toHaveBeenCalledWith([]);
+    });
+});

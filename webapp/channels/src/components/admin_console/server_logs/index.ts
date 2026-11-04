@@ -5,6 +5,8 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
+import type {PluginRedux} from '@mattermost/types/plugins';
+
 import {getLogs, getNewLogs, getPlainLogs, getPlugins} from 'mattermost-redux/actions/admin';
 import {Permissions} from 'mattermost-redux/constants';
 import * as Selectors from 'mattermost-redux/selectors/entities/admin';
@@ -14,7 +16,8 @@ import type {GlobalState} from 'types/store';
 
 import Logs from './logs';
 
-const NO_PLUGINS = {};
+// The store types the plugins as optional, and a shared empty value keeps the props stable
+const NO_INSTALLED_PLUGINS: Record<string, PluginRedux> = {};
 
 function mapStateToProps(state: GlobalState) {
     const config = Selectors.getConfig(state);
@@ -25,8 +28,10 @@ function mapStateToProps(state: GlobalState) {
         truncatedLogNodes: Selectors.getTruncatedLogNodes(state),
         plainLogs: Selectors.getPlainLogs(state),
         isPlainLogs: config.LogSettings?.FileJson === false,
-        plugins: state.entities.admin.plugins ?? NO_PLUGINS,
-        canReadPlugins: haveISystemPermission(state, {permission: Permissions.SYSCONSOLE_READ_PLUGINS}),
+        plugins: state.entities.admin.plugins ?? NO_INSTALLED_PLUGINS,
+
+        // The plugins API fails while plugins are turned off
+        canReadPlugins: config.PluginSettings?.Enable !== false && haveISystemPermission(state, {permission: Permissions.SYSCONSOLE_READ_PLUGINS}),
     };
 }
 

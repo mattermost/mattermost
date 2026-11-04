@@ -681,10 +681,11 @@ export default function LogList({
                                     </>
                                 )}
 
-                                // Ctrl/Cmd-click narrows to a single plugin
+                                // Ctrl/Cmd-click narrows to a single plugin; doing it again on that plugin restores all logs
                                 onClick={(event) => {
                                     if (event.ctrlKey || event.metaKey) {
-                                        onSelectedPluginsChange([plugin.id]);
+                                        const onlyThis = selectedPlugins.length === 1 && selected;
+                                        onSelectedPluginsChange(onlyThis ? [] : [plugin.id]);
                                     } else {
                                         onSelectedPluginsChange(selected ? selectedPlugins.filter((id) => id !== plugin.id) : [...selectedPlugins, plugin.id]);
                                     }
@@ -1024,7 +1025,7 @@ export default function LogList({
             {/* Empty state — kept outside the list so it only owns rows */}
             {visibleLogs.length === 0 && !loading && (
                 <div className='LogViewer__placeholder'>
-                    {search || !allLevelsEnabled || selectedNode || timeRange !== null ? (
+                    {search || !allLevelsEnabled || selectedNode || selectedPlugins.length > 0 || timeRange !== null ? (
                         <FormattedMessage
                             id='admin.logs.noMatchingLogs'
                             defaultMessage='No logs match your filters. {clearLink}'
@@ -1036,6 +1037,7 @@ export default function LogList({
                                             clearSearch();
                                             enableAllLevels();
                                             onSelectedNodeChange('');
+                                            onSelectedPluginsChange([]);
                                             onClearTimeRange();
                                         }}
                                         type='button'
