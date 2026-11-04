@@ -92,7 +92,7 @@ If you upgrade from a release earlier than v10.10, please read the other [Import
 
 </Attention>
 
-- **10.11.26, released TBD**
+- **10.11.26, released 2026-11-05**
   - Mattermost v10.11.26 contains a High severity level security fix. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
   - Added the ``EnforceLogPathRoot`` feature flag, disabled by default. When enabled, the server refuses to start, and a configuration save is rejected, if a log or audit file path resolves outside the logging root (``MM_LOG_PATH``, or the default logs directory). Validation now also covers ``LogSettings.FileLocation`` and ``ExperimentalAuditSettings.FileName``.
   - Updated log path validation so that log and audit file paths inside server-managed directories, such as the plugin and data directories, are rejected or warned about in the same way as paths outside the logging root.
