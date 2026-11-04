@@ -954,6 +954,27 @@ func TestConnectionTimeouts(t *testing.T) {
 		assert.Less(t, time.Since(start), 5*time.Second)
 	})
 
+	t.Run("server stalls after STARTTLS", func(t *testing.T) {
+		cfg := fakeSMTPServer(t, func(conn net.Conn) {
+			r := textproto.NewConn(conn)
+			_ = r.PrintfLine("220 localhost ESMTP")
+			for {
+				line, err := r.ReadLine()
+				if err != nil || strings.HasPrefix(line, "STARTTLS") {
+					break
+				}
+				_ = r.PrintfLine("250 STARTTLS")
+			}
+			discardUntilClosed(conn)
+		})
+		cfg.ConnectionSecurity = StartTLS
+
+		start := time.Now()
+		err := TestConnection(context.Background(), cfg)
+		require.ErrorIs(t, err, context.DeadlineExceeded, "a timed-out STARTTLS must not pass the test")
+		assert.Less(t, time.Since(start), 5*time.Second)
+	})
+
 	t.Run("caller cancels", func(t *testing.T) {
 		cfg := fakeSMTPServer(t, func(conn net.Conn) {
 			_, _ = conn.Write([]byte("220 localhost ESMTP\r\n"))
