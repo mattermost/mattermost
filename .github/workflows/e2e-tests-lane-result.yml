@@ -83,11 +83,14 @@ jobs:
       cancel-in-progress: false
       queue: max
     runs-on: ubuntu-24.04
-    # Holds the SHA-scoped lock (queue: max) through triage. Bound: publish waits 20 s for late
-    # uploads; each triage model call can take 3 x 180 s with thinking (requestModel in the toolkit's
-    # e2e-triage.mjs), and a second judge may run after the first. 45 min covers two judges plus
-    # publish and refresh. A timeout cancels the job: the status already published stays, and the
-    # gate is never reached, so the lane fails closed.
+    # Holds the SHA-scoped lock (queue: max) through triage. Publish waits up to 60 s for late
+    # uploads (report-wait-seconds below). Each model call can take 3 x 180 s with thinking
+    # (requestModel in the toolkit's actions/e2e-test-triage/src/judge.ts); a lane with up to 8
+    # failures to judge makes one call, and a near miss may be asked again of the escalation model:
+    # about 19 min. 45 min covers that plus publish and refresh. A lane with many failures can take
+    # more calls (up to 3 per model, 24 failures at most) and run past 45 min. A timeout cancels the
+    # job: the status already published stays, and the gate is never reached, so the lane fails
+    # closed.
     timeout-minutes: 45
     permissions:
       contents: read
