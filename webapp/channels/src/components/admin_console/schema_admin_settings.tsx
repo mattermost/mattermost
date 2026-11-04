@@ -49,6 +49,7 @@ import {mappingValueFromRoles, rolesFromMapping} from 'utils/policy_roles_adapte
 
 import PluginMetadataPanel from './plugin_metadata_panel/plugin_metadata_panel';
 import ProductionWarning from './production_warning';
+import {canViewServerLogs, pluginLogsPath} from './server_logs/url_filters';
 import Setting from './setting';
 import type {AdminDefinitionConfigSchemaSection, AdminDefinitionSetting, AdminDefinitionSettingBanner, AdminDefinitionSettingDropdownOption, AdminDefinitionSubSectionSchema, ConsoleAccess} from './types';
 
@@ -417,6 +418,7 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                                 homepageUrl={this.props.plugin.homepage_url}
                                 saveNeeded={this.state.saveNeeded}
                                 value={this.props.plugin.active}
+                                logsPath={canViewServerLogs(this.props.config, this.props.consoleAccess) ? pluginLogsPath(this.props.plugin.id) : undefined}
                             />
                         )}
                     </div>

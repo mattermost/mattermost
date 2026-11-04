@@ -12803,6 +12803,10 @@
     "defaultMessage": "Version",
     "description": "Column header/label in Plugin Management showing a plugin's version number; compact space."
   },
+  "admin.plugin.viewLogs": {
+    "defaultMessage": "View logs",
+    "description": "Link and button on the System Console plugin pages (Plugin Management and each plugin's settings page) that open the Server Logs page showing only the log entries that plugin wrote."
+  },
   "admin.plugins.pluginManagement": {
     "defaultMessage": "Plugin Management",
     "description": "Sidebar item and page title of the System Console > Plugins > Plugin Management page."

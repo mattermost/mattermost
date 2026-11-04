@@ -31,9 +31,11 @@ import BooleanSetting from '../boolean_setting';
 import OLDAdminSettings from '../old_admin_settings';
 import type {BaseProps, BaseState} from '../old_admin_settings';
 import PluginMetadataPanel, {formatPluginVersion} from '../plugin_metadata_panel/plugin_metadata_panel';
+import {canViewServerLogs, pluginLogsPath} from '../server_logs/url_filters';
 import SettingSet from '../setting_set';
 import SettingsGroup from '../settings_group';
 import TextSetting from '../text_setting';
+import type {ConsoleAccess} from '../types';
 
 import './plugin_management.scss';
 
@@ -204,6 +206,9 @@ type PluginItemProps = {
     isDisabled?: boolean;
 
     configEnabled: boolean;
+
+    // Whether to link to the plugin's entries in the server logs
+    showLogsLink?: boolean;
 };
 
 const messages = defineMessages({
@@ -266,6 +271,7 @@ const PluginItem = ({
     isDisabled,
     configEnabled,
     license,
+    showLogsLink = false,
 }: PluginItemProps) => {
     let activateButton: React.ReactNode;
     const activating = pluginStatus.state === PluginState.PLUGIN_STATE_STARTING;
@@ -327,6 +333,21 @@ const PluginItem = ({
                     <FormattedMessage
                         id='admin.plugin.settingsButton'
                         defaultMessage='Settings'
+                    />
+                </Link>
+            </span>
+        );
+    }
+
+    let logsButton = null;
+    if (showLogsLink) {
+        logsButton = (
+            <span>
+                {' - '}
+                <Link to={pluginLogsPath(pluginStatus.id)}>
+                    <FormattedMessage
+                        id='admin.plugin.viewLogs'
+                        defaultMessage='View logs'
                     />
                 </Link>
             </span>
@@ -485,6 +506,7 @@ const PluginItem = ({
                 {activateButton}
                 {removeButton}
                 {settingsButton}
+                {logsButton}
             </div>
             <div>
                 {notices}
@@ -503,6 +525,8 @@ type Props = BaseProps & {
     plugins: any;
     appsFeatureFlagEnabled: boolean;
     license?: ClientLicense;
+
+    consoleAccess?: ConsoleAccess;
     actions: {
         uploadPlugin: (fileData: File, force: boolean) => Promise<ActionResult>;
         removePlugin: (pluginId: string) => Promise<ActionResult>;
@@ -1188,6 +1212,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
                         license={this.props.license}
                         isDisabled={this.props.isDisabled}
                         configEnabled={Boolean(this.props.config.PluginSettings?.PluginStates?.[pluginStatus.id]?.Enable)}
+                        showLogsLink={canViewServerLogs(this.props.config, this.props.consoleAccess)}
                     />
                 );
             });

@@ -1,9 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AdminConfig} from '@mattermost/types/config';
+import type {DeepPartial} from '@mattermost/types/utilities';
+
+import {RESOURCE_KEYS} from 'mattermost-redux/constants/permissions_sysconsole';
+
 import type {TimeRange} from './types';
 import {FIELD_MAX_LENGTH, FIELD_MAX_VALUES, LEVEL_GROUPS, PLUGIN_ID_FIELD, SEARCH_MAX_LENGTH} from './utils';
 import type {LevelGroup} from './utils';
+
+import type {ConsoleAccess} from '../types';
 
 // Only the filters are shared. Live tail and display preferences stay with each browser
 export type UrlFilters = {
@@ -114,4 +121,22 @@ export function withUrlFilters(query: string, filters: UrlFilters | null): strin
     // Commas and colons are allowed in a query string, and keep shared links readable
     const next = params.toString().replace(/%2C/g, ',').replace(/%3A/g, ':');
     return next ? `?${next}` : '';
+}
+
+const SERVER_LOGS_PATH = '/admin_console/reporting/server_logs';
+
+// Opens the viewer on one plugin's entries. The filters it leaves out fall back to the saved prefs
+export function pluginLogsPath(pluginId: string): string {
+    return SERVER_LOGS_PATH + withUrlFilters('', {
+        search: '',
+        enabledLevels: new Set(LEVEL_GROUPS),
+        node: '',
+        timeRange: null,
+        plugins: [pluginId],
+    });
+}
+
+// The rules that hide the Server Logs page in the admin definition, so links to it are only shown to admins who can open it
+export function canViewServerLogs(config: DeepPartial<AdminConfig>, consoleAccess?: ConsoleAccess): boolean {
+    return Boolean(consoleAccess?.read?.[RESOURCE_KEYS.REPORTING.SERVER_LOGS]) && !config.ExperimentalSettings?.RestrictSystemAdmin;
 }

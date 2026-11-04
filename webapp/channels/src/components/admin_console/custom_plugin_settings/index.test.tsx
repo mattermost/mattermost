@@ -5,7 +5,7 @@ import React from 'react';
 import type {match} from 'react-router-dom';
 
 import type {CloudState} from '@mattermost/types/cloud';
-import type {PluginSettings} from '@mattermost/types/config';
+import type {ExperimentalSettings, PluginSettings} from '@mattermost/types/config';
 
 import PluginState from 'mattermost-redux/constants/plugins';
 
@@ -160,6 +160,55 @@ describe('custom plugin sections and settings', () => {
         expect(screen.getByTestId('admin-console-header')).toContainElement(badge);
         expect(screen.getByTestId('plugin-metadata-status-error')).toHaveTextContent(error);
         expect(document.querySelector('[class*="section-notice--type-warning"]')).toBeInTheDocument();
+    });
+
+    describe('server logs', () => {
+        const failedState = {
+            entities: {
+                admin: {
+                    plugins: {
+                        testplugin: plugin,
+                    },
+                    pluginStatuses: {
+                        testplugin: {
+                            id: 'testplugin',
+                            name: 'testplugin',
+                            description: '',
+                            version: '',
+                            active: false,
+                            state: PluginState.PLUGIN_STATE_FAILED_TO_STAY_RUNNING,
+                            instances: [],
+                        },
+                    },
+                },
+            },
+        };
+
+        const renderFailed = (canReadLogs: boolean, restrictSystemAdmin = false) => renderWithContext(
+            <CustomPluginSettings
+                {...baseProps}
+                config={{...baseProps.config, ExperimentalSettings: {RestrictSystemAdmin: restrictSystemAdmin} as ExperimentalSettings}}
+                consoleAccess={{...baseProps.consoleAccess, read: {...baseProps.consoleAccess.read, 'reporting.server_logs': canReadLogs}}}
+                patchConfig={jest.fn()}
+            />,
+            failedState,
+        );
+
+        it('links to the logs of a failed plugin next to its enable switch', () => {
+            renderFailed(true);
+
+            expect(screen.getByRole('link', {name: 'View logs'})).toHaveAttribute('href', '/admin_console/reporting/server_logs?field.plugin_id=testplugin');
+            expect(screen.getByTestId('plugin-metadata-status-error')).toHaveTextContent('Check your system logs for errors.');
+        });
+
+        it.each([
+            ['without access to the server logs', false, false],
+            ['when system admins are restricted', true, true],
+        ])('leaves the logs out %s', (_, canReadLogs, restrictSystemAdmin) => {
+            renderFailed(canReadLogs, restrictSystemAdmin);
+
+            expect(screen.queryByRole('link', {name: 'View logs'})).not.toBeInTheDocument();
+        });
     });
 
     it('renders top-level settings together with sections', () => {

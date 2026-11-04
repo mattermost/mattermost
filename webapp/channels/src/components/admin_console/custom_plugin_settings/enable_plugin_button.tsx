@@ -4,10 +4,12 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {connect} from 'react-redux';
+import {Link} from 'react-router-dom';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-import {DotsHorizontalIcon, OpenInNewIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
+import {DotsHorizontalIcon, OpenInNewIcon, TextBoxOutlineIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
 import {Icon} from '@mattermost/compass-ui/components/icon';
 import {Switch} from '@mattermost/compass-ui/components/switch';
 
@@ -29,6 +31,9 @@ type Props = {
     disabled: boolean;
     homepageUrl?: string;
     id: string;
+
+    // The plugin's entries in the server logs, for admins who can open them
+    logsPath?: string;
     saveNeeded?: false | string;
     value: boolean;
 };
@@ -46,7 +51,7 @@ export function getPluginIdFromEnableSettingId(settingId: string) {
     return settingId.slice(pluginStatePrefix.length, -pluginStateSuffix.length).replace(/\+/g, '.');
 }
 
-export function PluginEnableButton({actions, disabled, homepageUrl, id, saveNeeded = false, value}: Props) {
+export function PluginEnableButton({actions, disabled, homepageUrl, id, logsPath, saveNeeded = false, value}: Props) {
     const {formatMessage} = useIntl();
     const [submittingAction, setSubmittingAction] = useState<'toggle' | 'remove' | ''>('');
     const [showRemoveModal, setShowRemoveModal] = useState(false);
@@ -209,6 +214,23 @@ export function PluginEnableButton({actions, disabled, homepageUrl, id, saveNeed
                         aria-label={toggleAriaLabel}
                     />
                 </div>
+
+                {/* Viewing the logs changes nothing, so it stays available to admins who can't change the plugin */}
+                {logsPath && (
+                    <Button
+                        asChild={true}
+                        emphasis='tertiary'
+                        size='small'
+                        leadingIcon={<Icon glyph={<TextBoxOutlineIcon/>}/>}
+                    >
+                        <Link to={logsPath}>
+                            <FormattedMessage
+                                id='admin.plugin.viewLogs'
+                                defaultMessage='View logs'
+                            />
+                        </Link>
+                    </Button>
+                )}
                 <Menu.Container
                     menuButton={{
                         id: `plugin-actions-menu-button-${pluginId}`,
