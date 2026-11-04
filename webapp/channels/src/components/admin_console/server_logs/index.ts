@@ -7,10 +7,8 @@ import type {Dispatch} from 'redux';
 
 import type {PluginRedux} from '@mattermost/types/plugins';
 
-import {getLogs, getNewLogs, getPlainLogs, getPlugins} from 'mattermost-redux/actions/admin';
-import {Permissions} from 'mattermost-redux/constants';
+import {getLogs, getNewLogs, getPlainLogs} from 'mattermost-redux/actions/admin';
 import * as Selectors from 'mattermost-redux/selectors/entities/admin';
-import {haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
 
 import type {GlobalState} from 'types/store';
 
@@ -29,9 +27,6 @@ function mapStateToProps(state: GlobalState) {
         plainLogs: Selectors.getPlainLogs(state),
         isPlainLogs: config.LogSettings?.FileJson === false,
         plugins: state.entities.admin.plugins ?? NO_INSTALLED_PLUGINS,
-
-        // The plugins API fails while plugins are turned off
-        canReadPlugins: config.PluginSettings?.Enable !== false && haveISystemPermission(state, {permission: Permissions.SYSCONSOLE_READ_PLUGINS}),
     };
 }
 
@@ -41,7 +36,6 @@ function mapDispatchToProps(dispatch: Dispatch) {
             getLogs,
             getNewLogs,
             getPlainLogs,
-            getPlugins,
         }, dispatch),
     };
 }

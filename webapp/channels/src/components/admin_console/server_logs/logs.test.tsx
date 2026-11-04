@@ -73,8 +73,7 @@ describe('components/admin_console/server_logs/Logs', () => {
                 plainLogs={[]}
                 isPlainLogs={false}
                 plugins={{}}
-                canReadPlugins={false}
-                actions={{getPlugins: jest.fn(), getLogs, getNewLogs: jest.fn(), getPlainLogs: jest.fn()}}
+                actions={{getLogs, getNewLogs: jest.fn(), getPlainLogs: jest.fn()}}
             />
         );
     }
@@ -202,8 +201,7 @@ describe('components/admin_console/server_logs/Logs refetching', () => {
             plainLogs={[]}
             isPlainLogs={false}
             plugins={{}}
-            canReadPlugins={false}
-            actions={{getPlugins: jest.fn(), getLogs: jest.fn(), getNewLogs: jest.fn(), getPlainLogs: jest.fn()}}
+            actions={{getLogs: jest.fn(), getNewLogs: jest.fn(), getPlainLogs: jest.fn()}}
         />
     );
 
@@ -284,8 +282,7 @@ describe('components/admin_console/server_logs/Logs fetching', () => {
                 plainLogs={[]}
                 isPlainLogs={false}
                 plugins={{}}
-                canReadPlugins={false}
-                actions={{getPlugins: jest.fn(), getLogs, getNewLogs, getPlainLogs: jest.fn().mockResolvedValue({})}}
+                actions={{getLogs, getNewLogs, getPlainLogs: jest.fn().mockResolvedValue({})}}
             />,
         );
     }
@@ -573,8 +570,7 @@ describe('components/admin_console/server_logs/Logs nodes', () => {
                 plainLogs={[]}
                 isPlainLogs={false}
                 plugins={{}}
-                canReadPlugins={false}
-                actions={{getPlugins: jest.fn(), getLogs, getNewLogs: jest.fn().mockResolvedValue({}), getPlainLogs: jest.fn().mockResolvedValue({})}}
+                actions={{getLogs, getNewLogs: jest.fn().mockResolvedValue({}), getPlainLogs: jest.fn().mockResolvedValue({})}}
             />
         );
     }
@@ -606,8 +602,7 @@ describe('components/admin_console/server_logs/Logs nodes', () => {
                 plainLogs={[]}
                 isPlainLogs={false}
                 plugins={{}}
-                canReadPlugins={false}
-                actions={{getPlugins: jest.fn(), getLogs: jest.fn().mockResolvedValue({}), getNewLogs: jest.fn().mockResolvedValue({}), getPlainLogs: jest.fn().mockResolvedValue({})}}
+                actions={{getLogs: jest.fn().mockResolvedValue({}), getNewLogs: jest.fn().mockResolvedValue({}), getPlainLogs: jest.fn().mockResolvedValue({})}}
             />,
         );
 
@@ -740,8 +735,7 @@ describe('components/admin_console/server_logs/Logs live tail', () => {
                 plainLogs={[]}
                 isPlainLogs={false}
                 plugins={{}}
-                canReadPlugins={false}
-                actions={{getPlugins: jest.fn(), getLogs, getNewLogs, getPlainLogs: jest.fn().mockResolvedValue({})}}
+                actions={{getLogs, getNewLogs, getPlainLogs: jest.fn().mockResolvedValue({})}}
             />,
         );
         return {getLogs, getNewLogs};
@@ -767,7 +761,7 @@ describe('components/admin_console/server_logs/Logs live tail', () => {
         await poll();
 
         await waitFor(() => expect(getNewLogs).toHaveBeenCalledTimes(1));
-        expect(getNewLogs).toHaveBeenCalledWith({serverNames: [], logLevels: [], dateFrom: '2026-10-20 09:44:30.000 +00:00', dateTo: '', search: '', fields: {}});
+        expect(getNewLogs).toHaveBeenCalledWith({serverNames: [], logLevels: [], dateFrom: '2026-10-20 09:44:30.000 +00:00', dateTo: '', search: '', fields: undefined});
         expect(getLogs).toHaveBeenCalledTimes(1);
     });
 
@@ -813,7 +807,7 @@ describe('components/admin_console/server_logs/Logs live tail', () => {
 
         await poll();
 
-        await waitFor(() => expect(getNewLogs).toHaveBeenCalledWith({serverNames: [], logLevels: [], dateFrom: '', dateTo: '', search: '', fields: {}}));
+        await waitFor(() => expect(getNewLogs).toHaveBeenCalledWith({serverNames: [], logLevels: [], dateFrom: '', dateTo: '', search: '', fields: undefined}));
     });
 
     test('should not reach back past the start of the time range', async () => {
@@ -867,7 +861,7 @@ describe('components/admin_console/server_logs/Logs live tail', () => {
         await pickMenuItem('Open menu to select which log levels to show', 'Debug', 'menuitemcheckbox');
 
         await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(2));
-        expect(getLogs).toHaveBeenLastCalledWith({serverNames: [], logLevels: ['panic', 'fatal', 'critical', 'error', 'warn', 'info', 'stdlog'], dateFrom: '', dateTo: '', search: '', fields: {}});
+        expect(getLogs).toHaveBeenLastCalledWith({serverNames: [], logLevels: ['panic', 'fatal', 'critical', 'error', 'warn', 'info', 'stdlog'], dateFrom: '', dateTo: '', search: '', fields: undefined});
     });
 
     test('should reload everything on a manual reload while live tail is on', async () => {
@@ -900,7 +894,6 @@ describe('components/admin_console/server_logs/Logs URL filters', () => {
         isPlainLogs?: boolean;
         logs?: LogObjectWithAdditionalInfo[];
         plugins?: Record<string, PluginRedux>;
-        canReadPlugins?: boolean;
     };
 
     function renderLogs(url: string, {
@@ -908,11 +901,9 @@ describe('components/admin_console/server_logs/Logs URL filters', () => {
         isPlainLogs = false,
         logs = [nodeLog('node-a', 'a'), nodeLog('node-b', 'b')],
         plugins = {},
-        canReadPlugins = false,
     }: RenderOptions = {}) {
         const history = createMemoryHistory({initialEntries: [url]});
         const getPlainLogs = jest.fn().mockResolvedValue({});
-        const getPlugins = jest.fn().mockResolvedValue({});
         renderWithContext(
             <Logs
                 logs={logs}
@@ -921,13 +912,12 @@ describe('components/admin_console/server_logs/Logs URL filters', () => {
                 plainLogs={[]}
                 isPlainLogs={isPlainLogs}
                 plugins={plugins}
-                canReadPlugins={canReadPlugins}
-                actions={{getPlugins, getLogs, getNewLogs: jest.fn().mockResolvedValue({}), getPlainLogs}}
+                actions={{getLogs, getNewLogs: jest.fn().mockResolvedValue({}), getPlainLogs}}
             />,
             {},
             {history},
         );
-        return {history, getLogs, getPlainLogs, getPlugins};
+        return {history, getLogs, getPlainLogs};
     }
 
     function pluginLog(pluginId: string): LogObjectWithAdditionalInfo {
@@ -1006,7 +996,7 @@ describe('components/admin_console/server_logs/Logs URL filters', () => {
         const {getLogs, history} = renderLogs(`${PAGE}?search=${'a'.repeat(257)}&levels=bogus,warn&range=7&from=2026-10-20T11:00:00Z&to=yesterday&tab=1`);
 
         await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
-        expect(getLogs).toHaveBeenCalledWith({search: '', logLevels: ['warn'], serverNames: [], dateFrom: '', dateTo: '', fields: {}});
+        expect(getLogs).toHaveBeenCalledWith({search: '', logLevels: ['warn'], serverNames: [], dateFrom: '', dateTo: '', fields: undefined});
         expect(screen.getByLabelText('Duration')).toHaveValue('All time');
 
         // Parameters that aren't filters are left alone
@@ -1020,7 +1010,7 @@ describe('components/admin_console/server_logs/Logs URL filters', () => {
         ['dates without a timezone offset', 'from=2026-10-20T11:00:00&to=2026-10-20T12:00:00', {dateFrom: '', dateTo: ''}],
         ['dates that are not on the calendar', 'from=2026-02-30T11:00:00Z&to=2026-03-02T12:00:00Z', {dateFrom: '', dateTo: ''}],
         ['an invalid custom range in favor of a valid preset', 'range=60&from=bad&to=2026-10-20T12:00:00Z', {dateFrom: '2026-10-20 11:00:00.000 +00:00', dateTo: ''}],
-        ['field filters the server would reject', `field.level=error&field.timestamp=x&field.=x&field.plugin_id=&field.user_id=${'a'.repeat(257)}`, {fields: {}}],
+        ['field filters the server would reject', `field.level=error&field.timestamp=x&field.=x&field.plugin_id=&field.user_id=${'a'.repeat(257)}`, {fields: undefined}],
         ['repeated field values', 'field.plugin_id=github&field.plugin_id=github', {fields: {plugin_id: ['github']}}],
         ['fields the viewer has no filter for, so they can\'t filter it unseen', 'field.user_id=abc&field.caller=x&field.plugin_id=github', {fields: {plugin_id: ['github']}}],
     ])('should ignore %s', async (_, query, expected) => {
@@ -1106,7 +1096,7 @@ describe('components/admin_console/server_logs/Logs URL filters', () => {
             serverNames: ['node-b'],
             dateFrom: '2026-10-20 11:00:00.000 +00:00',
             dateTo: '',
-            fields: {},
+            fields: undefined,
         }));
         expect(screen.getByLabelText('Search logs')).toHaveValue('second');
         expect(screen.getByLabelText('Duration')).toHaveValue('Last hour');
@@ -1133,7 +1123,7 @@ describe('components/admin_console/server_logs/Logs URL filters', () => {
 
         act(() => history.push(PAGE));
 
-        await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith({search: '', logLevels: [], serverNames: [], dateFrom: '', dateTo: '', fields: {}}));
+        await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith({search: '', logLevels: [], serverNames: [], dateFrom: '', dateTo: '', fields: undefined}));
         expect(screen.getByLabelText('Search logs')).toHaveValue('');
         expect(history.location.search).toBe('');
     });
@@ -1176,7 +1166,7 @@ describe('components/admin_console/server_logs/Logs URL filters', () => {
         expect(screen.getByLabelText('Plugin')).toHaveValue('2 plugins');
 
         await userEvent.click(screen.getByRole('menuitemradio', {name: 'All logs'}));
-        await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({fields: {}})));
+        await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({fields: undefined})));
         await waitFor(() => expect(history.location.search).toBe(''));
     });
 
@@ -1187,15 +1177,18 @@ describe('components/admin_console/server_logs/Logs URL filters', () => {
         expect(screen.getByLabelText('Plugin')).toHaveValue('Agents');
     });
 
-    test('should only fetch the installed plugins for admins who can read them', async () => {
-        const {getPlugins} = renderLogs(PAGE, {canReadPlugins: true});
-        await waitFor(() => expect(getPlugins).toHaveBeenCalledTimes(1));
+    test('should not offer the plugin menu without plugins', async () => {
+        const {getLogs} = renderLogs(PAGE);
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
+        expect(screen.queryByLabelText('Plugin')).not.toBeInTheDocument();
     });
 
-    test('should not fetch the installed plugins for admins who can only read logs, nor offer the menu without plugins', async () => {
-        const {getPlugins, getLogs} = renderLogs(PAGE);
+    test('should not reload when "All logs" is picked with no plugin picked', async () => {
+        const {getLogs} = renderLogs(PAGE, {logs: [pluginLog('github')]});
         await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
-        expect(getPlugins).not.toHaveBeenCalled();
-        expect(screen.queryByLabelText('Plugin')).not.toBeInTheDocument();
+
+        await userEvent.click(screen.getByLabelText('Plugin'));
+        await userEvent.click(screen.getByRole('menuitemradio', {name: 'All logs'}));
+        expect(getLogs).toHaveBeenCalledTimes(1);
     });
 });
