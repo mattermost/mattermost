@@ -126,7 +126,10 @@ jobs:
           verify-reports: "true"
           execution-success: ${{ inputs.execution_success }}
           # This job holds the publication lock and starts after every worker finished uploading.
-          report-wait-seconds: "20"
+          # Three polls, not one: reports landing a few seconds late made a clean lane
+          # "incomplete", which also kept triage report-only for it. A failed worker skips
+          # the wait (execution-success false), so a red lane is never held longer.
+          report-wait-seconds: "60"
           use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
           description: ${{ inputs.description || 'E2E results unavailable or incomplete; re-run the failed jobs' }}
           target-url: ${{ inputs.report_url }}
