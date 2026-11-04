@@ -132,13 +132,13 @@ func checkEditFileAttachmentPermission(c *Context, newFileIds []string, original
 // postAttributeValuesForCreate turns the submitted metadata values into PropertyValues to
 // write with the post.
 //
-// With the flag off and nothing submitted this returns (nil, nil) without touching the
-// property store, which is what keeps createPost byte-identical to its pre-feature
-// behaviour — the reason this is safe to add to the most-used endpoint in the product.
+// When nothing was submitted this returns (nil, nil) before any lookup, channel or property,
+// which is what keeps createPost byte-identical to its pre-feature behaviour — the reason
+// this is safe to add to the most-used endpoint in the product.
 //
 // Errors never name an attribute: which attributes a server defines is itself sensitive,
 // and the caller may not be allowed to see them.
-func postAttributeValuesForCreate(c *Context, post *model.Post, channel *model.Channel) ([]*model.PropertyValue, *model.AppError) {
+func postAttributeValuesForCreate(c *Context, post *model.Post) ([]*model.PropertyValue, *model.AppError) {
 	items := post.Metadata.GetPropertyValues()
 
 	if !c.App.Config().FeatureFlags.PostAttributes {
@@ -150,6 +150,13 @@ func postAttributeValuesForCreate(c *Context, post *model.Post, channel *model.C
 
 	if len(items) == 0 {
 		return nil, nil
+	}
+
+	// Fetched only once there are values to check: the team ID decides which team-scoped
+	// fields apply. CreatePostAsUserWithFlags reads the same channel again a moment later.
+	channel, appErr := c.App.GetChannel(c.AppContext, post.ChannelId)
+	if appErr != nil {
+		return nil, appErr
 	}
 
 	group, appErr := c.App.GetPropertyGroup(c.AppContext, model.PostAttributesPropertyGroupName)
