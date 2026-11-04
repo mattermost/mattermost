@@ -15,7 +15,7 @@ import (
 )
 
 // officePartReadLimit is the per-part read cap for content-type metadata and part XML.
-const officePartReadLimit int64 = 1 << 20
+const officePartReadLimit int64 = 20 << 20
 
 var (
 	ooxmlBreakElements = []string{"br", "p", "tab"}
