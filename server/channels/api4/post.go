@@ -371,10 +371,8 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if etag != "" {
-		w.Header().Set(model.HeaderEtagServer, etag)
-	}
-
+	var entityServe *app.EntityServeState
+	c.AppContext, entityServe = c.App.BeginEntityServe(c.AppContext)
 	clientPostList := c.App.PreparePostListForClient(c.AppContext, list, &model.PreparePostForClientOpts{PropertyGroupID: propertyGroupID})
 
 	// Calculate NextPostId and PrevPostId AFTER filtering (including BoR filtering)
@@ -387,6 +385,9 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if etag != "" && !entityServe.Stale() {
+		w.Header().Set(model.HeaderEtagServer, etag)
+	}
 	if err := clientPostList.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	} else {
@@ -469,6 +470,8 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 		}
 	}
 
+	var entityServe *app.EntityServeState
+	c.AppContext, entityServe = c.App.BeginEntityServe(c.AppContext)
 	clientPostList := c.App.PreparePostListForClient(c.AppContext, postList, &model.PreparePostForClientOpts{PropertyGroupID: propertyGroupID})
 
 	// Calculate NextPostId and PrevPostId AFTER filtering (including BoR filtering)
@@ -481,7 +484,7 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 		return
 	}
 
-	if etag != "" {
+	if etag != "" && !entityServe.Stale() {
 		w.Header().Set(model.HeaderEtagServer, etag)
 	}
 	if err := clientPostList.EncodeJSON(w); err != nil {
@@ -635,10 +638,8 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !hydrating && c.HandleEtag(c.App.AppendEntityEtag(post.Etag()), "Get Post", w, r) {
-		return
-	}
-
+	var entityServe *app.EntityServeState
+	c.AppContext, entityServe = c.App.BeginEntityServe(c.AppContext)
 	post = c.App.PreparePostForClientWithEmbedsAndImages(c.AppContext, post, &model.PreparePostForClientOpts{
 		IncludePriority: true,
 		PropertyGroupID: propertyGroupID,
@@ -649,12 +650,12 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !hydrating {
-		postEtag := c.App.AppendABACEtag(c.AppContext, post.Etag(), post.ChannelId)
-		if c.HandleEtag(postEtag, "Get Post", w, r) {
-			return
-		}
+	postEtag := c.App.AppendEntityEtag(c.App.AppendABACEtag(c.AppContext, post.Etag(), post.ChannelId))
+	if !hydrating && !entityServe.Stale() && c.HandleEtag(postEtag, "Get Post", w, r) {
+		return
+	}
 
+	if !hydrating && !entityServe.Stale() {
 		w.Header().Set(model.HeaderEtagServer, postEtag)
 	}
 
@@ -998,21 +999,23 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Leaving the ETag unset also suppresses the response header below, which is only
-	// written when the ETag is non-empty.
-	threadEtag := ""
-	if !hydrating {
-		threadEtag = c.App.AppendABACEtag(c.AppContext, list.Etag(), post.ChannelId)
-		if c.HandleEtag(threadEtag, "Get Post Thread", w, r) {
-			return
-		}
-	}
-
+	var entityServe *app.EntityServeState
+	c.AppContext, entityServe = c.App.BeginEntityServe(c.AppContext)
 	clientPostList := c.App.PreparePostListForClient(c.AppContext, list, &model.PreparePostForClientOpts{PropertyGroupID: propertyGroupID})
 	clientPostList, isMemberForAllPreviews, err := c.App.SanitizePostListMetadataForUser(c.AppContext, clientPostList, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return
+	}
+
+	// Leaving the ETag unset also suppresses the response header below, which is only
+	// written when the ETag is non-empty.
+	threadEtag := ""
+	if !hydrating && !entityServe.Stale() {
+		threadEtag = c.App.AppendEntityEtag(c.App.AppendABACEtag(c.AppContext, list.Etag(), post.ChannelId))
+		if c.HandleEtag(threadEtag, "Get Post Thread", w, r) {
+			return
+		}
 	}
 
 	if threadEtag != "" {

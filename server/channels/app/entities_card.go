@@ -5,7 +5,6 @@ package app
 
 import (
 	"net/http"
-	"sync"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -14,8 +13,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/entities"
 )
-
-var entityTermMu sync.Mutex
 
 func (a *App) GetEntityCard(rctx request.CTX, typeID, value string) (*model.EntityCard, *model.AppError) {
 	if !a.entitiesEnabled() {
@@ -52,7 +49,7 @@ func (a *App) GetEntityCardFromPost(rctx request.CTX, postID, typeID, value stri
 	if appErr != nil {
 		return nil, appErr
 	}
-	a.hydratePostEntities(rctx, post)
+	a.hydratePostEntities(withEntityAcceptAll(rctx), post)
 	if !postContainsEntity(post, typeID, value) {
 		return nil, model.NewAppError("GetEntityCardFromPost", "api.context.404.app_error", nil, "", http.StatusNotFound)
 	}
@@ -111,7 +108,7 @@ func (a *App) GetEntityCardForPost(rctx request.CTX, postID, occurrence string) 
 	if appErr != nil {
 		return nil, appErr
 	}
-	a.hydratePostEntities(rctx, post)
+	a.hydratePostEntities(withEntityAcceptAll(rctx), post)
 	if post.Metadata == nil {
 		return nil, model.NewAppError("GetEntityCardForPost", "api.context.404.app_error", nil, "", http.StatusNotFound)
 	}
@@ -235,24 +232,14 @@ func (a *App) RegisterPluginEntityTerms(pluginID, typeID string, terms []model.E
 	if !a.entitiesEnabled() {
 		return model.NewAppError("RegisterPluginEntityTerms", model.EntitiesDisabledError, nil, "", http.StatusNotImplemented)
 	}
-	entityTermMu.Lock()
-	defer entityTermMu.Unlock()
-	snap := entities.SnapshotTerms()
-	generation, err := entities.ReplaceTerms(pluginID, typeID, terms)
+	epoch, changed, err := entities.ReplaceTerms(pluginID, typeID, terms)
 	if err != nil {
 		return model.NewAppError("RegisterPluginEntityTerms", "api.context.invalid_body_param.app_error", map[string]any{"Name": "terms"}, err.Error(), http.StatusBadRequest)
 	}
-	if storeErr := a.Srv().Store().EntityTerm().Replace(pluginID, typeID, terms, generation); storeErr != nil {
-		entities.RestoreTerms(snap)
-		rctxWarnTerms(a, typeID, storeErr)
-		return model.NewAppError("RegisterPluginEntityTerms", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
+	if changed {
+		a.publishDictionaryChanged(typeID, epoch)
 	}
-	a.publishDictionaryChanged(typeID, generation)
 	return nil
-}
-
-func rctxWarnTerms(a *App, typeID string, err error) {
-	a.Log().Warn("Failed to store entity terms", mlog.String("type_id", typeID), mlog.Err(err))
 }
 
 func (a *App) RegisterPluginEntityProvider(pluginID string, p *model.EntityProvider) *model.AppError {

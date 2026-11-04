@@ -85,13 +85,3 @@ type EntityTerm struct {
 	Title string `json:"title"`
 	URL   string `json:"url"`
 }
-
-// EntityTermRow is one stored dictionary entry and the generation it belongs to.
-type EntityTermRow struct {
-	TypeID     string
-	PluginID   string
-	Value      string
-	Title      string
-	URL        string
-	Generation int64
-}

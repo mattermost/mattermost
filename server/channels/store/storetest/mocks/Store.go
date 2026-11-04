@@ -874,46 +874,6 @@ func (_m *Store) Plugin() store.PluginStore {
 	return r0
 }
 
-// EntityTerm provides a mock function with no fields
-func (_m *Store) EntityTerm() store.EntityTermStore {
-	ret := _m.Called()
-
-	if len(ret) == 0 {
-		panic("no return value specified for EntityTerm")
-	}
-
-	var r0 store.EntityTermStore
-	if rf, ok := ret.Get(0).(func() store.EntityTermStore); ok {
-		r0 = rf()
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.EntityTermStore)
-		}
-	}
-
-	return r0
-}
-
-// PostEntity provides a mock function with no fields
-func (_m *Store) PostEntity() store.PostEntityStore {
-	ret := _m.Called()
-
-	if len(ret) == 0 {
-		panic("no return value specified for PostEntity")
-	}
-
-	var r0 store.PostEntityStore
-	if rf, ok := ret.Get(0).(func() store.PostEntityStore); ok {
-		r0 = rf()
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.PostEntityStore)
-		}
-	}
-
-	return r0
-}
-
 // Post provides a mock function with no fields
 func (_m *Store) Post() store.PostStore {
 	ret := _m.Called()

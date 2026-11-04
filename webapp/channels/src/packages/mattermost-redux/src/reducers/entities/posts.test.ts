@@ -5120,3 +5120,25 @@ describe('limitedViews', () => {
         });
     });
 });
+
+describe('RECEIVED_POST_ENTITIES', () => {
+    it('replaces only the entity list on posts already in state', () => {
+        const post = TestHelper.getPostMock({
+            id: 'post1',
+            update_at: 10,
+            message: 'ask the MLT',
+        });
+        const state = deepFreeze({post1: post});
+        const entities = [{id: '4:7', start: 4, end: 7, value: 'MLT', type_ids: ['plugin.acronym'], matcher_id: ''}];
+
+        const nextState = reducers.handlePosts(state, {
+            type: PostTypes.RECEIVED_POST_ENTITIES,
+            data: {post1: entities, missing: []},
+        });
+
+        expect(nextState.post1.update_at).toBe(10);
+        expect(nextState.post1.message).toBe('ask the MLT');
+        expect(nextState.post1.metadata.entities).toEqual(entities);
+        expect(nextState.missing).toBeUndefined();
+    });
+});

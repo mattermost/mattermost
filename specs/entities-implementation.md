@@ -177,8 +177,9 @@ Optional `URL` is an https template containing `{value}` once. The value is
 query-escaped.
 
 Changing a matcher changes the pattern generation (a hash of matcher id,
-type, pattern, and value group). The next read of each post re-scans and
-rewrites the `postentities` row once.
+type, pattern, and value group). The next read serves the spans it already
+has and refreshes them in the background. See
+[entities-parse-on-read.md](entities-parse-on-read.md).
 
 There is no API to delete one matcher. Deactivating the plugin drops every
 registration from that plugin. A disabled Weave automation, once that path
@@ -198,13 +199,11 @@ They are applied while building the response. The same span as a pattern
 keeps the pattern and fills an empty title or URL from the term. Any other
 overlap keeps the stored pattern span.
 
-`ReplaceTerms` returns a per-type generation. The server stores the terms and
-the generation, then publishes `entities_dictionary_changed`. The websocket
-payload is the type id and the generation. The term text does not travel.
-
-On startup the rows are loaded before plugins activate, so a restart still
-recognizes terms until each plugin registers again. A plugin that registers
-again replaces the rows and bumps the generation.
+`ReplaceTerms` returns a hash of the sorted term set. An identical list does
+not change that hash and does not publish. A change is held in memory and
+publishes `entities_dictionary_changed`. The websocket payload is the type
+id and the generation. The term text does not travel. There is no term table.
+A restart recognizes terms when each plugin registers again.
 
 ```go
 appErr := p.API.RegisterEntityTerms("com.mattermost.conflux.acronym", []model.EntityTerm{{
@@ -221,7 +220,7 @@ An empty slice clears that type. The websocket that follows is:
   "event": "entities_dictionary_changed",
   "data": {
     "type_id": "com.mattermost.conflux.acronym",
-    "generation": 2
+    "generation": "a1b2c3d4e5f60718"
   }
 }
 ```
@@ -315,6 +314,12 @@ An exact word uses `"match": "term"` and `"value": "INC"` instead of
 
 ## 5. Read path
 
+Pattern spans are computed while a post is prepared for the client and kept
+in the process memo and the platform cache (`entity_pattern`). They are not
+written to Postgres. The behavior below is the scan. Storage, the page
+budget, and etags are in
+[entities-parse-on-read.md](entities-parse-on-read.md).
+
 `preparePostForClient` calls `hydratePostEntities`.
 
 Skipped: empty message, deleted post, burn-on-read, `system_*`, `custom_*`.
@@ -331,14 +336,11 @@ is not a word character or `-`.
 Overlap between patterns: the longest span wins, then the earlier start,
 then the matcher id. The same span from two types is merged.
 
-`postentities` stores pattern spans only: post id, channel id, message hash,
-pattern generation, protected ranges, entities, a skipped flag, and
-`updateat`. The post id is the primary key and cascades on post delete.
-Terms are not in this row.
-
-A matching hash and pattern generation returns the stored spans plus a fresh
-dictionary pass, and does not write. A mismatch re-scans patterns and
-writes. An acronym edit does not cause that write.
+A finished scan stores the pattern generation, the protected ranges, and the
+pattern spans, keyed by post id and message hash. Terms are not in that
+entry. A later read applies the current dictionary to those ranges. An
+acronym edit does not scan again. A matcher change serves the stored spans
+and refreshes them off the request.
 
 ## 6. Caching
 
@@ -371,10 +373,12 @@ the reader in the cache key and in `EntityLookupRequest.UserID`.
 The cache is the platform cache named `entity_card`, size 10000, default
 expiry 30 minutes. When `CacheSettings.CacheType` is Redis, that provider
 is Redis. Otherwise it is the in-process LRU. The dictionary itself is not
-in Redis. Losing Redis must not stop recognition. Redis pub/sub, when
+in Redis. Losing Redis must not stop recognition. Pattern spans use a second
+platform cache, `entity_pattern`, described in
+[entities-parse-on-read.md](entities-parse-on-read.md). Redis pub/sub, when
 configured, is already the cluster bus. This branch does not yet send a
-dictionary-generation message across it. A second node would keep serving
-its own memory until it restarted and read Postgres.
+dictionary-generation message across it. Each node learns a dictionary when
+the plugin registers on that node.
 
 A card is stored only after the plugin returns a card and a nil error.
 Tactical Fusion returns a successful thin card when NVD or MITRE fails, so

@@ -31,6 +31,7 @@ export default keyMirror({
     RECEIVED_POST_HISTORY: null,
 
     RECEIVED_POSTS: null,
+    RECEIVED_POST_ENTITIES: null,
     RECEIVED_POSTS_AFTER: null,
     RECEIVED_POSTS_BEFORE: null,
     RECEIVED_POSTS_IN_CHANNEL: null,

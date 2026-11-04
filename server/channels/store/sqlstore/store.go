@@ -123,8 +123,6 @@ type SqlStoreStores struct {
 	temporaryPost              store.TemporaryPostStore
 	channelJoinRequest         store.ChannelJoinRequestStore
 	healthFinding              store.HealthFindingStore
-	postEntity                 store.PostEntityStore
-	entityTerm                 store.EntityTermStore
 }
 
 type SqlStore struct {
@@ -321,8 +319,6 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.temporaryPost = newSqlTemporaryPostStore(store, metrics)
 	store.stores.channelJoinRequest = newSqlChannelJoinRequestStore(store)
 	store.stores.healthFinding = newSqlHealthFindingStore(store)
-	store.stores.postEntity = newSqlPostEntityStore(store)
-	store.stores.entityTerm = newSqlEntityTermStore(store)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -990,14 +986,6 @@ func (ss *SqlStore) ChannelJoinRequest() store.ChannelJoinRequestStore {
 
 func (ss *SqlStore) HealthFinding() store.HealthFindingStore {
 	return ss.stores.healthFinding
-}
-
-func (ss *SqlStore) PostEntity() store.PostEntityStore {
-	return ss.stores.postEntity
-}
-
-func (ss *SqlStore) EntityTerm() store.EntityTermStore {
-	return ss.stores.entityTerm
 }
 
 func (ss *SqlStore) DropAllTables() {

@@ -59,20 +59,22 @@ func TestAcronymTermIsTheHoverAndTheLink(t *testing.T) {
 	t.Cleanup(func() { RemovePlugin(pluginID) })
 	require.NoError(t, AddType(pluginID, &model.EntityType{ID: pluginID + ".acronym", DisplayName: "Acronym"}))
 	before := PatternGeneration()
-	generation, err := ReplaceTerms(pluginID, pluginID+".acronym", []model.EntityTerm{{
+	epoch, changed, err := ReplaceTerms(pluginID, pluginID+".acronym", []model.EntityTerm{{
 		Value: "MLT",
 		Title: "Mattermost leadership team",
 		URL:   "/conflux/team/pages/abcdefghijklmnopqrstuvwxyz",
 	}})
 	require.NoError(t, err)
+	require.True(t, changed)
 	require.Equal(t, before, PatternGeneration())
-	next, err := ReplaceTerms(pluginID, pluginID+".acronym", []model.EntityTerm{{
+	next, changed, err := ReplaceTerms(pluginID, pluginID+".acronym", []model.EntityTerm{{
 		Value: "MLT",
 		Title: "Mattermost leadership team",
 		URL:   "/conflux/team/pages/abcdefghijklmnopqrstuvwxyz",
 	}})
 	require.NoError(t, err)
-	require.Equal(t, generation+1, next)
+	require.False(t, changed)
+	require.Equal(t, epoch, next)
 
 	patterns, protected := Detect("ask the MLT today, not MLTs or `MLT`")
 	require.Empty(t, patterns)
@@ -88,13 +90,13 @@ func TestAcronymTermIsTheHoverAndTheLink(t *testing.T) {
 	require.Nil(t, remote)
 	require.Equal(t, "Mattermost leadership team", card.Summary)
 
-	_, err = ReplaceTerms(pluginID, pluginID+".acronym", []model.EntityTerm{{
+	_, _, err = ReplaceTerms(pluginID, pluginID+".acronym", []model.EntityTerm{{
 		Value: "A",
 		Title: "Too short",
 		URL:   "/conflux/team/pages/abcdefghijklmnopqrstuvwxyz",
 	}})
 	require.Error(t, err)
-	_, err = ReplaceTerms("com.example.other", pluginID+".acronym", nil)
+	_, _, err = ReplaceTerms("com.example.other", pluginID+".acronym", nil)
 	require.Error(t, err)
 }
 
