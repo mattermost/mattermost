@@ -54,6 +54,7 @@ func clearRemovedBookmarkStoredFields(bookmarks []*model.ChannelBookmarkWithFile
 		bookmark.ImageUrl = ""
 		bookmark.Emoji = ""
 		bookmark.DisplayName = ""
+		bookmark.FileId = ""
 		bookmark.FileInfo = nil
 	}
 }

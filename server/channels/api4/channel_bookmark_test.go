@@ -2304,9 +2304,11 @@ func TestListChannelBookmarksSinceKeepsBookmarkIdentity(t *testing.T) {
 				require.Equal(t, created.Id, listed.Id)
 				require.Greater(t, listed.DeleteAt, int64(0))
 				require.Nil(t, listed.FileInfo)
+				require.Empty(t, listed.FileId)
 				require.Empty(t, listed.DisplayName)
-				// File name, extension, mime type, size, width, height, mini preview, and display name are absent from the response body.
+				// File id, name, extension, mime type, size, width, height, mini preview, and display name are absent from the response body.
 				requireBodyOmits(t, body, []string{
+					file.Id,
 					file.Name,
 					file.Extension,
 					file.MimeType,
@@ -2367,6 +2369,64 @@ func TestListChannelBookmarksSinceKeepsBookmarkIdentity(t *testing.T) {
 				require.Empty(t, removed.DisplayName)
 				// The previous link_url is the value unique to the removed row, and it is absent from the response body.
 				requireBodyOmits(t, body, []string{urlA})
+			},
+		},
+		{
+			name: "file bookmark whose file another member replaced omits the previous file id for a later channel member",
+			run: func(t *testing.T) {
+				channel := th.CreatePrivateChannel(t)
+				th.AddUserToChannel(t, th.BasicUser2, channel)
+
+				newBookmarkFile := func(name string) *model.FileInfo {
+					file := &model.FileInfo{
+						Id:        model.NewId(),
+						ChannelId: channel.Id,
+						CreatorId: model.BookmarkFileOwner,
+						Path:      "somepath",
+						Name:      name,
+						MimeType:  "application/octet-stream",
+						Size:      100,
+					}
+					_, saveErr := th.App.Srv().Store().FileInfo().Save(th.Context, file)
+					require.NoError(t, saveErr)
+					return file
+				}
+				fileA := newBookmarkFile("bm-file-a-k3m8.bin")
+				fileB := newBookmarkFile("bm-file-b-p5q2.bin")
+
+				created, appErr := th.App.CreateChannelBookmark(th.Context, &model.ChannelBookmark{
+					ChannelId:   channel.Id,
+					DisplayName: "File mark swap",
+					Type:        model.ChannelBookmarkFile,
+					FileId:      fileA.Id,
+				}, "")
+				require.Nil(t, appErr)
+
+				editor := th.CreateClient()
+				th.LoginBasic2WithClient(t, editor)
+				edited, resp, updateErr := editor.UpdateChannelBookmark(context.Background(), channel.Id, created.Id, &model.ChannelBookmarkPatch{
+					FileId: &fileB.Id,
+				})
+				require.NoError(t, updateErr)
+				CheckOKStatus(t, resp)
+				require.NotNil(t, edited.Updated)
+				require.NotNil(t, edited.Deleted)
+				require.Equal(t, created.Id, edited.Deleted.Id)
+				require.Equal(t, fileB.Id, edited.Updated.FileId)
+
+				client := laterMemberClient(t, channel)
+				bookmarks, body := listChannelBookmarks(t, client, channel.Id, 1)
+
+				updated := bookmarkByID(bookmarks, edited.Updated.Id)
+				require.NotNil(t, updated)
+				require.Equal(t, fileB.Id, updated.FileId)
+
+				removed := bookmarkByID(bookmarks, edited.Deleted.Id)
+				require.NotNil(t, removed)
+				require.Greater(t, removed.DeleteAt, int64(0))
+				require.Empty(t, removed.FileId)
+				require.Nil(t, removed.FileInfo)
+				requireBodyOmits(t, body, []string{fileA.Id, fileA.Name})
 			},
 		},
 		{
