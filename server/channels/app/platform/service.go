@@ -17,8 +17,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"golang.org/x/sync/singleflight"
-
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/markdown"
@@ -104,9 +102,6 @@ type PlatformService struct {
 
 	ldapDiagnostic einterfaces.LdapDiagnosticInterface
 	samlDiagnostic einterfaces.SamlDiagnosticInterface
-
-	// sharedProbes lets diagnostics collections share a running probe that cannot be cancelled.
-	sharedProbes singleflight.Group
 
 	Jobs *jobs.JobServer
 
