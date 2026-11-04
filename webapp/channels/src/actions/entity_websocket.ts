@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Post} from '@mattermost/types/posts';
+import type {PostEntity} from '@mattermost/types/posts';
 
-import {Client4} from 'mattermost-redux/client';
 import {PostTypes} from 'mattermost-redux/action_types';
+import {Client4} from 'mattermost-redux/client';
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
 import {getPost, getPostIdsInChannel} from 'mattermost-redux/selectors/entities/posts';
 
@@ -22,33 +22,29 @@ export function handleEntitiesDictionaryChanged(): ActionFuncAsync {
         if (!channelId) {
             return {data: false};
         }
-        const ids = getPostIdsInChannel(state, channelId).slice(0, maxEntityPosts);
-        if (!ids || ids.length === 0) {
+        const recent = getPostIdsInChannel(state, channelId);
+        if (!recent || recent.length === 0) {
             return {data: false};
         }
-        const result = await Client4.getEntityPosts(ids);
-        const posts: Record<string, Post> = {};
+        const ids = recent.slice(0, maxEntityPosts);
+        let result: {posts: Record<string, PostEntity[]>};
+        try {
+            result = await Client4.getEntityPosts(ids);
+        } catch {
+            return {data: false};
+        }
+        const fresh = getState();
+        const entities: Record<string, PostEntity[]> = {};
         Object.keys(result.posts || {}).forEach((id) => {
-            const post = getPost(state, id);
-            if (!post) {
+            if (!getPost(fresh, id)) {
                 return;
             }
-            posts[id] = {
-                ...post,
-                metadata: {
-                    embeds: [],
-                    emojis: [],
-                    files: [],
-                    images: {},
-                    ...post.metadata,
-                    entities: result.posts[id],
-                },
-            };
+            entities[id] = result.posts[id];
         });
-        if (Object.keys(posts).length > 0) {
+        if (Object.keys(entities).length > 0) {
             dispatch({
-                type: PostTypes.RECEIVED_POSTS,
-                data: {posts},
+                type: PostTypes.RECEIVED_POST_ENTITIES,
+                data: entities,
             });
         }
         return {data: true};

@@ -324,6 +324,11 @@ loses no work for good. Edits re-run the same path.
 
 ### 6.4 Storage model: stored pattern entities, read-time dictionaries
 
+The prototype does not ship this table. Pattern spans are computed on read
+and held in the platform cache. See
+[entities-parse-on-read.md](entities-parse-on-read.md). The rest of this
+section is the earlier storage design.
+
 `PostEntities` table: post ID, channel ID, pattern generation used, a hash of the
 message it was detected on, protected ranges, entities JSON, a `skipped` flag,
 `UpdateAt`, indexed on (channel ID, `UpdateAt`). The row is written right after

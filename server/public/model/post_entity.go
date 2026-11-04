@@ -21,15 +21,10 @@ type PostEntity struct {
 	HasCard bool `json:"has_card,omitempty"`
 }
 
-// PostEntityRow is the stored detection result for one post. A row is written
-// even when Entities is empty, so a post is not detected again on every read.
-type PostEntityRow struct {
-	PostId            string
-	ChannelId         string
-	MessageHash       string
-	PatternGeneration string
-	ProtectedRanges   [][2]int
-	Entities          []*PostEntity
-	Skipped           bool
-	UpdateAt          int64
+// EntityPatternCache is the pattern detection for one message hash.
+// Terms are applied when the post is read and are not stored here.
+type EntityPatternCache struct {
+	Generation string
+	Protected  [][2]int
+	Patterns   []*PostEntity
 }

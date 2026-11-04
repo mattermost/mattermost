@@ -4,8 +4,7 @@
 package app
 
 import (
-	"sync"
-	"sync/atomic"
+	"os"
 	"testing"
 	"time"
 
@@ -14,85 +13,13 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/entities"
-	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
-	"github.com/mattermost/mattermost/server/v8/channels/store"
-	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
+	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 )
 
 const entityPageSize = 60
-const entityQueryDelay = 300 * time.Microsecond
 
-type countingEntityStore struct {
-	mu    sync.Mutex
-	rows  map[string]*model.PostEntityRow
-	gets  atomic.Int64
-	saves atomic.Int64
-	delay time.Duration
-}
-
-func (s *countingEntityStore) Get(postID string) (*model.PostEntityRow, error) {
-	s.gets.Add(1)
-	if s.delay > 0 {
-		time.Sleep(s.delay)
-	}
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	row := s.rows[postID]
-	if row == nil {
-		return nil, nil
-	}
-	clone := *row
-	return &clone, nil
-}
-
-func (s *countingEntityStore) Save(row *model.PostEntityRow) error {
-	s.saves.Add(1)
-	if s.delay > 0 {
-		time.Sleep(s.delay)
-	}
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	if s.rows == nil {
-		s.rows = map[string]*model.PostEntityRow{}
-	}
-	clone := *row
-	s.rows[row.PostId] = &clone
-	return nil
-}
-
-func (s *countingEntityStore) GetMany(ids []string) (map[string]*model.PostEntityRow, error) {
-	s.gets.Add(1)
-	if s.delay > 0 {
-		time.Sleep(s.delay)
-	}
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	out := make(map[string]*model.PostEntityRow, len(ids))
-	for _, id := range ids {
-		row := s.rows[id]
-		if row == nil {
-			continue
-		}
-		clone := *row
-		out[id] = &clone
-	}
-	return out, nil
-}
-
-type entityBenchStore struct {
-	*storetest.Store
-	entities store.PostEntityStore
-}
-
-func (s entityBenchStore) PostEntity() store.PostEntityStore {
-	return s.entities
-}
-
-func entityBenchApp(entities store.PostEntityStore) *App {
-	return &App{ch: &Channels{srv: &Server{platform: &platform.PlatformService{Store: entityBenchStore{
-		Store:    &storetest.Store{},
-		entities: entities,
-	}}}}}
+func entityBenchApp(pattern cache.Cache) *App {
+	return &App{ch: &Channels{srv: &Server{entityPatternCache: pattern}}}
 }
 
 func installEntityBenchMatchers(tb testing.TB) {
@@ -140,129 +67,178 @@ func entityBenchPosts() []*model.Post {
 	return posts
 }
 
-func seedEntityRows(rows map[string]*model.PostEntityRow, posts []*model.Post) {
-	generation := entities.PatternGeneration()
-	for _, post := range posts {
-		rows[post.Id] = &model.PostEntityRow{
-			PostId:            post.Id,
-			ChannelId:         post.ChannelId,
-			MessageHash:       entities.MessageHash(post.Message),
-			PatternGeneration: generation,
-			ProtectedRanges:   [][2]int{},
-			Entities:          []*model.PostEntity{},
-		}
-	}
-}
-
-func BenchmarkEntityPageSteady(b *testing.B) {
-	b.Setenv("MM_ENTITIES", "1")
-	installEntityBenchMatchers(b)
-	posts := entityBenchPosts()
-	backend := &countingEntityStore{rows: map[string]*model.PostEntityRow{}, delay: entityQueryDelay}
-	seedEntityRows(backend.rows, posts)
-	app := entityBenchApp(backend)
-	rctx := request.TestContext(b)
-
-	b.ResetTimer()
-	for b.Loop() {
-		postEntityMemo.reset()
-		app.hydratePostList(rctx, posts)
-	}
-	b.StopTimer()
-	b.ReportMetric(float64(backend.gets.Load())/float64(b.N), "gets/page")
-	b.ReportMetric(float64(backend.saves.Load())/float64(b.N), "saves/page")
-}
-
-func BenchmarkEntityPageWarm(b *testing.B) {
-	b.Setenv("MM_ENTITIES", "1")
-	installEntityBenchMatchers(b)
-	posts := entityBenchPosts()
-	backend := &countingEntityStore{rows: map[string]*model.PostEntityRow{}, delay: entityQueryDelay}
-	seedEntityRows(backend.rows, posts)
-	app := entityBenchApp(backend)
-	rctx := request.TestContext(b)
-	postEntityMemo.reset()
-	app.hydratePostList(rctx, posts)
-	backend.gets.Store(0)
-	backend.saves.Store(0)
-
-	b.ResetTimer()
-	for b.Loop() {
-		app.hydratePostList(rctx, posts)
-	}
-	b.StopTimer()
-	b.ReportMetric(float64(backend.gets.Load())/float64(b.N), "gets/page")
-	b.ReportMetric(float64(backend.saves.Load())/float64(b.N), "saves/page")
+func entityBenchLRU(tb testing.TB) cache.Cache {
+	tb.Helper()
+	return cache.NewLRU(&cache.CacheOptions{Name: "entity_pattern_bench", Size: entityPatternCacheSize, DefaultExpiry: entityPatternTTL})
 }
 
 func BenchmarkEntityPageCold(b *testing.B) {
 	b.Setenv("MM_ENTITIES", "1")
 	installEntityBenchMatchers(b)
 	posts := entityBenchPosts()
-	backend := &countingEntityStore{rows: map[string]*model.PostEntityRow{}, delay: entityQueryDelay}
-	app := entityBenchApp(backend)
+	app := entityBenchApp(nil)
 	rctx := request.TestContext(b)
 
 	b.ResetTimer()
 	for b.Loop() {
-		postEntityMemo.reset()
+		resetEntityMemos()
 		for _, post := range posts {
 			post.Id = model.NewId()
+			post.Metadata = nil
 		}
 		app.hydratePostList(rctx, posts)
 	}
 	b.StopTimer()
-	b.ReportMetric(float64(backend.gets.Load())/float64(b.N), "gets/page")
-	b.ReportMetric(float64(backend.saves.Load())/float64(b.N), "saves/page")
+	b.ReportMetric(float64(entityScanCount.Load())/float64(b.N), "scans/page")
 }
 
-func TestEntityPageReadsOnce(t *testing.T) {
+func BenchmarkEntityPageWarm(b *testing.B) {
+	b.Setenv("MM_ENTITIES", "1")
+	installEntityBenchMatchers(b)
+	posts := entityBenchPosts()
+	app := entityBenchApp(nil)
+	rctx := request.TestContext(b)
+	resetEntityMemos()
+	app.hydratePostList(rctx, posts)
+	before := entityScanCount.Load()
+
+	b.ResetTimer()
+	for b.Loop() {
+		app.hydratePostList(rctx, posts)
+	}
+	b.StopTimer()
+	b.ReportMetric(float64(entityScanCount.Load()-before)/float64(b.N), "scans/page")
+}
+
+func BenchmarkEntityPageLRU(b *testing.B) {
+	b.Setenv("MM_ENTITIES", "1")
+	installEntityBenchMatchers(b)
+	posts := entityBenchPosts()
+	app := entityBenchApp(entityBenchLRU(b))
+	rctx := request.TestContext(b)
+	resetEntityMemos()
+	beforeWrites := patternWriteCount.Load()
+	app.hydratePostList(rctx, posts)
+	waitForPatternWrites(beforeWrites + int64(len(posts)) - patternWriteCount.Load())
+	resetEntityMemos()
+	before := entityScanCount.Load()
+
+	b.ResetTimer()
+	for b.Loop() {
+		resetEntityMemos()
+		app.hydratePostList(rctx, posts)
+	}
+	b.StopTimer()
+	b.ReportMetric(float64(entityScanCount.Load()-before)/float64(b.N), "scans/page")
+}
+
+func entityBenchRedis(tb testing.TB) cache.Cache {
+	tb.Helper()
+	addr := os.Getenv("ENTITY_REDIS_ADDR")
+	if addr == "" {
+		addr = "127.0.0.1:6379"
+	}
+	provider, err := cache.NewRedisProvider(&cache.RedisOptions{RedisAddr: addr, DisableCache: true})
+	if err != nil {
+		tb.Skipf("redis: %v", err)
+	}
+	tb.Cleanup(func() { _ = provider.Close() })
+	if _, err = provider.Connect(); err != nil {
+		tb.Skipf("redis: %v", err)
+	}
+	pattern, err := provider.NewCache(&cache.CacheOptions{Name: "entity_pattern_bench", Size: entityPatternCacheSize, DefaultExpiry: entityPatternTTL})
+	if err != nil {
+		tb.Fatal(err)
+	}
+	return pattern
+}
+
+func BenchmarkEntityPageRedis(b *testing.B) {
+	b.Setenv("MM_ENTITIES", "1")
+	installEntityBenchMatchers(b)
+	posts := entityBenchPosts()
+	app := entityBenchApp(entityBenchRedis(b))
+	rctx := request.TestContext(b)
+	resetEntityMemos()
+	beforeWrites := patternWriteCount.Load()
+	app.hydratePostList(rctx, posts)
+	waitForPatternWrites(beforeWrites + int64(len(posts)) - patternWriteCount.Load())
+	resetEntityMemos()
+	before := entityScanCount.Load()
+
+	b.ResetTimer()
+	for b.Loop() {
+		resetEntityMemos()
+		app.hydratePostList(rctx, posts)
+	}
+	b.StopTimer()
+	b.ReportMetric(float64(entityScanCount.Load()-before)/float64(b.N), "scans/page")
+}
+
+func waitForPatternWrites(extra int64) {
+	target := patternWriteCount.Load() + extra
+	deadline := time.Now().Add(5 * time.Second)
+	for time.Now().Before(deadline) {
+		if patternWriteCount.Load() >= target && len(patternWrites) == 0 {
+			return
+		}
+		time.Sleep(5 * time.Millisecond)
+	}
+}
+
+func TestEntityPageUsesTheMemoThenThePatternCache(t *testing.T) {
 	t.Setenv("MM_ENTITIES", "1")
 	installEntityBenchMatchers(t)
 	posts := entityBenchPosts()
-	backend := &countingEntityStore{rows: map[string]*model.PostEntityRow{}}
-	seedEntityRows(backend.rows, posts)
-	application := entityBenchApp(backend)
+	application := entityBenchApp(entityBenchLRU(t))
 	rctx := request.TestContext(t)
-	postEntityMemo.reset()
-	t.Cleanup(postEntityMemo.reset)
+	resetEntityMemos()
+	t.Cleanup(resetEntityMemos)
+	entityScanCount.Store(0)
+
+	beforeWrites := patternWriteCount.Load()
+	application.hydratePostList(rctx, posts)
+	require.Equal(t, int64(len(posts)), entityScanCount.Load())
+	var marked int
+	for _, post := range posts {
+		require.NotNil(t, post.Metadata)
+		if len(post.Metadata.Entities) > 0 {
+			marked++
+		}
+	}
+	require.NotZero(t, marked)
+	waitForPatternWrites(beforeWrites + int64(len(posts)) - patternWriteCount.Load())
 
 	application.hydratePostList(rctx, posts)
-	require.Equal(t, int64(1), backend.gets.Load())
-	require.Equal(t, int64(0), backend.saves.Load())
+	require.Equal(t, int64(len(posts)), entityScanCount.Load())
+
+	resetEntityMemos()
+	for _, post := range posts {
+		post.Metadata = nil
+	}
+	application.hydratePostList(rctx, posts)
+	require.Equal(t, int64(len(posts)), entityScanCount.Load())
 	for _, post := range posts {
 		require.NotNil(t, post.Metadata)
 	}
-
-	backend.gets.Store(0)
-	application.hydratePostList(rctx, posts)
-	require.Equal(t, int64(0), backend.gets.Load())
 }
 
-func TestEntityPageRefreshesStaleGeneration(t *testing.T) {
+func TestEntityPageServesAStaleGeneration(t *testing.T) {
 	t.Setenv("MM_ENTITIES", "1")
 	installEntityBenchMatchers(t)
-	posts := entityBenchPosts()[:1]
-	post := posts[0]
-	backend := &countingEntityStore{rows: map[string]*model.PostEntityRow{}}
-	backend.rows[post.Id] = &model.PostEntityRow{
-		PostId:            post.Id,
-		ChannelId:         post.ChannelId,
-		MessageHash:       entities.MessageHash(post.Message),
-		PatternGeneration: "stale",
-		ProtectedRanges:   [][2]int{},
-		Entities:          []*model.PostEntity{{Value: "kept"}},
-	}
-	application := entityBenchApp(backend)
-	rctx := request.TestContext(t)
-	postEntityMemo.reset()
-	t.Cleanup(postEntityMemo.reset)
+	post := entityBenchPosts()[0]
+	post.Message = "see CVE-2024-1234 today"
+	application := entityBenchApp(nil)
+	rctx, serve := application.BeginEntityServe(request.TestContext(t))
+	resetEntityMemos()
+	t.Cleanup(resetEntityMemos)
+	patternMemo.put(patternKey(post.Id, entities.MessageHash(post.Message)), patternHit{
+		generation: "stale",
+		patterns:   []*model.PostEntity{{ID: "0:4", Start: 0, End: 4, Value: "kept", TypeIDs: []string{"com.example.bench.vuln"}}},
+	}, 32)
 
-	application.hydratePostList(rctx, posts)
-	require.Equal(t, int64(1), backend.gets.Load())
-	require.Len(t, post.Metadata.Entities, 1)
+	application.hydratePostList(rctx, []*model.Post{post})
+	require.True(t, serve.Stale())
+	require.NotEmpty(t, post.Metadata.Entities)
 	require.Equal(t, "kept", post.Metadata.Entities[0].Value)
-	require.Eventually(t, func() bool {
-		return backend.saves.Load() >= 1
-	}, 2*time.Second, 10*time.Millisecond)
 }

@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"net/url"
 	"regexp"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -73,19 +74,18 @@ type registry struct {
 	matcherIndex     map[string]int
 	providers        []storedProvider
 	terms            []storedTerm
-	generations      map[string]int64
 	cachedGeneration string
-	termEpoch        int64
+	cachedTermEpoch  string
 }
 
 var reg = newRegistry()
 
 func newRegistry() *registry {
 	r := &registry{
-		types:       map[string]entityType{},
-		generations: map[string]int64{},
+		types: map[string]entityType{},
 	}
 	r.rememberGeneration()
+	r.rememberTerms()
 	return r
 }
 
@@ -98,25 +98,25 @@ func activeTerms() []storedTerm {
 }
 
 // ReplaceTerms replaces every exact term a plugin has registered for one of its types.
-// The returned generation is that type's dictionary generation after the change.
-func ReplaceTerms(pluginID, typeID string, terms []model.EntityTerm) (int64, error) {
+// The epoch is a hash of the dictionary. changed is false when the dictionary is the same.
+func ReplaceTerms(pluginID, typeID string, terms []model.EntityTerm) (string, bool, error) {
 	cleaned := make([]storedTerm, 0, len(terms))
 	seen := map[string]struct{}{}
 	for _, term := range terms {
 		if !termValueOK(term.Value) {
-			return 0, fmt.Errorf("term is not allowed")
+			return "", false, fmt.Errorf("term is not allowed")
 		}
 		if _, ok := seen[term.Value]; ok {
-			return 0, fmt.Errorf("term is duplicated")
+			return "", false, fmt.Errorf("term is duplicated")
 		}
 		seen[term.Value] = struct{}{}
 		title := strings.TrimSpace(term.Title)
 		if title == "" || utf8.RuneCountInString(title) > maxTermTitleRune {
-			return 0, fmt.Errorf("term title is not allowed")
+			return "", false, fmt.Errorf("term title is not allowed")
 		}
 		link, err := termURL(term.URL)
 		if err != nil {
-			return 0, err
+			return "", false, err
 		}
 		cleaned = append(cleaned, storedTerm{
 			owner:  pluginID,
@@ -130,7 +130,7 @@ func ReplaceTerms(pluginID, typeID string, terms []model.EntityTerm) (int64, err
 	defer reg.mu.Unlock()
 	t, ok := reg.types[typeID]
 	if !ok || t.owner != pluginID {
-		return 0, fmt.Errorf("type is not available to this plugin")
+		return "", false, fmt.Errorf("type is not available to this plugin")
 	}
 	kept := make([]storedTerm, 0, len(reg.terms))
 	count := 0
@@ -144,82 +144,34 @@ func ReplaceTerms(pluginID, typeID string, terms []model.EntityTerm) (int64, err
 		kept = append(kept, existing)
 	}
 	if count+len(cleaned) > maxTerms {
-		return 0, fmt.Errorf("term quota is exhausted")
+		return "", false, fmt.Errorf("term quota is exhausted")
 	}
 	for i := range cleaned {
 		cleaned[i].displayName = t.displayName
 	}
-	reg.terms = append(kept, cleaned...)
-	if reg.generations == nil {
-		reg.generations = map[string]int64{}
+	next := append(kept, cleaned...)
+	epoch := hashTerms(next)
+	if epoch == reg.cachedTermEpoch {
+		return epoch, false, nil
 	}
-	reg.generations[typeID]++
-	reg.termEpoch++
-	return reg.generations[typeID], nil
+	reg.terms = next
+	reg.cachedTermEpoch = epoch
+	return epoch, true, nil
 }
 
-// TermSnapshot is the in-memory dictionary, taken before a write so a failed store call can put it back.
-type TermSnapshot struct {
-	terms       []storedTerm
-	generations map[string]int64
-	epoch       int64
-}
-
-func SnapshotTerms() TermSnapshot {
-	reg.mu.RLock()
-	defer reg.mu.RUnlock()
-	generations := make(map[string]int64, len(reg.generations))
-	for id, generation := range reg.generations {
-		generations[id] = generation
-	}
-	return TermSnapshot{
-		terms:       append([]storedTerm(nil), reg.terms...),
-		generations: generations,
-		epoch:       reg.termEpoch,
-	}
-}
-
-func RestoreTerms(snap TermSnapshot) {
-	reg.mu.Lock()
-	defer reg.mu.Unlock()
-	reg.terms = append([]storedTerm(nil), snap.terms...)
-	reg.generations = snap.generations
-	if reg.generations == nil {
-		reg.generations = map[string]int64{}
-	}
-	reg.termEpoch = snap.epoch
-}
-
-// LoadTerms installs dictionary rows read from storage. It runs before plugins
-// activate, so a restart keeps recognizing terms until each plugin registers again.
-func LoadTerms(rows []model.EntityTermRow) {
-	reg.mu.Lock()
-	defer reg.mu.Unlock()
-	if reg.generations == nil {
-		reg.generations = map[string]int64{}
-	}
-	reg.terms = nil
-	for _, row := range rows {
-		if row.Generation > reg.generations[row.TypeID] {
-			reg.generations[row.TypeID] = row.Generation
+func hashTerms(terms []storedTerm) string {
+	sorted := append([]storedTerm(nil), terms...)
+	sort.Slice(sorted, func(i, j int) bool {
+		if sorted[i].typeID != sorted[j].typeID {
+			return sorted[i].typeID < sorted[j].typeID
 		}
-		if row.Value == "" {
-			continue
-		}
-		display := ""
-		if t, ok := reg.types[row.TypeID]; ok {
-			display = t.displayName
-		}
-		reg.terms = append(reg.terms, storedTerm{
-			owner:       row.PluginID,
-			typeID:      row.TypeID,
-			value:       row.Value,
-			title:       row.Title,
-			url:         row.URL,
-			displayName: display,
-		})
+		return sorted[i].value < sorted[j].value
+	})
+	h := sha256.New()
+	for _, term := range sorted {
+		fmt.Fprintf(h, "%s\n%s\n%s\n%s\n%s\n", term.typeID, term.value, term.title, term.url, term.displayName)
 	}
-	reg.termEpoch++
+	return hex.EncodeToString(h.Sum(nil))[:16]
 }
 
 func termValueOK(value string) bool {
@@ -281,11 +233,15 @@ func PatternGeneration() string {
 	return reg.cachedGeneration
 }
 
-// TermEpoch changes when a dictionary is replaced. Stored pattern rows stay valid.
-func TermEpoch() int64 {
+// TermEpoch is a hash of the dictionary. The same terms produce the same epoch on every node.
+func TermEpoch() string {
 	reg.mu.RLock()
 	defer reg.mu.RUnlock()
-	return reg.termEpoch
+	return reg.cachedTermEpoch
+}
+
+func (r *registry) rememberTerms() {
+	r.cachedTermEpoch = hashTerms(r.terms)
 }
 
 func (r *registry) rememberGeneration() {
@@ -528,7 +484,7 @@ func AddType(pluginID string, t *model.EntityType) error {
 		}
 	}
 	if renamed {
-		reg.termEpoch++
+		reg.rememberTerms()
 	}
 	reg.rememberGeneration()
 	return nil
@@ -815,7 +771,7 @@ func RemovePlugin(pluginID string) {
 		}
 	}
 	reg.terms = terms
-	reg.termEpoch++
+	reg.rememberTerms()
 }
 
 func (r *registry) matcherOwner(id string) string {

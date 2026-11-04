@@ -171,15 +171,7 @@ func (a *App) InitPlugins(rctx request.CTX, pluginDir, webappPluginDir string) {
 }
 
 func (ch *Channels) dropPluginEntities(id string) {
-	entityTermMu.Lock()
-	defer entityTermMu.Unlock()
 	entities.RemovePlugin(id)
-	if ch.srv == nil || ch.srv.Store() == nil {
-		return
-	}
-	if err := ch.srv.Store().EntityTerm().DeleteByPlugin(id); err != nil {
-		ch.srv.Log().Warn("Failed to delete entity terms", mlog.String("plugin_id", id), mlog.Err(err))
-	}
 }
 
 func (ch *Channels) initPlugins(rctx request.CTX, pluginDir, webappPluginDir string) {

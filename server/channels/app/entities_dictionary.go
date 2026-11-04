@@ -7,23 +7,12 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/mattermost/mattermost/server/v8/channels/app/entities"
 )
 
 const maxEntityPostIDs = 200
 
-func (s *Server) loadEntityTerms() {
-	rows, err := s.Store().EntityTerm().List()
-	if err != nil {
-		s.Log().Warn("Failed to load entity terms", mlog.Err(err))
-		return
-	}
-	entities.LoadTerms(rows)
-}
-
-func (a *App) publishDictionaryChanged(typeID string, generation int64) {
+func (a *App) publishDictionaryChanged(typeID string, generation string) {
 	event := model.NewWebSocketEvent(model.WebsocketEventEntitiesDictionaryChanged, "", "", "", nil, "")
 	event.Add("type_id", typeID)
 	event.Add("generation", generation)

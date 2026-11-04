@@ -127,6 +127,7 @@ type Server struct {
 	seenPendingPostIdsCache cache.Cache
 	openGraphDataCache      cache.Cache
 	entityCardCache         cache.Cache
+	entityPatternCache      cache.Cache
 	clusterLeaderListenerId string
 	loggerLicenseListenerId string
 
@@ -527,6 +528,13 @@ func NewServer(options ...Option) (*Server, error) {
 		DefaultExpiry: 30 * time.Minute,
 	}); err != nil {
 		return nil, errors.Wrap(err, "Unable to create entity card cache")
+	}
+	if s.entityPatternCache, err = s.platform.CacheProvider().NewCache(&cache.CacheOptions{
+		Name:          "entity_pattern",
+		Size:          entityPatternCacheSize,
+		DefaultExpiry: entityPatternTTL,
+	}); err != nil {
+		return nil, errors.Wrap(err, "Unable to create entity pattern cache")
 	}
 
 	s.createPushNotificationsHub(request.EmptyContext(s.Log()))
@@ -1089,8 +1097,6 @@ func (s *Server) letsEncryptHostPolicy(ctx context.Context, host string) error {
 }
 
 func (s *Server) Start() error {
-	s.loadEntityTerms()
-
 	// Start inter-cluster services first so shared channels APIs are
 	// available when plugins activate during channels startup.
 	if err := s.startInterClusterServices(s.License()); err != nil {

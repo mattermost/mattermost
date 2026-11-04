@@ -210,6 +210,27 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAc
         return handlePostReceived({...state}, action.data);
     }
 
+    case PostTypes.RECEIVED_POST_ENTITIES: {
+        const entitiesByPost = action.data as Record<string, Post['metadata']['entities']>;
+        let changed = false;
+        const nextState = {...state};
+        Object.keys(entitiesByPost || {}).forEach((id) => {
+            const post = state[id];
+            if (!post) {
+                return;
+            }
+            changed = true;
+            nextState[id] = {
+                ...post,
+                metadata: {
+                    ...post.metadata,
+                    entities: entitiesByPost[id],
+                },
+            };
+        });
+        return changed ? nextState : state;
+    }
+
     case PostTypes.RECEIVED_POSTS: {
         const posts = Object.values(action.data.posts) as Post[];
 

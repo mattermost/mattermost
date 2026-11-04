@@ -142,7 +142,7 @@ func TestApplyTermsKeepsPatternsAndSkipsCode(t *testing.T) {
 	t.Cleanup(func() { RemovePlugin(pluginID) })
 	require.NoError(t, AddType(pluginID, &model.EntityType{ID: pluginID + ".acronym", DisplayName: "Acronym"}))
 	before := PatternGeneration()
-	_, err := ReplaceTerms(pluginID, pluginID+".acronym", []model.EntityTerm{{
+	_, _, err := ReplaceTerms(pluginID, pluginID+".acronym", []model.EntityTerm{{
 		Value: "MLT",
 		Title: "Mattermost leadership team",
 		URL:   "/conflux/team/pages/abcdefghijklmnopqrstuvwxyz",
@@ -173,7 +173,7 @@ func TestApplyTermsFillsTitleOnTheSameSpan(t *testing.T) {
 		TypeID:  pluginID + ".acronym",
 		Pattern: `MLT`,
 	}))
-	_, err := ReplaceTerms(pluginID, pluginID+".acronym", []model.EntityTerm{{
+	_, _, err := ReplaceTerms(pluginID, pluginID+".acronym", []model.EntityTerm{{
 		Value: "MLT",
 		Title: "Mattermost leadership team",
 		URL:   "/conflux/team/pages/abcdefghijklmnopqrstuvwxyz",
@@ -364,30 +364,24 @@ func TestRemovedMatcherIsNotPresented(t *testing.T) {
 	require.Empty(t, Present(found, ReadContext{}))
 }
 
-func TestLoadedTermTakesItsDisplayNameWhenTheTypeArrives(t *testing.T) {
-	snap := SnapshotTerms()
-	t.Cleanup(func() {
-		RestoreTerms(snap)
-		RemovePlugin("com.example.loaded")
-	})
+func TestRenamedTypeUpdatesTheTermDisplayName(t *testing.T) {
 	const pluginID = "com.example.loaded"
+	t.Cleanup(func() { RemovePlugin(pluginID) })
 	typeID := pluginID + ".acronym"
-	LoadTerms([]model.EntityTermRow{{
-		TypeID:     typeID,
-		PluginID:   pluginID,
-		Generation: 3,
-		Value:      "MLT",
-		Title:      "Leadership team",
-		URL:        "/conflux/team/pages/abcdefghijklmnopqrstuvwxyz",
+	require.NoError(t, AddType(pluginID, &model.EntityType{ID: typeID, DisplayName: "Acronym"}))
+	_, _, err := ReplaceTerms(pluginID, typeID, []model.EntityTerm{{
+		Value: "MLT",
+		Title: "Leadership team",
+		URL:   "/conflux/team/pages/abcdefghijklmnopqrstuvwxyz",
 	}})
+	require.NoError(t, err)
+	before := TermEpoch()
+	require.NoError(t, AddType(pluginID, &model.EntityType{ID: typeID, DisplayName: "Abbreviation"}))
+	require.NotEqual(t, before, TermEpoch())
 	shown := ApplyTerms("ask the MLT", nil, nil)
 	require.Len(t, shown, 1)
-	require.Empty(t, shown[0].DisplayName)
+	require.Equal(t, "Abbreviation", shown[0].DisplayName)
 	require.Empty(t, shown[0].MatcherID)
-
-	require.NoError(t, AddType(pluginID, &model.EntityType{ID: typeID, DisplayName: "Acronym"}))
-	shown = ApplyTerms("ask the MLT", nil, nil)
-	require.Equal(t, "Acronym", shown[0].DisplayName)
 }
 
 func TestValidateChangesThePatternGeneration(t *testing.T) {
