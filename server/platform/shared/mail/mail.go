@@ -154,31 +154,18 @@ func ConnectToSMTPServer(config *SMTPConfig) (net.Conn, error) {
 	return ConnectToSMTPServerAdvanced(config)
 }
 
-// NewSMTPClientAdvanced reads the server greeting and runs Hello, StartTLS and Auth. ctx bounds only the
-// greeting: the later steps take no context, so callers that need them bounded must close conn when ctx ends.
-// A greeting still pending when ctx ends returns once the caller closes conn.
+// NewSMTPClientAdvanced reads the server greeting and runs Hello, StartTLS and Auth. If ctx ends while it
+// waits for the greeting, it closes conn and returns ctx's error. The later steps are not bounded by ctx.
 func NewSMTPClientAdvanced(ctx context.Context, conn net.Conn, config *SMTPConfig) (*smtp.Client, error) {
-	type greeting struct {
-		client *smtp.Client
-		err    error
-	}
-	// Buffered so the greeting goroutine can exit after ctx ends first.
-	greeted := make(chan greeting, 1)
-	go func() {
-		c, err := smtp.NewClient(conn, config.ServerName+":"+config.Port)
-		greeted <- greeting{client: c, err: err}
-	}()
-
-	var g greeting
-	select {
-	case <-ctx.Done():
+	// smtp.NewClient takes no context; closing conn is the only way to unblock its read of the greeting.
+	stop := context.AfterFunc(ctx, func() { conn.Close() })
+	c, err := smtp.NewClient(conn, config.ServerName+":"+config.Port)
+	if !stop() {
 		return nil, errors.Wrap(ctx.Err(), "unable to connect to the SMTP server")
-	case g = <-greeted:
 	}
-	if g.err != nil {
-		return nil, errors.Wrap(g.err, "unable to connect to the SMTP server")
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to connect to the SMTP server")
 	}
-	c := g.client
 
 	if config.Hostname != "" {
 		err := c.Hello(config.Hostname)
