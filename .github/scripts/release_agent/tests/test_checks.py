@@ -211,16 +211,16 @@ class NewRegressionsTest(unittest.TestCase):
         self.assertEqual(lead_for(team="Workflows", components=["Bookmarks Bar"]), "lead")
         self.assertIsNone(lead_for(team="Workflows"))
 
-    def test_real_tickets_team_field(self):
+    def test_team_field_of_search_results(self):
         issues = json.loads((FIXTURES / "jira-search-team-field.json").read_text())["issues"]
-        self.assertEqual([checks.team_names(i["fields"][TEAM_FIELD]) for i in issues], [["Reliability"], ["Workflows"]])
+        self.assertEqual([checks.team_names(i["fields"][TEAM_FIELD]) for i in issues], [["Reliability"], ["Unrouted Team"]])
         jira = FakeJira({"fixVersion": issues})
         hub = FakeHub()
         hub.users = [{"username": "jesse.hallam", "first_name": "Jesse", "last_name": "Hallam"}]
         result = checks.open_release_items(context(jira=jira, hub=hub), RULES["open-release-items"])
         self.assertEqual([(i.label, i.owner, i.reason) for i in result.items], [
-            ("MM-71364", "@jesse.hallam", "unassigned"),  # Team = Reliability
-            ("MM-70317", "", "unassigned"),  # Team = Workflows, which has no route; component Bookmarks Bar
+            ("MM-90001", "@jesse.hallam", "unassigned"),  # Team = Reliability
+            ("MM-90002", "", "unassigned"),  # Team = Unrouted Team, which has no route; no component route either
         ])
 
     def test_team_field_values(self):

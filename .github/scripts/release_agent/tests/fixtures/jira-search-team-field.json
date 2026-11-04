@@ -1,11 +1,10 @@
 {
-  "_source": "Real MM tickets read from mattermost.atlassian.net on 2026-10-30 (MM-71364, MM-70317), laid out as a POST /rest/api/3/search/jql response; customfield_10800 is the Atlassian Team field. Summaries, labels and the component's description and Compass metadata are left out of this public repo. The layout is reconstructed; _refresh records the raw response (trim it the same way before committing).",
-  "_refresh": "curl -s -u \"$RELEASE_AGENT_JIRA_EMAIL:$RELEASE_AGENT_JIRA_TOKEN\" -H 'Content-Type: application/json' -X POST https://mattermost.atlassian.net/rest/api/3/search/jql -d '{\"jql\":\"key in (MM-71364, MM-70317)\",\"fields\":[\"summary\",\"status\",\"assignee\",\"labels\",\"fixVersions\",\"resolution\",\"components\",\"customfield_10800\"]}'",
+  "_source": "Made-up tickets, laid out like a POST /rest/api/3/search/jql response; customfield_10800 is the Atlassian Team field. Keys, ids and avatar URLs are invented. Reliability is a team with a route in rules.yml; Unrouted Team has none.",
   "isLast": true,
   "issues": [
     {
-      "id": "155060",
-      "key": "MM-71364",
+      "id": "990001",
+      "key": "MM-90001",
       "fields": {
         "summary": "(left out)",
         "status": {
@@ -16,14 +15,14 @@
         "assignee": null,
         "labels": [],
         "fixVersions": [
-          {"id": "16328", "description": "", "name": "v12.1 (November 2026)", "archived": false, "released": false, "releaseDate": "2026-11-16"}
+          {"id": "99001", "description": "", "name": "v12.1 (November 2026)", "archived": false, "released": false, "releaseDate": "2026-11-16"}
         ],
         "resolution": null,
         "components": [],
         "customfield_10800": {
-          "id": "b51431f6-cd1f-4a64-9fce-55adf9977b92",
+          "id": "00000000-0000-4000-8000-000000000001",
           "name": "Reliability",
-          "avatarUrl": "https://teams-directory-frontend.prod-east.frontend.public.atl-paas.net/assets/teams/avatars/v4/purple_no-highlight_3.svg",
+          "avatarUrl": "https://example.invalid/avatars/team-1.svg",
           "isVisible": true,
           "isVerified": false,
           "title": "Reliability",
@@ -32,8 +31,8 @@
       }
     },
     {
-      "id": "153310",
-      "key": "MM-70317",
+      "id": "990002",
+      "key": "MM-90002",
       "fields": {
         "summary": "(left out)",
         "status": {
@@ -45,14 +44,14 @@
         "labels": [],
         "fixVersions": [],
         "resolution": null,
-        "components": [{"id": "14701", "name": "Bookmarks Bar"}],
+        "components": [{"id": "99901", "name": "Example Component"}],
         "customfield_10800": {
-          "id": "1d525752-1010-45bf-95eb-0a449c8ab640",
-          "name": "Workflows",
-          "avatarUrl": "https://teams-directory-frontend.prod-east.frontend.public.atl-paas.net/assets/teams/avatars/v4/red_no-highlight_1.svg",
+          "id": "00000000-0000-4000-8000-000000000002",
+          "name": "Unrouted Team",
+          "avatarUrl": "https://example.invalid/avatars/team-2.svg",
           "isVisible": true,
           "isVerified": false,
-          "title": "Workflows",
+          "title": "Unrouted Team",
           "isShared": true
         }
       }

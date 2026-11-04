@@ -92,9 +92,6 @@ rules:
       # Unassigned and bot tickets go to the first route naming the ticket's Jira Team, else
       # the first naming one of its components, else Unassigned. Usernames are Hub
       # usernames; every run flags any that isn't an active Hub user. Changes go through a PR.
-      # Teams with no route are listed under Unassigned: Workflows (the team no longer exists,
-      # but tickets such as the Bookmarks Bar ones still carry it), Product Security,
-      # UX Design, Pod: PL3 Protection, CRE and Federal Biz Development.
       dev_leads:
         match_field: team
         team_field: customfield_10800  # Jira "Team" (Atlassian team field)
