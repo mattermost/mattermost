@@ -341,13 +341,11 @@ def _split_source(source: str) -> tuple[str, int]:
     return repo, int(number)
 
 
-_DOCS_LINE_RE = re.compile(r"(?im)^[ \t]*Docs(?:[ \t]+page)?:[ \t]*(.*?)[ \t]*$\n?")
-# The same label in the middle of a line, once the template's newlines are gone.
-_DOCS_INLINE_RE = re.compile(r"(?i)[ \t]*\bDocs(?:[ \t]+page)?:[ \t]*(https?://[^\s)>\]]+|/[^\s)>\]]+)")
+_DOCS_LINE_RE = re.compile(r"(?im)^[ \t]*Docs:[ \t]*(.*?)[ \t]*$\n?")
 
 
 def split_docs_line(note: str) -> tuple[str, str | None]:
-    """A release note without its ``Docs: <url>`` (or ``Docs page:``) line, and the docs URL it names.
+    """A release note without its ``Docs: <url>`` line, and the docs URL that line names.
 
     The author knows which page documents the change, so it outranks the docs page
     found by following the PR. A path is taken as relative to docs.mattermost.com.
@@ -359,14 +357,7 @@ def split_docs_line(note: str) -> tuple[str, str | None]:
             value = changelog_release.DOCS_SITE + value
         if url is None and changelog_release.DOCS_URL_RE.fullmatch(value):
             url = value
-    note = _DOCS_LINE_RE.sub("", note)
-    for value in _DOCS_INLINE_RE.findall(note):
-        value = value.rstrip(".,;")
-        if value.startswith("/"):
-            value = changelog_release.DOCS_SITE + value
-        if url is None and changelog_release.DOCS_URL_RE.fullmatch(value):
-            url = value
-    return _DOCS_INLINE_RE.sub("", note).strip(), url
+    return _DOCS_LINE_RE.sub("", note).strip(), url
 
 
 def extract_release_notes(body: str) -> list[str] | None:
@@ -1051,16 +1042,26 @@ def _sources_of(sources_by_id: dict, referenced: set) -> set:
     return {sources_by_id[note_id] for note_id in referenced if note_id in sources_by_id}
 
 
-def migration_restated(text: str, migrations: list[str]) -> str | None:
-    """The listed migration a developer's note names by number or name, or None.
+_MIGRATION_FILLER = {"added", "removed", "the", "a", "new", "database", "schema", "migration", "migrations", "file", "sql", "to", "for"}
 
-    A note such as "Added the number property field type (migration 000238)." restates the
-    Database Schema Changes bullet written for that migration.
+
+def migration_restated(text: str, migrations: list[str]) -> str | None:
+    """The listed migration a developer's note only names, or None.
+
+    A note such as "Added migration 000238." restates the Database Schema Changes bullet
+    written for that migration. A note that also says what the change is for, such as
+    "Added the number property field type (migration 000238).", is kept: its feature
+    would be lost with it.
     """
     for name in migrations:
         number = name.split("_", 1)[0]
-        if re.search(r"(?<![\w])" + re.escape(name) + r"(?![\w])", text) or (
-                number.isdigit() and re.search(r"(?<!\d)" + re.escape(number) + r"(?!\d)", text)):
+        pattern = r"(?<![\w])" + re.escape(name) + r"(?![\w])"
+        if number.isdigit():
+            pattern += r"|(?<!\d)" + re.escape(number) + r"(?!\d)"
+        if not re.search(pattern, text):
+            continue
+        rest = re.findall(r"[a-z]+", re.sub(pattern, " ", text).lower())
+        if all(word in _MIGRATION_FILLER for word in rest):
             return name
     return None
 
@@ -1965,7 +1966,7 @@ def render_fragment(notes: list[dict], sources_by_id: dict) -> tuple[str, list[d
     for note in notes:
         if note.get("docs_url"):
             url_sources.setdefault(note["docs_url"], set()).add(note["source"])
-    polished = drop_repeated_notes(drop_misplaced_doc_links(strip_docs_page_labels(polished), url_sources, sources_by_id))
+    polished = drop_repeated_notes(drop_misplaced_doc_links(polished, url_sources, sources_by_id))
     polished, items, referenced = extract_source_markers(polished, sources_by_id)
 
     items, referenced = _drop_go_version(items, referenced)
@@ -2008,12 +2009,6 @@ def _bullet_blocks(lines: list[str]) -> list[dict]:
             continue
         index += 1
     return blocks
-
-
-def strip_docs_page_labels(text: str) -> str:
-    """Remove ``Docs page: <url>`` lines the model copied from its input into the changelog text."""
-    text = re.sub(r"(?im)^[ \t]*Docs(?:[ \t]+page)?:.*\n?", "", text)
-    return _DOCS_INLINE_RE.sub("", text)
 
 
 def drop_misplaced_doc_links(text: str, url_sources: dict, sources_by_id: dict) -> str:
@@ -2138,7 +2133,7 @@ def _place_missing(polished: str, items: list[dict], referenced: set, missing: l
     wanted = {note["id"] for note in missing}
     retry_text = drop_bulletless_sections(keep_requested_bullets(normalize_formatting(retry_raw), wanted))
     retry_text = escape_mdx_unsafe(normalize_formatting(retry_text))
-    retry_text = drop_misplaced_doc_links(strip_docs_page_labels(retry_text), url_sources, sources_by_id)
+    retry_text = drop_misplaced_doc_links(retry_text, url_sources, sources_by_id)
     retry_text, retry_items, retry_referenced = extract_source_markers(retry_text, sources_by_id)
     retry_items, retry_referenced = _drop_go_version(retry_items, retry_referenced)
     if not retry_referenced & wanted:

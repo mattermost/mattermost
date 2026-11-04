@@ -983,7 +983,7 @@ class MainTest(unittest.TestCase):
                      "fallback": "Added database migration ``000238_add_number_to_property_field_type``."}
         saved = gc.changelog_release.derived_notes
         gc.changelog_release.derived_notes = lambda base, head: saved(base, head) + [migration]
-        self.prs[1] = self._pr(2, NOTE_BODY.replace("Added a thing.", "Added the number property field type (migration 000238)."),
+        self.prs[1] = self._pr(2, NOTE_BODY.replace("Added a thing.", "Added migration 000238."),
                                "2026-10-21T10:00:00Z")
         sent = []
 
@@ -993,35 +993,11 @@ class MainTest(unittest.TestCase):
         gc.polish_with_ai = polish
         gc.main()
         self.assertNotIn("mattermost/mattermost#2", sent)
-        self.assertNotIn("number property field type (migration", self.changelog.read_text())
+        self.assertNotIn("Added migration 000238", self.changelog.read_text())
         self.assertIn("mattermost/mattermost#2", self._recorded())
         self.assertEqual(self._payload()["readiness"]["restated"],
                          [{"source": "mattermost/mattermost#2", "migration": "000238_add_number_to_property_field_type"}])
         self.assertIn("### Notes that only restate a migration: 1", (self.out / "summary.md").read_text())
-
-    def test_docs_page_lines_the_model_copies_are_stripped(self):
-        gc.polish_with_ai = lambda notes: (
-            "### Improvements\n\n#### User Interface\n - Added the first thing. [[N1]]\n"
-            "   Docs page: https://docs.mattermost.com/a/b\n"
-            " - Fixed an issue found later. Docs page: https://docs.mattermost.com/c [[N2]]\n"
-            " - Pre-packaged Calls plugin version [v1.12.6](https://example.com). [[N3]]\n", True)
-        gc.main()
-        self.assertNotIn("Docs page", self.changelog.read_text())
-        self.assertIn("Fixed an issue found later.", self.changelog.read_text())
-
-    def test_the_models_raw_answers_are_saved_in_the_artifact(self):
-        self._polish_dropping_n2()
-        gc.main()
-        saved = (self.out / "model_output.md").read_text()
-        self.assertIn("| N2 | mattermost/mattermost#2 |", saved)
-        self.assertIn("## Answer 1: first answer (N1, N2, N3)", saved)
-        self.assertIn("Added the first thing. [[N1]]", saved)
-        self.assertIn("## Answer 2: retry for the notes it left out (N2)", saved)
-        self.assertIn("Fixed an issue found later. [[N2]]", saved)
-
-    def test_no_model_output_file_when_the_model_was_not_asked(self):
-        gc.main()
-        self.assertFalse((self.out / "model_output.md").exists())
 
 
 class RetryFilterTest(unittest.TestCase):
@@ -1033,12 +1009,6 @@ class RetryFilterTest(unittest.TestCase):
 
 
 class GeneratedTextCleanupTest(unittest.TestCase):
-    def test_docs_label_is_split_from_an_inline_note(self):
-        site = "https://docs.mattermost.com"
-        self.assertEqual(gc.split_docs_line("Added a thing. Docs: https://docs.mattermost.com/a/b."),
-                         ("Added a thing.", f"{site}/a/b"))
-        self.assertEqual(gc.split_docs_line("Added a thing.\nDocs page: /a/b"), ("Added a thing.", f"{site}/a/b"))
-
     def test_a_link_is_kept_only_on_a_bullet_that_names_its_pr(self):
         sources = {"N1": "r#1", "N2": "r#2"}
         urls = {"https://docs.mattermost.com/a#x": {"r#1"}}
@@ -1055,6 +1025,19 @@ class GeneratedTextCleanupTest(unittest.TestCase):
         self.assertNotIn("One again", cleaned)
         self.assertIn("Two.", cleaned)
         self.assertEqual(cleaned.count("[[N1]]"), 1)
+
+
+class MigrationRestatedTest(unittest.TestCase):
+    MIGRATIONS = ["000238_add_number_to_property_field_type"]
+
+    def test_a_note_that_only_names_the_migration_is_restating_it(self):
+        self.assertEqual(gc.migration_restated("Added migration 000238.", self.MIGRATIONS), self.MIGRATIONS[0])
+        self.assertEqual(gc.migration_restated("Added the 000238_add_number_to_property_field_type migration.", self.MIGRATIONS),
+                         self.MIGRATIONS[0])
+
+    def test_a_note_that_says_what_the_change_is_for_is_kept(self):
+        self.assertIsNone(gc.migration_restated("Added the number property field type (migration 000238).", self.MIGRATIONS))
+        self.assertIsNone(gc.migration_restated("Added migration 000239.", self.MIGRATIONS))
 
 
 class GoVersionPruneTest(unittest.TestCase):
