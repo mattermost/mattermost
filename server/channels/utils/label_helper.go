@@ -3,7 +3,9 @@
 
 package utils
 
+import "strings"
+
 // TrimLabel returns the label without the spaces around it.
 func TrimLabel(s string) string {
-	return s
+	return strings.TrimSpace(s)
 }
