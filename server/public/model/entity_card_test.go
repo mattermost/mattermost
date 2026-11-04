@@ -3,7 +3,10 @@
 
 package model
 
-import "testing"
+import (
+	"encoding/json"
+	"testing"
+)
 
 func TestNormalizeEntityCardCapsTheDrawing(t *testing.T) {
 	card := &EntityCard{Map: &EntityCardMap{
@@ -52,5 +55,25 @@ func TestNormalizeEntityCardDropsUnsafeURLs(t *testing.T) {
 	NormalizeEntityCard(card)
 	if card.URL != "" || card.Related[0].URL == "" || card.Related[1].URL != "" || card.Sections[0].URL == "" || card.Sections[0].Items[0].URL != "" || card.Sections[0].Items[1].URL == "" {
 		t.Fatalf("card urls = %#v", card)
+	}
+}
+
+func TestNormalizeEntityCardKeepsRenderOnlyBlocks(t *testing.T) {
+	card := &EntityCard{Blocks: []byte(`[
+		{"type":"text","text":"hello"},
+		{"type":"button","label":"Go"},
+		{"type":"static_select","options":[{"label":"a","value":"a"}]},
+		{"type":"divider"}
+	]`)}
+	NormalizeEntityCard(card)
+	if !EntityCardHasBody(card) {
+		t.Fatalf("expected body after sanitize")
+	}
+	var blocks []map[string]any
+	if err := json.Unmarshal(card.Blocks, &blocks); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	if len(blocks) != 2 || blocks[0]["type"] != "text" || blocks[1]["type"] != "divider" {
+		t.Fatalf("blocks = %#v", blocks)
 	}
 }

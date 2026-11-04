@@ -23,9 +23,13 @@ type EntityCard struct {
 	Vector    []EntityCardMetric  `json:"vector,omitempty"`
 	Related   []EntityCardLink    `json:"related,omitempty"`
 	Sections  []EntityCardSection `json:"sections,omitempty"`
-	URL       string              `json:"url,omitempty"`
-	Map       *EntityCardMap      `json:"map,omitempty"`
-	Instant   int64               `json:"instant,omitempty"`
+	// Blocks is an optional Mattermost Blocks body (render-only). When set, the
+	// client prefers it over Summary, Rows, Vector, and Sections. Title, value,
+	// severity, Related, Map, and Instant stay outside the block tree.
+	Blocks  json.RawMessage `json:"blocks,omitempty"`
+	URL     string          `json:"url,omitempty"`
+	Map     *EntityCardMap  `json:"map,omitempty"`
+	Instant int64           `json:"instant,omitempty"`
 }
 
 // EntityCardFallbackSummary is placeholder text. It does not open a side panel by itself.
@@ -43,6 +47,9 @@ func EntityCardHasBody(card *EntityCard) bool {
 		return true
 	}
 	if len(card.Rows) > 0 || len(card.Vector) > 0 || len(card.Related) > 0 || len(card.Sections) > 0 {
+		return true
+	}
+	if len(card.Blocks) > 0 && string(card.Blocks) != "null" && string(card.Blocks) != "[]" {
 		return true
 	}
 	return card.Map != nil && (len(card.Map.Points) > 0 || len(card.Map.GeoJSON) > 0)
@@ -71,6 +78,7 @@ func NormalizeEntityCard(card *EntityCard) {
 	if card.Map != nil {
 		card.Map = normalizeEntityCardMap(card.Map)
 	}
+	card.Blocks = normalizeEntityCardBlocks(card.Blocks)
 }
 
 func entityCardURL(raw string) string {
@@ -118,6 +126,101 @@ func normalizeEntityCardMap(drawing *EntityCardMap) *EntityCardMap {
 		return nil
 	}
 	return &EntityCardMap{Kind: drawing.Kind, Points: points, GeoJSON: geo}
+}
+
+const (
+	entityCardMaxBlocks     = 100
+	entityCardMaxBlockBytes = 32 * 1024
+)
+
+func normalizeEntityCardBlocks(raw json.RawMessage) json.RawMessage {
+	if len(raw) == 0 || string(raw) == "null" {
+		return nil
+	}
+	if len(raw) > entityCardMaxBlockBytes || !json.Valid(raw) {
+		return nil
+	}
+	var blocks []any
+	if err := json.Unmarshal(raw, &blocks); err != nil {
+		return nil
+	}
+	cleaned := sanitizeEntityBlocks(blocks, 0)
+	if len(cleaned) == 0 {
+		return nil
+	}
+	if len(cleaned) > entityCardMaxBlocks {
+		cleaned = cleaned[:entityCardMaxBlocks]
+	}
+	out, err := json.Marshal(cleaned)
+	if err != nil || len(out) > entityCardMaxBlockBytes {
+		return nil
+	}
+	return out
+}
+
+func sanitizeEntityBlocks(blocks []any, depth int) []any {
+	if depth > 32 {
+		return nil
+	}
+	out := make([]any, 0, len(blocks))
+	for _, raw := range blocks {
+		block, ok := raw.(map[string]any)
+		if !ok {
+			continue
+		}
+		typ, _ := block["type"].(string)
+		switch typ {
+		case "button", "static_select":
+			continue
+		case "text", "image", "divider":
+			out = append(out, block)
+		case "container", "collapsible":
+			next := copyEntityBlock(block)
+			if content, ok := block["content"].([]any); ok {
+				next["content"] = sanitizeEntityBlocks(content, depth+1)
+			}
+			if header, ok := block["header"].([]any); ok {
+				next["header"] = sanitizeEntityBlocks(header, depth+1)
+			}
+			out = append(out, next)
+		case "column_set":
+			next := copyEntityBlock(block)
+			cols, _ := block["columns"].([]any)
+			cleanedCols := make([]any, 0, len(cols))
+			for _, colRaw := range cols {
+				col, ok := colRaw.(map[string]any)
+				if !ok {
+					continue
+				}
+				if colType, _ := col["type"].(string); colType != "" && colType != "column" {
+					continue
+				}
+				colNext := copyEntityBlock(col)
+				colNext["type"] = "column"
+				if items, ok := col["items"].([]any); ok {
+					colNext["items"] = sanitizeEntityBlocks(items, depth+1)
+				}
+				cleanedCols = append(cleanedCols, colNext)
+			}
+			next["columns"] = cleanedCols
+			out = append(out, next)
+		case "column":
+			next := copyEntityBlock(block)
+			if items, ok := block["items"].([]any); ok {
+				next["items"] = sanitizeEntityBlocks(items, depth+1)
+			}
+			out = append(out, next)
+		}
+	}
+	return out
+}
+
+func copyEntityBlock(block map[string]any) map[string]any {
+	next := make(map[string]any, len(block))
+	for k, v := range block {
+		next[k] = v
+	}
+	return next
 }
 
 // EntityCardMap is a drawing for the side panel. Core caps it. The plugin's webapp paints it.

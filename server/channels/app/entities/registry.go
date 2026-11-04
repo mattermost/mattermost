@@ -293,7 +293,11 @@ func Prepare(ctx context.Context, typeID, value string) (*model.EntityCard, *Rem
 	}
 	if core {
 		card, err := CoreLookup(ctx, typeID, value)
-		return card, nil, err
+		if err != nil {
+			return nil, nil, err
+		}
+		model.NormalizeEntityCard(card)
+		return card, nil, nil
 	}
 	return &model.EntityCard{TypeID: typeID, Value: value, Title: value}, nil, nil
 }
@@ -449,11 +453,6 @@ func groupBody(pattern string, open int) (string, bool) {
 		}
 	}
 	return "", false
-}
-
-// CoreLookup describes a value using a built-in type. Plugins own every type.
-func CoreLookup(context.Context, string, string) (*model.EntityCard, error) {
-	return nil, fmt.Errorf("unsupported entity")
 }
 
 // TermCard is the autolink stored for an exact term: its expansion and its link.
@@ -693,7 +692,12 @@ func (r *registry) typeHasCard(typeID string) bool {
 			return true
 		}
 	}
-	return false
+	t, ok := r.types[typeID]
+	return ok && t.owner == coreOwner && coreTypeHasCard(typeID)
+}
+
+func coreTypeHasCard(typeID string) bool {
+	return typeID == coreTimeTypeID
 }
 
 func scopeAllows(scope []string, ctx ReadContext) bool {

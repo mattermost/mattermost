@@ -100,7 +100,7 @@ func postContainsEntity(post *model.Post, typeID, value string) bool {
 	return false
 }
 
-func (a *App) GetEntityCardForPost(rctx request.CTX, postID, occurrence string) (*model.EntityCard, *model.AppError) {
+func (a *App) GetEntityCardForPost(rctx request.CTX, postID, occurrence, preferredTypeID string) (*model.EntityCard, *model.AppError) {
 	if !a.entitiesEnabled() {
 		return nil, model.NewAppError("GetEntityCardForPost", "api.context.404.app_error", nil, "", http.StatusNotFound)
 	}
@@ -122,16 +122,39 @@ func (a *App) GetEntityCardForPost(rctx request.CTX, postID, occurrence string) 
 	if entity == nil || len(entity.TypeIDs) == 0 {
 		return nil, model.NewAppError("GetEntityCardForPost", "api.context.404.app_error", nil, "", http.StatusNotFound)
 	}
-	for _, typeID := range entity.TypeIDs {
-		if remote := entities.ProviderFor(typeID); remote != nil {
+	typeIDs := entity.TypeIDs
+	if preferredTypeID != "" {
+		ordered := make([]string, 0, len(typeIDs))
+		for _, typeID := range typeIDs {
+			if typeID == preferredTypeID {
+				ordered = append(ordered, typeID)
+			}
+		}
+		for _, typeID := range typeIDs {
+			if typeID != preferredTypeID {
+				ordered = append(ordered, typeID)
+			}
+		}
+		if len(ordered) > 0 && ordered[0] == preferredTypeID {
+			typeIDs = ordered
+		}
+	}
+	for _, typeID := range typeIDs {
+		card, remote, err := entities.Prepare(rctx.Context(), typeID, entity.Value)
+		if err != nil {
+			continue
+		}
+		if remote != nil {
 			if got := a.lookupEntityProvider(rctx, remote, typeID, entity.Value, post.Id, post.CreateAt); got != nil {
 				return got, nil
 			}
 		}
-	}
-	for _, typeID := range entity.TypeIDs {
 		if term, ok := entities.TermCard(typeID, entity.Value); ok {
 			return term, nil
+		}
+		if card != nil {
+			model.NormalizeEntityCard(card)
+			return card, nil
 		}
 	}
 	return &model.EntityCard{TypeID: entity.TypeIDs[0], Value: entity.Value, Title: entity.Value}, nil
