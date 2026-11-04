@@ -6,9 +6,13 @@ import javascript from 'highlight.js/lib/languages/javascript';
 import plaintext from 'highlight.js/lib/languages/plaintext';
 import swift from 'highlight.js/lib/languages/swift';
 
-import {highlight} from './syntax_highlighting';
+import {installMessageChannel} from 'tests/helpers/message_channel';
+
+import {canHighlightCode, highlight} from './syntax_highlighting';
 
 jest.mock('highlight.js/lib/core');
+
+installMessageChannel();
 
 describe('utils/syntax_highlighting.tsx', () => {
     it('should register full name language', async () => {
@@ -33,5 +37,19 @@ describe('utils/syntax_highlighting.tsx', () => {
         await highlight('vtt', '');
 
         expect(hlJS.registerLanguage).toHaveBeenCalledWith('vtt', plaintext);
+    });
+
+    describe('canHighlightCode', () => {
+        it('should accept a supported language within the length limit', () => {
+            expect(canHighlightCode('js', 'x'.repeat(5000))).toBe(true);
+        });
+
+        it('should reject code over the length limit', () => {
+            expect(canHighlightCode('js', 'x'.repeat(5001))).toBe(false);
+        });
+
+        it('should reject an unsupported language', () => {
+            expect(canHighlightCode('not-a-real-language', 'x')).toBe(false);
+        });
     });
 });
