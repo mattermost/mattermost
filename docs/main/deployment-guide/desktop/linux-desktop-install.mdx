@@ -121,12 +121,12 @@ An AppImage runs on most Linux distributions without being installed. To update 
 </TabItem>
 <TabItem value="tarball" label="Tarball">
 
-A compressed tarball is available for most Linux distributions from the [GitHub releases page](https://github.com/mattermost/desktop/releases). To update it, download and extract the new version.
+A compressed tarball is available for most Linux distributions from the [GitHub releases page](https://github.com/mattermost/desktop/releases). To update it, download and extract the new version into the same directory. If you extract it to a different directory, run `create_desktop_file.sh` again from the new directory and move the `.desktop` file it creates to `~/.local/share/applications/`, so the launcher doesn't point to the old version.
 
 ## Install the Desktop App's compressed tarball
 
 1.  Download the latest version of the Mattermost desktop app for 64-bit systems: [mattermost-desktop-6.3.2-linux-x64.tar.gz](https://releases.mattermost.com/desktop/6.3.2/mattermost-desktop-6.3.2-linux-x64.tar.gz)
-2.  Extract the archive to a convenient location, then give `chrome-sandbox` in the extracted directory the required ownership and permissions:
+2.  Extract the archive to a convenient location, then go to the extracted directory and give `chrome-sandbox` the required ownership and permissions:
 
     ``` sh
     sudo chown root:root chrome-sandbox && sudo chmod 4755 chrome-sandbox

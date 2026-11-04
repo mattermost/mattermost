@@ -178,7 +178,7 @@ As an advanced option, you can use `config.json` to set initial servers and sett
 The app data folder is per-user, so the copy step must run as the signed-in user, not as `SYSTEM`. Common ways to do this:
 
 - **Separate user-context deployment**: A second script that only copies `config.json`, configured to run as the user (Intune: **Install behavior** set to **User**; SCCM: **Installation behavior** set to **Install for user**), with a dependency on the system-context MSI deployment.
-- **Active Setup**: The system-context install registers an Active Setup `StubPath` command (under `HKLM\SOFTWARE\Microsoft\Active Setup\Installed Components`) that copies `config.json`. Windows runs it once for each user at their next sign-in.
+- **Active Setup**: The system-context install registers an Active Setup `StubPath` command (under `HKLM\SOFTWARE\Microsoft\Active Setup\Installed Components`) that copies `config.json`. Windows runs it once for each user at their next sign-in. If a user can launch the app before then, the app creates its own `config.json` first and the script leaves it untouched, so use this option only for users who haven't launched the app yet, or use a user-context deployment that runs before they can.
 - **Logon script**: A Group Policy logon script copies the file.
 
 ``` batch
@@ -194,6 +194,6 @@ copy "\\SERVER\shared_folder\config.json" "%APPDATA%\Mattermost\config.json"
 On Windows and Linux, the app downloads Hunspell dictionaries from Chromium's CDN. On macOS, it uses the dictionaries provided by Apple. If your network blocks the CDN, you can host the dictionaries yourself:
 
 1.  Download `hunspell_dictionaries.zip` from the [latest Electron release](https://github.com/electron/electron/releases/latest), and extract it.
-2.  Rename the files to lowercase. For example, `en-US` becomes `en-us`.
-3.  Serve the files from a web server.
+2.  Make the files available in lowercase as well. For example, `en-US` also needs to be served as `en-us`.
+3.  Serve the files from a web server. If the server is case-sensitive, host each file twice: once with the filename from the ZIP file, and once in lowercase.
 4.  Point the app at the folder URL, either with `"spellCheckerURL": "https://<your-server>/<folder>/"` in [config.json](#seed-configjson), or in **Settings \> Language \> Use an alternative dictionary URL**.
