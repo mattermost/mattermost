@@ -112,28 +112,19 @@ func (s *MmctlE2ETestSuite) TestlogsCmdF() {
 		}
 	})
 
-	s.RunForSystemAdminAndLocal("Ignore the deprecated plain flag", func(c client.Client) {
-		marker := logMarker()
-		cmd := newTestCmd(s.T(), LogsCmd)
-		s.Require().NoError(cmd.Flags().Set("plain", "true"))
-		s.Require().NoError(cmd.Flags().Set("search", marker))
-
-		data, _, err := testLogsCmdF(c, cmd, []string{})
-		s.Require().NoError(err)
-		s.Require().Len(data, 1)
-		s.Contains(data[0], marker)
-	})
-
 	s.RunForSystemAdminAndLocal("Follow new log entries", func(c client.Client) {
 		marker := "mmctl_logs_follow_" + model.NewId()
 		opts := &logsOptions{number: DefaultPageSize, follow: true, interval: logsMinInterval, search: marker}
 		queried := &queriedClient{Client: c, queried: make(chan struct{})}
-		var stdout, stderr syncBuffer
+		var stdout syncBuffer
+		var warnings []string
+		follower := newLogFollower(queried, opts, &stdout)
+		follower.warn = func(msg string) { warnings = append(warnings, msg) }
 
 		ctx, cancel := context.WithCancel(s.T().Context())
 		done := make(chan error, 1)
 		go func() {
-			done <- newLogFollower(queried, opts, &stdout, &stderr).run(ctx)
+			done <- follower.run(ctx)
 		}()
 
 		select {
@@ -153,7 +144,8 @@ func (s *MmctlE2ETestSuite) TestlogsCmdF() {
 
 		cancel()
 		s.Require().NoError(<-done)
-		s.Empty(stderr.String())
+		// Only read after the follower stopped
+		s.Empty(warnings)
 	})
 
 	s.Run("Should not allow normal user to retrieve logs", func() {

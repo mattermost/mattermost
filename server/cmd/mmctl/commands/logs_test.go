@@ -35,6 +35,15 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 		testLogInfoStdout = "level=info msg=\"Server is listening on [::]:8065\" caller=\"app/server.go:490\""
 	)
 
+	// runLogs runs a follower directly, to see the warnings logsCmdF prints through the printer
+	runLogs := func(opts *logsOptions) (stdout, warnings []string, err error) {
+		var out bytes.Buffer
+		f := newLogFollower(s.client, opts, &out)
+		f.warn = func(msg string) { warnings = append(warnings, msg) }
+		err = f.run(s.T().Context())
+		return testLogMessages(out.String()), warnings, err
+	}
+
 	s.Run("Display single log line", func() {
 		cmd := newTestCmd(s.T(), LogsCmd)
 		s.Require().NoError(cmd.Flags().Set("number", "1"))
@@ -141,8 +150,6 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 
 	s.Run("Fall back to unfiltered logs with plain-text log files", func() {
 		const plainLine = "2026-11-03 08:00:00.000 Z info Server is listening"
-		cmd := newTestCmd(s.T(), LogsCmd)
-		s.Require().NoError(cmd.Flags().Set("number", "2"))
 
 		s.client.
 			EXPECT().
@@ -162,10 +169,10 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 				Times(1),
 		)
 
-		data, stderr, err := testLogsCmdF(s.client, cmd, []string{})
+		data, warnings, err := runLogs(&logsOptions{number: 2})
 		s.Require().NoError(err)
 		s.Equal([]string{plainLine, plainLine}, data)
-		s.Contains(stderr, "not in JSON format, printing the logs unfiltered instead")
+		s.Equal([]string{"the server's log file is not in JSON format, printing the logs unfiltered instead"}, warnings)
 	})
 
 	s.Run("Fail with plain-text log files when the flags need the query", func() {
@@ -251,10 +258,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 		s.Empty(data)
 	})
 
-	s.Run("Fall back to plain logs when the server can't query them", func() {
-		cmd := newTestCmd(s.T(), LogsCmd)
-		s.Require().NoError(cmd.Flags().Set("number", "1"))
-
+	s.Run("Fall back to unfiltered logs when the server can't query them", func() {
 		s.client.
 			EXPECT().
 			QueryLogs(gomock.Any(), 0, 1, gomock.Any()).
@@ -266,11 +270,11 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 			Return([]string{testLogInfo}, &model.Response{}, nil).
 			Times(1)
 
-		data, stderr, err := testLogsCmdF(s.client, cmd, []string{})
+		data, warnings, err := runLogs(&logsOptions{number: 1})
 		s.Require().NoError(err)
 		s.Require().Len(data, 1)
 		s.Contains(data[0], testLogInfoStdout)
-		s.Contains(stderr, "printing them unfiltered instead")
+		s.Equal([]string{"the server doesn't support querying the logs, printing them unfiltered instead"}, warnings)
 	})
 
 	s.Run("Fail when the server can't query the logs and the flags need it", func() {
@@ -287,19 +291,13 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 		s.Require().ErrorIs(err, errQueryLogsNotFound)
 	})
 
-	s.Run("Ignore the deprecated plain flag", func() {
+	s.Run("Cap the number of entries at the server's limit", func() {
 		cmd := newTestCmd(s.T(), LogsCmd)
-		s.Require().NoError(cmd.Flags().Set("plain", "true"))
-		s.Require().NoError(cmd.Flags().Set("number", "1"))
-		s.Require().NoError(cmd.Flags().Set("level", "info"))
-
-		flag := cmd.Flags().Lookup("plain")
-		s.True(flag.Hidden)
-		s.Equal("mmctl prints the logs unfiltered by itself when it can't filter them", flag.Deprecated)
+		s.Require().NoError(cmd.Flags().Set("number", "50000"))
 
 		s.client.
 			EXPECT().
-			QueryLogs(gomock.Any(), 0, 1, gomock.Any()).
+			QueryLogs(gomock.Any(), 0, logsMaxPerPage, gomock.Any()).
 			Return(map[string][]json.RawMessage{"default": {json.RawMessage(testLogMlog)}}, &model.Response{}, nil).
 			Times(1)
 
@@ -318,7 +316,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 			{"short interval", map[string]string{"follow": "true", "interval": "1s"}, "--interval must be at least 2s"},
 			{"unknown level", map[string]string{"level": "fatal"}, `invalid level "fatal", must be one of: error, warn, info, debug`},
 			{"long search", map[string]string{"search": strings.Repeat("a", 257)}, "the search text must be at most 256 characters long"},
-			{"too many entries", map[string]string{"number": "10001"}, "--number must be between 0 and 10000"},
+			{"negative number", map[string]string{"number": "-1"}, "--number must not be negative"},
 			{"negative since", map[string]string{"since": "-1m"}, "--since must not be negative"},
 		} {
 			s.Run(tc.name, func() {
@@ -427,7 +425,8 @@ func (s *MmctlUnitTestSuite) TestLogFollower() {
 		opts.follow = true
 		opts.interval = time.Millisecond
 		var out, errOut bytes.Buffer
-		f := newLogFollower(s.client, opts, &out, &errOut)
+		f := newLogFollower(s.client, opts, &out)
+		f.warn = func(msg string) { fmt.Fprintln(&errOut, msg) }
 		f.newWriter = func(w io.Writer) human.LogWriter { return testMessageWriter{out: w} }
 		now := t0
 		f.now = func() time.Time {
@@ -521,7 +520,7 @@ func (s *MmctlUnitTestSuite) TestLogFollower() {
 		s.Equal(filters[1].DateFrom, filters[2].DateFrom)
 		s.Equal(t0.Add(10*time.Second-logsPollOverlap).Format(model.LogFilterDateLayout), filters[3].DateFrom)
 		s.Equal([]string{"first", "second"}, testLogMessages(stdout))
-		s.Equal("Warning: unable to retrieve new logs, retrying in 1ms. Error: connection refused\n", stderr)
+		s.Equal("unable to retrieve new logs, retrying in 1ms. Error: connection refused\n", stderr)
 	})
 
 	s.Run("Never poll before --since", func() {
@@ -533,6 +532,37 @@ func (s *MmctlUnitTestSuite) TestLogFollower() {
 		s.Require().Len(filters, 2)
 		s.Equal(t0.Add(-10*time.Second).Format(model.LogFilterDateLayout), filters[0].DateFrom)
 		s.Equal(filters[0].DateFrom, filters[1].DateFrom)
+	})
+
+	s.Run("Warn when a poll fills a page with new entries", func() {
+		// A full page from the poll's start on: the entries before it never print
+		page := make([]json.RawMessage, logsMaxPerPage)
+		for i := range page {
+			page[i] = testLogLine(t0.Add(time.Duration(i)*time.Millisecond), "info", fmt.Sprintf("entry %d", i))
+		}
+
+		_, stdout, stderr := follow(&logsOptions{number: 0},
+			respond(map[string][]json.RawMessage{"default": {testLogLine(t0.Add(-2*time.Hour), "info", "last")}}),
+			respond(map[string][]json.RawMessage{"default": page}),
+		)
+
+		s.Len(testLogMessages(stdout), logsMaxPerPage)
+		s.Equal(fmt.Sprintf("node \"default\" logged more than %d matching entries since the previous poll, so the older ones were skipped. Poll more often with a shorter --interval, or narrow the logs with --level or --search\n", logsMaxPerPage), stderr)
+	})
+
+	s.Run("Don't warn about a full page that reaches past the poll's start", func() {
+		// Servers older than v12.2 send the last page of remote nodes unfiltered
+		page := make([]json.RawMessage, logsMaxPerPage)
+		for i := range page {
+			page[i] = testLogLine(t0.Add(-time.Hour+time.Duration(i)*time.Millisecond), "info", fmt.Sprintf("entry %d", i))
+		}
+
+		_, _, stderr := follow(&logsOptions{number: 0},
+			respond(map[string][]json.RawMessage{"default": {testLogLine(t0.Add(-2*time.Hour), "info", "last")}}),
+			respond(map[string][]json.RawMessage{"default": page}),
+		)
+
+		s.Empty(stderr)
 	})
 
 	s.Run("Report a failed node once until it recovers", func() {
@@ -547,7 +577,7 @@ func (s *MmctlUnitTestSuite) TestLogFollower() {
 		)
 
 		s.Equal([]string{"[node-1] local", "[node-2] remote"}, testLogMessages(stdout))
-		warning := "Warning: unable to retrieve the logs of node \"node-2\". Error: timeout\n"
+		warning := "unable to retrieve the logs of node \"node-2\". Error: timeout\n"
 		s.Equal(warning+warning, stderr)
 	})
 

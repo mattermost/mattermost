@@ -88,9 +88,6 @@ func init() {
 	LogsCmd.Flags().StringArray("node", nil, "Only show the logs of this cluster node. Can be repeated.")
 	LogsCmd.Flags().StringP("search", "s", "", "Only show entries with a value, other than the level and timestamp, that contains this text, ignoring case.")
 	LogsCmd.Flags().Duration("since", 0, "Only show entries logged within this duration, e.g. 15m.")
-	// mmctl prints the logs unfiltered by itself when it can't query them, so the flag is only kept for existing scripts
-	LogsCmd.Flags().Bool("plain", false, "Print the logs unfiltered.")
-	_ = LogsCmd.Flags().MarkDeprecated("plain", "mmctl prints the logs unfiltered by itself when it can't filter them")
 	RootCmd.AddCommand(LogsCmd)
 }
 
@@ -126,7 +123,7 @@ func logsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		ctx = context.Background()
 	}
 
-	return newLogFollower(c, opts, os.Stdout, os.Stderr).run(ctx)
+	return newLogFollower(c, opts, os.Stdout).run(ctx)
 }
 
 func logsOptionsFromFlags(cmd *cobra.Command) (*logsOptions, error) {
@@ -139,8 +136,13 @@ func logsOptionsFromFlags(cmd *cobra.Command) (*logsOptions, error) {
 	opts.search, _ = cmd.Flags().GetString("search")
 	opts.since, _ = cmd.Flags().GetDuration("since")
 
-	if opts.number < 0 || opts.number > logsMaxPerPage {
-		return nil, fmt.Errorf("--number must be between 0 and %d", logsMaxPerPage)
+	if opts.number < 0 {
+		return nil, errors.New("--number must not be negative")
+	}
+	// The server has always capped the page at this, and earlier versions of mmctl printed what it returned
+	if opts.number > logsMaxPerPage {
+		printer.PrintWarning(fmt.Sprintf("--number is capped at %d entries per node", logsMaxPerPage))
+		opts.number = logsMaxPerPage
 	}
 
 	if utf8.RuneCountInString(opts.search) > model.LogFilterSearchMaxLength {
@@ -213,11 +215,12 @@ func printUnfilteredLogs(ctx context.Context, c client.Client, opts *logsOptions
 // logFollower queries the logs with POST /api/v4/logs/query, prints them, and with --follow
 // keeps polling for new entries.
 type logFollower struct {
-	c      client.Client
-	opts   *logsOptions
-	out    io.Writer
-	errOut io.Writer
-	now    func() time.Time
+	c    client.Client
+	opts *logsOptions
+	out  io.Writer
+	// warn prints a warning on stderr, unless --quiet is set
+	warn func(msg string)
+	now  func() time.Time
 	// newWriter returns the writer that formats the entries printed to out
 	newWriter func(io.Writer) human.LogWriter
 
@@ -238,12 +241,12 @@ type logFollower struct {
 	floor map[string]time.Time
 }
 
-func newLogFollower(c client.Client, opts *logsOptions, out, errOut io.Writer) *logFollower {
+func newLogFollower(c client.Client, opts *logsOptions, out io.Writer) *logFollower {
 	f := &logFollower{
 		c:              c,
 		opts:           opts,
 		out:            out,
-		errOut:         errOut,
+		warn:           printer.PrintWarning,
 		now:            time.Now,
 		newWriter:      opts.newWriter,
 		levels:         make(map[string]bool, len(opts.levels)),
@@ -279,7 +282,7 @@ func (f *logFollower) run(ctx context.Context) error {
 			if f.opts.needsQuery() {
 				return errQueryLogsNotFound
 			}
-			fmt.Fprintln(f.errOut, "Warning: the server doesn't support querying the logs, printing them unfiltered instead.")
+			f.warn("the server doesn't support querying the logs, printing them unfiltered instead")
 			return printUnfilteredLogs(ctx, f.c, f.opts, f.out)
 		}
 		return errors.New("Unable to retrieve logs. Error: " + err.Error())
@@ -289,7 +292,7 @@ func (f *logFollower) run(ctx context.Context) error {
 		if f.opts.needsQuery() {
 			return errPlainTextLogs
 		}
-		fmt.Fprintln(f.errOut, "Warning: the server's log file is not in JSON format, printing the logs unfiltered instead.")
+		f.warn("the server's log file is not in JSON format, printing the logs unfiltered instead")
 		return printUnfilteredLogs(ctx, f.c, f.opts, f.out)
 	}
 
@@ -322,10 +325,11 @@ func (f *logFollower) run(ctx context.Context) error {
 			if ctx.Err() != nil {
 				return nil
 			}
-			fmt.Fprintf(f.errOut, "Warning: unable to retrieve new logs, retrying in %s. Error: %s\n", f.opts.interval, err)
+			f.warn(fmt.Sprintf("unable to retrieve new logs, retrying in %s. Error: %s", f.opts.interval, err))
 			continue
 		}
 		lastStart = pollStart
+		f.warnTruncated(logs, from)
 		f.print(logs, from, pollStart, true)
 
 		// The next poll starts no earlier than this, so older entries can't be repeated
@@ -374,6 +378,28 @@ func (f *logFollower) hasPlainTextLogs(ctx context.Context) bool {
 		return !strings.HasPrefix(line, "{")
 	}
 	return false
+}
+
+// warnTruncated warns about the nodes whose poll filled a page with entries no older than from.
+// The server fills the page from the newest entry back, so the entries between from and the
+// oldest one returned are missing.
+func (f *logFollower) warnTruncated(logs map[string][]json.RawMessage, from time.Time) {
+	for _, node := range slices.Sorted(maps.Keys(logs)) {
+		lines := logs[node]
+		if len(lines) < logsMaxPerPage {
+			continue
+		}
+		// Entries come oldest first. Servers older than v12.2 send the last page of remote nodes
+		// unfiltered, which reaches past from unless the node logged that much since
+		for _, raw := range lines {
+			if entry := parseLogQueryEntry(raw); !entry.Time.IsZero() {
+				if !entry.Time.Before(from) {
+					f.warn(fmt.Sprintf("node %q logged more than %d matching entries since the previous poll, so the older ones were skipped. Poll more often with a shorter --interval, or narrow the logs with --level or --search", node, logsMaxPerPage))
+				}
+				break
+			}
+		}
+	}
 }
 
 type pendingLog struct {
@@ -425,8 +451,7 @@ func (f *logFollower) print(logs map[string][]json.RawMessage, from, fetchedAt t
 				nodeFailed = true
 				if !f.failed[node] {
 					f.failed[node] = true
-					fmt.Fprintf(f.errOut, "Warning: unable to retrieve the logs of node %q. Error: %s\n",
-						printer.SanitizeForTerminal(node), printer.SanitizeForTerminal(entry.error))
+					f.warn(fmt.Sprintf("unable to retrieve the logs of node %q. Error: %s", node, entry.error))
 				}
 				continue
 			}
