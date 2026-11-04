@@ -16,7 +16,7 @@ type Props = {
     id?: string;
     title: MessageDescriptor;
     subtitle: MessageDescriptor;
-    subtitleValues?: any;
+    subtitleValues?: Record<string, unknown>;
     url: string;
     disabled?: boolean;
     linkText: MessageDescriptor;

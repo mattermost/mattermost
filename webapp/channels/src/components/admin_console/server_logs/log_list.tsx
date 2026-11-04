@@ -32,7 +32,7 @@ import CustomRangeModal from './custom_range_modal';
 import KeyboardHints from './keyboard_hints';
 import LogRow from './log_row';
 import type {CustomTimeRange, LogObjectWithAdditionalInfo, TimeRange} from './types';
-import {LEVEL_GROUPS, levelGroup, logRowTimeFormat, logRowTimeLength, logsNeedDate, msUntilNextDay, newestLogTimes} from './utils';
+import {LEVEL_GROUPS, SEARCH_MAX_LENGTH, levelGroup, logRowTimeFormat, logRowTimeLength, logsNeedDate, msUntilNextDay, newestLogTimes} from './utils';
 
 import './log_list.scss';
 
@@ -85,9 +85,6 @@ const DEFAULT_PAGE_SIZE = 200;
 
 // Each search change queries the server, so keep it off the keystroke path
 const SEARCH_DEBOUNCE_MS = 200;
-
-// The server rejects longer terms (model.LogFilterSearchMaxLength)
-const SEARCH_MAX_LENGTH = 256;
 
 // Rows are focused programmatically by the keyboard navigation below
 const ROW_FOCUS_SELECTOR = '.LogRow__main';

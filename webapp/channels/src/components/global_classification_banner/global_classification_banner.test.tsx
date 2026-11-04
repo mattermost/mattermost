@@ -71,12 +71,14 @@ type StateOptions = {
     linkedField?: PropertyField | null;
     systemValue?: PropertyValue<string> | null;
     featureFlagEnabled?: boolean;
+    currentUserId?: string;
 };
 
 function makeState({
     linkedField = null,
     systemValue = null,
     featureFlagEnabled = true,
+    currentUserId = MOCK_USER_ID,
 }: StateOptions = {}): DeepPartial<GlobalState> {
     const fieldsById: Record<string, PropertyField> = {};
     if (linkedField) {
@@ -93,7 +95,7 @@ function makeState({
     return {
         entities: {
             users: {
-                currentUserId: MOCK_USER_ID,
+                currentUserId,
             },
             general: {
                 config: {
@@ -279,5 +281,19 @@ describe('GlobalClassificationBanner', () => {
             CLASSIFICATIONS_FIELD_TARGET_ID,
             expect.anything(),
         );
+    });
+
+    test('does not fetch fields or values while logged out', () => {
+        renderWithContext(
+            <GlobalClassificationBanner position='top'/>,
+            makeState({linkedField: makeLinkedField([DISPLAY_BANNER_TOP]), currentUserId: ''}),
+        );
+        renderWithContext(
+            <GlobalClassificationBanner position='top'/>,
+            makeState({linkedField: null, currentUserId: ''}),
+        );
+
+        expect(Client4.getPropertyFields).not.toHaveBeenCalled();
+        expect(Client4.getSystemPropertyValues).not.toHaveBeenCalled();
     });
 });
