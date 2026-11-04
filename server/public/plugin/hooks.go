@@ -76,8 +76,6 @@ const (
 	MessagesWillBeConsumedWithContextID       = 56
 	OnLicenseChangedID                        = 57
 	PropertyValuesHaveBeenUpdatedID           = 58
-	OnPluginActivatedID                       = 59
-	OnPluginDeactivatedID                     = 60
 	TotalHooksID                              = iota
 )
 
@@ -387,35 +385,6 @@ type Hooks interface {
 	//
 	// Minimum server version: 12.0
 	OnLicenseChanged(oldLicense, newLicense *model.License)
-
-	// OnPluginActivated is invoked on every other active plugin after a plugin
-	// finishes activating on this server, including webapp-only plugins. A plugin
-	// with a server component has returned from OnActivate and can serve
-	// inter-plugin requests. It also fires when the health check restarts a
-	// plugin. The activated plugin itself is not notified, and a
-	// plugin that is still in its own OnActivate misses activations that
-	// complete in the meantime; plugins that need the current set should call
-	// API.GetPluginStatus from OnActivate.
-	//
-	// The hook runs on the activating goroutine and is node-local in a
-	// High-Availability cluster. Implementations should return quickly and
-	// defer slow work, such as calling back into the activated plugin, to a
-	// goroutine.
-	//
-	// Minimum server version: 12.2
-	OnPluginActivated(manifest *model.Manifest)
-
-	// OnPluginDeactivated is invoked on every other active plugin after a
-	// plugin is deactivated on this server, including when it is disabled,
-	// removed, upgraded, or stopped by the health check. The deactivated plugin
-	// can no longer serve inter-plugin requests. It is not invoked when the
-	// server shuts down.
-	//
-	// The hook runs on the deactivating goroutine and is node-local in a
-	// High-Availability cluster. Implementations should return quickly.
-	//
-	// Minimum server version: 12.2
-	OnPluginDeactivated(manifest *model.Manifest)
 
 	// ConfigurationWillBeSaved is invoked before saving the configuration to the
 	// backing store.

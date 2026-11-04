@@ -342,7 +342,6 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 	defer func() {
 		if reterr == nil {
 			env.setPluginState(id, model.PluginStateRunning)
-			env.notifyPluginActivated(pluginInfo.Manifest)
 		} else {
 			env.setPluginState(id, model.PluginStateFailedToStart)
 		}
@@ -413,7 +412,6 @@ func (env *Environment) Reattach(manifest *model.Manifest, pluginReattachConfig 
 	defer func() {
 		if reterr == nil {
 			env.setPluginState(id, model.PluginStateRunning)
-			env.notifyPluginActivated(manifest)
 		} else {
 			env.setPluginState(id, model.PluginStateFailedToStart)
 		}
@@ -421,7 +419,7 @@ func (env *Environment) Reattach(manifest *model.Manifest, pluginReattachConfig 
 
 	err := checkMinServerVersion(pluginInfo)
 	if err != nil {
-		return err
+		return nil
 	}
 
 	if !pluginInfo.Manifest.HasServer() {
@@ -434,7 +432,7 @@ func (env *Environment) Reattach(manifest *model.Manifest, pluginReattachConfig 
 
 	err = env.startPluginServer(pluginInfo, WithReattachConfig(pluginReattachConfig))
 	if err != nil {
-		return err
+		return nil
 	}
 
 	mlog.Debug("Plugin reattached", mlog.String("plugin_id", pluginInfo.Manifest.Id), mlog.String("version", pluginInfo.Manifest.Version))
@@ -464,14 +462,9 @@ func (env *Environment) RemovePlugin(id string) {
 func (env *Environment) deactivateAndTeardown(rp registeredPlugin) bool {
 	id := rp.BundleInfo.Manifest.Id
 
-	if !env.IsActive(id) {
+	if rp.supervisor == nil || !env.IsActive(id) {
 		env.setPluginState(id, model.PluginStateNotRunning)
 		return false
-	}
-
-	if rp.supervisor == nil {
-		env.setPluginState(id, model.PluginStateNotRunning)
-		return true
 	}
 
 	done := make(chan struct{})
@@ -501,28 +494,7 @@ func (env *Environment) Deactivate(id string) bool {
 		return false
 	}
 
-	rp := p.(registeredPlugin)
-	if !env.deactivateAndTeardown(rp) {
-		return false
-	}
-	env.notifyPluginDeactivated(rp.BundleInfo.Manifest)
-	return true
-}
-
-// notifyPluginActivated runs OnPluginActivated on every other active plugin.
-func (env *Environment) notifyPluginActivated(manifest *model.Manifest) {
-	env.RunMultiPluginHookExcluding([]string{manifest.Id}, func(hooks Hooks, _ *model.Manifest) bool {
-		hooks.OnPluginActivated(manifest)
-		return true
-	}, OnPluginActivatedID)
-}
-
-// notifyPluginDeactivated runs OnPluginDeactivated on every other active plugin.
-func (env *Environment) notifyPluginDeactivated(manifest *model.Manifest) {
-	env.RunMultiPluginHookExcluding([]string{manifest.Id}, func(hooks Hooks, _ *model.Manifest) bool {
-		hooks.OnPluginDeactivated(manifest)
-		return true
-	}, OnPluginDeactivatedID)
+	return env.deactivateAndTeardown(p.(registeredPlugin))
 }
 
 // RestartPlugin deactivates, then activates the plugin with the given id.
