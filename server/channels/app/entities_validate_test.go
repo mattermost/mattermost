@@ -30,6 +30,29 @@ func TestEntityValidateCacheKeepsThePostTime(t *testing.T) {
 	require.False(t, otherMonth)
 }
 
+func TestEphemeralPostsAreNotScanned(t *testing.T) {
+	require.False(t, shouldDetectEntities(&model.Post{
+		Id:      "postid00000000000000000000",
+		Type:    model.PostTypeEphemeral,
+		Message: "FREQ: 243.0",
+	}))
+	require.False(t, shouldDetectEntities(&model.Post{
+		Id:       "postid00000000000000000000",
+		Message:  "FREQ: 243.0",
+		DeleteAt: 1,
+	}))
+}
+
+func TestPostContainsEntityRequiresTheValue(t *testing.T) {
+	post := &model.Post{Metadata: &model.PostMetadata{Entities: []*model.PostEntity{{
+		TypeIDs: []string{"com.example.mark"},
+		Value:   "WX-100",
+	}}}}
+	require.True(t, postContainsEntity(post, "com.example.mark", "WX-100"))
+	require.False(t, postContainsEntity(post, "com.example.mark", "WX-200"))
+	require.False(t, postContainsEntity(post, "com.example.other", "WX-100"))
+}
+
 func TestPrivateEntityCardNeedsAPost(t *testing.T) {
 	t.Setenv("MM_ENTITIES", "1")
 	const pluginID = "com.example.privatecard"

@@ -114,6 +114,7 @@ type Store interface {
 
 type EntityTermStore interface {
 	Replace(pluginID, typeID string, terms []model.EntityTerm, generation int64) error
+	DeleteByPlugin(pluginID string) error
 	List() ([]model.EntityTermRow, error)
 }
 

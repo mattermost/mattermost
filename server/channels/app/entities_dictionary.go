@@ -37,14 +37,17 @@ func (a *App) GetEntityPosts(rctx request.CTX, postIDs []string) (map[string][]*
 	if len(postIDs) == 0 || len(postIDs) > maxEntityPostIDs {
 		return nil, model.NewAppError("GetEntityPosts", "api.context.invalid_body_param.app_error", map[string]any{"Name": "post_ids"}, "", http.StatusBadRequest)
 	}
-	posts, err := a.Srv().Store().Post().GetPostsByIds(postIDs)
-	if err != nil {
-		return nil, model.NewAppError("GetEntityPosts", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	posts, _, appErr := a.GetPostsByIds(postIDs)
+	if appErr != nil {
+		if appErr.StatusCode == http.StatusNotFound {
+			return map[string][]*model.PostEntity{}, nil
+		}
+		return nil, appErr
 	}
 	readable := map[string]bool{}
-	out := map[string][]*model.PostEntity{}
+	var kept []*model.Post
 	for _, post := range posts {
-		if post == nil {
+		if post == nil || post.DeleteAt > 0 {
 			continue
 		}
 		allowed, known := readable[post.ChannelId]
@@ -60,7 +63,11 @@ func (a *App) GetEntityPosts(rctx request.CTX, postIDs []string) (map[string][]*
 		if !allowed {
 			continue
 		}
-		a.hydratePostEntities(rctx, post)
+		kept = append(kept, post)
+	}
+	a.hydratePostList(rctx, kept)
+	out := map[string][]*model.PostEntity{}
+	for _, post := range kept {
 		entities := []*model.PostEntity{}
 		if post.Metadata != nil && post.Metadata.Entities != nil {
 			entities = post.Metadata.Entities

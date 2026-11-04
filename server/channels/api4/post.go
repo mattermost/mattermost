@@ -635,7 +635,7 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !hydrating && c.HandleEtag(post.Etag(), "Get Post", w, r) {
+	if !hydrating && c.HandleEtag(c.App.AppendEntityEtag(post.Etag()), "Get Post", w, r) {
 		return
 	}
 
