@@ -138,8 +138,8 @@ func (s *MmctlUnitTestSuite) TestGetChannelFromArg_PrefersIdWhenChannelPartLooks
 			teamID := model.NewId()
 			channelID := model.NewId()
 			team := &model.Team{Id: teamID}
-			idChannel := &model.Channel{Id: channelID, Name: "town-square"}
-			nameChannel := &model.Channel{Id: model.NewId(), Name: channelID}
+			idChannel := &model.Channel{Id: channelID, TeamId: teamID, Name: "town-square"}
+			nameChannel := &model.Channel{Id: model.NewId(), TeamId: teamID, Name: channelID}
 
 			s.client.
 				EXPECT().
@@ -167,7 +167,7 @@ func (s *MmctlUnitTestSuite) TestGetChannelFromArg_PrefersIdWhenChannelPartLooks
 			teamID := model.NewId()
 			channelID := model.NewId()
 			team := &model.Team{Id: teamID}
-			idChannel := &model.Channel{Id: channelID, Name: "town-square"}
+			idChannel := &model.Channel{Id: channelID, TeamId: teamID, Name: "town-square"}
 			notFoundErr := errors.New("channel not found")
 
 			s.client.
@@ -249,8 +249,8 @@ func (s *MmctlUnitTestSuite) TestGetChannelFromArg_PrefersIdWhenChannelPartLooks
 			channelID := "a" + model.NewId()[1:]
 			arg := strings.ToUpper(channelID)
 			team := &model.Team{Id: teamID}
-			idChannel := &model.Channel{Id: channelID, Name: "town-square"}
-			nameChannel := &model.Channel{Id: model.NewId(), Name: channelID}
+			idChannel := &model.Channel{Id: channelID, TeamId: teamID, Name: "town-square"}
+			nameChannel := &model.Channel{Id: model.NewId(), TeamId: teamID, Name: channelID}
 			notFoundErr := errors.New("channel not found")
 
 			s.client.
@@ -347,4 +347,58 @@ func (s *MmctlUnitTestSuite) TestGetChannelFromArg_PrefersIdWhenChannelPartLooks
 		s.Require().Nil(channel)
 		s.Require().EqualError(err, "channel forbidden")
 	})
+
+	for _, resolver := range resolvers {
+		s.Run(resolver.name+" returns nil when team prefix is given but channel belongs to different team", func() {
+			teamAID := model.NewId()
+			teamBID := model.NewId()
+			channelID := model.NewId()
+			teamA := &model.Team{Id: teamAID}
+			channelInTeamB := &model.Channel{Id: channelID, TeamId: teamBID, Name: "town-square"}
+
+			s.client.
+				EXPECT().
+				GetTeam(context.TODO(), teamAID, "").
+				Return(teamA, &model.Response{StatusCode: http.StatusOK}, nil).
+				Times(1)
+			s.client.
+				EXPECT().
+				GetChannel(context.TODO(), channelID).
+				Return(channelInTeamB, &model.Response{StatusCode: http.StatusOK}, nil).
+				Times(1)
+
+			channel, err := resolver.call(fmt.Sprintf("%s:%s", teamAID, channelID))
+			if resolver.name == "getChannelFromChannelArg" {
+				s.Require().Nil(channel)
+				s.Require().NoError(err)
+			} else {
+				s.Require().Nil(channel)
+				s.Require().Error(err)
+				s.Require().Contains(err.Error(), "does not belong to team")
+			}
+		})
+
+		s.Run(resolver.name+" returns channel when team prefix matches channel's team", func() {
+			teamID := model.NewId()
+			channelID := model.NewId()
+			team := &model.Team{Id: teamID}
+			channel := &model.Channel{Id: channelID, TeamId: teamID, Name: "town-square"}
+
+			s.client.
+				EXPECT().
+				GetTeam(context.TODO(), teamID, "").
+				Return(team, &model.Response{StatusCode: http.StatusOK}, nil).
+				Times(1)
+			s.client.
+				EXPECT().
+				GetChannel(context.TODO(), channelID).
+				Return(channel, &model.Response{StatusCode: http.StatusOK}, nil).
+				Times(1)
+
+			result, err := resolver.call(fmt.Sprintf("%s:%s", teamID, channelID))
+			s.Require().NoError(err)
+			s.Require().NotNil(result)
+			s.Require().Equal(channelID, result.Id)
+		})
+	}
 }
