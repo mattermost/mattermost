@@ -4183,7 +4183,11 @@
     },
     {
       "from": "/agents/docs/features/custom_prompts",
-      "to": "/agents/docs/custom_prompts"
+      "to": "/agents/docs/skills"
+    },
+    {
+      "from": "/agents/docs/custom_prompts",
+      "to": "/agents/docs/skills"
     },
     {
       "from": "/agents/docs/features/channel_summaries",

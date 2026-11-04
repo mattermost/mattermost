@@ -95,7 +95,7 @@ const NAV_CHILDREN = new Set([
   'agents_in_channels',
   'summaries_and_search',
   'meeting_summaries',
-  'custom_prompts',
+  'skills',
 ]);
 
 function rmrf(p) {

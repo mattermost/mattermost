@@ -2121,7 +2121,7 @@ function buildEndUserGuideSidebar(autoCat) {
       {id: 'agents/docs/agents_in_channels', label: 'Use agents in channels'},
       {id: 'agents/docs/summaries_and_search', label: 'Summaries and AI search'},
       {id: 'agents/docs/meeting_summaries', label: 'Meeting summaries'},
-      {id: 'agents/docs/custom_prompts', label: 'Custom prompts'},
+      {id: 'agents/docs/skills', label: 'Skills'},
       {id: 'agents/docs/mcp_server', label: 'Use Mattermost from Claude, Cursor, or VS Code'},
     ]),
     'end-user-guide/collaborate/agents-context-management',
