@@ -888,6 +888,39 @@ class MainTest(unittest.TestCase):
         self.assertNotIn("mattermost/mattermost#6", [pr["source"] for pr in payload["prs_flagged"]])
         self.assertNotIn("mattermost/mattermost#6", self._recorded())
 
+    def test_a_repeated_bullet_in_the_retry_answer_is_not_inserted_twice(self):
+        gc.polish_with_ai = lambda notes: (self.FIRST_ANSWER, True)
+        gc.place_missing_with_ai = lambda notes: (
+            "### Improvements\n\n#### User Interface\n - Added the first thing. [[N1]]\n"
+            "### Bug Fixes\n - Fixed an issue found later. [[N2]]\n", True)
+        gc.main()
+        content = self.changelog.read_text()
+        self.assertEqual(content.count("Added the first thing."), 1)
+        self.assertEqual(content.count("Fixed an issue found later."), 1)
+        self.assertEqual(len(self._payload()["sections"]), 3)
+
+    def test_a_note_placed_only_under_go_version_is_not_recorded(self):
+        gc.polish_with_ai = lambda notes: (
+            self.FIRST_ANSWER + "\n### Go Version\n - Built with a newer Go. [[N2]]\n", True)
+        gc.place_missing_with_ai = lambda notes: ("", True)
+        gc.main()
+        self.assertNotIn("Built with a newer Go.", self.changelog.read_text())
+        self.assertNotIn("mattermost/mattermost#2", self._recorded())
+        self.assertEqual([n["source"] for n in self._payload()["readiness"]["not_placed"]], ["mattermost/mattermost#2"])
+
+    def test_update_reports_a_body_change_when_only_the_not_placed_list_is_new(self):
+        entry = ENTRY_V12_1
+        self.changelog.write_text(entry)
+        body = self.tmp / "body.md"
+        body.write_text(gc.render_pr_body("Body\n", {"mattermost/mattermost#1", "plugin:mattermost-plugin-calls@v1.12.6"}))
+        os.environ.update({"MODE": "update", "PR_BODY_FILE": str(body)})
+        gc.polish_with_ai = lambda notes: ("### Bug Fixes\n", True)
+        gc.place_missing_with_ai = lambda notes: ("", True)
+        gc.main()
+        self.assertEqual(self.changelog.read_text(), entry)
+        self.assertIn("did not place", (self.out / "pr_body.md").read_text())
+        self.assertIn("body_changed=true", (self.tmp / "gh_output").read_text())
+
 
 if __name__ == "__main__":
     unittest.main()

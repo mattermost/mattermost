@@ -1887,10 +1887,38 @@ def render_fragment(notes: list[dict], sources_by_id: dict) -> tuple[str, list[d
     if missing:
         print(f"⚠️  The model left out {len(missing)} note(s): {', '.join(note['id'] for note in missing)}")
         polished, items, referenced = _place_missing(polished, items, referenced, missing, sources_by_id)
+
+    # The Go Version section is written from the release branch's build image: whatever
+    # the model put under that heading is replaced (create) or removed (update). A PR
+    # attributed only there is not in the text, so it must not be recorded as included.
+    kept = [item for item in items if item["section"] != "Go Version"]
+    if len(kept) != len(items):
+        placed = {source for item in kept for source in item["sources"]}
+        referenced = {note_id for note_id in referenced if sources_by_id.get(note_id) in placed}
+        items = kept
     return polished, items, referenced, ai_polished
 
 
 _RETRY_WRAPPER = "## Release v0.0"
+
+
+def keep_requested_bullets(text: str, wanted: set) -> str:
+    """Drop the bullets of ``text`` whose markers name only notes outside ``wanted``.
+
+    A bullet with no marker is kept, since it may be a plan-label parent of marked
+    bullets. A bullet's continuation lines go with it.
+    """
+    out = []
+    skipping = False
+    for line in text.split("\n"):
+        if _BULLET_RE.match(line):
+            ids = {part.strip() for match in _SOURCE_MARKER_RE.finditer(line) for part in match.group(1).split(",")}
+            skipping = bool(ids) and not ids & wanted
+        elif not line.strip() or not line.startswith(" "):
+            skipping = False
+        if not skipping:
+            out.append(line)
+    return "\n".join(out)
 
 
 def _place_missing(polished: str, items: list[dict], referenced: set, missing: list[dict],
@@ -1904,10 +1932,11 @@ def _place_missing(polished: str, items: list[dict], referenced: set, missing: l
     retry_raw, asked = place_missing_with_ai(missing)
     if not asked or not retry_raw.strip():
         return polished, items, referenced
-    retry_text = escape_mdx_unsafe(normalize_formatting(retry_raw))
-    retry_text, retry_items, retry_referenced = extract_source_markers(retry_text, sources_by_id)
-    # Only the notes that were asked for: the model may repeat one the first answer placed.
+    # Only the notes that were asked for: the model may repeat one the first answer already
+    # placed, and a repeated childless bullet would be inserted a second time.
     wanted = {note["id"] for note in missing}
+    retry_text = escape_mdx_unsafe(normalize_formatting(keep_requested_bullets(retry_raw, wanted)))
+    retry_text, retry_items, retry_referenced = extract_source_markers(retry_text, sources_by_id)
     if not retry_referenced & wanted:
         return polished, items, referenced
     merged = merge_into_entry(f"{_RETRY_WRAPPER}\n\n{polished}", "v0.0", retry_text)
@@ -2099,6 +2128,7 @@ def main():
     if body_file and os.path.exists(body_file):
         with open(body_file, "r", encoding="utf-8") as f:
             pr_body = f.read() or pr_body
+    original_body = pr_body
     if mode == "update":
         if not body_file or not os.path.exists(body_file):
             raise RuntimeError("MODE=update needs PR_BODY_FILE pointing at the changelog PR's body")
@@ -2438,6 +2468,9 @@ def main():
     }
     write_outputs(output_dir, entry, payload, pr_body)
     set_github_output("changed", "true" if changed else "false")
+    # The PR body can change when the text does not, such as when every new note was
+    # left out of the text and only the not-placed list is new.
+    set_github_output("body_changed", "true" if mode == "update" and not proposed_before and pr_body != original_body else "false")
     set_github_output("added_prs", len(added_sources - derived_sources))
     set_github_output("added_derived", len(added_sources & derived_sources))
     set_github_output("flagged_prs", len(flagged_prs))
