@@ -490,21 +490,20 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 		}
 	}
 
-	// Scoped imports skip an unverified username match: the destination account
-	// stays as stored and only team membership is applied. Full imports and
-	// auth_data matches continue through the update path below.
+	// Scoped imports skip an unverified username match: the destination account's
+	// own fields stay as stored, and only team and channel memberships go through
+	// importUserTeams. Full imports and auth_data matches continue through the
+	// update path below.
 	if deactivateMissingUsers && user.Id != "" && !matchedByAuthData {
 		rctx.Logger().Warn(
 			"Scoped import: username matches an existing destination account; leaving the account unchanged and linking team membership to it",
 			mlog.String("username", *data.Username),
 		)
-		if report != nil {
-			report.UnmatchedUsers.Add(imports.UnmatchedUser{
-				Username: *data.Username,
-				Reason:   "username_matched_existing",
-				Action:   imports.UnmatchedUserLinkedExisting,
-			})
-		}
+		report.UnmatchedUsers.Add(imports.UnmatchedUser{
+			Username: *data.Username,
+			Reason:   "username_matched_existing",
+			Action:   imports.UnmatchedUserLinkedExisting,
+		})
 		return a.importUserTeams(rctx, user, *data.Username, data.Teams, deactivateMissingUsers, report)
 	}
 

@@ -88,6 +88,19 @@ func (u *unmatchedUsers) All() []UnmatchedUser {
 	return out
 }
 
+// CountAction returns the number of accumulated entries recorded with action.
+func (u *unmatchedUsers) CountAction(action UnmatchedUserAction) int {
+	u.mu.Lock()
+	defer u.mu.Unlock()
+	n := 0
+	for _, rec := range u.s {
+		if rec.Action == action {
+			n++
+		}
+	}
+	return n
+}
+
 // ImportReport is threaded through the import pipeline to carry the UsernameRemap and
 // the outcome log for users that could not be matched on the destination server.
 type ImportReport struct {

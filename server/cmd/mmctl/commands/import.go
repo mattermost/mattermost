@@ -542,16 +542,27 @@ func importJobShowCmdF(c client.Client, command *cobra.Command, args []string) e
 	// unmatched users and memberships skipped for a missing team or channel. The count
 	// is the number of report rows, not distinct users, so phrase it as entries. Surface
 	// it and the report path explicitly rather than leaving the operator to spot them in
-	// the raw Data map.
+	// the raw Data map. Users linked to an existing account by username are listed in the
+	// same report but counted separately, since they were matched.
+	hasReportEntries := false
 	if count := job.Data["unmatched_users_count"]; count != "" && count != "0" {
+		hasReportEntries = true
 		noun := "entries"
 		if count == "1" {
 			noun = "entry"
 		}
 		printer.Print(fmt.Sprintf("\n%s import %s could not be matched on this server (unmatched users and skipped team or channel memberships).", count, noun))
-		if reportPath := job.Data["unmatched_users_report"]; reportPath != "" {
-			printer.Print(fmt.Sprintf("See the report for details: %s", reportPath))
+	}
+	if count := job.Data["linked_existing_users_count"]; count != "" && count != "0" {
+		hasReportEntries = true
+		noun, verb := "users", "were"
+		if count == "1" {
+			noun, verb = "user", "was"
 		}
+		printer.Print(fmt.Sprintf("\n%s import %s matched an existing account on this server by username and %s linked without changing the account.", count, noun, verb))
+	}
+	if reportPath := job.Data["unmatched_users_report"]; hasReportEntries && reportPath != "" {
+		printer.Print(fmt.Sprintf("See the report for details: %s", reportPath))
 	}
 
 	return nil

@@ -199,16 +199,32 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 			if count, reportPath, rErr := writeUnmatchedUsersReport(app, report, importFileName, localMode); rErr != nil {
 				logger.Warn("Failed to write unmatched-users report", mlog.Err(rErr))
 			} else if count > 0 {
-				job.Data["unmatched_users_count"] = strconv.Itoa(count)
+				// Accounts linked to an existing destination user by username are reported
+				// in the same CSV but counted separately, so they don't read as failures.
+				linked := report.UnmatchedUsers.CountAction(imports.UnmatchedUserLinkedExisting)
+				unmatched := count - linked
+				if unmatched > 0 {
+					job.Data["unmatched_users_count"] = strconv.Itoa(unmatched)
+				}
+				if linked > 0 {
+					job.Data["linked_existing_users_count"] = strconv.Itoa(linked)
+				}
 				job.Data["unmatched_users_report"] = reportPath
 				// SetJobSuccess only updates status, not Data, so persist here while the
 				// job is still in_progress (same approach as the checkpoint writer).
 				if _, uErr := jobServer.Store.Job().UpdateOptimistically(job, model.JobStatusInProgress); uErr != nil {
 					logger.Warn("Failed to persist unmatched-users report metadata", mlog.Err(uErr))
 				}
-				logger.Info("Scoped import: some users were not matched on the destination",
-					mlog.Int("unmatched_users", count),
-					mlog.String("report", reportPath))
+				if unmatched > 0 {
+					logger.Info("Scoped import: some users were not matched on the destination",
+						mlog.Int("unmatched_users", unmatched),
+						mlog.String("report", reportPath))
+				}
+				if linked > 0 {
+					logger.Info("Scoped import: some users were linked to existing destination accounts by username",
+						mlog.Int("linked_existing_users", linked),
+						mlog.String("report", reportPath))
+				}
 			}
 		}
 
