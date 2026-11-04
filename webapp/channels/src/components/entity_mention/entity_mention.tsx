@@ -159,10 +159,11 @@ export default function EntityMention({typeId, value, url, label: labelProp, tit
     const [open, setOpen] = useState(false);
     const [placed, setPlaced] = useState(false);
     const [position, setPosition] = useState({top: 0, left: 0});
-    const [hoverCard, setHoverCard] = useState<EntityCard | null>(null);
+    const [hoverCardState, setHoverCardState] = useState<{key: string; card: EntityCard} | null>(null);
     const safeURL = entityHref(url);
     const label = labelProp || entityLabel(typeId);
     const cacheKey = `${currentUserId}\0${typeId}\0${value}\0${postId || ''}\0${occurrence || ''}`;
+    const hoverCard = hoverCardState?.key === cacheKey ? hoverCardState.card : null;
 
     const clearTimers = () => {
         if (openTimer.current !== undefined) {
@@ -191,7 +192,7 @@ export default function EntityMention({typeId, value, url, label: labelProp, tit
         }
         const cached = readCardCache(cacheKey);
         if (cached) {
-            setHoverCard(cached);
+            setHoverCardState({key: cacheKey, card: cached});
             return undefined;
         }
         let cancel = false;
@@ -200,10 +201,10 @@ export default function EntityMention({typeId, value, url, label: labelProp, tit
                 return;
             }
             writeCardCache(cacheKey, next);
-            setHoverCard(next);
+            setHoverCardState({key: cacheKey, card: next});
         }).catch(() => {
             if (!cancel) {
-                setHoverCard(null);
+                setHoverCardState(null);
             }
         });
         return () => {

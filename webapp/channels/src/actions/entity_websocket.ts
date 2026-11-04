@@ -8,6 +8,8 @@ import {Client4} from 'mattermost-redux/client';
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
 import {getPost, getPostIdsInChannel} from 'mattermost-redux/selectors/entities/posts';
 
+import {clearEntityCardCache} from 'components/entity_mention/entity_mention';
+
 import type {ActionFuncAsync} from 'types/store';
 
 const maxEntityPosts = 200;
@@ -16,6 +18,7 @@ const appliedEntitySeq = new Map<string, number>();
 
 export function handleEntitiesDictionaryChanged(): ActionFuncAsync {
     return async (dispatch, getState) => {
+        clearEntityCardCache();
         await new Promise((resolve) => {
             setTimeout(resolve, Math.floor(Math.random() * 10000));
         });

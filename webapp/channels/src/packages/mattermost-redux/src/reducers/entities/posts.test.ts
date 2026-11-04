@@ -524,6 +524,26 @@ describe('posts', () => {
             });
         });
 
+        it('should clear metadata.entities on the deleted placeholder', () => {
+            const state = deepFreeze({
+                post1: {
+                    id: 'post1',
+                    message: 'ask the MLT',
+                    metadata: {
+                        entities: [{id: '4:7', start: 4, end: 7, value: 'MLT', type_ids: ['plugin.acronym'], matcher_id: ''}],
+                    },
+                },
+            });
+
+            const nextState = reducers.handlePosts(state, {
+                type: PostTypes.POST_DELETED,
+                data: {id: 'post1'},
+            });
+
+            expect(nextState.post1.message).toBe('');
+            expect(nextState.post1.metadata.entities).toBeUndefined();
+        });
+
         it('should remove deleted post from other post embeds', () => {
             const post1 = {id: 'post1', message: 'Post 1'};
             const post2 = {
