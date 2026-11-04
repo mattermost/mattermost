@@ -41,6 +41,7 @@ except ImportError:  # pragma: no cover - GitHub API helpers unused in unit test
 GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", "")
 PR_NUMBER    = int(os.environ["PR_NUMBER"]) if "PR_NUMBER" in os.environ else 0
 BASE_SHA     = os.environ.get("BASE_SHA", "")
+BASE_REF     = os.environ.get("BASE_REF", "")  # the PR's own base branch, e.g. master or release-12.0
 HEAD_SHA     = os.environ.get("HEAD_SHA", "")
 REPO         = os.environ.get("REPO", "mattermost/mattermost")
 DEFAULT_BRANCH = os.environ.get("DEFAULT_BRANCH", "master")
@@ -166,6 +167,43 @@ def default_merge_base() -> str:
     return result.stdout.strip() if result.returncode == 0 else ""
 
 
+@lru_cache(maxsize=1)
+def base_tip_ref() -> str:
+    """Current tip of the PR's own base branch (BASE_REF), or BASE_SHA when it is not in this clone.
+
+    For a cherry-pick to release-12.0 that is the release branch, not master, so a
+    change master already has still counts as added there. "" if neither is known.
+    """
+    if BASE_REF:
+        for ref in (f"origin/{BASE_REF}", BASE_REF):
+            result = _git(["rev-parse", "--verify", ref], check=False)
+            if result.returncode == 0 and result.stdout.strip():
+                return result.stdout.strip()
+    return BASE_SHA
+
+
+def file_at_base_tip(path: str) -> Optional[str]:
+    """Contents of `path` on the base branch's tip, or None when the tip is unknown."""
+    tip = base_tip_ref()
+    return file_at(tip, path) if tip else None
+
+
+def net_changes(before: set, head: set, tip: Optional[set]) -> tuple[set, set]:
+    """What this PR adds and removes, given the sets at its merge base, its head and the base branch's tip.
+
+    Added: in the head, not in the merge base, and not on the base branch's tip (already
+    there by another route, such as the first PR of a stack that was squash-merged).
+    Removed: in the merge base, not in the head, and still on the tip (otherwise the base
+    branch removed it already). With no tip (``None``) the head and merge base decide alone.
+    """
+    added = head - before
+    removed = before - head
+    if tip is not None:
+        added -= tip
+        removed &= tip
+    return added, removed
+
+
 def before_ref_for(path: str) -> str:
     """The state of `path` before this PR: the merge base with the current default branch.
 
@@ -250,6 +288,7 @@ def reset_git_caches() -> None:
     unique_commits.cache_clear()
     _commit_files.cache_clear()
     default_merge_base.cache_clear()
+    base_tip_ref.cache_clear()
  
  
 # ── Checker 1 — config.go ──────────────────────────────────────────────────────
@@ -312,9 +351,10 @@ def check_config(patches: dict[str, str]) -> CheckResult:
  
     base_fields = _scan_struct_fields(file_before(_CONFIG_PATH))
     head_fields = _scan_struct_fields(file_at(HEAD_SHA, _CONFIG_PATH))
- 
-    added   = head_fields - base_fields
-    removed = base_fields - head_fields
+    tip_src = file_at_base_tip(_CONFIG_PATH)
+
+    added, removed = net_changes(
+        base_fields, head_fields, None if tip_src is None else _scan_struct_fields(tip_src))
  
     result.additions = sorted(f"``{s}.{f}``" for s, f in added)
     result.removals  = sorted(f"``{s}.{f}``" for s, f in removed)
@@ -433,8 +473,12 @@ def check_api(patches: dict[str, str]) -> CheckResult:
     for fname, patch in api4_patches.items():
         base_eps = _parse_endpoints(file_before(fname), _route_prefixes(file_before(_API_ROUTES_PATH)))
         head_eps = _parse_endpoints(file_at(HEAD_SHA, fname), _route_prefixes(file_at(HEAD_SHA, _API_ROUTES_PATH)))
-        added_eps   |= head_eps - base_eps
-        removed_eps |= base_eps - head_eps
+        tip_src = file_at_base_tip(fname)
+        tip_eps = None if tip_src is None else _parse_endpoints(
+            tip_src, _route_prefixes(file_at_base_tip(_API_ROUTES_PATH) or ""))
+        added, removed = net_changes(base_eps, head_eps, tip_eps)
+        added_eps   |= added
+        removed_eps |= removed
  
         # Anchor the check to avoid false positives from unrelated source text
         if re.search(r"^new file mode \d+", patch, re.MULTILINE):
@@ -472,8 +516,12 @@ def check_audit_events(patches: dict[str, str]) -> CheckResult:
     base_events = _parse_audit_events(file_before(_AUDIT_EVENT_PATH))
     head_events = _parse_audit_events(file_at(HEAD_SHA, _AUDIT_EVENT_PATH))
  
-    result.additions = sorted(f"``{e}``" for e in head_events - base_events)
-    result.removals  = sorted(f"``{e}``" for e in base_events - head_events)
+    tip_src = file_at_base_tip(_AUDIT_EVENT_PATH)
+    added, removed = net_changes(
+        base_events, head_events, None if tip_src is None else _parse_audit_events(tip_src))
+
+    result.additions = sorted(f"``{e}``" for e in added)
+    result.removals  = sorted(f"``{e}``" for e in removed)
     return result
  
  

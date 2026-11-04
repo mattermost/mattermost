@@ -62,8 +62,9 @@ class UniqueCommitFilterTest(unittest.TestCase):
         _git(self.tmpdir, "commit", "-m", message)
         return _git(self.tmpdir, "rev-parse", "HEAD")
 
-    def _point_checker(self, base: str, head: str) -> None:
+    def _point_checker(self, base: str, head: str, base_ref: str = "") -> None:
         checker.BASE_SHA = base
+        checker.BASE_REF = base_ref
         checker.HEAD_SHA = head
         checker.DEFAULT_BRANCH = "master"
         checker.reset_git_caches()
@@ -213,6 +214,75 @@ class UniqueCommitFilterTest(unittest.TestCase):
             result.additions,
         )
         self.assertFalse(any(item.startswith("`DELETE /`") for item in result.additions))
+
+    def test_stack_that_never_took_master_in_adds_nothing_master_already_has(self):
+        """The #37851 case: its raw commits are in the stack, master has them squashed."""
+        _write(self.tmpdir, "server/channels/api4/post.go", "package api4\n")
+        self._commit("root")
+
+        _git(self.tmpdir, "checkout", "-b", "stack")
+        _write(self.tmpdir, "server/channels/api4/post.go", _HANDLE)
+        self._commit("first PR, before it was squashed")
+
+        _git(self.tmpdir, "checkout", "master")
+        _write(self.tmpdir, "server/channels/api4/post.go", _HANDLE)
+        self._commit("first PR, squashed into master")
+        master = _git(self.tmpdir, "rev-parse", "HEAD")
+
+        _git(self.tmpdir, "checkout", "stack")  # never merged master
+        _write(self.tmpdir, "server/channels/api4/bar.go", _HANDLE_BAR)
+        head = self._commit("second PR")
+
+        self._point_checker(master, head, "master")
+        result = checker.check_api(checker.split_patch_by_file(checker.get_full_patch()))
+        self.assertEqual(result.additions, ["`POST /api/v4/bar` (`getBar`)"])
+        self.assertEqual(result.removals, [])
+
+    def test_cherry_pick_to_a_release_branch_is_compared_with_that_branch(self):
+        _write(self.tmpdir, "server/channels/api4/post.go", "package api4\n")
+        _write(self.tmpdir, "README", "start\n")
+        self._commit("root")
+        _git(self.tmpdir, "checkout", "-b", "release-12.0")
+        _write(self.tmpdir, "RELEASE", "12.0\n")
+        self._commit("release-only commit")
+        release_tip = _git(self.tmpdir, "rev-parse", "HEAD")
+
+        _git(self.tmpdir, "checkout", "master")
+        _write(self.tmpdir, "server/channels/api4/post.go", _HANDLE)
+        master_api = self._commit("add GET /foo on master")
+
+        _git(self.tmpdir, "checkout", "-b", "pick", "release-12.0")
+        _git(self.tmpdir, "cherry-pick", master_api)
+        head = _git(self.tmpdir, "rev-parse", "HEAD")
+
+        self._point_checker(release_tip, head, "release-12.0")
+        result = checker.check_api(checker.split_patch_by_file(checker.get_full_patch()))
+        self.assertEqual(result.additions, ["`GET /api/v4/foo` (`getFoo`)"])
+
+    def test_a_route_master_already_removed_is_not_this_prs_removal(self):
+        both = _HANDLE.replace("}\n", '\tr.Handle("/api/v4/baz", r.APIHandler(getBaz)).Methods("GET")\n}\n')
+        _write(self.tmpdir, "server/channels/api4/post.go", both)
+        self._commit("root")
+
+        _git(self.tmpdir, "checkout", "-b", "stack")
+        _write(self.tmpdir, "server/channels/api4/post.go", "package api4\n")
+        head = self._commit("the stack removes both routes")
+
+        _git(self.tmpdir, "checkout", "master")
+        _write(self.tmpdir, "server/channels/api4/post.go",
+               'package api4\n\nfunc Init() {\n\tr.Handle("/api/v4/baz", r.APIHandler(getBaz)).Methods("GET")\n}\n')
+        self._commit("another PR removes /foo on master")
+        master = _git(self.tmpdir, "rev-parse", "HEAD")
+
+        self._point_checker(master, head, "master")
+        result = checker.check_api(checker.split_patch_by_file(checker.get_full_patch()))
+        self.assertEqual(result.removals, ["`GET /api/v4/baz` (`getBaz`)"], "/foo went with the other PR")
+        self.assertEqual(result.additions, [])
+
+    def test_net_changes_without_a_known_tip_uses_the_merge_base_and_head_alone(self):
+        self.assertEqual(checker.net_changes({"a", "b"}, {"b", "c"}, None), ({"c"}, {"a"}))
+        self.assertEqual(checker.net_changes({"a", "b"}, {"b", "c"}, {"c"}), (set(), set()))
+        self.assertEqual(checker.net_changes({"a", "b"}, {"b", "c"}, {"a"}), ({"c"}, {"a"}))
 
 
 _API_ROUTES = (
