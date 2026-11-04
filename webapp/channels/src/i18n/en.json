@@ -12803,10 +12803,6 @@
     "defaultMessage": "Version",
     "description": "Column header/label in Plugin Management showing a plugin's version number; compact space."
   },
-  "admin.plugin.viewErrors": {
-    "defaultMessage": "View errors in the server logs",
-    "description": ""
-  },
   "admin.plugin.viewLogs": {
     "defaultMessage": "View logs",
     "description": ""

@@ -45,7 +45,6 @@ import BetaTag from 'components/widgets/tag/beta_tag';
 
 import * as I18n from 'i18n/i18n';
 import {isUnlicensedAddOn} from 'utils/addons';
-import {getHistory} from 'utils/browser_history';
 import Constants from 'utils/constants';
 import {mappingValueFromRoles, rolesFromMapping} from 'utils/policy_roles_adapter';
 
@@ -539,9 +538,6 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
             return null;
         }
 
-        const pluginId = this.props.plugin?.id;
-        const showLogs = Boolean(pluginId) && this.canViewServerLogs();
-
         return (
             <div
                 className='PluginMetadataPanel__statusError'
@@ -551,13 +547,6 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                     type='warning'
                     title={title}
                     description={text}
-                    primaryButtonLabel={showLogs ? (
-                        <FormattedMessage
-                            id='admin.plugin.viewErrors'
-                            defaultMessage='View errors in the server logs'
-                        />
-                    ) : undefined}
-                    onPrimaryAction={showLogs ? () => getHistory().push(pluginLogsPath(pluginId!, {errorsOnly: true})) : undefined}
                 />
             </div>
         );

@@ -1027,13 +1027,13 @@ describe('components/PluginManagement', () => {
             });
         };
 
-        test('links each plugin to its entries, and a failed plugin to its errors', () => {
+        test('links each plugin to its entries, including failed ones', () => {
             renderWithLogs(true);
 
             for (const id of ['plugin_0', 'plugin_1']) {
                 const row = within(screen.getByTestId(id));
+                expect(row.getAllByRole('link', {name: 'View logs'})).toHaveLength(1);
                 expect(row.getByRole('link', {name: 'View logs'})).toHaveAttribute('href', `/admin_console/reporting/server_logs?field.plugin_id=${id}`);
-                expect(row.getByRole('link', {name: 'View errors in the server logs'})).toHaveAttribute('href', `/admin_console/reporting/server_logs?levels=error,warn&field.plugin_id=${id}`);
             }
         });
 
@@ -1041,8 +1041,6 @@ describe('components/PluginManagement', () => {
             renderWithLogs(false);
 
             expect(screen.queryByRole('link', {name: 'View logs'})).not.toBeInTheDocument();
-            expect(screen.queryByRole('link', {name: 'View errors in the server logs'})).not.toBeInTheDocument();
-            expect(screen.getByTestId('plugin_1')).toHaveTextContent('Check your system logs for errors.');
         });
     });
 });

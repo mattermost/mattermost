@@ -11,8 +11,7 @@ import PluginState from 'mattermost-redux/constants/plugins';
 
 import CustomPluginSettings from 'components/admin_console/custom_plugin_settings';
 
-import {screen, renderWithContext, userEvent} from 'tests/react_testing_utils';
-import {getHistory} from 'utils/browser_history';
+import {screen, renderWithContext} from 'tests/react_testing_utils';
 
 describe('custom plugin sections and settings', () => {
     const plugin = {
@@ -195,13 +194,11 @@ describe('custom plugin sections and settings', () => {
             failedState,
         );
 
-        it('links to the plugin logs, and to its errors from the failure notice', async () => {
+        it('links to the logs of a failed plugin next to its enable switch', () => {
             renderFailed(true);
 
             expect(screen.getByRole('link', {name: 'View logs'})).toHaveAttribute('href', '/admin_console/reporting/server_logs?field.plugin_id=testplugin');
-
-            await userEvent.click(screen.getByRole('button', {name: 'View errors in the server logs'}));
-            expect(getHistory().push).toHaveBeenCalledWith('/admin_console/reporting/server_logs?levels=error,warn&field.plugin_id=testplugin');
+            expect(screen.getByTestId('plugin-metadata-status-error')).toHaveTextContent('Check your system logs for errors.');
         });
 
         it.each([
@@ -210,8 +207,6 @@ describe('custom plugin sections and settings', () => {
         ])('leaves the logs out %s', (_, canReadLogs, restrictSystemAdmin) => {
             renderFailed(canReadLogs, restrictSystemAdmin);
 
-            expect(screen.getByTestId('plugin-metadata-status-error')).toHaveTextContent('Check your system logs for errors.');
-            expect(screen.queryByRole('button', {name: 'View errors in the server logs'})).not.toBeInTheDocument();
             expect(screen.queryByRole('link', {name: 'View logs'})).not.toBeInTheDocument();
         });
     });

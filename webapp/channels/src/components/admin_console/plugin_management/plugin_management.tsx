@@ -92,25 +92,7 @@ const PluginItemState = ({state}: {state: number}) => {
     }
 };
 
-// Links a failure notice to the plugin's errors in the server logs, for admins who can open them
-const PluginErrorsLink = ({pluginId}: {pluginId?: string}) => {
-    if (!pluginId) {
-        return null;
-    }
-    return (
-        <>
-            {' '}
-            <Link to={pluginLogsPath(pluginId, {errorsOnly: true})}>
-                <FormattedMessage
-                    id='admin.plugin.viewErrors'
-                    defaultMessage='View errors in the server logs'
-                />
-            </Link>
-        </>
-    );
-};
-
-const PluginItemStateDescription = ({state, error, logsPluginId}: {state: number; error?: string; logsPluginId?: string}) => {
+const PluginItemStateDescription = ({state, error}: {state: number; error?: string}) => {
     switch (state) {
     case PluginState.PLUGIN_STATE_NOT_RUNNING:
         return (
@@ -160,7 +142,6 @@ const PluginItemStateDescription = ({state, error, logsPluginId}: {state: number
                         error: errorMessage,
                     }}
                 />
-                <PluginErrorsLink pluginId={logsPluginId}/>
             </div>
         );
     }
@@ -172,7 +153,6 @@ const PluginItemStateDescription = ({state, error, logsPluginId}: {state: number
                     id='admin.plugin.state.failed_to_stay_running.description'
                     defaultMessage='This plugin crashed multiple times and is no longer running. Check your system logs for errors.'
                 />
-                <PluginErrorsLink pluginId={logsPluginId}/>
             </div>
         );
     case PluginState.PLUGIN_STATE_STOPPING:
@@ -432,7 +412,6 @@ const PluginItem = ({
             key='state-description'
             state={pluginStatus.state}
             error={pluginStatus.error}
-            logsPluginId={showLogsLink ? pluginStatus.id : undefined}
         />,
     );
 

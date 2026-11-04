@@ -140,11 +140,11 @@ export function withUrlFilters(query: string, filters: UrlFilters | null): strin
 
 export const SERVER_LOGS_PATH = '/admin_console/reporting/server_logs';
 
-// Opens the viewer on one plugin's entries, or only its errors and warnings. The filters it leaves out fall back to the saved prefs
-export function pluginLogsPath(pluginId: string, {errorsOnly = false}: {errorsOnly?: boolean} = {}): string {
+// Opens the viewer on one plugin's entries. The filters it leaves out fall back to the saved prefs
+export function pluginLogsPath(pluginId: string): string {
     return SERVER_LOGS_PATH + withUrlFilters('', {
         search: '',
-        enabledLevels: new Set(errorsOnly ? ['error', 'warn'] : LEVEL_GROUPS),
+        enabledLevels: new Set(LEVEL_GROUPS),
         node: '',
         timeRange: null,
         fields: {[PLUGIN_ID_FIELD]: [pluginId]},
