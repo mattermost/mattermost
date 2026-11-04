@@ -9579,10 +9579,6 @@
     "defaultMessage": "All nodes",
     "description": "Option in the node selector on the System Console Server Logs page; shows log entries from every node in the cluster."
   },
-  "admin.logs.allPlugins": {
-    "defaultMessage": "All plugins",
-    "description": ""
-  },
   "admin.logs.clearFilters": {
     "defaultMessage": "Clear filters",
     "description": "Link shown when no log entries match the filters on the System Console Server Logs page; resets all filters."
@@ -9857,6 +9853,10 @@
   },
   "admin.logs.plugin": {
     "defaultMessage": "Plugin",
+    "description": ""
+  },
+  "admin.logs.plugin.allLogs": {
+    "defaultMessage": "All logs",
     "description": ""
   },
   "admin.logs.plugin.dropdownAriaLabel": {

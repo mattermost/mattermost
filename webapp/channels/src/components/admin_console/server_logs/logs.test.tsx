@@ -1159,7 +1159,7 @@ describe('components/admin_console/server_logs/Logs URL filters', () => {
             plugins: {github: installedPlugin('github', 'GitHub'), jira: installedPlugin('jira', 'Jira')},
         });
         await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
-        expect(screen.getByLabelText('Plugin')).toHaveValue('All plugins');
+        expect(screen.getByLabelText('Plugin')).toHaveValue('All logs');
 
         await userEvent.click(screen.getByLabelText('Plugin'));
         const items = screen.getAllByRole('menuitemcheckbox').map((item) => item.textContent);
@@ -1174,7 +1174,7 @@ describe('components/admin_console/server_logs/Logs URL filters', () => {
         expect(new URLSearchParams(history.location.search).getAll('field.plugin_id')).toEqual(['github', 'mattermost-ai']);
         expect(screen.getByLabelText('Plugin')).toHaveValue('2 plugins');
 
-        await userEvent.click(screen.getByRole('menuitemradio', {name: 'All plugins'}));
+        await userEvent.click(screen.getByRole('menuitemradio', {name: 'All logs'}));
         await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({fields: {}})));
         await waitFor(() => expect(history.location.search).toBe(''));
     });
