@@ -43,6 +43,7 @@ describe('components/sidebar_right', () => {
         rhsChannel: channel,
         selectedPostId: 'post_id',
         selectedPostCardId: '',
+        selectedEntity: null,
         actions: {
             setRhsExpanded: jest.fn(),
             showPinnedPosts: jest.fn(),

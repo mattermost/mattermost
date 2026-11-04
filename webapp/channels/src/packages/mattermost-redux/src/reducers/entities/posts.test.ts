@@ -5143,11 +5143,13 @@ describe('RECEIVED_POST_ENTITIES', () => {
     });
 
     it('skips client-deleted placeholders', () => {
-        const post = TestHelper.getPostMock({
-            id: 'post1',
-            message: '',
-            state: Posts.POST_DELETED,
-        });
+        const post = {
+            ...TestHelper.getPostMock({
+                id: 'post1',
+                message: '',
+            }),
+            state: Posts.POST_DELETED as 'DELETED',
+        };
         const state = deepFreeze({post1: post});
         const entities = [{id: '0:3', start: 0, end: 3, value: 'MLT', type_ids: ['plugin.acronym'], matcher_id: ''}];
 
