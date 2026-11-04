@@ -9,3 +9,12 @@ import "strings"
 func NormalizeName(s string) string {
 	return strings.ToLower(strings.TrimSpace(s))
 }
+
+// JoinNames returns the normalized names separated by commas.
+func JoinNames(names []string) string {
+	normalized := make([]string, 0, len(names))
+	for _, n := range names {
+		normalized = append(normalized, NormalizeName(n))
+	}
+	return strings.Join(normalized, ",")
+}
