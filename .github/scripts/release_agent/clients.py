@@ -136,6 +136,43 @@ class GitHub:
         result = self.http.get(f"/repos/{repo}/compare/{sha}...{urllib.parse.quote(branch, safe='')}")
         return result.get("status") in ("ahead", "identical")
 
+    def pulls_by_head(self, repo: str, head: str) -> list[dict]:
+        """Pull requests whose head is ``head`` ("owner:branch"), any state, newest first."""
+        return self.http.get(f"/repos/{repo}/pulls", head=head, state="all", sort="created",
+                             direction="desc", per_page=100) or []
+
+    def reviews(self, repo: str, number: int) -> list[dict]:
+        return self.http.get(f"/repos/{repo}/pulls/{number}/reviews", per_page=100) or []
+
+    def file_text(self, repo: str, path: str, ref: str) -> str | None:
+        """The file at ``ref``, or None when it doesn't exist there."""
+        try:
+            found = self.http.get(f"/repos/{repo}/contents/{urllib.parse.quote(path)}", ref=ref)
+            if isinstance(found, dict) and not found.get("content") and found.get("sha"):
+                # Over 1 MB the contents API leaves the body out; the blob API has it.
+                found = self.http.get(f"/repos/{repo}/git/blobs/{found['sha']}")
+        except ServiceError as err:
+            if err.status == 404:
+                return None
+            raise
+        if not isinstance(found, dict) or found.get("encoding") != "base64":
+            return None
+        return base64.b64decode(found.get("content") or "").decode("utf-8", errors="replace")
+
+    def tree_files(self, repo: str, ref: str, path: str) -> set[str]:
+        """File names directly under ``path`` at ``ref``. Unlike the contents API, which stops at
+        1,000 entries, a tree lists them all, so it works for the migrations folder."""
+        sha = urllib.parse.quote(ref, safe="")
+        for segment in [part for part in path.split("/") if part] + [None]:
+            tree = self.http.get(f"/repos/{repo}/git/trees/{sha}") or {}
+            if segment is None:
+                return {entry["path"] for entry in tree.get("tree", []) if entry.get("type") == "blob"}
+            sha = next((entry["sha"] for entry in tree.get("tree", [])
+                        if entry.get("type") == "tree" and entry.get("path") == segment), None)
+            if sha is None:
+                return set()
+        return set()
+
     def tags_with_prefix(self, repo: str, prefix: str) -> list[str]:
         refs = self.http.get(f"/repos/{repo}/git/matching-refs/tags/{urllib.parse.quote(prefix, safe='')}") or []
         return [ref["ref"].removeprefix("refs/tags/") for ref in refs]

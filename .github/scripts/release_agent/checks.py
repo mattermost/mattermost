@@ -7,9 +7,14 @@ are shown publicly as "(private repo)".
 """
 
 import re
+import sys
 from calendar import month_name
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+import changelog_release  # noqa: E402  (.github/scripts, shared with the changelog workflow)
 
 PUBLIC_REPOS = frozenset({"mattermost/mattermost"})
 
@@ -60,6 +65,9 @@ class Context:
     testing_alerts_channel: str = ""
     confluence: object = None
     primary: bool = True  # the first active release, which checks the yearly tasks
+    branches: set = field(default_factory=set)  # (major, minor) of each release-X.Y branch
+    tags: set = field(default_factory=set)  # (major, minor) of each vX.Y.0 tag
+    fetch_page: object = None  # (url) -> page text of a public page
 
     def query(self, rule: dict) -> dict:
         return format_values(rule.get("query") or {}, self.vars)
@@ -617,6 +625,201 @@ def holidays_page(ctx: Context, rule: dict) -> Result:
     return Result(FAIL, problem, [Item("Holidays page", "Add next year's holidays", url)], url)
 
 
+# ── The changelog PR (opened by the changelog workflow) and its entry ─────────────────
+
+# generate_changelog.RELEASE_DATE_PLACEHOLDER: a scheduled run isn't given the date, so the
+# entry says "**Release day: TBD**" until someone sets it. generate_changelog needs
+# `requests`, which this agent doesn't install, so the two small helpers below mirror its
+# entry parsing (_entry_start) rather than importing it.
+RELEASE_DAY_TBD = re.compile(r"Release day:\s*\**\s*TBD\b", re.IGNORECASE)
+MIGRATION_NAME = re.compile(r"^(\d+)_(.+)\.up\.sql$")
+
+
+def changelog_file(ctx: Context) -> str:
+    """The changelog file of the release's major version, as the changelog workflow names it."""
+    return changelog_release.changelog_path(ctx.release.version)
+
+
+def entry_text(content: str | None, short: str) -> str | None:
+    """The ``## Release vX.Y`` entry of a changelog file, up to the next release's, or None."""
+    lines = (content or "").split("\n")
+    heading = re.compile(r"^## Release " + re.escape(short) + r"\b(?!\.)")
+    start = next((i for i, line in enumerate(lines) if heading.match(line)), None)
+    if start is None:
+        return None
+    end = next((i for i in range(start + 1, len(lines)) if lines[i].startswith("## Release ")), len(lines))
+    return "\n".join(lines[start:end])
+
+
+def _bot_name(login: str) -> str:
+    return (login or "").removesuffix("[bot]").removeprefix("app/").casefold()
+
+
+def changelog_prs(ctx: Context, query: dict) -> list[dict]:
+    """The changelog workflow's PRs for this release, newest first.
+
+    Found by head branch (``changelog/vX.Y.0``) and, when ``author`` is set, by the bot that
+    opens them, whether the login is written ``app/name`` or ``name[bot]``.
+    """
+    repo = query["repo"]
+    found = ctx.github.pulls_by_head(repo, f"{repo.split('/')[0]}:{query['branch']}")
+    wanted = _bot_name(query.get("author", ""))
+    found = [pr for pr in found if not wanted or _bot_name((pr.get("user") or {}).get("login", "")) == wanted]
+    return sorted(found, key=lambda pr: pr.get("created_at", ""), reverse=True)
+
+
+def _pr_state(pr: dict) -> str:
+    if pr.get("merged_at"):
+        return "merged"
+    return "closed without merging" if pr.get("state") == "closed" else ("draft" if pr.get("draft") else "open")
+
+
+def _changelog_pr(ctx: Context, query: dict):
+    """(newest changelog PR, items for the older ones, Result when there is no usable PR)."""
+    repo = query["repo"]
+    prs = changelog_prs(ctx, query)
+    if not prs:
+        return None, [], Result(FAIL, f"No changelog PR yet ({query['branch']})")
+    pr, others = prs[0], prs[1:]
+    items = [Item(f"{repo.split('/')[-1]}#{other['number']}", other.get("title", ""), other.get("html_url", ""),
+                  repo=repo, note=f"another changelog PR for this release, {_pr_state(other)}") for other in others]
+    if _pr_state(pr) == "closed without merging":
+        return pr, items, Result(FAIL, f"The changelog PR {pr_item(repo, pr).label} was closed without merging",
+                                 [pr_item(repo, pr)] + items, pr.get("html_url", ""))
+    return pr, items, None
+
+
+def _has_reviewers(ctx: Context, repo: str, pr: dict) -> bool:
+    if pr.get("requested_reviewers") or pr.get("requested_teams"):
+        return True
+    return any(review.get("state") != "PENDING" for review in ctx.github.reviews(repo, pr["number"]))
+
+
+def _live_page_has_entry(ctx: Context, url: str, short: str) -> bool:
+    try:
+        page = ctx.fetch_page(url)
+    except Exception:  # noqa: BLE001 - a page that can't be read isn't live yet
+        return False
+    return re.search(rf"Release {re.escape(short)}(?!\d)", page or "") is not None
+
+
+def changelog_pr(ctx: Context, rule: dict) -> Result:
+    """The changelog workflow's PR exists (``state: exists``), is ready for review
+    (``ready``) or is merged and live on docs.mattermost.com (``merged``)."""
+    query = ctx.query(rule)
+    state, repo = query["state"], query["repo"]
+    pr, extra, failed = _changelog_pr(ctx, query)
+    if failed:
+        return failed
+    item, url = pr_item(repo, pr), pr.get("html_url", "")
+    short = ctx.release.short_version
+    if state == "exists":
+        return Result(PASS, f"The changelog PR {item.label} exists ({_pr_state(pr)})", extra, url)
+    merged = bool(pr.get("merged_at"))
+    if state == "ready":
+        if not merged and pr.get("draft"):
+            return Result(FAIL, f"The changelog PR {item.label} is still a draft", [item] + extra, url)
+        if not merged and not _has_reviewers(ctx, repo, pr):
+            return Result(FAIL, f"The changelog PR {item.label} is ready but has no reviewers", [item] + extra, url)
+        notes = list(extra)
+        if not merged:
+            entry = entry_text(ctx.github.file_text(repo, changelog_file(ctx), (pr.get("head") or {}).get("sha", "")), short)
+            if entry and RELEASE_DAY_TBD.search(entry):
+                notes.insert(0, Item(item.label, "", url, repo=repo, note="the entry still says Release day: TBD"))
+        return Result(PASS, f"The changelog PR {item.label} is ready for review"
+                      + (" (merged)" if merged else ""), notes, url)
+    # state == "merged"
+    if not merged:
+        return Result(FAIL, f"The changelog PR {item.label} isn't merged yet ({_pr_state(pr)})", [item] + extra, url)
+    if entry_text(ctx.github.file_text(repo, changelog_file(ctx), query["base_branch"]), short) is None:
+        return Result(FAIL, f"The changelog PR {item.label} is merged, but {query['base_branch']} has no "
+                      f"{short} entry", [item] + extra, url)
+    if not _live_page_has_entry(ctx, query["live_url"], short):
+        return Result(FAIL, f"The changelog PR {item.label} is merged, not live on docs.mattermost.com yet",
+                      [item] + extra, url)
+    return Result(PASS, f"The changelog PR {item.label} is merged and {short} is live on docs.mattermost.com",
+                  extra, query["live_url"])
+
+
+def _identifiers(sql: str) -> set[str]:
+    """Table, column, index, type and view names a PostgreSQL migration creates, alters or drops."""
+    name = r'"?([A-Za-z_][A-Za-z0-9_]*)"?'
+    schema = r'(?:"?[A-Za-z_][A-Za-z0-9_]*"?\.)?'
+    found = set()
+    for pattern in (
+        rf"\b(?:CREATE|DROP|ALTER)\s+TABLE\s+(?:IF\s+(?:NOT\s+)?EXISTS\s+)?(?:ONLY\s+)?{schema}{name}",
+        rf"\b(?:ADD|DROP|ALTER|RENAME)\s+COLUMN\s+(?:IF\s+(?:NOT\s+)?EXISTS\s+)?{name}",
+        rf"\bCREATE\s+(?:UNIQUE\s+)?INDEX\s+(?:CONCURRENTLY\s+)?(?:IF\s+NOT\s+EXISTS\s+)?{name}\s+ON\s+(?:ONLY\s+)?{schema}{name}",
+        rf"\bDROP\s+INDEX\s+(?:CONCURRENTLY\s+)?(?:IF\s+EXISTS\s+)?{schema}{name}",
+        rf"\b(?:CREATE|ALTER|DROP)\s+TYPE\s+(?:IF\s+(?:NOT\s+)?EXISTS\s+)?{schema}{name}",
+        rf"\b(?:CREATE\s+(?:OR\s+REPLACE\s+)?|DROP\s+|ALTER\s+|REFRESH\s+)(?:MATERIALIZED\s+)?VIEW\s+(?:IF\s+(?:NOT\s+)?EXISTS\s+)?{schema}{name}",
+    ):
+        for match in re.finditer(pattern, sql or "", re.IGNORECASE):
+            found |= {g.lower() for g in match.groups() if g}
+    return found - {"if", "not", "exists", "only", "column"}
+
+
+def _mentions(section: str, number: int, identifiers: set[str]) -> bool:
+    """Whether the Database Schema Changes text names the migration by number or by a table
+    or column it changes. The wording is the writer's; only the names are looked for."""
+    text = section.lower()
+    # By number: the file's zero-padded form (000150), or "migration 150" / "migration #150".
+    if number >= 0 and re.search(rf"(?<!\d)0+{number}(?!\d)|migrations?\s*(?:number\s*)?#?0*{number}(?!\d)", text):
+        return True
+    return any(re.search(rf"(?<![a-z0-9_]){re.escape(name)}(?![a-z0-9_])", text) for name in identifiers)
+
+
+def _schema_section(entry: str | None) -> str | None:
+    lines = (entry or "").split("\n")
+    start = next((i for i, line in enumerate(lines) if re.match(r"^#### +Database Schema Changes\b", line)), None)
+    if start is None:
+        return None
+    end = next((i for i in range(start + 1, len(lines)) if re.match(r"^#{1,4} ", lines[i])), len(lines))
+    return "\n".join(lines[start:end])
+
+
+def changelog_migrations(ctx: Context, rule: dict) -> Result:
+    """New PostgreSQL migrations in the release are described in the changelog entry.
+
+    The release's migrations are the ``*.up.sql`` files on its branch that the previous
+    release lacks: its vX.Y.0 tag, or its branch until it is tagged (the base the changelog
+    workflow uses). The check never fails on wording, only when the entry can't be checked.
+    """
+    query = ctx.query(rule)
+    branch, repo = ctx.vars["branch"], query["repo"]
+    if not ctx.has_branch:
+        return Result(SKIPPED, f"{branch} doesn't exist yet")
+    base = changelog_release.previous_release_base(ctx.release.major, ctx.release.minor, ctx.branches, ctx.tags)
+    if base is None:
+        return Result(SKIPPED, "There's no earlier release to compare with")
+    base_ref = base[0].removeprefix("origin/")
+    before = ctx.github.tree_files(repo, base_ref, query["migrations_path"])
+    names = sorted(name for name in ctx.github.tree_files(repo, branch, query["migrations_path"])
+                   if name.endswith(".up.sql") and name not in before)
+    if not names:
+        return Result(PASS, "No new migrations this release")
+    pr, extra, failed = _changelog_pr(ctx, query)
+    if failed:
+        return Result(FAIL, f"{plural(len(names), 'new migration')} to check, but the changelog PR is missing or closed",
+                      failed.items, failed.proof_url)
+    url = pr.get("html_url", "")
+    ref = query["base_branch"] if pr.get("merged_at") else (pr.get("head") or {}).get("sha", "")
+    section = _schema_section(entry_text(ctx.github.file_text(repo, changelog_file(ctx), ref), ctx.release.short_version))
+    if section is None:
+        return Result(FAIL, f"{plural(len(names), 'new migration')}, but the changelog entry has no "
+                      "Database Schema Changes section", [pr_item(repo, pr)], url)
+    missing = []
+    for name in names:
+        match = MIGRATION_NAME.match(name)
+        number = int(match.group(1)) if match else -1
+        sql = ctx.github.file_text(repo, f"{query['migrations_path']}/{name}", branch)
+        if not _mentions(section, number, _identifiers(sql or "")):
+            missing.append(Item(name.removesuffix(".up.sql"), "", url, note="not mentioned in Database Schema Changes"))
+    if missing:
+        return Result(PASS, f"{plural(len(names), 'new migration')}, {len(missing)} not mentioned in the changelog entry", missing + extra, url)
+    return Result(PASS, f"The changelog entry covers {plural(len(names), 'new migration')}", extra, url)
+
+
 def changelog_labels(ctx: Context, rule: dict) -> Result:
     """Every merged milestone PR has one of the changelog labels."""
     query = ctx.query(rule)
@@ -641,6 +844,8 @@ CHECKS = {
     "e2e_results": (e2e_results, "found"),
     "release_tags": (release_tags, "present"),
     "version_go_prs": (version_go_prs, "merged"),
+    "changelog_pr": (changelog_pr, "state_reached"),
+    "changelog_migrations": (changelog_migrations, "described_or_none"),
     "changelog_labels": (changelog_labels, "none_missing"),
     "holidays_page": (holidays_page, "next_year_listed"),
 }

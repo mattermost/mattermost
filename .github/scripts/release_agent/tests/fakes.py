@@ -20,6 +20,23 @@ class FakeGitHub:
         self.tags = {}          # repo -> [tag]
         self.dates = {}         # (repo, ref) -> ISO date
         self.queries = []
+        self.head_prs = {}      # "owner:branch" -> [pull], newest first as GitHub lists them
+        self.reviews_of = {}    # (repo, number) -> [review]
+        self.files = {}         # (repo, ref, path) -> text
+        self.trees = {}         # (repo, ref, path) -> {file name}
+
+    def pulls_by_head(self, repo, head):
+        self.queries.append(f"head:{head}")
+        return list(self.head_prs.get(head, []))
+
+    def reviews(self, repo, number):
+        return self.reviews_of.get((repo, number), [])
+
+    def file_text(self, repo, path, ref):
+        return self.files.get((repo, ref, path))
+
+    def tree_files(self, repo, ref, path):
+        return set(self.trees.get((repo, ref, path), set()))
 
     def search_issues(self, query, limit=1000, sort=None):
         self.queries.append(query)

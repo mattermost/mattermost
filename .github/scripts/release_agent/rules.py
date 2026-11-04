@@ -30,7 +30,13 @@ def template_items(template: dict) -> set[str]:
 
 
 # Query keys a check reads without a default.
-REQUIRED_QUERY = {"e2e_results": ("match_any",), "release_tags": ("repos",)}
+REQUIRED_QUERY = {
+    "e2e_results": ("match_any",),
+    "release_tags": ("repos",),
+    "changelog_pr": ("state", "repo", "branch", "base_branch", "live_url"),
+    "changelog_migrations": ("repo", "branch", "base_branch", "migrations_path"),
+}
+CHANGELOG_PR_STATES = ("exists", "ready", "merged")
 
 
 def problems(rules: dict, schema: dict, template_titles: set[str] | None = None) -> list[str]:
@@ -55,6 +61,8 @@ def problems(rules: dict, schema: dict, template_titles: set[str] | None = None)
         for key in REQUIRED_QUERY.get(rule["type"], ()):
             if key not in query:
                 errors.append(f"{task}: a {rule['type']} check needs query.{key}")
+        if rule["type"] == "changelog_pr" and query.get("state") not in CHANGELOG_PR_STATES:
+            errors.append(f"{task}: a changelog_pr check needs query.state to be one of {', '.join(CHANGELOG_PR_STATES)}")
         if rule["type"] == "release_tags" and not ({"tag", "tag_prefix"} & query.keys()):
             errors.append(f"{task}: a release_tags check needs query.tag or query.tag_prefix")
         anchor = re.fullmatch(r"([a-z][a-z0-9_]*)([-+]\d+)?", rule["due"])

@@ -25,13 +25,14 @@ def release():
 
 
 def context(github=None, jira=None, hub=None, has_branch=True, rc_numbers=(1, 2), today=date(2026, 11, 4),
-            confluence=None, primary=True, page_id="123", rel=None):
+            confluence=None, primary=True, page_id="123", rel=None, branches=(), tags=(), fetch_page=None):
     rel = rel or release()
     values = {**template_vars(rel, NAMING, list(rc_numbers)), "holidays_page_id": page_id, "next_year": today.year + 1}
     return checks.Context(release=rel, today=today, vars=values,
                           has_branch=has_branch, rc_numbers=list(rc_numbers), github=github or FakeGitHub(),
                           jira=jira or FakeJira(), hub=hub or FakeHub(), testing_alerts_channel="alerts",
-                          confluence=confluence or FakeConfluence(), primary=primary)
+                          confluence=confluence or FakeConfluence(), primary=primary,
+                          branches=set(branches), tags=set(tags), fetch_page=fetch_page)
 
 
 def pr(number, title="A change", login="dev", state="closed", merged_at="2026-10-20T10:00:00Z",

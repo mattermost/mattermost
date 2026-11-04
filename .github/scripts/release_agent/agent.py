@@ -43,6 +43,7 @@ class Services:
     fetch_calendar: object  # () -> ICS text
     ls_remote: object  # () -> `git ls-remote` output
     confluence: object = None
+    fetch_page: object = None  # (url) -> page text, for the live docs page; no token
 
 
 def resolve_mode(requested: str, variable: str) -> str:
@@ -134,7 +135,8 @@ def check_release(release, rules: dict, settings: Settings, services: Services, 
               "next_year": today.year + 1},
         has_branch=release.key in branches, rc_numbers=rc_numbers, github=services.github,
         jira=services.jira, hub=services.hub, testing_alerts_channel=settings.testing_alerts_channel,
-        confluence=services.confluence, primary=primary,
+        confluence=services.confluence, primary=primary, branches=branches, tags=tags,
+        fetch_page=services.fetch_page,
     )
     for rule in rules["rules"]:
         due = release_calendar.resolve_due(rule["due"], release, holidays)

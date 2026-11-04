@@ -31,6 +31,8 @@ TITLES = {
     "release_tags": "Release tags",
     "version_go_prs": "version.go PRs",
     "resolved_tickets": "Resolved tickets to close",
+    "changelog_pr": "Changelog PR",
+    "changelog_migrations": "Database migrations in the changelog",
     "changelog_labels": "Changelog labels",
 }
 
@@ -202,6 +204,7 @@ def format_post(report: ReleaseReport, today: date, milestone_names: dict, emoji
         for outcome in by_state[OK]:
             lines.append(f"- :white_check_mark: **{outcome.title}** — {outcome.result.summary}"
                          f"{_proof(outcome.result)}{_tick_note(ticks, outcome.rule['task'])}")
+            lines += _items(outcome.result.items)
 
     waiting = by_state.get(NOT_DUE, []) + [o for o in by_state.get(SKIPPED, []) if not o.result.hidden]
     if waiting:

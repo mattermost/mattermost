@@ -35,6 +35,42 @@ class GitHubTest(unittest.TestCase):
         self.assertEqual(GitHub("t", http).commits("o/r", "release-12.2", path="NOTICE.txt"), [{"sha": "a"}])
         self.assertEqual(http.calls[0][2], {"sha": "release-12.2", "per_page": 100, "page": 1, "path": "NOTICE.txt"})
 
+    def test_changelog_prs_are_listed_by_head_branch_with_closed_ones(self):
+        http = RecordingHttp([({}, [{"number": 7}])])
+        self.assertEqual(GitHub("t", http).pulls_by_head("o/r", "o:changelog/v12.2.0"), [{"number": 7}])
+        self.assertEqual(http.calls[0][1:3], ("/repos/o/r/pulls", {"head": "o:changelog/v12.2.0", "state": "all",
+                                                                    "sort": "created", "direction": "desc", "per_page": 100}))
+
+    def test_file_text_decodes_content_and_reads_big_files_from_the_blob(self):
+        import base64
+        encoded = base64.b64encode("## Release v12.2\n".encode()).decode()
+        http = RecordingHttp([({}, {"encoding": "base64", "content": encoded})])
+        self.assertEqual(GitHub("t", http).file_text("o/r", "docs/a b.mdx", "master"), "## Release v12.2\n")
+        self.assertEqual(http.calls[0][1:3], ("/repos/o/r/contents/docs/a%20b.mdx", {"ref": "master"}))
+        big = RecordingHttp([({}, {"sha": "abc", "content": ""}), ({}, {"encoding": "base64", "content": encoded})])
+        self.assertEqual(GitHub("t", big).file_text("o/r", "big.mdx", "master"), "## Release v12.2\n")
+        self.assertEqual(big.calls[1][1], "/repos/o/r/git/blobs/abc")
+
+    def test_file_text_of_a_missing_file_is_none(self):
+        class Missing(RecordingHttp):
+            def request(self, *args, **kwargs):
+                raise ServiceError("GitHub", 404)
+        self.assertIsNone(GitHub("t", Missing([])).file_text("o/r", "nope", "master"))
+
+    def test_tree_files_walks_the_path_so_a_big_folder_is_not_cut_short(self):
+        http = RecordingHttp([
+            ({}, {"tree": [{"path": "server", "type": "tree", "sha": "s1"}]}),
+            ({}, {"tree": [{"path": "db", "type": "tree", "sha": "s2"}, {"path": "x.go", "type": "blob", "sha": "b"}]}),
+            ({}, {"tree": [{"path": "000001_a.up.sql", "type": "blob", "sha": "b1"}, {"path": "sub", "type": "tree", "sha": "t"}]}),
+        ])
+        self.assertEqual(GitHub("t", http).tree_files("o/r", "release-12.2", "server/db"), {"000001_a.up.sql"})
+        self.assertEqual([c[1] for c in http.calls], ["/repos/o/r/git/trees/release-12.2", "/repos/o/r/git/trees/s1",
+                                                       "/repos/o/r/git/trees/s2"])
+
+    def test_tree_files_of_a_missing_folder_is_empty(self):
+        http = RecordingHttp([({}, {"tree": [{"path": "other", "type": "tree", "sha": "s1"}]})])
+        self.assertEqual(GitHub("t", http).tree_files("o/r", "v1.0.0", "server/db"), set())
+
     def test_search_pages_until_short_page(self):
         http = RecordingHttp([({}, {"items": [{}] * 100}), ({}, {"items": [{}] * 3})])
         self.assertEqual(len(GitHub("t", http).search_issues("q")), 103)

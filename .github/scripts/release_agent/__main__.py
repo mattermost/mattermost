@@ -42,6 +42,7 @@ def services_from_env() -> agent.Services:
         playbooks=Playbooks(hub),
         fetch_calendar=lambda: fetch_text(calendar_url, "Release Dates calendar"),
         ls_remote=agent.git_ls_remote,
+        fetch_page=lambda url: fetch_text(url, "docs.mattermost.com"),
     )
 
 

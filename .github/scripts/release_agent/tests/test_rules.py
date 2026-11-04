@@ -36,6 +36,12 @@ class RulesFileTest(unittest.TestCase):
             "hub-on-release-branch": ("branch_cut", "(T-21 or earlier) Release Branch Cut"),
             "notice-txt": ("branch_cut", "(T-16) Feature Complete"),
             "resolved-tickets": ("final_build", "(T-16) Feature Complete"),
+            # The changelog workflow opens its PR at RC-1, a working day after Feature Complete,
+            # so these two are due a day later than their T-16 section.
+            "changelog-draft": ("feature_complete+1", "(T-16) Feature Complete"),
+            "changelog-migrations": ("feature_complete+1", "(T-16) Feature Complete"),
+            "changelog-review": ("feature_complete+1", "(T-15) RC-1 Cut & QA Qualification Starts"),
+            "changelog-merged": ("release_day", "(T-0) Self-Hosted Release"),
             "cherry-picks": ("final_build", "(T-16) Feature Complete"),
             "e2e-results": ("feature_complete+1", "(T-15) RC-1 Cut & QA Qualification Starts"),
             "final-tags": ("final_build", "(T-5) Final Release Cut"),
@@ -92,6 +98,27 @@ class RulesFileTest(unittest.TestCase):
         self.assertTrue(problems(routes=[{"username": "jesse.hallam"}]))  # neither teams nor components
         self.assertTrue(problems(routes=[{"teams": ["Calls"], "username": "@jesse.hallam"}]))
         self.assertTrue(problems(routes=[{"team": ["Calls"], "username": "jesse.hallam"}]))  # misspelt key
+
+    def test_changelog_rules_need_their_query(self):
+        def problems(task, **changes):
+            broken = copy.deepcopy(self.rules)
+            rule = next(r for r in broken["rules"] if r["task"] == task)
+            for key, value in changes.items():
+                rule["query"].pop(key, None) if value is None else rule["query"].__setitem__(key, value)
+            return rules.problems(broken, self.schema, self.titles)
+        self.assertEqual(problems("changelog-review"), [])
+        self.assertEqual(problems("changelog-review", state="soon"),
+                         ["changelog-review: a changelog_pr check needs query.state to be one of exists, ready, merged"])
+        self.assertEqual(problems("changelog-merged", live_url=None),
+                         ["changelog-merged: a changelog_pr check needs query.live_url"])
+        self.assertEqual(problems("changelog-migrations", migrations_path=None),
+                         ["changelog-migrations: a changelog_migrations check needs query.migrations_path"])
+
+    def test_the_changelog_rules_tick_the_four_changelog_items(self):
+        items = {r["task"]: r["playbook_item"] for r in self.rules["rules"] if r["task"].startswith("changelog-") and r["playbook_item"]}
+        self.assertEqual(sorted(items), ["changelog-draft", "changelog-merged", "changelog-migrations", "changelog-review"])
+        for title in items.values():
+            self.assertIn(title, self.titles)
 
     def test_rejects_duplicate_task(self):
         broken = copy.deepcopy(self.rules)

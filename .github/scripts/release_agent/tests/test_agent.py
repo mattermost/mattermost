@@ -33,6 +33,12 @@ def services(jira=None, confluence=None):
     github.pulls[(MM, 39103)] = {"merged_at": "2026-10-20T00:00:00Z", "merge_commit_sha": "n1"}
     github.branch_commits[(MM, "release-12.2")] = [{"sha": "n1", "commit": {"message": "chore: NOTICE (#39103)"}}]
     github.on_branch.add((MM, "abc", "release-12.2"))
+    # The changelog workflow's PR for v12.2: out of draft with a reviewer, and no new migrations.
+    github.head_prs["mattermost:changelog/v12.2.0"] = [{
+        "number": 39500, "title": "Changelog v12.2.0", "draft": False, "state": "open", "merged_at": None,
+        "created_at": "2026-10-26T10:00:00Z", "html_url": "https://github.com/mattermost/mattermost/pull/39500",
+        "user": {"login": "changelog-automation-docs[bot]"}, "requested_reviewers": [{"login": "amy"}],
+        "requested_teams": [], "head": {"sha": "clsha"}}]
     github.tags = {MM: ["v12.2.0-rc1", "v12.2.0-rc2"], ENT: ["v12.2.0-rc1", "v12.2.0-rc2"]}
     github.dates[(MM, "v12.2.0-rc2")] = "2026-11-02T12:00:00Z"
     hub = FakeHub(("12.2.0", "abc"))
@@ -81,6 +87,10 @@ class LiveRunTest(unittest.TestCase):
             "e2e-results": "needs_attention",
             "rc-tags": "ok",
             "resolved-tickets": "ok",
+            "changelog-draft": "ok",
+            "changelog-migrations": "ok",
+            "changelog-review": "ok",
+            "changelog-merged": "not_due",
             "final-tags": "not_due",
             "version-go-prs": "skipped",
             "changelog-labels": "ok",
@@ -94,6 +104,9 @@ class LiveRunTest(unittest.TestCase):
             ("run122", "Post a list of outstanding release bugs and PRs to the release playbook channel. Label approved cherry-pick PRs."),
             ("run122", "Check that Hub was updated to the latest release branch."),
             ("run122", "Ensure that new NOTICE.txt for any new libraries are cherry-picked to the release branch as needed - example PR."),
+            ("run122", "Run the workflow to create a changelog draft."),
+            ("run122", "Check the postgres migrations workflow file for any new Database changes that need to be added to the release notes."),
+            ("run122", "Submit the changelog PR for team review - example draft."),
         })
         self.assertNotIn("cherry-picks", [t["task"] for t in self.releases["v12.2"]["ticked"]])  # passing, not due
 
@@ -101,7 +114,7 @@ class LiveRunTest(unittest.TestCase):
         status = [p for p in self.svc.hub.created if not p["root_id"]]
         self.assertEqual(sorted(p["channel_id"] for p in status), ["c122", "c123"])
         replies = [p for p in self.svc.hub.created if p["root_id"]]
-        self.assertEqual(len(replies), 3)
+        self.assertEqual(len(replies), 6)
         self.assertTrue(all(r["root_id"] in {p["id"] for p in status} for r in replies))
         self.assertIn("Ticked **Ensure that new NOTICE.txt for any new libraries", "\n".join(r["message"] for r in replies))
 
@@ -135,8 +148,8 @@ class LiveRunTest(unittest.TestCase):
 
     def test_totals(self):
         self.assertEqual(self.body["totals"]["releases"], 2)
-        self.assertEqual(self.body["totals"]["checks_run"], 26)
-        self.assertEqual(self.body["totals"]["ticked"], 3)
+        self.assertEqual(self.body["totals"]["checks_run"], 34)
+        self.assertEqual(self.body["totals"]["ticked"], 6)
         self.assertEqual(self.body["totals"]["alarms_raised"], 3)
         self.assertEqual(self.body["totals"]["false_alarms"], 0)
 
@@ -238,7 +251,7 @@ class ReleaseChannelTest(unittest.TestCase):
         for r in svc.hub.runs:
             r["name"] = "Renamed run"
         body, _ = run(svc)
-        self.assertEqual(len(svc.hub.closed), 3)
+        self.assertEqual(len(svc.hub.closed), 6)
         self.assertEqual(body["releases"][0]["flags"], [])
 
     def test_without_the_channel_the_run_is_found_by_name(self):
@@ -246,7 +259,7 @@ class ReleaseChannelTest(unittest.TestCase):
         svc.hub.channels = []
         svc.hub.runs[0]["name"] = "Self-Hosted Release v12.2"
         body, _ = run(svc)
-        self.assertEqual(len(svc.hub.closed), 3)
+        self.assertEqual(len(svc.hub.closed), 6)
         self.assertEqual(sorted(p["channel_id"] for p in svc.hub.created if not p["root_id"]), ["c122", "c123"])
 
     def test_esr_channel(self):
@@ -256,7 +269,7 @@ class ReleaseChannelTest(unittest.TestCase):
             svc.hub.runs[0]["name"] = "Renamed run"
             body, _ = run(svc)
             self.assertEqual(body["releases"][0]["flags"], [], name)
-            self.assertEqual(len(svc.hub.closed), 3, name)
+            self.assertEqual(len(svc.hub.closed), 6, name)
             self.assertIn("c122", [p["channel_id"] for p in svc.hub.created if not p["root_id"]])
 
     def test_report_is_ticked_only_when_posted_in_the_run_channel(self):
@@ -343,7 +356,7 @@ class LogLineTest(unittest.TestCase):
     def test_success(self):
         body, _ = run(services())
         line = log_line(body, [], "success", "https://run", "live")
-        self.assertTrue(line.startswith(":warning: release-agent [live] 2026-11-04: v12.2 T-7 needs attention (post created, ticked 3)"))
+        self.assertTrue(line.startswith(":warning: release-agent [live] 2026-11-04: v12.2 T-7 needs attention (post created, ticked 6)"))
         self.assertTrue(line.endswith("· [run](https://run)"))
 
     def test_failure_without_run_json(self):

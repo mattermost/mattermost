@@ -89,6 +89,8 @@
             "cherry_picks_to_label",
             "new_regressions",
             "resolved_tickets",
+            "changelog_pr",
+            "changelog_migrations",
             "hub_release_branch",
             "notice_txt",
             "cherry_picks",
@@ -103,7 +105,7 @@
           "type": "array",
           "minItems": 1,
           "uniqueItems": true,
-          "items": {"enum": ["jira", "github", "hub", "confluence"]}
+          "items": {"enum": ["jira", "github", "hub", "confluence", "docs"]}
         },
         "query": {
           "type": "object",
@@ -148,6 +150,8 @@
             "present",
             "merged",
             "none_missing",
+            "state_reached",
+            "described_or_none",
             "next_year_listed"
           ]
         },

@@ -1,0 +1,49 @@
+{
+  "_source": "mattermost/mattermost on 2026-11-04, read from the public GitHub API: the v12.1 changelog PR (#39286), the Database Schema Changes section of its entry, and the PostgreSQL migrations added between v12.0.0 and release-12.1 (SQL trimmed to its first statements). v12.0's own changelog PR (#38589) was closed without merging.",
+  "pr": {
+    "number": 39286,
+    "title": "v12.1.0, Mobile v2.46, and Desktop v6.4 Changelogs",
+    "draft": false,
+    "state": "open",
+    "merged_at": null,
+    "created_at": "2026-10-20T05:50:50Z",
+    "html_url": "https://github.com/mattermost/mattermost/pull/39286",
+    "user": {
+      "login": "changelog-automation-docs[bot]"
+    },
+    "head": {
+      "sha": "e5a16397c17cf232270e754eaa0835eac77bde35"
+    },
+    "requested_reviewers": [],
+    "requested_teams": [
+      {
+        "slug": "release-eng"
+      }
+    ]
+  },
+  "closed_v12_0_pr": {
+    "number": 38589,
+    "title": "v12.0.0 Changelog",
+    "draft": false,
+    "state": "closed",
+    "merged_at": null,
+    "created_at": "2026-09-17T13:43:09Z",
+    "html_url": "https://github.com/mattermost/mattermost/pull/38589",
+    "user": {
+      "login": "changelog-automation-docs[bot]"
+    },
+    "head": {
+      "sha": "66c18184466560b8554a4638f3ea8c52345c1d87"
+    },
+    "requested_reviewers": [],
+    "requested_teams": []
+  },
+  "schema_section": "#### Database Schema Changes\n - The following schema changes are included in the v12.1 release. No database downtime is expected for this upgrade.\n   - Added the ``creator`` value to the ``permission_level`` enum type to support the new creator permission level for property fields; an enum value addition with no table rewrite and negligible impact on running systems.\n   - Added the ``healthfindings`` table, which stores the findings raised by the Built-in Health Dashboard keyed by a finding fingerprint; a new table with no impact on existing tables or queries.\n   - Added the index ``idx_healthfindings_lastseenat`` on ``healthfindings (lastseenat)`` using ``CONCURRENTLY``, so the build doesn't block reads or writes; no downtime expected.\n   - Added the partial index ``idx_propertyvalues_groupid_fieldid`` on ``PropertyValues (GroupID, FieldID)`` for rows where ``DeleteAt`` is 0, using ``CONCURRENTLY``, to speed up lookups that filter by group and field; no downtime expected.\n   - Upgrading no longer resizes the ``message`` column on ``posts``, ``drafts``, ``scheduledposts``, and ``temporaryposts``, avoiding a long rebuild of the post message search index (``idx_posts_message_txt``) on large installations. New installations still support messages of up to 262,144 characters. Existing installations keep their current maximum post size, which is determined by the existing ``posts.message`` column size. Installations that already applied the resize in v12.0 keep the larger limit.\n   - Servers still running 11.10 that use attribute-based access control can again upload and download files and join policy-protected channels and teams against a database upgraded to 12.x, for example during a rolling upgrade: the upgrade no longer drops the ``AttributeView`` materialized view, and a temporary migration rebuilds it from the 12.x attribute options. While any server still runs 11.10, make attribute option changes from a 12.x server.\n  - Rebuilt the ``AttributeView`` materialized view as a rolling-upgrade compatibility shim for pre-000216 servers, resolving option names from ``PropertyOptions`` instead of the stale ``Attrs`` blob; old-node reads block briefly during population.\n",
+  "migrations": {
+    "000230_add_creator_to_permission_level.up.sql": "ALTER TYPE permission_level ADD VALUE IF NOT EXISTS 'creator';",
+    "000231_create_health_findings.up.sql": "CREATE TABLE IF NOT EXISTS healthfindings (\n    fingerprint     varchar(32) PRIMARY KEY,\n    code            varchar(64) NOT NULL,\n    subject         varchar(255) NOT NULL DEFAULT '',\n    scope           varchar(255) NOT NULL DEFAULT '',\n    severity        varchar(16) NOT NULL,",
+    "000232_create_healthfindings_lastseenat_index.up.sql": "CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_healthfindings_lastseenat ON healthfindings (lastseenat);",
+    "000235_create_property_values_groupid_fieldid_index.up.sql": "CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_propertyvalues_groupid_fieldid ON PropertyValues(GroupID, FieldID) WHERE DeleteAt = 0;",
+    "000242_create_legacy_attribute_view.up.sql": "DROP MATERIALIZED VIEW IF EXISTS AttributeView;\nCREATE MATERIALIZED VIEW AttributeView AS\nSELECT\n    pv.GroupID,\n    pv.TargetID,\n    pv.TargetType,"
+  }
+}

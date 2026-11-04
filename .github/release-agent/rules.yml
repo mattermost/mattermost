@@ -260,6 +260,76 @@ rules:
     pass_when: merged
     on_fail: needs_attention
 
+  # The four changelog items are ticked from what the changelog workflow (#39380) leaves
+  # behind: its PR (head branch changelog/vX.Y.0, opened by app/changelog-automation-docs),
+  # the entry in docs/main/product-overview/mattermost-vN-changelog.mdx, and the live docs
+  # page, which is public and read without a token. The first three are due a working day
+  # RC-1, a working day after Feature Complete, when the workflow opens the PR. So the draft
+  # and migrations rules are due a day later than their playbook section (T-16, Feature
+  # Complete); the review item is in the T-15 section already. If a release has several such
+  # PRs, the newest is used and the others are listed.
+  - task: changelog-draft
+    title: Changelog draft PR
+    playbook_item: Run the workflow to create a changelog draft.
+    due: feature_complete+1
+    type: changelog_pr
+    source: [github]
+    query: &changelog_pr
+      state: exists
+      repo: mattermost/mattermost
+      branch: "changelog/{version}"
+      author: app/changelog-automation-docs
+      base_branch: master
+      live_url: "https://docs.mattermost.com/product-overview/mattermost-v{major}-changelog"
+    pass_when: state_reached
+    on_fail: needs_attention
+
+  # New PostgreSQL migrations are the *.up.sql files on the release branch that the previous
+  # release (its vX.Y.0 tag, or its branch until it's tagged) doesn't have. Each must be
+  # named, by number or by the table or column it changes, in the entry's Database Schema
+  # Changes section. Wording is never judged: ones not named are listed, and the check still
+  # passes. It fails only when there's no changelog PR or the entry has no such section.
+  - task: changelog-migrations
+    title: Database migrations in the changelog
+    playbook_item: Check the postgres migrations workflow file for any new Database changes that need to be added to the release notes.
+    due: feature_complete+1
+    type: changelog_migrations
+    source: [github]
+    query:
+      <<: *changelog_pr
+      migrations_path: server/channels/db/migrations/postgres
+    pass_when: described_or_none
+    on_fail: needs_attention
+
+  # Ready means out of draft with a reviewer requested or a review submitted. An entry that
+  # still says "Release day: TBD" is noted in the post, but doesn't fail the check.
+  - task: changelog-review
+    title: Changelog PR ready for review
+    playbook_item: Submit the changelog PR for team review - example draft.
+    due: feature_complete+1
+    type: changelog_pr
+    source: [github]
+    query:
+      <<: *changelog_pr
+      state: ready
+    pass_when: state_reached
+    on_fail: needs_attention
+
+  # Merged, and the entry is on master and on docs.mattermost.com. The item's other half,
+  # submitting a correction docs PR for formatting errors, can't be checked; ticking it once
+  # the entry is live is close enough.
+  - task: changelog-merged
+    title: Changelog merged and live on docs
+    playbook_item: Merge the release docs/changelog to master and verify all changes on docs.mattermost.com. Submit a correction docs PR for any incorrect formatting or other errors.
+    due: release_day
+    type: changelog_pr
+    source: [github, docs]
+    query:
+      <<: *changelog_pr
+      state: merged
+    pass_when: state_reached
+    on_fail: needs_attention
+
   # No playbook item; changelog labels feed the changelog draft.
   - task: changelog-labels
     title: Changelog labels
