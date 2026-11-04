@@ -1707,7 +1707,7 @@ func (a *App) UpdatePasswordSendEmail(rctx request.CTX, user *model.User, newPas
 	return nil
 }
 
-func (a *App) UpdateHashedPasswordByUserId(userID, newHashedPassword string) *model.AppError {
+func (a *App) UpdateHashedPasswordByUserId(rctx request.CTX, userID, newHashedPassword string) *model.AppError {
 	user, err := a.GetUser(userID)
 	if err != nil {
 		return err

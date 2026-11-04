@@ -4203,7 +4203,7 @@ func TestUpdateUserHashedPasswordForGuestSessionAndEmail(t *testing.T) {
 		require.NoError(t, nErr)
 		th.App.InvalidateCacheForUser(created.Id)
 
-		loaded, appErr := th.App.GetUser(th.Context, created.Id)
+		loaded, appErr := th.App.GetUser(created.Id)
 		require.Nil(t, appErr)
 		require.True(t, loaded.IsMagicLinkEnabled())
 		require.NotNil(t, loaded.AuthData)
@@ -4229,7 +4229,7 @@ func TestUpdateUserHashedPasswordForGuestSessionAndEmail(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 		CheckErrorID(t, err, "api.user.update_password.magic_link.app_error")
 
-		reloaded, appErr := th.App.GetUser(th.Context, guest.Id)
+		reloaded, appErr := th.App.GetUser(guest.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, model.UserAuthServiceMagicLink, reloaded.AuthService)
 		require.True(t, reloaded.IsMagicLinkEnabled())
@@ -4295,7 +4295,7 @@ func TestUpdateUserHashedPasswordForGuestSessionAndEmail(t *testing.T) {
 				require.NoError(t, err)
 
 				var appErr *model.AppError
-				guest, appErr = th.App.GetUser(th.Context, guest.Id)
+				guest, appErr = th.App.GetUser(guest.Id)
 				require.Nil(t, appErr)
 				require.NotZero(t, guest.DeleteAt)
 				require.True(t, guest.IsMagicLinkEnabled())
