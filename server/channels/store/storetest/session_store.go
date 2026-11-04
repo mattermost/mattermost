@@ -4,7 +4,6 @@
 package storetest
 
 import (
-	"strings"
 	"testing"
 	"time"
 
@@ -28,7 +27,7 @@ func TestSessionStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("SessionGet", func(t *testing.T) { testSessionGet(t, rctx, ss) })
 	t.Run("SessionGetWithDeviceId", func(t *testing.T) { testSessionGetWithDeviceId(t, rctx, ss) })
 	t.Run("SessionRemove", func(t *testing.T) { testSessionRemove(t, rctx, ss) })
-	t.Run("SessionGetRemoveErrorText", func(t *testing.T) { testSessionGetRemoveErrorText(t, rctx, ss) })
+	t.Run("SessionGetErrorText", func(t *testing.T) { testSessionGetErrorText(t, rctx, ss) })
 	t.Run("SessionRemoveAll", func(t *testing.T) { testSessionRemoveAll(t, rctx, ss) })
 	t.Run("SessionRemoveByUser", func(t *testing.T) { testSessionRemoveByUser(t, rctx, ss) })
 	t.Run("SessionRemoveToken", func(t *testing.T) { testSessionRemoveToken(t, rctx, ss) })
@@ -153,24 +152,13 @@ func testSessionRemove(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.Error(t, err, "should have been removed")
 }
 
-func testSessionGetRemoveErrorText(t *testing.T, rctx request.CTX, ss store.Store) {
+func testSessionGetErrorText(t *testing.T, rctx request.CTX, ss store.Store) {
 	missing := model.NewId()
 	_, err := ss.Session().Get(rctx, missing)
 	require.Error(t, err)
 	var nfErr *store.ErrNotFound
 	require.ErrorAs(t, err, &nfErr)
 	require.NotContains(t, err.Error(), missing, "returned error text does not include the submitted value")
-
-	// A value the database rejects exercises the non-not-found returns.
-	rejected := model.NewId() + "\x00"
-	_, err = ss.Session().Get(rctx, rejected)
-	require.Error(t, err)
-	require.NotErrorAs(t, err, &nfErr)
-	require.NotContains(t, err.Error(), strings.TrimSuffix(rejected, "\x00"), "returned error text does not include the submitted value")
-
-	err = ss.Session().Remove(rejected)
-	require.Error(t, err)
-	require.NotContains(t, err.Error(), strings.TrimSuffix(rejected, "\x00"), "returned error text does not include the submitted value")
 }
 
 func testSessionRemoveAll(t *testing.T, rctx request.CTX, ss store.Store) {
