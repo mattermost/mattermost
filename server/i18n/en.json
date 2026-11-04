@@ -8851,6 +8851,11 @@
     "description": "Server error when a system admin asked to run the health check now and the server could neither create a run nor find the one already running."
   },
   {
+    "id": "app.health_check.start_run.conflict.app_error",
+    "translation": "A health check run is already starting. Try again in a moment.",
+    "description": "Error when a system admin asked to run the health check now while another run was being started and the server could not read it back yet."
+  },
+  {
     "id": "app.health_finding.get.app_error",
     "translation": "Unable to get health finding.",
     "description": "Server error when a single health dashboard finding could not be loaded from the database."

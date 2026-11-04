@@ -131,17 +131,24 @@ func (a *App) StartHealthCheckRun(rctx request.CTX) (*model.Job, *model.AppError
 	}
 
 	// CreateJobOnce saves atomically and creates nothing if a run is already pending, or another
-	// request or the scheduler has just created one; that run is returned instead.
-	job, appErr := a.Srv().Jobs.CreateJobOnce(rctx, model.JobTypeHealthCheck, nil)
-	if appErr != nil || job != nil {
-		return job, appErr
-	}
+	// request or the scheduler has just created one; that run is returned instead. The lookup reads
+	// the replica, which can miss a run that was just created, or the run can finish in between:
+	// then a second CreateJobOnce either starts a run or finds that one still there.
+	for range 2 {
+		job, appErr := a.Srv().Jobs.CreateJobOnce(rctx, model.JobTypeHealthCheck, nil)
+		if appErr != nil || job != nil {
+			return job, appErr
+		}
 
-	existing, err := a.Srv().Store().Job().GetNewestJobByStatusesAndType([]string{model.JobStatusPending, model.JobStatusInProgress}, model.JobTypeHealthCheck)
-	if err != nil {
-		return nil, model.NewAppError("StartHealthCheckRun", "app.health_check.start_run.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		existing, err := a.Srv().Jobs.Store.Job().GetNewestJobByStatusesAndType([]string{model.JobStatusPending, model.JobStatusInProgress}, model.JobTypeHealthCheck)
+		if err == nil {
+			return existing, nil
+		}
+		if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
+			return nil, model.NewAppError("StartHealthCheckRun", "app.health_check.start_run.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
 	}
-	return existing, nil
+	return nil, model.NewAppError("StartHealthCheckRun", "app.health_check.start_run.conflict.app_error", nil, "", http.StatusConflict)
 }
 
 func (a *App) MuteHealthFinding(rctx request.CTX, fingerprint string, userID string) *model.AppError {

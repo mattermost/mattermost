@@ -13,6 +13,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/health_check"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 func TestHealthCheckWorkersStartOnAppServersOnly(t *testing.T) {
@@ -138,6 +139,79 @@ func TestStartHealthCheckRun(t *testing.T) {
 		assert.Equal(t, http.StatusNotImplemented, appErr.StatusCode)
 		assert.Equal(t, 0, countJobs(t, th))
 	})
+
+	// lagReplica makes the job server's lookup of the active run miss, as a lagging read replica
+	// would, the given number of times, calling beforeMiss first each time.
+	lagReplica := func(t *testing.T, th *TestHelper, misses int, beforeMiss func()) {
+		t.Helper()
+		jobServer := th.App.Srv().Jobs
+		orig := jobServer.Store
+		jobServer.Store = &laggingJobStore{Store: orig, misses: misses, beforeMiss: beforeMiss}
+		t.Cleanup(func() { jobServer.Store = orig })
+	}
+
+	t.Run("returns the pending run once the replica has caught up", func(t *testing.T) {
+		th := setup(t)
+		pending := saveJob(t, th, &model.Job{Status: model.JobStatusPending})
+		lagReplica(t, th, 1, nil)
+
+		job, appErr := th.App.StartHealthCheckRun(th.Context)
+		require.Nil(t, appErr)
+		assert.Equal(t, pending.Id, job.Id)
+		assert.Equal(t, 1, countJobs(t, th))
+	})
+
+	t.Run("starts a run when the blocking run finished before it could be read", func(t *testing.T) {
+		th := setup(t)
+		pending := saveJob(t, th, &model.Job{Status: model.JobStatusPending})
+		lagReplica(t, th, 1, func() {
+			_, err := th.App.Srv().Store().Job().UpdateStatus(pending.Id, model.JobStatusSuccess)
+			require.NoError(t, err)
+		})
+
+		job, appErr := th.App.StartHealthCheckRun(th.Context)
+		require.Nil(t, appErr)
+		assert.NotEqual(t, pending.Id, job.Id)
+		assert.Equal(t, model.JobStatusPending, job.Status)
+		assert.Equal(t, 2, countJobs(t, th))
+	})
+
+	t.Run("answers 409 when the blocking run still cannot be read", func(t *testing.T) {
+		th := setup(t)
+		saveJob(t, th, &model.Job{Status: model.JobStatusPending})
+		lagReplica(t, th, 2, nil)
+
+		_, appErr := th.App.StartHealthCheckRun(th.Context)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusConflict, appErr.StatusCode)
+		assert.Equal(t, 1, countJobs(t, th))
+	})
+}
+
+type laggingJobStore struct {
+	store.Store
+	misses     int
+	beforeMiss func()
+}
+
+func (s *laggingJobStore) Job() store.JobStore {
+	return &laggingJobs{JobStore: s.Store.Job(), parent: s}
+}
+
+type laggingJobs struct {
+	store.JobStore
+	parent *laggingJobStore
+}
+
+func (j *laggingJobs) GetNewestJobByStatusesAndType(statuses []string, jobType string) (*model.Job, error) {
+	if j.parent.misses > 0 {
+		j.parent.misses--
+		if j.parent.beforeMiss != nil {
+			j.parent.beforeMiss()
+		}
+		return nil, store.NewErrNotFound("Job", jobType)
+	}
+	return j.JobStore.GetNewestJobByStatusesAndType(statuses, jobType)
 }
 
 // Not parallel: it uses the process-wide latest-version cache that BuildHealthSnapshot reads.
