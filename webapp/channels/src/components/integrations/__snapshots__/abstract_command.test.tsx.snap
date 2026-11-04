@@ -264,13 +264,48 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
             Autocomplete
           </label>
           <div
-            class="col-md-5 col-sm-8 checkbox"
+            class="col-md-5 col-sm-8"
           >
-            <input
-              checked=""
-              id="autocomplete"
-              type="checkbox"
-            />
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 backstage-form__checkbox"
+              for="autocomplete"
+            >
+              <input
+                checked=""
+                class="_checkbox__input_18swc_25"
+                id="autocomplete"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
+              >
+                <span
+                  class="_checkbox__icon_18swc_69"
+                >
+                  <div
+                    aria-hidden="true"
+                    class="_icon_1i355_2 _icon--size-12_1i355_30"
+                  >
+                    <div
+                      class="_icon__glyph-area_1i355_9"
+                    >
+                      <svg
+                        fill="currentColor"
+                        height="14"
+                        version="1.1"
+                        viewBox="0 0 24 24"
+                        width="14"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                </span>
+              </span>
+            </label>
             <div
               class="form__help"
             >
@@ -336,17 +371,25 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
           class="backstage-form__footer"
         >
           <a
-            class="btn btn-tertiary"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
             href="/test/integrations/commands"
           >
-            Cancel
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Cancel
+            </span>
           </a>
           <button
-            class="btn btn-primary"
+            class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
             id="saveCommand"
             type="submit"
           >
-            Footer
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Footer
+            </span>
           </button>
           <div>
             renderExtra
@@ -624,13 +667,48 @@ exports[`components/integrations/AbstractCommand should match snapshot when head
             Autocomplete
           </label>
           <div
-            class="col-md-5 col-sm-8 checkbox"
+            class="col-md-5 col-sm-8"
           >
-            <input
-              checked=""
-              id="autocomplete"
-              type="checkbox"
-            />
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 backstage-form__checkbox"
+              for="autocomplete"
+            >
+              <input
+                checked=""
+                class="_checkbox__input_18swc_25"
+                id="autocomplete"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
+              >
+                <span
+                  class="_checkbox__icon_18swc_69"
+                >
+                  <div
+                    aria-hidden="true"
+                    class="_icon_1i355_2 _icon--size-12_1i355_30"
+                  >
+                    <div
+                      class="_icon__glyph-area_1i355_9"
+                    >
+                      <svg
+                        fill="currentColor"
+                        height="14"
+                        version="1.1"
+                        viewBox="0 0 24 24"
+                        width="14"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                </span>
+              </span>
+            </label>
             <div
               class="form__help"
             >
@@ -696,18 +774,26 @@ exports[`components/integrations/AbstractCommand should match snapshot when head
           class="backstage-form__footer"
         >
           <a
-            class="btn btn-tertiary"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
             href="/test/integrations/commands"
           >
-            Cancel
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Cancel
+            </span>
           </a>
           <button
-            class="btn btn-primary"
+            class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
             id="saveCommand"
             type="submit"
           >
-            <span>
-              Footer as string
+            <span
+              class="_button__label_we8pe_31"
+            >
+              <span>
+                Footer as string
+              </span>
             </span>
           </button>
           <div>
@@ -984,13 +1070,48 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
             Autocomplete
           </label>
           <div
-            class="col-md-5 col-sm-8 checkbox"
+            class="col-md-5 col-sm-8"
           >
-            <input
-              checked=""
-              id="autocomplete"
-              type="checkbox"
-            />
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 backstage-form__checkbox"
+              for="autocomplete"
+            >
+              <input
+                checked=""
+                class="_checkbox__input_18swc_25"
+                id="autocomplete"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
+              >
+                <span
+                  class="_checkbox__icon_18swc_69"
+                >
+                  <div
+                    aria-hidden="true"
+                    class="_icon_1i355_2 _icon--size-12_1i355_30"
+                  >
+                    <div
+                      class="_icon__glyph-area_1i355_9"
+                    >
+                      <svg
+                        fill="currentColor"
+                        height="14"
+                        version="1.1"
+                        viewBox="0 0 24 24"
+                        width="14"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                </span>
+              </span>
+            </label>
             <div
               class="form__help"
             >
@@ -1065,17 +1186,25 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
             </label>
           </div>
           <a
-            class="btn btn-tertiary"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
             href="/test/integrations/commands"
           >
-            Cancel
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Cancel
+            </span>
           </a>
           <button
-            class="btn btn-primary"
+            class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
             id="saveCommand"
             type="submit"
           >
-            Footer
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Footer
+            </span>
           </button>
           <div>
             renderExtra

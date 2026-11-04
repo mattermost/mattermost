@@ -369,8 +369,7 @@ func (a *App) resolveBotOwner(rctx request.CTX, botUserId string) (owner *model.
 
 	owner, err := a.Srv().Store().User().Get(rctx, bot.OwnerId)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		if errors.As(err, &nfErr) {
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, bot, nil
 		}
 		return nil, nil, model.NewAppError("resolveBotOwner", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)

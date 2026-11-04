@@ -32,16 +32,16 @@ const maxMultipartFormDataBytes = 10 * 1024 // 10Kb
 
 func (api *API) InitFile() {
 	api.BaseRoutes.Files.Handle("", api.APISessionRequired(uploadFileStream, handlerParamFileAPI)).Methods(http.MethodPost)
-	api.BaseRoutes.File.Handle("", api.APISessionRequiredTrustRequester(getFile)).Methods(http.MethodGet, http.MethodHead)
-	api.BaseRoutes.File.Handle("/thumbnail", api.APISessionRequiredTrustRequester(getFileThumbnail)).Methods(http.MethodGet, http.MethodHead)
+	api.BaseRoutes.File.Handle("", api.APISessionRequiredTrustRequesterGzip(getFile)).Methods(http.MethodGet, http.MethodHead)
+	api.BaseRoutes.File.Handle("/thumbnail", api.APISessionRequiredTrustRequesterGzip(getFileThumbnail)).Methods(http.MethodGet, http.MethodHead)
 	api.BaseRoutes.File.Handle("/link", api.APISessionRequired(getFileLink)).Methods(http.MethodGet)
-	api.BaseRoutes.File.Handle("/preview", api.APISessionRequiredTrustRequester(getFilePreview)).Methods(http.MethodGet, http.MethodHead)
+	api.BaseRoutes.File.Handle("/preview", api.APISessionRequiredTrustRequesterGzip(getFilePreview)).Methods(http.MethodGet, http.MethodHead)
 	api.BaseRoutes.File.Handle("/info", api.APISessionRequired(getFileInfo)).Methods(http.MethodGet)
 
 	api.BaseRoutes.Team.Handle("/files/search", api.APISessionRequiredDisableWhenBusy(searchFilesInTeam)).Methods(http.MethodPost)
 	api.BaseRoutes.Files.Handle("/search", api.APISessionRequiredDisableWhenBusy(searchFilesInAllTeams)).Methods(http.MethodPost)
 
-	api.BaseRoutes.PublicFile.Handle("", api.APIHandler(getPublicFile)).Methods(http.MethodGet, http.MethodHead)
+	api.BaseRoutes.PublicFile.Handle("", api.APIHandlerGzip(getPublicFile)).Methods(http.MethodGet, http.MethodHead)
 }
 
 func parseMultipartRequestHeader(req *http.Request) (boundary string, err error) {
@@ -142,13 +142,8 @@ func uploadFileSimple(c *Context, r *http.Request, timestamp time.Time) *model.F
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "channel_id", c.Params.ChannelId)
 
-	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionUploadFile); !ok {
-		c.SetPermissionError(model.PermissionUploadFile)
-		return nil
-	}
-
-	if !c.App.HasPermissionToChannelAction(c.AppContext, c.AppContext.Session().UserId, c.AppContext.Session().Roles, c.Params.ChannelId, model.AccessControlPolicyActionUploadFileAttachment) {
-		c.Err = model.NewAppError("uploadFileSimple", "api.file.upload_file.abac_denied.app_error", nil, "", http.StatusForbidden)
+	checkUploadFileAttachmentPermission(c, "uploadFileSimple", c.Params.ChannelId)
+	if c.Err != nil {
 		return nil
 	}
 
@@ -321,13 +316,8 @@ NextPart:
 		if c.Err != nil {
 			return nil
 		}
-		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionUploadFile); !ok {
-			c.SetPermissionError(model.PermissionUploadFile)
-			return nil
-		}
-
-		if !c.App.HasPermissionToChannelAction(c.AppContext, c.AppContext.Session().UserId, c.AppContext.Session().Roles, c.Params.ChannelId, model.AccessControlPolicyActionUploadFileAttachment) {
-			c.Err = model.NewAppError("uploadFileMultipart", "api.file.upload_file.abac_denied.app_error", nil, "", http.StatusForbidden)
+		checkUploadFileAttachmentPermission(c, "uploadFileMultipart", c.Params.ChannelId)
+		if c.Err != nil {
 			return nil
 		}
 
@@ -439,13 +429,8 @@ func uploadFileMultipartLegacy(c *Context, mr *multipart.Reader,
 	if c.Err != nil {
 		return nil
 	}
-	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelId, model.PermissionUploadFile); !ok {
-		c.SetPermissionError(model.PermissionUploadFile)
-		return nil
-	}
-
-	if !c.App.HasPermissionToChannelAction(c.AppContext, c.AppContext.Session().UserId, c.AppContext.Session().Roles, channelId, model.AccessControlPolicyActionUploadFileAttachment) {
-		c.Err = model.NewAppError("uploadFileMultipartLegacy", "api.file.upload_file.abac_denied.app_error", nil, "", http.StatusForbidden)
+	checkUploadFileAttachmentPermission(c, "uploadFileMultipartLegacy", channelId)
+	if c.Err != nil {
 		return nil
 	}
 
@@ -528,14 +513,12 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "force_download", forceDownload)
 
-	fileInfos, storeErr := c.App.Srv().Store().FileInfo().GetByIds([]string{c.Params.FileId}, true, true, false)
+	fileInfos, storeErr := c.App.Srv().Store().FileInfo().GetByIds([]string{c.Params.FileId}, true, false, true)
 	if storeErr != nil {
 		c.Err = model.NewAppError("getFile", "api.file.get_file_info.app_error", nil, "", http.StatusInternalServerError)
-		setInaccessibleFileHeader(w, c.Err)
 		return
 	} else if len(fileInfos) == 0 {
 		c.Err = model.NewAppError("getFile", "api.file.get_file_info.app_error", nil, "", http.StatusNotFound)
-		setInaccessibleFileHeader(w, c.Err)
 		return
 	}
 
@@ -586,7 +569,6 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	// deleted file cannot be told apart from a file that never existed.
 	if fileInfo.DeleteAt != 0 && !isContentReviewer {
 		c.Err = model.NewAppError("getFile", "api.file.get_file_info.app_error", nil, "", http.StatusNotFound)
-		setInaccessibleFileHeader(w, c.Err)
 		return
 	}
 
@@ -648,7 +630,6 @@ func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
 	info, err := c.App.GetFileInfo(c.AppContext, c.Params.FileId)
 	if err != nil {
 		c.Err = err
-		setInaccessibleFileHeader(w, err)
 		return
 	}
 
@@ -723,7 +704,6 @@ func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
 	info, err := c.App.GetFileInfo(c.AppContext, c.Params.FileId)
 	if err != nil {
 		c.Err = err
-		setInaccessibleFileHeader(w, err)
 		return
 	}
 	model.AddEventParameterAuditableToAuditRec(auditRec, "file", info)
@@ -779,7 +759,6 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 	info, err := c.App.GetFileInfo(c.AppContext, c.Params.FileId)
 	if err != nil {
 		c.Err = err
-		setInaccessibleFileHeader(w, err)
 		return
 	}
 
@@ -847,7 +826,6 @@ func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 	info, err := c.App.GetFileInfo(c.AppContext, c.Params.FileId)
 	if err != nil {
 		c.Err = err
-		setInaccessibleFileHeader(w, err)
 		return
 	}
 
@@ -900,7 +878,6 @@ func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	info, err := c.App.GetFileInfo(c.AppContext, c.Params.FileId)
 	if err != nil {
 		c.Err = err
-		setInaccessibleFileHeader(w, err)
 		return
 	}
 
@@ -1027,11 +1004,4 @@ func searchFiles(c *Context, w http.ResponseWriter, r *http.Request, teamID stri
 	}
 
 	auditRec.Success()
-}
-
-func setInaccessibleFileHeader(w http.ResponseWriter, appErr *model.AppError) {
-	// File is inaccessible due to cloud plan's limit.
-	if appErr.Id == "app.file.cloud.get.app_error" {
-		w.Header().Set(model.HeaderFirstInaccessibleFileTime, "1")
-	}
 }

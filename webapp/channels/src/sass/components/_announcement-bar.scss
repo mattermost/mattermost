@@ -92,11 +92,14 @@
         font-size: 16px;
     }
 
-    .btn.btn-tertiary.btn-xs.btn-inverted {
-        background-color: rgba(variables.$white, 0.16);
-        color: variables.$white;
+    // Compass takes its foreground from --button-fg, and appearance='inverted'
+    // resolves to --sidebar-text, which is not tied to the bar's own colour.
+    .announcement-bar__cta {
+        --button-fg: #{variables.$white};
 
-        &:hover {
+        background-color: rgba(variables.$white, 0.16);
+
+        &:hover:not(:disabled) {
             background-color: rgba(variables.$white, 0.24);
         }
     }
@@ -125,11 +128,13 @@
 .announcement-bar-warning {
     background-color: var(--yellow-400);
     color: var(--neutral-900);
+    // Dark text on the gold bar -- the inverted appearance would otherwise
+    // give white, which is what --sidebar-text resolves to on Denim.
     .announcement-bar__text {
-        .btn.btn-tertiary.btn-xs.btn-inverted {
+        .announcement-bar__cta {
+            --button-fg: var(--neutral-900);
+
             border-color: var(--neutral-900);
-            
-            color: var(--neutral-900);
         }
     }
 }

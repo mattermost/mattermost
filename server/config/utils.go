@@ -148,7 +148,7 @@ func fixConfig(cfg *model.Config) {
 	fixRetiredFeatureFlags(cfg)
 	fixTLSMinVer(cfg)
 	fixWebserverMode(cfg)
-	fixEmailAddressDisplayNames(cfg)
+	fixEmailAddressSettings(cfg)
 	fixOutOfRangeNumericSettings(cfg)
 }
 
@@ -228,10 +228,10 @@ func resetBelowMinimum[T int | int64](setting string, value *T, defaultValue, mi
 	return true
 }
 
-// fixEmailAddressDisplayNames reduces email settings written as "Name <user@example.com>"
-// to the bare address, which is the only form v12 accepts. Values that do not parse as an
-// address are left for validation to reject.
-func fixEmailAddressDisplayNames(cfg *model.Config) bool {
+// fixEmailAddressSettings reduces email settings to the single plain address v12 accepts,
+// dropping any display name and keeping only the first address of a list. Values without
+// a usable address are cleared, since earlier versions could not send email with them either.
+func fixEmailAddressSettings(cfg *model.Config) bool {
 	var changed bool
 
 	for _, setting := range []struct {
@@ -242,17 +242,21 @@ func fixEmailAddressDisplayNames(cfg *model.Config) bool {
 		{"EmailSettings.FeedbackEmail", cfg.EmailSettings.FeedbackEmail},
 		{"EmailSettings.ReplyToAddress", cfg.EmailSettings.ReplyToAddress},
 	} {
-		if *setting.value == "" {
+		value := *setting.value
+		var address string
+		if addrs, err := mail.ParseAddressList(value); err == nil && len(addrs) > 0 && model.IsValidEmail(strings.ToLower(addrs[0].Address)) {
+			address = addrs[0].Address
+		}
+		if address == value {
 			continue
 		}
 
-		addr, err := mail.ParseAddress(*setting.value)
-		if err != nil || addr.Address == *setting.value {
-			continue
+		if address == "" {
+			mlog.Warn("Email setting is not a valid email address. Clearing it.", mlog.String("setting", setting.name), mlog.String("value", value))
+		} else {
+			mlog.Warn("Email setting must be a single plain email address. Keeping only the first address.", mlog.String("setting", setting.name), mlog.String("value", value), mlog.String("address", address))
 		}
-
-		mlog.Warn("Email setting must be a plain email address. Removing the display name.", mlog.String("setting", setting.name), mlog.String("value", *setting.value), mlog.String("address", addr.Address))
-		*setting.value = addr.Address
+		*setting.value = address
 		changed = true
 	}
 

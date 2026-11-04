@@ -12,4 +12,8 @@ const (
 	UserSearchOptionAllowInactive       = "allow_inactive"
 
 	FeatureTogglePrefix = "feature_enabled_"
+
+	// MaxPostsPerUserPermanentDelete is the most posts PostStore.PermanentDeleteByUser deletes for a
+	// user in a single call. Users with more posts are deleted over several calls.
+	MaxPostsPerUserPermanentDelete = 10000
 )

@@ -542,7 +542,7 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
 
         // Removing the last policy drops the enforce toggle on its own.
         await waitFor(() => {
-            expect(screen.getByTestId('policy-enforce-toggle-button')).toHaveAttribute('aria-pressed', 'false');
+            expect(screen.getByTestId('policy-enforce-toggle-button')).not.toBeChecked();
         });
 
         // Save goes straight through — no spurious "Apply membership policy" modal.
@@ -646,7 +646,7 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
         await userEvent.click(document.getElementById('confirmModalButton')!);
 
         // Custom rule still governs, so enforcement stays on.
-        expect(screen.getByTestId('policy-enforce-toggle-button')).toHaveAttribute('aria-pressed', 'true');
+        expect(screen.getByTestId('policy-enforce-toggle-button')).toBeChecked();
 
         // Removal is not new criteria: the unedited custom rule must not trigger the apply-count modal.
         await userEvent.click(screen.getByText('Save'));

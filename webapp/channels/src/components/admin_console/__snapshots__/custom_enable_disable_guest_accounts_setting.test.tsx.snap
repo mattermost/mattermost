@@ -16,14 +16,14 @@ exports[`components/AdminConsole/CustomEnableDisableGuestAccountsSetting renders
       class="col-sm-8"
     >
       <div
-        class="BooleanRadioGroup-gkBvtd joVEQU"
+        class="BooleanRadioGroup-caqMkq klbaOn"
       >
         <label
-          class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+          class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
           for="MySettingtrue"
         >
           <input
-            class="_radio__input_1hdqa_14"
+            class="_radio__input_h0rbb_17"
             data-testid="MySettingtrue"
             id="MySettingtrue"
             name="MySetting"
@@ -31,26 +31,26 @@ exports[`components/AdminConsole/CustomEnableDisableGuestAccountsSetting renders
             value="true"
           />
           <span
-            class="_radio__circle_1hdqa_33"
+            class="_radio__circle_h0rbb_36"
           >
             <span
               aria-hidden="true"
-              class="_radio__dot_1hdqa_59"
+              class="_radio__dot_h0rbb_62"
             />
           </span>
           <span
-            class="_radio__label_1hdqa_116"
+            class="_radio__label_h0rbb_119"
           >
             True
           </span>
         </label>
         <label
-          class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+          class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
           for="MySettingfalse"
         >
           <input
             checked=""
-            class="_radio__input_1hdqa_14"
+            class="_radio__input_h0rbb_17"
             data-testid="MySettingfalse"
             id="MySettingfalse"
             name="MySetting"
@@ -58,15 +58,15 @@ exports[`components/AdminConsole/CustomEnableDisableGuestAccountsSetting renders
             value="false"
           />
           <span
-            class="_radio__circle_1hdqa_33"
+            class="_radio__circle_h0rbb_36"
           >
             <span
               aria-hidden="true"
-              class="_radio__dot_1hdqa_59"
+              class="_radio__dot_h0rbb_62"
             />
           </span>
           <span
-            class="_radio__label_1hdqa_116"
+            class="_radio__label_h0rbb_119"
           >
             False
           </span>
@@ -105,15 +105,15 @@ exports[`components/AdminConsole/CustomEnableDisableGuestAccountsSetting renders
       class="col-sm-8"
     >
       <div
-        class="BooleanRadioGroup-gkBvtd joVEQU"
+        class="BooleanRadioGroup-caqMkq klbaOn"
       >
         <label
-          class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+          class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
           for="MySettingtrue"
         >
           <input
             checked=""
-            class="_radio__input_1hdqa_14"
+            class="_radio__input_h0rbb_17"
             data-testid="MySettingtrue"
             id="MySettingtrue"
             name="MySetting"
@@ -121,25 +121,25 @@ exports[`components/AdminConsole/CustomEnableDisableGuestAccountsSetting renders
             value="true"
           />
           <span
-            class="_radio__circle_1hdqa_33"
+            class="_radio__circle_h0rbb_36"
           >
             <span
               aria-hidden="true"
-              class="_radio__dot_1hdqa_59"
+              class="_radio__dot_h0rbb_62"
             />
           </span>
           <span
-            class="_radio__label_1hdqa_116"
+            class="_radio__label_h0rbb_119"
           >
             True
           </span>
         </label>
         <label
-          class="_radio_1hdqa_2 _radio--size-medium_1hdqa_140"
+          class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
           for="MySettingfalse"
         >
           <input
-            class="_radio__input_1hdqa_14"
+            class="_radio__input_h0rbb_17"
             data-testid="MySettingfalse"
             id="MySettingfalse"
             name="MySetting"
@@ -147,15 +147,15 @@ exports[`components/AdminConsole/CustomEnableDisableGuestAccountsSetting renders
             value="false"
           />
           <span
-            class="_radio__circle_1hdqa_33"
+            class="_radio__circle_h0rbb_36"
           >
             <span
               aria-hidden="true"
-              class="_radio__dot_1hdqa_59"
+              class="_radio__dot_h0rbb_62"
             />
           </span>
           <span
-            class="_radio__label_1hdqa_116"
+            class="_radio__label_h0rbb_119"
           >
             False
           </span>

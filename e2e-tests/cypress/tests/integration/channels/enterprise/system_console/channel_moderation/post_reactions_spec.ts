@@ -192,7 +192,7 @@ describe('MM-23102 - Channel Moderation - Post Reactions', () => {
         visitChannelConfigPage(testChannel);
 
         // * Assert that post reaction is disabled for members
-        cy.findByTestId(checkboxesTitleToIdMap.POST_REACTIONS_MEMBERS).should('have.class', 'checkbox checked');
+        cy.findByTestId(checkboxesTitleToIdMap.POST_REACTIONS_MEMBERS).should('be.checked');
 
         // # Login as a Member user and visit the same channel
         visitChannel(regularUser, testChannel, testTeam);
@@ -215,7 +215,7 @@ describe('MM-23102 - Channel Moderation - Post Reactions', () => {
         visitChannelConfigPage(testChannel);
 
         // * Assert that post reaction is disabled for members
-        cy.findByTestId(checkboxesTitleToIdMap.POST_REACTIONS_MEMBERS).should('have.class', 'checkbox disabled');
+        cy.findByTestId(checkboxesTitleToIdMap.POST_REACTIONS_MEMBERS).should('be.disabled');
 
         // # Login as a Member user and visit the same channel
         visitChannel(regularUser, testChannel, testTeam);

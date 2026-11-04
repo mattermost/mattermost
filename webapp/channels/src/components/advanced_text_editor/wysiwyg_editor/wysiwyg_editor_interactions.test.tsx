@@ -3,9 +3,10 @@
 
 import {act} from '@testing-library/react';
 import type {Editor} from '@tiptap/react';
-import React from 'react';
+import React, {useState} from 'react';
 
 import {renderWithContext} from 'tests/react_testing_utils';
+import {postMessageOnKeyPress} from 'utils/post_utils';
 
 import WysiwygEditor from './wysiwyg_editor';
 import type {WysiwygEditorHandle} from './wysiwyg_editor';
@@ -179,6 +180,72 @@ describe('WysiwygEditor interactions', () => {
         expect(editor.getHTML()).toMatch(/https:\/\/mattermost\.com<\/a> hello<\/p>/);
     });
 
+    test('Enter after an unclosed fence typed as text adds a line instead of sending', () => {
+        const {editor} = renderEditor('');
+        typeText(editor, '``` - [ ] example');
+
+        const draft = serializeToMarkdown(editor);
+        const enter = {key: 'Enter', keyCode: 13} as React.KeyboardEvent;
+
+        expect(draft).toBe('``` - [ ] example');
+        expect(postMessageOnKeyPress(enter, draft, false, true, 0, 0, draft.length)).toEqual({allowSending: false});
+    });
+
+    test('Enter sends text typed just before it', () => {
+        jest.useFakeTimers();
+        const onSend = jest.fn();
+        const ref = React.createRef<WysiwygEditorHandle>();
+        const Composer = () => {
+            const [message, setMessage] = useState('');
+            return (
+                <WysiwygEditor
+                    ref={ref}
+                    value={message}
+                    onChange={setMessage}
+                    onSubmit={() => onSend(message)}
+                    channelId='c1'
+                />
+            );
+        };
+        renderWithContext(<Composer/>);
+        const editor = ref.current!.getEditor()!;
+
+        typeText(editor, 'x.fjfj');
+        press(editor, 'Enter');
+
+        expect(onSend).toHaveBeenCalledWith('x.fjfj');
+        jest.useRealTimers();
+    });
+
+    test('sending keeps draft changes made after the last keystroke', () => {
+        jest.useFakeTimers();
+        const onSend = jest.fn();
+        const ref = React.createRef<WysiwygEditorHandle>();
+        let attachFile = () => {};
+        const Composer = () => {
+            const [draft, setDraft] = useState({message: '', files: 0});
+            attachFile = () => setDraft({...draft, files: 1});
+            return (
+                <WysiwygEditor
+                    ref={ref}
+                    value={draft.message}
+                    onChange={(message) => setDraft({...draft, message})}
+                    onSubmit={() => onSend(draft)}
+                    channelId='c1'
+                />
+            );
+        };
+        renderWithContext(<Composer/>);
+        const editor = ref.current!.getEditor()!;
+
+        typeText(editor, 'hello');
+        act(() => attachFile());
+        press(editor, 'Enter');
+
+        expect(onSend).toHaveBeenCalledWith({message: 'hello', files: 1});
+        jest.useRealTimers();
+    });
+
     describe('switching channels', () => {
         const switchTo = (rerender: (ui: React.ReactElement) => void, ref: React.RefObject<WysiwygEditorHandle | null>, value: string, channelId: string) => {
             rerender(
@@ -246,12 +313,123 @@ describe('WysiwygEditor interactions', () => {
             jest.useRealTimers();
         });
 
-        test('keeps the content when only the value changes within the same channel', () => {
-            const {editor, rerender, ref} = renderEditor('typed text', 'c1');
+        test('loads the draft again when switching back to its channel', () => {
+            const {editor, rerender, ref} = renderEditor('my draft', 'c1');
 
-            switchTo(rerender, ref, 'typed text more', 'c1');
+            switchTo(rerender, ref, '', 'c2');
+            switchTo(rerender, ref, 'my draft', 'c1');
 
-            expect(editor.getHTML()).toBe('<p>typed text</p>');
+            expect(editor.getHTML()).toBe('<p>my draft</p>');
+            expect(editor.state.selection.from).toBe(endOfText(editor, 'my draft'));
+        });
+    });
+
+    describe('following the value', () => {
+        test('puts the cursor at the end of a message opened for editing', () => {
+            const {editor} = renderEditor('first line\n\nmy message');
+
+            expect(editor.state.selection.from).toBe(endOfText(editor, 'my message'));
+        });
+
+        test('shows a message changed outside the editor, like an AI rewrite', () => {
+            const {editor, rerender, ref} = renderEditor('typed text');
+
+            rerender(
+                <WysiwygEditor
+                    ref={ref}
+                    {...baseProps}
+                    value='rewritten text'
+                    channelId='c1'
+                />,
+            );
+
+            expect(editor.getHTML()).toBe('<p>rewritten text</p>');
+        });
+
+        test('keeps the cursor in place when its own change comes back as the value', () => {
+            jest.useFakeTimers();
+            const onChange = jest.fn();
+            const ref = React.createRef<WysiwygEditorHandle>();
+            const render = (value: string) => (
+                <WysiwygEditor
+                    ref={ref}
+                    onSubmit={jest.fn()}
+                    onChange={onChange}
+                    value={value}
+                    channelId='c1'
+                />
+            );
+            const {rerender} = renderWithContext(render(''));
+            const editor = ref.current!.getEditor()!;
+            act(() => {
+                editor.commands.setTextSelection(1);
+            });
+            typeText(editor, 'hello');
+            act(() => {
+                editor.commands.setTextSelection(3);
+                jest.runAllTimers();
+            });
+
+            rerender(render(onChange.mock.lastCall[0]));
+
+            expect(editor.state.selection.from).toBe(3);
+            jest.useRealTimers();
+        });
+    });
+
+    describe('appendQuote', () => {
+        test('quotes into an empty editor and leaves the caret after the quote', () => {
+            const {ref, editor} = renderEditor('');
+
+            act(() => {
+                ref.current!.appendQuote('Diam sapien\npellentesque\n\nvestibulum');
+            });
+            typeText(editor, 'my reply');
+
+            expect(serializeToMarkdown(editor)).toBe('> Diam sapien\n> pellentesque\n>\n> vestibulum\n\nmy reply');
+
+            // The reply must not be typed into the last paragraph, which the editor hides while it's empty
+            expect(editor.state.doc.lastChild!.type.name).toBe('paragraph');
+            expect(editor.state.doc.lastChild!.content.size).toBe(0);
+        });
+
+        test('appends the quote after existing content', () => {
+            const {ref, editor} = renderEditor('Hey there');
+
+            act(() => {
+                ref.current!.appendQuote('Diam sapien');
+            });
+            typeText(editor, 'my reply');
+
+            expect(serializeToMarkdown(editor)).toBe('Hey there\n\n> Diam sapien\n\nmy reply');
+            expect(editor.state.doc.lastChild!.content.size).toBe(0);
+        });
+
+        test('keeps the Markdown formatting of the quote', () => {
+            const {ref, editor} = renderEditor('');
+
+            act(() => {
+                ref.current!.appendQuote('## Key Objectives\n\n* **Performance:** faster\n* Security\n\n```javascript\nconst a = 1;\n```');
+            });
+
+            expect(editor.getJSON().content?.[0]).toMatchObject({
+                type: 'blockquote',
+                content: [
+                    {type: 'heading', attrs: {level: 2}},
+                    {type: 'bulletList'},
+                    {type: 'codeBlock', attrs: {language: 'javascript'}},
+                ],
+            });
+        });
+
+        test('does nothing for blank text', () => {
+            const {ref, editor} = renderEditor('Hey there');
+
+            act(() => {
+                ref.current!.appendQuote('  \n ');
+            });
+
+            expect(serializeToMarkdown(editor)).toBe('Hey there');
         });
     });
 });

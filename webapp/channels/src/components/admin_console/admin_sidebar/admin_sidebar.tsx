@@ -150,7 +150,7 @@ class AdminSidebar extends React.PureComponent<Props, State> {
     };
 
     renderRootMenu = (definition: typeof AdminDefinition) => {
-        const {config, license, buildEnterpriseReady, consoleAccess, cloud, subscriptionProduct, isCurrentUserSystemAdmin} = this.props;
+        const {config, license, buildEnterpriseReady, consoleAccess, cloud, isCurrentUserSystemAdmin} = this.props;
         const sidebarSections: JSX.Element[] = [];
         Object.entries(definition).forEach(([key, section]) => {
             let isSectionHidden = false;
@@ -187,7 +187,7 @@ class AdminSidebar extends React.PureComponent<Props, State> {
                             key={subDefinitionKey}
                             definitionKey={subDefinitionKey}
                             name={item.url}
-                            restrictedIndicator={item.restrictedIndicator?.shouldDisplay(license, subscriptionProduct) ? item.restrictedIndicator.value(cloud) : undefined}
+                            restrictedIndicator={item.restrictedIndicator?.shouldDisplay() ? item.restrictedIndicator.value(cloud) : undefined}
                             title={typeof item.title === 'string' ? item.title : (
                                 <FormattedMessage
                                     {...item.title}

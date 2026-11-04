@@ -103,7 +103,8 @@ body.admin-onboarding #root {
 .app__body {
     #root.channel-view {
         &:has(.backstage-body) {
-            background-color: variables.$bg--gray;
+            background-color: var(--center-channel-bg);
+            color: var(--center-channel-color);
         }
     }
 }
@@ -114,15 +115,15 @@ body.app__body #root {
     overflow: hidden;
     min-height: 100%;
 
-    --columns: min-content minmax(385px, 1fr) min-content;
+    --columns: min-content min-content minmax(385px, 1fr) min-content;
     grid-template:
-        "classification-banner classification-banner classification-banner" min-content
-        "announcement announcement announcement" min-content
-        "admin-announcement admin-announcement admin-announcement" min-content
-        "header header header" min-content
-        "team-sidebar main app-sidebar"
-        "classification-banner-bottom classification-banner-bottom classification-banner-bottom" min-content
-        "footer footer footer" min-content / var(--columns);
+        "classification-banner classification-banner classification-banner classification-banner" min-content
+        "announcement announcement announcement announcement" min-content
+        "admin-announcement admin-announcement admin-announcement admin-announcement" min-content
+        "header header header header" min-content
+        "team-sidebar product-rail main app-sidebar"
+        "classification-banner-bottom classification-banner-bottom classification-banner-bottom classification-banner-bottom" min-content
+        "footer footer footer footer" min-content / var(--columns);
 
     > :only-child {
         grid-area: main;
@@ -207,7 +208,8 @@ body.app__body #root {
         }
     }
 
-    &:has(.team-sidebar) {
+    &:has(.team-sidebar),
+    &:has(.ProductRail) {
         .main-wrapper {
             margin-left: 0;
         }
@@ -272,6 +274,12 @@ body.app__body #root {
                 padding: 0;
                 border-radius: 0;
 
+                &:has(.backstage-body) {
+                    grid-template:
+                        "header" min-content
+                        "main";
+                }
+
                 #channel_view,
                 #SidebarContainer,
                 .product-wrapper,
@@ -303,7 +311,7 @@ body.app__body #root {
                 border-radius: var(--radius-l);
             }
 
-            --columns: min-content 1fr min-content;
+            --columns: min-content min-content 1fr min-content;
         }
 
         #sidebar-right {

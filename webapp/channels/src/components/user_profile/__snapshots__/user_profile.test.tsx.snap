@@ -87,10 +87,10 @@ exports[`components/UserProfile should render ImportedInactiveTag for imported i
     nickname
   </button>
   <div
-    class="TagWrapper-kezsCu cA-dXXM Tag Tag--xs ImportedInactiveTag"
+    class="TagWrapper-fyxyxN doEirW Tag Tag--xs ImportedInactiveTag"
   >
     <span
-      class="TagText-bWoQAI beIloY"
+      class="TagText-hckUNX ldIWSD"
     >
       IMPORTED - INACTIVE
     </span>

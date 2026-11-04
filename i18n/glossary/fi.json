@@ -471,5 +471,28 @@
   "server": {
     "target": "palvelin",
     "note": "Plural 'palvelimet'."
+  },
+  "health dashboard": {
+    "target": "Sivuston kunto -näkymä",
+    "note": "The page title and sidebar entry are 'Sivuston kunto'; in running text add '-näkymä' so the name can inflect ('Sivuston kunto -näkymässä')."
+  },
+  "health finding": {
+    "target": "kuntohavainto",
+    "note": "Plural 'kuntohavainnot'. Shorten to 'havainto' inside the health dashboard, where the context is clear. One server string uses 'kuntotarkistuksen havainto'; use 'kuntohavainto'."
+  },
+  "Agents plugin": {
+    "target": "Agents-lisäosa",
+    "note": "Inflect the head word: 'Agents-lisäosan', 'Agents-lisäosassa'. With the brand prefix use a spaced hyphen: 'Mattermost Agents -lisäosa'."
+  },
+  "Hosted Push Notification Service": {
+    "target": "Hosted Push Notification Service",
+    "note": "To inflect, follow the full name with '-palvelu' ('Hosted Push Notification Service -palvelun'). HPNS inflects with a colon ('HPNS:sta')."
+  },
+  "Test Push Notification Service": {
+    "target": "Test Push Notification Service",
+    "note": "To inflect, follow the full name with '-palvelu' ('Test Push Notification Service -palvelusta'). TPNS inflects with a colon ('TPNS:sta')."
+  },
+  "PushNotificationServer": {
+    "target": "PushNotificationServer"
   }
 }

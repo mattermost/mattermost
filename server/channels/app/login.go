@@ -50,8 +50,15 @@ func (a *App) AuthenticateUserForLogin(rctx request.CTX, id, loginId, password, 
 	// CWS login allow to use the one-time token to login the users when they're redirected to their
 	// installation for the first time
 	if isCWSLogin(a, cwsToken) {
+		if err = checkUserNotDisabled(user); err != nil {
+			return nil, err
+		}
 		if err = checkUserNotBot(user); err != nil {
 			return nil, err
+		}
+		if user.LastLogin > 0 {
+			return nil, model.NewAppError("AuthenticateUserForLogin",
+				"api.user.login_by_cws.invalid_token.app_error", nil, "", http.StatusBadRequest)
 		}
 		token, err := a.Srv().Store().Token().GetByToken(cwsToken)
 		if nfErr := new(store.ErrNotFound); err != nil && !errors.As(err, &nfErr) {

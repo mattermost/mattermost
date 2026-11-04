@@ -6,6 +6,7 @@ package sqlstore
 import (
 	"context"
 	"database/sql"
+	"sync/atomic"
 	"time"
 
 	"github.com/hashicorp/go-multierror"
@@ -22,6 +23,7 @@ const pgDiagnosticsQueryTimeout = 10 * time.Second
 func (ss *SqlStore) GetDiagnostics(rctx request.CTX) (*store.DatabaseDiagnostics, error) {
 	diagnostics := &store.DatabaseDiagnostics{}
 	applyDBPoolStats(diagnostics, ss.MasterDBStats(), ss.ReplicaDBStats())
+	diagnostics.ReplicasOnline = onlineReplicas(ss.ReplicaXs)
 
 	if ss.DriverName() != model.DatabaseDriverPostgres {
 		return diagnostics, nil
@@ -66,6 +68,16 @@ func withDiagnosticsTimeout(ctx context.Context, fn func(context.Context) error)
 	ctx, cancel := context.WithTimeout(ctx, pgDiagnosticsQueryTimeout)
 	defer cancel()
 	return fn(ctx)
+}
+
+func onlineReplicas(replicas []*atomic.Pointer[sqlxDBWrapper]) int {
+	count := 0
+	for _, replica := range replicas {
+		if replica.Load().Online() {
+			count++
+		}
+	}
+	return count
 }
 
 func applyDBPoolStats(diagnostics *store.DatabaseDiagnostics, masterDBStats, replicaDBStats sql.DBStats) {

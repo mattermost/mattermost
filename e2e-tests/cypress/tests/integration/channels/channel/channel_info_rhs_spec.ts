@@ -125,9 +125,9 @@ describe('Channel Info RHS', () => {
                 cy.get('#channel-info-btn').click();
 
                 // * Verify that we can toggle the favorite status
-                cy.uiGetRHS().findByText('Favorite').should('be.visible').click();
-                cy.uiGetRHS().findByText('Favorited').should('be.visible').click();
-                cy.uiGetRHS().findByText('Favorite').should('be.visible');
+                cy.uiGetRHS().findByRole('button', {name: 'Favorite'}).should('have.attr', 'aria-pressed', 'false').click();
+                cy.uiGetRHS().findByRole('button', {name: 'Favorite'}).should('have.attr', 'aria-pressed', 'true').click();
+                cy.uiGetRHS().findByRole('button', {name: 'Favorite'}).should('have.attr', 'aria-pressed', 'false');
             });
 
             it('should be able to toggle mute on a channel', () => {
@@ -138,9 +138,9 @@ describe('Channel Info RHS', () => {
                 cy.get('#channel-info-btn').click();
 
                 // * Verify that we can toggle the mute status
-                cy.uiGetRHS().findByText('Mute').should('be.visible').click();
-                cy.uiGetRHS().findByText('Muted').should('be.visible').click();
-                cy.uiGetRHS().findByText('Mute').should('be.visible');
+                cy.uiGetRHS().findByRole('button', {name: 'Mute'}).should('have.attr', 'aria-pressed', 'false').click();
+                cy.uiGetRHS().findByRole('button', {name: 'Mute'}).should('have.attr', 'aria-pressed', 'true').click();
+                cy.uiGetRHS().findByRole('button', {name: 'Mute'}).should('have.attr', 'aria-pressed', 'false');
             });
 
             it('should be able to add people', () => {
@@ -370,9 +370,9 @@ describe('Channel Info RHS', () => {
                 cy.get('#channel-info-btn').click();
 
                 // * Verify that we can toggle the favorite status
-                cy.uiGetRHS().findByText('Favorite').should('be.visible').click();
-                cy.uiGetRHS().findByText('Favorited').should('be.visible').click();
-                cy.uiGetRHS().findByText('Favorite').should('be.visible');
+                cy.uiGetRHS().findByRole('button', {name: 'Favorite'}).should('have.attr', 'aria-pressed', 'false').click();
+                cy.uiGetRHS().findByRole('button', {name: 'Favorite'}).should('have.attr', 'aria-pressed', 'true').click();
+                cy.uiGetRHS().findByRole('button', {name: 'Favorite'}).should('have.attr', 'aria-pressed', 'false');
             });
 
             it('should be able to toggle mute', () => {
@@ -383,9 +383,9 @@ describe('Channel Info RHS', () => {
                 cy.get('#channel-info-btn').click();
 
                 // * Verify that we can toggle the mute status
-                cy.uiGetRHS().findByText('Mute').should('be.visible').click();
-                cy.uiGetRHS().findByText('Muted').should('be.visible').click();
-                cy.uiGetRHS().findByText('Mute').should('be.visible');
+                cy.uiGetRHS().findByRole('button', {name: 'Mute'}).should('have.attr', 'aria-pressed', 'false').click();
+                cy.uiGetRHS().findByRole('button', {name: 'Mute'}).should('have.attr', 'aria-pressed', 'true').click();
+                cy.uiGetRHS().findByRole('button', {name: 'Mute'}).should('have.attr', 'aria-pressed', 'false');
             });
 
             it('should be able to add people', () => {
@@ -465,9 +465,9 @@ describe('Channel Info RHS', () => {
                 cy.get('#channel-info-btn').click();
 
                 // * Verify that we can toggle the favorite status
-                cy.uiGetRHS().findByText('Favorite').should('be.visible').click();
-                cy.uiGetRHS().findByText('Favorited').should('be.visible').click();
-                cy.uiGetRHS().findByText('Favorite').should('be.visible');
+                cy.uiGetRHS().findByRole('button', {name: 'Favorite'}).should('have.attr', 'aria-pressed', 'false').click();
+                cy.uiGetRHS().findByRole('button', {name: 'Favorite'}).should('have.attr', 'aria-pressed', 'true').click();
+                cy.uiGetRHS().findByRole('button', {name: 'Favorite'}).should('have.attr', 'aria-pressed', 'false');
             });
 
             it('should be able to toggle mute', () => {
@@ -478,9 +478,9 @@ describe('Channel Info RHS', () => {
                 cy.get('#channel-info-btn').click();
 
                 // * Verify that we can toggle the mute status
-                cy.uiGetRHS().findByText('Mute').should('be.visible').click();
-                cy.uiGetRHS().findByText('Muted').should('be.visible').click();
-                cy.uiGetRHS().findByText('Mute').should('be.visible');
+                cy.uiGetRHS().findByRole('button', {name: 'Mute'}).should('have.attr', 'aria-pressed', 'false').click();
+                cy.uiGetRHS().findByRole('button', {name: 'Mute'}).should('have.attr', 'aria-pressed', 'true').click();
+                cy.uiGetRHS().findByRole('button', {name: 'Mute'}).should('have.attr', 'aria-pressed', 'false');
             });
 
             it('should NOT be able to add people', () => {

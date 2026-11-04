@@ -102,6 +102,24 @@ func TestPushRules(t *testing.T) {
 			},
 		},
 		{
+			name:     "test proxy with the hosted service licensed",
+			snapshot: withLicenseFeatures(pushSnapshot(true, "https://push-test.mattermost.com"), &model.Features{MHPNS: new(true)}),
+			want: map[string]pushWant{
+				"PUSH_EMPTY_URL":  resolved,
+				"PUSH_BAD_SCHEME": resolved,
+				"PUSH_TEST_PROXY": {state: healthcheck.StateFiring, messageID: "health.rule.push_test_proxy.message.hosted", url: "https://push-test.mattermost.com"},
+			},
+		},
+		{
+			name:     "test proxy without the hosted service licensed",
+			snapshot: withLicenseFeatures(pushSnapshot(true, "https://push-test.mattermost.com"), &model.Features{MHPNS: new(false)}),
+			want: map[string]pushWant{
+				"PUSH_EMPTY_URL":  resolved,
+				"PUSH_BAD_SCHEME": resolved,
+				"PUSH_TEST_PROXY": {state: healthcheck.StateFiring, messageID: "health.rule.push_test_proxy.message", url: "https://push-test.mattermost.com"},
+			},
+		},
+		{
 			name:     "https test proxy with port and path",
 			snapshot: pushSnapshot(true, "HTTPS://Push-Test.mattermost.com:443/"),
 			want: map[string]pushWant{
@@ -152,12 +170,12 @@ func TestPushFingerprintsDifferByCode(t *testing.T) {
 	t.Parallel()
 
 	blank := pushSnapshot(true, "")
-	require.Equal(t, healthcheck.StateFiring, evalPushEmptyURL(blank)[0].State)
-	require.Equal(t, healthcheck.StateResolved, evalPushBadScheme(blank)[0].State)
+	require.Equal(t, healthcheck.StateFiring, pushEmptyURL.Eval(blank)[0].State)
+	require.Equal(t, healthcheck.StateResolved, pushBadScheme.Eval(blank)[0].State)
 
 	httpURL := pushSnapshot(true, "http://push.example.com")
-	require.Equal(t, healthcheck.StateResolved, evalPushEmptyURL(httpURL)[0].State)
-	require.Equal(t, healthcheck.StateFiring, evalPushBadScheme(httpURL)[0].State)
+	require.Equal(t, healthcheck.StateResolved, pushEmptyURL.Eval(httpURL)[0].State)
+	require.Equal(t, healthcheck.StateFiring, pushBadScheme.Eval(httpURL)[0].State)
 
 	require.Equal(t, pushEmptyURL.Subject, pushBadScheme.Subject)
 	assert.NotEqual(t,

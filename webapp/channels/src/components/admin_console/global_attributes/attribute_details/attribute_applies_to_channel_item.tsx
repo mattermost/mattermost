@@ -6,7 +6,7 @@ import React, {useMemo, useState, type JSX} from 'react';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 
 import {ChevronDownIcon} from '@mattermost/compass-icons/components';
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {resourceTypeLabels, type AttributeAppliesToChannelItemProps} from './attribute_applies_to_constants';
@@ -71,8 +71,8 @@ function AttributeAppliesToChannelItem({config, onConfigChange, ordered, disable
         <Button
             type='button'
             emphasis='tertiary'
-            variant='destructive'
-            size='sm'
+            destructive={true}
+            size='small'
             className='AttributeAppliesToItem__remove'
             onClick={onRemove}
             disabled={disabled || Boolean(removeLockedTooltip)}

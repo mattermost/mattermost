@@ -423,6 +423,10 @@ Saving rules in Team Settings or the System Console triggers an immediate team s
 
 No. All roles — including System Admin — are subject to team ABAC policy evaluation. A System Admin who does not satisfy a private team's policy cannot join that team as a member through the standard UI, though they can still access the team's configuration in the System Console and make changes.
 
+### Do bot accounts work with ABAC teams?
+
+Yes. Bot accounts are evaluated against team membership policies exactly like members. A bot that doesn't have the attribute values the policy requires can't be added to a private team, and is removed during synchronization, which also removes it from the team's channels. On public teams, a bot is only auto-added when it qualifies. Set the bot's attributes before adding it to the team. See [Bot attributes](https://docs.mattermost.com/developers/integrate/reference/bot-accounts/#bot-attributes).
+
 ### What happens when I switch a team from public to private while a policy is assigned?
 
 If team ABAC is enabled (Enterprise Advanced license and **Enable Attribute-Based Access Control**) and a policy is assigned to the team, clicking **Private Team** opens a confirmation modal — **"Switch to Private Team?"** — showing how many current members do not meet the policy criteria. Confirming the switch saves the change and triggers an immediate sync to enforce strict mode. Members who don't qualify are removed at that sync.

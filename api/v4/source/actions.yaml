@@ -68,14 +68,14 @@
                         payload.
 
 
-                        A `checkbox_group` element (minimum server version 11.10) renders a
+                        A `checkbox_group` element (minimum server version 12.0) renders a
                         multi-select list of checkboxes. It uses `options` (array of `{text,
                         value}`, up to 50) and an optional `default` of comma-separated option
                         values. It must not set `data_source` or `placeholder`. The submitted
                         value is an array of the selected option values.
 
 
-                        A `checkbox_matrix` element (minimum server version 11.10) renders a
+                        A `checkbox_matrix` element (minimum server version 12.0) renders a
                         grid of checkboxes. Instead of `options` it uses a `matrix_config`
                         object with `rows` and `columns` (each an array of `{text, value}`;
                         up to 30 rows and 10 columns) and an optional `row_selection` of

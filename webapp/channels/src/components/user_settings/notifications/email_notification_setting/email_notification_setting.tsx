@@ -4,6 +4,7 @@
 import React, {type RefObject} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 import {Radio} from '@mattermost/compass-ui/components/radio';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {UserNotifyProps} from '@mattermost/types/users';
@@ -424,20 +425,18 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
                 <React.Fragment key='userNotificationEmailThreadsOptions'>
                     <hr/>
                     <fieldset>
-                        <div className='checkbox single-checkbox'>
-                            <label>
-                                <input
-                                    id='desktopThreadsNotificationAllActivity'
-                                    type='checkbox'
-                                    name='desktopThreadsNotificationLevel'
-                                    checked={this.props.threads === NotificationLevels.ALL}
-                                    onChange={this.handleThreadsOnChange}
-                                />
+                        <div className='checkbox single-checkbox no-padding'>
+                            <Checkbox
+                                id='desktopThreadsNotificationAllActivity'
+                                name='desktopThreadsNotificationLevel'
+                                checked={this.props.threads === NotificationLevels.ALL}
+                                onChange={this.handleThreadsOnChange}
+                            >
                                 <FormattedMessage
                                     id='user.settings.notifications.email.notifyForthreads'
                                     defaultMessage={'Notify me about replies to threads I’m following'}
                                 />
-                            </label>
+                            </Checkbox>
                         </div>
                     </fieldset>
                 </React.Fragment>

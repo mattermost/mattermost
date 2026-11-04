@@ -45,11 +45,11 @@ describe('TestButton', () => {
 
         const button = screen.getByRole('button', {name: /test access rule/i});
         expect(button).toBeInTheDocument();
-        expect(button).toHaveClass('btn', 'btn-sm', 'btn-tertiary');
+        expect(button.className).toEqual(expect.stringContaining('_button--emphasis-tertiary'));
+        expect(button.className).toEqual(expect.stringContaining('_button--size-small'));
 
-        // Check for icon
-        const icon = button.querySelector('i.icon.icon-lock-outline');
-        expect(icon).toBeInTheDocument();
+        // Leading icon is provided via compass-ui Icon glyph slot
+        expect(button.querySelector('svg')).toBeInTheDocument();
     });
 
     test('should render the supplied label override instead of the default copy', () => {
@@ -67,7 +67,7 @@ describe('TestButton', () => {
         expect(screen.queryByRole('button', {name: /test access rule/i})).not.toBeInTheDocument();
         const button = screen.getByRole('button', {name: /simulate rules/i});
         expect(button).toBeInTheDocument();
-        expect(button.querySelector('i.icon.icon-lock-outline')).toBeInTheDocument();
+        expect(button.querySelector('svg')).toBeInTheDocument();
     });
 
     test('should be enabled and clickable when disabled is false', () => {
@@ -250,6 +250,33 @@ describe('hasUsableAttributes', () => {
                     visibility: 'always',
                     value_type: '',
                     ldap: 'ldap_department',
+                },
+                create_at: 0,
+                update_at: 0,
+                delete_at: 0,
+                created_by: '',
+                updated_by: '',
+            },
+        ];
+
+        expect(hasUsableAttributes(userAttributes, false)).toBe(true);
+    });
+
+    test('should return true when attributes are OpenID Connect synced', () => {
+        const userAttributes: UserPropertyField[] = [
+            {
+                id: 'attr1',
+                name: 'department',
+                type: 'text',
+                group_id: 'custom_profile_attributes',
+                target_id: '',
+                target_type: '',
+                object_type: '',
+                attrs: {
+                    sort_order: 0,
+                    visibility: 'always',
+                    value_type: '',
+                    openid: 'org.department',
                 },
                 create_at: 0,
                 update_at: 0,
