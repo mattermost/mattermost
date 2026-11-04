@@ -74,7 +74,7 @@ The MSI works with Microsoft Configuration Manager (SCCM), Intune, and similar t
 cmd /c taskkill /im Mattermost.exe /f & msiexec /i mattermost-desktop-<version>-<arch>.msi /qn
 ```
 
-Force-closing Mattermost ends any call the user is in.
+Force-closing Mattermost ends any call the user is in, and on a shared device it closes Mattermost for every signed-in user.
 
 **Older per-user installs aren't visible to the system context.** The MSI installed per-user by default from v5.9 to v6.0.4. A deployment running as `SYSTEM` can't upgrade, remove, or detect those installs, so users end up with two copies. Remove them with a step that runs as the user before deploying the per-machine MSI. See [Why are two versions installed after upgrading?](#why-are-two-versions-installed-after-upgrading).
 
