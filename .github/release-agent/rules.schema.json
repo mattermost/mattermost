@@ -110,6 +110,7 @@
         "query": {
           "type": "object",
           "properties": {
+            "migrations_path": {"description": "Folder of PostgreSQL migrations, e.g. server/channels/db/migrations/postgres.", "type": "string", "minLength": 1},
             "dev_leads": {
               "description": "Who unassigned and bot tickets go to: the first route naming the ticket's Jira Team, else the first naming one of its components.",
               "type": "object",

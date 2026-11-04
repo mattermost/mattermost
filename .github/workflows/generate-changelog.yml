@@ -504,9 +504,12 @@ jobs:
           private-key: ${{ secrets.CHANGELOG_WRITE_PRIVATE_KEY }}
           owner: mattermost
 
+      # master, not the release tag a `released` event would check out: the tag was cut before
+      # changelog_automation.py existed.
       - name: Checkout repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          ref: master
           persist-credentials: false
 
       - name: Merge the changelog PR if it is ready

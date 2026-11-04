@@ -118,6 +118,19 @@ class FormatPostTest(unittest.TestCase):
         self.assertIn("@jesse.hallam -- [MM-1](https://jira/MM-1)", live)
         self.assertNotIn("`@", live)
 
+    def test_the_open_bugs_list_is_capped_and_says_how_many_it_left_out(self):
+        tickets = [Item(f"MM-{n}", "s", f"https://jira/MM-{n}", f"@person{n % 40}") for n in range(400)]
+        lines = posting.release_bugs_lines(tickets, release())
+        self.assertEqual(sum(line.count("[MM-") for line in lines), posting.MAX_TICKETS)
+        self.assertEqual(lines[-1], f"…and {400 - posting.MAX_TICKETS} more tickets, in the Jira filter.")
+
+    def test_a_post_over_the_size_limit_is_cut_at_a_line(self):
+        outcomes = [outcome(f"task-{n}", posting.NEEDS_ATTENTION, Result(FAIL, "A long summary of what is wrong " * 4))
+                    for n in range(300)]
+        text = posting.format_post(report(outcomes), date(2026, 11, 4), NAMES)
+        self.assertLessEqual(len(text), posting.MAX_POST_CHARS + 100)
+        self.assertTrue(text.endswith("fit Hub's size limit._"))
+
     def test_quiet_mentions(self):
         self.assertEqual(posting.quiet_mentions("@a, (@b.c) **@d** @e."), "`@a`, (`@b.c`) **`@d`** `@e`.")
         self.assertEqual(posting.quiet_mentions("Fix `unfinished @here"), "Fix `unfinished @here`")

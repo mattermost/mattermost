@@ -145,10 +145,11 @@ def check_release(release, rules: dict, settings: Settings, services: Services, 
         report.outcomes.append(evaluate(ctx, rule, due, today))
 
     names = ctx.vars["release_channels"]
-    channel_name = ""
+    channel_name, ambiguous = "", False
     try:
         channels = list({c["id"]: c for name in names for c in services.hub.channels_named(name)}.values())
         if len(channels) > 1:
+            ambiguous = True
             report.flags.append(f"The bot is in {len(channels)} channels named "
                                 f"{' or '.join(f'“{name}”' for name in names)}, so none is used.")
         elif channels:
@@ -158,7 +159,10 @@ def check_release(release, rules: dict, settings: Settings, services: Services, 
 
     run = None
     try:
-        if report.release_channel:
+        found = problem = None
+        if ambiguous:
+            pass  # several channels match: no fallback to a run found by name, so nothing is ticked
+        elif report.release_channel:
             runs = services.playbooks.in_progress_runs(playbook_id=settings.playbook_id, channel_id=report.release_channel)
             found, problem = playbook.find_run(runs, channel_name, by_name=False)
         else:
@@ -166,7 +170,7 @@ def check_release(release, rules: dict, settings: Settings, services: Services, 
             found, problem = playbook.find_run(runs, release.short_version)
         if problem:
             report.flags.append(problem)
-        else:
+        elif found:
             run = services.playbooks.run(found["id"])
     except Exception as err:  # noqa: BLE001 - checks still get posted without the run
         report.flags.append(f"Couldn't read the playbook runs: {public_error(err)}")
@@ -179,7 +183,8 @@ def check_release(release, rules: dict, settings: Settings, services: Services, 
     passing = [(o.rule, o.result) for o in report.outcomes
                if o.state in tickable and o.rule["playbook_item"] and o.due and today >= o.due]
     if run and passing:
-        report.ticks = playbook.tick_items(services.playbooks, run, passing, settings.mode == "live")
+        # Planned only: the items are closed in post_report, once the status post is up.
+        report.ticks = playbook.tick_items(services.playbooks, run, passing, settings.mode == "live", execute=False)
         for tick in report.ticks:
             if tick.action in (playbook.NOT_FOUND, playbook.AMBIGUOUS):
                 report.flags.append(f"Playbook item “{tick.playbook_item}” ({tick.task}) "
@@ -211,8 +216,16 @@ def post_report(report: posting.ReleaseReport, rules: dict, settings: Settings, 
         existing, posting.alarm_ids(report), rules["false_alarm_emoji"], services.hub.me()["id"], reactions, now_ms)
     message = posting.format_post(report, today, rules["calendar"]["milestones"], rules["false_alarm_emoji"])
     action, post = posting.upsert_post(services.hub, channel, marker, message, existing, {posting.SEEN_PROP: seen})
+    # Only now, with the post up, are the planned items closed. If the post had failed they stay
+    # open and the next run tries again.
+    if report.run and playbook.execute_ticks(services.playbooks, report.run, report.ticks):
+        for tick in report.ticks:
+            if tick.action == playbook.FAILED:
+                report.flags.append(f"Ticking “{tick.playbook_item}” ({tick.task}) failed.")
+        message = posting.format_post(report, today, rules["calendar"]["milestones"], rules["false_alarm_emoji"])
+        posting.upsert_post(services.hub, channel, marker, message, post, {posting.SEEN_PROP: seen})
     for tick in report.ticks:
-        if tick.action == playbook.TICKED:
+        if tick.action == playbook.TICKED and tick.done:
             proof = f" · [proof]({tick.proof_url})" if tick.proof_url else ""
             services.hub.create_post(channel, f"Ticked **{tick.playbook_item}** in the playbook run: {tick.summary}{proof}",
                                      root_id=post["id"])
@@ -297,6 +310,11 @@ def run(rules: dict, settings: Settings, services: Services, today: date) -> tup
             report.flags.append("Couldn't post the status.")
             details.append(f"{release.short_version} post: {private_error(err)}")
             post = {"post": "failed"}
+        # With no status post up, the planned items stay open; the next run tries again.
+        for tick in report.ticks:
+            if tick.action == playbook.TICKED and not tick.done:
+                tick.action = playbook.FAILED
+                report.flags.append(f"“{tick.playbook_item}” ({tick.task}) was not ticked: the status post didn't go up.")
         details += [f"{release.short_version} {o.rule['task']}: {o.error_detail}" for o in report.outcomes if o.error_detail]
         body["releases"].append({
             "version": release.short_version,

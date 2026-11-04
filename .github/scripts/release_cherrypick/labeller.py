@@ -172,6 +172,10 @@ class Report:
     def skipped(self) -> list:
         return [c for c in self.changes if c.skipped]
 
+    @property
+    def no_milestone(self) -> list:
+        return [c for c in self.changes if c.milestone == NO_MILESTONE]
+
 
 class Labeller:
     def __init__(self, jira, github, live: bool):
@@ -225,7 +229,7 @@ class Labeller:
                 if repo not in ALLOWED_REPOS:
                     report.outside.append(OutsidePr(key, repo, number, url, self.github.is_public(repo)))
                 elif not any((c.repo, c.number) == (repo, number) for c in report.changes):
-                    report.changes.append(self.apply(key, repo, number, url, version, report, by_title))
+                    self.apply(key, repo, number, url, version, report, by_title)
         except ServiceError as err:
             report.errors.append(f"{key}: {err}")
 
@@ -264,6 +268,9 @@ class Labeller:
         another milestone is likely an earlier fix for the same ticket, so it isn't labelled."""
         pull = self.pull(repo, number)
         change = PrChange(key, repo, number, pull.get("html_url") or url, pull.get("title") or "", by_title=by_title)
+        # Recorded at once, so a label that was added still shows in the report when the
+        # milestone write after it fails.
+        report.changes.append(change)
         base = (pull.get("base") or {}).get("ref")
         if base != BASE_BRANCH:
             change.skipped = f"is against {base or 'an unknown branch'}, not {BASE_BRANCH}"

@@ -120,6 +120,24 @@ class RulesFileTest(unittest.TestCase):
         for title in items.values():
             self.assertIn(title, self.titles)
 
+    def test_rejects_a_holiday_that_is_not_a_calendar_date(self):
+        broken = copy.deepcopy(self.rules)
+        broken["holidays"] = ["2026-12-25", "2026-02-30"]
+        self.assertEqual(rules.problems(broken, self.schema, self.titles), ["holidays: '2026-02-30' is not a calendar date"])
+
+    def test_every_check_type_that_reads_a_query_key_requires_it(self):
+        broken = copy.deepcopy(self.rules)
+        notice = next(r for r in broken["rules"] if r["type"] == "notice_txt")
+        notice["query"] = {}
+        self.assertEqual(rules.problems(broken, self.schema, self.titles),
+                         [f"notice-txt: a notice_txt check needs query.{key}" for key in ("repo", "author", "title", "milestone")])
+
+    def test_migrations_path_must_be_a_non_empty_string(self):
+        for value in (None, "", 7):
+            broken = copy.deepcopy(self.rules)
+            next(r for r in broken["rules"] if r["type"] == "changelog_migrations")["query"]["migrations_path"] = value
+            self.assertTrue(rules.problems(broken, self.schema, self.titles), value)
+
     def test_rejects_duplicate_task(self):
         broken = copy.deepcopy(self.rules)
         broken["rules"].append(copy.deepcopy(broken["rules"][1]))

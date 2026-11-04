@@ -38,7 +38,7 @@ def services(jira=None, confluence=None):
         "number": 39500, "title": "Changelog v12.2.0", "draft": False, "state": "open", "merged_at": None,
         "created_at": "2026-10-26T10:00:00Z", "html_url": "https://github.com/mattermost/mattermost/pull/39500",
         "user": {"login": "changelog-automation-docs[bot]"}, "requested_reviewers": [{"login": "amy"}],
-        "requested_teams": [], "head": {"sha": "clsha"}}]
+        "requested_teams": [], "head": {"sha": "clsha"}, "base": {"ref": "master"}}]
     github.tags = {MM: ["v12.2.0-rc1", "v12.2.0-rc2"], ENT: ["v12.2.0-rc1", "v12.2.0-rc2"]}
     github.dates[(MM, "v12.2.0-rc2")] = "2026-11-02T12:00:00Z"
     hub = FakeHub(("12.2.0", "abc"))
@@ -286,6 +286,51 @@ class ReleaseChannelTest(unittest.TestCase):
         svc.hub.channels.append({"id": "dup", "display_name": "release: V12.2"})
         body, _ = run(svc)
         self.assertIn("The bot is in 2 channels named “Release: v12.2” or “Release: v12.2 (ESR)” or “Release: v12.2 ESR”, so none is used.", body["releases"][0]["flags"])
+
+
+    def test_two_channels_with_the_name_tick_nothing_even_by_name(self):
+        svc = services()
+        svc.hub.channels.append({"id": "dup", "display_name": "release: V12.2"})
+        body, _ = run(svc)
+        self.assertEqual([c for c in svc.hub.closed if c[0] == "run122"], [])
+        self.assertEqual(body["releases"][0]["ticked"], [])
+
+
+class TickAfterPostTest(unittest.TestCase):
+    def test_nothing_is_ticked_when_the_status_post_fails(self):
+        svc = services()
+        create = svc.hub.create_post
+        svc.hub.create_post = lambda *args, **kwargs: (_ for _ in ()).throw(ServiceError("Mattermost", 500))
+        body, _ = run(svc)
+        self.assertEqual(svc.hub.closed, [])
+        release = body["releases"][0]
+        self.assertEqual((release["post"], release["ticked"]), ("failed", []))
+        self.assertIn("“Check that Hub was updated to the latest release branch.” (hub-on-release-branch) was not ticked: "
+                      "the status post didn't go up.", release["flags"])
+        svc.hub.create_post = create
+        body, _ = run(svc)  # the next run, with Hub back
+        self.assertEqual(len(svc.hub.closed), 6)
+        self.assertEqual(len(body["releases"][0]["ticked"]), 6)
+
+    def test_items_are_closed_after_the_post_exists(self):
+        svc = services()
+        order = []
+        create, close = svc.hub.create_post, svc.hub.close_item
+        svc.hub.create_post = lambda *a, **k: (order.append("post"), create(*a, **k))[1]
+        svc.hub.close_item = lambda *a, **k: (order.append("close"), close(*a, **k))[1]
+        run(svc)
+        self.assertEqual(order[0], "post")
+        self.assertIn("close", order)
+
+    def test_a_tick_that_fails_after_the_post_is_flagged_and_the_post_corrected(self):
+        svc = services()
+        svc.hub.close_item = lambda *a, **k: (_ for _ in ()).throw(ServiceError("Mattermost", 500))
+        body, _ = run(svc)
+        release = body["releases"][0]
+        self.assertEqual(release["ticked"], [])
+        self.assertTrue(any(flag.startswith("Ticking “") for flag in release["flags"]))
+        post = next(p for p in svc.hub.created if p["channel_id"] == "c122" and not p["root_id"])
+        self.assertIn("ticking failed", next(p for ps in svc.hub.posts.values() for p in ps if p["id"] == post["id"])["message"])
 
 
 class TestModeTest(unittest.TestCase):

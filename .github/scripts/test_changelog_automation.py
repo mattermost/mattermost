@@ -81,9 +81,15 @@ def source_api():
 
 
 def comments_api(existing=()):
+    """A PR's review comments: a posted comment is kept, as GitHub would list it afterwards."""
     api = FakeApi()
-    api.routes[("GET", "/repos/mattermost/mattermost/pulls/50/comments")] = list(existing)
-    api.routes[("POST", "/repos/mattermost/mattermost/pulls/50/comments")] = lambda body: {"id": 900}
+    comments = list(existing)
+    api.routes[("GET", "/repos/mattermost/mattermost/pulls/50/comments")] = comments
+
+    def post(body):
+        comments.append({"id": 900 + len(comments), "user": {"type": "Bot", "login": "x[bot]"}, "body": body["body"]})
+        return {"id": comments[-1]["id"]}
+    api.routes[("POST", "/repos/mattermost/mattermost/pulls/50/comments")] = post
     api.routes[("POST", "graphql")] = {"repository": {"pullRequest": {"reviewThreads": {"nodes": []}}}}
     return api
 
@@ -99,7 +105,7 @@ class SuggestionTest(unittest.TestCase):
     def test_a_weak_bullet_gets_one_suggestion_on_its_line(self):
         api = comments_api()
         result = self.suggest(api)
-        self.assertEqual((result["posted"], result["suggestions_made"]), (1, 0))
+        self.assertEqual((result["posted"], result["suggestions_made"], result["suggestions_pending"]), (1, 1, 1))
         (_, _, body), = api.calls_to("POST", "/repos/mattermost/mattermost/pulls/50/comments")
         self.assertEqual((body["path"], body["line"], body["side"], body["commit_id"]), (FILE, 12, "RIGHT", "headsha"))
         self.assertIn("```suggestion\n - Fixed an issue where the sidebar kept its collapsed state after switching teams.\n```", body["body"])
@@ -112,6 +118,17 @@ class SuggestionTest(unittest.TestCase):
         api = comments_api(existing)
         result = self.suggest(api)
         self.assertEqual(result["posted"], 0)
+        self.assertEqual(api.calls_to("POST", "/repos/mattermost/mattermost/pulls/50/comments"), [])
+
+    def test_a_source_in_a_private_repo_gets_no_rewrite(self):
+        report = {**REPORT, "sections": [{"section": "Improvements", "subsection": "User Interface", "items": [
+            {"text": "Updated sidebar.", "sources": ["mattermost/enterprise#5"]}]}],
+            "readiness": {**REPORT["readiness"], "note_quality": [
+                {"source": "mattermost/enterprise#5", "title": "t", "reason": "under 6 words", "excerpt": "x"}]}}
+        asked = []
+        api = comments_api()
+        result = self.suggest(api, report, rewriter=lambda *a: asked.append(a) or rewrite(*a))
+        self.assertEqual((result["posted"], result["skipped"], asked), (0, 1, []))
         self.assertEqual(api.calls_to("POST", "/repos/mattermost/mattermost/pulls/50/comments"), [])
 
     def test_a_private_repo_pr_is_not_named_in_the_public_comment(self):
@@ -146,6 +163,32 @@ class SuggestionTest(unittest.TestCase):
     def test_links_on_the_original_bullet_are_kept(self):
         text = ca.clean_rewrite("Added the new sidebar layout for every team member.", "Layout. [Docs](https://docs.mattermost.com/x)")
         self.assertEqual(text, "Added the new sidebar layout for every team member. [Docs](https://docs.mattermost.com/x)")
+
+    def test_a_suggestion_is_accepted_only_when_its_bullet_changed(self):
+        def comment(id_, source, line, original):
+            return {"id": id_, "user": {"type": "Bot", "login": "x[bot]"},
+                    "body": ca.suggestion_comment(source, "r", line, "b", original)}
+        api = comments_api([
+            comment(1, "a#1", f" - {GOOD}", " - Updated sidebar."),   # rewrite taken, original gone from... (still there)
+            comment(2, "a#2", " - Fixed the sidebar after a team switch.", " - Gone bullet."),  # not in entry
+            comment(3, "a#3", f" - {GOOD}", " - Not in the entry.")])  # suggested line present, original gone
+        metrics = ca.suggestion_metrics(api, ca.REPO, 50, CHANGELOG, VERSION)
+        # 1: the suggested line is in the entry but so is the original, so it stays pending (a rewrite
+        # that copies another bullet isn't an acceptance); 3 is accepted; 2 is pending.
+        self.assertEqual((metrics["suggestions_made"], metrics["suggestions_accepted"], metrics["suggestions_pending"]), (3, 1, 2))
+
+    def test_resolved_threads_are_read_across_pages(self):
+        api = FakeApi()
+
+        def threads(variables):
+            if variables["cursor"] is None:
+                return {"repository": {"pullRequest": {"reviewThreads": {"pageInfo": {"hasNextPage": True, "endCursor": "c1"},
+                        "nodes": [{"isResolved": True, "comments": {"nodes": [{"databaseId": 1}]}}]}}}}
+            return {"repository": {"pullRequest": {"reviewThreads": {"pageInfo": {"hasNextPage": False},
+                    "nodes": [{"isResolved": True, "comments": {"nodes": [{"databaseId": 2}]}},
+                              {"isResolved": False, "comments": {"nodes": [{"databaseId": 3}]}}]}}}}
+        api.routes[("POST", "graphql")] = threads
+        self.assertEqual(ca.resolved_comment_ids(api, ca.REPO, 50), {1, 2})
 
     def test_accepted_dismissed_and_pending_are_counted(self):
         def comment(id_, line):
@@ -205,9 +248,9 @@ class ReadyTest(unittest.TestCase):
         self.assertEqual(names, ["org/db", "ui-lead", "amy", "bob"])
 
 
-def pr(draft=False, reviewers=(), sha="abc"):
-    return {"number": 50, "draft": draft, "head": {"sha": sha}, "requested_reviewers": [{"login": r} for r in reviewers],
-            "requested_teams": []}
+def pr(draft=False, reviewers=(), sha="abc", base="master"):
+    return {"number": 50, "draft": draft, "head": {"sha": sha}, "base": {"ref": base},
+            "requested_reviewers": [{"login": r} for r in reviewers], "requested_teams": []}
 
 
 def checks(*runs):
@@ -245,6 +288,9 @@ class MergeTest(unittest.TestCase):
         self.assertFalse(outcome["merged"])
         self.assertIn(problem, outcome["problems"])
         self.assertEqual(api.calls_to("PUT", "/repos/mattermost/mattermost/pulls/50/merge"), [])
+
+    def test_refused_when_the_pr_targets_another_branch(self):
+        self.assert_refused(merge_api(pr(base="release-12.2")), "the PR targets release-12.2 instead of master")
 
     def test_refused_for_a_draft(self):
         self.assert_refused(merge_api(pr(draft=True)), "the PR is still a draft")
@@ -284,6 +330,20 @@ class MergeTest(unittest.TestCase):
     def test_refused_while_benchmarking_is_pending(self):
         pending = {**REPORT, "readiness": {**REPORT["readiness"], "gaps": [{"section": "Benchmarking", "status": "not_yet_checked"}]}}
         self.assert_refused(merge_api(), "benchmarking is pending", pending)
+
+    def test_refused_when_the_report_has_no_benchmarking_gap_at_all(self):
+        old = {**REPORT, "readiness": {"preflight": []}}  # a report from before the readiness section
+        self.assert_refused(merge_api(), "benchmarking is pending", old)
+
+    def test_checks_beyond_the_first_100_are_counted(self):
+        api = merge_api()
+        first = {"check_runs": [{"name": f"c{n}", "status": "completed", "conclusion": "success"} for n in range(99)]
+                 + [{"name": "Check docs links", "status": "completed", "conclusion": "success"}]}
+        second = {"check_runs": [{"name": "late", "status": "in_progress", "conclusion": None}]}
+        api.routes[("GET", "/repos/mattermost/mattermost/commits/abc/check-runs")] = lambda p: first if p["page"] == 1 else second
+        outcome = self.merge(api)
+        self.assertIn("1 check(s) still running", outcome["problems"])
+        self.assertFalse(outcome["merged"])
 
     def test_refused_for_notes_not_placed_by_the_model(self):
         report = {**REPORT, "readiness": {**REPORT["readiness"], "not_placed": [{"source": "a#1"}, {"source": "a#2"}]}}

@@ -23,6 +23,8 @@ class Tick:
     action: str
     proof_url: str = ""
     summary: str = ""
+    indexes: tuple | None = None  # (checklist, item) to close, while the tick is planned but not done
+    done: bool = False  # the item was closed
 
 
 MARKDOWN_LINK = re.compile(r"!?\[([^\]]*)\]\([^)]*\)")
@@ -86,18 +88,36 @@ def plan_tick(run: dict, title: str, former_titles: list | None = None) -> tuple
     return TICKED, (checklist_index, item_index)
 
 
-def tick_items(playbooks, run: dict, passing: list[tuple[dict, object]], live: bool) -> list[Tick]:
-    """Tick the playbook item of each passing, due rule. ``passing`` is [(rule, Result)]."""
+def tick_items(playbooks, run: dict, passing: list[tuple[dict, object]], live: bool, execute: bool = True) -> list[Tick]:
+    """Plan, and in live mode with ``execute`` also close, the playbook item of each passing,
+    due rule. ``passing`` is [(rule, Result)]. With ``execute`` False a live tick stays planned
+    (action TICKED, not done) until ``execute_ticks``, so items can be closed only once the
+    status post that reports them is up."""
     ticks = []
     for rule, result in passing:
         title = rule["playbook_item"]
         action, indexes = plan_tick(run, title, rule.get("former_playbook_items"))
+        tick = Tick(rule["task"], title, action, result.proof_url, result.summary)
         if action == TICKED and not live:
-            action = WOULD_TICK
+            tick.action = WOULD_TICK
         elif action == TICKED:
-            try:
-                playbooks.close_item(run["id"], *indexes)
-            except Exception:  # noqa: BLE001 - one failed tick must not stop the others
-                action = FAILED
-        ticks.append(Tick(rule["task"], title, action, result.proof_url, result.summary))
+            tick.indexes = indexes
+        ticks.append(tick)
+    if execute:
+        execute_ticks(playbooks, run, ticks)
     return ticks
+
+
+def execute_ticks(playbooks, run: dict, ticks: list[Tick]) -> list[Tick]:
+    """Close the planned ticks. Returns the ones that failed, which are marked FAILED."""
+    failed = []
+    for tick in ticks:
+        if tick.action != TICKED or tick.done or tick.indexes is None:
+            continue
+        try:
+            playbooks.close_item(run["id"], *tick.indexes)
+            tick.done = True
+        except Exception:  # noqa: BLE001 - one failed tick must not stop the others
+            tick.action = FAILED
+            failed.append(tick)
+    return failed

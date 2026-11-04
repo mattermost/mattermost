@@ -130,6 +130,8 @@ class GitHub:
                 done = len(batch) < 100
             else:
                 done = len(items) >= total
+            if len(items) > limit:
+                raise TruncatedError("GitHub", len(items))
             if done:
                 return items
             if len(items) >= limit or not batch:
@@ -225,10 +227,11 @@ class Jira:
             result = self.http.request("POST", "/rest/api/3/search/jql", body=body)[1] or {}
             issues.extend(result.get("issues", []))
             token = result.get("nextPageToken")
-            if not token or result.get("isLast", True):
-                return issues
-            if len(issues) >= limit:
+            more = bool(token) and not result.get("isLast", True)
+            if len(issues) > limit or (more and len(issues) >= limit):
                 raise TruncatedError("Jira", len(issues))
+            if not more:
+                return issues
 
     def remote_links(self, key: str) -> list[dict]:
         return self.http.get(f"/rest/api/3/issue/{urllib.parse.quote(key)}/remotelink") or []
@@ -276,7 +279,7 @@ class Mattermost:
 
     def search_users(self, term: str) -> list[dict]:
         return self.http.request("POST", "/api/v4/users/search",
-                                 body={"term": term, "allow_inactive": False, "limit": 25})[1] or []
+                                 body={"term": term, "allow_inactive": False, "limit": 100})[1] or []
 
     def _user_or_none(self, path: str) -> dict | None:
         try:

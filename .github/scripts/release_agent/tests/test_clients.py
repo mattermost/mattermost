@@ -92,6 +92,10 @@ class GitHubTest(unittest.TestCase):
         self.assertEqual(str(raised.exception), "GitHub results truncated at 1000, can't confirm")
         self.assertEqual(len(http.calls), 10)
 
+    def test_a_last_page_that_goes_over_a_smaller_limit_is_an_error(self):
+        with self.assertRaisesRegex(TruncatedError, "GitHub results truncated at 175"):
+            GitHub("t", RecordingHttp(self.search_pages(175))).search_issues("q", limit=150)
+
     def test_exactly_1000_results_are_all_there_is(self):
         self.assertEqual(len(GitHub("t", RecordingHttp(self.search_pages(1000))).search_issues("q")), 1000)
 
@@ -148,6 +152,12 @@ class JiraPagingTest(unittest.TestCase):
             Jira("https://jira", "e", "t", RecordingHttp(self.pages(300))).search("project = MM", limit=100)
         self.assertEqual(str(raised.exception), "Jira results truncated at 100, can't confirm")
 
+    def test_a_final_page_that_goes_over_the_limit_is_an_error(self):
+        http = RecordingHttp([({}, {"issues": [{"key": f"MM-{n}"} for n in range(100)], "nextPageToken": "t", "isLast": False}),
+                              ({}, {"issues": [{"key": f"MM-{n}"} for n in range(100, 175)], "isLast": True})])
+        with self.assertRaisesRegex(TruncatedError, "Jira results truncated at 175"):
+            Jira("https://jira", "e", "t", http).search("project = MM", limit=150)
+
     def test_exactly_the_limit_with_nothing_more_is_complete(self):
         self.assertEqual(len(Jira("https://jira", "e", "t", RecordingHttp(self.pages(100))).search("project = MM", limit=100)), 100)
 
@@ -177,6 +187,11 @@ class MattermostTest(unittest.TestCase):
         http = RecordingHttp([({"X-Version-Id": "12.2.0.123.abc.true"}, {"status": "OK"}),
                               ({}, {"Version": "12.2.0", "BuildHash": "deadbeef"})])
         self.assertEqual(Mattermost("https://hub", "t", http).server_version(), ("12.2.0", "deadbeef"))
+
+    def test_user_search_asks_for_up_to_100_users(self):
+        http = RecordingHttp([({}, [{"username": "ann"}])])
+        self.assertEqual(Mattermost("https://hub", "t", http).search_users("Ann Lee"), [{"username": "ann"}])
+        self.assertEqual(http.calls[0][3], {"term": "Ann Lee", "allow_inactive": False, "limit": 100})
 
     def test_playbooks_close_item(self):
         http = RecordingHttp([({}, None)])

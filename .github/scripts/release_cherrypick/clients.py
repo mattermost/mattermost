@@ -88,10 +88,11 @@ class Jira:
             result = self.http.request("POST", "/rest/api/3/search/jql", body=body) or {}
             issues.extend(result.get("issues", []))
             token = result.get("nextPageToken")
-            if not token or result.get("isLast", True):
-                return issues
-            if len(issues) >= limit:
+            more = bool(token) and not result.get("isLast", True)
+            if len(issues) > limit or (more and len(issues) >= limit):
                 raise TruncatedError("Jira", len(issues))
+            if not more:
+                return issues
 
     def issue(self, key: str, fields: list[str]) -> dict:
         return self.http.get(f"/rest/api/3/issue/{urllib.parse.quote(key)}", fields=",".join(fields))
@@ -133,6 +134,8 @@ class GitHub:
             if result.get("incomplete_results"):
                 raise TruncatedError("GitHub", len(items))
             total = result.get("total_count")
+            if len(items) > limit:
+                raise TruncatedError("GitHub", len(items))
             if (len(batch) < 100) if total is None else (len(items) >= total):
                 return items
             if len(items) >= limit or not batch:

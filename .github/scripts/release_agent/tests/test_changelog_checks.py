@@ -15,11 +15,12 @@ BOT = "changelog-automation-docs[bot]"
 
 
 def changelog_pr(number=39500, draft=False, merged=False, state=None, reviewers=(), login=BOT,
-                 created_at="2026-10-26T10:00:00Z", sha="headsha"):
+                 created_at="2026-10-26T10:00:00Z", sha="headsha", base="master"):
     return {"number": number, "title": "Changelog v12.2.0", "draft": draft, "state": state or ("closed" if merged else "open"),
             "merged_at": "2026-11-16T09:00:00Z" if merged else None, "created_at": created_at,
             "html_url": f"https://github.com/{MM}/pull/{number}", "user": {"login": login},
-            "requested_reviewers": [{"login": r} for r in reviewers], "requested_teams": [], "head": {"sha": sha}}
+            "requested_reviewers": [{"login": r} for r in reviewers], "requested_teams": [], "head": {"sha": sha},
+            "base": {"ref": base}}
 
 
 def entry(release_day="**Release day: November 16, 2026**", schema=""):
@@ -63,6 +64,10 @@ class ChangelogDraftTest(unittest.TestCase):
         self.assertEqual(result.summary, "The changelog PR mattermost#39501 exists (open)")
         self.assertEqual([(i.label, i.note) for i in result.items],
                          [("mattermost#39500", "another changelog PR for this release, closed without merging")])
+
+    def test_a_pr_retargeted_to_another_branch_does_not_count(self):
+        result = check("changelog-draft", github(changelog_pr(base="release-12.2")))
+        self.assertEqual((result.status, result.summary), (checks.FAIL, "No changelog PR yet (changelog/v12.2.0)"))
 
     def test_a_pr_by_someone_else_does_not_count(self):
         self.assertEqual(check("changelog-draft", github(changelog_pr(login="a-person"))).status, checks.FAIL)
@@ -135,6 +140,12 @@ class ChangelogMergedTest(unittest.TestCase):
 
     def test_a_longer_version_on_the_page_is_not_this_release(self):
         self.assertEqual(self.merged(page="Release v12.20 - Feature Release").status, checks.FAIL)
+
+    def test_a_mention_of_the_release_in_the_navigation_is_not_the_entry(self):
+        self.assertEqual(self.merged(page="Related: Release v12.2 notes | Release v12.2.1").status, checks.FAIL)
+
+    def test_the_heading_may_use_an_en_dash(self):
+        self.assertEqual(self.merged(page="Release v12.2 – Feature Release").status, checks.PASS)
 
     def test_live(self):
         result = self.merged(page="Release v12.2 - Feature Release")

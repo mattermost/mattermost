@@ -117,7 +117,11 @@ def _first_line(message: str) -> str:
 
 
 def _references(message: str, number: int) -> bool:
-    return re.search(rf"#{number}\b", _first_line(message)) is not None
+    """Whether a commit is PR ``number`` or a cherry-pick of it: its title has ``(#N)`` as a
+    squash commit or a cherry-pick carries it ("Fix A (#100) (#150)"), or says "cherry pick of
+    #N". A bare mention such as "Fix regression from #N (#M)" is not."""
+    return re.search(rf"cherry[- ]?pick(?:ed)?(?: of)? #{number}\b|\(#{number}\)", _first_line(message),
+                     re.IGNORECASE) is not None
 
 
 def _parse_time(value: str) -> datetime:
@@ -633,8 +637,12 @@ def holidays_page(ctx: Context, rule: dict) -> Result:
     if start < 0:
         problem = f"The holidays page has no “{heading}” heading yet"
     else:
+        # The section ends at the next year's heading, so dates under a later heading don't count.
+        end = start + len(heading)
+        other = re.compile(re.escape(heading).replace(str(year), r"\d{4}"), re.IGNORECASE)
+        stop = next((m.start() for m in other.finditer(text, end) if m.group(0).casefold() != heading.casefold()), len(text))
         days = set()
-        for m in HOLIDAY_DATE.finditer(text[start:]):
+        for m in HOLIDAY_DATE.finditer(text[end:stop]):
             month_, day_, year_ = (int(g) for g in m.groups())
             try:
                 if year_ == year:
@@ -687,6 +695,8 @@ def changelog_prs(ctx: Context, query: dict) -> list[dict]:
     repo = query["repo"]
     found = ctx.github.pulls_by_head(repo, f"{repo.split('/')[0]}:{query['branch']}")
     wanted = _bot_name(query.get("author", ""))
+    # Only PRs into the base branch: one retargeted to a release branch isn't the changelog PR.
+    found = [pr for pr in found if (pr.get("base") or {}).get("ref") == query["base_branch"]]
     found = [pr for pr in found if not wanted or _bot_name((pr.get("user") or {}).get("login", "")) == wanted]
     return sorted(found, key=lambda pr: pr.get("created_at", ""), reverse=True)
 
@@ -723,7 +733,9 @@ def _live_page_has_entry(ctx: Context, url: str, short: str) -> bool:
         page = ctx.fetch_page(url)
     except Exception:  # noqa: BLE001 - a page that can't be read isn't live yet
         return False
-    return re.search(rf"Release {re.escape(short)}(?!\d)", page or "") is not None
+    # The entry's heading, "Release v12.2 - Feature Release", not a mention of "Release v12.2" in
+    # navigation or related links. The dash may be rendered as an en or em dash.
+    return re.search(rf"Release {re.escape(short)}\s+[-–—]\s", page or "") is not None
 
 
 def changelog_pr(ctx: Context, rule: dict) -> Result:

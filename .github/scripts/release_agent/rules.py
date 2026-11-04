@@ -2,6 +2,7 @@
 
 import json
 import re
+from datetime import date
 from pathlib import Path
 
 import jsonschema
@@ -31,6 +32,15 @@ def template_items(template: dict) -> set[str]:
 
 # Query keys a check reads without a default.
 REQUIRED_QUERY = {
+    "open_release_items": ("jql",),
+    "new_regressions": ("jql",),
+    "resolved_tickets": ("jql",),
+    "cherry_picks_to_label": ("jql", "repos", "labels", "milestone", "base_branch"),
+    "notice_txt": ("repo", "author", "title", "milestone"),
+    "cherry_picks": ("repos", "labels"),
+    "version_go_prs": ("repo", "author", "created_since"),
+    "changelog_labels": ("repos", "labels"),
+    "holidays_page": ("month", "heading", "min_dates"),
     "e2e_results": ("match_any",),
     "release_tags": ("repos",),
     "changelog_pr": ("state", "repo", "branch", "base_branch", "live_url"),
@@ -71,6 +81,11 @@ def problems(rules: dict, schema: dict, template_titles: set[str] | None = None)
         if known_items is not None and rule["playbook_item"] is not None \
                 and normalize(rule["playbook_item"]) not in known_items:
             errors.append(f"{task}: playbook_item {rule['playbook_item']!r} is not in the playbook template")
+    for day in rules.get("holidays", []):
+        try:
+            date.fromisoformat(day)
+        except ValueError:
+            errors.append(f"holidays: {day!r} is not a calendar date")
     return errors
 
 

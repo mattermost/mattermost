@@ -12,6 +12,10 @@ MARKER_PROP = "release_agent_marker"
 SEEN_PROP = "release_agent_alarms_seen"
 MAX_ITEMS = 15
 MAX_PAGES = 25
+# The open bugs list shows this many tickets, then says how many it left out; a Hub server before
+# v12.0 refuses a post over 16,383 characters, which would leave the status stale.
+MAX_TICKETS = 150
+MAX_POST_CHARS = 15000
 
 NEEDS_ATTENTION = "needs_attention"
 OK = "ok"
@@ -234,6 +238,8 @@ def format_post(report: ReleaseReport, today: date, milestone_names: dict, emoji
         lines += ["", f"_Not a real problem? React with :{emoji}: to mark everything under Needs attention "
                       "as a false alarm. For anything raised after your reaction, remove it and react again._"]
     text = "\n".join(lines)
+    if len(text) > MAX_POST_CHARS:
+        text = text[:MAX_POST_CHARS].rsplit("\n", 1)[0] + "\n\n_…the rest of this post was cut to fit Hub's size limit._"
     return text if report.mode == "live" else quiet_mentions(text)
 
 
@@ -263,8 +269,17 @@ def release_bugs_lines(items: list, release) -> list[str]:
         groups = {}
         for item in tickets:
             groups.setdefault(item.owner, []).append(item)
+        shown = 0
         for owner in sorted(groups, key=lambda o: (o == "", -len(groups[o]), o.casefold())):
-            lines.append(f"{owner or '**Unassigned**'} -- " + ", ".join(_ticket(t, owner) for t in groups[owner]))
+            room = MAX_TICKETS - shown
+            if room <= 0:
+                break
+            listed = groups[owner][:room]
+            shown += len(listed)
+            more = f", …and {len(groups[owner]) - len(listed)} more" if len(listed) < len(groups[owner]) else ""
+            lines.append(f"{owner or '**Unassigned**'} -- " + ", ".join(_ticket(t, owner) for t in listed) + more)
+        if shown < len(tickets):
+            lines.append(f"…and {len(tickets) - shown} more tickets, in the Jira filter.")
     if prs:
         lines.append(f"Open PRs with the {release.version} milestone:")
         lines += [line[2:] for line in _items(prs)]

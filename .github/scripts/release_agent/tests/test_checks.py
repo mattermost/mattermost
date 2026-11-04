@@ -545,6 +545,20 @@ class CherryPicksTest(unittest.TestCase):
         self.assertEqual([i.public_label for i in result.items], ["mattermost#101", "(private repo)"])
         self.assertIn('label:"CherryPick/Approved","CherryPick/Done" milestone:"v12.2.0"', github.queries[0])
 
+    def test_a_mention_of_the_pr_in_another_commit_is_not_the_cherry_pick(self):
+        github = FakeGitHub()
+        github.searches[r"repo:mattermost/mattermost .*CherryPick/Approved"] = [pr(123)]
+        github.branch_commits[(MM, "release-12.2")] = [commit("Fix regression from #123 (#456)")]
+        github.pulls[(MM, 123)] = {"merge_commit_sha": "m123"}
+        result = checks.cherry_picks(context(github), RULES["cherry-picks"])
+        self.assertEqual((result.status, [i.label for i in result.items]), (checks.FAIL, ["mattermost#123"]))
+
+    def test_an_automated_cherry_pick_title_names_the_original(self):
+        github = FakeGitHub()
+        github.searches[r"repo:mattermost/mattermost .*CherryPick/Approved"] = [pr(39121)]
+        github.branch_commits[(MM, "release-12.2")] = [commit("Automated cherry pick of #39121 (#39200)")]
+        self.assertEqual(checks.cherry_picks(context(github), RULES["cherry-picks"]).status, checks.PASS)
+
     def test_passes_with_nothing_to_cherry_pick(self):
         result = checks.cherry_picks(context(), RULES["cherry-picks"])
         self.assertEqual((result.status, result.summary), (checks.PASS, "All 0 approved cherry-picks are on release-12.2"))
@@ -743,6 +757,13 @@ class HolidaysPageTest(unittest.TestCase):
     def test_only_dates_in_next_year_count(self):
         result, _ = self.check(holidays_page(2027, 3) + " " + "(1/01/2026) (12/25/20271) " * 10)
         self.assertEqual(result.summary, "The holidays page lists 3 of at least 8 holidays in 2027")
+
+    def test_dates_under_a_later_years_heading_do_not_count(self):
+        text = holidays_page(2027, 3) + " " + holidays_page(2028, 20).replace("holidays for 2028", "holidays for 2028")
+        result, _ = self.check(text)
+        self.assertEqual(result.summary, "The holidays page lists 3 of at least 8 holidays in 2027")
+        text = holidays_page(2027, 8) + " " + holidays_page(2028, 20)
+        self.assertEqual(self.check(text)[0].summary, "The holidays page lists 8 holidays in 2027")
 
     def test_only_checked_in_october(self):
         result, confluence = self.check(today=date(2026, 11, 4))

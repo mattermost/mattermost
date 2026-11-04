@@ -152,6 +152,37 @@ class LabelTest(unittest.TestCase):
         self.assertEqual(github.writes, [("label", MM, 3, "CherryPick/Approved")])
         self.assertEqual(report.notes, ["mattermost has no v12.2.0 milestone, so it wasn't set."])
 
+    def test_a_pr_already_labelled_in_a_repo_without_the_milestone_is_listed(self):
+        jira = FakeJira([ticket("MM-1")], {"MM-1": [link(MM, 3)]})
+        github = FakeGitHub([(MM, pull(3, labels=["CherryPick/Approved"]))])
+        github.milestone_titles[MM] = {}
+        report = label_run(jira, github)
+        self.assertEqual([c.number for c in report.no_milestone], [3])
+        self.assertIn("**No milestone in the repo, milestone not set** (1)", output.summary([report], True))
+        self.assertIn("MM-1: [mattermost#3](https://github.com/mattermost/mattermost/pull/3) A fix needs milestone v12.2.0",
+                      output.summary([report], True))
+
+    def test_a_label_that_was_added_is_reported_even_when_the_milestone_write_fails(self):
+        from release_cherrypick.clients import ServiceError
+        jira = FakeJira([ticket("MM-1")], {"MM-1": [link(MM, 3)]})
+        github = FakeGitHub([(MM, pull(3))])
+
+        def fail(repo, number, milestone_number):
+            raise ServiceError("GitHub", 500)
+        github.set_milestone = fail
+        report = label_run(jira, github)
+        self.assertEqual(github.writes, [("label", MM, 3, "CherryPick/Approved")])
+        self.assertEqual([c.number for c in report.labelled], [3])
+        self.assertEqual(report.errors, ["MM-1: GitHub request failed (HTTP 500)"])
+
+    def test_the_hub_intro_does_not_promise_a_milestone(self):
+        jira = FakeJira([ticket("MM-1")], {"MM-1": [link(MM, 3)]})
+        github = FakeGitHub([(MM, pull(3))])
+        github.milestone_titles[MM] = {}
+        message = output.hub_message(label_run(jira, github))
+        self.assertIn("with `CherryPick/Approved` (each entry says whether milestone v12.2.0 was set too):", message)
+        self.assertIn("(label)", message)
+
     def test_enterprise_prs_are_listed_to_label_by_hand(self):
         jira = FakeJira([ticket("MM-1"), ticket("MM-2"), ticket("MM-3"), ticket("MM-4")],
                         {"MM-1": [link(ENT, 1)], "MM-2": [link(ENT, 2)], "MM-3": [link(ENT, 3)], "MM-4": [link(ENT, 4)]})

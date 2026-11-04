@@ -65,6 +65,8 @@ def report_lines(report: Report, private: bool = False) -> list[str]:
     section("Milestone conflicts, milestone not changed", [
         f"{c.ticket}: {_pr(c, private)} has milestone {c.current_milestone}, not {version.milestone}"
         + (" (found by its title, so not labelled either)" if c.by_title else "") for c in report.conflicts])
+    section("No milestone in the repo, milestone not set", [
+        f"{c.ticket}: {_pr(c, private)} needs milestone {version.milestone}" for c in report.no_milestone])
     section("Skipped", [f"{c.ticket}: {_pr(c, private)} {c.skipped}" for c in report.skipped])
     section("Other fix versions, to handle by hand", [
         f"{ticket}: {', '.join(names)}" for ticket, names in sorted(report.other_versions.items())])
@@ -108,8 +110,8 @@ def hub_message(report: Report) -> str:
     version = report.version
     lines = []
     if report.labelled:
-        lines += [f"Labelled approved cherry-picks for {version.short} with `{APPROVED}` and milestone "
-                  f"{version.milestone}:"]
+        lines += [f"Labelled approved cherry-picks for {version.short} with `{APPROVED}` (each entry says whether "
+                  f"milestone {version.milestone} was set too):"]
         lines += [f"- {c.ticket}: {_pr(c, True)} ({_what(c)})" for c in report.labelled]
     if report.by_hand:
         lines += [f"For the release manager to label by hand ({version.short}):"] + [

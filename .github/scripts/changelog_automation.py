@@ -40,6 +40,7 @@ MODEL = "claude-sonnet-4-6"  # the model generate_changelog.py uses
 SUGGESTION_MARKER = "<!-- changelog-suggestion source={source} -->"
 _MARKER_RE = re.compile(r"<!-- changelog-suggestion source=(\S+) -->")
 _SUGGESTION_RE = re.compile(r"```suggestion\n(.*?)\n```", re.DOTALL)
+_ORIGINAL_RE = re.compile(r"<!-- changelog-suggestion-original (\S+) -->")
 _BULLET = re.compile(r"^( *[-*] +)(\S.*)$")
 LINK_CHECK_NAMES = ("Changelog Link Check", "Check docs links")
 GOOD_CONCLUSIONS = {"success", "neutral", "skipped"}
@@ -242,8 +243,11 @@ def basis_sentence(facts: dict) -> str:
     return f"Based on {ref}: {', '.join(parts[:-1])} and {parts[-1]}." if len(parts) > 1 else f"Based on {ref}'s title."
 
 
-def suggestion_comment(source: str, reason: str, line: str, basis: str) -> str:
-    return (f"{SUGGESTION_MARKER.format(source=source)}\n"
+def suggestion_comment(source: str, reason: str, line: str, basis: str, original: str = "") -> str:
+    """The comment. The bullet as it was is kept, base64 in a hidden comment, so a later run can
+    tell whether the bullet itself changed."""
+    kept = f"<!-- changelog-suggestion-original {base64.b64encode(original.encode()).decode()} -->\n" if original else ""
+    return (f"{SUGGESTION_MARKER.format(source=source)}\n{kept}"
             f"This note is {reason}. Suggested rewrite:\n\n```suggestion\n{line}\n```\n\n{basis}")
 
 
@@ -255,20 +259,32 @@ def bot_suggestions(api, repo: str, number: int) -> list[dict]:
         match = _MARKER_RE.search(comment.get("body") or "")
         if match and (user.get("type") == "Bot" or str(user.get("login", "")).endswith("[bot]")):
             block = _SUGGESTION_RE.search(comment["body"])
-            found.append({"id": comment["id"], "source": match.group(1), "line": block.group(1) if block else ""})
+            original = _ORIGINAL_RE.search(comment["body"])
+            found.append({"id": comment["id"], "source": match.group(1), "line": block.group(1) if block else "",
+                          "original": base64.b64decode(original.group(1)).decode() if original else None})
     return found
 
 
-THREADS_QUERY = """query($owner: String!, $name: String!, $number: Int!) {
+THREADS_QUERY = """query($owner: String!, $name: String!, $number: Int!, $cursor: String) {
   repository(owner: $owner, name: $name) { pullRequest(number: $number) {
-    reviewThreads(first: 100) { nodes { isResolved comments(first: 1) { nodes { databaseId } } } } } } }"""
+    reviewThreads(first: 100, after: $cursor) { pageInfo { hasNextPage endCursor }
+      nodes { isResolved comments(first: 1) { nodes { databaseId } } } } } } }"""
 
 
 def resolved_comment_ids(api, repo: str, number: int) -> set[int]:
+    """The first comment of every resolved review thread, across all pages of threads."""
     owner, name = repo.split("/")
-    data = api.graphql(THREADS_QUERY, {"owner": owner, "name": name, "number": number})
-    threads = (((data.get("repository") or {}).get("pullRequest") or {}).get("reviewThreads") or {}).get("nodes") or []
-    return {c["databaseId"] for t in threads if t.get("isResolved") for c in (t.get("comments") or {}).get("nodes", [])}
+    resolved, cursor = set(), None
+    while True:
+        data = api.graphql(THREADS_QUERY, {"owner": owner, "name": name, "number": number, "cursor": cursor})
+        threads = ((data.get("repository") or {}).get("pullRequest") or {}).get("reviewThreads") or {}
+        for thread in threads.get("nodes") or []:
+            if thread.get("isResolved"):
+                resolved |= {c["databaseId"] for c in (thread.get("comments") or {}).get("nodes", [])}
+        page = threads.get("pageInfo") or {}
+        if not page.get("hasNextPage"):
+            return resolved
+        cursor = page["endCursor"]
 
 
 def suggestion_metrics(api, repo: str, number: int, content: str | None, version: str) -> dict:
@@ -277,8 +293,14 @@ def suggestion_metrics(api, repo: str, number: int, content: str | None, version
     suggestions = bot_suggestions(api, repo, number)
     lines = {line.strip() for _, line in entry_lines(content, version)}
     resolved = resolved_comment_ids(api, repo, number) if suggestions else set()
-    accepted = sum(1 for s in suggestions if s["line"].strip() in lines)
-    dismissed = sum(1 for s in suggestions if s["line"].strip() not in lines and s["id"] in resolved)
+    def is_accepted(s: dict) -> bool:
+        # Accepted: the suggested line is in the entry and the bullet it was for no longer is. A
+        # rewrite that duplicates another bullet, or an original that also appears elsewhere, leaves
+        # it pending. (Comments from before the original was kept use the suggested line alone.)
+        return s["line"].strip() in lines and (s["original"] is None or s["original"].strip() not in lines)
+
+    accepted = sum(1 for s in suggestions if is_accepted(s))
+    dismissed = sum(1 for s in suggestions if not is_accepted(s) and s["id"] in resolved)
     return {"suggestions_made": len(suggestions), "suggestions_accepted": accepted,
             "suggestions_dismissed": dismissed, "suggestions_pending": len(suggestions) - accepted - dismissed}
 
@@ -292,13 +314,19 @@ def suggest_rewrites(api, source_api, number: int, head_sha: str, content: str |
     for bullet in weak_bullets(report, content, version):
         if bullet["source"] in done:
             continue
+        if bullet["source"].partition("#")[0] != repo:
+            # A private repo's title and description would go to the model and, rewritten, into a
+            # public comment, so only this repo's PRs get a rewrite.
+            skipped += 1
+            continue
         facts = pr_facts(source_api, bullet["source"])
         replacement = clean_rewrite(rewrite(facts, bullet["text"], bullet["reason"]), bullet["text"]) if facts else None
         if not replacement:
             skipped += 1
             print(f"No usable rewrite for {bullet['source']}")
             continue
-        body = suggestion_comment(bullet["source"], bullet["reason"], bullet["prefix"] + replacement, basis_sentence(facts))
+        body = suggestion_comment(bullet["source"], bullet["reason"], bullet["prefix"] + replacement,
+                                  basis_sentence(facts), bullet["prefix"] + bullet["text"])
         try:
             api.post(f"/repos/{repo}/pulls/{number}/comments",
                      {"body": body, "commit_id": head_sha, "path": path, "line": bullet["line"], "side": "RIGHT"})
@@ -405,8 +433,13 @@ def review_problems(api, repo: str, pr: dict) -> list[str]:
 
 def check_problems(api, repo: str, sha: str) -> list[str]:
     problems = []
-    runs = api.get(f"/repos/{repo}/commits/{sha}/check-runs", per_page=100) or {}
-    runs = runs.get("check_runs", [])
+    runs, page = [], 1
+    while True:
+        batch = (api.get(f"/repos/{repo}/commits/{sha}/check-runs", per_page=100, page=page) or {}).get("check_runs", [])
+        runs += batch
+        if len(batch) < 100:
+            break
+        page += 1
     running = sum(1 for r in runs if r.get("status") != "completed")
     failing = sum(1 for r in runs if r.get("status") == "completed" and r.get("conclusion") not in GOOD_CONCLUSIONS)
     if running:
@@ -426,6 +459,9 @@ def merge_problems(api, version: str, pr: dict, content: str | None, report: dic
     problems = []
     if pr.get("draft"):
         problems.append("the PR is still a draft")
+    base = (pr.get("base") or {}).get("ref")
+    if base != "master":
+        problems.append(f"the PR targets {base or 'an unknown branch'} instead of master")
     problems += review_problems(api, repo, pr)
     problems += check_problems(api, repo, pr["head"]["sha"])
     entry = "\n".join(line for _, line in entry_lines(content, version))
@@ -437,7 +473,7 @@ def merge_problems(api, version: str, pr: dict, content: str | None, report: dic
         problems.append("no generator report was found, so benchmarking and unplaced notes can't be checked")
     else:
         readiness = report.get("readiness", {})
-        if any(gap.get("section") == "Benchmarking" and gap.get("status") != "ready" for gap in readiness.get("gaps", [])):
+        if not any(gap.get("section") == "Benchmarking" and gap.get("status") == "ready" for gap in readiness.get("gaps", [])):
             problems.append("benchmarking is pending")
         if readiness.get("not_placed"):
             problems.append(f"{len(readiness['not_placed'])} note(s) not placed by the model")

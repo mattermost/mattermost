@@ -30,6 +30,10 @@ class SearchPrsTest(unittest.TestCase):
         with self.assertRaisesRegex(TruncatedError, "GitHub results truncated at 1000, can't confirm"):
             GitHub("t", http=RecordingHttp(search_pages(1400))).search_prs("q")
 
+    def test_a_last_page_that_goes_over_a_smaller_limit_is_an_error(self):
+        with self.assertRaisesRegex(TruncatedError, "GitHub results truncated at 175"):
+            GitHub("t", http=RecordingHttp(search_pages(175))).search_prs("q", limit=150)
+
     def test_incomplete_results_are_an_error(self):
         http = RecordingHttp([{"total_count": 5, "incomplete_results": True, "items": [{}]}])
         with self.assertRaises(TruncatedError):
@@ -44,6 +48,12 @@ class JiraSearchTest(unittest.TestCase):
     def test_more_than_50_issues_are_read_across_pages(self):
         issues = Jira("https://jira", "e", "t", RecordingHttp(self.pages(120))).search("project = MM", ["summary"])
         self.assertEqual(len(issues), 120)
+
+    def test_a_final_page_that_goes_over_the_limit_is_an_error(self):
+        pages = [{"issues": [{"key": "a"}] * 100, "nextPageToken": "t", "isLast": False},
+                 {"issues": [{"key": "b"}] * 75, "isLast": True}]
+        with self.assertRaisesRegex(TruncatedError, "Jira results truncated at 175"):
+            Jira("https://jira", "e", "t", RecordingHttp(pages)).search("project = MM", ["summary"], limit=150)
 
     def test_over_the_limit_is_an_error(self):
         with self.assertRaisesRegex(TruncatedError, "Jira results truncated at 100, can't confirm"):
