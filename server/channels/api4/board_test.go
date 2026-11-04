@@ -5,6 +5,7 @@ package api4
 
 import (
 	"context"
+	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -175,18 +176,24 @@ func TestCreateBoardSchemeAssignment(t *testing.T) {
 		schemeID     string
 		mustSucceed  bool
 		wantAssigned bool
+		wantStatus   int
+		wantErrorID  string
 	}{
 		{
-			name:      "team member, open board, channel-scope scheme id",
-			client:    th.Client,
-			boardType: model.ChannelTypeOpenBoard,
-			schemeID:  channelScheme.Id,
+			name:        "team member, open board, channel-scope scheme id",
+			client:      th.Client,
+			boardType:   model.ChannelTypeOpenBoard,
+			schemeID:    channelScheme.Id,
+			wantStatus:  http.StatusForbidden,
+			wantErrorID: schemePermissionErrorID,
 		},
 		{
-			name:      "team member, private board, channel-scope scheme id",
-			client:    th.Client,
-			boardType: model.ChannelTypePrivateBoard,
-			schemeID:  channelScheme.Id,
+			name:        "team member, private board, channel-scope scheme id",
+			client:      th.Client,
+			boardType:   model.ChannelTypePrivateBoard,
+			schemeID:    channelScheme.Id,
+			wantStatus:  http.StatusForbidden,
+			wantErrorID: schemePermissionErrorID,
 		},
 		{
 			name:        "team member, open board, no scheme id",
@@ -195,16 +202,20 @@ func TestCreateBoardSchemeAssignment(t *testing.T) {
 			mustSucceed: true,
 		},
 		{
-			name:      "system admin, open board, team-scope scheme id",
-			client:    th.SystemAdminClient,
-			boardType: model.ChannelTypeOpenBoard,
-			schemeID:  teamScheme.Id,
+			name:        "system admin, open board, team-scope scheme id",
+			client:      th.SystemAdminClient,
+			boardType:   model.ChannelTypeOpenBoard,
+			schemeID:    teamScheme.Id,
+			wantStatus:  http.StatusBadRequest,
+			wantErrorID: schemeScopeErrorID,
 		},
 		{
-			name:      "system admin, open board, scheme id that does not exist",
-			client:    th.SystemAdminClient,
-			boardType: model.ChannelTypeOpenBoard,
-			schemeID:  model.NewId(),
+			name:        "system admin, open board, scheme id that does not exist",
+			client:      th.SystemAdminClient,
+			boardType:   model.ChannelTypeOpenBoard,
+			schemeID:    model.NewId(),
+			wantStatus:  http.StatusNotFound,
+			wantErrorID: schemeNotFoundErrorID,
 		},
 		{
 			name:         "system admin, open board, channel-scope scheme id",
@@ -232,6 +243,17 @@ func TestCreateBoardSchemeAssignment(t *testing.T) {
 			if tc.mustSucceed {
 				require.NoError(t, cErr)
 				CheckCreatedStatus(t, resp)
+			}
+			if tc.wantStatus != 0 {
+				requireSchemeAssignmentRejected(t, resp, cErr, tc.wantStatus, tc.wantErrorID, func() (*model.Response, error) {
+					_, controlResp, controlErr := tc.client.CreateBoard(context.Background(), &model.Channel{
+						DisplayName: "My Board",
+						Name:        GenerateTestChannelName(),
+						Type:        tc.boardType,
+						TeamId:      th.BasicTeam.Id,
+					})
+					return controlResp, controlErr
+				})
 			}
 
 			assertCreatedChannelSchemeID(t, th, created, cErr, board.Name, tc.schemeID, tc.wantAssigned)
