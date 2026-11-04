@@ -144,38 +144,121 @@ describe('MediaGallery', () => {
         }
     });
 
-    it('renders its final layout on the first commit so the post list measures the right height', () => {
-        const rectSpy = jest.spyOn(Element.prototype, 'getBoundingClientRect').mockReturnValue({
-            width: 1000,
-            height: 0,
-        } as DOMRect);
+    describe('layout', () => {
+        const mixedFiles = [
+            fileInfo({id: 'landscape', name: 'landscape.png', width: 1600, height: 900}),
+            fileInfo({id: 'portrait', name: 'portrait.png', width: 600, height: 1200}),
+            fileInfo({id: 'small', name: 'small.png', width: 40, height: 40}),
+            fileInfo({id: 'panorama', name: 'panorama.png', width: 6000, height: 1000}),
+            fileInfo({id: 'clip', name: 'clip.mp4', extension: 'mp4', mime_type: 'video/mp4', width: 0, height: 0}),
+        ];
 
-        let firstCommitHtml = '';
-        const MeasuringParent = ({children}: {children: React.ReactNode}) => {
-            const ref = React.useRef<HTMLDivElement>(null);
-            React.useLayoutEffect(() => {
-                firstCommitHtml = ref.current!.innerHTML;
-            }, []);
-            return <div ref={ref}>{children}</div>;
-        };
+        // Everything that decides the gallery's height: its row-height classes,
+        // how tiles are grouped into wrapper elements, and each tile's sizing styles.
+        function layoutOf(root: Element) {
+            const gallery = root.querySelector('.MediaGallery')!;
+            const tiles = Array.from(root.querySelectorAll<HTMLElement>('.MediaGallery__tile'));
+            const groupSizes = new Map<Element, number>();
+            for (const tile of tiles) {
+                groupSizes.set(tile.parentElement!, (groupSizes.get(tile.parentElement!) ?? 0) + 1);
+            }
+            return {
+                galleryClassName: gallery.className,
+                tileGroups: Array.from(groupSizes.values()),
+                tiles: tiles.map((tile) => ({
+                    ratio: tile.style.getPropertyValue('--tile-ratio'),
+                    nativeWidth: tile.style.getPropertyValue('--tile-native-width'),
+                    width: tile.style.width,
+                    height: tile.style.height,
+                    flex: tile.style.flex,
+                })),
+            };
+        }
 
-        try {
+        function mockContainerWidth(width: number) {
+            return jest.spyOn(Element.prototype, 'getBoundingClientRect').mockReturnValue({width, height: 0} as DOMRect);
+        }
+
+        it('renders its final layout on the first commit so the post list measures the right height', () => {
+            const rectSpy = mockContainerWidth(1000);
+
+            // The post list measures each post from a layout effect on mount,
+            // before any re-render the gallery might schedule.
+            let firstCommitLayout: ReturnType<typeof layoutOf> | undefined;
+            const MeasuringParent = ({children}: {children: React.ReactNode}) => {
+                const ref = React.useRef<HTMLDivElement>(null);
+                React.useLayoutEffect(() => {
+                    firstCommitLayout = layoutOf(ref.current!);
+                }, []);
+                return <div ref={ref}>{children}</div>;
+            };
+
+            // Five landscape images pack into different rows at a 700px guess
+            // than at 1000px, which is what used to shift the post.
+            const landscapeFiles = ['a', 'b', 'c', 'd', 'e'].map((id) => fileInfo({id, name: `${id}.png`}));
+
+            try {
+                const {container} = renderWithContext(
+                    <MeasuringParent>
+                        <MediaGallery
+                            fileInfos={landscapeFiles}
+                            postId='p1'
+                            onItemClick={jest.fn()}
+                        />
+                    </MeasuringParent>,
+                    baseState,
+                );
+
+                expect(firstCommitLayout!.tiles).toHaveLength(landscapeFiles.length);
+                expect(layoutOf(container)).toEqual(firstCommitLayout);
+            } finally {
+                rectSpy.mockRestore();
+            }
+        });
+
+        it('does not depend on the measured container width', () => {
+            const layoutAtWidth = (width: number) => {
+                const rectSpy = mockContainerWidth(width);
+                try {
+                    const {container, unmount} = renderWithContext(
+                        <MediaGallery
+                            fileInfos={mixedFiles}
+                            postId='p1'
+                            onItemClick={jest.fn()}
+                        />,
+                        baseState,
+                    );
+                    const layout = layoutOf(container);
+                    unmount();
+                    return layout;
+                } finally {
+                    rectSpy.mockRestore();
+                }
+            };
+
+            // Narrow RHS, typical center channel and a very wide window.
+            const narrow = layoutAtWidth(320);
+            expect(layoutAtWidth(1000)).toEqual(narrow);
+            expect(layoutAtWidth(2400)).toEqual(narrow);
+        });
+
+        it('switches row height for compact display with a class rather than a measurement', () => {
             const {container} = renderWithContext(
-                <MeasuringParent>
-                    <MediaGallery
-                        fileInfos={['a', 'b', 'c', 'd', 'e'].map((id) => fileInfo({id, name: `${id}.png`}))}
-                        postId='p1'
-                        onItemClick={jest.fn()}
-                    />
-                </MeasuringParent>,
+                <MediaGallery
+                    fileInfos={mixedFiles}
+                    postId='p1'
+                    compactDisplay={true}
+                    onItemClick={jest.fn()}
+                />,
                 baseState,
             );
 
-            expect(screen.getAllByTestId('media-gallery-tile')).toHaveLength(5);
-            expect(container.firstElementChild!.innerHTML).toBe(firstCommitHtml);
-        } finally {
-            rectSpy.mockRestore();
-        }
+            const layout = layoutOf(container);
+            expect(layout.galleryClassName).toContain('MediaGallery--compact');
+            for (const tile of layout.tiles) {
+                expect(tile.height).toBe('');
+            }
+        });
     });
 
     it('marks the tile container as hidden when isEmbedVisible is false', () => {
