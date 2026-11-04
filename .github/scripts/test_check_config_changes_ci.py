@@ -172,6 +172,90 @@ class UniqueCommitFilterTest(unittest.TestCase):
         self.assertTrue(any("/api/v4/bar" in item for item in result.additions))
         self.assertFalse(any("/api/v4/foo" in item for item in result.additions))
 
+    def test_endpoints_master_already_has_are_not_reported_again(self):
+        """A stacked PR carries the first PR's raw commits; master has them squashed."""
+        _write(self.tmpdir, "server/channels/api4/api.go", _API_ROUTES)
+        _write(self.tmpdir, "server/channels/api4/properties.go", "package api4\n")
+        self._commit("root")
+
+        _git(self.tmpdir, "checkout", "-b", "stack")
+        _write(self.tmpdir, "server/channels/api4/properties.go", _OPTIONS_ROUTES)
+        self._commit("first PR, before it was squashed")
+
+        _git(self.tmpdir, "checkout", "master")
+        _write(self.tmpdir, "server/channels/api4/properties.go", _OPTIONS_ROUTES)
+        self._commit("first PR, squashed into master")
+        master = _git(self.tmpdir, "rev-parse", "HEAD")
+
+        _git(self.tmpdir, "checkout", "stack")
+        _git(self.tmpdir, "merge", "master", "-m", "merge master")
+        _write(self.tmpdir, "server/channels/api4/properties.go",
+               _OPTIONS_ROUTES.replace("}\n", '\tapi.BaseRoutes.Properties.Handle("/new", api.APISessionRequired(newOne)).Methods(http.MethodPost)\n}\n'))
+        head = self._commit("second PR")
+
+        self._point_checker(master, head)
+        result = checker.check_api(checker.split_patch_by_file(checker.get_full_patch()))
+        self.assertEqual(result.additions, ["`POST /properties/new` (`newOne`)"])
+        self.assertEqual(result.removals, [])
+
+    def test_a_route_on_a_subrouter_is_reported_with_its_prefix(self):
+        _write(self.tmpdir, "server/channels/api4/api.go", _API_ROUTES)
+        _write(self.tmpdir, "server/channels/api4/properties.go", "package api4\n")
+        base = self._commit("root")
+        _git(self.tmpdir, "checkout", "-b", "feature")
+        _write(self.tmpdir, "server/channels/api4/properties.go", _OPTIONS_ROUTES)
+        head = self._commit("add routes")
+
+        self._point_checker(base, head)
+        result = checker.check_api(checker.split_patch_by_file(checker.get_full_patch()))
+        self.assertIn(
+            "`DELETE /properties/groups/{group_name}/{object_type}/fields/{field_id}/options` (`deletePropertyFieldOptions`)",
+            result.additions,
+        )
+        self.assertFalse(any(item.startswith("`DELETE /`") for item in result.additions))
+
+
+_API_ROUTES = (
+    'package api4\n\n'
+    'func Init(api *API) {\n'
+    '\tapi.BaseRoutes.Properties = api.BaseRoutes.APIRoot.PathPrefix("/properties").Subrouter()\n'
+    '\tapi.BaseRoutes.PropertyFields = api.BaseRoutes.Properties.PathPrefix("/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/fields").Subrouter()\n'
+    '\tapi.BaseRoutes.PropertyField = api.BaseRoutes.PropertyFields.PathPrefix("/{field_id:[A-Za-z0-9]+}").Subrouter()\n'
+    '\tapi.BaseRoutes.PropertyFieldOptions = api.BaseRoutes.PropertyField.PathPrefix("/options").Subrouter()\n'
+    '}\n'
+)
+
+_OPTIONS_ROUTES = (
+    'package api4\n\n'
+    'func (api *API) InitProperties() {\n'
+    '\tapi.BaseRoutes.PropertyFieldOptions.Handle("", api.APISessionRequired(getPropertyFieldOptions)).Methods(http.MethodGet)\n'
+    '\tapi.BaseRoutes.PropertyFieldOptions.Handle("", api.APISessionRequired(deletePropertyFieldOptions)).Methods(http.MethodDelete)\n'
+    '\tapi.BaseRoutes.Properties.Handle("/ping", api.APISessionRequired(pingProperties)).Methods(http.MethodGet)\n'
+    '}\n'
+)
+
+
+class RoutePrefixTest(unittest.TestCase):
+    def test_subrouter_prefixes_chain_from_their_parents(self):
+        prefixes = checker._route_prefixes(_API_ROUTES)
+        self.assertEqual(prefixes["Properties"], "/properties")
+        self.assertEqual(
+            prefixes["PropertyFieldOptions"],
+            "/properties/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/fields/{field_id:[A-Za-z0-9]+}/options",
+        )
+
+    def test_a_route_on_a_subrouter_keeps_its_prefix(self):
+        endpoints = checker._parse_endpoints(_OPTIONS_ROUTES, checker._route_prefixes(_API_ROUTES))
+        options = "/properties/groups/{group_name}/{object_type}/fields/{field_id}/options"
+        self.assertEqual(endpoints, {
+            (options, "getPropertyFieldOptions", "GET"),
+            (options, "deletePropertyFieldOptions", "DELETE"),
+            ("/properties/ping", "pingProperties", "GET"),
+        })
+
+    def test_a_route_on_an_unknown_router_keeps_its_own_path(self):
+        self.assertEqual(checker._parse_endpoints(_HANDLE), {("/api/v4/foo", "getFoo", "GET")})
+
 
 if __name__ == "__main__":
     unittest.main()

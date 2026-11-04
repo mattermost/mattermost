@@ -150,12 +150,33 @@ def files_changed_in_unique_commits() -> list[str]:
     return sorted(path for path in files if _is_watched(path))
 
 
-def before_ref_for(path: str) -> str:
-    """Parent of the oldest unique commit that touches `path`.
+@lru_cache(maxsize=1)
+def default_merge_base() -> str:
+    """Merge base of HEAD and the current default branch, or "" if there is none.
 
-    That is the file's state before this PR, even when GitHub's base ref is
-    not an ancestor of the work (retarget) and MERGE_BASE would be too old.
+    This is the state of the repository the PR started from, as far as master is
+    concerned. It is newer than the parent of the PR's oldest commit when the head
+    carries older work that master has since taken in some other way, such as the
+    first commits of a stacked PR that were later merged separately.
     """
+    default = default_branch_sha()
+    if not default:
+        return ""
+    result = _git(["merge-base", default, HEAD_SHA], check=False)
+    return result.stdout.strip() if result.returncode == 0 else ""
+
+
+def before_ref_for(path: str) -> str:
+    """The state of `path` before this PR: the merge base with the current default branch.
+
+    That works when GitHub's base ref is not an ancestor of the work (retarget),
+    where MERGE_BASE would be too old, and it does not count work master already
+    has as this PR's. Without a default branch in the clone, falls back to the
+    parent of the oldest unique commit that touches `path`.
+    """
+    merge_base = default_merge_base()
+    if merge_base:
+        return merge_base
     oldest = None
     for sha in unique_commits():  # newest first; last match is oldest
         if path in _commit_files(sha):
@@ -210,7 +231,7 @@ def file_at(ref: str, path: str) -> str:
 
 
 def file_before(path: str) -> str:
-    """File contents before this PR's unique commits."""
+    """File contents before this PR: at the merge base with the default branch (see ``before_ref_for``)."""
     return file_at(before_ref_for(path), path)
 
 
@@ -228,6 +249,7 @@ def reset_git_caches() -> None:
     """Clear cached git walks. Tests call this after pointing at a new repo."""
     unique_commits.cache_clear()
     _commit_files.cache_clear()
+    default_merge_base.cache_clear()
  
  
 # ── Checker 1 — config.go ──────────────────────────────────────────────────────
@@ -309,15 +331,43 @@ def check_config(patches: dict[str, str]) -> CheckResult:
 # (e.g. r.APIHandler(...), r.ApiSessionRequired(..., isLocal=true), etc.)
 # without having to enumerate every possible wrapper signature.
 _HANDLE_RE = re.compile(
-    r'\.Handle\("([^"]*)"'          # path
+    r'([\w.]*)\.Handle\("([^"]*)"'   # receiver and path
     r',\s*[^)]*\((\w+)\)\)'        # wrapper(...handlerFunc))
     r'\.Methods\(([^)]+)\)',        # .Methods(one or more methods)
 )
- 
+
+# api.BaseRoutes.PropertyField = api.BaseRoutes.PropertyFields.PathPrefix("/{id}").Subrouter()
+_SUBROUTER_RE = re.compile(
+    r'BaseRoutes\.(\w+)\s*=\s*(?:api\.)?BaseRoutes\.(\w+)\.PathPrefix\("([^"]*)"\)\.Subrouter\(\)'
+)
+_API_ROUTES_PATH = "server/channels/api4/api.go"
+
 _METHOD_RE    = re.compile(r'(?:http\.Method)?(\w+)')
 _HTTP_METHODS = {"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"}
- 
- 
+
+
+def _route_prefixes(api_src: str) -> dict[str, str]:
+    """Each api4 subrouter's path prefix, from the PathPrefix(...).Subrouter() lines of api.go.
+
+    A subrouter hangs off another one, so its prefix is the parent's plus its own. The
+    roots (APIRoot and the like) are not defined by such a line and count as empty.
+    """
+    parents = {name: (parent, path) for name, parent, path in _SUBROUTER_RE.findall(api_src)}
+    prefixes: dict[str, str] = {}
+
+    def prefix(name: str, seen: tuple = ()) -> str:
+        if name not in parents or name in seen:
+            return ""
+        if name not in prefixes:
+            parent, path = parents[name]
+            prefixes[name] = prefix(parent, seen + (name,)) + path
+        return prefixes[name]
+
+    for name in parents:
+        prefix(name)
+    return prefixes
+
+
 def _parse_methods(raw: str) -> list[str]:
     """Split raw Methods(...) content into individual uppercase HTTP verbs.
  
@@ -331,29 +381,34 @@ def _parse_methods(raw: str) -> list[str]:
         if (m := _METHOD_RE.search(token.strip()))
         and (verb := m.group(1).upper()) in _HTTP_METHODS
     ]
- 
- 
+
+
 def _format_endpoint(path: str, handler: str, method: str) -> str:
     return f"`{method.upper()} {path or '/'}` (`{handler}`)"
- 
- 
-def _parse_endpoints(src: str) -> set[tuple[str, str, str]]:
+
+
+def _parse_endpoints(src: str, prefixes: Optional[dict] = None) -> set[tuple[str, str, str]]:
     """
     Parse Handle() registrations from a Go source file.
  
     Whitespace-collapses the entire file first so multi-line declarations
     (e.g. the 18 in group.go) are matched as a single token sequence.
+    A registration on a subrouter, such as ``api.BaseRoutes.PropertyFieldOptions.Handle("", ...)``,
+    gets that subrouter's prefix from ``prefixes`` (see ``_route_prefixes``), and a
+    ``{name:regexp}`` path variable is shortened to ``{name}``.
     Returns {(path, handler, method)} tuples.
     """
     blob = " ".join(src.split())
     endpoints: set[tuple[str, str, str]] = set()
     for m in _HANDLE_RE.finditer(blob):
-        path, handler, methods_raw = m.group(1), m.group(2), m.group(3)
+        receiver, path, handler, methods_raw = m.group(1), m.group(2), m.group(3), m.group(4)
+        full = (prefixes or {}).get(receiver.rsplit(".", 1)[-1], "") + path
+        full = re.sub(r"\{(\w+):[^}]*\}", r"{\1}", full)
         for method in _parse_methods(methods_raw):
-            endpoints.add((path or "/", handler, method))
+            endpoints.add((full or "/", handler, method))
     return endpoints
- 
- 
+
+
 def check_api(patches: dict[str, str]) -> CheckResult:
     """
     Detect API endpoint additions/removals in the api4/ directory.
@@ -376,8 +431,8 @@ def check_api(patches: dict[str, str]) -> CheckResult:
     removed_eps: set[tuple[str, str, str]] = set()
 
     for fname, patch in api4_patches.items():
-        base_eps = _parse_endpoints(file_before(fname))
-        head_eps = _parse_endpoints(file_at(HEAD_SHA, fname))
+        base_eps = _parse_endpoints(file_before(fname), _route_prefixes(file_before(_API_ROUTES_PATH)))
+        head_eps = _parse_endpoints(file_at(HEAD_SHA, fname), _route_prefixes(file_at(HEAD_SHA, _API_ROUTES_PATH)))
         added_eps   |= head_eps - base_eps
         removed_eps |= base_eps - head_eps
  

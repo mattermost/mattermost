@@ -413,6 +413,11 @@ def cherry_picked_from(title: str) -> int | None:
 
 
 MIN_NOTE_WORDS = 6
+# "Added `DELETE /` (`handler`) API endpoint." comes from the config-change checker when it
+# loses the route's prefix, so the line names no endpoint.
+_PATHLESS_API_RE = re.compile(
+    r"(?im)^(?:Added|Removed)[ \t]+`{1,2}[ \t]*(?:(?:GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)[ \t]*)?/?[ \t]*`{1,2}[^\n]*API endpoint\.?[ \t]*$"
+)
 _TICKET_RE = re.compile(r"(?i)^(?:fix(?:es|ed)?\s+)?(?:MM-\d+|#\d+|https?://\S+)[.\s]*$")
 # Plugin bumps and dependency or setting lines are short by house style.
 _TERSE_BY_STYLE_RE = re.compile(r"(?i)\bplugin\b|\bversion\s+v?\d|`|\]\(")
@@ -423,11 +428,13 @@ def note_quality_issue(text: str) -> str | None:
 
     Only the cases that can be told from the text: generated content (the API-docs bot
     writes "🆕 New API file: x_test.go" lines into the fence), a bare ticket reference,
-    or a note too short to say what changed.
+    an API endpoint line with no path, or a note too short to say what changed.
     """
     text = text.strip()
     if any(line.strip()[:1] and unicodedata.category(line.strip()[0]) == "So" for line in text.splitlines()):
         return "machine-generated content"
+    if _PATHLESS_API_RE.search(text):
+        return "an API endpoint with no path"
     if _TICKET_RE.match(text):
         return "a bare ticket reference"
     if len(text.split()) < MIN_NOTE_WORDS and not _TERSE_BY_STYLE_RE.search(text):
@@ -2231,6 +2238,8 @@ def main():
                         lines = [line.strip() for line in note.splitlines() if line.strip()]
                         if issue == "machine-generated content":
                             lines = [line for line in lines if unicodedata.category(line[0]) == "So"]
+                        elif issue == "an API endpoint with no path":
+                            lines = [line for line in lines if _PATHLESS_API_RE.match(line)]
                         note_quality.append({"source": source, "title": pr["title"], "reason": issue,
                                              "excerpt": " / ".join(lines)[:160]})
                 print(f"   ✅ #{pr['number']}: {pr['title']}")

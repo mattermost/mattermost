@@ -299,6 +299,12 @@ class ReleaseNoteFlagTest(unittest.TestCase):
             gc.note_quality_issue("Added ``AuditEventPostDelivered`` audit log event.\n🆕 New API file: `x_test.go`"),
             "machine-generated content",
         )
+        self.assertEqual(
+            gc.note_quality_issue("Added `DELETE /` (`deletePropertyFieldOptions`) API endpoint.\nAdded `GET /` (`getFoo`) API endpoint."),
+            "an API endpoint with no path",
+        )
+        self.assertEqual(gc.note_quality_issue("Removed `` ``(`getFoo`) API endpoint."), "an API endpoint with no path")
+        self.assertIsNone(gc.note_quality_issue("Added `DELETE /properties/groups/{group_name}/fields` (`deleteFields`) API endpoint."))
         self.assertEqual(gc.note_quality_issue("MM-12345"), "a bare ticket reference")
         self.assertEqual(gc.note_quality_issue("Fixes #38201."), "a bare ticket reference")
         self.assertEqual(gc.note_quality_issue("Enable Concurrent React features"), "under 6 words")
