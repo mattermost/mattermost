@@ -138,7 +138,8 @@ func extractOOXMLText(ctx context.Context, extension string, zr *zip.Reader, lim
 	}
 
 	files := zipFilesByName(zr.File)
-	seen := make(map[*zip.File]struct{})
+	// Keyed by data offset so differently named entries sharing one part's data are read once.
+	seen := make(map[int64]struct{})
 	var b strings.Builder
 	for _, ov := range overrides {
 		if contextErr(ctx) != nil {
@@ -154,10 +155,17 @@ func extractOOXMLText(ctx context.Context, extension string, zr *zip.Reader, lim
 		if f == nil {
 			continue
 		}
-		if _, ok := seen[f]; ok {
+		offset, err := f.DataOffset()
+		if err != nil {
+			if contextErr(ctx) != nil {
+				return b.String(), nil
+			}
+			return "", err
+		}
+		if _, ok := seen[offset]; ok {
 			continue
 		}
-		seen[f] = struct{}{}
+		seen[offset] = struct{}{}
 		text, err := readOfficePart(ctx, f, docconv.DocxXMLToText)
 		if contextErr(ctx) != nil {
 			return b.String(), nil

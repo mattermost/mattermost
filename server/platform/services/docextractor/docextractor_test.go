@@ -7,7 +7,9 @@ import (
 	"archive/zip"
 	"bytes"
 	"context"
+	"encoding/binary"
 	"errors"
+	"fmt"
 	"io"
 	"runtime"
 	"strings"
@@ -766,6 +768,52 @@ func buildZipPackage(t *testing.T, entries []zipPackageEntry) []byte {
 	return buf.Bytes()
 }
 
+// aliasZipEntry appends central directory records named by aliases that all
+// point at target's local header and data.
+func aliasZipEntry(t *testing.T, pkg []byte, target string, aliases []string) []byte {
+	t.Helper()
+	const eocdLen = 22
+	require.GreaterOrEqual(t, len(pkg), eocdLen)
+	eocd := pkg[len(pkg)-eocdLen:]
+	require.Equal(t, uint32(0x06054b50), binary.LittleEndian.Uint32(eocd))
+	cdSize := binary.LittleEndian.Uint32(eocd[12:])
+	cdOffset := binary.LittleEndian.Uint32(eocd[16:])
+	cd := pkg[cdOffset : cdOffset+cdSize]
+
+	var record []byte
+	for off := 0; off < len(cd); {
+		require.Equal(t, uint32(0x02014b50), binary.LittleEndian.Uint32(cd[off:]))
+		nameLen := int(binary.LittleEndian.Uint16(cd[off+28:]))
+		extraLen := int(binary.LittleEndian.Uint16(cd[off+30:]))
+		commentLen := int(binary.LittleEndian.Uint16(cd[off+32:]))
+		end := off + 46 + nameLen + extraLen + commentLen
+		if string(cd[off+46:off+46+nameLen]) == target {
+			record = cd[off:end]
+		}
+		off = end
+	}
+	require.NotNil(t, record, "central directory record for %s", target)
+	targetNameLen := int(binary.LittleEndian.Uint16(record[28:]))
+
+	var out bytes.Buffer
+	out.Write(pkg[:cdOffset+cdSize])
+	for _, alias := range aliases {
+		rec := make([]byte, 0, len(record)-targetNameLen+len(alias))
+		rec = append(rec, record[:46]...)
+		binary.LittleEndian.PutUint16(rec[28:], uint16(len(alias)))
+		rec = append(rec, alias...)
+		rec = append(rec, record[46+targetNameLen:]...)
+		out.Write(rec)
+	}
+	newEOCD := bytes.Clone(eocd)
+	entries := binary.LittleEndian.Uint16(eocd[10:]) + uint16(len(aliases))
+	binary.LittleEndian.PutUint16(newEOCD[8:], entries)
+	binary.LittleEndian.PutUint16(newEOCD[10:], entries)
+	binary.LittleEndian.PutUint32(newEOCD[12:], uint32(out.Len())-cdOffset)
+	out.Write(newEOCD)
+	return out.Bytes()
+}
+
 // textFitsCopies checks that text is at most copies of payload, plus a small
 // allowance for separators inserted between parts.
 func textFitsCopies(text string, payload []byte, copies int) bool {
@@ -1043,6 +1091,37 @@ func TestDocumentRepeatedPartBounds(t *testing.T) {
 				require.NoError(t, err)
 				require.Contains(t, text, "lorem")
 				if !textFitsCopies(text, payload, 2) {
+					t.Fatalf("retained %d bytes for payload %d", len(text), len(payload))
+				}
+			})
+		}
+	})
+
+	t.Run("entries sharing one part's data", func(t *testing.T) {
+		const aliasCount = 1000
+		for _, spec := range ooxmlPartSpecs() {
+			t.Run(spec.ext, func(t *testing.T) {
+				dir := spec.zipName[:strings.LastIndex(spec.zipName, "/")+1]
+				aliases := make([]string, aliasCount)
+				listings := make([]listedOverride, aliasCount)
+				for i := range aliasCount {
+					aliases[i] = fmt.Sprintf("%salias%d.xml", dir, i)
+					listings[i] = listedOverride{partName: "/" + aliases[i], contentType: spec.contentType, listings: 1}
+				}
+				pkg := buildZipPackage(t, []zipPackageEntry{
+					{name: "[Content_Types].xml", data: contentTypesFromListings(listings), method: zip.Deflate},
+					{name: spec.zipName, data: spec.body(payload), method: zip.Deflate},
+				})
+				pkg = aliasZipEntry(t, pkg, spec.zipName, aliases)
+
+				zr, err := zip.NewReader(bytes.NewReader(pkg), int64(len(pkg)))
+				require.NoError(t, err)
+				require.Len(t, zr.File, aliasCount+2)
+
+				text, err := Extract(logger, "part."+spec.ext, bytes.NewReader(pkg), ExtractSettings{MaxFileSize: documentExtractLimit})
+				require.NoError(t, err)
+				require.Contains(t, text, "lorem")
+				if !textFitsCopies(text, payload, 1) {
 					t.Fatalf("retained %d bytes for payload %d", len(text), len(payload))
 				}
 			})
