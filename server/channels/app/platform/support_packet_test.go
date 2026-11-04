@@ -20,6 +20,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"testing/synctest"
 	"time"
 
 	"github.com/stretchr/testify/assert"
@@ -1625,6 +1626,25 @@ func TestStartNetworkProbes(t *testing.T) {
 		require.Len(t, o.sectionErrs, 1)
 		assert.ErrorIs(t, o.sectionErrs[0], context.DeadlineExceeded)
 		assert.False(t, recorded)
+	})
+
+	t.Run("records probes that finished before the context ended", func(t *testing.T) {
+		// With the deadline passed and results waiting, select picks either case, so repeat to catch a wrong pick.
+		for range 20 {
+			synctest.Test(t, func(t *testing.T) {
+				ctx, cancel := context.WithCancel(context.Background())
+				var o outcome
+				collectProbes := startNetworkProbes(ctx, []networkProbe{{
+					name: "push", section: model.SectionPushProbe, status: &o.status, errMsg: &o.errMsg,
+					run: func(context.Context) error { return nil },
+				}}, func(_ model.NodeSection, err error) { o.sectionErrs = append(o.sectionErrs, err) })
+
+				synctest.Wait() // the probe has sent its result
+				cancel()
+				collectProbes()
+				assert.Equal(t, outcome{status: model.StatusOk}, o)
+			})
+		}
 	})
 
 	t.Run("returns a panic as an error", func(t *testing.T) {

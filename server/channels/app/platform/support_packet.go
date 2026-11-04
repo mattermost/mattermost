@@ -467,25 +467,33 @@ func startNetworkProbes(ctx context.Context, probes []networkProbe, fail func(mo
 	}
 	return func() {
 		finished := make([]bool, len(probes))
+		record := func(r result) {
+			finished[r.i] = true
+			probe := probes[r.i]
+			if r.panicked != nil {
+				notCompleted(probe, r.panicked)
+				return
+			}
+			*probe.status = model.StatusOk
+			if r.err != nil {
+				*probe.status, *probe.errMsg = model.StatusFail, r.err.Error()
+			}
+			if probe.record != nil {
+				if err := probe.record(); err != nil {
+					fail(probe.section, err)
+				}
+			}
+		}
 		for range probes {
 			select {
 			case r := <-results:
-				finished[r.i] = true
-				probe := probes[r.i]
-				if r.panicked != nil {
-					notCompleted(probe, r.panicked)
-					continue
-				}
-				*probe.status = model.StatusOk
-				if r.err != nil {
-					*probe.status, *probe.errMsg = model.StatusFail, r.err.Error()
-				}
-				if probe.record != nil {
-					if err := probe.record(); err != nil {
-						fail(probe.section, err)
-					}
-				}
+				record(r)
 			case <-ctx.Done():
+				// select picks at random between ready cases, so results may still be waiting, for example
+				// when the local collection used up the deadline after every probe had finished.
+				for len(results) > 0 {
+					record(<-results)
+				}
 				for i, probe := range probes {
 					if !finished[i] {
 						notCompleted(probe, errors.Wrap(context.Cause(ctx), "probe did not complete"))
