@@ -88,20 +88,20 @@ Flatpak packages are available for:
 
 1.  Ensure Flatpak is installed on your system. If not, see the [Flatpak setup guide](https://flatpak.org/setup/) for your distribution.
 2.  Download the latest Mattermost Desktop Flatpak package for your architecture from the [Desktop App's Github releases page](https://github.com/mattermost/desktop/releases):
-    - For x86_64: `mattermost-desktop-&#123;VERSION&#125;-linux-x86_64.flatpak`
-    - For aarch64: `mattermost-desktop-&#123;VERSION&#125;-linux-aarch64.flatpak`
+    - For x86_64: `mattermost-desktop-{VERSION}-linux-x86_64.flatpak`
+    - For aarch64: `mattermost-desktop-{VERSION}-linux-aarch64.flatpak`
 3.  Install the Flatpak package:
 
 > ``` sh
-> flatpak install mattermost-desktop-&#123;VERSION&#125;-linux-&#123;ARCH&#125;.flatpak
+> flatpak install mattermost-desktop-{VERSION}-linux-{ARCH}.flatpak
 > ```
 
-    Replace `&#123;VERSION&#125;` with the version number (for example, `6.3.2`) and `&#123;ARCH&#125;` with your architecture (`x86_64` or `aarch64`).
+    Replace `{VERSION}` with the version number (for example, `6.3.2`) and `{ARCH}` with your architecture (`x86_64` or `aarch64`).
 
 4.  Run Mattermost as a desktop app:
 
 > ``` sh
-> flatpak run com.Mattermost.Desktop
+> flatpak run com.mattermost.Desktop
 > ```
 
 </TabItem>
