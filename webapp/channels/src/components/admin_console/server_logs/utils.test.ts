@@ -4,7 +4,7 @@
 import {LogLevelEnum, LogNodeKey} from '@mattermost/types/admin';
 
 import type {LogObjectWithAdditionalInfo} from './types';
-import {LEVEL_GROUPS, formatLogValue, groupLevels, levelGroup, logRowTimeFormat, logRowTimeLength, logsNeedDate, msUntilNextDay, newestLogTimes} from './utils';
+import {LEVEL_GROUPS, formatLogValue, groupLevels, levelGroup, logRowTimeFormat, logRowTimeLength, logsNeedDate, newestLogTimes, nextDayStart} from './utils';
 
 describe('components/admin_console/server_logs/utils', () => {
     test.each([
@@ -96,13 +96,13 @@ describe('components/admin_console/server_logs/utils', () => {
         });
     });
 
-    describe('msUntilNextDay', () => {
+    describe('nextDayStart', () => {
         test.each([
-            ['UTC', '2026-03-12T18:00:00.000Z', 6 * 60 * 60 * 1000],
-            ['Europe/Berlin', '2026-03-12T18:00:00.000Z', 5 * 60 * 60 * 1000],
-            ['UTC', '2026-03-12T23:59:59.999Z', 1],
+            ['UTC', '2026-03-12T18:00:00.000Z', '2026-03-13T00:00:00.000Z'],
+            ['Europe/Berlin', '2026-03-12T18:00:00.000Z', '2026-03-12T23:00:00.000Z'],
+            ['UTC', '2026-03-12T23:59:59.999Z', '2026-03-13T00:00:00.000Z'],
         ])('in %s at %s', (timezone, now, expected) => {
-            expect(msUntilNextDay(timezone, Date.parse(now))).toBe(expected);
+            expect(nextDayStart(timezone, Date.parse(now))).toBe(Date.parse(expected));
         });
     });
 });

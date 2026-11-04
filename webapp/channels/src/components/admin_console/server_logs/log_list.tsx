@@ -32,7 +32,7 @@ import CustomRangeModal from './custom_range_modal';
 import KeyboardHints from './keyboard_hints';
 import LogRow from './log_row';
 import type {CustomTimeRange, LogObjectWithAdditionalInfo, TimeRange} from './types';
-import {LEVEL_GROUPS, SEARCH_MAX_LENGTH, levelGroup, logRowTimeFormat, logRowTimeLength, logsNeedDate, msUntilNextDay, newestLogTimes} from './utils';
+import {LEVEL_GROUPS, SEARCH_MAX_LENGTH, levelGroup, logRowTimeFormat, logRowTimeLength, logsNeedDate, newestLogTimes, nextDayStart} from './utils';
 
 import './log_list.scss';
 
@@ -353,16 +353,21 @@ export default function LogList({
             map(({log}) => log);
     }, [scopedLogs, enabledLevels, sortAsc]);
 
-    // Today's entries become yesterday's at midnight, so check again then even when no new ones arrive
+    // Every page shows the date or none does, so the time column keeps one width while paging.
+    // Today's entries become yesterday's at midnight, so the check runs again then, even when no new ones arrive.
+    // The midnight comes from the same clock reading as the check, so a render just before it can't skip a day.
     const [dayChanges, setDayChanges] = useState(0);
-    useEffect(() => {
-        const timer = setTimeout(() => setDayChanges((count) => count + 1), msUntilNextDay(timezone));
-        return () => clearTimeout(timer);
-    }, [timezone, dayChanges]);
+    const {showDate, nextDayAt} = useMemo(() => {
+        const now = Date.now();
+        return {showDate: logsNeedDate(processedLogs, timezone, now), nextDayAt: nextDayStart(timezone, now)};
 
-    // Every page shows the date or none does, so the time column keeps one width while paging
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- dayChanges marks a new day, which moves Date.now() in logsNeedDate
-    const showDate = useMemo(() => logsNeedDate(processedLogs, timezone), [processedLogs, timezone, dayChanges]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- dayChanges marks a timer firing, which moves Date.now()
+    }, [processedLogs, timezone, dayChanges]);
+    useEffect(() => {
+        // Re-armed by dayChanges too, in case the timer fires early and nextDayAt stays the same
+        const timer = setTimeout(() => setDayChanges((count) => count + 1), Math.max(0, nextDayAt - Date.now()));
+        return () => clearTimeout(timer);
+    }, [nextDayAt, dayChanges]);
     const timeFormat = logRowTimeFormat(showDate, isMilitaryTime);
 
     // Only held entries the current filters would show are worth announcing
@@ -380,7 +385,13 @@ export default function LogList({
     const {visibleLogs, rowKeys} = useMemo(() => {
         const pageLogs = processedLogs.slice(startIndex, endIndex);
         const keys = getRowKeys(pageLogs);
-        const rows = pageLogs.map((log, i) => rowsByKeyRef.current.get(keys[i]) ?? log);
+        const rows = pageLogs.map((log, i) => {
+            const cached = rowsByKeyRef.current.get(keys[i]);
+
+            // A failed-node entry keeps its key while its time and error change on every poll
+            const unchanged = cached && (log.failed_node !== true || logEntryKey(cached) === logEntryKey(log));
+            return unchanged ? cached : log;
+        });
         rowsByKeyRef.current = new Map(keys.map((key, i) => [key, rows[i]]));
         return {visibleLogs: rows, rowKeys: keys};
     }, [processedLogs, startIndex, endIndex]);

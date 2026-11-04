@@ -1158,6 +1158,14 @@ describe('components/admin_console/server_logs/LogList', () => {
             expect(newEntriesButton()).not.toBeInTheDocument();
         });
 
+        test('should show the latest entry from a node that keeps failing', () => {
+            const {update} = renderUpdatable([makeFailedNodeLog('node-a', '2026-03-12 10:00:01.000 +00:00')]);
+
+            update([makeFailedNodeLog('node-a', '2026-03-12 10:00:09.000 +00:00')]);
+
+            expect(screen.getByTitle('2026-03-12 10:00:09.000 +00:00')).toBeInTheDocument();
+        });
+
         test('should hold entries from a node that had none', () => {
             const {update} = renderUpdatable([makeNodeLog('node-a', 'a1', '2026-03-12T10:00:05.000Z')]);
             fireEvent.click(screen.getByText('a1'));
