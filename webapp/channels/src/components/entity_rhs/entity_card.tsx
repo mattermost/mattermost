@@ -240,7 +240,7 @@ export default function EntityCardView({card, onOpen, reload}: {card: EntityCard
             ) : (
                 card.summary && <Summary text={card.summary}/>
             )}
-            {card.map && (card.map.points?.length || card.map.geojson) && (
+            {card.map && Boolean(card.map.points?.length || card.map.geojson) && (
                 mapParts.length > 0 ? mapParts.map((part) => {
                     const Part = part.component;
                     return (
@@ -250,11 +250,11 @@ export default function EntityCardView({card, onOpen, reload}: {card: EntityCard
                             reload={reload}
                         />
                     );
-                }) : card.map.points && card.map.points.length > 0 && (
+                }) : (card.map.points && card.map.points.length > 0 ? (
                     <p style={{marginTop: 16, color: 'var(--center-channel-color)'}}>
                         {card.map.points.map((point) => `${point.lat.toFixed(4)}, ${point.lon.toFixed(4)}`).join(' · ')}
                     </p>
-                )
+                ) : null)
             )}
             {clockParts.map((part) => {
                 const Part = part.component;
