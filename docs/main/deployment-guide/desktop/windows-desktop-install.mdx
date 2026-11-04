@@ -12,27 +12,27 @@ The rest of this page covers the MSI.
 
 ## Install the MSI
 
-1.  Download the MSI that matches your devices' processor architecture from the [GitHub releases page](https://github.com/mattermost/desktop/releases/latest), either `win-x64` or `win-arm64`. To check a device's architecture, go to **Windows Settings \> System \> About**, and look at **System type**. In the commands on this page, replace `<version>` and `win-x64` with the version and architecture in the downloaded MSI filename.
+1.  Download the MSI that matches your devices' processor architecture from the [GitHub releases page](https://github.com/mattermost/desktop/releases/latest), either `win-x64` or `win-arm64`. To check a device's architecture, go to **Windows Settings \> System \> About**, and look at **System type**. In the commands on this page, replace `<version>` and `<arch>` with the version and architecture in the downloaded MSI filename.
 2.  If Mattermost is already installed, close the app, and make sure it isn't also running in the system tray.
 3.  Install the MSI:
     - **Interactively**: Double-click the MSI and accept the administrator prompt. If Mattermost is still running, the installer asks you to close it. After closing it, select **Retry** rather than **Ignore**.
     - **Silently**: Run the following from an elevated prompt. A silent install fails if Mattermost is running.
 
       ``` text
-      msiexec /i mattermost-desktop-<version>-win-x64.msi /qn
+      msiexec /i mattermost-desktop-<version>-<arch>.msi /qn
       ```
 4.  Optionally, [configure policies](#configure-policies).
 
 To install to a different folder, add the `APPLICATIONFOLDER` property:
 
 ``` text
-msiexec /i mattermost-desktop-<version>-win-x64.msi /qn APPLICATIONFOLDER="<install directory>"
+msiexec /i mattermost-desktop-<version>-<arch>.msi /qn APPLICATIONFOLDER="<install directory>"
 ```
 
 If an install fails, running it again with logging can help find the cause. Include the log if you contact support:
 
 ``` text
-msiexec /i mattermost-desktop-<version>-win-x64.msi /qn /l*v "%TEMP%\mattermost-install.log"
+msiexec /i mattermost-desktop-<version>-<arch>.msi /qn /l*v "%TEMP%\mattermost-install.log"
 ```
 
 ## Configure policies
@@ -71,7 +71,7 @@ The MSI works with Microsoft Configuration Manager (SCCM), Intune, and similar t
 **A silent install fails if Mattermost is running.** The app often keeps running in the system tray after its window is closed. SCCM can close it for you: add `Mattermost.exe` on the **Install Behavior** tab of the deployment type, then select **Automatically close any running executables you specified on the install behavior tab** in the deployment settings. In Intune, package the MSI as a Win32 app with an install command that closes it first, for example:
 
 ``` text
-cmd /c taskkill /im Mattermost.exe /f & msiexec /i mattermost-desktop-<version>-win-x64.msi /qn
+cmd /c taskkill /im Mattermost.exe /f & msiexec /i mattermost-desktop-<version>-<arch>.msi /qn
 ```
 
 Force-closing Mattermost ends any call the user is in.
