@@ -784,7 +784,6 @@ func TestPluginStartingDuringOnActivate(t *testing.T) {
 			if resp != nil {
 				resp.Body.Close()
 				p.API.KVSet("request_status", []byte(strconv.Itoa(resp.StatusCode)))
-				p.API.KVSet("retry_after", []byte(resp.Header.Get("Retry-After")))
 			}
 			return nil
 		}
@@ -809,7 +808,6 @@ func TestPluginStartingDuringOnActivate(t *testing.T) {
 	}
 	assert.Equal(t, fmt.Sprint(model.PluginStateStarting), getKey("state"))
 	assert.Equal(t, fmt.Sprint(http.StatusServiceUnavailable), getKey("request_status"))
-	assert.Equal(t, "1", getKey("retry_after"))
 
 	status, appErr := th.App.GetPluginStatus(pluginID)
 	require.Nil(t, appErr)

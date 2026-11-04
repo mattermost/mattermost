@@ -79,7 +79,6 @@ func (a *App) ServeInternalPluginRequest(userID string, w http.ResponseWriter, r
 			mlog.String("target_plugin_id", targetPluginID),
 			mlog.String("url", r.URL.String()),
 		)
-		w.Header().Set("Retry-After", "1")
 		http.Error(w, "plugin is starting", http.StatusServiceUnavailable)
 		return
 	}
