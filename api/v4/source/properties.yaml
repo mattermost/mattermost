@@ -685,7 +685,7 @@
             type: string
       responses:
         "202":
-          description: Notification accepted
+          description: Notification accepted and queued for background delivery
           content:
             application/json:
               schema:

@@ -328,7 +328,7 @@ describe('ChannelsResourceSettings', () => {
             reload,
         }));
         promptNotify.mockResolvedValue(true);
-        mockNotify.mockResolvedValue({notified_admin_count: 3, notified_channel_count: 7, channels_without_admin_count: 0, truncated: false});
+        mockNotify.mockResolvedValue({queued_admin_count: 3, queued_channel_count: 7, channels_without_admin_count: 0, truncated: false});
 
         renderComponent({channelFieldId: 'field1', attributeDisplayName: 'Cost center'});
 
@@ -344,7 +344,7 @@ describe('ChannelsResourceSettings', () => {
 
         await waitFor(() => expect(mockNotify).toHaveBeenCalledWith('field1'));
         await waitFor(() => expect(reload).toHaveBeenCalled());
-        expect(screen.getByText('Notified 3 channel admins.')).toBeInTheDocument();
+        expect(screen.getByText('Notification queued for 3 channel admins.')).toBeInTheDocument();
     });
 
     it('tells the admin the notify run was truncated instead of implying every admin was reached', async () => {
@@ -352,14 +352,14 @@ describe('ChannelsResourceSettings', () => {
             summary: {totalCount: 30000, sharedCount: 0, uniqueAdminCount: 20000, noAdminCount: 0, messagePreview: 'preview', required: false},
         }));
         promptNotify.mockResolvedValue(true);
-        mockNotify.mockResolvedValue({notified_admin_count: 20000, notified_channel_count: 20000, channels_without_admin_count: 0, truncated: true});
+        mockNotify.mockResolvedValue({queued_admin_count: 20000, queued_channel_count: 20000, channels_without_admin_count: 0, truncated: true});
 
         renderComponent({channelFieldId: 'field1'});
 
         await userEvent.click(screen.getByRole('button', {name: 'Notify all channel admins'}));
 
         await waitFor(() => expect(screen.getByText(/more admins than one run can reach/)).toBeInTheDocument());
-        expect(screen.queryByText('Notified 20000 channel admins.')).not.toBeInTheDocument();
+        expect(screen.queryByText('Notification queued for 20000 channel admins.')).not.toBeInTheDocument();
     });
 
     it('does not act on a confirmation that resolves after the admin has switched to a different field', async () => {
@@ -401,7 +401,7 @@ describe('ChannelsResourceSettings', () => {
         // field1's confirmation resolving must not POST for field1, nor mark
         // field2's (now-current) banner as "notifying".
         expect(mockNotify).not.toHaveBeenCalled();
-        expect(screen.queryByText('Notified 3 channel admins.')).not.toBeInTheDocument();
+        expect(screen.queryByText('Notification queued for 3 channel admins.')).not.toBeInTheDocument();
     });
 
     it('does not POST when the confirmation is cancelled', async () => {

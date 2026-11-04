@@ -6,7 +6,7 @@ import {FormattedMessage, defineMessages} from 'react-intl';
 
 import AlertBanner from 'components/alert_banner';
 
-export type NotifyStatus = 'idle' | 'notifying' | 'notified' | 'notify_failed';
+export type NotifyStatus = 'idle' | 'notifying' | 'queued' | 'notify_failed';
 
 type Props = {
     count: number;
@@ -36,14 +36,14 @@ type Props = {
     attemptedEnable: boolean;
 
     status: NotifyStatus;
-    notifiedAdminCount?: number;
+    queuedAdminCount?: number;
 
     // True when the last notify run hit the per-run assignment cap: some
-    // affected admins were not part of this batch and were not sent
-    // anything. Distinct from ChannelsMissingValuesBanner's other counts,
+    // affected admins were not part of this batch and were not queued
+    // for anything. Distinct from ChannelsMissingValuesBanner's other counts,
     // which stay exact regardless -- this is specifically about the DMs
-    // just sent, not the underlying missing-value tally.
-    notifiedTruncated?: boolean;
+    // just queued, not the underlying missing-value tally.
+    queuedTruncated?: boolean;
 
     bodyId: string;
     onNotify: () => void;
@@ -79,13 +79,13 @@ const messages = defineMessages({
         id: 'admin.global_attributes.applies_to.channels.missing_values.view_list',
         defaultMessage: 'View channel list',
     },
-    notified: {
-        id: 'admin.global_attributes.applies_to.channels.missing_values.notified',
-        defaultMessage: 'Notified {count, plural, one {# channel admin} other {# channel admins}}.',
+    queued: {
+        id: 'admin.global_attributes.applies_to.channels.missing_values.queued',
+        defaultMessage: 'Notification queued for {count, plural, one {# channel admin} other {# channel admins}}.',
     },
-    notifiedTruncated: {
-        id: 'admin.global_attributes.applies_to.channels.missing_values.notified_truncated',
-        defaultMessage: 'Notified {count, plural, one {# channel admin} other {# channel admins}}. This attribute affects more admins than one run can reach -- click Notify again to reach the rest.',
+    queuedTruncated: {
+        id: 'admin.global_attributes.applies_to.channels.missing_values.queued_truncated',
+        defaultMessage: 'Notification queued for {count, plural, one {# channel admin} other {# channel admins}}. This attribute affects more admins than one run can reach -- click Notify again to reach the rest.',
     },
     notifyFailed: {
         id: 'admin.global_attributes.applies_to.channels.missing_values.notify_failed',
@@ -101,8 +101,8 @@ export default function ChannelsMissingValuesBanner({
     blocked,
     attemptedEnable,
     status,
-    notifiedAdminCount,
-    notifiedTruncated,
+    queuedAdminCount,
+    queuedTruncated,
     bodyId,
     onNotify,
     onViewList,
@@ -139,17 +139,18 @@ export default function ChannelsMissingValuesBanner({
                 <FormattedMessage {...messages.notifyFailed}/>
             </span>
         );
-    } else if (status === 'notified') {
-        // Still a success -- everyone this run could reach was actually
-        // notified -- but the copy has to be honest that this run did not
-        // cover everyone, since "Notify all channel admins" otherwise reads
-        // as a completeness promise this run could not keep.
-        mode = notifiedTruncated ? 'warning' : 'success';
+    } else if (status === 'queued') {
+        // Still a success -- every admin this run could reach was queued for
+        // a DM -- but the copy has to be honest that this run did not cover
+        // everyone, since "Notify all channel admins" otherwise reads as a
+        // completeness promise this run could not keep. Delivery happens in
+        // the background, so the copy must not claim the DMs were delivered.
+        mode = queuedTruncated ? 'warning' : 'success';
         message = (
             <span id={bodyId}>
                 <FormattedMessage
-                    {...(notifiedTruncated ? messages.notifiedTruncated : messages.notified)}
-                    values={{count: notifiedAdminCount ?? 0}}
+                    {...(queuedTruncated ? messages.queuedTruncated : messages.queued)}
+                    values={{count: queuedAdminCount ?? 0}}
                 />
             </span>
         );

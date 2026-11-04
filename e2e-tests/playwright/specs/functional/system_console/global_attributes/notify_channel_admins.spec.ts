@@ -76,7 +76,7 @@ test.describe('System Console - notify all channel admins', {tag: ['@system_cons
             await modal.confirm();
 
             // * The banner reflects a successful send
-            await expect(attributeAppliesToChannels.missingValuesBanner).toContainText('Notified');
+            await expect(attributeAppliesToChannels.missingValuesBanner).toContainText('Notification queued');
 
             // # Switch to the channel admin's own session and check their DM inbox
             const {channelsPage} = await pw.testBrowser.login(user);
@@ -231,7 +231,7 @@ test.describe('System Console - notify all channel admins', {tag: ['@system_cons
             await expect(modal.messagePreview).not.toContainText(pair.channelField.name);
 
             await modal.confirm();
-            await expect(attributeAppliesToChannels.missingValuesBanner).toContainText('Notified');
+            await expect(attributeAppliesToChannels.missingValuesBanner).toContainText('Notification queued');
 
             // * The DM the channel admin receives names the display name too
             await expect

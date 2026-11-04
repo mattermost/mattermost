@@ -54,13 +54,14 @@ type ChannelAttributeComplianceSummary struct {
 }
 
 // ChannelAttributeNotifyResult is returned synchronously by the notify
-// endpoint; delivery of the underlying DMs happens asynchronously afterward.
+// endpoint; delivery of the underlying DMs happens asynchronously afterward,
+// so the counts describe who was queued to receive a DM, not who received one.
 type ChannelAttributeNotifyResult struct {
-	NotifiedAdminCount        int64 `json:"notified_admin_count"`
-	NotifiedChannelCount      int64 `json:"notified_channel_count"`
+	QueuedAdminCount          int64 `json:"queued_admin_count"`
+	QueuedChannelCount        int64 `json:"queued_channel_count"`
 	ChannelsWithoutAdminCount int64 `json:"channels_without_admin_count"`
 	// Truncated is true when the (admin, channel) assignment scan hit its
-	// batch cap -- some admins may not have been notified about every one of
+	// batch cap -- some admins may not have been queued for every one of
 	// their affected channels.
 	Truncated bool `json:"truncated"`
 }

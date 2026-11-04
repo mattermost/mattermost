@@ -408,7 +408,7 @@ func TestNotifyPropertyFieldMissingValuesEndpoint(t *testing.T) {
 		result, resp, err := th.SystemAdminClient.NotifyChannelAdminsOfMissingAttributeValue(context.Background(), group.Name, field.ID)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusAccepted, resp.StatusCode)
-		assert.GreaterOrEqual(t, result.NotifiedAdminCount, int64(1))
+		assert.GreaterOrEqual(t, result.QueuedAdminCount, int64(1))
 
 		_, resp, err = th.SystemAdminClient.NotifyChannelAdminsOfMissingAttributeValue(context.Background(), group.Name, field.ID)
 		require.Error(t, err)

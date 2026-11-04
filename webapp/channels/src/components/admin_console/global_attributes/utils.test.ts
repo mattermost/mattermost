@@ -828,8 +828,8 @@ describe('global_attributes/utils', () => {
     describe('notifyChannelAdminsOfMissingValue', () => {
         it('passes the access_control group and field id through to Client4', async () => {
             const notify = jest.spyOn(Client4, 'notifyChannelAdminsOfMissingAttributeValue').mockResolvedValue({
-                notified_admin_count: 0,
-                notified_channel_count: 0,
+                queued_admin_count: 0,
+                queued_channel_count: 0,
                 channels_without_admin_count: 0,
                 truncated: false,
             });

@@ -838,19 +838,25 @@ components:
           description: The message channel admins would receive, as Markdown.
     ChannelAttributeNotifyResult:
       type: object
+      description: >
+        Returned when the notification is accepted. Direct messages are
+        delivered in the background after the response, so the counts describe
+        who was queued to receive a message, not who has received one.
       properties:
-        notified_admin_count:
+        queued_admin_count:
           type: integer
           format: int64
-        notified_channel_count:
+          description: The number of channel admins queued to receive a direct message.
+        queued_channel_count:
           type: integer
           format: int64
+          description: The number of channels with an admin that are covered by the queued messages.
         channels_without_admin_count:
           type: integer
           format: int64
         truncated:
           type: boolean
-          description: True when the number of channel admins to notify hit the server's limit, so some were not notified.
+          description: True when the number of channel admins to notify hit the server's limit, so some were not queued.
     PropertyValue:
       type: object
       properties:

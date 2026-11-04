@@ -307,12 +307,12 @@ export type ChannelAttributeComplianceSummary = {
 };
 
 export type ChannelAttributeNotifyResult = {
-    notified_admin_count: number;
-    notified_channel_count: number;
+    queued_admin_count: number;
+    queued_channel_count: number;
     channels_without_admin_count: number;
 
     // True when the server's (admin, channel) assignment scan hit its batch
-    // cap -- some admins may not have been notified about every one of their
+    // cap -- some admins may not have been queued for every one of their
     // affected channels.
     truncated: boolean;
 };

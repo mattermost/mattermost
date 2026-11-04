@@ -83,8 +83,8 @@ const ChannelsResourceSettings = ({value, onChange, ordered, disabled, channelFi
     const promptNotifyChannelAdmins = useNotifyChannelAdmins();
 
     const [notifyStatus, setNotifyStatus] = useState<NotifyStatus>('idle');
-    const [notifiedAdminCount, setNotifiedAdminCount] = useState<number>();
-    const [notifiedTruncated, setNotifiedTruncated] = useState(false);
+    const [queuedAdminCount, setQueuedAdminCount] = useState<number>();
+    const [queuedTruncated, setQueuedTruncated] = useState(false);
     const [attentionKey, setAttentionKey] = useState(0);
     const [attemptedEnable, setAttemptedEnable] = useState(false);
     const bannerRef = useRef<HTMLDivElement>(null);
@@ -166,9 +166,9 @@ const ChannelsResourceSettings = ({value, onChange, ordered, disabled, channelFi
         try {
             const result = await notifyChannelAdminsOfMissingValue(notifyFieldId);
             if (stillCurrent()) {
-                setNotifiedAdminCount(result.notified_admin_count);
-                setNotifiedTruncated(result.truncated);
-                setNotifyStatus('notified');
+                setQueuedAdminCount(result.queued_admin_count);
+                setQueuedTruncated(result.truncated);
+                setNotifyStatus('queued');
             }
         } catch {
             if (stillCurrent()) {
@@ -266,8 +266,8 @@ const ChannelsResourceSettings = ({value, onChange, ordered, disabled, channelFi
                                     blocked={blockedByMissingValues}
                                     attemptedEnable={attemptedEnable}
                                     status={notifyStatus}
-                                    notifiedAdminCount={notifiedAdminCount}
-                                    notifiedTruncated={notifiedTruncated}
+                                    queuedAdminCount={queuedAdminCount}
+                                    queuedTruncated={queuedTruncated}
                                     bodyId={MISSING_VALUES_BANNER_BODY_ID}
                                     onNotify={handleNotify}
                                     onViewList={handleViewList}

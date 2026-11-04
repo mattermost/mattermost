@@ -224,8 +224,8 @@ func (a *App) NotifyChannelAdminsOfMissingAttribute(rctx request.CTX, groupID st
 	// Aggregated separately (see the identical comment in
 	// GetChannelAttributeComplianceSummary): only ChannelsWithoutAdminCount
 	// reads from this, since it is reported as an independent fact about the
-	// server, distinct from NotifiedAdminCount/NotifiedChannelCount below,
-	// which describe what this run actually did.
+	// server, distinct from QueuedAdminCount/QueuedChannelCount below,
+	// which describe who this run queued for delivery.
 	_, exactChannelsWithAdminCount, err := a.Srv().Store().Channel().CountChannelAdminAssignmentsForChannelsMissingPropertyValue(groupID, field.ID)
 	if err != nil {
 		a.releaseChannelAttributeNotifyThrottle(rctx, field.ID, token)
@@ -249,8 +249,8 @@ func (a *App) NotifyChannelAdminsOfMissingAttribute(rctx request.CTX, groupID st
 	}
 
 	result := &model.ChannelAttributeNotifyResult{
-		NotifiedAdminCount:        int64(len(batches)),
-		NotifiedChannelCount:      int64(len(channelsWithAdmin)),
+		QueuedAdminCount:          int64(len(batches)),
+		QueuedChannelCount:        int64(len(channelsWithAdmin)),
 		ChannelsWithoutAdminCount: missingLocal - exactChannelsWithAdminCount,
 		Truncated:                 truncated,
 	}
@@ -328,6 +328,13 @@ func (a *App) sendChannelAttributeNotifyDMs(rctx request.CTX, batches map[string
 	}
 }
 
+// escapeChannelAttributeMarkdownLinkText escapes backslashes and square
+// brackets so a channel display name, which any channel admin controls, cannot
+// terminate the link text it is inserted into and redirect the link.
+func escapeChannelAttributeMarkdownLinkText(displayName string) string {
+	return strings.NewReplacer(`\`, `\\`, `[`, `\[`, `]`, `\]`).Replace(displayName)
+}
+
 // channelAttributeNotifyChannelList renders the bulleted channel list for a
 // single admin's DM as markdown permalinks -- a bare ~channel-name mention
 // only auto-links within the team currently being viewed, and one admin's
@@ -346,7 +353,7 @@ func channelAttributeNotifyChannelList(channels []channelAttributeNotifyChannelR
 	for _, ref := range shown {
 		link := "/" + ref.teamName + "/channels/" + ref.channelName
 		b.WriteString(T("app.channel_attributes.notify_missing_value.dm_channel_line", model.StringInterface{
-			"ChannelDisplayName": ref.displayName,
+			"ChannelDisplayName": escapeChannelAttributeMarkdownLinkText(ref.displayName),
 			"ChannelLink":        link,
 		}))
 	}

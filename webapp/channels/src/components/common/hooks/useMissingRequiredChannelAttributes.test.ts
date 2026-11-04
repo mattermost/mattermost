@@ -2,12 +2,16 @@
 // See LICENSE.txt for license information.
 
 import {waitFor} from '@testing-library/react';
+import {useSelector} from 'react-redux';
 
 import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 
 import {Client4} from 'mattermost-redux/client';
+import {getPropertyValueForTargetField} from 'mattermost-redux/selectors/entities/properties';
 
 import {renderHookWithContext} from 'tests/react_testing_utils';
+
+import type {GlobalState} from 'types/store';
 
 import useChannelAttributes from './useChannelAttributes';
 import useMissingRequiredChannelAttributes from './useMissingRequiredChannelAttributes';
@@ -107,6 +111,51 @@ describe('useMissingRequiredChannelAttributes', () => {
 
         await waitFor(() => expect(result.current.loading).toBe(false));
         expect(result.current.missing).toEqual([]);
+    });
+
+    test('drops a cached value for a required field the server response omits', async () => {
+        mockGetPropertyValues.mockResolvedValue([]);
+
+        const {result} = renderHookWithContext(
+            () => ({
+                missing: useMissingRequiredChannelAttributes('channel1'),
+                cached: useSelector((state: GlobalState) => getPropertyValueForTargetField(state, 'channel1', 'field1')),
+            }),
+            {
+                ...requiredEnforcedState,
+                entities: {
+                    ...requiredEnforcedState.entities,
+                    properties: {
+                        values: {
+                            byTargetId: {channel1: {field1: propertyValue('field1', 'stale')}},
+                            byFieldId: {field1: {channel1: propertyValue('field1', 'stale')}},
+                        },
+                    },
+                },
+            },
+        );
+
+        expect(result.current.cached?.value).toBe('stale');
+
+        await waitFor(() => expect(result.current.missing.loading).toBe(false));
+        expect(result.current.cached).toBeUndefined();
+        expect(result.current.missing.missing).toEqual([requiredField]);
+    });
+
+    test('keeps the cached value when the server response includes the field', async () => {
+        mockGetPropertyValues.mockResolvedValue([propertyValue('field1', 'fresh')]);
+
+        const {result} = renderHookWithContext(
+            () => ({
+                missing: useMissingRequiredChannelAttributes('channel1'),
+                cached: useSelector((state: GlobalState) => getPropertyValueForTargetField(state, 'channel1', 'field1')),
+            }),
+            requiredEnforcedState,
+        );
+
+        await waitFor(() => expect(result.current.missing.loading).toBe(false));
+        expect(result.current.cached?.value).toBe('fresh');
+        expect(result.current.missing.missing).toEqual([]);
     });
 
     test('fails open (missing: []) when the value fetch rejects', async () => {

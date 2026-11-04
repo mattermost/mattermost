@@ -69,6 +69,18 @@ export default function useMissingRequiredChannelAttributes(channelId: string): 
             if (!current) {
                 return;
             }
+
+            // RECEIVED_PROPERTY_VALUES only merges, so a cached value for a
+            // field the server now omits must be dropped explicitly.
+            const returnedFieldIds = new Set((values ?? []).map((v) => v.field_id));
+            for (const field of requiredFields) {
+                if (!returnedFieldIds.has(field.id)) {
+                    dispatch({
+                        type: PropertyTypes.PROPERTY_VALUE_DELETED,
+                        data: {targetId: channelId, fieldId: field.id},
+                    });
+                }
+            }
             if (values && values.length > 0) {
                 dispatch({
                     type: PropertyTypes.RECEIVED_PROPERTY_VALUES,

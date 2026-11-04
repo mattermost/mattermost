@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
 )
 
 // The notify flow's delivery is asynchronous (fired via Server.Go), so
@@ -109,8 +110,8 @@ func TestNotifyChannelAdminsOfMissingAttribute(t *testing.T) {
 		// default channels) also "lacks a value" for it and contributes to
 		// these aggregates. The per-admin DM assertions below are what this
 		// test is actually about.
-		assert.GreaterOrEqual(t, result.NotifiedAdminCount, int64(1))
-		assert.GreaterOrEqual(t, result.NotifiedChannelCount, int64(3))
+		assert.GreaterOrEqual(t, result.QueuedAdminCount, int64(1))
+		assert.GreaterOrEqual(t, result.QueuedChannelCount, int64(3))
 		assert.False(t, result.Truncated)
 
 		require.Eventually(t, func() bool {
@@ -284,6 +285,7 @@ func TestNotifyChannelAdminsOfMissingAttribute(t *testing.T) {
 			Name:  channelAttributeNotifyThrottleKey(fieldID),
 			Value: "0",
 		}))
+		time.Sleep(2 * time.Millisecond)
 		claimedB, tokenB, appErr := th.App.claimChannelAttributeNotifyThrottle(fieldID)
 		require.Nil(t, appErr)
 		require.True(t, claimedB)
@@ -391,5 +393,33 @@ func TestChannelAttributeDisplayName(t *testing.T) {
 		field := linked("data_owner", template.ID, nil)
 		preview := channelAttributeNotifyMessagePreview(th.App.channelAttributeDisplayName(rctx, groupID, field), "en")
 		assert.Contains(t, preview, "**Data Owner**")
+	})
+}
+
+func TestChannelAttributeNotifyChannelList(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	T := i18n.GetUserTranslations("en")
+
+	t.Run("renders each channel as a markdown link bullet", func(t *testing.T) {
+		list := channelAttributeNotifyChannelList([]channelAttributeNotifyChannelRef{
+			{teamName: "team-a", channelName: "town-square", displayName: "Town Square"},
+			{teamName: "team-b", channelName: "off-topic", displayName: "Off-Topic"},
+		}, T)
+
+		assert.Equal(t, "\n- [Town Square](/team-a/channels/town-square)\n- [Off-Topic](/team-b/channels/off-topic)", list)
+	})
+
+	t.Run("escapes backslashes and brackets in the display name so it cannot redirect the link", func(t *testing.T) {
+		list := channelAttributeNotifyChannelList([]channelAttributeNotifyChannelRef{
+			{teamName: "team-a", channelName: "sneaky", displayName: "Safe](https://evil.example)[x"},
+			{teamName: "team-a", channelName: "slashes", displayName: `trailing\`},
+		}, T)
+
+		assert.Equal(t,
+			"\n- [Safe\\](https://evil.example)\\[x](/team-a/channels/sneaky)"+
+				"\n- [trailing\\\\](/team-a/channels/slashes)",
+			list,
+		)
 	})
 }
