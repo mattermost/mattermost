@@ -446,5 +446,28 @@
   "server": {
     "target": "server",
     "note": "Plural 'servers'."
+  },
+  "health dashboard": {
+    "target": "Sitegezondheid",
+    "note": "Same as the page title ('Site health'); capitalized as a page name: 'Sitegezondheid is niet ingeschakeld'."
+  },
+  "health finding": {
+    "target": "bevinding",
+    "note": "Plural 'bevindingen'. Where the dashboard context is not clear (server errors), use 'bevinding van Sitegezondheid'. Do not use 'bevinding van de gezondheidscontrole', which some server mute/unmute strings ship."
+  },
+  "Agents plugin": {
+    "target": "Agents-plugin",
+    "note": "'de Agents-plugin'. Existing strings write 'Agents plugin' without a hyphen; Dutch compounds need the hyphen."
+  },
+  "Hosted Push Notification Service": {
+    "target": "Hosted Push Notification Service",
+    "note": "Service name kept in English: 'de Hosted Push Notification Service'. The acronym HPNS stays as is."
+  },
+  "Test Push Notification Service": {
+    "target": "Test Push Notification Service",
+    "note": "Service name kept in English: 'de Test Push Notification Service'. The acronym TPNS stays as is."
+  },
+  "PushNotificationServer": {
+    "target": "PushNotificationServer"
   }
 }

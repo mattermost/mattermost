@@ -261,7 +261,7 @@ func (m *mockRCSForSync) SendFile(_ context.Context, _ *model.UploadSession, _ *
 func (m *mockRCSForSync) SendProfileImage(_ context.Context, _ string, _ *model.RemoteCluster, _ remotecluster.ProfileImageProvider, _ remotecluster.SendProfileImageResultFunc) error {
 	return errors.New("remote unreachable")
 }
-func (m *mockRCSForSync) AcceptInvitation(_ *model.RemoteClusterInvite, _, _, _, _, _ string) (*model.RemoteCluster, error) {
+func (m *mockRCSForSync) AcceptInvitation(_ *model.RemoteClusterInvite, _, _, _, _, _ string) (*model.RemoteCluster, *model.AppError) {
 	return nil, nil
 }
 func (m *mockRCSForSync) ReceiveIncomingMsg(_ *model.RemoteCluster, _ model.RemoteClusterMsg) remotecluster.Response {

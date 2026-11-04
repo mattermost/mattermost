@@ -14,9 +14,10 @@
         margin-bottom: 12px;
     }
 
-    &__options_checkbox_label {
-        padding-left: 12px;
-        font-weight: 500;
+    &__options {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-xs);
     }
 }
 

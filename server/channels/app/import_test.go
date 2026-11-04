@@ -824,7 +824,7 @@ func TestDeactivateMissingUsersMode(t *testing.T) {
 {"type":"user","user":{"username":"` + existingUser.Username + `","email":"` + existingUser.Email + `","teams":[{"name":"` + teamName + `","channels":[{"name":"` + channelName + `"}]}]}}
 {"type":"user","user":{"username":"` + newUsername + `","email":"` + newUsername + `@example.com","teams":[{"name":"` + teamName + `","channels":[{"name":"` + channelName + `"}]}]}}`
 
-	_, appErr := th.App.BulkImportWithPathAndOpts(th.Context, strings.NewReader(data), nil, false, false, 1, "", model.BulkImportOpts{ImportedUsers: model.ImportedUsersInactive})
+	_, _, appErr := th.App.BulkImportWithPathAndOpts(th.Context, strings.NewReader(data), nil, false, false, 1, "", model.BulkImportOpts{ImportedUsers: model.ImportedUsersInactive})
 	require.Nil(t, appErr)
 
 	// The existing user should still exist.
@@ -857,7 +857,7 @@ func TestRewriteTeamNameEndToEnd(t *testing.T) {
 {"type":"user","user":{"username":"` + username + `","email":"` + username + `@example.com","teams":[{"name":"` + srcTeamName + `","channels":[{"name":"` + channelName + `"}]}]}}`
 
 	opts := model.BulkImportOpts{ImportedUsers: model.ImportedUsersInactive, DestinationTeamName: destTeam.Name}
-	_, appErr := th.App.BulkImportWithPathAndOpts(th.Context, strings.NewReader(data), nil, false, false, 1, "", opts)
+	_, _, appErr := th.App.BulkImportWithPathAndOpts(th.Context, strings.NewReader(data), nil, false, false, 1, "", opts)
 	require.Nil(t, appErr)
 
 	// The channel should have been created under the destination team.
@@ -876,7 +876,7 @@ func TestDestinationTeamRequiresSingleTeamExport(t *testing.T) {
 {"type":"team","team":{"type":"O","display_name":"Team A","name":"team-a"}}`
 
 	opts := model.BulkImportOpts{DestinationTeamName: "some-dest-team"}
-	_, appErr := th.App.BulkImportWithPathAndOpts(th.Context, strings.NewReader(data), nil, false, false, 1, "", opts)
+	_, _, appErr := th.App.BulkImportWithPathAndOpts(th.Context, strings.NewReader(data), nil, false, false, 1, "", opts)
 	require.NotNil(t, appErr, "should fail when --destination-team-name is used with a multi-team export")
 	assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 }
@@ -1459,7 +1459,7 @@ func TestCheckpointResume(t *testing.T) {
 			checkpoints = append(checkpoints, lineNumber)
 		},
 	}
-	_, appErr := th.App.BulkImportWithPathAndOpts(th.Context, strings.NewReader(data), nil, false, false, 1, "", opts)
+	_, _, appErr := th.App.BulkImportWithPathAndOpts(th.Context, strings.NewReader(data), nil, false, false, 1, "", opts)
 	require.Nil(t, appErr)
 	require.NotEmpty(t, checkpoints)
 	for _, checkpoint := range checkpoints {
@@ -1524,7 +1524,7 @@ func TestScanErrorDoesNotAdvanceCheckpoint(t *testing.T) {
 		OnCheckpoint: func(_ int) { checkpointCalled = true },
 	}
 
-	_, appErr := th.App.BulkImportWithPathAndOpts(
+	_, _, appErr := th.App.BulkImportWithPathAndOpts(
 		th.Context,
 		readerFunc(readFn),
 		nil,

@@ -6,6 +6,10 @@ import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 import styled from 'styled-components';
 
+import {CloseIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Team} from '@mattermost/types/teams';
 
 import {getDefaultSearchType, getSearchButtons} from 'selectors/plugins';
@@ -61,7 +65,7 @@ const SearchBoxContainer = styled.div`
     }
 `;
 
-const CloseIcon = styled.button`
+const SearchBoxCloseButton = styled(IconButton)`
     position: absolute;
     top: 18px;
     right: 18px;
@@ -264,22 +268,25 @@ const SearchBox = forwardRef(
             }
         }, [searchType]);
 
+        const closeLabel = intl.formatMessage({
+            id: 'search_bar.close',
+            defaultMessage: 'Close',
+        });
+
         return (
             <SearchBoxContainer
                 ref={ref}
                 id='searchBox'
             >
-                <CloseIcon
-                    data-testid='searchBoxClose'
-                    className='btn btn-icon btn-m'
-                    onClick={closeHandler}
-                    aria-label={intl.formatMessage({
-                        id: 'search_bar.close',
-                        defaultMessage: 'Close',
-                    })}
-                >
-                    <i className='icon icon-close'/>
-                </CloseIcon>
+                <WithTooltip title={closeLabel}>
+                    <SearchBoxCloseButton
+                        data-testid='searchBoxClose'
+                        size='medium'
+                        icon={<Icon glyph={<CloseIcon/>}/>}
+                        onClick={closeHandler}
+                        aria-label={closeLabel}
+                    />
+                </WithTooltip>
                 <SearchBoxHeader>
                     <SearchTypeSelector
                         searchType={searchType}

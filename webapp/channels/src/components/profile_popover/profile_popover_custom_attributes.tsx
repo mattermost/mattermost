@@ -23,11 +23,9 @@ import ProfilePopoverUrl from './profile_popover_url';
 
 type Props = {
     userID: string;
-    hideStatus?: boolean;
 };
 const ProfilePopoverCustomAttributes = ({
     userID,
-    hideStatus = false,
 }: Props) => {
     const dispatch = useDispatch();
     const userProfile = useSelector((state: GlobalState) => getUser(state, userID));
@@ -40,7 +38,7 @@ const ProfilePopoverCustomAttributes = ({
     }, [dispatch, userID, userProfile.custom_profile_attributes]);
 
     const attributeSections = customProfileAttributeFields.map((attribute) => {
-        if (!hideStatus && userProfile.custom_profile_attributes) {
+        if (userProfile.custom_profile_attributes) {
             // Hide source_only fields from profile popover
             if (attribute.attrs?.access_mode === 'source_only') {
                 return null;

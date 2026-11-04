@@ -102,7 +102,7 @@ test.describe('System Console - Global Attributes listing (Classification Markin
                 // Classification Markings admin page — no Edit/More-actions menu
                 const openInNewLink = classificationRow.getByRole('link', {name: 'Open Classification Markings'});
                 await expect(openInNewLink).toBeVisible();
-                await expect(openInNewLink).toHaveAttribute('href', CLASSIFICATION_MARKINGS_ADMIN_PATH);
+                await expect(openInNewLink).toHaveHrefPath(CLASSIFICATION_MARKINGS_ADMIN_PATH);
                 await expect(classificationRow.getByRole('button', {name: 'More actions'})).toHaveCount(0);
 
                 // # Clicking the link actually navigates to the Classification Markings page

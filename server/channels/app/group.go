@@ -200,6 +200,16 @@ func (a *App) CreateGroupWithUserIds(group *model.GroupWithUserIds) (*model.Grou
 		return nil, appErr
 	}
 
+	// Tell each initial member they joined, as adding members later does, so their clients pick up
+	// the group's mention key without a reload.
+	for _, userID := range group.UserIds {
+		groupMember := &model.GroupMember{GroupId: newGroup.Id, UserId: userID, CreateAt: newGroup.CreateAt}
+		if appErr := a.publishGroupMemberEvent(model.WebsocketEventGroupMemberAdd, groupMember); appErr != nil {
+			appErr.Where = "CreateGroupWithUserIds"
+			return nil, appErr
+		}
+	}
+
 	return newGroup, nil
 }
 

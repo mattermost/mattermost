@@ -147,7 +147,7 @@ export const WEBSERVER_MODE_HELP_TEXT = (
         <p className='help-text'>
             <FormattedMessage
                 id='admin.webserverModeHelpText'
-                defaultMessage='gzip compression applies to static content files. It is recommended to enable gzip to improve performance unless your environment has specific restrictions, such as a web proxy that distributes gzip files poorly.'
+                defaultMessage='gzip compression applies to static content files. It is recommended to enable compression to improve performance unless your environment has specific restrictions, such as a web proxy that distributes compressed files poorly.'
             />
         </p>
     </div>

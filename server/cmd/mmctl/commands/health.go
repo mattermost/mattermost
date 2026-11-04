@@ -32,7 +32,7 @@ var HealthCmd = &cobra.Command{
 	Short: "Inspect workspace health findings",
 }
 
-const healthPacketDisclaimer = "Evaluated offline from a Support Packet. The packet is a point-in-time snapshot: findings describe the server when the packet was generated, not its current state."
+const healthPacketDisclaimer = "Evaluated offline from a Support Packet. The packet is a point-in-time snapshot: findings describe the server when the packet was generated, not its current state. Version support is judged as of today."
 
 var HealthCheckCmd = &cobra.Command{
 	Use:   "check",

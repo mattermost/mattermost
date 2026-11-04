@@ -5,7 +5,7 @@ import type {ReactNode, JSX} from 'react';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 
 import Input from 'components/widgets/inputs/input/input';
 
@@ -18,11 +18,15 @@ export type Props = {
     onDisplayNameChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onSubmit: (e: React.MouseEvent) => void;
     buttonText: ReactNode;
+
+    // Goes in the Button's trailing slot. An icon inside buttonText would land
+    // in the label span, where the Button's gap does not apply.
+    buttonTrailingIcon?: ReactNode;
     isLoading?: boolean;
     nameError: string | JSX.Element;
 };
 
-export default function DisplayNameStep({teamDisplayName, isValidTeamName, onDisplayNameChange, onSubmit, buttonText, isLoading, nameError}: Props) {
+export default function DisplayNameStep({teamDisplayName, isValidTeamName, onDisplayNameChange, onSubmit, buttonText, buttonTrailingIcon, isLoading, nameError}: Props) {
     let nameErrorLabel = null;
     let nameDivClass = 'form-group';
     if (nameError) {
@@ -86,6 +90,7 @@ export default function DisplayNameStep({teamDisplayName, isValidTeamName, onDis
                     className='mt-8'
                     onClick={onSubmit}
                     disabled={!isValidTeamName || isLoading}
+                    trailingIcon={buttonTrailingIcon}
                 >
                     {buttonText}
                 </Button>

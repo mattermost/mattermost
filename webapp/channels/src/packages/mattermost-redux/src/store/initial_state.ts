@@ -123,7 +123,7 @@ const state: GlobalState = {
             accounts: {},
         },
         admin: {
-            logs: [],
+            logs: {},
             plainLogs: [],
             audits: {},
             config: {},
@@ -215,12 +215,6 @@ const state: GlobalState = {
                 limitsLoaded: false,
             },
             errors: {},
-        },
-        hostedCustomer: {
-            products: {
-                products: {},
-                productsLoaded: false,
-            },
         },
         usage: {
             files: {

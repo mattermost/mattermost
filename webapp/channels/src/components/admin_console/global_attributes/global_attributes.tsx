@@ -5,9 +5,11 @@ import React, {useCallback, useState} from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
 import {MagnifyIcon, PlusIcon} from '@mattermost/compass-icons/components';
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 
 import AdminHeader from 'components/widgets/admin_console/admin_header';
+import AdminPanel from 'components/widgets/admin_console/admin_panel';
 import Input from 'components/widgets/inputs/input/input';
 
 import {getHistory} from 'utils/browser_history';
@@ -68,37 +70,38 @@ const GlobalAttributes = ({disabled = false}: Props) => {
                         getHistory().push(ATTRIBUTE_DETAILS_ROUTE);
                     }}
                     data-testid='newAttributeButton'
+                    leadingIcon={<Icon glyph={<PlusIcon/>}/>}
                 >
-                    <PlusIcon size={18}/>
-                    <span>
-                        <FormattedMessage {...messages.newAttribute}/>
-                    </span>
+                    <FormattedMessage {...messages.newAttribute}/>
                 </Button>
             </AdminHeader>
             <div className='admin-console__wrapper'>
-                <div
-                    className='admin-console__container'
-                    data-testid='global_attributes'
-                >
-                    <div className='GlobalAttributes__actions'>
-                        <Input
-                            type='text'
-                            name='searchAttributes'
-                            clearable={true}
-                            useLegend={false}
-                            containerClassName='GlobalAttributes__search'
-                            placeholder={messages.searchPlaceholder}
-                            inputPrefix={<MagnifyIcon size={16}/>}
-                            value={searchQuery}
-                            onChange={handleSearchChange}
-                            onClear={handleSearchClear}
-                            data-testid='global-attributes-search'
+                <div className='admin-console__content GlobalAttributes__content'>
+                    <AdminPanel
+                        id='global_attributes'
+                        className='GlobalAttributes__panel'
+                        data-testid='global_attributes'
+                    >
+                        <div className='GlobalAttributes__actions'>
+                            <Input
+                                type='text'
+                                name='searchAttributes'
+                                clearable={true}
+                                useLegend={false}
+                                containerClassName='GlobalAttributes__search'
+                                placeholder={messages.searchPlaceholder}
+                                inputPrefix={<MagnifyIcon size={16}/>}
+                                value={searchQuery}
+                                onChange={handleSearchChange}
+                                onClear={handleSearchClear}
+                                data-testid='global-attributes-search'
+                            />
+                        </div>
+                        <GlobalAttributesTable
+                            searchQuery={searchQuery}
+                            disabled={disabled}
                         />
-                    </div>
-                    <GlobalAttributesTable
-                        searchQuery={searchQuery}
-                        disabled={disabled}
-                    />
+                    </AdminPanel>
                 </div>
             </div>
         </div>

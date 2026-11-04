@@ -25,6 +25,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/plugin/utils"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
@@ -1284,6 +1285,332 @@ func TestPluginAPIReceiveSharedChannelSyncMsg(t *testing.T) {
 	})
 }
 
+func TestPluginAPIReceiveSharedChannelReactionSyncMsg(t *testing.T) {
+	th := setupSharedChannels(t).InitBasic(t)
+
+	channel := th.CreateChannel(t, th.BasicTeam)
+	pluginID := "com.test.reaction-sync-plugin"
+	rc := registerPluginRemoteForTest(t, th, pluginID, channel)
+	api := NewPluginAPI(th.App, th.Context, &model.Manifest{Id: pluginID})
+	reactionStore := th.App.Srv().Store().Reaction()
+
+	remoteUserID := model.NewId()
+	userMsg := model.NewSyncMsg(channel.Id)
+	userMsg.Users = map[string]*model.User{
+		remoteUserID: {
+			Id:       remoteUserID,
+			Username: "reactor-" + model.NewId()[:8],
+			Email:    model.NewId() + "@remote.test",
+			RemoteId: new(rc.RemoteId),
+		},
+	}
+	_, err := api.ReceiveSharedChannelSyncMsg(rc.RemoteId, userMsg)
+	require.NoError(t, err)
+
+	post := th.CreatePost(t, channel)
+
+	syncReaction := func(t *testing.T, userID, emojiName string, deleteAt int64) {
+		t.Helper()
+		msg := model.NewSyncMsg(channel.Id)
+		msg.Reactions = []*model.Reaction{{
+			UserId:    userID,
+			PostId:    post.Id,
+			EmojiName: emojiName,
+			CreateAt:  model.GetMillis(),
+			DeleteAt:  deleteAt,
+		}}
+		_, err := api.ReceiveSharedChannelSyncMsg(rc.RemoteId, msg)
+		require.NoError(t, err)
+	}
+
+	isActive := func(t *testing.T, userID, emojiName string) bool {
+		t.Helper()
+		reactions, err := reactionStore.GetForPost(post.Id, false)
+		require.NoError(t, err)
+		for _, r := range reactions {
+			if r.UserId == userID && r.EmojiName == emojiName {
+				return true
+			}
+		}
+		return false
+	}
+
+	// Reactions the sender would include when syncing this channel back to the remote.
+	sentBackToRemote := func(t *testing.T, emojiName string) bool {
+		t.Helper()
+		reactions, err := reactionStore.GetForPostSince(post.Id, 0, rc.RemoteId, true)
+		require.NoError(t, err)
+		for _, r := range reactions {
+			if r.EmojiName == emojiName {
+				return true
+			}
+		}
+		return false
+	}
+
+	requireNotStored := func(t *testing.T, userID, emojiName string) {
+		t.Helper()
+		_, err := reactionStore.GetSingle(userID, post.Id, rc.RemoteId, emojiName)
+		var nfErr *store.ErrNotFound
+		require.ErrorAs(t, err, &nfErr)
+	}
+
+	t.Run("re-sent active reaction stays active and is not rewritten", func(t *testing.T) {
+		syncReaction(t, remoteUserID, "thumbsup", 0)
+		first, err := reactionStore.GetSingle(remoteUserID, post.Id, rc.RemoteId, "thumbsup")
+		require.NoError(t, err)
+
+		syncReaction(t, remoteUserID, "thumbsup", 0)
+
+		assert.True(t, isActive(t, remoteUserID, "thumbsup"))
+		second, err := reactionStore.GetSingle(remoteUserID, post.Id, rc.RemoteId, "thumbsup")
+		require.NoError(t, err)
+		assert.Equal(t, first.UpdateAt, second.UpdateAt)
+	})
+
+	t.Run("removed reaction the receiver never had is not created", func(t *testing.T) {
+		syncReaction(t, remoteUserID, "heart", model.GetMillis())
+
+		assert.False(t, isActive(t, remoteUserID, "heart"))
+		requireNotStored(t, remoteUserID, "heart")
+		assert.False(t, sentBackToRemote(t, "heart"))
+	})
+
+	t.Run("removal keeps the remote's ID so it is not sent back", func(t *testing.T) {
+		syncReaction(t, remoteUserID, "smile", 0)
+		syncReaction(t, remoteUserID, "smile", model.GetMillis())
+
+		assert.False(t, isActive(t, remoteUserID, "smile"))
+		deleted, err := reactionStore.GetSingle(remoteUserID, post.Id, rc.RemoteId, "smile")
+		require.NoError(t, err)
+		assert.NotZero(t, deleted.DeleteAt)
+		assert.False(t, sentBackToRemote(t, "smile"))
+	})
+
+	t.Run("re-sent removal stays removed", func(t *testing.T) {
+		syncReaction(t, remoteUserID, "tada", 0)
+		syncReaction(t, remoteUserID, "tada", model.GetMillis())
+		first, err := reactionStore.GetSingle(remoteUserID, post.Id, rc.RemoteId, "tada")
+		require.NoError(t, err)
+
+		syncReaction(t, remoteUserID, "tada", model.GetMillis())
+
+		assert.False(t, isActive(t, remoteUserID, "tada"))
+		assert.False(t, sentBackToRemote(t, "tada"))
+		second, err := reactionStore.GetSingle(remoteUserID, post.Id, rc.RemoteId, "tada")
+		require.NoError(t, err)
+		assert.Equal(t, first.UpdateAt, second.UpdateAt)
+		assert.Equal(t, first.DeleteAt, second.DeleteAt)
+	})
+
+	t.Run("reaction re-added after removal is active", func(t *testing.T) {
+		syncReaction(t, remoteUserID, "rocket", 0)
+		syncReaction(t, remoteUserID, "rocket", model.GetMillis())
+		syncReaction(t, remoteUserID, "rocket", 0)
+
+		assert.True(t, isActive(t, remoteUserID, "rocket"))
+		assert.False(t, sentBackToRemote(t, "rocket"))
+	})
+
+	t.Run("reaction removed without the remote's ID is revived by an active sync", func(t *testing.T) {
+		syncReaction(t, remoteUserID, "eyes", 0)
+		require.True(t, isActive(t, remoteUserID, "eyes"))
+		_, err := reactionStore.Delete(&model.Reaction{UserId: remoteUserID, PostId: post.Id, EmojiName: "eyes"})
+		require.NoError(t, err)
+		require.False(t, isActive(t, remoteUserID, "eyes"))
+
+		syncReaction(t, remoteUserID, "eyes", 0)
+
+		assert.True(t, isActive(t, remoteUserID, "eyes"))
+		revived, err := reactionStore.GetSingle(remoteUserID, post.Id, rc.RemoteId, "eyes")
+		require.NoError(t, err)
+		assert.Zero(t, revived.DeleteAt)
+	})
+
+	t.Run("removal of a reaction removed without the remote's ID is ignored", func(t *testing.T) {
+		syncReaction(t, remoteUserID, "fire", 0)
+		require.True(t, isActive(t, remoteUserID, "fire"))
+		_, err := reactionStore.Delete(&model.Reaction{UserId: remoteUserID, PostId: post.Id, EmojiName: "fire"})
+		require.NoError(t, err)
+
+		syncReaction(t, remoteUserID, "fire", model.GetMillis())
+
+		assert.False(t, isActive(t, remoteUserID, "fire"))
+		requireNotStored(t, remoteUserID, "fire")
+	})
+
+	t.Run("reaction from a user not belonging to the remote is rejected", func(t *testing.T) {
+		syncReaction(t, th.BasicUser.Id, "wave", 0)
+
+		assert.False(t, isActive(t, th.BasicUser.Id, "wave"))
+		requireNotStored(t, th.BasicUser.Id, "wave")
+	})
+
+	t.Run("removal cannot delete a local user's reaction", func(t *testing.T) {
+		_, appErr := th.App.SaveReactionForPost(th.Context, &model.Reaction{UserId: th.BasicUser.Id, PostId: post.Id, EmojiName: "star"})
+		require.Nil(t, appErr)
+
+		syncReaction(t, th.BasicUser.Id, "star", model.GetMillis())
+
+		assert.True(t, isActive(t, th.BasicUser.Id, "star"))
+		local, err := reactionStore.GetSingle(th.BasicUser.Id, post.Id, "", "star")
+		require.NoError(t, err)
+		assert.Empty(t, local.GetRemoteID())
+	})
+}
+
+func TestPluginAPIReceiveSharedChannelAcknowledgementSyncMsg(t *testing.T) {
+	th := setupSharedChannels(t).InitBasic(t)
+
+	channel := th.CreateChannel(t, th.BasicTeam)
+	pluginID := "com.test.acknowledgement-sync-plugin"
+	rc := registerPluginRemoteForTest(t, th, pluginID, channel)
+	api := NewPluginAPI(th.App, th.Context, &model.Manifest{Id: pluginID})
+	ackStore := th.App.Srv().Store().PostAcknowledgement()
+
+	remoteUserID := model.NewId()
+	userMsg := model.NewSyncMsg(channel.Id)
+	userMsg.Users = map[string]*model.User{
+		remoteUserID: {
+			Id:       remoteUserID,
+			Username: "acker-" + model.NewId()[:8],
+			Email:    model.NewId() + "@remote.test",
+			RemoteId: new(rc.RemoteId),
+		},
+	}
+	_, err := api.ReceiveSharedChannelSyncMsg(rc.RemoteId, userMsg)
+	require.NoError(t, err)
+
+	syncAck := func(t *testing.T, userID, postID string, acknowledgedAt int64) model.SyncResponse {
+		t.Helper()
+		msg := model.NewSyncMsg(channel.Id)
+		msg.Acknowledgements = []*model.PostAcknowledgement{{
+			UserId:         userID,
+			PostId:         postID,
+			ChannelId:      channel.Id,
+			AcknowledgedAt: acknowledgedAt,
+		}}
+		resp, err := api.ReceiveSharedChannelSyncMsg(rc.RemoteId, msg)
+		require.NoError(t, err)
+		return resp
+	}
+
+	isActive := func(t *testing.T, userID, postID string) bool {
+		t.Helper()
+		acks, err := ackStore.GetForPost(postID)
+		require.NoError(t, err)
+		for _, a := range acks {
+			if a.UserId == userID {
+				return true
+			}
+		}
+		return false
+	}
+
+	// Acknowledgements the sender would include when syncing this channel back to the remote.
+	sentBackToRemote := func(t *testing.T, postID string) bool {
+		t.Helper()
+		acks, err := ackStore.GetForPostSince(postID, 0, rc.RemoteId, true)
+		require.NoError(t, err)
+		return len(acks) > 0
+	}
+
+	t.Run("re-sent active acknowledgement is not rewritten", func(t *testing.T) {
+		post := th.CreatePost(t, channel)
+		firstAckAt := model.GetMillis() - 1000
+		syncAck(t, remoteUserID, post.Id, firstAckAt)
+
+		resp := syncAck(t, remoteUserID, post.Id, model.GetMillis())
+
+		assert.Empty(t, resp.AcknowledgementErrors)
+		assert.True(t, isActive(t, remoteUserID, post.Id))
+		stored, err := ackStore.GetSingle(remoteUserID, post.Id, rc.RemoteId)
+		require.NoError(t, err)
+		assert.Equal(t, firstAckAt, stored.AcknowledgedAt)
+	})
+
+	t.Run("removed acknowledgement the receiver never had is not created", func(t *testing.T) {
+		post := th.CreatePost(t, channel)
+
+		resp := syncAck(t, remoteUserID, post.Id, 0)
+
+		assert.Empty(t, resp.AcknowledgementErrors)
+		assert.False(t, isActive(t, remoteUserID, post.Id))
+		_, err := ackStore.GetSingle(remoteUserID, post.Id, rc.RemoteId)
+		var nfErr *store.ErrNotFound
+		require.ErrorAs(t, err, &nfErr)
+	})
+
+	t.Run("removal withdraws an active acknowledgement", func(t *testing.T) {
+		post := th.CreatePost(t, channel)
+		syncAck(t, remoteUserID, post.Id, model.GetMillis())
+		require.True(t, isActive(t, remoteUserID, post.Id))
+
+		resp := syncAck(t, remoteUserID, post.Id, 0)
+
+		assert.Empty(t, resp.AcknowledgementErrors)
+		assert.False(t, isActive(t, remoteUserID, post.Id))
+		withdrawn, err := ackStore.GetSingle(remoteUserID, post.Id, rc.RemoteId)
+		require.NoError(t, err)
+		assert.Zero(t, withdrawn.AcknowledgedAt)
+		assert.False(t, sentBackToRemote(t, post.Id))
+	})
+
+	t.Run("re-sent removal of a withdrawn acknowledgement is a no-op", func(t *testing.T) {
+		post := th.CreatePost(t, channel)
+		syncAck(t, remoteUserID, post.Id, model.GetMillis())
+		syncAck(t, remoteUserID, post.Id, 0)
+		before, err := th.App.Srv().Store().Post().GetSingle(th.Context, post.Id, false)
+		require.NoError(t, err)
+
+		resp := syncAck(t, remoteUserID, post.Id, 0)
+
+		assert.Empty(t, resp.AcknowledgementErrors)
+		withdrawn, err := ackStore.GetSingle(remoteUserID, post.Id, rc.RemoteId)
+		require.NoError(t, err)
+		assert.Zero(t, withdrawn.AcknowledgedAt)
+		after, err := th.App.Srv().Store().Post().GetSingle(th.Context, post.Id, false)
+		require.NoError(t, err)
+		assert.Equal(t, before.UpdateAt, after.UpdateAt)
+	})
+
+	t.Run("acknowledgement re-sent after removal is active again", func(t *testing.T) {
+		post := th.CreatePost(t, channel)
+		syncAck(t, remoteUserID, post.Id, model.GetMillis()-1000)
+		syncAck(t, remoteUserID, post.Id, 0)
+		require.False(t, isActive(t, remoteUserID, post.Id))
+
+		reAckAt := model.GetMillis()
+		resp := syncAck(t, remoteUserID, post.Id, reAckAt)
+
+		assert.Empty(t, resp.AcknowledgementErrors)
+		assert.True(t, isActive(t, remoteUserID, post.Id))
+		stored, err := ackStore.GetSingle(remoteUserID, post.Id, rc.RemoteId)
+		require.NoError(t, err)
+		assert.Equal(t, reAckAt, stored.AcknowledgedAt)
+		assert.False(t, sentBackToRemote(t, post.Id))
+	})
+
+	t.Run("acknowledgement from a user not belonging to the remote is rejected", func(t *testing.T) {
+		post := th.CreatePost(t, channel)
+
+		resp := syncAck(t, th.BasicUser.Id, post.Id, model.GetMillis())
+
+		assert.Equal(t, []string{post.Id}, resp.AcknowledgementErrors)
+		assert.False(t, isActive(t, th.BasicUser.Id, post.Id))
+	})
+
+	t.Run("removal cannot withdraw a local user's acknowledgement", func(t *testing.T) {
+		post := th.CreatePost(t, channel)
+		_, appErr := th.App.SaveAcknowledgementForPost(th.Context, post.Id, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		syncAck(t, th.BasicUser.Id, post.Id, 0)
+
+		assert.True(t, isActive(t, th.BasicUser.Id, post.Id))
+	})
+}
+
 func TestPluginAPIReceiveSharedChannelAttachmentSyncMsg(t *testing.T) {
 	th := setupSharedChannels(t).InitBasic(t)
 
@@ -1834,6 +2161,117 @@ func TestPluginAPIReceiveSharedChannelProfileImageSyncMsg(t *testing.T) {
 		require.Nil(t, appErr)
 		assert.NotEmpty(t, postImgBytes)
 		assert.NotEqual(t, preImgBytes, postImgBytes, "profile image should differ after sync")
+	})
+}
+
+// inactiveSharedChannelService simulates a cluster follower node, where the
+// shared channel service exists but is not active.
+type inactiveSharedChannelService struct {
+	SharedChannelServiceIFace
+}
+
+func (inactiveSharedChannelService) Active() bool {
+	return false
+}
+
+func TestPluginAPIReceiveSharedChannelOnInactiveService(t *testing.T) {
+	th := setupSharedChannels(t).InitBasic(t)
+
+	channel := th.CreateChannel(t, th.BasicTeam)
+	pluginID := "com.test.inactive-service-plugin"
+	rc := registerPluginRemoteForTest(t, th, pluginID, channel)
+
+	remoteUser, appErr := th.App.CreateUser(th.Context, &model.User{
+		Email:    model.NewId() + "@remote.test",
+		Username: "remote-inactive-" + model.NewId()[:8],
+		Password: model.NewTestPassword(),
+		RemoteId: new(rc.RemoteId),
+	})
+	require.Nil(t, appErr)
+
+	pngData, err := os.ReadFile("tests/test.png")
+	require.NoError(t, err, "Failed to load tests/test.png")
+
+	scService := th.Server.GetSharedChannelSyncService()
+	require.NotNil(t, scService)
+	require.True(t, scService.Active())
+
+	inactive := inactiveSharedChannelService{SharedChannelServiceIFace: scService}
+	th.Server.SetSharedChannelSyncService(inactive)
+	t.Cleanup(func() {
+		th.Server.SetSharedChannelSyncService(scService)
+	})
+	require.False(t, th.Server.GetSharedChannelSyncService().Active())
+
+	api := NewPluginAPI(th.App, th.Context, &model.Manifest{Id: pluginID})
+
+	newFileInfo := func() *model.FileInfo {
+		return &model.FileInfo{Id: model.NewId(), Name: "follower.txt", Size: 4, CreatorId: remoteUser.Id}
+	}
+
+	t.Run("sync msg succeeds", func(t *testing.T) {
+		userID := model.NewId()
+		msg := model.NewSyncMsg(channel.Id)
+		msg.Users = map[string]*model.User{
+			userID: {
+				Id:       userID,
+				Username: "follower-user-" + model.NewId()[:8],
+				Email:    model.NewId() + "@remote.test",
+				RemoteId: new(rc.RemoteId),
+			},
+		}
+
+		resp, err := api.ReceiveSharedChannelSyncMsg(rc.RemoteId, msg)
+		require.NoError(t, err)
+		assert.Contains(t, resp.UsersSyncd, userID)
+		assert.Empty(t, resp.UserErrors)
+
+		user, appErr := th.App.GetUser(th.Context, userID)
+		require.Nil(t, appErr)
+		assert.Equal(t, rc.RemoteId, user.GetRemoteID())
+	})
+
+	t.Run("attachment succeeds", func(t *testing.T) {
+		fi := newFileInfo()
+		saved, err := api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, channel.Id, fi, bytes.NewReader([]byte("data")))
+		require.NoError(t, err)
+		require.NotNil(t, saved)
+		assert.Equal(t, fi.Id, saved.Id)
+
+		storedFI, appErr := th.App.GetFileInfo(th.Context, fi.Id)
+		require.Nil(t, appErr)
+		assert.Equal(t, rc.RemoteId, *storedFI.RemoteId)
+	})
+
+	t.Run("profile image succeeds", func(t *testing.T) {
+		err := api.ReceiveSharedChannelProfileImageSyncMsg(rc.RemoteId, remoteUser.Id, pngData)
+		require.NoError(t, err)
+
+		updatedUser, appErr := th.App.GetUser(th.Context, remoteUser.Id)
+		require.Nil(t, appErr)
+		assert.Greater(t, updatedUser.LastPictureUpdate, remoteUser.LastPictureUpdate)
+	})
+
+	t.Run("nil service returns service disabled error", func(t *testing.T) {
+		th.Server.SetSharedChannelSyncService(nil)
+		defer th.Server.SetSharedChannelSyncService(inactive)
+
+		requireServiceDisabled := func(t *testing.T, err error) {
+			t.Helper()
+			require.Error(t, err)
+			var appErr *model.AppError
+			require.True(t, errors.As(err, &appErr))
+			assert.Equal(t, "api.command_share.service_disabled", appErr.Id)
+		}
+
+		_, err := api.ReceiveSharedChannelSyncMsg(rc.RemoteId, model.NewSyncMsg(channel.Id))
+		requireServiceDisabled(t, err)
+
+		_, err = api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, channel.Id, newFileInfo(), bytes.NewReader([]byte("data")))
+		requireServiceDisabled(t, err)
+
+		err = api.ReceiveSharedChannelProfileImageSyncMsg(rc.RemoteId, remoteUser.Id, pngData)
+		requireServiceDisabled(t, err)
 	})
 }
 

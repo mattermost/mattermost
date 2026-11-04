@@ -9,6 +9,7 @@ import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage, defineMessage} from 'react-intl';
 import type {Timezone} from 'timezones.json';
 
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 import {Radio} from '@mattermost/compass-ui/components/radio';
 import type {PreferencesType, PreferenceType} from '@mattermost/types/preferences';
 import type {UserProfile, UserTimezone} from '@mattermost/types/users';
@@ -43,6 +44,7 @@ function getDisplayStateFromProps(props: Props) {
         messageDisplay: props.messageDisplay,
         colorizeUsernames: props.colorizeUsernames,
         collapseDisplay: props.collapseDisplay,
+        collapseCategoryWithUnreads: props.collapseCategoryWithUnreads,
         collapsedReplyThreads: props.collapsedReplyThreads,
         linkPreviewDisplay: props.linkPreviewDisplay,
         lastActiveDisplay: props.lastActiveDisplay.toString(),
@@ -111,6 +113,7 @@ type Props = OwnProps & {
     messageDisplay: string;
     colorizeUsernames: string;
     collapseDisplay: string;
+    collapseCategoryWithUnreads: string;
     collapsedReplyThreads: string;
     collapsedReplyThreadsAllowUserPreference: boolean;
     clickToReply: string;
@@ -139,6 +142,7 @@ type State = {
     messageDisplay: string;
     colorizeUsernames: string;
     collapseDisplay: string;
+    collapseCategoryWithUnreads: string;
     collapsedReplyThreads: string;
     linkPreviewDisplay: string;
     lastActiveDisplay: string;
@@ -266,6 +270,12 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             name: Preferences.COLLAPSE_DISPLAY,
             value: this.state.collapseDisplay,
         };
+        const collapseCategoryWithUnreadsPreference = {
+            user_id: userId,
+            category: Preferences.CATEGORY_DISPLAY_SETTINGS,
+            name: Preferences.COLLAPSE_CATEGORY_WITH_UNREADS,
+            value: this.state.collapseCategoryWithUnreads,
+        };
         const collapsedReplyThreadsPreference = {
             user_id: userId,
             category: Preferences.CATEGORY_DISPLAY_SETTINGS,
@@ -305,6 +315,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             availabilityStatusOnPostsPreference,
             oneClickReactionsOnPostsPreference,
             colorizeUsernamesPreference,
+            collapseCategoryWithUnreadsPreference,
         ];
 
         await this.props.actions.savePreferences(userId, preferences);
@@ -506,18 +517,16 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             if (childOptionToShow) {
                 const childDisplay = childOptionToShow.display;
                 childOptionSection = (
-                    <div className='checkbox'>
+                    <div className='checkbox no-padding'>
                         <hr/>
-                        <label>
-                            <input
-                                id={name + 'childOption'}
-                                type='checkbox'
-                                name={childOptionToShow.label.id}
-                                checked={childOptionToShow.value === 'true'}
-                                onChange={(e) => {
-                                    this.handleOnChange(e, {[childDisplay]: e.target.checked ? 'true' : 'false'});
-                                }}
-                            />
+                        <Checkbox
+                            id={name + 'childOption'}
+                            name={childOptionToShow.label.id}
+                            checked={childOptionToShow.value === 'true'}
+                            onChange={(e) => {
+                                this.handleOnChange(e, {[childDisplay]: e.target.checked ? 'true' : 'false'});
+                            }}
+                        >
                             <FormattedMessage
                                 id={childOptionToShow.label.id}
                                 defaultMessage={childOptionToShow.label.defaultMessage}
@@ -529,7 +538,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                                     defaultMessage={childOptionToShow.more.defaultMessage}
                                 />
                             </span>
-                        </label>
+                        </Checkbox>
                         <br/>
                     </div>
                 );
@@ -1035,6 +1044,39 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             }),
         });
 
+        const collapseCategoryWithUnreadsSection = this.createSection({
+            section: Preferences.COLLAPSE_CATEGORY_WITH_UNREADS,
+            display: 'collapseCategoryWithUnreads',
+            value: this.state.collapseCategoryWithUnreads,
+            defaultDisplay: Preferences.COLLAPSE_CATEGORY_WITH_UNREADS_DEFAULT,
+            title: defineMessage({
+                id: 'user.settings.display.collapseCategoryWithUnreadsTitle',
+                defaultMessage: 'Collapse category with unread channels',
+            }),
+            firstOption: {
+                value: 'true',
+                radionButtonText: {
+                    label: defineMessage({
+                        id: 'user.settings.sidebar.on',
+                        defaultMessage: 'On',
+                    }),
+                },
+            },
+            secondOption: {
+                value: 'false',
+                radionButtonText: {
+                    label: defineMessage({
+                        id: 'user.settings.sidebar.off',
+                        defaultMessage: 'Off',
+                    }),
+                },
+            },
+            description: defineMessage({
+                id: 'user.settings.display.collapseCategoryWithUnreadsDescription',
+                defaultMessage: 'When enabled, collapsing a sidebar category hides all of its channels, including unread channels and channels with mentions. The channel you are viewing stays visible.',
+            }),
+        });
+
         let languagesSection;
         const userLocale = this.props.userLocale;
         const localeName = getLanguageInfo(userLocale).name;
@@ -1199,6 +1241,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                     {messageDisplaySection}
                     {clickToReply}
                     {channelDisplayModeSection}
+                    {collapseCategoryWithUnreadsSection}
                     {oneClickReactionsOnPostsSection}
                     {renderEmoticonsAsEmojiSection}
                     {languagesSection}

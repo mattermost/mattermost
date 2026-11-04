@@ -313,6 +313,7 @@ func (scs *Service) upsertSyncUser(rctx request.CTX, user *model.User, channel *
 		// new user.  Make sure the remoteID is correct and insert the record
 		// Preserve original remote ID before overwriting RemoteId
 		originalRemoteId := user.GetRemoteID()
+		prepareRemoteEmailForSync(user)
 		user.RemoteId = new(rc.RemoteId)
 		if user.Props == nil || user.Props[model.UserPropsKeyOriginalRemoteId] == "" {
 			if originalRemoteId == "" {
@@ -334,9 +335,8 @@ func (scs *Service) upsertSyncUser(rctx request.CTX, user *model.User, channel *
 			)
 			return nil, fmt.Errorf("error updating user: %w", ErrRemoteIDMismatch)
 		}
-		// save the updated username and email in props
 		user.SetProp(model.UserPropsKeyRemoteUsername, user.Username)
-		user.SetProp(model.UserPropsKeyRemoteEmail, user.Email)
+		remoteEmail, hasRemoteEmail := prepareRemoteEmailForSync(user)
 
 		patch := &model.UserPatch{
 			Username:  &user.Username,
@@ -348,6 +348,11 @@ func (scs *Service) upsertSyncUser(rctx request.CTX, user *model.User, channel *
 			Locale:    &user.Locale,
 			Timezone:  user.Timezone,
 		}
+		// Never use a forwarded user's synthetic Email as the original email.
+		if user.GetRemoteID() == "" || hasRemoteEmail {
+			patch.Email = &remoteEmail
+		}
+
 		if userSaved, err = scs.updateSyncUser(rctx, patch, euser, channel, rc); err != nil {
 			return nil, err
 		}
@@ -381,9 +386,9 @@ func (scs *Service) insertSyncUser(rctx request.CTX, user *model.User, _ *model.
 	// ensure the new user is created with system_user role and random password.
 	user = sanitizeUserForSync(user)
 
-	// save the original username and email in props
+	// RemoteEmail was selected before the incoming RemoteId was rewritten.
+	// Preserve it instead of replacing it with a synthetic email.
 	user.SetProp(model.UserPropsKeyRemoteUsername, user.Username)
-	user.SetProp(model.UserPropsKeyRemoteEmail, user.Email)
 
 	// Apply a suffix to the username until it is unique. Collisions will be quite
 	// rare since we are joining a username that is unique at a remote site with a unique
@@ -709,14 +714,22 @@ func (scs *Service) upsertSyncReaction(reaction *model.Reaction, targetChannel *
 		return nil, fmt.Errorf("reaction sync failed: %w", ErrChannelIDMismatch)
 	}
 
+	// GetSingle only matches rows owned by this remote, including soft-deleted ones, so a remote
+	// can never delete a reaction it does not own.
 	existingReaction, err := scs.server.GetStore().Reaction().GetSingle(reaction.UserId, reaction.PostId, rc.RemoteId, reaction.EmojiName)
 	if err != nil && !isNotFoundError(err) {
 		return nil, fmt.Errorf("error fetching reaction for sync: %w", err)
 	}
+	isActive := existingReaction != nil && existingReaction.DeleteAt == 0
 
-	if existingReaction == nil {
-		// reaction does not exist; check that user belongs to remote and create reaction
-		// this is not done for delete since deletion can be done by admins on the remote
+	// The sender sends each reaction's current state and may re-send it.
+	// Keeping the remote's ID on deleted rows stops the removal echoing back.
+	reaction.RemoteId = new(rc.RemoteId)
+
+	if reaction.DeleteAt == 0 {
+		if isActive {
+			return existingReaction, nil
+		}
 		user, err := scs.server.GetStore().User().Get(rctx, reaction.UserId)
 		if err != nil {
 			return nil, fmt.Errorf("error fetching user for reaction sync: %w", err)
@@ -724,12 +737,10 @@ func (scs *Service) upsertSyncReaction(reaction *model.Reaction, targetChannel *
 		if user.GetRemoteID() != rc.RemoteId {
 			return nil, fmt.Errorf("reaction sync failed: %w", ErrRemoteIDMismatch)
 		}
-		reaction.RemoteId = new(rc.RemoteId)
 		savedReaction, appErr = scs.app.SaveReactionForPost(request.EmptyContext(scs.server.Log()), reaction)
 	} else {
-		// make sure the reaction being deleted is owned by the remote
-		if existingReaction.GetRemoteID() != rc.RemoteId {
-			return nil, fmt.Errorf("reaction sync failed: %w", ErrRemoteIDMismatch)
+		if !isActive {
+			return reaction, nil
 		}
 		appErr = scs.app.DeleteReactionForPost(request.EmptyContext(scs.server.Log()), reaction)
 	}
@@ -756,13 +767,19 @@ func (scs *Service) upsertSyncAcknowledgement(acknowledgement *model.PostAcknowl
 		return nil, fmt.Errorf("acknowledgement sync failed: %w", ErrChannelIDMismatch)
 	}
 
+	// GetSingle also returns withdrawn rows, which have AcknowledgedAt == 0.
 	existingAcknowledgement, err := scs.server.GetStore().PostAcknowledgement().GetSingle(acknowledgement.UserId, acknowledgement.PostId, rc.RemoteId)
 	if err != nil && !isNotFoundError(err) {
 		return nil, fmt.Errorf("error fetching acknowledgement for sync: %w", err)
 	}
+	isActive := existingAcknowledgement != nil && existingAcknowledgement.AcknowledgedAt != 0
 
-	if existingAcknowledgement == nil {
-		// acknowledgement does not exist; check that user belongs to remote and create acknowledgement
+	// The sender sends each acknowledgement's current state and may re-send it.
+	if acknowledgement.AcknowledgedAt != 0 {
+		if isActive {
+			return existingAcknowledgement, nil
+		}
+		// check that user belongs to remote before creating or re-activating the acknowledgement;
 		// this is not done for delete since deletion can be done by admins on the remote
 		user, err := scs.server.GetStore().User().Get(rctx, acknowledgement.UserId)
 		if err != nil {
@@ -775,14 +792,14 @@ func (scs *Service) upsertSyncAcknowledgement(acknowledgement *model.PostAcknowl
 		acknowledgement.ChannelId = targetChannel.Id
 		savedAcknowledgement, appErr = scs.app.SaveAcknowledgementForPostWithModel(request.EmptyContext(scs.server.Log()), acknowledgement)
 	} else {
+		if !isActive {
+			return acknowledgement, nil
+		}
 		// make sure the acknowledgement being deleted is owned by the remote
 		if existingAcknowledgement.GetRemoteID() != rc.RemoteId {
 			return nil, fmt.Errorf("acknowledgement sync failed: %w", ErrRemoteIDMismatch)
 		}
-		if acknowledgement.AcknowledgedAt == 0 {
-			// Delete the acknowledgement
-			appErr = scs.app.DeleteAcknowledgementForPostWithModel(request.EmptyContext(scs.server.Log()), acknowledgement)
-		}
+		appErr = scs.app.DeleteAcknowledgementForPostWithModel(request.EmptyContext(scs.server.Log()), acknowledgement)
 	}
 
 	var retErr error

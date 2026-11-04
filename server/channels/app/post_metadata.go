@@ -79,6 +79,9 @@ func (a *App) PreparePostListForClient(rctx request.CTX, originalList *model.Pos
 		acknowledgements, _ := a.GetAcknowledgementsForPostList(list)
 
 		for _, id := range list.Order {
+			if post := list.Posts[id]; post == nil || post.DeleteAt > 0 {
+				continue
+			}
 			if _, ok := priority[id]; ok {
 				list.Posts[id].Metadata.Priority = priority[id]
 			}
@@ -118,6 +121,9 @@ func (a *App) populatePostListTranslations(rctx request.CTX, list *model.PostLis
 	postsNeedingTranslations := make(map[string][]string) // channelID -> postIDs
 
 	for _, post := range list.Posts {
+		if post.DeleteAt > 0 {
+			continue
+		}
 		// Skip if translations already populated (e.g., from CreatePost)
 		if post.Metadata != nil && len(post.Metadata.Translations) > 0 {
 			continue
@@ -289,7 +295,7 @@ func (a *App) preparePostForClient(rctx request.CTX, originalPost *model.Post, o
 }
 
 func (a *App) preparePostFilesForClient(rctx request.CTX, post *model.Post, opts *model.PreparePostForClientOpts) *model.Post {
-	if fileInfos, _, err := a.getFileMetadataForPost(rctx, post, opts.IsNewPost || opts.IsEditPost, opts.IncludeDeleted); err != nil {
+	if fileInfos, err := a.getFileMetadataForPost(rctx, post, opts.IsNewPost || opts.IsEditPost, opts.IncludeDeleted); err != nil {
 		rctx.Logger().Warn("Failed to get files for a post", mlog.String("post_id", post.Id), mlog.Err(err))
 	} else {
 		post.Metadata.Files = fileInfos
@@ -621,9 +627,9 @@ func (a *App) SanitizePostListMetadataForUser(rctx request.CTX, postList *model.
 	return clonedPostList, allPreviewsHaveMembership, nil
 }
 
-func (a *App) getFileMetadataForPost(rctx request.CTX, post *model.Post, fromMaster, includeDeleted bool) ([]*model.FileInfo, int64, *model.AppError) {
+func (a *App) getFileMetadataForPost(rctx request.CTX, post *model.Post, fromMaster, includeDeleted bool) ([]*model.FileInfo, *model.AppError) {
 	if len(post.FileIds) == 0 {
-		return nil, 0, nil
+		return nil, nil
 	}
 
 	return a.GetFileInfosForPost(rctx, post, fromMaster, includeDeleted)

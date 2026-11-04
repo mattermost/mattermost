@@ -6,7 +6,9 @@ import React, {useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
-import {Button} from '@mattermost/shared/components/button';
+import {FilterVariantIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 
 import {setAdminConsoleUsersManagementTableProperties} from 'actions/views/admin';
 
@@ -120,13 +122,14 @@ export function SystemUsersFilterPopover(props: Props) {
     return (
         <div className='systemUsersFilterContainer'>
             <Button
-                {...getReferenceProps()}
-                ref={floatingRefs.setReference}
+                className='systemUsersFilterTrigger'
                 emphasis='tertiary'
-                size='md'
+                size='medium'
                 aria-controls='systemUsersFilterPopover'
+                leadingIcon={<Icon glyph={<FilterVariantIcon/>}/>}
+                ref={floatingRefs.setReference}
+                {...getReferenceProps()}
             >
-                <i className='icon icon-filter-variant'/>
                 {formatMessage({id: 'admin.system_users.filtersMenu', defaultMessage: 'Filters ({count})'}, {count: filtersCount})}
             </Button>
             {isMounted && (
@@ -162,7 +165,7 @@ export function SystemUsersFilterPopover(props: Props) {
                         <div className='footer'>
                             <Button
                                 emphasis='primary'
-                                size='md'
+                                size='medium'
                                 onClick={handleApplyFilters}
                                 type='submit'
                             >

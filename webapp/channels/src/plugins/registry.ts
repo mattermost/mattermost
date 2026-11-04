@@ -28,12 +28,14 @@ import {
     unregisterPluginReconnectHandler,
 } from 'actions/websocket_actions';
 import {clearLoggedChannelIntroErrors} from 'selectors/channel_intro';
+import {clearLoggedChannelViewErrors} from 'selectors/channel_view_plugin';
 import store from 'stores/redux_store';
 
 import {clearComposerPlaceholderErrors} from 'components/advanced_text_editor/composer_placeholder';
 import {compassIconForName} from 'components/channel_type_icon';
 import {clearLoggedMatcherErrors} from 'components/channel_type_icon/channel_icon_override';
 
+import {clearLoggedChannelKindErrors} from 'utils/channel_kind';
 import {ActionTypes} from 'utils/constants';
 import {reArg} from 'utils/func';
 import {registerRHSPluginPopoutListener, type PopoutListeners} from 'utils/popouts/popout_windows';
@@ -77,10 +79,13 @@ import type {
     AIActionMenuItemComponent,
     ChannelTypeOptionComponent,
     ChannelIconOverrideRegistration,
+    ChannelKindRegistration,
     ChannelIntroRegistration,
+    ChannelViewRegistration,
     ComposerPlaceholderRegistration,
     ProductSwitcherMenuItemRegistration,
 } from 'types/store/plugins';
+import {CHANNEL_KINDS} from 'types/store/plugins';
 
 const defaultShouldRender = () => true;
 
@@ -1393,20 +1398,25 @@ export default class PluginRegistry {
      * - text - A string or React element to display in the menu
      * - action - A function to trigger when component is clicked on. It receives the teamId as an argument.
      * - icon - A React element to use as the button's icon
+     * - placement - Optional. 'afterCreateChannel' shows the item right below "Create new channel";
+     *   by default it follows the built-in items.
      * Returns a unique identifier.
      */
     registerSidebarBrowseOrAddChannelMenuAction = reArg([
         'text',
         'action',
         'icon',
+        'placement',
     ], ({
         text,
         action,
         icon,
+        placement,
     }: {
         text: ReactResolvable;
         action: SidebarBrowseOrAddChannelMenuAction['action'];
         icon: ReactResolvable;
+        placement?: SidebarBrowseOrAddChannelMenuAction['placement'];
     }) => {
         const id = generateId();
 
@@ -1416,6 +1426,7 @@ export default class PluginRegistry {
             text: resolveReactElement(text),
             action,
             icon: resolveReactElement(icon),
+            placement,
         });
 
         return id;
@@ -1433,6 +1444,9 @@ export default class PluginRegistry {
      * `isAvailable(state)` receives the full Redux state and gates whether this option appears. Plugins
      * may read their own plugin-scoped state (e.g. `state['plugins-<pluginId>']`) to decide visibility.
      *
+     * `showInNewChannelModal: false` keeps the option out of "Create a new channel"; it is then offered
+     * only when the plugin opens the published `new_channel_modal` with its own `channelTypePluginId`.
+     *
      * Returns a unique identifier for the registered option, which can be passed to
      * `unregisterComponent`.
      */
@@ -1444,6 +1458,7 @@ export default class PluginRegistry {
         'extraContent',
         'onCreate',
         'createButtonText',
+        'showInNewChannelModal',
     ], ({
         label,
         description,
@@ -1452,6 +1467,7 @@ export default class PluginRegistry {
         extraContent,
         onCreate,
         createButtonText,
+        showInNewChannelModal,
     }: {
         label: ReactResolvable;
         description: ReactResolvable;
@@ -1460,6 +1476,7 @@ export default class PluginRegistry {
         extraContent?: ChannelTypeOptionComponent['extraContent'];
         onCreate: ChannelTypeOptionComponent['onCreate'];
         createButtonText?: ReactResolvable;
+        showInNewChannelModal?: boolean;
     }) => {
         const id = generateId();
         this.dispatchPluginComponentWithData('ChannelTypeOption', {
@@ -1472,6 +1489,7 @@ export default class PluginRegistry {
             extraContent,
             onCreate,
             createButtonText: createButtonText === undefined ? undefined : resolveReactElement(createButtonText),
+            showInNewChannelModal,
         });
 
         return id;
@@ -1519,6 +1537,41 @@ export default class PluginRegistry {
     });
 
     /**
+     * Register a kind for matching channels, which the webapp then names with that kind's own
+     * words: a 'board' is a board everywhere the webapp would say channel ("Board Settings",
+     * "Leave Board", "Add a board header", "joined the board"). Each such string is its own
+     * translated message beside the channel one.
+     *
+     * `matcher` receives the full GlobalState and a Channel, as for registerChannelIconOverride;
+     * throws are caught and treated as no-match, and the first match wins. Its answer is kept until
+     * the channel or the registrations change, so it should decide from the channel. `kind` must be one the
+     * webapp knows: 'board'. Registrations are cleaned up automatically when the plugin is removed.
+     *
+     * @returns Auto-generated unique id for this registration.
+     */
+    registerChannelKind = reArg(['matcher', 'kind'], ({matcher, kind}: {
+        matcher: ChannelKindRegistration['matcher'];
+        kind: ChannelKindRegistration['kind'];
+    }) => {
+        if (!(CHANNEL_KINDS as readonly string[]).includes(kind)) {
+            // eslint-disable-next-line no-console
+            console.error(`ChannelKind: plugin '${this.id}' supplied unknown kind '${kind}' — registration ignored.`);
+            return generateId();
+        }
+        if (this.isActive()) {
+            clearLoggedChannelKindErrors(this.id);
+        }
+        const id = generateId();
+        this.dispatchPluginComponentWithData('ChannelKind', {
+            id,
+            pluginId: this.id,
+            matcher,
+            kind,
+        });
+        return id;
+    });
+
+    /**
      * Register a component rendered above the message input in both the center-channel composer
      * and the thread/RHS composer. Receives {channel}; return null when nothing should show.
      * Multiple registrations stack. Cleaned up automatically when the plugin is removed.
@@ -1545,6 +1598,47 @@ export default class PluginRegistry {
         }
         const id = generateId();
         this.dispatchPluginComponentWithData('ChannelIntro', {id, pluginId: this.id, matcher, component});
+        return id;
+    });
+
+    /**
+     * Register a component that replaces the center view of channels the matcher selects. The
+     * channel header, channel banner, and bookmarks bar stay rendered by core; the post list and
+     * the message composer (including the archived-channel and read-only notices that replace it)
+     * are not rendered, and the component fills the remaining space instead.
+     *
+     * `matcher` receives the full GlobalState as the first argument and a Channel object as the
+     * second, so it can read plugin-owned slices (e.g. state['plugins-<id>']). It runs on every
+     * store update while a channel is open, so it should be cheap or memoized by the plugin.
+     * Matcher throws are caught and treated as no-match. The first registration whose matcher
+     * returns exactly `true` wins (alphabetical pluginId, then insertion order).
+     *
+     * `component` receives {channel, channelId, teamId, focusedPostId}, where teamId is the current
+     * team's id. Core marks the channel as read when the component mounts and whenever the channel
+     * changes, as the post list would, and skips that on a permalink.
+     *
+     * Permalinks (`/:team/channels/:channel/:postid`) render the component too. It receives the
+     * linked post id as `focusedPostId` and is responsible for showing that post. `focusedPostId`
+     * stays set after the post id is removed from the URL, until the user switches channels.
+     *
+     * Registrations are cleaned up automatically when the plugin is removed.
+     *
+     * @returns Auto-generated unique id for this registration, usable with `unregisterComponent`.
+     */
+    registerChannelViewComponent = reArg(['matcher', 'component'], ({matcher, component}: {
+        matcher: ChannelViewRegistration['matcher'];
+        component: ChannelViewRegistration['component'];
+    }) => {
+        if (this.isActive()) {
+            clearLoggedChannelViewErrors(this.id);
+        }
+        const id = generateId();
+        this.dispatchPluginComponentWithData('ChannelView', {
+            id,
+            pluginId: this.id,
+            matcher,
+            component,
+        });
         return id;
     });
 

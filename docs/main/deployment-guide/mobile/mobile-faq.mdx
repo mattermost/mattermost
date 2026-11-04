@@ -278,7 +278,7 @@ Please refer to the the App Links Assistant in Android Studio for configuring [d
 By setting up global network traffic management, you can send a user to an internal or external network when connecting with a mobile app. Moreover, you can have two separate layers of restrictions on internal and external traffic, such as:
 
 > - In the internal network, deploy on a private network via per device VPN.
-> - In the external network, deploy with [TLS mutual auth](/administration-guide/onboard/ssl-client-certificate) with an NGINX proxy, and [client-side certificates](/administration-guide/onboard/certificate-based-authentication) for desktop and iOS.
+> - For web and desktop access from the external network, you can validate client certificates using [mutual TLS with an NGINX proxy](/administration-guide/onboard/ssl-client-certificate). SSL client certificates are not supported by the Mattermost mobile apps.
 
 Many services such as Microsoft Azure provide options for [managing network traffic](https://learn.microsoft.com/en-us/azure/traffic-manager/traffic-manager-overview), or you can engage a services partner to assist.
 

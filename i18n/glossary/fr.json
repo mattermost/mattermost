@@ -445,5 +445,28 @@
   "server": {
     "target": "serveur",
     "note": "Masculine."
+  },
+  "health dashboard": {
+    "target": "tableau de bord Santé du site",
+    "note": "Masculine. The page title and sidebar entry are 'Santé du site'; use the full form in running text."
+  },
+  "health finding": {
+    "target": "constat de santé",
+    "note": "Masculine. Shorten to 'constat' inside the health dashboard, where the context is clear."
+  },
+  "Agents plugin": {
+    "target": "plugin Agents",
+    "note": "Masculine: 'le plugin Agents'. With the brand: 'le plugin Mattermost Agents'."
+  },
+  "Hosted Push Notification Service": {
+    "target": "Hosted Push Notification Service",
+    "note": "Masculine. Put 'service' before the name: 'le service Mattermost Hosted Push Notification Service', 'du service Hosted Push Notification Service'. HPNS stays as is."
+  },
+  "Test Push Notification Service": {
+    "target": "Test Push Notification Service",
+    "note": "Masculine. Put 'service' before the name: 'le service Mattermost Test Push Notification Service', 'du service Test Push Notification Service'. TPNS stays as is."
+  },
+  "PushNotificationServer": {
+    "target": "PushNotificationServer"
   }
 }

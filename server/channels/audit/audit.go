@@ -5,6 +5,7 @@ package audit
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -13,6 +14,10 @@ import (
 // DefMaxQueueSize is sized for the post delivery audit stream, which emits one record per post
 // per recipient and so bursts far above the volume of the other audit levels.
 const DefMaxQueueSize = 10000
+
+// MetricsTargetPrefix is prepended to audit target names in logger metrics so they are not
+// merged with main logger targets of the same name, including logr's own "_logr" queue.
+const MetricsTargetPrefix = "audit/"
 
 type Audit struct {
 	logger *mlog.Logger
@@ -46,6 +51,24 @@ func (a *Audit) LogRecord(level mlog.Level, rec model.AuditRecord) {
 	}
 
 	a.logger.Log(level, "", flds...)
+}
+
+// SetMetricsCollector reports audit logger metrics to collector, with target names prefixed by
+// MetricsTargetPrefix. logr binds metrics to a target when it is added, so this must be called
+// before Configure.
+func (a *Audit) SetMetricsCollector(collector mlog.MetricsCollector, updateFreqMillis int64) {
+	a.logger.SetMetricsCollector(&prefixedMetricsCollector{collector: collector}, updateFreqMillis)
+}
+
+// IsLevelEnabled reports whether a configured target is accepting records at the given level.
+func (a *Audit) IsLevelEnabled(level mlog.Level) bool {
+	return a.logger.IsLevelEnabled(level)
+}
+
+// IsActive reports whether a configured target is accepting records at any general audit level
+// (mlog.MLvlAuditGeneral).
+func (a *Audit) IsActive() bool {
+	return slices.ContainsFunc(mlog.MLvlAuditGeneral, a.IsLevelEnabled)
 }
 
 // Configure sets zero or more target to output audit logs to.
@@ -93,4 +116,28 @@ func (a *Audit) onLoggerError(err error) {
 		return
 	}
 	mlog.Error("Auditing error", mlog.Err(err))
+}
+
+type prefixedMetricsCollector struct {
+	collector mlog.MetricsCollector
+}
+
+func (c *prefixedMetricsCollector) QueueSizeGauge(target string) (mlog.Gauge, error) {
+	return c.collector.QueueSizeGauge(MetricsTargetPrefix + target)
+}
+
+func (c *prefixedMetricsCollector) LoggedCounter(target string) (mlog.Counter, error) {
+	return c.collector.LoggedCounter(MetricsTargetPrefix + target)
+}
+
+func (c *prefixedMetricsCollector) ErrorCounter(target string) (mlog.Counter, error) {
+	return c.collector.ErrorCounter(MetricsTargetPrefix + target)
+}
+
+func (c *prefixedMetricsCollector) DroppedCounter(target string) (mlog.Counter, error) {
+	return c.collector.DroppedCounter(MetricsTargetPrefix + target)
+}
+
+func (c *prefixedMetricsCollector) BlockedCounter(target string) (mlog.Counter, error) {
+	return c.collector.BlockedCounter(MetricsTargetPrefix + target)
 }
