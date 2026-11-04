@@ -141,3 +141,52 @@ func TestHasPluginImplementing(t *testing.T) {
 		require.False(t, env.HasPluginImplementing(MessageHasBeenPostedID))
 	})
 }
+
+// Deactivate reports whether it stopped an active plugin; callers use that to
+// tell the webapp to unload the plugin, including webapp-only plugins.
+func TestDeactivateWebappOnlyPlugin(t *testing.T) {
+	pluginDir := t.TempDir()
+	webappPluginDir := t.TempDir()
+
+	pluginID := "test-webapp-only-plugin"
+	require.NoError(t, os.MkdirAll(filepath.Join(pluginDir, pluginID, "webapp"), 0700))
+	require.NoError(t, os.WriteFile(
+		filepath.Join(pluginDir, pluginID, "plugin.json"),
+		[]byte(`{"id":"`+pluginID+`","webapp":{"bundle_path":"webapp/bundle.js"}}`),
+		0600,
+	))
+	require.NoError(t, os.WriteFile(filepath.Join(pluginDir, pluginID, "webapp", "bundle.js"), []byte("console.log('webapp');"), 0600))
+
+	logger := mlog.CreateConsoleTestLogger(t)
+	apiImpl := func(*model.Manifest) API { return nil }
+	env, err := NewEnvironment(apiImpl, nil, pluginDir, webappPluginDir, logger, nil)
+	require.NoError(t, err)
+	t.Cleanup(env.Shutdown)
+
+	_, activated, err := env.Activate(pluginID)
+	require.NoError(t, err)
+	require.True(t, activated)
+	require.True(t, env.IsActive(pluginID))
+
+	require.True(t, env.Deactivate(pluginID))
+	require.False(t, env.IsActive(pluginID))
+	require.False(t, env.Deactivate(pluginID), "an inactive plugin is not deactivated again")
+}
+
+func TestReattachReportsStartFailure(t *testing.T) {
+	logger := mlog.CreateConsoleTestLogger(t)
+	apiImpl := func(*model.Manifest) API { return nil }
+	env, err := NewEnvironment(apiImpl, nil, t.TempDir(), t.TempDir(), logger, nil)
+	require.NoError(t, err)
+	t.Cleanup(env.Shutdown)
+
+	manifest := &model.Manifest{
+		Id:               "test-reattach-failure",
+		MinServerVersion: "99.0.0",
+		Server:           &model.ManifestServer{Executable: "backend.exe"},
+	}
+
+	require.Error(t, env.Reattach(manifest, &model.PluginReattachConfig{}))
+	require.False(t, env.IsActive(manifest.Id))
+	require.Equal(t, model.PluginStateFailedToStart, env.GetPluginState(manifest.Id))
+}

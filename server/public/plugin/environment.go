@@ -419,7 +419,7 @@ func (env *Environment) Reattach(manifest *model.Manifest, pluginReattachConfig 
 
 	err := checkMinServerVersion(pluginInfo)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	if !pluginInfo.Manifest.HasServer() {
@@ -432,7 +432,7 @@ func (env *Environment) Reattach(manifest *model.Manifest, pluginReattachConfig 
 
 	err = env.startPluginServer(pluginInfo, WithReattachConfig(pluginReattachConfig))
 	if err != nil {
-		return nil
+		return err
 	}
 
 	mlog.Debug("Plugin reattached", mlog.String("plugin_id", pluginInfo.Manifest.Id), mlog.String("version", pluginInfo.Manifest.Version))
@@ -462,9 +462,15 @@ func (env *Environment) RemovePlugin(id string) {
 func (env *Environment) deactivateAndTeardown(rp registeredPlugin) bool {
 	id := rp.BundleInfo.Manifest.Id
 
-	if rp.supervisor == nil || !env.IsActive(id) {
+	if !env.IsActive(id) {
 		env.setPluginState(id, model.PluginStateNotRunning)
 		return false
+	}
+
+	// A webapp-only plugin has no server process to tear down.
+	if rp.supervisor == nil {
+		env.setPluginState(id, model.PluginStateNotRunning)
+		return true
 	}
 
 	done := make(chan struct{})
