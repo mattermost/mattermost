@@ -193,12 +193,12 @@ func (s *MmctlUnitTestSuite) TestImportJobShowCmdF() {
 			Return(mockJob, &model.Response{}, nil).
 			Times(1)
 
-		err := importJobShowCmdF(s.client, &cobra.Command{}, []string{mockJob.Id})
+		err := importJobShowCmdF(s.client, newTestCmd(s.T(), ImportJobShowCmd), []string{mockJob.Id})
 		s.Require().Nil(err)
 		s.Empty(printer.GetErrorLines())
 		s.Require().Len(printer.GetLines(), 4)
 		s.Contains(printer.GetLines()[1], "1 import entry could not be matched")
-		s.Contains(printer.GetLines()[2], "4 import users matched an existing account on this server by username and were linked")
+		s.Contains(printer.GetLines()[2], "4 import users matched existing accounts on this server by username and were linked without changing those accounts")
 		s.Contains(printer.GetLines()[3], "import/abc.zip.unmatched-users.csv")
 	})
 
@@ -218,7 +218,7 @@ func (s *MmctlUnitTestSuite) TestImportJobShowCmdF() {
 			Return(mockJob, &model.Response{}, nil).
 			Times(1)
 
-		err := importJobShowCmdF(s.client, &cobra.Command{}, []string{mockJob.Id})
+		err := importJobShowCmdF(s.client, newTestCmd(s.T(), ImportJobShowCmd), []string{mockJob.Id})
 		s.Require().Nil(err)
 		s.Empty(printer.GetErrorLines())
 		s.Require().Len(printer.GetLines(), 3)

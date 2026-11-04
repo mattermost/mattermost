@@ -378,6 +378,11 @@ func TestScopedImportPreservesExistingUserIdentity(t *testing.T) {
 			member, memberErr := th.App.GetTeamMember(th.Context, team.Id, before.Id)
 			require.Nil(t, memberErr, "team membership")
 			require.Equal(t, before.Id, member.UserId, "team membership")
+			channel, chanErr := th.App.GetChannelByName(th.Context, chanName, team.Id, false)
+			require.Nil(t, chanErr)
+			chanMember, chanMemberErr := th.App.GetChannelMember(th.Context, channel.Id, before.Id)
+			require.Nil(t, chanMemberErr, "channel membership")
+			require.Equal(t, before.Id, chanMember.UserId, "channel membership")
 			require.Equal(t, before.Id, postAuthorByMessage(t, th, teamName, chanName, message), "post attribution")
 		})
 	}

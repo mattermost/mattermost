@@ -555,11 +555,11 @@ func importJobShowCmdF(c client.Client, command *cobra.Command, args []string) e
 	}
 	if count := job.Data["linked_existing_users_count"]; count != "" && count != "0" {
 		hasReportEntries = true
-		noun, verb := "users", "were"
+		msg := fmt.Sprintf("\n%s import users matched existing accounts on this server by username and were linked without changing those accounts.", count)
 		if count == "1" {
-			noun, verb = "user", "was"
+			msg = "\n1 import user matched an existing account on this server by username and was linked without changing the account."
 		}
-		printer.Print(fmt.Sprintf("\n%s import %s matched an existing account on this server by username and %s linked without changing the account.", count, noun, verb))
+		printer.Print(msg)
 	}
 	if reportPath := job.Data["unmatched_users_report"]; hasReportEntries && reportPath != "" {
 		printer.Print(fmt.Sprintf("See the report for details: %s", reportPath))
