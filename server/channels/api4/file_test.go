@@ -32,6 +32,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
@@ -1033,6 +1034,31 @@ func TestGetFile(t *testing.T) {
 		}
 	})
 
+	t.Run("deleted file is not served from a lagging replica", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		post, fileInfo := uploadFileAndCreatePost(t, th, client)
+
+		originalStore := th.App.Srv().Store()
+		beforeDelete, storeErr := originalStore.FileInfo().GetByIds([]string{fileInfo.Id}, true, false, true)
+		require.NoError(t, storeErr)
+		require.Len(t, beforeDelete, 1)
+
+		_, storeErr = originalStore.FileInfo().DeleteForPost(th.Context, post.Id)
+		require.NoError(t, storeErr)
+
+		lagging := &replicaLagFileInfoStore{FileInfoStore: originalStore.FileInfo(), staleInfo: beforeDelete[0]}
+		th.App.Srv().SetStore(&replicaLagFileStore{Store: originalStore, fileInfos: lagging})
+		t.Cleanup(func() {
+			th.App.Srv().SetStore(originalStore)
+		})
+
+		_, resp, err := client.GetFile(context.Background(), fileInfo.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+		CheckErrorID(t, err, "api.file.get_file_info.app_error")
+	})
+
 	t.Run("content reviewer can get a deleted file", func(t *testing.T) {
 		th.LoginBasic(t)
 		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
@@ -1089,6 +1115,32 @@ func TestGetFile(t *testing.T) {
 			})
 		}
 	})
+}
+
+// replicaLagFileInfoStore simulates a read replica that still holds an earlier copy
+// of one file info. Any GetByIds lookup of that file which is not pinned to the master
+// DB returns the earlier copy; every other lookup passes through to the real store.
+type replicaLagFileInfoStore struct {
+	store.FileInfoStore
+
+	staleInfo *model.FileInfo
+}
+
+func (s *replicaLagFileInfoStore) GetByIds(ids []string, includeDeleted, allowFromCache, readFromMaster bool) ([]*model.FileInfo, error) {
+	if !readFromMaster && len(ids) == 1 && ids[0] == s.staleInfo.Id {
+		stale := *s.staleInfo
+		return []*model.FileInfo{&stale}, nil
+	}
+	return s.FileInfoStore.GetByIds(ids, includeDeleted, allowFromCache, readFromMaster)
+}
+
+type replicaLagFileStore struct {
+	store.Store
+	fileInfos *replicaLagFileInfoStore
+}
+
+func (s *replicaLagFileStore) FileInfo() store.FileInfoStore {
+	return s.fileInfos
 }
 
 func TestGetFileAsContentReviewer(t *testing.T) {
