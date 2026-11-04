@@ -495,26 +495,72 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                   1 - 1 of 1
                 </div>
                 <button
-                  class="btn btn-quaternary btn-sm btn-icon ml-2 prev disabled"
+                  aria-label="Previous page"
+                  class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77"
                   data-testid="page-link-prev"
                   disabled=""
                   type="button"
                 >
-                  <i
-                    class="icon icon-chevron-left"
-                    title="Previous Icon"
-                  />
+                  <span
+                    aria-hidden="true"
+                    class="_icon-button__icon-slot_ft92e_41"
+                  >
+                    <div
+                      aria-hidden="true"
+                      class="_icon_1i355_2 _icon--size-16_1i355_38"
+                    >
+                      <div
+                        class="_icon__glyph-area_1i355_9"
+                      >
+                        <svg
+                          fill="currentColor"
+                          height="18"
+                          version="1.1"
+                          viewBox="0 0 24 24"
+                          width="18"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M15.41,16.58L10.83,12L15.41,7.41L14,6L8,12L14,18L15.41,16.58Z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </span>
                 </button>
                 <button
-                  class="btn btn-quaternary btn-sm btn-icon next disabled"
+                  aria-label="Next page"
+                  class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77"
                   data-testid="page-link-next"
                   disabled=""
                   type="button"
                 >
-                  <i
-                    class="icon icon-chevron-right"
-                    title="Next Icon"
-                  />
+                  <span
+                    aria-hidden="true"
+                    class="_icon-button__icon-slot_ft92e_41"
+                  >
+                    <div
+                      aria-hidden="true"
+                      class="_icon_1i355_2 _icon--size-16_1i355_38"
+                    >
+                      <div
+                        class="_icon__glyph-area_1i355_9"
+                      >
+                        <svg
+                          fill="currentColor"
+                          height="18"
+                          version="1.1"
+                          viewBox="0 0 24 24"
+                          width="18"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </span>
                 </button>
               </div>
             </div>
@@ -585,7 +631,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         class="admin-console__content"
       >
         <section
-          aria-labelledby="_r_6_"
+          aria-labelledby="_r_a_"
           class="_admin-panel_iwm08_2 AdminPanel clearfix"
           id="channel_profile"
         >
@@ -606,7 +652,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                   >
                     <h2
                       class="_admin-panel-header__title_19tix_37"
-                      id="_r_6_"
+                      id="_r_a_"
                     >
                       Channel Profile
                     </h2>
@@ -694,7 +740,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
           </div>
         </section>
         <section
-          aria-labelledby="_r_7_"
+          aria-labelledby="_r_b_"
           class="_admin-panel_iwm08_2 AdminPanel clearfix"
           id="channel_moderation"
         >
@@ -715,7 +761,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                   >
                     <h2
                       class="_admin-panel-header__title_19tix_37"
-                      id="_r_7_"
+                      id="_r_b_"
                     >
                       Advanced Access Control
                     </h2>
@@ -762,7 +808,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
           </div>
         </section>
         <section
-          aria-labelledby="_r_8_"
+          aria-labelledby="_r_c_"
           class="_admin-panel_iwm08_2 AdminPanel clearfix"
           id="channel_manage"
         >
@@ -783,7 +829,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                   >
                     <h2
                       class="_admin-panel-header__title_19tix_37"
-                      id="_r_8_"
+                      id="_r_c_"
                     >
                       Channel Management
                     </h2>
@@ -952,7 +998,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
           </div>
         </section>
         <section
-          aria-labelledby="_r_b_"
+          aria-labelledby="_r_f_"
           class="_admin-panel_iwm08_2 AdminPanel clearfix"
           id="channel_groups"
         >
@@ -973,7 +1019,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                   >
                     <h2
                       class="_admin-panel-header__title_19tix_37"
-                      id="_r_b_"
+                      id="_r_f_"
                     >
                       Groups
                     </h2>
@@ -1055,26 +1101,72 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                   1 - 1 of 1
                 </div>
                 <button
-                  class="btn btn-quaternary btn-sm btn-icon ml-2 prev disabled"
+                  aria-label="Previous page"
+                  class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77"
                   data-testid="page-link-prev"
                   disabled=""
                   type="button"
                 >
-                  <i
-                    class="icon icon-chevron-left"
-                    title="Previous Icon"
-                  />
+                  <span
+                    aria-hidden="true"
+                    class="_icon-button__icon-slot_ft92e_41"
+                  >
+                    <div
+                      aria-hidden="true"
+                      class="_icon_1i355_2 _icon--size-16_1i355_38"
+                    >
+                      <div
+                        class="_icon__glyph-area_1i355_9"
+                      >
+                        <svg
+                          fill="currentColor"
+                          height="18"
+                          version="1.1"
+                          viewBox="0 0 24 24"
+                          width="18"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M15.41,16.58L10.83,12L15.41,7.41L14,6L8,12L14,18L15.41,16.58Z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </span>
                 </button>
                 <button
-                  class="btn btn-quaternary btn-sm btn-icon next disabled"
+                  aria-label="Next page"
+                  class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77"
                   data-testid="page-link-next"
                   disabled=""
                   type="button"
                 >
-                  <i
-                    class="icon icon-chevron-right"
-                    title="Next Icon"
-                  />
+                  <span
+                    aria-hidden="true"
+                    class="_icon-button__icon-slot_ft92e_41"
+                  >
+                    <div
+                      aria-hidden="true"
+                      class="_icon_1i355_2 _icon--size-16_1i355_38"
+                    >
+                      <div
+                        class="_icon__glyph-area_1i355_9"
+                      >
+                        <svg
+                          fill="currentColor"
+                          height="18"
+                          version="1.1"
+                          viewBox="0 0 24 24"
+                          width="18"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </span>
                 </button>
               </div>
             </div>
@@ -1145,7 +1237,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         class="admin-console__content"
       >
         <section
-          aria-labelledby="_r_i_"
+          aria-labelledby="_r_q_"
           class="_admin-panel_iwm08_2 AdminPanel clearfix"
           id="channel_profile"
         >
@@ -1166,7 +1258,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                   >
                     <h2
                       class="_admin-panel-header__title_19tix_37"
-                      id="_r_i_"
+                      id="_r_q_"
                     >
                       Channel Profile
                     </h2>
@@ -1255,7 +1347,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
           </div>
         </section>
         <section
-          aria-labelledby="_r_j_"
+          aria-labelledby="_r_r_"
           class="_admin-panel_iwm08_2 AdminPanel clearfix"
           id="channel_moderation"
         >
@@ -1276,7 +1368,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                   >
                     <h2
                       class="_admin-panel-header__title_19tix_37"
-                      id="_r_j_"
+                      id="_r_r_"
                     >
                       Advanced Access Control
                     </h2>
@@ -1323,7 +1415,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
           </div>
         </section>
         <section
-          aria-labelledby="_r_k_"
+          aria-labelledby="_r_s_"
           class="_admin-panel_iwm08_2 AdminPanel clearfix"
           id="channel_manage"
         >
@@ -1344,7 +1436,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                   >
                     <h2
                       class="_admin-panel-header__title_19tix_37"
-                      id="_r_k_"
+                      id="_r_s_"
                     >
                       Channel Management
                     </h2>
@@ -1522,7 +1614,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         class="admin-console__content"
       >
         <section
-          aria-labelledby="_r_m_"
+          aria-labelledby="_r_u_"
           class="_admin-panel_iwm08_2 AdminPanel clearfix"
           id="channel_profile"
         >
@@ -1543,7 +1635,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                   >
                     <h2
                       class="_admin-panel-header__title_19tix_37"
-                      id="_r_m_"
+                      id="_r_u_"
                     >
                       Channel Profile
                     </h2>
@@ -1631,7 +1723,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
           </div>
         </section>
         <section
-          aria-labelledby="_r_n_"
+          aria-labelledby="_r_v_"
           class="_admin-panel_iwm08_2 AdminPanel clearfix"
           id="channel_moderation"
         >
@@ -1652,7 +1744,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                   >
                     <h2
                       class="_admin-panel-header__title_19tix_37"
-                      id="_r_n_"
+                      id="_r_v_"
                     >
                       Advanced Access Control
                     </h2>
@@ -1699,7 +1791,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
           </div>
         </section>
         <section
-          aria-labelledby="_r_o_"
+          aria-labelledby="_r_10_"
           class="_admin-panel_iwm08_2 AdminPanel clearfix"
           id="channel_manage"
         >
@@ -1720,7 +1812,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                   >
                     <h2
                       class="_admin-panel-header__title_19tix_37"
-                      id="_r_o_"
+                      id="_r_10_"
                     >
                       Channel Management
                     </h2>
@@ -1898,7 +1990,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         class="admin-console__content"
       >
         <section
-          aria-labelledby="_r_c_"
+          aria-labelledby="_r_k_"
           class="_admin-panel_iwm08_2 AdminPanel clearfix"
           id="channel_profile"
         >
@@ -1919,7 +2011,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                   >
                     <h2
                       class="_admin-panel-header__title_19tix_37"
-                      id="_r_c_"
+                      id="_r_k_"
                     >
                       Channel Profile
                     </h2>
@@ -2008,7 +2100,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
           </div>
         </section>
         <section
-          aria-labelledby="_r_d_"
+          aria-labelledby="_r_l_"
           class="_admin-panel_iwm08_2 AdminPanel clearfix"
           id="channel_moderation"
         >
@@ -2029,7 +2121,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                   >
                     <h2
                       class="_admin-panel-header__title_19tix_37"
-                      id="_r_d_"
+                      id="_r_l_"
                     >
                       Advanced Access Control
                     </h2>
@@ -2076,7 +2168,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
           </div>
         </section>
         <section
-          aria-labelledby="_r_e_"
+          aria-labelledby="_r_m_"
           class="_admin-panel_iwm08_2 AdminPanel clearfix"
           id="channel_manage"
         >
@@ -2097,7 +2189,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                   >
                     <h2
                       class="_admin-panel-header__title_19tix_37"
-                      id="_r_e_"
+                      id="_r_m_"
                     >
                       Channel Management
                     </h2>
@@ -2235,7 +2327,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         class="admin-console__content"
       >
         <section
-          aria-labelledby="_r_f_"
+          aria-labelledby="_r_n_"
           class="_admin-panel_iwm08_2 AdminPanel clearfix"
           id="channel_profile"
         >
@@ -2256,7 +2348,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                   >
                     <h2
                       class="_admin-panel-header__title_19tix_37"
-                      id="_r_f_"
+                      id="_r_n_"
                     >
                       Channel Profile
                     </h2>
@@ -2344,7 +2436,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
           </div>
         </section>
         <section
-          aria-labelledby="_r_g_"
+          aria-labelledby="_r_o_"
           class="_admin-panel_iwm08_2 AdminPanel clearfix"
           id="channel_moderation"
         >
@@ -2365,7 +2457,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                   >
                     <h2
                       class="_admin-panel-header__title_19tix_37"
-                      id="_r_g_"
+                      id="_r_o_"
                     >
                       Advanced Access Control
                     </h2>
@@ -2412,7 +2504,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
           </div>
         </section>
         <section
-          aria-labelledby="_r_h_"
+          aria-labelledby="_r_p_"
           class="_admin-panel_iwm08_2 AdminPanel clearfix"
           id="channel_manage"
         >
@@ -2433,7 +2525,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                   >
                     <h2
                       class="_admin-panel-header__title_19tix_37"
-                      id="_r_h_"
+                      id="_r_p_"
                     >
                       Channel Management
                     </h2>
