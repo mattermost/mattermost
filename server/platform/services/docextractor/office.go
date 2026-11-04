@@ -14,7 +14,12 @@ import (
 	"sync"
 )
 
-// officePartReadLimit is the per-part read cap for content-type metadata and part XML.
+// officeContentTypesReadLimit caps [Content_Types].xml size.
+// Real files are 1-10 KB; even a pathological 1000-part document is only 128 KB.
+const officeContentTypesReadLimit int64 = 1 << 20
+
+// officePartReadLimit caps text-bearing part XML (word/document.xml, ppt/slides/*.xml, etc.).
+// Pathological XML with many short tags can require reading 16 MB to extract 1 MB of text.
 const officePartReadLimit int64 = 20 << 20
 
 var (
@@ -323,7 +328,7 @@ func readOfficeOverrides(ctx context.Context, f *zip.File) ([]officeOverride, er
 		return nil, err
 	}
 	var def officeContentTypes
-	err = xml.NewDecoder(io.LimitReader(rc, officePartReadLimit)).Decode(&def)
+	err = xml.NewDecoder(io.LimitReader(rc, officeContentTypesReadLimit)).Decode(&def)
 	closeErr := rc.Close()
 	if err != nil {
 		return nil, err
