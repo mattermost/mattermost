@@ -230,7 +230,11 @@ def tick(hub, run: dict | None, titles: list[str], live: bool) -> str:
         return f'"{item.get("title")}" was changed by a person, so it was left alone'
     if not live:
         return f'dry run: would have ticked "{item.get("title")}"'
-    hub.close_item(run["id"], c_index, i_index)
+    try:
+        hub.close_item(run["id"], c_index, i_index)
+    except HubError as err:
+        # A bot that isn't a participant of the run gets HTTP 403; the posts already made must not be lost to a crash.
+        return f'could not tick "{item.get("title")}": {err}; the Hub bot must be a participant of the playbook run'
     return f'ticked "{item.get("title")}"'
 
 

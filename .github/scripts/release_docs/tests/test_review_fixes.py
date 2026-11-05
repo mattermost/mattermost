@@ -7,6 +7,9 @@ for name, value in {"GITHUB_TOKEN": "test", "REPOS": "mattermost/mattermost", "M
     os.environ.setdefault(name, value)
 
 from release_docs import breaking, calendar, key_dates  # noqa: E402
+from release_docs import hub as hublib  # noqa: E402
+
+from .hub_fakes import FakeHub, playbook_run  # noqa: E402
 
 
 class Release:
@@ -32,6 +35,17 @@ class ReviewFixesTest(unittest.TestCase):
         self.assertTrue(key_dates.names_release("V12.3 release day", Release))
         self.assertFalse(key_dates.names_release("v12.3.1 Release Day", Release))
         self.assertTrue(key_dates.names_release("Mobile v2.48 Release Day", Release))
+
+    def test_a_refused_tick_is_reported_not_raised(self):
+        class Refusing(FakeHub):
+            def close_item(self, run_id, checklist, item):
+                raise hublib.HubError(403)
+
+        hub = Refusing([], playbook_run("release", "Queue the Twitter announcement for the release"))
+        note = hublib.tick(hub, hub.run, ["Queue the Twitter announcement for the release"], True)
+        self.assertEqual(note, 'could not tick "Queue the Twitter announcement for the release": Hub request failed (HTTP 403); '
+                               'the Hub bot must be a participant of the playbook run')
+        self.assertEqual(hub.writes, [])
 
 
 if __name__ == "__main__":
