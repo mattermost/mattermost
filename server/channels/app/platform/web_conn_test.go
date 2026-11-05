@@ -644,9 +644,7 @@ func TestTargetChannelsCache(t *testing.T) {
 		c := targetChannelsCache{ttl: 5}
 		var wg sync.WaitGroup
 		for g := range 8 {
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
+			wg.Go(func() {
 				for i := range 500 {
 					id := fmt.Sprint(i % 20)
 					_, err := c.get(id, func() (map[string]string, error) { return map[string]string{"c": "x"}, nil })
@@ -658,7 +656,7 @@ func TestTargetChannelsCache(t *testing.T) {
 						c.remove(id)
 					}
 				}
-			}()
+			})
 		}
 		wg.Wait()
 	})
