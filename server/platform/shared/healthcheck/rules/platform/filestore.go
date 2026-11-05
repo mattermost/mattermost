@@ -19,12 +19,12 @@ func init() {
 const (
 	filestoreConsolePath = "/admin_console/environment/file_storage"
 
-	filestoreDiskLowRatio     = 0.10
-	filestoreDiskFullRatio    = 0.05
+	filestoreDiskLowDivisor   = 10 // below 10% of the volume
+	filestoreDiskFullDivisor  = 20 // below 5% of the volume
 	filestoreDiskLowCapMB     = 10 * 1024
 	filestoreDiskFullCapMB    = 5 * 1024
-	filestoreDiskEmergencyMB  = 1024
-	filestoreDiskSpaceSubject = "FileStore.AvailableMB"
+	filestoreDiskLowFloorMB   = 1024
+	filestoreDiskSpaceSubject = "FileSettings.Directory"
 	megabytesPerGigabyte      = 1024
 )
 
@@ -81,7 +81,6 @@ var filestoreDiskLow = healthcheck.Rule{
 	RuleText: model.RuleText{
 		TitleID:       healthcheck.TranslationId("health.rule.filestore_disk_low.title"),
 		RemediationID: healthcheck.TranslationId("health.rule.filestore_disk_low.remediation"),
-		ConsolePath:   filestoreConsolePath,
 	},
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityThreshold,
@@ -96,7 +95,6 @@ var filestoreDiskFull = healthcheck.Rule{
 	RuleText: model.RuleText{
 		TitleID:       healthcheck.TranslationId("health.rule.filestore_disk_full.title"),
 		RemediationID: healthcheck.TranslationId("health.rule.filestore_disk_full.remediation"),
-		ConsolePath:   filestoreConsolePath,
 	},
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityThreshold,
@@ -164,12 +162,19 @@ func evalFilestoreS3SSLOff(s *healthcheck.Snapshot) healthcheck.Result {
 	}
 }
 
-func filestoreDiskIsFull(freeRatio float64, availableMB uint64) bool {
-	return availableMB < filestoreDiskEmergencyMB || (freeRatio < filestoreDiskFullRatio && availableMB < filestoreDiskFullCapMB)
+// Each threshold is a share of the volume capped at an absolute size, so large volumes are not
+// flagged while plenty of space remains. Comparisons stay in integers so exact boundaries are not
+// blurred by floating-point rounding.
+func filestoreDiskIsFull(totalMB, availableMB uint64) bool {
+	return availableMB*filestoreDiskFullDivisor < totalMB && availableMB < filestoreDiskFullCapMB
 }
 
-func filestoreDiskIsLow(freeRatio float64, availableMB uint64) bool {
-	return !filestoreDiskIsFull(freeRatio, availableMB) && freeRatio < filestoreDiskLowRatio && availableMB < filestoreDiskLowCapMB
+// The 1 GiB floor keeps the low threshold above the full threshold on small volumes, so they
+// warn before they turn critical.
+func filestoreDiskIsLow(totalMB, availableMB uint64) bool {
+	belowThreshold := (availableMB*filestoreDiskLowDivisor < totalMB && availableMB < filestoreDiskLowCapMB) ||
+		availableMB < filestoreDiskLowFloorMB
+	return belowThreshold && !filestoreDiskIsFull(totalMB, availableMB)
 }
 
 func formatFilestoreGiB(megabytes uint64) string {
@@ -185,7 +190,7 @@ func formatFilestorePercent(freeRatio float64) string {
 	return strconv.FormatFloat(percent, 'f', 2, 64)
 }
 
-func evalFilestoreDisk(n *healthcheck.NodeSnapshot, messageID string, fires func(float64, uint64) bool) healthcheck.Result {
+func evalFilestoreDisk(n *healthcheck.NodeSnapshot, messageID string, fires func(totalMB, availableMB uint64) bool) healthcheck.Result {
 	diag, ok := n.Diag()
 	if !ok || diag.FileStore.Driver == "" {
 		return healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)
@@ -202,7 +207,7 @@ func evalFilestoreDisk(n *healthcheck.NodeSnapshot, messageID string, fires func
 		return healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)
 	}
 	freeRatio := float64(availableMB) / float64(totalMB)
-	if !fires(freeRatio, availableMB) {
+	if !fires(totalMB, availableMB) {
 		return healthcheck.Resolved().WithValue(freeRatio)
 	}
 

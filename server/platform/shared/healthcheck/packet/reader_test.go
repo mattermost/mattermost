@@ -38,7 +38,7 @@ const (
 
 	complianceDirSubject      = "ComplianceSettings.Directory"
 	expiresAtSubject          = "license.expires_at"
-	filestoreDiskSubject      = "FileStore.AvailableMB"
+	filestoreDiskSubject      = "FileSettings.Directory"
 	globalRelayTimeoutSubject = "MessageExportSettings.GlobalRelaySettings.SMTPServerTimeout"
 	seatsSubject              = "license.users"
 )

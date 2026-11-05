@@ -311,19 +311,35 @@ func TestFilestoreDiskRules(t *testing.T) {
 			},
 		},
 		{
-			name: "full by absolute space",
+			name: "below one GiB above ten percent is low",
 			node: filestoreDiskNode(model.ImageDriverLocal, new(uint64(10*1024)), new(uint64(1023))),
 			want: map[string]want{
-				"FILESTORE_DISK_LOW":  resolved.withValue(float64(1023) / (10 * 1024)),
-				"FILESTORE_DISK_FULL": diskFiring("health.rule.filestore_disk_full.message", "0.999", "10.0", "9.99", float64(1023)/(10*1024)),
+				"FILESTORE_DISK_LOW":  diskFiring("health.rule.filestore_disk_low.message", "0.999", "10.0", "9.99", float64(1023)/(10*1024)),
+				"FILESTORE_DISK_FULL": resolved.withValue(float64(1023) / (10 * 1024)),
 			},
 		},
 		{
-			name: "emergency below one GiB regardless of percentage",
+			name: "small volume below one GiB is low regardless of percentage",
 			node: filestoreDiskNode(model.ImageDriverLocal, new(uint64(2*1024)), new(uint64(512))),
 			want: map[string]want{
-				"FILESTORE_DISK_LOW":  resolved.withValue(0.25),
-				"FILESTORE_DISK_FULL": diskFiring("health.rule.filestore_disk_full.message", "0.500", "2.0", "25.00", 0.25),
+				"FILESTORE_DISK_LOW":  diskFiring("health.rule.filestore_disk_low.message", "0.500", "2.0", "25.00", 0.25),
+				"FILESTORE_DISK_FULL": resolved.withValue(0.25),
+			},
+		},
+		{
+			name: "small volume just above five percent is low",
+			node: filestoreDiskNode(model.ImageDriverLocal, new(uint64(2*1024)), new(uint64(103))),
+			want: map[string]want{
+				"FILESTORE_DISK_LOW":  diskFiring("health.rule.filestore_disk_low.message", "0.101", "2.0", "5.02", float64(103)/(2*1024)),
+				"FILESTORE_DISK_FULL": resolved.withValue(float64(103) / (2 * 1024)),
+			},
+		},
+		{
+			name: "small volume below five percent is full",
+			node: filestoreDiskNode(model.ImageDriverLocal, new(uint64(2*1024)), new(uint64(102))),
+			want: map[string]want{
+				"FILESTORE_DISK_LOW":  resolved.withValue(float64(102) / (2 * 1024)),
+				"FILESTORE_DISK_FULL": diskFiring("health.rule.filestore_disk_full.message", "0.100", "2.0", "4.98", float64(102)/(2*1024)),
 			},
 		},
 		{
