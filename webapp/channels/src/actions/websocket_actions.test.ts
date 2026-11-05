@@ -2505,6 +2505,27 @@ describe('channel read access on role changes', () => {
             expect(testStore.getActions()).toContainEqual({type: 'MOCK_RECONCILE_CHANNEL_READ_ACCESS'});
         });
 
+        test('invalidates the cached decisions for the channel when the role changes', () => {
+            const testStore = configureStore(stateWithMember(true));
+
+            testStore.dispatch(handleChannelMemberUpdatedEvent(memberUpdated({scheme_admin: true})));
+
+            expect(testStore.getActions()).toContainEqual({
+                type: RenderPermissionTypes.INVALIDATE_RENDER_DECISIONS_FOR_CHANNEL,
+                data: {channelId, generation: expect.any(Number)},
+            });
+        });
+
+        test('keeps the cached decisions when only notification preferences change', () => {
+            const testStore = configureStore(stateWithMember(true));
+
+            testStore.dispatch(handleChannelMemberUpdatedEvent(memberUpdated({notify_props: {desktop: 'none'}})));
+
+            expect(testStore.getActions()).not.toContainEqual(expect.objectContaining({
+                type: RenderPermissionTypes.INVALIDATE_RENDER_DECISIONS_FOR_CHANNEL,
+            }));
+        });
+
         test('does not reconcile when only notification preferences change', () => {
             const testStore = configureStore(stateWithMember(true));
 

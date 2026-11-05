@@ -1084,6 +1084,12 @@ export function handleChannelMemberUpdatedEvent(msg: WebSocketMessages.ChannelMe
             doDispatch(resetReloadPostsInChannel(channelMember.channel_id));
         }
 
+        // The role is an input to every channel decision, so the cached ones for this
+        // channel are stale; they are refetched on demand.
+        if (channelRoleChanged) {
+            doDispatch(invalidateRenderDecisionsForChannel(channelMember.channel_id));
+        }
+
         if (channelRoleChanged && isChannelPermissionActionsEnabled(state)) {
             doDispatch(reconcileChannelReadAccess());
         }

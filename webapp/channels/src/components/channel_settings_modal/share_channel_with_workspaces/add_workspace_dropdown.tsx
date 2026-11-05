@@ -62,7 +62,7 @@ export default function AddWorkspaceDropdown({
                 />
             </>
         ),
-    }), []);
+    }), [disabled]);
     const menu = useMemo(() => ({
         id: MENU_ID,
         className: 'ShareChannelWithWorkspaces__dropdown',
@@ -70,7 +70,7 @@ export default function AddWorkspaceDropdown({
             id: 'channel_settings.share_channel_with_workspaces.add_aria',
             defaultMessage: 'Add workspace',
         }),
-    }), [disabled, formatMessage]);
+    }), [formatMessage]);
 
     return (
         <Menu.Container

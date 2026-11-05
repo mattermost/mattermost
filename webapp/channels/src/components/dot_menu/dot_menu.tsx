@@ -592,7 +592,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         const showMarkAsUnread = Boolean(!isSystemMessage && !this.props.channelIsArchived && this.props.location !== Locations.SEARCH);
         const showSave = !isSystemMessage && !this.props.isUnrevealedBurnOnReadPost;
         const showRemind = !isSystemMessage;
-        const showPin = Boolean(!isSystemMessage && !this.props.isReadOnly && !isBurnOnReadPost);
+        const showPin = Boolean(this.props.canPin && !isSystemMessage && !this.props.isReadOnly && !isBurnOnReadPost);
         const showMove = Boolean(!isSystemMessage && this.props.canMove);
         const showShowTranslation = !isSystemMessage && showTranslation;
         const showCopyText = !isSystemMessage && !isBurnOnReadPost;
