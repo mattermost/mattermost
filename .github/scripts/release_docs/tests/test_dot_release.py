@@ -280,6 +280,27 @@ class GatherTest(unittest.TestCase):
             ("#11", "revert pair that cancels out"),
         ])
 
+    def test_a_pr_with_an_opt_out_label_is_left_out_even_with_a_release_note(self):
+        scene = release_scene()
+        scene.commits += [
+            {"sha": "c15", "message": "Rework the sidebar (#15)", "files": ["webapp/channels/src/sidebar.tsx"]},
+            {"sha": "c16", "message": "Automated cherry pick of #52 (#16)", "files": ["webapp/channels/src/list.tsx"]},
+            {"sha": "c17", "message": "Reorder the menu (#17)", "files": ["webapp/channels/src/menu.tsx"]},
+        ]
+        scene.pulls[15] = pull(15, "Rework the sidebar", note("Reworked the sidebar layout."), labels=["Changelog/Not Needed"])
+        scene.pulls[16] = pull(16, "Automated cherry pick of #52", note("NONE"), labels=["CherryPick/Approved"])
+        scene.pulls[52] = pull(52, "Fix the list", note("Fixed an issue where the list was empty."), labels=["release-note-none"])
+        scene.pulls[17] = pull(17, "Reorder the menu", note("Reordered the menu."), labels=["release-note/na"])
+        release = dr.Release(V("v12.1.1"), tabs=["latest"], severity="none")
+        dr.gather(scene, release, [], WritingClaude(), lambda url, method="GET": (200, ""), None, Result(dr.TASK, "v12.1.1"))
+        texts = [c.text for c in release.changes]
+        self.assertFalse(any("sidebar layout" in t or "list was empty" in t or "menu" in t.lower() for t in texts), texts)
+        skipped = {s: r for s, _, r in release.skipped}
+        self.assertEqual(skipped["#15"], "has the Changelog/Not Needed label, so it is left out")
+        self.assertEqual(skipped["#52"], "has the release-note-none label, so it is left out")
+        self.assertEqual(skipped["#17"], "has the release-note/na label, so it is left out")
+        self.assertIn("#50", {c.source for c in release.changes})  # a PR without the label is still written up
+
     def test_written_security_and_breaking_are_marked(self):
         release, _ = self.gather()
         by_source = {c.source: c for c in release.changes}
@@ -825,8 +846,13 @@ class ReplayTest(unittest.TestCase):
         got = dot_replay.trim(path, generated[path], versions)
         _, got_entries = dot_replay.entries(dot_replay.plugin_order_free(got))
         _, want_entries = dot_replay.entries(dot_replay.plugin_order_free(after[path]))
-        for tag in ("11.11.2", "11.10.3"):
-            self.assertEqual(got_entries[tag], want_entries[tag], tag)
+        # The hand-made entries also list three PRs that carry release-note-none and Changelog/Not
+        # Needed (#38781 and, in v11.10.3, #38479 and #38048). The task leaves a PR with an opt-out
+        # label out, as the changelog generator does, and lists it under what was left out.
+        for tag, dropped in (("11.11.2", 1), ("11.10.3", 3)):
+            self.assertEqual(got_entries[tag]["fixes"], want_entries[tag]["fixes"] - dropped, tag)
+            self.assertEqual({k: v for k, v in got_entries[tag].items() if k != "fixes"},
+                             {k: v for k, v in want_entries[tag].items() if k != "fixes"}, tag)
         self.assertEqual(got_entries["11.7.13"]["fixed"][:2], want_entries["11.7.13"]["fixed"][:2])
         entry = dr._entry_text(got, V("v11.7.13")).split("\n")
         self.assertEqual(dot_replay.closing_kind([line.removeprefix("  - ") for line in entry[-2:]]),

@@ -402,6 +402,14 @@ def gather(gh, release: Release, changelogs: list[str], claude, fetch, jira_labe
             continue
         seen.add(original["number"])
         labels = {l["name"] for l in pr.get("labels", [])} | {l["name"] for l in original.get("labels", [])}
+        # The opt-out is read from the PR whose release note is used: the original, not its backport,
+        # since a backport carries Changelog/Not Needed and release-note-none whatever the original says.
+        opted_out = sorted({l["name"] for l in original.get("labels", [])} & _changelog_module().NO_NOTE_LABELS)
+        if opted_out:
+            # As in the changelog generator, an opt-out label settles it, even next to a release-note block.
+            release.skipped.append((source, _core_title(original.get("title", "")),
+                                    f"has the {opted_out[0]} label, so it is left out"))
+            continue
         keys = jira_keys(original.get("title", ""), (original.get("head") or {}).get("ref", ""), original.get("body") or "")
         jira = (jira_labels(keys) or set()) if keys and jira_labels else set()
         security = _security(labels, jira)
