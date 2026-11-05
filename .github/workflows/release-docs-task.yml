@@ -52,8 +52,11 @@ name: Release Docs Task
 #   RELEASE_DOCS_MARKETING_CHANNEL_ID     (variable) Staff: Marketing
 #   RELEASE_DOCS_REVIEW_CHANNEL_ID  (variable) where approvals are asked; default: the release channel
 #                                              ("Release: vX.Y"), found by name as the release agent does
-#   RELEASE_DOCS_MARKETING_EMAIL_OWNER  (variable) default caroline.knoche
-#   RELEASE_DOCS_MARKETING_SOCIAL_OWNER (variable) default a-rosa.lear
+#   RELEASE_DOCS_MARKETING_EMAIL_OWNER  (variable) Hub username to mention in the Marketing email post. No
+#                                              default: when unset, nobody is mentioned and the post says so
+#   RELEASE_DOCS_MARKETING_SOCIAL_OWNER (variable) the same for the social post
+#   RELEASE_DOCS_ASANA_FORM_URL     (variable) the Marketing request form's URL (https). No default: when
+#                                              unset, the Asana form text has no link and says so
 #   RELEASE_DOCS_ANNOUNCEMENT_TIME_UTC  (variable) when the approved Announcements post goes out on
 #                                              Release Day, HH:MM in UTC, default 14:00
 #   RELEASE_DOCS_GOOGLE_SA_KEY      (secret)   JSON key of a service account added to the Release Dates
@@ -247,6 +250,7 @@ jobs:
           REVIEW_CHANNEL_ID: ${{ vars.RELEASE_DOCS_REVIEW_CHANNEL_ID }}
           MARKETING_EMAIL_OWNER: ${{ vars.RELEASE_DOCS_MARKETING_EMAIL_OWNER }}
           MARKETING_SOCIAL_OWNER: ${{ vars.RELEASE_DOCS_MARKETING_SOCIAL_OWNER }}
+          ASANA_FORM_URL: ${{ vars.RELEASE_DOCS_ASANA_FORM_URL }}
           ANNOUNCEMENT_TIME: ${{ vars.RELEASE_DOCS_ANNOUNCEMENT_TIME_UTC }}
           GOOGLE_SA_KEY: ${{ secrets.RELEASE_DOCS_GOOGLE_SA_KEY }}
           CALENDAR_ID: ${{ vars.RELEASE_DATES_CALENDAR_ID }}

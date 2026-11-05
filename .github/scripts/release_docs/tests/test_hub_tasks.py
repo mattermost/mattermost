@@ -34,7 +34,8 @@ ESR = "v10.11,v11.7,v12.4"
 DESKTOP = json.dumps({"v10.11": "v5.13", "v11.7": "v6.2", "v12.4": "v6.5"})
 RELEASE_CHANNEL = {"id": "release", "display_name": "Release: v12.2", "team_id": "team"}
 ENV = {"ANNOUNCEMENTS_CHANNEL_ID": "announcements", "MARKETING_CHANNEL_ID": "marketing",
-       "MARKETING_EMAIL_OWNER": "caroline.knoche", "MARKETING_SOCIAL_OWNER": "a-rosa.lear"}
+       "MARKETING_EMAIL_OWNER": "caroline.knoche", "MARKETING_SOCIAL_OWNER": "a-rosa.lear",
+       "ASANA_FORM_URL": "https://form.asana.com/?k=test"}
 V12_2 = Version(12, 2)
 RELEASE_DAY = date(2026, 12, 16)
 
@@ -63,7 +64,10 @@ class KeyDatesTest(unittest.TestCase):
         self.assertNotIn("v12.3 & Mobile v2.48 Release Build Cut is on", result.text)  # matched as the final build
         report = [w for w in hub.writes if w[0] == "post"]
         self.assertEqual(len(report), 1)
-        self.assertIn("@amy.blais", report[0][2])  # no playbook run: the fallback release manager
+        # No playbook run, so no release manager: nobody is mentioned, and the post asks for an owner.
+        self.assertNotIn("@", report[0][2])
+        self.assertTrue(report[0][2].startswith("These Release Dates calendar events differ"))
+        self.assertIn("No release manager is known", report[0][2])
         self.run_task(Version(12, 1), (2026, 11), calendar, hub)
         self.assertEqual(len([w for w in hub.writes if w[0] == "post"]), 1)  # reported once
 
@@ -180,6 +184,22 @@ class AnnouncementTest(unittest.TestCase):
         self.assertIn("Scheduled in Announcements for Wed, Dec 16, 2026 at 14:00 UTC", replies[0]["message"])
         self.assertEqual(self.rendered, 1)
 
+    def test_with_no_release_manager_nobody_is_mentioned_and_nobody_can_approve(self):
+        self.hub = FakeHub([RELEASE_CHANNEL])  # no playbook run, so no owner
+        self.run_at(at("2026-12-15"))
+        draft = self.draft()
+        self.assertNotIn("@", draft["message"].split("---")[0])
+        self.assertIn("No release manager is known", draft["message"])
+        self.assertIn("no reaction can approve this draft", draft["message"])
+        self.hub.react(draft["id"], AMY)
+        self.run_at(at("2026-12-15", "16:00"))
+        self.assertEqual(self.hub.scheduled, [])
+        self.run_at(at("2026-12-16", "09:00"))
+        waiting = [p for p in self.hub.posts.values() if p["root_id"] == draft["id"]]
+        self.assertEqual(len(waiting), 1)
+        self.assertTrue(waiting[0]["message"].startswith("Still waiting for :white_check_mark:"))
+        self.assertIn("No release manager is known", waiting[0]["message"])
+
     def test_dry_run_writes_nothing(self):
         result = self.run_at(at("2026-12-15"), live=False)
         self.assertIn("would have posted the draft", result.text)
@@ -217,11 +237,39 @@ class MarketingTest(unittest.TestCase):
         asana = hub.posts_in("release")
         self.assertEqual(len(asana), 1)
         self.assertTrue(asana[0]["message"].startswith("@release.manager "))
-        self.assertIn("form.asana.com", asana[0]["message"])
+        self.assertIn("[Marketing request form](https://form.asana.com/?k=test)", asana[0]["message"])
         self.assertIn("| Is there a hard deadline? | December 16, 2026 |", asana[0]["message"])
         self.assertIn("A release email copy is ready to be sent out:", asana[0]["message"])
         ticks = [w for w in hub.writes if w[0] == "tick"]
         self.assertEqual(ticks, [("tick", "Queue the Twitter announcement for the release")])  # never the email item
+
+    def test_unset_owners_and_form_url_mention_nobody_and_ask_for_them(self):
+        hub = FakeHub([RELEASE_CHANNEL])  # no playbook run either, so no release manager
+        result = marketing.run(V12_2, "December 16, 2026", EMAIL, [], SOCIAL, "", hub,
+                               {"MARKETING_CHANNEL_ID": "marketing"}, True)
+        self.assertFalse(result.failed)
+        posts = hub.posts_in("marketing", root="")
+        self.assertEqual(len(posts), 2)
+        for post in posts:
+            self.assertNotIn("@", post["message"])
+            self.assertIn("Please set the RELEASE_DOCS_MARKETING_", post["message"])
+        self.assertIn("RELEASE_DOCS_MARKETING_EMAIL_OWNER repository variable", posts[0]["message"])
+        self.assertIn("RELEASE_DOCS_MARKETING_SOCIAL_OWNER repository variable", posts[1]["message"])
+        self.assertTrue(posts[0]["message"].startswith("Release email for Mattermost v12.2"))
+        self.assertEqual(sorted(n for n in result.notes if n.startswith("RELEASE_DOCS_")), [
+            "RELEASE_DOCS_ASANA_FORM_URL is not set, so the Asana form text has no link to the form.",
+            "RELEASE_DOCS_MARKETING_EMAIL_OWNER is not set, so nobody was mentioned in the email post.",
+            "RELEASE_DOCS_MARKETING_SOCIAL_OWNER is not set, so nobody was mentioned in the social post."])
+        asana = hub.posts_in("release")  # no release channel is posted to: the review channel is the release channel
+        for post in hub.posts.values():
+            self.assertNotIn("amy.blais", post["message"])
+        for post in asana:
+            self.assertNotIn("form.asana.com", post["message"])
+
+    def test_an_owner_may_be_written_with_an_at_sign_and_a_form_url_must_be_https(self):
+        self.assertEqual(marketing.owner({"X": " @caroline.knoche "}, "X"), "caroline.knoche")
+        self.assertEqual(marketing.form_url({"ASANA_FORM_URL": "http://form.asana.com/x"}), "")
+        self.assertEqual(marketing.form_url({"ASANA_FORM_URL": " https://form.asana.com/x "}), "https://form.asana.com/x")
 
     def test_a_todo_or_an_internal_reference_posts_nothing(self):
         for kwargs in ({"todos": ["no Release Day"]}, {"email": EMAIL + "- Fixed MM-12345.\n"},

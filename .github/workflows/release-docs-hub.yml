@@ -6,7 +6,8 @@ name: Release Docs - Hub and Calendar
 # events, so nothing is posted or created twice. See release-docs-task.yml for settings.
 #
 #   announcement    T-1: the Announcements post goes to the review channel as a draft for the
-#                   release manager (the release playbook run's owner, else amy.blais). Their
+#                   release manager (the release playbook run's owner; with none, nobody is
+#                   mentioned and the post asks for an owner to be set). Their
 #                   :white_check_mark: on a later run schedules the draft's current text in
 #                   Announcements for Release Day. No reaction by Release Day: nothing is
 #                   posted and the thread says it's waiting. Runs hourly on weekdays.

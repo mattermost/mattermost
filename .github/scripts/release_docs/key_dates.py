@@ -134,9 +134,10 @@ def report_differences(hub, version, differences: list, env: dict, live: bool, r
         result.notes.append("Differences already reported, or no review channel to report them in.")
         return
     manager = hublib.release_manager(hub, hublib.release_run(hub, channel))
-    message = (f"{hublib.mention(manager)} These Release Dates calendar events differ from the release schedule. "
-               "They were left as they are; moving one is your call:\n"
-               + "\n".join(f"- {title}: on the calendar {have}, schedule says {want}" for title, have, want in differences))
+    message = hublib.addressed(manager, "These Release Dates calendar events differ from the release schedule. "
+                                        "They were left as they are; moving one is your call:\n"
+                                        + "\n".join(f"- {title}: on the calendar {have}, schedule says {want}"
+                                                  for title, have, want in differences))
     if live:
         hub.create_post(review, message, {hublib.MARKER_PROP: marker})
     result.notes.append(f"{len(differences)} difference(s) {'reported to' if live else 'would be reported to'} the release manager in Hub.")

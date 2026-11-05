@@ -34,9 +34,11 @@ def when(at: datetime) -> str:
 
 
 def draft_message(manager: dict | None, at: datetime, text: str) -> str:
-    return (f"{hublib.mention(manager)} Draft of the Announcements post for this release. React with "
-            f":white_check_mark: to schedule this for {when(at)} in Announcements. To change it, edit the text "
-            f"below the line before reacting.{SEPARATOR}{text.strip()}")
+    note = (hublib.NO_MANAGER_NOTE[:-1] + " Until it is set, no reaction can approve this draft._")
+    intro = hublib.addressed(manager, f"Draft of the Announcements post for this release. React with "
+                                      f":white_check_mark: to schedule this for {when(at)} in Announcements. To change it, "
+                                      f"edit the text below the line before reacting.", note)
+    return f"{intro}{SEPARATOR}{text.strip()}"
 
 
 def approved_text(message: str) -> str:
@@ -102,8 +104,8 @@ def run(version, release_day: date, render, hub, env: dict, live: bool, now: dat
             result.text = "Not approved yet; the thread already says it's waiting."
             return result
         if live:
-            hub.create_post(review, f"{hublib.mention(manager)} Still waiting for :white_check_mark: on the draft above. "
-                                    "Nothing has been posted to Announcements.",
+            hub.create_post(review, hublib.addressed(manager, "Still waiting for :white_check_mark: on the draft above. "
+                                                              "Nothing has been posted to Announcements."),
                             {hublib.MARKER_PROP: mark["waiting"]}, root_id=draft["id"])
         result.text = ("Not approved by Release Day: " + ("replied in the thread that it's waiting."
                                                           if live else "dry run: would have replied that it's waiting."))

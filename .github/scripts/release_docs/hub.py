@@ -15,7 +15,8 @@ import urllib.request
 DEFAULT_URL = "https://hub.mattermost.com"
 MARKER_PROP = "release_docs_marker"
 PLAYBOOKS = "/plugins/playbooks/api/v0"
-RELEASE_MANAGER_FALLBACK = "amy.blais"
+NO_MANAGER_NOTE = ("_No release manager is known: the release playbook run has no owner, so nobody is mentioned. "
+                   "Please set the run's owner._")
 APPROVE_EMOJI = "white_check_mark"
 MAX_PAGES = 10
 PER_PAGE = 200
@@ -173,13 +174,13 @@ def release_run(hub, channel: dict | None) -> dict | None:
 
 
 def release_manager(hub, run: dict | None) -> dict | None:
-    """The playbook run's owner, else ``amy.blais``."""
+    """The playbook run's owner, or None: there is no one to fall back on."""
     if run and run.get("owner_user_id"):
         try:
             return hub.user(run["owner_user_id"])
         except HubError:
             pass
-    return hub.user_by_username(RELEASE_MANAGER_FALLBACK)
+    return None
 
 
 def normalize_item(title: str) -> str:
@@ -219,7 +220,13 @@ def tick(hub, run: dict | None, titles: list[str], live: bool) -> str:
 
 
 def mention(user: dict | None) -> str:
-    return f"@{user['username']}" if user else f"@{RELEASE_MANAGER_FALLBACK}"
+    """``@username``, or nothing when there is no one to mention."""
+    return f"@{user['username']}" if user else ""
+
+
+def addressed(user: dict | None, message: str, note: str = NO_MANAGER_NOTE) -> str:
+    """``message`` for ``user``. With no one to mention, nobody is, and ``note`` asks for an owner."""
+    return f"{mention(user)} {message}" if user else f"{message}\n\n{note}"
 
 
 def from_env(env: dict):

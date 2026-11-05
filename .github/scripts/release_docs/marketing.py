@@ -19,7 +19,9 @@ from .drafts import internal_references
 from .result import TODO_MARKER, Result
 
 TASK = "marketing"
-ASANA_FORM = "https://form.asana.com/?k=v7z8NcqgcM2wH326VnUlJA&d=279683980846511"
+ASANA_FORM_VARIABLE = "RELEASE_DOCS_ASANA_FORM_URL"
+EMAIL_OWNER_VARIABLE = "RELEASE_DOCS_MARKETING_EMAIL_OWNER"
+SOCIAL_OWNER_VARIABLE = "RELEASE_DOCS_MARKETING_SOCIAL_OWNER"
 SOCIAL_ITEMS = ["Queue the Twitter announcement…"]
 EMAIL_ITEM = "Queue the email for the Marketing team"
 
@@ -36,10 +38,31 @@ def social_text(version, highlights: list, changelog: str, result: Result) -> st
     return f"Mattermost {version.short} is out, with {join_names(names)}. See what's new: {changelog}"
 
 
-def asana_text(version, day_text: str, email: str, marketing_link: str, manager: dict | None) -> str:
+def form_url(env: dict) -> str:
+    """The Asana form's URL from RELEASE_DOCS_ASANA_FORM_URL; empty when it isn't set (or isn't https)."""
+    url = (env.get("ASANA_FORM_URL") or "").strip()
+    return url if url.startswith("https://") else ""
+
+
+def owner(env: dict, key: str) -> str:
+    return (env.get(key) or "").strip().lstrip("@")
+
+
+def with_owner(name: str, message: str, variable: str) -> str:
+    """``message`` for ``name``; with no owner set, nobody is mentioned and a note asks for it."""
+    if name:
+        return f"@{name} {message}"
+    return f"{message}\n\n_No owner is set, so nobody is mentioned. Please set the {variable} repository variable._"
+
+
+def asana_text(version, day_text: str, email: str, marketing_link: str, manager: dict | None, url: str = "") -> str:
+    form = f"[Marketing request form]({url})" if url else "Marketing request form"
+    intro = (f"The release email for Mattermost {version.short} is in Marketing. Submit the {form} with these values, "
+             f"then tick \"{EMAIL_ITEM}\":")
+    if not url:
+        intro += f"\n_The form link is not set. Please set the {ASANA_FORM_VARIABLE} repository variable._"
     return "\n".join([
-        f"{hublib.mention(manager)} The release email for Mattermost {version.short} is in Marketing. Submit the "
-        f"[Marketing request form]({ASANA_FORM}) with these values, then tick \"{EMAIL_ITEM}\":",
+        hublib.addressed(manager, intro),
         "",
         "| Form field | Value |",
         "|---|---|",
@@ -85,8 +108,14 @@ def run(version, day_text: str, email: str, email_todos: list, social: str, foru
         return result
 
     mark = markers(version.short)
-    email_owner = env.get("MARKETING_EMAIL_OWNER") or "caroline.knoche"
-    social_owner = env.get("MARKETING_SOCIAL_OWNER") or "a-rosa.lear"
+    email_owner, social_owner = owner(env, "MARKETING_EMAIL_OWNER"), owner(env, "MARKETING_SOCIAL_OWNER")
+    asana_url = form_url(env)
+    for name, variable, what in ((email_owner, EMAIL_OWNER_VARIABLE, "the email post"),
+                                 (social_owner, SOCIAL_OWNER_VARIABLE, "the social post")):
+        if not name:
+            result.notes.append(f"{variable} is not set, so nobody was mentioned in {what}.")
+    if not asana_url:
+        result.notes.append(f"{ASANA_FORM_VARIABLE} is not set, so the Asana form text has no link to the form.")
     channel = hublib.release_channel(hub, version)
     run_ = hublib.release_run(hub, channel)
     manager = hublib.release_manager(hub, run_)
@@ -106,18 +135,19 @@ def run(version, day_text: str, email: str, email_todos: list, social: str, foru
         done.append(f"{key}: posted")
         return created
 
-    email_post = post(marketing, "email", f"@{email_owner} Release email for Mattermost {version.short}, to be sent on "
-                                          f"{day_text}. Email copy below.")
+    email_post = post(marketing, "email", with_owner(email_owner, f"Release email for Mattermost {version.short}, to be "
+                                                                   f"sent on {day_text}. Email copy below.", EMAIL_OWNER_VARIABLE))
     if email_post.get("id"):
         post(marketing, "email-copy", email.strip(), root_id=email_post["id"])
         if forum:
             post(marketing, "forum", f"Forum post draft (to post by hand):\n\n{forum.strip()}", root_id=email_post["id"])
     elif forum and not live:
         done.append("forum: dry run, would have posted")
-    post(marketing, "social", f"@{social_owner} Social post for Mattermost {version.short}, for {day_text}:\n\n{social}")
+    post(marketing, "social", with_owner(social_owner, f"Social post for Mattermost {version.short}, for {day_text}:\n\n{social}",
+                                         SOCIAL_OWNER_VARIABLE))
     if review:
         link = f"{hub.base_url}/_redirect/pl/{email_post['id']}" if email_post.get("id") else "(the Marketing post)"
-        post(review, "asana", asana_text(version, day_text, email, link, manager))
+        post(review, "asana", asana_text(version, day_text, email, link, manager, asana_url))
     else:
         result.notes.append("No review or release channel, so the Asana form text was not posted.")
     result.notes.append(hublib.tick(hub, run_, SOCIAL_ITEMS, live))
