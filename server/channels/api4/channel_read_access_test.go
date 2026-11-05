@@ -769,6 +769,54 @@ func TestChannelReadAccessChannelsForUserFilterFollowsTheSession(t *testing.T) {
 		"the queried user's channels must not expose ones the requester is denied")
 }
 
+// The team-scoped sibling of TestChannelReadAccessMembersForUserFilterFollowsTheSession,
+// and the sidebar categories built from the same memberships: the requester receives the
+// response, so both filters follow the session rather than the queried user.
+func TestChannelReadAccessTeamListsForUserFollowTheSession(t *testing.T) {
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PermissionPolicies = true
+		cfg.FeatureFlags.ChannelPermissionActions = true
+	}).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+	})
+
+	// Denied for the admin doing the asking, allowed for the user being asked about.
+	mockACS := installMockACS(t, th)
+	mockACS.On("ActionHasPermissionPolicy", mock.Anything, mock.Anything).Return(true, nil)
+	mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+		return req.Subject.ID == th.SystemAdminUser.Id
+	})).Return(model.AccessDecision{Decision: false}, nil)
+	mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+		Return(model.AccessDecision{Decision: true}, nil)
+
+	t.Run("team channel members", func(t *testing.T) {
+		members, resp, err := th.SystemAdminClient.GetChannelMembersForUser(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Empty(t, members,
+			"the queried user's memberships must not expose channels the requester is denied")
+	})
+
+	t.Run("sidebar categories", func(t *testing.T) {
+		categories, resp, err := th.SystemAdminClient.GetSidebarCategoriesForTeamForUser(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotEmpty(t, categories.Categories)
+		for _, category := range categories.Categories {
+			require.Empty(t, category.Channels,
+				"category %q must not expose channels the requester is denied", category.DisplayName)
+
+			single, resp, err := th.SystemAdminClient.GetSidebarCategoryForTeamForUser(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, category.Id, "")
+			require.NoError(t, err)
+			CheckOKStatus(t, resp)
+			require.Empty(t, single.Channels,
+				"category %q fetched alone must not expose channels the requester is denied", category.DisplayName)
+		}
+	})
+}
+
 // The lookups check membership before the policy. A policy denial is a distinct 403, so
 // checking the policy first would tell a non-member probing a private channel name that
 // the channel behind the 404 exists. Whoever gets past membership (a member, a team admin,

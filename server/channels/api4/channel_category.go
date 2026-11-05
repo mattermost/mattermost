@@ -16,7 +16,9 @@ func filterCategoryChannelsByReadAccess(c *Context, category *model.SidebarCateg
 		return
 	}
 
-	category.Channels = c.App.FilterChannelIDsByReadAccess(c.AppContext, c.Params.UserId, category.Channels)
+	// Evaluated for the session, not the queried user, like getChannelsForUser: a
+	// requester acting for someone else must not learn of a channel their own policy denies.
+	category.Channels = c.App.FilterChannelIDsByReadAccess(c.AppContext, c.AppContext.Session().UserId, category.Channels)
 }
 
 func getCategoriesForTeamForUser(c *Context, w http.ResponseWriter, r *http.Request) {

@@ -2285,7 +2285,9 @@ func getChannelMembersForTeamForUser(c *Context, w http.ResponseWriter, r *http.
 		return
 	}
 
-	members = c.App.FilterChannelMembersByReadAccess(c.AppContext, c.Params.UserId, members)
+	// Evaluated for the session, not the queried user, like getChannelsForUser: a
+	// requester acting for someone else must not learn of a channel their own policy denies.
+	members = c.App.FilterChannelMembersByReadAccess(c.AppContext, c.AppContext.Session().UserId, members)
 
 	// Sanitize members for current user
 	currentUserId := c.AppContext.Session().UserId
