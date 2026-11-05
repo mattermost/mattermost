@@ -234,6 +234,9 @@
             metadata. Only **PSAv2** groups are accepted; passing a legacy v1 group, or an
             unrecognized name, returns 404. There is no support for requesting more than one group
             per request.
+
+            When this parameter is set, the response carries no `ETag` header and `If-None-Match`
+            is ignored, so the full response is always returned.
           required: false
           schema:
             type: string
@@ -533,6 +536,9 @@
             metadata. Only **PSAv2** groups are accepted; passing a legacy v1 group, or an
             unrecognized name, returns 404. There is no support for requesting more than one group
             per request.
+
+            When this parameter is set, the response carries no `ETag` header and `If-None-Match`
+            is ignored, so the full response is always returned.
           required: false
           schema:
             type: string
@@ -807,6 +813,9 @@
             metadata. Only **PSAv2** groups are accepted; passing a legacy v1 group, or an
             unrecognized name, returns 404. There is no support for requesting more than one group
             per request.
+
+            When this parameter is set, the response carries no `ETag` header and `If-None-Match`
+            is ignored, so the full response is always returned.
           required: false
           schema:
             type: string
@@ -897,6 +906,9 @@
             metadata. Only **PSAv2** groups are accepted; passing a legacy v1 group, or an
             unrecognized name, returns 404. There is no support for requesting more than one group
             per request.
+
+            When this parameter is set, the response carries no `ETag` header and `If-None-Match`
+            is ignored, so the full response is always returned.
           required: false
           schema:
             type: string
