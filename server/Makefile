@@ -162,7 +162,7 @@ PLUGIN_PACKAGES ?= $(PLUGIN_PACKAGES:)
 PLUGIN_PACKAGES += mattermost-plugin-calls-v1.12.6
 PLUGIN_PACKAGES += mattermost-plugin-github-v3.0.0
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v2.0.0
-PLUGIN_PACKAGES += mattermost-plugin-jira-v5.0.0
+PLUGIN_PACKAGES += mattermost-plugin-jira-v5.1.0
 PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.12.1
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v2.0.0
 PLUGIN_PACKAGES += mattermost-plugin-agents-v2.9.0
@@ -1017,7 +1017,7 @@ endif
 vet-api: export GO := $(GO)
 vet-api: export GOBIN := $(GOBIN)
 vet-api: export ROOT := $(ROOT)
-vet-api: setup-go-work install-govet ## Run mattermost go vet to verify api4 documentation, currently not passing
+vet-api: setup-go-work install-govet ## Run mattermost go vet to verify api4 documentation
 	make -C ../api build
 	./scripts/vet-api-check.sh
 

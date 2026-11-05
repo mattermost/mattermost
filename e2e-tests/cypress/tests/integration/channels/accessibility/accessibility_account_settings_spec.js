@@ -50,6 +50,7 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
             {key: 'message_display', label: 'Message Display', type: 'radio'},
             {key: 'click_to_reply', label: 'Click to open threads', type: 'radio'},
             {key: 'channel_display_mode', label: 'Channel Display', type: 'radio'},
+            {key: 'collapse_category_with_unreads', label: 'Collapse category with unread channels', type: 'radio'},
             {key: 'one_click_reactions_enabled', label: 'Quick reactions on messages', type: 'radio'},
             {key: 'renderEmoticonsAsEmoji', label: 'Render emoticons as emojis', type: 'radio'},
             {key: 'languages', label: 'Language', type: 'dropdown'},
@@ -253,9 +254,11 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
         cy.get('.profile-img').should('have.attr', 'alt', 'profile image');
 
         // # Option to Remove Profile picture should be present
-        cy.findByTestId('removeSettingPicture').within(() => {
-            cy.get('.sr-only').should('have.text', 'Remove Profile Picture');
-        });
+        cy.findByTestId('removeSettingPicture').should(
+            'have.attr',
+            'aria-label',
+            'Remove Profile Picture',
+        );
 
         // # Check tab behavior
         cy.findByTestId('removeSettingPicture').focus().tab({shift: true}).tab();

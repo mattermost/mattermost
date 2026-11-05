@@ -192,6 +192,24 @@ func (_m *RemoteClusterStore) GetBySiteURL(siteURL string) (*model.RemoteCluster
 	return r0, r1
 }
 
+// PermanentDelete provides a mock function with given fields: remoteClusterID, name
+func (_m *RemoteClusterStore) PermanentDelete(remoteClusterID string, name string) error {
+	ret := _m.Called(remoteClusterID, name)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PermanentDelete")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(remoteClusterID, name)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Save provides a mock function with given fields: rc
 func (_m *RemoteClusterStore) Save(rc *model.RemoteCluster) (*model.RemoteCluster, error) {
 	ret := _m.Called(rc)

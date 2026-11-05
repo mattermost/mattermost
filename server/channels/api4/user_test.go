@@ -1316,6 +1316,26 @@ func TestGetUserByUsername(t *testing.T) {
 		CheckNotFoundStatus(t, resp)
 	})
 
+	t.Run("remote user with colon in username", func(t *testing.T) {
+		remoteUser, err := th.App.Srv().Store().User().Save(th.Context, &model.User{
+			Email:    th.GenerateTestEmail(),
+			Username: "bob." + model.NewId()[:10] + ".xmpp-demo.internal:xmpp",
+			RemoteId: new(model.NewId()),
+		})
+		require.NoError(t, err)
+
+		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+			ruser, _, err := client.GetUserByUsername(context.Background(), remoteUser.Username, "")
+			require.NoError(t, err)
+			require.Equal(t, remoteUser.Id, ruser.Id)
+			require.Equal(t, remoteUser.Username, ruser.Username)
+
+			_, resp, err := client.GetUserByUsername(context.Background(), "Bob:XMPP", "")
+			require.Error(t, err)
+			CheckBadRequestStatus(t, resp)
+		})
+	})
+
 	// Check against privacy config settings
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowEmailAddress = false })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowFullName = false })
@@ -4554,6 +4574,282 @@ func TestUpdateUserHashedPassword(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 }
 
+func TestUpdateUserHashedPasswordForGuestSessionAndEmail(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	const (
+		password     = "SuperSecurePass23!"
+		passwordHash = "$2a$10$CiS1iWVPUj7rQNdY6XW53.DmaPLsETIvmW2p0asp4Dqpofs10UL5W"
+	)
+
+	createMagicLinkGuest := func(t *testing.T) *model.User {
+		t.Helper()
+
+		id := model.NewId()
+		guest := &model.User{
+			Email:         th.GenerateTestEmail(),
+			Username:      "un_" + id,
+			Nickname:      "nn_" + id,
+			Password:      model.NewTestPassword(),
+			EmailVerified: true,
+			AuthService:   model.UserAuthServiceMagicLink,
+		}
+		created, appErr := th.App.CreateGuest(th.Context, guest)
+		require.Nil(t, appErr)
+
+		authData := model.NewId()
+		_, nErr := th.App.Srv().Store().User().UpdateAuthData(created.Id, model.UserAuthServiceMagicLink, &authData, "", false)
+		require.NoError(t, nErr)
+		th.App.InvalidateCacheForUser(created.Id)
+
+		loaded, appErr := th.App.GetUser(th.Context, created.Id)
+		require.Nil(t, appErr)
+		require.True(t, loaded.IsMagicLinkEnabled())
+		require.NotNil(t, loaded.AuthData)
+		require.Equal(t, authData, *loaded.AuthData)
+		return loaded
+	}
+
+	checkMagicLinkGuest := func(t *testing.T, client *model.Client4, guest *model.User, newPassword string) {
+		t.Helper()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.TerminateSessionsOnPasswordChange = true
+		})
+
+		session, appErr := th.App.CreateSession(th.Context, &model.Session{
+			UserId: guest.Id,
+			Roles:  model.SystemGuestRoleId,
+		})
+		require.Nil(t, appErr)
+
+		// Hashed password update of a magic link guest returns the magic link error and leaves auth fields and the password unchanged.
+		resp, err := client.UpdateUserHashedPassword(context.Background(), guest.Id, newPassword)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.user.update_password.magic_link.app_error")
+
+		reloaded, appErr := th.App.GetUser(th.Context, guest.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, model.UserAuthServiceMagicLink, reloaded.AuthService)
+		require.True(t, reloaded.IsMagicLinkEnabled())
+		require.NotNil(t, guest.AuthData)
+		require.NotNil(t, reloaded.AuthData)
+		require.Equal(t, *guest.AuthData, *reloaded.AuthData)
+		require.Equal(t, guest.Password, reloaded.Password)
+		require.Equal(t, guest.DeleteAt, reloaded.DeleteAt)
+
+		// A session opened before the refused update is still valid.
+		loadedSession, appErr := th.App.GetSession(session.Token)
+		require.Nil(t, appErr)
+		require.NotNil(t, loadedSession)
+		require.False(t, loadedSession.IsExpired())
+
+		_, _, loginErr := th.CreateClient().Login(context.Background(), reloaded.Email, password)
+		require.Error(t, loginErr)
+	}
+
+	createNormalUser := func(t *testing.T) *model.User {
+		t.Helper()
+
+		id := model.NewId()
+		user := &model.User{
+			Email:         th.GenerateTestEmail(),
+			Username:      "un_" + id,
+			Nickname:      "nn_" + id,
+			Password:      model.NewTestPassword(),
+			EmailVerified: true,
+		}
+		created, appErr := th.App.CreateUser(th.Context, user)
+		require.Nil(t, appErr)
+		created.Email = user.Email
+		return created
+	}
+
+	t.Run("magic link guest", func(t *testing.T) {
+		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+			checkMagicLinkGuest(t, client, createMagicLinkGuest(t), passwordHash)
+		})
+	})
+
+	t.Run("magic link guest by user manager", func(t *testing.T) {
+		th.AddPermissionToRole(t, model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
+		th.LoginBasic(t)
+
+		checkMagicLinkGuest(t, th.Client, createMagicLinkGuest(t), passwordHash)
+	})
+
+	for _, tc := range []struct {
+		name        string
+		deactivate  bool
+		newPassword string
+	}{
+		{name: "deactivated magic link guest", deactivate: true, newPassword: passwordHash},
+		{name: "magic link guest empty new password", deactivate: false, newPassword: ""},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			guest := createMagicLinkGuest(t)
+			if tc.deactivate {
+				_, err := th.SystemAdminClient.UpdateUserActive(context.Background(), guest.Id, false)
+				require.NoError(t, err)
+
+				var appErr *model.AppError
+				guest, appErr = th.App.GetUser(th.Context, guest.Id)
+				require.Nil(t, appErr)
+				require.NotZero(t, guest.DeleteAt)
+				require.True(t, guest.IsMagicLinkEnabled())
+				require.NotNil(t, guest.AuthData)
+			}
+
+			checkMagicLinkGuest(t, th.SystemAdminClient, guest, tc.newPassword)
+		})
+	}
+
+	t.Run("magic link guest password change email", func(t *testing.T) {
+		inbucketHost := os.Getenv("CI_INBUCKET_HOST")
+		if inbucketHost == "" {
+			inbucketHost = "localhost"
+		}
+		inbucketSMTPPort := os.Getenv("CI_INBUCKET_SMTP_PORT")
+		if inbucketSMTPPort == "" {
+			inbucketSMTPPort = "10025"
+		}
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.EmailSettings.SMTPServer = inbucketHost
+			*cfg.EmailSettings.SMTPPort = inbucketSMTPPort
+			*cfg.EmailSettings.SendEmailNotifications = true
+		})
+
+		guest := createMagicLinkGuest(t)
+		err := mail.DeleteMailBox(guest.Email)
+		if err != nil {
+			t.Fatalf("inbucket connection error: %v", err)
+		}
+
+		checkMagicLinkGuest(t, th.SystemAdminClient, guest, passwordHash)
+
+		// A refused hashed password update does not send a password change email.
+		deadline := time.Now().Add(8 * time.Second)
+		var box mail.JSONMessageHeaderInbucket
+		for {
+			loaded, getErr := mail.GetMailBox(guest.Email)
+			if getErr == nil && len(loaded) > 0 {
+				box = loaded
+				break
+			}
+			if time.Now().After(deadline) {
+				if getErr != nil && !strings.Contains(getErr.Error(), "no mailbox") {
+					t.Fatalf("inbucket connection error: %v", getErr)
+				}
+				break
+			}
+			time.Sleep(400 * time.Millisecond)
+		}
+		require.Empty(t, box)
+	})
+
+	t.Run("sessions", func(t *testing.T) {
+		for _, tc := range []struct {
+			name      string
+			terminate bool
+		}{
+			{name: "terminate sessions on password change", terminate: true},
+			{name: "keep sessions", terminate: false},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				th.App.UpdateConfig(func(cfg *model.Config) {
+					*cfg.ServiceSettings.TerminateSessionsOnPasswordChange = tc.terminate
+				})
+
+				user := createNormalUser(t)
+				sessions := make([]*model.Session, 0, 2)
+				for range 2 {
+					session, appErr := th.App.CreateSession(th.Context, &model.Session{
+						UserId: user.Id,
+						Roles:  model.SystemUserRoleId,
+					})
+					require.Nil(t, appErr)
+					sessions = append(sessions, session)
+				}
+
+				_, err := th.SystemAdminClient.UpdateUserHashedPassword(context.Background(), user.Id, passwordHash)
+				require.NoError(t, err)
+
+				for _, session := range sessions {
+					loaded, appErr := th.App.GetSession(session.Token)
+					// Sessions created before an admin hashed password update are revoked only when terminate sessions on password change is on.
+					require.Equal(t, tc.terminate, appErr != nil, "session created before the hashed password update")
+					if tc.terminate {
+						require.Nil(t, loaded)
+						continue
+					}
+					require.NotNil(t, loaded)
+					require.False(t, loaded.IsExpired())
+				}
+			})
+		}
+	})
+
+	t.Run("password change email", func(t *testing.T) {
+		inbucketHost := os.Getenv("CI_INBUCKET_HOST")
+		if inbucketHost == "" {
+			inbucketHost = "localhost"
+		}
+		inbucketSMTPPort := os.Getenv("CI_INBUCKET_SMTP_PORT")
+		if inbucketSMTPPort == "" {
+			inbucketSMTPPort = "10025"
+		}
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.EmailSettings.SMTPServer = inbucketHost
+			*cfg.EmailSettings.SMTPPort = inbucketSMTPPort
+			*cfg.EmailSettings.SendEmailNotifications = true
+		})
+
+		user := createNormalUser(t)
+		err := mail.DeleteMailBox(user.Email)
+		if err != nil {
+			t.Fatalf("inbucket connection error: %v", err)
+		}
+
+		_, err = th.SystemAdminClient.UpdateUserHashedPassword(context.Background(), user.Id, passwordHash)
+		require.NoError(t, err)
+
+		var box mail.JSONMessageHeaderInbucket
+		mbErr := mail.RetryInbucket(10, func() error {
+			var getErr error
+			box, getErr = mail.GetMailBox(user.Email)
+			return getErr
+		})
+		if mbErr != nil && !strings.Contains(mbErr.Error(), "no mailbox") {
+			t.Fatalf("inbucket connection error: %v", mbErr)
+		}
+		if mbErr != nil {
+			box = nil
+		}
+		// A successful hashed password update sends exactly one password change email.
+		require.Len(t, box, 1)
+		require.Contains(t, box[0].Subject, "Your password has been updated")
+		message, mailErr := mail.GetMessageFromMailbox(user.Email, box[0].ID)
+		require.NoError(t, mailErr)
+		require.Contains(t, message.Body.Text, "using a reset password link")
+	})
+
+	t.Run("user manager updates a normal user", func(t *testing.T) {
+		th.AddPermissionToRole(t, model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
+		th.LoginBasic(t)
+
+		user := createNormalUser(t)
+		resp, err := th.Client.UpdateUserHashedPassword(context.Background(), user.Id, passwordHash)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		_, _, err = th.CreateClient().Login(context.Background(), user.Email, password)
+		require.NoError(t, err)
+	})
+}
+
 func TestResetPassword(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	_, err := th.Client.Logout(context.Background())
@@ -5748,9 +6044,10 @@ func TestLoginCookies(t *testing.T) {
 		th.App.Srv().SetCWSTokenOverride(token)
 		t.Cleanup(func() { th.App.Srv().SetCWSTokenOverride("") })
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+		user := th.CreateUser(t)
 
 		form := url.Values{}
-		form.Add("login_id", th.SystemAdminUser.Email)
+		form.Add("login_id", user.Email)
 		form.Add("cws_token", token)
 
 		th.Client.HTTPClient.CheckRedirect = func(req *http.Request, via []*http.Request) error {

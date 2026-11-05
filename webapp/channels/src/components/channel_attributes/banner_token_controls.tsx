@@ -2,13 +2,17 @@
 // See LICENSE.txt for license information.
 
 import React, {useMemo} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {FormattedMessage, defineMessage, useIntl} from 'react-intl';
 
 import {PlusIcon} from '@mattermost/compass-icons/components';
 
 import type {ResolvedChannelAttribute} from 'mattermost-redux/selectors/entities/properties';
 
 import * as Menu from 'components/menu';
+
+import type {KindMessages} from 'utils/channel_kind';
+
+import type {ChannelKind} from 'types/store/plugins';
 
 import {attributeToken, tokenSuggestions} from './banner_template';
 import UnsetValueIndicator, {unsetValueMessage} from './unset_value_indicator';
@@ -23,12 +27,15 @@ type Props = {
     onInsertToken: (token: string) => void;
 
     disabled?: boolean;
+
+    // The channel's kind, which picks the words: board rather than channel for a board.
+    channelKind?: ChannelKind;
 };
 
 /**
  * The "+ Attributes" menu inside the banner text field.
  */
-const BannerTokenControls = ({attributes, onInsertToken, disabled}: Props) => {
+const BannerTokenControls = ({attributes, onInsertToken, disabled, channelKind = 'channel'}: Props) => {
     const {formatMessage} = useIntl();
 
     const suggestions = useMemo(() => tokenSuggestions(attributes), [attributes]);
@@ -61,17 +68,14 @@ const BannerTokenControls = ({attributes, onInsertToken, disabled}: Props) => {
                 }}
                 menu={{
                     id: 'bannerAttributeTokenMenu',
-                    'aria-label': formatMessage({
-                        id: 'channel_attributes.banner.insert_attribute_menu',
-                        defaultMessage: 'Channel attributes',
-                    }),
+                    'aria-label': formatMessage(messages.menuLabel[channelKind]),
                 }}
             >
                 {suggestions.map((suggestion) => {
                     // An unset attribute inserts a token that renders nothing, so it is
                     // flagged before the author picks it.
                     const valueStatus = suggestion.value ? formatMessage(
-                        {id: 'channel_attributes.banner.token_value_set', defaultMessage: 'Value on this channel: {value}'},
+                        messages.valueSet[channelKind],
                         {value: suggestion.value},
                     ) : formatMessage(unsetValueMessage);
 
@@ -106,5 +110,30 @@ const BannerTokenControls = ({attributes, onInsertToken, disabled}: Props) => {
         </div>
     );
 };
+
+/* eslint-disable formatjs/enforce-placeholders -- values are passed where each message is rendered */
+const messages = {
+    menuLabel: {
+        channel: defineMessage({
+            id: 'channel_attributes.banner.insert_attribute_menu',
+            defaultMessage: 'Channel attributes',
+        }),
+        board: defineMessage({
+            id: 'channel_attributes.banner.insert_attribute_menu.board',
+            defaultMessage: 'Board attributes',
+        }),
+    },
+    valueSet: {
+        channel: defineMessage({
+            id: 'channel_attributes.banner.token_value_set',
+            defaultMessage: 'Value on this channel: {value}',
+        }),
+        board: defineMessage({
+            id: 'channel_attributes.banner.token_value_set.board',
+            defaultMessage: 'Value on this board: {value}',
+        }),
+    },
+} satisfies Record<string, KindMessages>;
+/* eslint-enable formatjs/enforce-placeholders */
 
 export default BannerTokenControls;

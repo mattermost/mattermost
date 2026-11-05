@@ -2,12 +2,13 @@
 // See LICENSE.txt for license information.
 
 import {flip, offset, shift} from '@floating-ui/react';
-import classNames from 'classnames';
 import React, {useCallback, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import {EmoticonHappyOutlineIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Emoji, SystemEmoji} from '@mattermost/types/emojis';
 
@@ -22,8 +23,6 @@ import {focusAndInsertText} from 'utils/exec_commands';
 import {horizontallyWithin} from 'utils/floating';
 
 import type {GlobalState} from 'types/store';
-
-import {IconContainer} from './formatting_bar/formatting_icon';
 
 const useEditorEmojiPicker = (
     textboxId: string,
@@ -117,21 +116,19 @@ const useEditorEmojiPicker = (
                         />
                     }
                 >
-                    <IconContainer
-                        id={'emojiPickerButton'}
+                    <IconButton
+                        id='emojiPickerButton'
                         ref={setReference}
+                        size='small'
+                        icon={
+                            <Icon glyph={<EmoticonHappyOutlineIcon color='currentColor'/>}/>
+                        }
                         onClick={toggleEmojiPicker}
-                        type='button'
                         aria-label={intl.formatMessage({id: 'emoji_picker.emojiPicker.button.ariaLabel', defaultMessage: 'select an emoji'})}
                         disabled={shouldShowPreview}
-                        className={classNames({active: showEmojiPicker})}
+                        toggled={showEmojiPicker}
                         {...getReferenceProps()}
-                    >
-                        <EmoticonHappyOutlineIcon
-                            color={'currentColor'}
-                            size={18}
-                        />
-                    </IconContainer>
+                    />
                 </WithTooltip>
                 {emojiPicker}
             </>
