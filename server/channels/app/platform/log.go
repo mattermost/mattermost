@@ -211,6 +211,14 @@ func (ps *PlatformService) getLogsSkipSend(rctx request.CTX, page, perPage int, 
 		hasDateFrom := err == nil
 		var olderEntries int
 
+		// Entries newer than DateTo can't match, so the scan starts at the first of them rather
+		// than at the end of the file. A later page skips lines counted from the end of the file,
+		// so it still starts there.
+		end := size
+		if dateTo, err := time.Parse(model.LogFilterDateLayout, logFilter.DateTo); err == nil && page == 0 {
+			end = logScanEnd(file, size, dateTo)
+		}
+
 		parent := rctx.Context()
 		if parent == nil {
 			parent = context.Background()
@@ -219,7 +227,7 @@ func (ps *PlatformService) getLogsSkipSend(rctx request.CTX, page, perPage int, 
 		ctx, cancel := context.WithTimeout(parent, budget.duration)
 		defer cancel()
 
-		reader := newReverseLineReader(file, size, logReadBlockSize)
+		reader := newReverseLineReader(file, end, logReadBlockSize)
 		reader.limit = func(read int64) (int64, error) {
 			if read >= budget.bytes || ctx.Err() != nil {
 				return 0, errLogScanLimited
@@ -261,7 +269,7 @@ func (ps *PlatformService) getLogsSkipSend(rctx request.CTX, page, perPage int, 
 				rctx.Logger().Debug("Failed to parse line, skipping")
 			} else {
 				if hasDateFrom {
-					if timestamp, err := time.Parse(logr.DefTimestampFormat, entry.Timestamp); err == nil {
+					if timestamp, ok := logEntryTimestamp(entry); ok {
 						if timestamp.Before(dateFrom) {
 							olderEntries++
 						} else {
@@ -289,7 +297,7 @@ func (ps *PlatformService) getLogsSkipSend(rctx request.CTX, page, perPage int, 
 
 		if scanLimited {
 			rctx.Logger().Debug("Log scan stopped at its limit",
-				mlog.Int("bytes_read", size-reader.offset),
+				mlog.Int("bytes_read", end-reader.offset),
 				mlog.Int("lines", len(lines)))
 			lines = append(lines, scanLimitedLogLine(logLineTimestamp(oldest)))
 		}
@@ -510,6 +518,13 @@ func isLogFilteredByLevel(logFilter *model.LogFilter, entry *model.LogEntry) boo
 	return !slices.Contains(logLevels, entry.Level)
 }
 
+// logEntryTimestamp returns when entry was logged, if its timestamp parses. Entries use mlog's
+// layout, which writes UTC as "Z" rather than "+00:00".
+func logEntryTimestamp(entry *model.LogEntry) (time.Time, bool) {
+	timestamp, err := time.Parse(logr.DefTimestampFormat, entry.Timestamp)
+	return timestamp, err == nil
+}
+
 func isLogFilteredByDate(rctx request.CTX, logFilter *model.LogFilter, entry *model.LogEntry) bool {
 	if logFilter.DateFrom == "" && logFilter.DateTo == "" {
 		return false
@@ -525,9 +540,8 @@ func isLogFilteredByDate(rctx request.CTX, logFilter *model.LogFilter, entry *mo
 		dateTo = time.Now()
 	}
 
-	// Entries use mlog's layout, which writes UTC as "Z" rather than "+00:00".
-	timestamp, err := time.Parse(logr.DefTimestampFormat, entry.Timestamp)
-	if err != nil {
+	timestamp, ok := logEntryTimestamp(entry)
+	if !ok {
 		rctx.Logger().Debug("Cannot parse timestamp, skipping")
 		return false
 	}

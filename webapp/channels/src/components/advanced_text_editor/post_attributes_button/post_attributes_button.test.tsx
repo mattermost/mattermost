@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import PostAttributesButton from './post_attributes_button';
 
@@ -21,13 +21,20 @@ describe('PostAttributesButton', () => {
         expect(button).toHaveAttribute('id', 'postAttributesButton');
     });
 
-    test('looks disabled but stays focusable', () => {
+    test('looks disabled but stays focusable and shows its tooltip', async () => {
         renderWithContext(<PostAttributesButton/>);
 
         const button = screen.getByRole('button', {name: 'Add attributes'});
 
         expect(button).toHaveAttribute('aria-disabled', 'true');
         expect(button).not.toHaveAttribute('disabled');
-        expect(button).toHaveStyle({cursor: 'not-allowed'});
+        expect(button.className).toMatch(/icon-button--disabled/);
+
+        await userEvent.tab();
+
+        await waitFor(() => {
+            expect(button).toHaveFocus();
+            expect(screen.getByText('Add attributes')).toBeInTheDocument();
+        });
     });
 });
