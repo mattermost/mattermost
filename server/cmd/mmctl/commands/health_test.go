@@ -519,8 +519,9 @@ Version
 		)
 		files[model.SupportPacketStatsFileName] = strings.Replace(files[model.SupportPacketStatsFileName], "posts: 1000", "posts: 500000", 1)
 
-		err := healthCheckPacketCmdF(healthPacketTestCommand(s.writeHealthTestPacket(files), false, false), []string{})
-		s.Require().NoError(err)
+		cmd := newTestCmd(s.T(), HealthCheckCmd)
+		s.Require().NoError(cmd.Flags().Set("packet", s.writeHealthTestPacket(files)))
+		s.Require().NoError(healthCheckRunE(cmd, []string{}))
 		s.Require().Len(printer.GetLines(), 1)
 		list, ok := printer.GetLines()[0].(*model.HealthFindingList)
 		s.Require().True(ok)
