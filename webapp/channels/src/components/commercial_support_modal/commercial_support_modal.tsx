@@ -4,7 +4,7 @@
 import moment from 'moment';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import {defineMessages, FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import {extractFilenameFromContentDisposition} from '@mattermost/client';
@@ -43,10 +43,38 @@ type State = {
     showBannerWarning: boolean;
     packetContents: SupportPacketContent[];
     loading: boolean;
-    error?: string;
+
+    /**
+     * Error text from the server, or true when the download failed without a usable message.
+     */
+    error?: string | true;
 };
 
+const messages = defineMessages({
+    genericError: {
+        id: 'commercial_support_modal.download_error',
+        defaultMessage: 'Unable to download the Support Packet. Please try again.',
+    },
+});
+
+// Delay before releasing the downloaded file from memory. Revoking the object URL
+// synchronously after click() can cancel the download in some browsers.
+const REVOKE_OBJECT_URL_DELAY_MS = 40 * 1000;
+
+function formatDownloadError(data: unknown): string | undefined {
+    if (!data || typeof data !== 'object') {
+        return undefined;
+    }
+
+    const {message, detailed_error: detailedError} = data as {message?: unknown; detailed_error?: unknown};
+    const parts = [message, detailedError].filter((part): part is string => typeof part === 'string' && part.length > 0);
+
+    return parts.length ? parts.join(': ') : undefined;
+}
+
 export default class CommercialSupportModal extends React.PureComponent<Props, State> {
+    private abortController?: AbortController;
+
     constructor(props: Props) {
         super(props);
         this.state = {
@@ -55,6 +83,10 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
             packetContents: props.packetContents,
             loading: false,
         };
+    }
+
+    componentWillUnmount() {
+        this.abortController?.abort();
     }
 
     componentDidUpdate = (prevProps: Props) => {
@@ -83,7 +115,7 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
         });
     };
 
-    genereateDownloadURLWithParams = (): string => {
+    generateDownloadURLWithParams = (): string => {
         const url = new URL(Client4.getSystemRoute() + '/support_packet');
         this.state.packetContents.forEach((content) => {
             if (content.id === 'basic.server.logs') {
@@ -104,35 +136,77 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
     };
 
     downloadSupportPacket = async () => {
+        this.abortController?.abort();
+        const abortController = new AbortController();
+        this.abortController = abortController;
+
         this.setState({loading: true, error: undefined});
-        const res = await fetch(this.genereateDownloadURLWithParams(), {
-            method: 'GET',
-            headers: {'Content-Type': 'application/zip'},
-        });
-        if (!res.ok) {
-            const data = await res.json();
-            const error = data.message + ': ' + data.detailed_error;
-            this.setState({loading: false, error});
+
+        let blob: Blob;
+        let filename: string;
+        try {
+            const res = await fetch(this.generateDownloadURLWithParams(), {
+                method: 'GET',
+                signal: abortController.signal,
+            });
+
+            if (!res.ok) {
+                let data: unknown;
+                try {
+                    data = await res.json();
+                } catch {
+                    // The body isn't JSON, e.g. an HTML error page from a proxy.
+                }
+
+                if (!abortController.signal.aborted) {
+                    this.setState({loading: false, error: formatDownloadError(data) ?? true});
+                }
+                return;
+            }
+
+            blob = await res.blob();
+            filename = this.extractFilename(res.headers.get('content-disposition'));
+        } catch {
+            // Aborted requests mean the modal was closed or a new download started; there is nothing to report.
+            if (!abortController.signal.aborted) {
+                this.setState({loading: false, error: true});
+            }
             return;
         }
 
-        const blob = await res.blob();
+        if (abortController.signal.aborted) {
+            return;
+        }
+
         this.setState({loading: false});
 
         const href = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = href;
-        link.setAttribute('download', this.extractFilename(res.headers.get('content-disposition')));
+        link.setAttribute('download', filename);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+
+        setTimeout(() => window.URL.revokeObjectURL(href), REVOKE_OBJECT_URL_DELAY_MS);
+    };
+
+    getSupportLink = (): string => {
+        const {isCloud, currentUser} = this.props;
+        if (!isCloud) {
+            return 'https://support.mattermost.com/hc/en-us/requests/new';
+        }
+
+        const url = new URL('https://customers.mattermost.com/cloud/contact-us');
+        url.searchParams.set('name', `${currentUser.first_name} ${currentUser.last_name}`);
+        url.searchParams.set('email', currentUser.email);
+        url.searchParams.set('inquiry', 'technical');
+        return url.toString();
     };
 
     render() {
-        const {showBannerWarning} = this.state;
-        const {isCloud, currentUser} = this.props;
-
-        const supportLink = isCloud ? `https://customers.mattermost.com/cloud/contact-us?name=${currentUser.first_name} ${currentUser.last_name}&email=${currentUser.email}&inquiry=technical` : 'https://support.mattermost.com/hc/en-us/requests/new';
+        const {showBannerWarning, error} = this.state;
+        const supportLink = this.getSupportLink();
         return (
             <Modal
                 id='commercialSupportModal'
@@ -157,6 +231,7 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
                             values={{
                                 supportLink: (chunks) => (
                                     <ExternalLink
+                                        key='supportLink'
                                         href={supportLink}
                                         location='commercialSupportModal'
                                     >
@@ -208,9 +283,11 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
                             ))}
                         </div>
                         <div className='CommercialSupportModal__download'>
-                            {this.state.error && (
+                            {error && (
                                 <div className='CommercialSupportModal__error'>
-                                    <span className='error-text'>{this.state.error}</span>
+                                    <span className='error-text'>
+                                        {error === true ? <FormattedMessage {...messages.genericError}/> : error}
+                                    </span>
                                 </div>
                             )}
                             <Button

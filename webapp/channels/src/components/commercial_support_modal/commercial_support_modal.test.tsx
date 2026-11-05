@@ -33,8 +33,9 @@ describe('components/CommercialSupportModal', () => {
         // Mock getSystemRoute to return a valid URL
         jest.spyOn(Client4, 'getSystemRoute').mockImplementation(() => 'http://localhost:8065/api/v4/system');
 
-        // Mock createObjectURL
+        // Mock createObjectURL and revokeObjectURL
         window.URL.createObjectURL = jest.fn().mockReturnValue('mock-url');
+        window.URL.revokeObjectURL = jest.fn();
     });
 
     afterAll(() => {
@@ -42,6 +43,9 @@ describe('components/CommercialSupportModal', () => {
 
         // @ts-expect-error - TS doesn't like deleting built-in methods
         delete window.URL.createObjectURL;
+
+        // @ts-expect-error - TS doesn't like deleting built-in methods
+        delete window.URL.revokeObjectURL;
     });
 
     const baseProps = {
@@ -148,5 +152,119 @@ describe('components/CommercialSupportModal', () => {
         await waitFor(() => {
             expect(screen.queryByText('Previous error')).not.toBeInTheDocument();
         });
+    });
+
+    test('should request the packet without a Content-Type header and with an abort signal', async () => {
+        global.fetch = jest.fn().mockResolvedValue({
+            ok: true,
+            blob: () => Promise.resolve(new Blob()),
+            headers: {get: () => null},
+        });
+
+        renderWithContext(<CommercialSupportModal {...baseProps}/>);
+
+        await userEvent.setup().click(screen.getByRole('button', {name: 'Download Support Packet'}));
+
+        await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(1));
+        const [url, options] = (global.fetch as jest.Mock).mock.calls[0];
+        expect(url).toBe('http://localhost:8065/api/v4/system/support_packet?basic_server_logs=true');
+        expect(options.headers).toBeUndefined();
+        expect(options.signal).toBeInstanceOf(AbortSignal);
+    });
+
+    test('should show only the message when the server returns no detailed error', async () => {
+        global.fetch = jest.fn().mockResolvedValue({
+            ok: false,
+            json: () => Promise.resolve({message: 'Failed to download', detailed_error: ''}),
+        });
+
+        renderWithContext(<CommercialSupportModal {...baseProps}/>);
+
+        await userEvent.setup().click(screen.getByRole('button', {name: 'Download Support Packet'}));
+
+        expect(await screen.findByText('Failed to download')).toBeInTheDocument();
+    });
+
+    test('should show a generic error when the error response is not JSON', async () => {
+        global.fetch = jest.fn().mockResolvedValue({
+            ok: false,
+            json: () => Promise.reject(new SyntaxError('Unexpected token < in JSON')),
+        });
+
+        renderWithContext(<CommercialSupportModal {...baseProps}/>);
+
+        await userEvent.setup().click(screen.getByRole('button', {name: 'Download Support Packet'}));
+
+        expect(await screen.findByText('Unable to download the Support Packet. Please try again.')).toBeInTheDocument();
+    });
+
+    test('should show a generic error when the request fails', async () => {
+        global.fetch = jest.fn().mockRejectedValue(new TypeError('Failed to fetch'));
+
+        renderWithContext(<CommercialSupportModal {...baseProps}/>);
+
+        await userEvent.setup().click(screen.getByRole('button', {name: 'Download Support Packet'}));
+
+        expect(await screen.findByText('Unable to download the Support Packet. Please try again.')).toBeInTheDocument();
+    });
+
+    test('should release the downloaded file from memory after the download starts', async () => {
+        jest.useFakeTimers();
+        try {
+            global.fetch = jest.fn().mockResolvedValue({
+                ok: true,
+                blob: () => Promise.resolve(new Blob()),
+                headers: {get: () => null},
+            });
+
+            renderWithContext(<CommercialSupportModal {...baseProps}/>);
+
+            const user = userEvent.setup({advanceTimers: jest.advanceTimersByTime});
+            await user.click(screen.getByRole('button', {name: 'Download Support Packet'}));
+
+            await waitFor(() => expect(window.URL.createObjectURL).toHaveBeenCalled());
+            expect(window.URL.revokeObjectURL).not.toHaveBeenCalled();
+
+            act(() => {
+                jest.runOnlyPendingTimers();
+            });
+            expect(window.URL.revokeObjectURL).toHaveBeenCalledWith('mock-url');
+        } finally {
+            jest.useRealTimers();
+        }
+    });
+
+    test('should abort the download when the modal unmounts', async () => {
+        let signal: AbortSignal | undefined;
+        global.fetch = jest.fn().mockImplementation((_url: string, options: RequestInit) => {
+            signal = options.signal ?? undefined;
+            return new Promise(() => {}); // never resolves
+        });
+
+        const {unmount} = renderWithContext(<CommercialSupportModal {...baseProps}/>);
+
+        await userEvent.setup().click(screen.getByRole('button', {name: 'Download Support Packet'}));
+        await waitFor(() => expect(signal).toBeDefined());
+        expect(signal?.aborted).toBe(false);
+
+        unmount();
+
+        expect(signal?.aborted).toBe(true);
+    });
+
+    test('should encode the user details in the cloud support link', () => {
+        renderWithContext(
+            <CommercialSupportModal
+                {...baseProps}
+                isCloud={true}
+                currentUser={TestHelper.getUserMock({first_name: 'Jo & Co', last_name: 'Smith#1', email: 'jo+support@example.com'})}
+            />,
+        );
+
+        const href = screen.getByRole('link', {name: 'submit a support ticket'}).getAttribute('href')!;
+        const params = new URL(href).searchParams;
+        expect(params.get('name')).toBe('Jo & Co Smith#1');
+        expect(params.get('email')).toBe('jo+support@example.com');
+        expect(params.get('inquiry')).toBe('technical');
     });
 });
