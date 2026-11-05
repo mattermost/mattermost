@@ -48,6 +48,7 @@ var diagnosticsYAMLComments = yaml.CommentMap{
 	"$.server.available_memory_mb":             {yaml.LineComment(" host/VM MemAvailable from /proc/meminfo; Linux only")},
 	"$.server.swap_total_mb":                   {yaml.LineComment(" host/VM total swap; Linux only")},
 	"$.server.swap_used_mb":                    {yaml.LineComment(" host/VM used swap; Linux only")},
+	"$.server.cgroup_memory_stats_supported":   {yaml.LineComment(" whether cgroup v2 memory statistics apply to this process")},
 	"$.server.container_cpu_limit":             {yaml.LineComment(" cgroup v2 CPU quota in CPUs; Linux only, omitted if no limit set")},
 	"$.server.container_memory_limit_mb":       {yaml.LineComment(" cgroup v2 memory quota in MB; Linux only, omitted if no limit set")},
 	"$.server.container_memory_usage_mb":       {yaml.LineComment(" cgroup v2 memory.current in MB, including page cache; Linux only")},
@@ -210,16 +211,21 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 	} else {
 		d.Server.TotalMemoryMB = new(totalMemoryBytes / 1024 / 1024)
 	}
-	containerLimits, err := getContainerLimits()
+	cgroupV2, err := getCgroupV2Info()
+	if err != nil {
+		fail(model.SectionServerMemory, errors.Wrap(err, "error while resolving cgroup v2"))
+	}
+	containerLimits, err := getContainerLimits(cgroupV2)
 	d.Server.ContainerCPULimit = containerLimits.CPULimit
 	d.Server.ContainerMemoryLimitMB = containerLimits.MemoryLimitMB
 	if err != nil {
 		rctx.Logger().Debug("Failed to get container limits for Support Packet", mlog.Err(err))
 	}
-	memory, memoryErr := getMemoryDiagnostics()
+	memory, memoryErr := getMemoryDiagnostics(cgroupV2)
 	if memoryErr != nil {
 		fail(model.SectionServerMemory, errors.Wrap(memoryErr, "error while getting memory diagnostics"))
 	}
+	d.Server.CgroupMemoryStatsSupported = cgroupV2.memoryStatsSupported
 	d.Server.AvailableMemoryMB = memory.AvailableMemoryMB
 	d.Server.SwapTotalMB = memory.SwapTotalMB
 	d.Server.SwapUsedMB = memory.SwapUsedMB

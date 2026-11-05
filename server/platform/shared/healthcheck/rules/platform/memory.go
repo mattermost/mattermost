@@ -113,7 +113,13 @@ func evalNodeContainerMemoryPressure(_ *healthcheck.Snapshot, n *healthcheck.Nod
 
 func evalNodeContainerOOMKills(_ *healthcheck.Snapshot, n *healthcheck.NodeSnapshot) healthcheck.Result {
 	diag, ok := nodeMemoryDiagnostics(n)
-	if !ok || diag.Server.ContainerOOMKills == nil {
+	if !ok || diag.Server.CgroupMemoryStatsSupported == nil {
+		return healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)
+	}
+	if !*diag.Server.CgroupMemoryStatsSupported {
+		return healthcheck.Resolved()
+	}
+	if diag.Server.ContainerOOMKills == nil {
 		return healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)
 	}
 	if *diag.Server.ContainerOOMKills > 0 {

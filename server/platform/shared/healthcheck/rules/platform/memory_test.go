@@ -15,6 +15,7 @@ func memoryNode(mutate func(*model.SupportPacketDiagnostics)) *healthcheck.NodeS
 	return leaderNode(func(diag *model.SupportPacketDiagnostics) {
 		diag.Server.TotalMemoryMB = new(uint64(1000))
 		diag.Server.AvailableMemoryMB = new(uint64(500))
+		diag.Server.CgroupMemoryStatsSupported = new(true)
 		diag.Server.ContainerMemoryLimitMB = 1000
 		diag.Server.ContainerMemoryWorkingSetMB = new(uint64(500))
 		diag.Server.ContainerOOMKills = new(uint64(0))
@@ -96,11 +97,35 @@ func TestNodeContainerOOMKills(t *testing.T) {
 		},
 		{"none recorded", memoryNode(nil), resolved},
 		{
-			"not collected",
+			"unsupported",
+			memoryNode(func(diag *model.SupportPacketDiagnostics) {
+				diag.Server.CgroupMemoryStatsSupported = new(false)
+				diag.Server.ContainerOOMKills = nil
+			}),
+			resolved,
+		},
+		{
+			"capability not collected",
+			memoryNode(func(diag *model.SupportPacketDiagnostics) {
+				diag.Server.CgroupMemoryStatsSupported = nil
+				diag.Server.ContainerOOMKills = new(uint64(3))
+			}),
+			diagUnknown,
+		},
+		{
+			"expected stats not collected",
 			memoryNode(func(diag *model.SupportPacketDiagnostics) {
 				diag.Server.ContainerOOMKills = nil
 			}),
 			diagUnknown,
+		},
+		{
+			"unlimited cgroup still reports kills",
+			memoryNode(func(diag *model.SupportPacketDiagnostics) {
+				diag.Server.ContainerMemoryLimitMB = 0
+				diag.Server.ContainerOOMKills = new(uint64(1))
+			}),
+			firing("health.rule.node_container_oom_kills.message", map[string]string{"kills": "1"}),
 		},
 	}
 
