@@ -261,10 +261,30 @@ describe('components/CommercialSupportModal', () => {
         );
 
         const href = screen.getByRole('link', {name: 'submit a support ticket'}).getAttribute('href')!;
+        expect(href).not.toContain('+');
         const params = new URL(href).searchParams;
         expect(params.get('name')).toBe('Jo & Co Smith#1');
         expect(params.get('email')).toBe('jo+support@example.com');
         expect(params.get('inquiry')).toBe('technical');
+    });
+
+    test('should not add stray spaces to the name in the cloud support link when a name part is empty', () => {
+        renderWithContext(
+            <CommercialSupportModal
+                {...baseProps}
+                isCloud={true}
+                currentUser={TestHelper.getUserMock({first_name: 'Jo', last_name: ''})}
+            />,
+        );
+
+        const href = screen.getByRole('link', {name: 'submit a support ticket'}).getAttribute('href')!;
+        expect(new URL(href).searchParams.get('name')).toBe('Jo');
+    });
+
+    test('should link to the support portal when not on Cloud', () => {
+        renderWithContext(<CommercialSupportModal {...baseProps}/>);
+
+        expect(screen.getByRole('link', {name: 'submit a support ticket'})).toHaveAttribute('href', 'https://support.mattermost.com/hc/en-us/requests/new');
     });
 
     describe('logging banner', () => {

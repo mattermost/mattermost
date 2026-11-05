@@ -197,11 +197,16 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
             return 'https://support.mattermost.com/hc/en-us/requests/new';
         }
 
-        const url = new URL('https://customers.mattermost.com/cloud/contact-us');
-        url.searchParams.set('name', `${currentUser.first_name} ${currentUser.last_name}`);
-        url.searchParams.set('email', currentUser.email);
-        url.searchParams.set('inquiry', 'technical');
-        return url.toString();
+        const params = new URLSearchParams({
+            name: [currentUser.first_name, currentUser.last_name].filter(Boolean).join(' '),
+            email: currentUser.email,
+            inquiry: 'technical',
+        });
+
+        // URLSearchParams encodes spaces as "+", but the link previously sent them as "%20". Keep
+        // "%20" so pages that decode with decodeURIComponent don't show "+" in the name. A literal
+        // "+" is already encoded as "%2B", so this replacement only affects spaces.
+        return `https://customers.mattermost.com/cloud/contact-us?${params.toString().replace(/\+/g, '%20')}`;
     };
 
     render() {
