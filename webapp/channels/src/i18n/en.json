@@ -17380,7 +17380,7 @@
     "description": "Error text shown in place of the Membership Policies table rows when fetching or searching policies fails."
   },
   "admin.user.selectOptions": {
-    "defaultMessage": "Select options...",
+    "defaultMessage": "Select options",
     "description": "Placeholder text in the multi-select input for a custom profile attribute on the admin user configuration page."
   },
   "admin.userDetail.saveChangesModal.authDataChange": {

@@ -121,7 +121,7 @@ const syncSourceChipMessages: Record<PropertySyncSource, MessageDescriptor> = de
 
 const messages = defineMessages({
     selectOption: {id: 'admin.userManagement.userDetail.selectOption', defaultMessage: 'Select an option'},
-    selectOptions: {id: 'admin.user.selectOptions', defaultMessage: 'Select options...'},
+    selectOptions: {id: 'admin.user.selectOptions', defaultMessage: 'Select options'},
     arrayValueSeparator: {id: 'admin.userManagement.userDetail.arrayValueSeparator', defaultMessage: ', '},
 });
 

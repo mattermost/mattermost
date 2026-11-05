@@ -411,7 +411,7 @@ describe('UserAttributeFields', () => {
 
         test.each([
             ['select', 'Select an option'],
-            ['multiselect', 'Select options...'],
+            ['multiselect', 'Select options'],
         ] as const)('gives an empty %s the "%s" placeholder', (type, placeholder) => {
             renderFields({fields: [buildField({type}, {options: OPTIONS})]});
 
