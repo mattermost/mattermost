@@ -89,6 +89,7 @@ func TestBuiltinRegistry(t *testing.T) {
 		"PUSH_EMPTY_URL",
 		"PUSH_BAD_SCHEME",
 		"PUSH_TEST_PROXY",
+		"PUSH_PROXY_UNREACHABLE",
 
 		// platform
 		"FILESTORE_LOCAL_IN_CLUSTER",

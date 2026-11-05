@@ -183,3 +183,155 @@ func TestPushFingerprintsDifferByCode(t *testing.T) {
 		healthcheck.Fingerprint(pushBadScheme.Code, pushBadScheme.Subject, ""),
 	)
 }
+
+func pushProxySnapshot(enabled bool, server string, nodes ...*healthcheck.NodeSnapshot) *healthcheck.Snapshot {
+	config := pushSnapshot(enabled, server)
+	snapshot := healthcheck.NewSnapshot(nodes)
+	snapshot.Config = config.Config
+	snapshot.Sections = config.Sections
+	return snapshot
+}
+
+func pushProxyNode(hostname, status, probeErr string, sectionErr error) *healthcheck.NodeSnapshot {
+	diag := &model.SupportPacketDiagnostics{}
+	diag.Notifications.Push.Status = status
+	diag.Notifications.Push.Error = probeErr
+
+	var sectionErrors model.SectionErrors
+	if sectionErr != nil {
+		sectionErrors = model.SectionErrors{model.SectionPushProbe: sectionErr}
+	}
+	return &healthcheck.NodeSnapshot{
+		Hostname: hostname,
+		Diagnostics: &model.NodeDiagnostics{
+			Diagnostics: diag,
+			Errors:      sectionErrors,
+		},
+	}
+}
+
+func TestPushProxyUnreachable(t *testing.T) {
+	t.Parallel()
+
+	messageID := healthcheck.TranslationId("health.rule.push_proxy_unreachable.message")
+	partialID := healthcheck.TranslationId("health.rule.push_proxy_unreachable.message.partial")
+	failed := pushProxyNode("app-1", model.StatusFail, "dial tcp: connection refused", nil)
+
+	configFailed := pushProxySnapshot(true, "https://push.example.com")
+	configFailed.Sections[model.SectionConfig] = errors.New("config unavailable")
+
+	testCases := []struct {
+		name     string
+		snapshot *healthcheck.Snapshot
+		want     healthcheck.Result
+	}{
+		{
+			name:     "config unavailable",
+			snapshot: &healthcheck.Snapshot{},
+			want:     healthcheck.Unknown(healthcheck.ReasonConfigUnavailable),
+		},
+		{
+			name:     "config section failed",
+			snapshot: configFailed,
+			want:     healthcheck.Unknown(healthcheck.ReasonConfigUnavailable),
+		},
+		{
+			name:     "push disabled",
+			snapshot: pushProxySnapshot(false, "https://push.example.com", failed),
+			want:     healthcheck.Resolved(),
+		},
+		{
+			name:     "empty URL is handled by config rule",
+			snapshot: pushProxySnapshot(true, "", failed),
+			want:     healthcheck.Resolved(),
+		},
+		{
+			name:     "HTTP URL is handled by config rule",
+			snapshot: pushProxySnapshot(true, "http://push.example.com", failed),
+			want:     healthcheck.Resolved(),
+		},
+		{
+			name:     "missing scheme is handled by config rule",
+			snapshot: pushProxySnapshot(true, "push.example.com", failed),
+			want:     healthcheck.Resolved(),
+		},
+		{
+			name:     "invalid HTTPS URL is suppressed",
+			snapshot: pushProxySnapshot(true, "https://[::1", failed),
+			want:     healthcheck.Resolved(),
+		},
+		{
+			name:     "no node reported the probe",
+			snapshot: pushProxySnapshot(true, "https://push.example.com"),
+			want:     healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable),
+		},
+		{
+			name: "probe section failed",
+			snapshot: pushProxySnapshot(true, "https://push.example.com",
+				pushProxyNode("app-1", model.StatusFail, "connection refused", errors.New("probe timed out"))),
+			want: healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable),
+		},
+		{
+			name: "empty probe status",
+			snapshot: pushProxySnapshot(true, "https://push.example.com",
+				pushProxyNode("app-1", "", "", nil)),
+			want: healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable),
+		},
+		{
+			name: "disabled probe status",
+			snapshot: pushProxySnapshot(true, "https://push.example.com",
+				pushProxyNode("app-1", model.StatusDisabled, "", nil)),
+			want: healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable),
+		},
+		{
+			name: "probe passed",
+			snapshot: pushProxySnapshot(true, "HTTPS://push.example.com",
+				pushProxyNode("app-1", model.StatusOk, "", nil)),
+			want: healthcheck.Resolved(),
+		},
+		{
+			name:     "probe failed",
+			snapshot: pushProxySnapshot(true, "https://push.example.com", failed),
+			want: healthcheck.Firing(messageID).
+				WithDetail("nodes", "app-1").
+				WithDetail("error", "dial tcp: connection refused"),
+		},
+		{
+			name: "all nodes failed",
+			snapshot: pushProxySnapshot(true, "https://push.example.com",
+				pushProxyNode("app-2", model.StatusFail, "connection refused", nil),
+				pushProxyNode("app-1", model.StatusFail, "connection refused", nil)),
+			want: healthcheck.Firing(messageID).
+				WithDetail("nodes", "app-1, app-2").
+				WithDetail("error", "connection refused"),
+		},
+		{
+			name: "one node failed",
+			snapshot: pushProxySnapshot(true, "https://push.example.com",
+				pushProxyNode("app-1", model.StatusOk, "", nil),
+				pushProxyNode("app-2", model.StatusFail, "i/o timeout", nil),
+				pushProxyNode("app-3", model.StatusOk, "", nil)),
+			want: healthcheck.Firing(partialID).
+				WithDetail("nodes", "app-2").
+				WithDetail("error", "i/o timeout"),
+		},
+		{
+			name: "URL credentials are masked in the error",
+			snapshot: pushProxySnapshot(true, "https://user:secret@push.example.com",
+				pushProxyNode("app-1", model.StatusFail, `Get "https://user:secret@push.example.com/version": connection refused`, nil)),
+			want: healthcheck.Firing(messageID).
+				WithDetail("nodes", "app-1").
+				WithDetail("error", `Get "https://****@push.example.com/version": connection refused`),
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			results := pushProxyUnreachable.Eval(tc.snapshot)
+			require.Len(t, results, 1)
+			assert.Equal(t, tc.want, results[0])
+		})
+	}
+}
