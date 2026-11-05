@@ -170,7 +170,6 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	// non-nil here. This replaces the client's submission with the validated values, which is
 	// what CreatePost reads back off the saved post.
 	if len(propertyValues) > 0 {
-		model.AddEventParameterToAuditRec(auditRec, "property_value_count", len(propertyValues))
 		post.Metadata.PropertyValues = propertyValues
 	}
 

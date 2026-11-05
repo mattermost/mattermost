@@ -248,9 +248,12 @@ func hasServerOwnedFields(v *model.PropertyValue) bool {
 // CanSetPostPropertyValueOnCreate reports whether userID may set field's value on a post they
 // are about to create in channel.
 //
-// A nil or unrecognised level denies, matching the property API. That check is the only gate on
-// this path, so a field the property API would refuse a value for must not become settable
-// through post creation.
+// A nil or unrecognised level denies, matching the property API.
+//
+// The property access-control hook evaluates the write again after the post is saved, so this
+// helper's job is to give the caller an early refusal before the post exists. Where the two
+// disagree, for example a field whose Permissions grant a value write to a human this helper
+// denies, this helper's answer wins for callers going through post creation.
 func (a *App) CanSetPostPropertyValueOnCreate(rctx request.CTX, userID string, field *model.PropertyField, channel *model.Channel) bool {
 	if field == nil || field.PermissionValues == nil || channel == nil {
 		return false
@@ -275,9 +278,8 @@ func (a *App) CanSetPostPropertyValueOnCreate(rctx request.CTX, userID string, f
 // setPostPropertyValuesOnCreate writes a new post's attribute values and removes the post
 // again if that write fails.
 //
-// Compensating is only safe here: the values go in before the plugin hook, before
-// PreparePostForClient and before handlePostEvents, so nobody has been told the post exists
-// and nobody but the author can see it.
+// The write runs before anything announces the post: no `posted` event, no notification and no
+// MessageHasBeenPosted hook has fired yet.
 func (a *App) setPostPropertyValuesOnCreate(rctx request.CTX, post *model.Post, values []*model.PropertyValue) *model.AppError {
 	// The permission hook behind UpsertPropertyValues loads the post to resolve its channel
 	// and author. The post was saved a moment ago, so a replica may not have it yet.
@@ -297,6 +299,9 @@ func (a *App) setPostPropertyValuesOnCreate(rctx request.CTX, post *model.Post, 
 		if post.Metadata == nil {
 			post.Metadata = &model.PostMetadata{}
 		}
+		// These values go to every channel member in the single `posted` payload. That is only
+		// correct while nothing redacts post attribute values per viewer; once post attributes
+		// are subject to per-viewer access control, this attach must be filtered per recipient.
 		post.Metadata.PropertyValues = written
 		return nil
 	}

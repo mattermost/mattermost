@@ -450,8 +450,8 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 	}
 
 	// Runs before the MessageHasBeenPosted hook, PreparePostForClient and handlePostEvents,
-	// so on success all three see the values, and on failure the post is gone before anyone
-	// but the author could have seen it.
+	// so on success all three see the values. On failure the post is removed before any
+	// `posted` event or notification goes out.
 	if propertyValues := rpost.Metadata.GetPropertyValues(); len(propertyValues) > 0 {
 		if appErr := a.setPostPropertyValuesOnCreate(rctx, rpost, propertyValues); appErr != nil {
 			return nil, false, appErr

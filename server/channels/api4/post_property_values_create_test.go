@@ -376,8 +376,8 @@ func TestCreatePostWithPropertyValues(t *testing.T) {
 	})
 
 	t.Run("a post with no metadata stores no property values", func(t *testing.T) {
-		// A field exists for this channel, so a value in the response would mean createPost
-		// looked it up despite the request submitting nothing.
+		// A field exists for this channel, so a stored value would mean createPost looked it up
+		// despite the request submitting nothing.
 		th.createField(t, model.PropertyFieldTargetLevelChannel, th.BasicChannel.Id, memberLevel)
 
 		created, resp, err := th.Client.CreatePost(context.Background(), &model.Post{
@@ -431,7 +431,7 @@ func TestCreatePostWithPropertyValuesAsGuest(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	// Its own helper rather than a subtest of the suite above: guest accounts need a license, and
-	// that suite asserts it runs unlicensed.
+	// that suite doesn't set one.
 	th := setupPostPropertyCreateTest(t, true)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {

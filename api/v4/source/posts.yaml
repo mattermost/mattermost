@@ -75,8 +75,8 @@
                     property_values:
                       type: array
                       description: >
-                        Values for the post's attributes, defined as custom profile
-                        attribute fields scoped to a post. Each entry is validated
+                        Values for the post's attributes, defined as post attribute
+                        fields in the `post_attributes` property group. Each entry is validated
                         against the applicable fields for the post's channel; an
                         error does not name which attribute failed validation.
                       items:
