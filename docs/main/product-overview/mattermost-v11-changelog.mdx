@@ -22,6 +22,7 @@ Platform and OS scope reflects reported and tested environments and may not repr
   - Updated API client request path segment handling.
   - Updated file attachment permission checks.
   - Updated mmctl download filename handling for support packets and compliance exports.
+  - Updated how the LDAP troubleshooting script invokes ``ldapsearch``.
   - Updated how responses from connected remote clusters are read.
   - Updated log path validation so that log and audit file paths inside server-managed directories, such as the plugin and data directories, are rejected or warned about in the same way as paths outside the logging root.
   - Fixed an issue where pre-packaged plugins failed to start in the FIPS Docker image.
@@ -241,6 +242,7 @@ See [this blog post](https://mattermost.com/blog/mattermost-v11-11-is-now-availa
   - Updated API client request path segment handling.
   - Updated file attachment permission checks.
   - Updated mmctl download filename handling for support packets and compliance exports.
+  - Updated how the LDAP troubleshooting script invokes ``ldapsearch``.
   - Updated how responses from connected remote clusters are read.
   - Updated log path validation so that log and audit file paths inside server-managed directories, such as the plugin and data directories, are rejected or warned about in the same way as paths outside the logging root.
   - Updated how group WebSocket events are delivered.
@@ -901,8 +903,10 @@ See [this blog post](https://mattermost.com/blog/mattermost-v11-8-0-is-now-avail
   - Renamed the **Mattermost user guide** item in the **Help** menu to **Mattermost documentation**. It opens the server's bundled documentation on root installs and docs.mattermost.com on subpath installs.
   - Updated the bot account confirmation page after creating a bot.
   - Updated API client request path segment handling.
+  - Updated channel membership handling when linked group settings change.
   - Updated file attachment permission checks.
   - Updated mmctl download filename handling for support packets and compliance exports.
+  - Updated how the LDAP troubleshooting script invokes ``ldapsearch``.
   - Updated how outgoing webhook creators and channels are validated.
   - Updated how responses from connected remote clusters are read.
   - Updated log path validation so that log and audit file paths inside server-managed directories, such as the plugin and data directories, are rejected or warned about in the same way as paths outside the logging root.
