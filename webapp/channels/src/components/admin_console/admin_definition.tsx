@@ -2209,7 +2209,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'bool',
                             key: 'LogSettings.EnableWebhookDebugging',
                             label: defineMessage({id: 'admin.log.enableWebhookDebugging', defaultMessage: 'Enable Webhook Debugging:'}),
-                            help_text: defineMessage({id: 'admin.log.enableWebhookDebuggingDescription', defaultMessage: 'When true, sends webhook debug messages to the server logs. To also output the request body of incoming webhooks, set {boldedLogLevel} to "DEBUG".'}), // eslint-disable-line formatjs/enforce-placeholders -- placeholders provided
+                            help_text: defineMessage({id: 'admin.log.enableWebhookDebuggingDescription', defaultMessage: 'When true, sends webhook debug messages to the server logs. Set {boldedLogLevel} to "DEBUG" to also log failed incoming webhook requests, such as the webhook ID and error. Message content is not logged.'}), // eslint-disable-line formatjs/enforce-placeholders -- placeholders provided
                             help_text_values: {
                                 boldedLogLevel: (
                                     <strong>
