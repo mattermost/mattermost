@@ -3,6 +3,8 @@
 
 import type {UserProfile} from '@mattermost/types/users';
 
+import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
+
 import {getLanguageInfo} from 'i18n/i18n';
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {TestHelper} from 'utils/test_helper';
@@ -68,5 +70,25 @@ describe('components/user_settings/display/index', () => {
         const userLocale = userLocaleFor(state, 'de');
         expect(userLocale).toBe('en');
         expect(getLanguageInfo(userLocale)).toBeDefined();
+    });
+
+    test('reads a missing collapse category with unread channels preference as false', () => {
+        const mapStateToProps = makeMapStateToProps();
+        expect(mapStateToProps(baseState, ownProps).collapseCategoryWithUnreads).toBe('false');
+    });
+
+    test('reads a saved collapse category with unread channels preference', () => {
+        const state = mergeObjects(baseState, {
+            entities: {
+                preferences: {
+                    myPreferences: {
+                        [getPreferenceKey('display_settings', 'collapse_category_with_unreads')]: {value: 'true'},
+                    },
+                },
+            },
+        });
+
+        const mapStateToProps = makeMapStateToProps();
+        expect(mapStateToProps(state, ownProps).collapseCategoryWithUnreads).toBe('true');
     });
 });
