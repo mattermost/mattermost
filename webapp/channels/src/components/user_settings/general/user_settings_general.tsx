@@ -21,7 +21,7 @@ import {isPropertyFieldSyncedForAuthService} from 'mattermost-redux/utils/proper
 
 import {getPluginDisplayName} from 'selectors/plugins';
 
-import {AttributeCombobox} from 'components/property_fields/attribute_combobox';
+import {AttributeCombobox, AttributeRankCombobox} from 'components/property_fields/attribute_combobox';
 import {asGraphValueIds} from 'components/property_fields/graph';
 import GraphProfileAttribute from 'components/property_fields/graph/graph_profile_attribute';
 import SettingItem from 'components/setting_item';
@@ -1612,23 +1612,37 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                     if (valueRefersToOptions(attribute)) {
                         const comboboxId = 'customProfileAttribute_' + attribute.id;
 
-                        inputs.push(
-                            <AttributeCombobox
-                                key={sectionName}
-                                id={comboboxId}
-                                testId={comboboxId}
-                                label={getUserPropertyFieldLabel(attribute)}
-                                options={attribute.attrs?.options ?? []}
-                                placeholder={formatMessage({
-                                    id: 'user.settings.general.select',
-                                    defaultMessage: 'Select',
-                                })}
-                                zIndex={ZIndex.MENU}
-                                multiple={attribute.type === 'multiselect'}
-                                value={this.state.customAttributeValues[attribute.id]}
-                                onChange={(value) => this.updateComboboxAttribute(attribute.id, value)}
-                            />,
-                        );
+                        const comboboxProps = {
+                            id: comboboxId,
+                            testId: comboboxId,
+                            label: getUserPropertyFieldLabel(attribute),
+                            options: attribute.attrs?.options ?? [],
+                            placeholder: formatMessage({
+                                id: 'user.settings.general.select',
+                                defaultMessage: 'Select',
+                            }),
+                            zIndex: ZIndex.MENU,
+                            value: this.state.customAttributeValues[attribute.id],
+                        };
+
+                        if (attribute.type === 'rank') {
+                            inputs.push(
+                                <AttributeRankCombobox
+                                    key={sectionName}
+                                    {...comboboxProps}
+                                    onChange={(value) => this.updateComboboxAttribute(attribute.id, value)}
+                                />,
+                            );
+                        } else {
+                            inputs.push(
+                                <AttributeCombobox
+                                    key={sectionName}
+                                    {...comboboxProps}
+                                    multiple={attribute.type === 'multiselect'}
+                                    onChange={(value) => this.updateComboboxAttribute(attribute.id, value)}
+                                />,
+                            );
+                        }
                     } else {
                         const inputType = attribute.type as string;
                         inputs.push(

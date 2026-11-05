@@ -120,6 +120,21 @@ export function getOptionRank(field: PropertyField, optionId: string): number | 
     return typeof rank === 'number' ? rank : index + 1;
 }
 
+// Highest rank first. Unranked options (stale caches only, per the note above)
+// go last in stored order, unlike getOptionRank's positional fallback.
+export function sortOptionsByRank<T extends PropertyFieldOption>(options: readonly T[]): T[] {
+    const rankOf = (option: T) => (typeof option.rank === 'number' ? option.rank : -Infinity);
+
+    return [...options].sort((a, b) => {
+        const rankA = rankOf(a);
+        const rankB = rankOf(b);
+        if (rankA === rankB) {
+            return 0;
+        }
+        return rankB > rankA ? 1 : -1;
+    });
+}
+
 /**
  * Whether the field's change policy permits moving from its current value to the
  * given option. Higher rank is higher, matching the server.
