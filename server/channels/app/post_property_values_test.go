@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -204,6 +205,7 @@ func TestHydratePropertyValues(t *testing.T) {
 		first := th.createField(t, string(model.PropertyFieldTargetLevelChannel), th.BasicChannel.Id, "zulu")
 		// CreateAt is millisecond-resolution; same-ms fields fall back to FieldID order.
 		for model.GetMillis() <= first.CreateAt {
+			time.Sleep(time.Millisecond)
 		}
 		second := th.createField(t, string(model.PropertyFieldTargetLevelChannel), th.BasicChannel.Id, "alpha")
 		require.Greater(t, second.CreateAt, first.CreateAt)
