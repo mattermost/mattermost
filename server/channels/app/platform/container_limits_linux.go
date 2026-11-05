@@ -13,9 +13,9 @@ import (
 	"strings"
 )
 
-// cgroupPaths holds the file paths used to read cgroup v2 resource limits.
+// resourcePaths holds the procfs and cgroup v2 files used to inspect system resources.
 // These are package-level variables so they can be overridden in tests.
-var cgroupPaths = struct {
+var resourcePaths = struct {
 	v2MemoryMax     string
 	v2CPUMax        string
 	v2MemoryCurrent string
@@ -56,7 +56,7 @@ func getContainerLimits() (ContainerLimits, error) {
 	var limits ContainerLimits
 
 	// Memory limit: "max" means unlimited, otherwise bytes
-	memStr, err := readTrimmed(cgroupPaths.v2MemoryMax)
+	memStr, err := readTrimmed(resourcePaths.v2MemoryMax)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			return limits, nil
@@ -73,7 +73,7 @@ func getContainerLimits() (ContainerLimits, error) {
 	}
 
 	// CPU limit: format is "quota period"; quota is "max" when unlimited
-	cpuStr, err := readTrimmed(cgroupPaths.v2CPUMax)
+	cpuStr, err := readTrimmed(resourcePaths.v2CPUMax)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			return limits, nil
@@ -112,7 +112,7 @@ func readTrimmed(path string) (string, error) {
 func getMemoryDiagnostics() (memoryDiagnostics, error) {
 	var diagnostics memoryDiagnostics
 
-	meminfo, err := readTrimmed(cgroupPaths.procMeminfo)
+	meminfo, err := readTrimmed(resourcePaths.procMeminfo)
 	if err != nil {
 		return diagnostics, err
 	}
@@ -135,7 +135,7 @@ func getMemoryDiagnostics() (memoryDiagnostics, error) {
 	diagnostics.SwapTotalMB = new(swapTotalKB / 1024)
 	diagnostics.SwapUsedMB = new((swapTotalKB - swapFreeKB) / 1024)
 
-	status, err := readTrimmed(cgroupPaths.procSelfStatus)
+	status, err := readTrimmed(resourcePaths.procSelfStatus)
 	if err != nil {
 		return diagnostics, err
 	}
@@ -145,7 +145,7 @@ func getMemoryDiagnostics() (memoryDiagnostics, error) {
 	}
 	diagnostics.ProcessRSSMB = new(rssKB / 1024)
 
-	memoryMax, err := readTrimmed(cgroupPaths.v2MemoryMax)
+	memoryMax, err := readTrimmed(resourcePaths.v2MemoryMax)
 	if errors.Is(err, os.ErrNotExist) {
 		return diagnostics, nil
 	} else if err != nil {
@@ -153,19 +153,19 @@ func getMemoryDiagnostics() (memoryDiagnostics, error) {
 	}
 	if memoryMax != "max" {
 		if _, err = strconv.ParseUint(memoryMax, 10, 64); err != nil {
-			return diagnostics, fmt.Errorf("parse %s: %w", cgroupPaths.v2MemoryMax, err)
+			return diagnostics, fmt.Errorf("parse %s: %w", resourcePaths.v2MemoryMax, err)
 		}
 	}
 
-	current, err := parseUintFile(cgroupPaths.v2MemoryCurrent)
+	current, err := parseUintFile(resourcePaths.v2MemoryCurrent)
 	if err != nil {
 		return diagnostics, err
 	}
-	inactiveFile, err := parseNamedUintFile(cgroupPaths.v2MemoryStat, "inactive_file")
+	inactiveFile, err := parseNamedUintFile(resourcePaths.v2MemoryStat, "inactive_file")
 	if err != nil {
 		return diagnostics, err
 	}
-	oomKills, err := parseNamedUintFile(cgroupPaths.v2MemoryEvents, "oom_kill")
+	oomKills, err := parseNamedUintFile(resourcePaths.v2MemoryEvents, "oom_kill")
 	if err != nil {
 		return diagnostics, err
 	}
