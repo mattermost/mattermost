@@ -548,10 +548,10 @@ func TestWebConnCanSeeUserCached(t *testing.T) {
 		// The target leaves behind the back of the app layer: no cache is invalidated.
 		require.NoError(t, th.Service.Store.Channel().RemoveMember(th.Context, joined.Id, target.Id))
 
-		require.Eventually(t, func() bool {
+		require.EventuallyWithT(t, func(c *assert.CollectT) {
 			canSee, appErr := wc.canSeeUserCached(th.Context, target.Id)
-			require.Nil(t, appErr)
-			return !canSee
+			require.Nil(c, appErr)
+			assert.False(c, canSee)
 		}, 2*time.Second, 20*time.Millisecond)
 	})
 
