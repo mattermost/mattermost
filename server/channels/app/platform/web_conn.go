@@ -49,6 +49,24 @@ const (
 	reconnectLossless = "lossless"
 )
 
+const (
+	// reconnectFailureOldConnStillOpen means the old connection is still considered active,
+	// usually because its network vanished and the server is waiting out its pong deadline.
+	reconnectFailureOldConnStillOpen = "old_conn_still_open"
+
+	// reconnectFailureMissedEventsEvicted means the old connection was found, but the events
+	// the client missed have already been evicted from its dead queue.
+	reconnectFailureMissedEventsEvicted = "missed_events_evicted"
+
+	// reconnectFailureConnNotFound means no node has the old connection: it was reaped, its
+	// node restarted, or its send queue overflowed while it was inactive.
+	reconnectFailureConnNotFound = "conn_not_found"
+
+	// reconnectFailureClusterLookupFailed means the other nodes could not be asked for the
+	// old connection.
+	reconnectFailureClusterLookupFailed = "cluster_lookup_failed"
+)
+
 const websocketMessagePluginPrefix = "custom_"
 
 // UnsetPresenceIndicator is the value that gets set initially for active channel/
@@ -98,7 +116,7 @@ type WebConn struct {
 	PostedAck         bool
 	DisconnectErrCode string
 
-	allChannelMembers         map[string]string
+	allChannelMembers         channelSet
 	lastAllChannelMembersTime int64
 	lastUserActivityAt        int64
 	send                      chan model.WebSocketMessage
@@ -177,12 +195,20 @@ func (ps *PlatformService) PopulateWebConnConfig(s *model.Session, cfg *WebConnC
 		return nil, fmt.Errorf("invalid sequence number %s in query param: %w", seqVal, err)
 	}
 
-	// This does not handle reconnect requests across nodes in a cluster.
-	// It falls back to the non-reliable case in that scenario.
-	res := ps.CheckWebConn(s.UserId, cfg.ConnectionID, seqNum)
+	res, reason, isRemote := ps.CheckWebConn(s.UserId, cfg.ConnectionID, seqNum)
 	if res == nil {
-		// If the connection is not present, then we assume either timeout,
-		// or server restart. In that case, we set a new one.
+		ps.Log().Debug("Websocket resume failed, issuing new connection id",
+			mlog.String("user_id", s.UserId),
+			mlog.String("connection_id", cfg.ConnectionID),
+			mlog.Int("sequence_number", seqNum),
+			mlog.String("reason", reason),
+			mlog.Bool("is_remote", isRemote),
+			mlog.String("origin_client", cfg.OriginClient),
+			mlog.String("disconnect_err_code", cfg.DisconnectErrCode))
+		if m := ps.metricsIFace; m != nil {
+			m.IncrementWebsocketReconnectEvent(reconnectNotFound, cfg.DisconnectErrCode, cfg.OriginClient)
+			m.IncrementWebsocketReconnectFailure(reason, isRemote, cfg.DisconnectErrCode, cfg.OriginClient)
+		}
 		cfg.ConnectionID = model.NewId()
 	} else {
 		// Connection is present, we get the active queue, dead queue
@@ -575,9 +601,16 @@ func (wc *WebConn) writePump() {
 				return
 			}
 			if m := wc.Platform.metricsIFace; m != nil {
-				m.IncrementWebsocketReconnectEventWithDisconnectErrCode(reconnectFound, wc.DisconnectErrCode)
+				m.IncrementWebsocketReconnectEvent(reconnectFound, wc.DisconnectErrCode, wc.originClient)
 			}
 		} else if wc.hasMsgLoss() {
+			wc.Platform.Log().Debug("Websocket resume failed, missed events evicted from dead queue",
+				mlog.String("user_id", wc.UserId),
+				mlog.String("connection_id", wc.GetConnectionID()),
+				mlog.Int("sequence_number", wc.Sequence),
+				mlog.String("origin_client", wc.originClient),
+				mlog.String("disconnect_err_code", wc.DisconnectErrCode))
+
 			// If the seq number is not in dead queue, but it was supposed to be,
 			// then generate a different connection ID,
 			// and set sequence to 0, and clear dead queue.
@@ -593,11 +626,12 @@ func (wc *WebConn) writePump() {
 				return
 			}
 			if m := wc.Platform.metricsIFace; m != nil {
-				m.IncrementWebsocketReconnectEventWithDisconnectErrCode(reconnectNotFound, wc.DisconnectErrCode)
+				m.IncrementWebsocketReconnectEvent(reconnectNotFound, wc.DisconnectErrCode, wc.originClient)
+				m.IncrementWebsocketReconnectFailure(reconnectFailureMissedEventsEvicted, false, wc.DisconnectErrCode, wc.originClient)
 			}
 		} else {
 			if m := wc.Platform.metricsIFace; m != nil {
-				m.IncrementWebsocketReconnectEventWithDisconnectErrCode(reconnectLossless, wc.DisconnectErrCode)
+				m.IncrementWebsocketReconnectEvent(reconnectLossless, wc.DisconnectErrCode, wc.originClient)
 			}
 		}
 	}
@@ -933,8 +967,10 @@ func (wc *WebConn) ShouldSendEventToGuest(msg *model.WebSocketEvent) bool {
 	return canSee
 }
 
-// ShouldSendEvent returns whether the message should be sent or not.
-func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
+// ShouldSendEvent returns whether the message should be sent or not. channelKey
+// is the event's channel ID decoded by model.DecodeId; the hub decodes it once
+// per broadcast and drops events whose ID does not decode.
+func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent, channelKey [16]byte) bool {
 	// IMPORTANT: Do not send event if WebConn does not have a session and completed MFA
 	if !wc.IsAuthenticated() {
 		return false
@@ -1064,14 +1100,11 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 				mlog.Error("webhub.shouldSendEvent.", mlog.Err(err))
 				return false
 			}
-			wc.allChannelMembers = result
+			wc.allChannelMembers = newChannelSet(result)
 			wc.lastAllChannelMembersTime = model.GetMillis()
 		}
 
-		if _, ok := wc.allChannelMembers[chID]; ok {
-			return true
-		}
-		return false
+		return wc.allChannelMembers.has(channelKey)
 	}
 
 	// Only report events to users who are in the team for the event

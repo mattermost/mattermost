@@ -79,7 +79,7 @@ func (api *API) APISessionRequired(h handlerFunc, opts ...APIHandlerOption) http
 }
 
 // APISessionRequiredGzip is APISessionRequired without brotli: large file downloads
-// (e.g. log files, invoice PDFs) compress about as well under gzip as under brotli,
+// (e.g. log files) compress about as well under gzip as under brotli,
 // and brotli's memory footprint scales with response size, so these stay on gzip
 // rather than paying that cost.
 func (api *API) APISessionRequiredGzip(h handlerFunc, opts ...APIHandlerOption) http.Handler {

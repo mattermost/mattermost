@@ -1787,6 +1787,10 @@ func (a *App) UpdatePassword(rctx request.CTX, user *model.User, newPassword str
 
 	a.InvalidateCacheForUser(user.Id)
 
+	return a.revokeSessionsForPasswordUpdate(rctx, user)
+}
+
+func (a *App) revokeSessionsForPasswordUpdate(rctx request.CTX, user *model.User) *model.AppError {
 	if *a.Config().ServiceSettings.TerminateSessionsOnPasswordChange {
 		// Get currently active sessions if request is user-initiated to retain it
 		currentSession := ""
@@ -1835,13 +1839,29 @@ func (a *App) UpdateHashedPasswordByUserId(rctx request.CTX, userID, newHashedPa
 		return err
 	}
 
-	return a.UpdateHashedPassword(user, newHashedPassword)
+	if err := a.UpdateHashedPassword(rctx, user, newHashedPassword); err != nil {
+		return err
+	}
+
+	T := i18n.GetUserTranslations(user.Locale)
+	method := T("api.user.reset_password.method")
+	a.Srv().Go(func() {
+		if err := a.Srv().EmailService.SendPasswordChangeEmail(user.Email, method, user.Locale, a.GetSiteURL()); err != nil {
+			rctx.Logger().Error("Failed to send password change email", mlog.Err(err))
+		}
+	})
+
+	return nil
 }
 
-func (a *App) UpdateHashedPassword(user *model.User, newHashedPassword string) *model.AppError {
+func (a *App) UpdateHashedPassword(rctx request.CTX, user *model.User, newHashedPassword string) *model.AppError {
 	// remote/synthetic users cannot update password via any mechanism
 	if user.IsRemote() {
 		return model.NewAppError("UpdatePassword", "api.user.update_password.failed.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	if user.IsMagicLinkEnabled() {
+		return model.NewAppError("UpdatePassword", "api.user.update_password.magic_link.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if err := a.Srv().Store().User().UpdatePassword(user.Id, newHashedPassword); err != nil {
@@ -1850,7 +1870,7 @@ func (a *App) UpdateHashedPassword(user *model.User, newHashedPassword string) *
 
 	a.InvalidateCacheForUser(user.Id)
 
-	return nil
+	return a.revokeSessionsForPasswordUpdate(rctx, user)
 }
 
 func (a *App) ResetPasswordFromToken(rctx request.CTX, userSuppliedTokenString, newPassword string) *model.AppError {

@@ -10,6 +10,7 @@ import {Link, matchPath, useLocation} from 'react-router-dom';
 import glyphMap, {MessageTextOutlineIcon, ProductBoardsIcon, ProductChannelsIcon} from '@mattermost/compass-icons/components';
 import type {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
 
+import {selectTeam} from 'mattermost-redux/actions/teams';
 import {getThreadCounts} from 'mattermost-redux/actions/threads';
 import {getCurrentChannel, getRedirectChannelNameForTeam, getTeamsUnreadStatuses} from 'mattermost-redux/selectors/entities/channels';
 import {isProductRailEnabled} from 'mattermost-redux/selectors/entities/general';
@@ -27,12 +28,13 @@ import {
     getProductRailLastPaths,
     getProductRailSection,
     getProductRailSectionUnreads,
+    getProductRailTeamIdToRestore,
     areBoardsShownInChannels,
     areProductRailLastPathsLoaded,
     isTeamSidebarHidden,
 } from 'selectors/views/product_rail';
 
-import {TEAM_NAME_PATH_PATTERN} from 'utils/path';
+import {isBackstagePath, TEAM_NAME_PATH_PATTERN} from 'utils/path';
 import {getProductSwitcherLinkURL, useCurrentProduct} from 'utils/products';
 
 import type {GlobalState} from 'types/store';
@@ -182,6 +184,15 @@ export default function ProductRail() {
         }
     }, [dispatch, enabled, threadsEnabled, currentUserId, currentTeamId]);
 
+    // A global product's page names no team, so loading one leaves none selected; pick the user's
+    // last, so the rail, the team sidebar and the team menu all have one.
+    const teamIdToRestore = useSelector(getProductRailTeamIdToRestore);
+    useEffect(() => {
+        if (enabled && currentProduct && teamIdToRestore) {
+            dispatch(selectTeam(teamIdToRestore));
+        }
+    }, [dispatch, enabled, currentProduct, teamIdToRestore]);
+
     // Bring back where each item was in earlier sessions.
     useEffect(() => {
         if (enabled && currentUserId) {
@@ -214,7 +225,8 @@ export default function ProductRail() {
         }
     }, [enabled, currentUserId, lastPaths, lastPathsLoaded]);
 
-    if (!enabled || !currentTeam) {
+    // Backstage pages (Integrations, Custom Emoji) take the whole page, with their own way back.
+    if (!enabled || !currentTeam || isBackstagePath(pathname)) {
         return null;
     }
 

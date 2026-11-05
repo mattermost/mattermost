@@ -1709,6 +1709,45 @@ func (a *App) importReaction(rctx request.CTX, data *imports.ReactionImportData,
 	return nil
 }
 
+func (a *App) importPostPriority(post *model.Post, priority *model.PostPriority, acknowledgements *[]imports.PostAcknowledgementImportData, users map[string]*model.User) *model.AppError {
+	if priority == nil {
+		return nil
+	}
+
+	postPriority := *priority
+	postPriority.PostId = post.Id
+	postPriority.ChannelId = post.ChannelId
+	if _, err := a.Srv().Store().PostPriority().Save(&postPriority); err != nil {
+		return model.NewAppError("importPostPriority", "app.import.import_post.save_priority.error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// Imported posts are historical, so reminders must not restart for them.
+	if model.SafeDereference(postPriority.PersistentNotifications) {
+		if err := a.Srv().Store().PostPersistentNotification().Delete([]string{post.Id}); err != nil {
+			return model.NewAppError("importPostPriority", "app.post_priority.delete_persistent_notification_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
+	var acks []*model.PostAcknowledgement
+	for _, ack := range model.SafeDereference(acknowledgements) {
+		user := users[strings.ToLower(*ack.User)]
+		if user == nil {
+			continue
+		}
+		acks = append(acks, &model.PostAcknowledgement{
+			UserId:         user.Id,
+			PostId:         post.Id,
+			ChannelId:      post.ChannelId,
+			AcknowledgedAt: *ack.AcknowledgedAt,
+		})
+	}
+	if _, err := a.Srv().Store().PostAcknowledgement().BatchSave(acks); err != nil {
+		return model.NewAppError("importPostPriority", "app.acknowledgement.batch_save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return nil
+}
+
 func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, post *model.Post, teamID string, extractContent bool, deactivateMissingUsers bool, report *imports.ImportReport) *model.AppError {
 	var err *model.AppError
 	usernames := []string{}
@@ -2284,6 +2323,9 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 		if line.Post.FlaggedBy != nil {
 			usernames = append(usernames, *line.Post.FlaggedBy...)
 		}
+		for _, ack := range model.SafeDereference(line.Post.Acknowledgements) {
+			usernames = append(usernames, *ack.User)
+		}
 		if line.Post.ThreadFollowers != nil {
 			for _, follower := range *line.Post.ThreadFollowers {
 				followerUsernames = append(followerUsernames, *follower.User)
@@ -2517,6 +2559,10 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 					return postWithData.lineNumber, err
 				}
 			}
+		}
+
+		if err := a.importPostPriority(postWithData.post, postWithData.postData.Priority, postWithData.postData.Acknowledgements, users); err != nil {
+			return postWithData.lineNumber, err
 		}
 
 		if postWithData.postData.Replies != nil && len(*postWithData.postData.Replies) > 0 {
@@ -2911,6 +2957,9 @@ func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.Li
 		if line.DirectPost.FlaggedBy != nil {
 			usernames = append(usernames, *line.DirectPost.FlaggedBy...)
 		}
+		for _, ack := range model.SafeDereference(line.DirectPost.Acknowledgements) {
+			usernames = append(usernames, *ack.User)
+		}
 		if line.DirectPost.ThreadFollowers != nil {
 			for _, follower := range *line.DirectPost.ThreadFollowers {
 				followerUsernames = append(followerUsernames, *follower.User)
@@ -3138,6 +3187,10 @@ func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.Li
 					return postWithData.lineNumber, err
 				}
 			}
+		}
+
+		if err := a.importPostPriority(postWithData.post, postWithData.directPostData.Priority, postWithData.directPostData.Acknowledgements, users); err != nil {
+			return postWithData.lineNumber, err
 		}
 
 		if postWithData.directPostData.Replies != nil {

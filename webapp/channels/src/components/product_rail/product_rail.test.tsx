@@ -139,6 +139,14 @@ describe('ProductRail', () => {
         expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
     });
 
+    test('should render nothing on backstage pages', () => {
+        renderAt('/team-one/integrations', getState());
+        expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
+
+        renderAt('/team-one/emoji/add', getState());
+        expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
+    });
+
     test('should link Channels and Threads to the current team', () => {
         renderAt('/team-one/channels/town-square', getState());
 

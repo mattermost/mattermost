@@ -284,23 +284,8 @@
             border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
             margin-top: 24px;
 
-            .run-once-toggle {
-                display: flex;
-                align-items: center;
-                gap: 12px;
-
-                .run-once-label {
-                    margin: 0;
-                    color: var(--center-channel-color);
-                    cursor: pointer;
-                    font-size: 14px;
-                    font-weight: 600;
-                }
-            }
-
             .run-once-description {
                 margin-top: 4px;
-                margin-left: 52px; // Align with label (toggle width + gap)
                 color: rgba(var(--center-channel-color-rgb), 0.64);
                 font-size: 12px;
             }

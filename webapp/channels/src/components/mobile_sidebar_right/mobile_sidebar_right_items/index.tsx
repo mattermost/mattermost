@@ -8,11 +8,7 @@ import type {Dispatch} from 'redux';
 
 import {Client4} from 'mattermost-redux/client';
 import {Preferences} from 'mattermost-redux/constants';
-import {getCloudSubscription as selectCloudSubscription, getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
-import {
-    getConfig,
-    getLicense,
-} from 'mattermost-redux/selectors/entities/general';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {getReportAProblemLink} from 'mattermost-redux/selectors/entities/report_a_problem';
 import {
@@ -27,8 +23,7 @@ import {showMentions, showFlaggedPosts, closeRightHandSide, closeMenu as closeRh
 import {getRhsState} from 'selectors/rhs';
 import {makeGetCustomStatus, isCustomStatusExpired, isCustomStatusEnabled} from 'selectors/views/custom_status';
 
-import {RHSStates, CloudProducts} from 'utils/constants';
-import {isCloudLicense} from 'utils/license_utils';
+import {RHSStates} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
@@ -50,14 +45,6 @@ function mapStateToProps(state: GlobalState) {
     const moreTeamsToJoin = joinableTeams && joinableTeams.length > 0;
     const rhsState = getRhsState(state);
 
-    const subscription = selectCloudSubscription(state);
-    const license = getLicense(state);
-    const subscriptionProduct = getSubscriptionProduct(state);
-
-    const isCloud = isCloudLicense(license);
-    const isStarterFree = isCloud && subscriptionProduct?.sku === CloudProducts.STARTER;
-    const isFreeTrial = isCloud && subscription?.is_free_trial === 'true';
-
     const getCustomStatus = makeGetCustomStatus();
     const customStatus = getCustomStatus(state, userId);
 
@@ -75,8 +62,6 @@ function mapStateToProps(state: GlobalState) {
         teamIsGroupConstrained: Boolean(currentTeam?.group_constrained),
         isLicensedForLDAPGroups: state.entities.general.license.LDAPGroups === 'true',
         guestAccessEnabled: config.EnableGuestAccounts === 'true',
-        isStarterFree,
-        isFreeTrial,
 
         // user account menu needs
         userId,

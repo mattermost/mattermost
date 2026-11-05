@@ -9,7 +9,7 @@ import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {General} from 'mattermost-redux/constants';
 
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
-import {OverActiveUserLimits, Preferences, SelfHostedProducts, StatTypes} from 'utils/constants';
+import {OverActiveUserLimits, Preferences, StatTypes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 import {generateId} from 'utils/utils';
 
@@ -90,19 +90,6 @@ describe('components/overage_users_banner', () => {
                 myPreferences: {},
             },
             cloud: {
-            },
-            hostedCustomer: {
-                products: {
-                    productsLoaded: true,
-                    products: {
-                        prod_professional: TestHelper.getProductMock({
-                            id: 'prod_professional',
-                            name: 'Professional',
-                            sku: SelfHostedProducts.PROFESSIONAL,
-                            price_per_seat: 7.5,
-                        }),
-                    },
-                },
             },
         },
     };
