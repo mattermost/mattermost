@@ -70,8 +70,10 @@ const (
 	SAAttrDisplayName        = "display_name"
 )
 
+const SessionAttributeMinTTLSeconds = 60
+
 const (
-	SessionAttributeDefaultTTLNetworkIdentity = 15
+	SessionAttributeDefaultTTLNetworkIdentity = 60
 	SessionAttributeDefaultTTLPosture         = 60
 	SessionAttributeDefaultTTLIdentity        = 300
 )
