@@ -15272,6 +15272,26 @@
     "description": "Health dashboard finding title when a node of a high availability cluster did not return its diagnostics for the health check."
   },
   {
+    "id": "health.rule.oauth_probe_failed.message",
+    "translation": "The OAuth/OIDC provider connectivity probe failed from every reporting Mattermost node, so sign-in through this provider is likely unavailable.",
+    "description": "Health dashboard finding detail when every reporting Mattermost node fails to reach an enabled OAuth or OpenID Connect provider."
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.message.partial",
+    "translation": "The OAuth/OIDC provider connectivity probe failed on {{.nodes}}, while the other reporting nodes can reach the provider. Sign-in through this provider may fail on those nodes.",
+    "description": "Health dashboard finding detail when some cluster nodes cannot reach an enabled OAuth or OpenID Connect provider; {{.nodes}} is a comma-separated list of node hostnames."
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.remediation",
+    "translation": "Check the error details, the provider's discovery or token endpoint, and outbound network, firewall, proxy and DNS settings. Then confirm sign-in through the provider.",
+    "description": "Health dashboard fix-it step when an enabled OAuth or OpenID Connect provider connectivity probe fails."
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.title",
+    "translation": "OAuth/OIDC provider connectivity probe failed",
+    "description": "Health dashboard finding title when an enabled OAuth or OpenID Connect provider connectivity probe fails."
+  },
+  {
     "id": "health.rule.plugin_health_off.message",
     "translation": "PluginSettings.EnableHealthCheck is false, so a plugin that crashes is not restarted automatically.",
     "description": "Health dashboard finding detail when the plugin health check is turned off; 'PluginSettings.EnableHealthCheck' is a config setting path and should not be translated."
