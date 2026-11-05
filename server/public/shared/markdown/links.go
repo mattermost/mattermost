@@ -12,29 +12,47 @@ func parseLinkDestination(markdown string, position int) (raw Range, next int, o
 		return
 	}
 
-	if markdown[position] == '<' {
-		isEscaped := false
+	if raw, next, ok = parseAngleBracketLinkDestination(markdown, position); ok {
+		return
+	}
 
-		for offset, c := range []byte(markdown[position+1:]) {
-			if isEscaped {
-				isEscaped = false
-				if isEscapableByte(c) {
-					continue
-				}
-			}
+	return parsePlainLinkDestination(markdown, position, nil)
+}
 
-			if c == '\\' {
-				isEscaped = true
-			} else if c == '<' {
-				break
-			} else if c == '>' {
-				return Range{position + 1, position + 1 + offset}, position + 1 + offset + 1, true
-			} else if isWhitespaceByte(c) {
-				break
+func parseAngleBracketLinkDestination(markdown string, position int) (raw Range, next int, ok bool) {
+	if markdown[position] != '<' {
+		return
+	}
+
+	isEscaped := false
+	for offset, c := range []byte(markdown[position+1:]) {
+		if isEscaped {
+			isEscaped = false
+			if isEscapableByte(c) {
+				continue
 			}
+		}
+
+		if c == '\\' {
+			isEscaped = true
+		} else if c == '<' {
+			break
+		} else if c == '>' {
+			return Range{position + 1, position + 1 + offset}, position + 1 + offset + 1, true
+		} else if isWhitespaceByte(c) {
+			break
 		}
 	}
 
+	return
+}
+
+// parsePlainLinkDestination reads a destination that is not enclosed in angle brackets. When the
+// destination ends at whitespace or at the end of the input and unmatched is not nil, it receives
+// the position after each ( that is still unmatched there: a destination starting at any of those
+// positions ends in the same place.
+func parsePlainLinkDestination(markdown string, position int, unmatched *[]int) (raw Range, next int, ok bool) {
+	var openings []int
 	openCount := 0
 	isEscaped := false
 	for offset, c := range []byte(markdown[position:]) {
@@ -50,16 +68,28 @@ func parseLinkDestination(markdown string, position int) (raw Range, next int, o
 			isEscaped = true
 		case '(':
 			openCount++
+			if unmatched != nil {
+				openings = append(openings, position+offset+1)
+			}
 		case ')':
 			if openCount < 1 {
 				return Range{position, position + offset}, position + offset, true
 			}
 			openCount--
+			if unmatched != nil {
+				openings = openings[:len(openings)-1]
+			}
 		default:
 			if isWhitespaceByte(c) {
+				if unmatched != nil {
+					*unmatched = openings
+				}
 				return Range{position, position + offset}, position + offset, true
 			}
 		}
+	}
+	if unmatched != nil {
+		*unmatched = openings
 	}
 	return Range{position, len(markdown)}, len(markdown), true
 }
