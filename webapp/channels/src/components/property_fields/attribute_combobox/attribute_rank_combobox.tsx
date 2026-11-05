@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useMemo} from 'react';
-import {defineMessages, FormattedMessage} from 'react-intl';
 
 import type {PropertyFieldOption} from '@mattermost/types/properties';
 
@@ -14,14 +13,6 @@ import {AttributeCombobox} from './attribute_combobox';
 import type {AttributeComboboxProps, AttributeOptionDecoration} from './attribute_combobox';
 import {AttributeOptionSwatch} from './attribute_option_swatch';
 
-const messages = defineMessages({
-    rank: {
-        id: 'property_fields.attribute_rank_combobox.rank',
-        defaultMessage: 'Rank {rank}',
-        description: 'Secondary text under a ranked option in an attribute dropdown, also read as part of the option\'s name. {rank} is the option\'s rank number.',
-    },
-});
-
 /** Single-select only, highest rank first. */
 export type AttributeRankComboboxProps = Omit<AttributeComboboxProps, 'multiple' | 'decorateOption' | 'onChange'> & {
     onChange: (value: string) => void;
@@ -29,24 +20,15 @@ export type AttributeRankComboboxProps = Omit<AttributeComboboxProps, 'multiple'
 
 function decorateRankOption(option: PropertyFieldOption): AttributeOptionDecoration {
     const {rank} = option;
-    const isRanked = typeof rank === 'number';
 
     let leadingVisual;
     if (option.color) {
         leadingVisual = <AttributeOptionSwatch color={option.color}/>;
-    } else if (isRanked) {
+    } else if (typeof rank === 'number') {
         leadingVisual = <RankBadge rank={rank}/>;
     }
 
-    return {
-        leadingVisual,
-        secondaryLabel: isRanked ? (
-            <FormattedMessage
-                {...messages.rank}
-                values={{rank}}
-            />
-        ) : undefined,
-    };
+    return {leadingVisual};
 }
 
 export function AttributeRankCombobox({options, onChange, ...rest}: AttributeRankComboboxProps) {

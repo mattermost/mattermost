@@ -1438,6 +1438,14 @@ describe('components/new_channel_modal - channel attributes', () => {
         updated_by: '',
     };
 
+    const caveats: PropertyField = {
+        ...program,
+        id: 'f_caveats',
+        name: 'caveats',
+        type: 'multiselect',
+        attrs: {display_name: 'Caveats', required: true, options: [{id: 'opt_a', name: 'NOFORN'}, {id: 'opt_b', name: 'ORCON'}]},
+    };
+
     const state: DeepPartial<GlobalState> = {
         entities: {
             general: {config: {UseAnonymousURLs: 'false', FeatureFlagChannelAttributes: 'true', FeatureFlagChannelAttributesRequired: 'true'}},
@@ -1801,13 +1809,6 @@ describe('components/new_channel_modal - channel attributes', () => {
         });
 
         test('Enter on a focused chip removes it without confirming', async () => {
-            const caveats: PropertyField = {
-                ...program,
-                id: 'f_caveats',
-                name: 'caveats',
-                type: 'multiselect',
-                attrs: {display_name: 'Caveats', required: true, options: [{id: 'opt_a', name: 'NOFORN'}, {id: 'opt_b', name: 'ORCON'}]},
-            };
             mockedUseChannelAttributes.mockReturnValue({enabled: true, loading: false, failed: false, fields: [caveats]});
 
             renderWithContext(<NewChannelModal/>, state);
@@ -1834,13 +1835,6 @@ describe('components/new_channel_modal - channel attributes', () => {
 
     describe('Enter in a multiselect input', () => {
         test('confirms a complete form when the menu is closed', async () => {
-            const caveats: PropertyField = {
-                ...program,
-                id: 'f_caveats',
-                name: 'caveats',
-                type: 'multiselect',
-                attrs: {display_name: 'Caveats', required: true, options: [{id: 'opt_a', name: 'NOFORN'}, {id: 'opt_b', name: 'ORCON'}]},
-            };
             mockedUseChannelAttributes.mockReturnValue({enabled: true, loading: false, failed: false, fields: [caveats]});
 
             renderWithContext(<NewChannelModal/>, state);
@@ -1916,7 +1910,7 @@ describe('components/new_channel_modal - channel attributes', () => {
                 'channelAttribute-f_classification-listbox-option-lvl1',
             ]);
 
-            await userEvent.click(screen.getByRole('option', {name: 'SECRET Rank 2'}));
+            await userEvent.click(screen.getByRole('option', {name: 'SECRET'}));
             expect(createButton()).toBeEnabled();
 
             await userEvent.click(screen.getByRole('button', {name: 'Create channel'}));
@@ -1949,7 +1943,7 @@ describe('components/new_channel_modal - channel attributes', () => {
             expect(combobox).not.toHaveAttribute('aria-invalid');
 
             await user.click(combobox);
-            await user.click(screen.getByRole('option', {name: 'SECRET Rank 2'}));
+            await user.click(screen.getByRole('option', {name: 'SECRET'}));
             await user.click(screen.getByTestId('channelAttribute-classification-clear'));
 
             expect(alertIn('classification')).not.toBeInTheDocument();

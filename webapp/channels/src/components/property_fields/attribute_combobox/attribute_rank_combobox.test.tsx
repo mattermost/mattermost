@@ -115,27 +115,27 @@ describe('AttributeRankCombobox', () => {
 
         expect(withinRow('odd').getByTestId(PLACEHOLDER)).toBeInTheDocument();
         expect(withinRow('odd').queryByTestId(BADGE)).not.toBeInTheDocument();
-        expect(withinRow('odd').queryByText(/^Rank /)).not.toBeInTheDocument();
+        expect(withinRow('odd').queryByText(/Rank/)).not.toBeInTheDocument();
         expect(getRow('odd')).toHaveAccessibleName('Odd');
     });
 
-    test('treats rank 0 as ranked: badge 0 and "Rank 0" in the name', async () => {
+    test('treats rank 0 as ranked: badge 0', async () => {
         renderWithContext(<RankHarness/>);
 
         await openMenu();
 
         expect(withinRow('zero').getByTestId(BADGE)).toHaveTextContent('0');
-        expect(getRow('zero')).toHaveAccessibleName('Zero Rank 0');
     });
 
-    test('shows the rank under the name and reads it as part of the option name', async () => {
+    test('renders no secondary "Rank n" text under any option', async () => {
         renderWithContext(<RankHarness/>);
 
         await openMenu();
 
-        expect(getRow('top')).toHaveAccessibleName('Top Rank 3');
-        expect(withinRow('top').getByText('Rank 3')).toBeInTheDocument();
-        expect(screen.getByRole('option', {name: 'Mid Rank 2'})).toBeInTheDocument();
+        for (const option of RANKS) {
+            expect(getRow(option.id)).not.toHaveTextContent(/Rank/);
+        }
+        expect(screen.getByRole('option', {name: 'Mid'})).toBeInTheDocument();
     });
 
     test.each([
@@ -157,7 +157,7 @@ describe('AttributeRankCombobox', () => {
         renderWithContext(<RankHarness onChange={onChange}/>);
 
         await openMenu();
-        await userEvent.click(screen.getByRole('option', {name: 'Low Rank 1'}));
+        await userEvent.click(screen.getByRole('option', {name: 'Low'}));
 
         expect(onChange).toHaveBeenLastCalledWith('low');
         expect(getInput()).toHaveValue('Low');

@@ -71,6 +71,8 @@ const level = field({
     },
 });
 
+const requiredLevel: PropertyField = {...level, attrs: {...level.attrs, required: true}};
+
 const colouredProgram = field({
     id: 'f_color',
     name: 'color',
@@ -289,7 +291,7 @@ describe('ChannelAttributesForm', () => {
         expect(layer?.style.zIndex).toBe(String(ZIndex.MENU));
     });
 
-    test('lists a rank field highest first with the rank in each name', async () => {
+    test('lists a rank field highest first with a badge or swatch and no rank text', async () => {
         const onChange = jest.fn();
         renderWithContext(
             <ChannelAttributesForm
@@ -311,8 +313,11 @@ describe('ChannelAttributesForm', () => {
         expect(secret.getByTestId('attribute-option-swatch')).toBeInTheDocument();
         expect(secret.queryByTestId('rank-badge')).not.toBeInTheDocument();
         expect(within(screen.getByTestId('channelAttribute-rank-option-l2')).getByTestId('rank-badge')).toHaveTextContent('2');
+        for (const id of ['l3', 'l2', 'l1']) {
+            expect(screen.getByTestId(`channelAttribute-rank-option-${id}`)).not.toHaveTextContent(/Rank/);
+        }
 
-        await userEvent.click(screen.getByRole('option', {name: 'SECRET Rank 3'}));
+        await userEvent.click(screen.getByRole('option', {name: 'SECRET'}));
         expect(onChange).toHaveBeenCalledWith('f_rank', 'l3');
     });
 
@@ -359,7 +364,7 @@ describe('ChannelAttributesForm', () => {
     });
 
     test('marks required comboboxes aria-required and leaves optional ones unmarked', () => {
-        const requiredFields = [requiredProgram, caveats, {...level, attrs: {...level.attrs, required: true}}];
+        const requiredFields = [requiredProgram, caveats, requiredLevel];
         const {unmount} = renderWithContext(
             <ChannelAttributesForm
                 fields={requiredFields}
@@ -415,7 +420,7 @@ describe('ChannelAttributesForm', () => {
 
     test('shows the required error after blur on an empty required rank field', async () => {
         const user = userEvent.setup();
-        renderWithContext(<Harness fields={[{...level, attrs: {...level.attrs, required: true}}]}/>);
+        renderWithContext(<Harness fields={[requiredLevel]}/>);
 
         const combobox = screen.getByRole('combobox', {name: 'Level'});
         expect(within(rowOf('rank')).queryByRole('alert')).not.toBeInTheDocument();
@@ -559,10 +564,9 @@ describe('ChannelAttributesForm', () => {
             />
         );
 
-        async function focusFirstChip(user: ReturnType<typeof userEvent.setup>, keys: string[]) {
+        async function focusFirstChip(user: ReturnType<typeof userEvent.setup>) {
             await user.click(screen.getByRole('combobox', {name: 'Caveats'}));
             await user.keyboard('{Escape}');
-            keys.length = 0;
             await user.tab({shift: true});
             expect(document.activeElement).toHaveAttribute('data-chip');
         }
@@ -579,7 +583,7 @@ describe('ChannelAttributesForm', () => {
                 </div>,
             );
 
-            await focusFirstChip(user, keys);
+            await focusFirstChip(user);
             await user.keyboard('{Enter}');
 
             expect(getChips()).toHaveLength(1);
@@ -602,7 +606,6 @@ describe('ChannelAttributesForm', () => {
             await user.click(input);
             await user.keyboard('{Escape}');
             expect(input).toHaveAttribute('aria-expanded', 'false');
-            keys.length = 0;
 
             await user.keyboard('{Enter}');
 
@@ -638,7 +641,7 @@ describe('ChannelAttributesForm', () => {
                 </div>,
             );
 
-            await focusFirstChip(user, keys);
+            await focusFirstChip(user);
             await user.keyboard('{Enter}');
 
             expect(keys).toContain('Enter');

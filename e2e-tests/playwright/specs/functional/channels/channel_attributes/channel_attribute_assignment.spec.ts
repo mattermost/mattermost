@@ -451,13 +451,13 @@ test.describe('Channel attribute assignment', {tag: ['@channel_attributes']}, ()
             // # Open the rank combobox
             const listbox = await modal.openAttributeCombobox(level.name);
 
-            // * Highest rank first, each uncoloured option with its badge and rank text
+            // * Highest rank first, each uncoloured option with its badge and no rank text
             await modal.expectAttributeOptionOrder(
                 level.name,
                 ['HIGH', 'MID', 'LOW'].map((name) => optionId(level, name)),
             );
             await expect(listbox.getByTestId('rank-badge')).toHaveText(['3', '2', '1']);
-            await expect(listbox.getByText('Rank 3', {exact: true})).toBeVisible();
+            await expect(listbox.getByRole('option')).toHaveText([/^3\s*HIGH$/, /^2\s*MID$/, /^1\s*LOW$/]);
             await expect(listbox.getByTestId('attribute-option-swatch')).toHaveCount(0);
 
             // # Pick the middle option

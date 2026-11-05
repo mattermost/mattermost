@@ -595,10 +595,9 @@ describe('AttributeCombobox', () => {
         const SWATCH = 'attribute-option-swatch';
         const PLACEHOLDER = 'attribute-option-visual-placeholder';
 
-        const decorate = (option: PropertyFieldOption): AttributeOptionDecoration => {
-            return option.id === 'red' ? {leadingVisual: <span data-testid='deco'/>, secondaryLabel: 'Extra'} : {};
-        };
-        const makeHook = () => jest.fn(decorate);
+        const makeHook = () => jest.fn((option: PropertyFieldOption): AttributeOptionDecoration => (
+            option.id === 'red' ? {leadingVisual: <span data-testid='deco'/>, secondaryLabel: 'Extra'} : {}
+        ));
 
         test('a single field shows a swatch only for options with a colour', async () => {
             renderWithContext(<SingleHarness options={COLOURED}/>);

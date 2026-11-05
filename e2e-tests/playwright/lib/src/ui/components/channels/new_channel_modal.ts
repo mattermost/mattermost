@@ -83,8 +83,8 @@ export default class NewChannelModal {
 
     /**
      * Opens the combobox and picks an option by its exact label. The label span is matched rather
-     * than the option's accessible name, which carries "Rank n" on ranked options. The menu closes
-     * after the pick; in a multiselect, picking an already selected option deselects it.
+     * than the option's accessible name, so a name that is a substring of another can't match both.
+     * The menu closes after the pick; in a multiselect, picking an already selected option deselects it.
      */
     async selectAttributeOption(fieldName: string, optionName: string): Promise<void> {
         const listbox = await this.openAttributeCombobox(fieldName);

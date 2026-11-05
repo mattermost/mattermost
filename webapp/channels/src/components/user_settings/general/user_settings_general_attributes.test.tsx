@@ -153,7 +153,7 @@ describe('components/user_settings/general/UserSettingsGeneral custom attribute 
             await userEvent.click(getCombobox());
 
             expect(screen.queryByTestId('rank-badge')).not.toBeInTheDocument();
-            expect(screen.queryByText(/^Rank /)).not.toBeInTheDocument();
+            expect(screen.queryByText(/Rank/)).not.toBeInTheDocument();
             expect(screen.getByRole('option', {name: 'Option 1'})).toBeInTheDocument();
         });
 
@@ -192,8 +192,11 @@ describe('components/user_settings/general/UserSettingsGeneral custom attribute 
                 `${COMBOBOX_ID}-listbox-option-mid`,
                 `${COMBOBOX_ID}-listbox-option-junior`,
             ]);
-            expect(screen.getByTestId(`${COMBOBOX_ID}-option-mid`)).toHaveAccessibleName('Mid Rank 2');
-            await userEvent.click(screen.getByRole('option', {name: 'Mid Rank 2'}));
+            const midRow = screen.getByTestId(`${COMBOBOX_ID}-option-mid`);
+            expect(midRow).toHaveAccessibleName('Mid');
+            expect(within(midRow).getByTestId('rank-badge')).toHaveTextContent('2');
+            expect(midRow).not.toHaveTextContent(/Rank/);
+            await userEvent.click(screen.getByRole('option', {name: 'Mid'}));
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
             expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', 'mid');

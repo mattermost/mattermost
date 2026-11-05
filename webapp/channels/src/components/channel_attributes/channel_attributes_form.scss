@@ -30,7 +30,7 @@
         }
 
         // Keeps the name level with the input once an error sits under it.
-        // 10px = (40px Compass medium control - 20px label line) / 2; tune in Phase E.
+        // 10px = (40px Compass medium control - 20px label line) / 2.
         &--error {
             align-items: flex-start;
 

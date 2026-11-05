@@ -29039,10 +29039,6 @@
     "defaultMessage": "{label} selections",
     "description": "Accessible name of the group of selected-value chips in a multi-value attribute. {label} is the attribute name."
   },
-  "property_fields.attribute_rank_combobox.rank": {
-    "defaultMessage": "Rank {rank}",
-    "description": "Secondary text under a ranked option in an attribute dropdown, also read as part of the option's name. {rank} is the option's rank number."
-  },
   "property_fields.hierarchical_value_menu.also_under": {
     "defaultMessage": "Also under {names}",
     "description": "Hint under a value in the hierarchical value picker when the value also appears under other parents in the hierarchy. {names} is a localized list of the other parent values' names. Used in profile settings, System Console user details, and channel attributes."
