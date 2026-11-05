@@ -207,6 +207,9 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
     render() {
         const {showBannerWarning, error} = this.state;
         const supportLink = this.getSupportLink();
+
+        // The banner text has several <strong> tags, so each needs its own key.
+        let strongCount = 0;
         return (
             <Modal
                 id='commercialSupportModal'
@@ -248,8 +251,15 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
                                         id='commercial_support_modal.warning.banner'
                                         defaultMessage='Before downloading the Support Packet, set <strong>Output Logs to File</strong> to <strong>true</strong> and set <strong>File Log Level</strong> to <strong>DEBUG</strong> <debugLink>here</debugLink>.'
                                         values={{
-                                            strong: (chunks) => <strong>{chunks}</strong>,
-                                            debugLink: (chunks) => <Link to='/admin_console/environment/logging'>{chunks}</Link>,
+                                            strong: (chunks) => <strong key={`strong-${strongCount++}`}>{chunks}</strong>,
+                                            debugLink: (chunks) => (
+                                                <Link
+                                                    key='debugLink'
+                                                    to='/admin_console/environment/logging'
+                                                >
+                                                    {chunks}
+                                                </Link>
+                                            ),
                                         }}
                                     />
                                 }

@@ -5,6 +5,7 @@ import React from 'react';
 
 import {Client4} from 'mattermost-redux/client';
 
+import ConnectedCommercialSupportModal from 'components/commercial_support_modal';
 import CommercialSupportModal from 'components/commercial_support_modal/commercial_support_modal';
 
 import {act, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
@@ -18,8 +19,11 @@ jest.mock('react-bootstrap', () => {
     return {Modal};
 });
 
-jest.mock('components/alert_banner', () => (props: {message: React.ReactNode}) => (
-    <div>{props.message}</div>
+jest.mock('components/alert_banner', () => (props: {message: React.ReactNode; onDismiss: () => void}) => (
+    <div>
+        {props.message}
+        <button onClick={props.onDismiss}>{'Dismiss'}</button>
+    </div>
 ));
 
 jest.mock('components/external_link', () => ({children, href}: {children: React.ReactNode; href: string}) => (
@@ -261,5 +265,66 @@ describe('components/CommercialSupportModal', () => {
         expect(params.get('name')).toBe('Jo & Co Smith#1');
         expect(params.get('email')).toBe('jo+support@example.com');
         expect(params.get('inquiry')).toBe('technical');
+    });
+
+    describe('logging banner', () => {
+        const bannerText = /Before downloading the Support Packet/;
+
+        const getState = ({isCloud = false, enableFile = 'false', fileLevel = 'INFO'} = {}) => {
+            const currentUser = TestHelper.getUserMock();
+            return {
+                entities: {
+                    general: {
+                        config: {EnableFile: enableFile, FileLevel: fileLevel},
+                        license: {Cloud: String(isCloud)},
+                    },
+                    users: {
+                        currentUserId: currentUser.id,
+                        profiles: {[currentUser.id]: currentUser},
+                    },
+                    admin: {plugins: {}},
+                },
+            };
+        };
+
+        test('should show the banner with a link to the logging settings when file logging is off', () => {
+            renderWithContext(<ConnectedCommercialSupportModal onExited={jest.fn()}/>, getState());
+
+            expect(screen.getByText(bannerText)).toBeInTheDocument();
+            expect(screen.getByRole('link', {name: 'here'})).toHaveAttribute('href', '/admin_console/environment/logging');
+        });
+
+        test('should show the banner when file logging is on but the level is not DEBUG', () => {
+            renderWithContext(<ConnectedCommercialSupportModal onExited={jest.fn()}/>, getState({enableFile: 'true', fileLevel: 'INFO'}));
+
+            expect(screen.getByText(bannerText)).toBeInTheDocument();
+        });
+
+        test('should not show the banner when file logging is on at DEBUG level', () => {
+            renderWithContext(<ConnectedCommercialSupportModal onExited={jest.fn()}/>, getState({enableFile: 'true', fileLevel: 'DEBUG'}));
+
+            expect(screen.queryByText(bannerText)).not.toBeInTheDocument();
+        });
+
+        test('should not show the banner on Cloud', () => {
+            renderWithContext(<ConnectedCommercialSupportModal onExited={jest.fn()}/>, getState({isCloud: true}));
+
+            expect(screen.queryByText(bannerText)).not.toBeInTheDocument();
+        });
+
+        test('should hide the banner when dismissed', async () => {
+            renderWithContext(
+                <CommercialSupportModal
+                    {...baseProps}
+                    showBannerWarning={true}
+                />,
+            );
+
+            expect(screen.getByText(bannerText)).toBeInTheDocument();
+
+            await userEvent.setup().click(screen.getByRole('button', {name: 'Dismiss'}));
+
+            expect(screen.queryByText(bannerText)).not.toBeInTheDocument();
+        });
     });
 });
