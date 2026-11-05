@@ -6194,6 +6194,22 @@ func (s *TimerLayerHealthFindingStore) Upsert(findings []*model.HealthFinding) e
 	return err
 }
 
+func (s *TimerLayerJobStore) ClaimWithConcurrencyKey(id string, concurrencyKey string, staleBefore int64) (*model.Job, []*model.Job, error) {
+	start := time.Now()
+
+	result, resultVar1, err := s.JobStore.ClaimWithConcurrencyKey(id, concurrencyKey, staleBefore)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("JobStore.ClaimWithConcurrencyKey", success, elapsed)
+	}
+	return result, resultVar1, err
+}
+
 func (s *TimerLayerJobStore) Cleanup(expiryTime int64, batchSize int) error {
 	start := time.Now()
 
@@ -6398,6 +6414,38 @@ func (s *TimerLayerJobStore) GetNewestJobByStatusesAndType(statuses []string, jo
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("JobStore.GetNewestJobByStatusesAndType", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerJobStore) GetPendingByConcurrencyKey(concurrencyKey string) (*model.Job, error) {
+	start := time.Now()
+
+	result, err := s.JobStore.GetPendingByConcurrencyKey(concurrencyKey)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("JobStore.GetPendingByConcurrencyKey", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerJobStore) RefreshLastActivityAt(ids []string) ([]string, error) {
+	start := time.Now()
+
+	result, err := s.JobStore.RefreshLastActivityAt(ids)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("JobStore.RefreshLastActivityAt", success, elapsed)
 	}
 	return result, err
 }
