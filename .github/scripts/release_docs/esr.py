@@ -6,8 +6,8 @@
   - opens one draft docs PR for the ESR support snippets, the release policy and the
     upgrade page (``docs_changes``);
   - three months before: opens a draft PR in mattermost/mattermost-mobile that makes the new
-    ESR the minimum supported server (the mobile ESR prompt), as mattermost-mobile#9954 did
-    (``mobile_result``);
+    ESR the minimum supported server (the mobile ESR prompt), as mattermost-mobile#9954 did,
+    and sets MIN_REQUIRED_VERSION to the ESR two before it (``mobile_result``);
   - when support ends: creates a Jira ticket for removing the feature flags enabled up to
     that ESR. Ticket keys go to Hub only.
 - The forum post is a draft in the Marketing thread (``forum_post``); there's no forum access.
@@ -40,7 +40,6 @@ MOBILE_TEXT = {
                                     "compatible with Mattermost servers v{version}+"),
 }
 MOBILE_FILES = (MOBILE_CONSTANTS, *MOBILE_TEXT)
-MAY = 5
 JIRA_LABEL = "release-agent-esr"
 RECENT = timedelta(days=14)
 RELEASE_ROW = re.compile(r"^\| v(\d+)\.(\d+) .*?\| (\d{4}-\d{2}-\d{2}) \|")
@@ -255,23 +254,24 @@ def _constant(text: str, name: str, value: str, quoted: bool, result: Result) ->
 
 
 def min_required(text: str, esr: Esr, esr_versions: str, result: Result) -> str:
-    """The May ESR also moves MIN_REQUIRED_VERSION to the trailing ESR, the one going out of
-    support. Only when the file's value is clearly the ESR before it: an ``X.Y.0`` whose
-    ``vX.Y`` is in CHANGELOG_ESR_VERSIONS and older. Anything else is a TODO, never a guess:
-    #9954 (the v11.7 PR, a May case) left '9.11.0' as it was."""
-    trailing = f"{esr.old.short.lstrip('v')}.0"
-    match = re.search(r"^export const MIN_REQUIRED_VERSION = '(\d+)\.(\d+)\.(\d+)';$", text, re.M)
-    current = tuple(int(g) for g in match.groups()) if match else None
-    if current == (esr.old.major, esr.old.minor, 0):
-        result.notes.append(f"MIN_REQUIRED_VERSION is already {trailing}.")
+    """MIN_REQUIRED_VERSION is the ESR two before the new one: the app supports two trailing ESRs.
+
+    Taken from CHANGELOG_ESR_VERSIONS in version order, so for the new ESR v11.7.0 it is '9.11.0'
+    (as mattermost-mobile#9954 has it) and for v12.4.0 it is '10.11.0'. With fewer than two ESRs
+    listed before the new one it is a TODO, never a guess; a file that already has the value is left.
+    """
+    new = esr.new
+    before = [line for line in esr_lines(esr_versions) if line.line < new.line]
+    if len(before) < 2:
+        result.todo(f"{MOBILE_CONSTANTS}: CHANGELOG_ESR_VERSIONS lists {len(before)} ESR(s) before {new.short}, but "
+                    f"MIN_REQUIRED_VERSION is the ESR two before it, so it wasn't set; add the older ESRs or set it by hand")
         return text
-    listed = {line.line for line in esr_lines(esr_versions)}
-    if not current or current[2] != 0 or current[:2] not in listed or current[:2] >= esr.old.line:
-        shown = ".".join(map(str, current)) if current else "not a plain 'X.Y.Z' value"
-        result.todo(f"{MOBILE_CONSTANTS}: MIN_REQUIRED_VERSION is {shown}, which isn't clearly the ESR before "
-                    f"{esr.old.short}, so it wasn't set to the trailing ESR ({trailing}); decide and set it by hand")
+    target = f"{before[-2].short.lstrip('v')}.0"
+    match = re.search(r"^export const MIN_REQUIRED_VERSION = '([^']*)';$", text, re.M)
+    if match and match.group(1) == target:
+        result.notes.append(f"MIN_REQUIRED_VERSION is already {target}.")
         return text
-    return _constant(text, "MIN_REQUIRED_VERSION", trailing, True, result)
+    return _constant(text, "MIN_REQUIRED_VERSION", target, True, result)
 
 
 def mobile_changes(esr: Esr, files: dict, esr_versions: str, result: Result) -> dict:
@@ -283,8 +283,7 @@ def mobile_changes(esr: Esr, files: dict, esr_versions: str, result: Result) -> 
     updated = _constant(updated, "MAJOR_VERSION", str(new.major), False, result)
     updated = _constant(updated, "MIN_VERSION", str(new.minor), False, result)
     updated = _constant(updated, "PATCH_VERSION", "0", False, result)
-    if esr.dates[BEFORE].month == MAY:
-        updated = min_required(updated, esr, esr_versions, result)
+    updated = min_required(updated, esr, esr_versions, result)
     if updated != text:
         changed[MOBILE_CONSTANTS] = updated
     for path, (pattern, replacement) in MOBILE_TEXT.items():

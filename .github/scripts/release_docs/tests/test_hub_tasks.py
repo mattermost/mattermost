@@ -432,7 +432,8 @@ def esr_github(mobile_side: str = "before") -> FakeGitHub:
 
 class MobileEsrPrTest(unittest.TestCase):
     def test_v11_7_edits_match_9954(self):
-        result = esr.mobile_result(V10_11, mobile_files("before"), ESR)
+        # With v9.11 listed, the ESR two before v11.7 is v9.11: '9.11.0', which #9954's file already has.
+        result = esr.mobile_result(V10_11, mobile_files("before"), "v9.11," + ESR)
         self.assertEqual(result.files, mobile_files("after"))  # the four files, byte for byte
         self.assertEqual(result.branch, "release-agent/v11.7.0-before/mobile-esr")
         self.assertEqual(result.body, (
@@ -443,37 +444,51 @@ class MobileEsrPrTest(unittest.TestCase):
             "received.\n\n"
             "Merge on August 15, 2026, when v10.11 goes out of support.\n\n"
             "```release-note\nUpdated minimum supported version to v11.7.0.\n```\n"))
-        # Three months before v10.11 ended is May 2026, but '9.11.0' isn't clearly the ESR before
-        # v10.11 (it isn't in CHANGELOG_ESR_VERSIONS), and #9954 left it: a TODO, never a guess.
-        self.assertEqual(len(result.todos), 1)
-        self.assertIn("MIN_REQUIRED_VERSION is 9.11.0, which isn't clearly the ESR before v10.11", result.todos[0])
+        self.assertEqual(result.todos, [])  # no TODO: '9.11.0' is the ESR two before, and it is left as it is
+        self.assertIn("MIN_REQUIRED_VERSION is already 9.11.0.", result.notes)
+        self.assertIn("export const MIN_REQUIRED_VERSION = '9.11.0';", result.files[esr.MOBILE_CONSTANTS])
 
-    def test_may_sets_min_required_version_to_the_trailing_esr(self):
-        result = esr.mobile_result(V10_11, mobile_files("before"), "v9.11," + ESR)
-        self.assertEqual(result.todos, [])
-        self.assertIn("export const MIN_REQUIRED_VERSION = '10.11.0';", result.files[esr.MOBILE_CONSTANTS])
-        # Not May: v11.7 -> v12.4, three months before is February 2027. MIN_REQUIRED_VERSION stays.
-        february = esr.mobile_result(esr_list()[1], mobile_files("after"), "v9.11," + ESR)
-        self.assertIn("export const MIN_REQUIRED_VERSION = '9.11.0';", february.files[esr.MOBILE_CONSTANTS])
+    def test_min_required_version_is_the_esr_two_before_the_new_one(self):
+        # v12.4.0 (a February ESR, so not only May): the ESRs before it are v9.11, v10.11, v11.7 -> '10.11.0'.
+        v12_4 = esr.mobile_result(esr_list()[1], mobile_files("after"), "v9.11," + ESR)
+        self.assertEqual(v12_4.todos, [])
+        self.assertIn("export const MIN_REQUIRED_VERSION = '10.11.0';", v12_4.files[esr.MOBILE_CONSTANTS])
         self.assertIn("export const FULL_VERSION = '12.4.0';\nexport const MAJOR_VERSION = 12;\n"
-                      "export const MIN_VERSION = 4;\nexport const PATCH_VERSION = 0;", february.files[esr.MOBILE_CONSTANTS])
-        self.assertEqual(february.todos, [])
+                      "export const MIN_VERSION = 4;\nexport const PATCH_VERSION = 0;", v12_4.files[esr.MOBILE_CONSTANTS])
+        self.assertEqual(v12_4.branch, "release-agent/v12.4.0-before/mobile-esr")
+        # Taken in version order whatever the order of the list, and only ESRs before the new one count.
+        self.assertIn("'10.11.0'", esr.mobile_result(esr_list()[1], mobile_files("after"),
+                                                    "v12.4, v10.11, v13.1, v9.11, v11.7").files[esr.MOBILE_CONSTANTS])
+        # A file with another value gets it set (here from the file before #9954, whose value is '9.11.0').
+        other = mobile_files("before")
+        other[esr.MOBILE_CONSTANTS] = other[esr.MOBILE_CONSTANTS].replace("'9.11.0'", "'8.1.0'")
+        set_ = esr.mobile_result(V10_11, other, "v9.11," + ESR)
+        self.assertIn("export const MIN_REQUIRED_VERSION = '9.11.0';", set_.files[esr.MOBILE_CONSTANTS])
+        self.assertEqual(set_.todos, [])
+
+    def test_fewer_than_two_esrs_before_the_new_one_is_a_todo(self):
+        # #9954 with CHANGELOG_ESR_VERSIONS as it is today: only v10.11 is listed before v11.7.
+        result = esr.mobile_result(V10_11, mobile_files("before"), ESR)
+        self.assertEqual(len(result.todos), 1)
+        self.assertIn("CHANGELOG_ESR_VERSIONS lists 1 ESR(s) before v11.7, but MIN_REQUIRED_VERSION is the ESR two "
+                      "before it, so it wasn't set", result.todos[0])
+        self.assertEqual(result.files, mobile_files("after"))  # the value is left as it was
+        self.assertIn("lists 1 ESR(s) before v11.7", esr.mobile_result(V10_11, mobile_files("before"), "v10.11,v11.7").todos[0])
 
     def test_a_rerun_updates_the_same_pr(self):
         gh = esr_github()
-        env = {"ESR_VERSIONS": ESR, "DESKTOP_ESR_VERSIONS": DESKTOP, "ESR_STAGE": "before"}
+        env = {"ESR_VERSIONS": "v8.1," + ESR, "DESKTOP_ESR_VERSIONS": DESKTOP, "ESR_STAGE": "before"}
         cli.run_esr_comms("v10.11", env, gh, None, FakeJira(), holidays(), date(2026, 5, 15), True, gh)
         branch = "release-agent/v11.7.0-before/mobile-esr"
-        self.assertEqual(gh.head_files(esr.MOBILE_REPO, branch), mobile_files("after"))
-        # Once the trailing ESR is clear, the rerun commits it on the same branch and updates the same PR.
+        # The ESR two before v11.7 is v8.1 in this list, so that is what the first run sets.
+        self.assertIn("MIN_REQUIRED_VERSION = '8.1.0'", gh.head_files(esr.MOBILE_REPO, branch)[esr.MOBILE_CONSTANTS])
+        # With the list corrected (v9.11), the rerun commits '9.11.0' on the same branch and updates the same PR.
         result = cli.run_esr_comms("v10.11", {**env, "ESR_VERSIONS": "v9.11," + ESR}, gh, None, FakeJira(), holidays(),
                                    date(2026, 5, 15), True, gh)
         self.assertEqual(len(gh.pulls[esr.MOBILE_REPO]), 1)
         self.assertIn("mobile ESR PR: Updated PR mattermost/mattermost-mobile#", result.text)
-        self.assertIn("MIN_REQUIRED_VERSION = '10.11.0'", gh.head_files(esr.MOBILE_REPO, branch)[esr.MOBILE_CONSTANTS])
+        self.assertEqual(gh.head_files(esr.MOBILE_REPO, branch), mobile_files("after"))  # '9.11.0', as in #9954
         self.assertEqual(len(gh.repos[esr.MOBILE_REPO]["branches"][branch]), 3)  # base, then two commits on top
-        self.assertNotIn("MIN_REQUIRED_VERSION", gh.pulls[esr.MOBILE_REPO][0]["body"].split("#### Missing inputs")[-1]
-                         if "#### Missing inputs" in gh.pulls[esr.MOBILE_REPO][0]["body"] else "")
         # A person's commit on the branch stops the bot writing there.
         gh.push(esr.MOBILE_REPO, branch, {"README.md": "edited"})
         result = cli.run_esr_comms("v10.11", env, gh, None, FakeJira(), holidays(), date(2026, 5, 15), True, gh)
