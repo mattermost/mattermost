@@ -2,20 +2,24 @@
 // See LICENSE.txt for license information.
 
 import type {ReactNode} from 'react';
-import React from 'react';
+import React, {forwardRef} from 'react';
 import {useIntl, FormattedMessage, defineMessages} from 'react-intl';
 import {useHistory} from 'react-router-dom';
+import styled from 'styled-components';
 
-import type {ButtonEmphasis} from '@mattermost/shared/components/button';
-import {buttonClassNames} from '@mattermost/shared/components/button';
+import {ChevronDownIcon} from '@mattermost/compass-icons/components';
+import {Button, type ButtonEmphasis} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
 
 import LoadingScreen from 'components/loading_screen';
 import * as Menu from 'components/menu';
-import SectionNotice from 'components/section_notice';
+import type {MenuButtonComponentProps} from 'components/menu';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
+import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
 import BuildingSvg from './building.svg';
-import {AdminSection, SectionHeader, SectionHeading, SectionContent, PlaceholderContainer, PlaceholderHeading} from './controls';
+import {PlaceholderContainer, PlaceholderHeading} from './controls';
 import {useRemoteClusterAcceptInvite} from './modals/modal_utils';
 import SecureConnectionRow from './secure_connection_row';
 import {getCreateLocation, getEditLocation, useRemoteClusters} from './utils';
@@ -44,32 +48,34 @@ export default function SecureConnections() {
                 <FormattedMessage {...msg.pageTitle}/>
             </AdminHeader>
             <AdminWrapper>
-                <AdminSection>
-                    <SectionHeader>
-                        <hgroup>
-                            <FormattedMessage
-                                tagName={SectionHeading}
-                                {...msg.title}
-                            />
-                            <FormattedMessage {...msg.subtitle}/>
-                        </hgroup>
-                        <AddMenu disabled={disabled}/>
-                    </SectionHeader>
-                    {remoteClusters?.map((rc) => {
-                        return (
-                            <SecureConnectionRow
-                                key={rc.remote_id}
-                                remoteCluster={rc}
-                                onDeleteSuccess={fetch}
-                                disabled={disabled}
-                            />
-                        );
-                    }) ?? placeholder}
-                </AdminSection>
+                <AdminPanel
+                    id='secure_connections'
+                    title={msg.title}
+                    subtitle={msg.subtitle}
+                    button={<AddMenu disabled={disabled}/>}
+                >
+                    <RowList>
+                        {remoteClusters?.map((rc) => {
+                            return (
+                                <SecureConnectionRow
+                                    key={rc.remote_id}
+                                    remoteCluster={rc}
+                                    onDeleteSuccess={fetch}
+                                    disabled={disabled}
+                                />
+                            );
+                        }) ?? placeholder}
+                    </RowList>
+                </AdminPanel>
             </AdminWrapper>
         </div>
     );
 }
+
+const RowList = styled.div`
+    display: flex;
+    flex-direction: column;
+`;
 
 const AdminWrapper = (props: {children: ReactNode}) => {
     return (
@@ -83,7 +89,7 @@ const AdminWrapper = (props: {children: ReactNode}) => {
 
 const Placeholder = ({disabled, serviceNotRunning}: {disabled: boolean; serviceNotRunning: boolean}) => {
     return (
-        <SectionContent>
+        <>
             {serviceNotRunning && (
                 <SectionNotice
                     type='danger'
@@ -109,11 +115,33 @@ const Placeholder = ({disabled, serviceNotRunning}: {disabled: boolean; serviceN
                     disabled={disabled}
                 />
             </PlaceholderContainer>
-        </SectionContent>
+        </>
     );
 };
 
 const menuId = 'secure_connections_add_menu';
+
+const makeAddConnectionMenuTrigger = (emphasis: ButtonEmphasis) => {
+    const Trigger = forwardRef<HTMLButtonElement, MenuButtonComponentProps>((props, ref) => {
+        const {children, disabled, ...rest} = props;
+        return (
+            <Button
+                {...rest}
+                ref={ref}
+                disabled={disabled}
+                emphasis={emphasis}
+                trailingIcon={disabled ? undefined : <Icon glyph={<ChevronDownIcon/>}/>}
+            >
+                {children}
+            </Button>
+        );
+    });
+    Trigger.displayName = 'AddConnectionMenuTrigger';
+    return Trigger;
+};
+
+const AddConnectionPrimaryMenuTrigger = makeAddConnectionMenuTrigger('primary');
+const AddConnectionTertiaryMenuTrigger = makeAddConnectionMenuTrigger('tertiary');
 
 const AddMenu = ({buttonEmphasis = 'primary', disabled}: {buttonEmphasis?: ButtonEmphasis; disabled: boolean}) => {
     const {formatMessage} = useIntl();
@@ -135,19 +163,9 @@ const AddMenu = ({buttonEmphasis = 'primary', disabled}: {buttonEmphasis?: Butto
         <Menu.Container
             menuButton={{
                 id: `${menuId}-button`,
-                class: buttonClassNames({emphasis: buttonEmphasis}, {disabled}),
+                as: buttonEmphasis === 'tertiary' ? AddConnectionTertiaryMenuTrigger : AddConnectionPrimaryMenuTrigger,
                 disabled,
-                children: (
-                    <>
-                        <FormattedMessage {...msg.addConnection}/>
-                        {!disabled && (
-                            <i
-                                aria-hidden='true'
-                                className='icon icon-chevron-down'
-                            />
-                        )}
-                    </>
-                ),
+                children: <FormattedMessage {...msg.addConnection}/>,
             }}
             menu={{
                 id: menuId,

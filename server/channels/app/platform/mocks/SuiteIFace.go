@@ -48,12 +48,12 @@ func (_m *SuiteIFace) GetSession(token string) (*model.Session, *model.AppError)
 	return r0, r1
 }
 
-// HasPermissionToFileAction provides a mock function with given fields: rctx, userID, roles, channelID, action
-func (_m *SuiteIFace) HasPermissionToFileAction(rctx request.CTX, userID string, roles string, channelID string, action string) bool {
+// HasPermissionToChannelAction provides a mock function with given fields: rctx, userID, roles, channelID, action
+func (_m *SuiteIFace) HasPermissionToChannelAction(rctx request.CTX, userID string, roles string, channelID string, action string) bool {
 	ret := _m.Called(rctx, userID, roles, channelID, action)
 
 	if len(ret) == 0 {
-		panic("no return value specified for HasPermissionToFileAction")
+		panic("no return value specified for HasPermissionToChannelAction")
 	}
 
 	var r0 bool
@@ -117,17 +117,17 @@ func (_m *SuiteIFace) LogAuditRec(rctx request.CTX, auditRec *model.AuditRecord,
 	_m.Called(rctx, auditRec, err)
 }
 
-// MFARequired provides a mock function with given fields: rctx
-func (_m *SuiteIFace) MFARequired(rctx request.CTX) *model.AppError {
-	ret := _m.Called(rctx)
+// MFARequired provides a mock function with given fields: rctx, method
+func (_m *SuiteIFace) MFARequired(rctx request.CTX, method string) *model.AppError {
+	ret := _m.Called(rctx, method)
 
 	if len(ret) == 0 {
 		panic("no return value specified for MFARequired")
 	}
 
 	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(request.CTX) *model.AppError); ok {
-		r0 = rf(rctx)
+	if rf, ok := ret.Get(0).(func(request.CTX, string) *model.AppError); ok {
+		r0 = rf(rctx, method)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)

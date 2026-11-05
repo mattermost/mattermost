@@ -45,6 +45,7 @@ export function getIntl(): IntlShape {
 
     return createIntl({
         locale,
+        defaultLocale: locale,
         messages: getTranslations(state, locale),
     }, cache);
 }

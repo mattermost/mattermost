@@ -1,5 +1,4 @@
 @use "utils/functions";
-@use "utils/mixins";
 @use "utils/variables";
 
 .sidebar--right--width-holder {
@@ -111,10 +110,6 @@
     }
 
     .sidebar--right__expand {
-        i {
-            top: 0;
-        }
-
         .icon-arrow-collapse {
             display: none;
         }
@@ -122,6 +117,9 @@
 
     .sidebar--right__title {
         display: flex;
+        overflow: hidden;
+        overflow: clip;
+        min-width: 0;
         height: auto;
         flex: 1 1 auto;
         align-items: center;
@@ -130,19 +128,32 @@
         font-size: 1.6rem;
         font-weight: 600;
         line-height: 1;
+        overflow-clip-margin: 8px;
 
-        @include mixins.clearfix;
         h2 {
             margin: 0;
             font-family: inherit;
             font-size: inherit;
             font-weight: inherit;
         }
+
+        .sidebar--right__title__heading {
+            flex: 0 0 auto;
+        }
+
+        .ChannelAttributeLabels {
+            overflow: visible;
+            min-width: min-content;
+            flex: 0 0 auto;
+            margin-left: 8px;
+        }
     }
 
     .sidebar--right__title__channel {
         overflow: hidden;
+        min-width: 0;
         height: 2.4rem;
+        flex: 0 1 auto;
         padding: 0 8px;
         border-left: var(--border-light);
         margin: 0 0 0 8px;
@@ -183,13 +194,6 @@
         white-space: nowrap;
     }
 
-    .sidebar--right__follow__thread {
-        height: 2.4rem;
-        margin-right: 4px;
-        font-size: 12px;
-        line-height: 16px;
-    }
-
     .sidebar--right__header {
         display: flex;
         overflow: hidden;
@@ -211,11 +215,13 @@
             margin-left: -8px !important;
         }
 
-        .controls {
+        .controls,
+        .pull-right {
             display: flex;
+            flex: 0 0 auto;
             align-items: center;
             justify-content: flex-end;
-            gap: 4px;
+            gap: var(--spacing-xxxs, 4px);
         }
     }
 

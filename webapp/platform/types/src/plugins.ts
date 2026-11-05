@@ -19,6 +19,7 @@ export type PluginManifest = {
     icon_path?: string;
     version: string;
     min_server_version?: string;
+    required_add_on?: string;
     translate?: boolean;
     server?: PluginManifestServer;
     backend?: PluginManifestServer;
@@ -40,6 +41,7 @@ export type PluginManifestServer = {
 
 export type PluginManifestWebapp = {
     bundle_path: string;
+    pre_auth?: boolean;
 };
 
 export type PluginSettingsSchema = {
@@ -116,6 +118,7 @@ export type ClientPluginManifest = {
     version: string;
     webapp: {
         bundle_path: string;
+        pre_auth?: boolean;
     };
 };
 

@@ -9,7 +9,9 @@ import TableEditor from 'components/admin_console/access_control/editors/table_e
 
 import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
 import {useChannelSystemPolicies} from 'hooks/useChannelSystemPolicies';
+import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {act, renderWithContext, screen, waitFor, userEvent} from 'tests/react_testing_utils';
+import {boardChannelsState} from 'utils/channel_kind_test_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelSettingsAccessRulesTab from './channel_settings_access_rules_tab';
@@ -237,6 +239,37 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         expect(screen.getByText('Select user attributes and values as rules to restrict channel membership')).toBeInTheDocument();
     });
 
+    test('says board rather than channel for a board', () => {
+        renderWithContext(
+            <ChannelSettingsAccessRulesTab {...baseProps}/>,
+            mergeObjects(initialState, boardChannelsState(baseProps.channel.id)),
+        );
+
+        expect(screen.getByText('Select user attributes and values as rules to restrict board membership')).toBeInTheDocument();
+        expect(screen.queryByText('Select user attributes and values as rules to restrict channel membership')).not.toBeInTheDocument();
+    });
+
+    test('says board rather than channel for a public board', () => {
+        const publicBoard = TestHelper.getChannelMock({
+            id: 'public_board_id',
+            name: 'public-board',
+            display_name: 'Public Board',
+            type: 'O',
+        });
+
+        renderWithContext(
+            <ChannelSettingsAccessRulesTab
+                {...baseProps}
+                channel={publicBoard}
+            />,
+            mergeObjects(initialState, boardChannelsState(publicBoard.id)),
+        );
+
+        expect(screen.getByText('Define who this board is recommended for. The board stays open to everyone.')).toBeInTheDocument();
+        expect(screen.queryByText('Define who this channel is recommended for. The channel stays open to everyone.')).not.toBeInTheDocument();
+        expect(screen.getByText('This board will appear under "Recommended channels" for users who match the rules. Anyone can still join freely.')).toBeInTheDocument();
+    });
+
     test('should render with main container class', () => {
         renderWithContext(
             <ChannelSettingsAccessRulesTab {...baseProps}/>,
@@ -371,7 +404,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 isSystemAdmin: expect.any(Boolean),
                 validateExpressionAgainstRequester: mockActions.validateExpressionAgainstRequester,
             }),
-            expect.anything(),
+            undefined,
         );
     });
 
@@ -491,7 +524,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
 
             const checkbox = screen.getByRole('checkbox');
             expect(checkbox).toBeInTheDocument();
-            expect(checkbox).toHaveClass('ChannelSettingsModal__autoSyncCheckbox');
+            expect(checkbox.closest('.ChannelSettingsModal__autoSyncCheckbox')).toBeInTheDocument();
         });
 
         test('should render auto-sync label and description', () => {
@@ -698,8 +731,9 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                     id: 'channel_id',
                     name: 'Test Channel',
                     type: 'channel',
-                    active: true, // Server has auto-sync enabled
-                    rules: [], // But no rules
+
+                    // Auto-add is on but there is no rule to apply it to.
+                    rules: [{actions: ['membership'], expression: '', metadata: {auto_add: 'always'}}],
                 },
             });
 
@@ -750,8 +784,9 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                     id: 'channel_id',
                     name: 'Test Channel',
                     type: 'channel',
-                    active: true, // Server has auto-sync enabled
-                    rules: [], // But no channel rules
+
+                    // Auto-add is on, carried by a rule with no channel expression.
+                    rules: [{actions: ['membership'], expression: '', metadata: {auto_add: 'always'}}],
                 },
             });
 
@@ -913,12 +948,12 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 id: 'channel_id',
                 name: 'Test Channel',
                 type: 'channel',
-                active: false, // Policy starts as inactive until job completes
                 revision: 1,
                 created_at: expect.any(Number),
                 rules: [{
                     actions: ['membership'],
                     expression: 'user.attributes.department == "Engineering"',
+                    metadata: {auto_add: 'always'},
                 }],
                 imports: [],
             });
@@ -1841,7 +1876,6 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 data: {
                     id: 'channel_id',
                     rules: [{actions: ['membership'], expression: 'user.department == "Engineering"'}],
-                    active: false,
                 },
             });
 
@@ -1884,7 +1918,6 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 data: {
                     id: 'channel_id',
                     rules: [{actions: ['membership'], expression: 'user.department == "Engineering"'}],
-                    active: false,
                 },
             });
 
@@ -1943,7 +1976,6 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 data: {
                     id: 'channel_id',
                     rules: [{actions: ['membership'], expression: 'user.department == "Engineering"'}],
-                    active: false,
                 },
             });
 
@@ -2003,8 +2035,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             mockActions.getChannelPolicy.mockResolvedValue({
                 data: {
                     id: 'channel_id',
-                    rules: [{actions: ['membership'], expression: 'user.department == "Engineering"'}],
-                    active: true,
+                    rules: [{actions: ['membership'], expression: 'user.department == "Engineering"', metadata: {auto_add: 'always'}}],
                 },
             });
 
@@ -2073,8 +2104,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             mockActions.getChannelPolicy.mockResolvedValue({
                 data: {
                     id: 'channel_id',
-                    rules: [{actions: ['membership'], expression: 'user.department == "Engineering"'}],
-                    active: true,
+                    rules: [{actions: ['membership'], expression: 'user.department == "Engineering"', metadata: {auto_add: 'always'}}],
                 },
             });
 
@@ -2127,8 +2157,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             mockActions.getChannelPolicy.mockResolvedValue({
                 data: {
                     id: 'channel_id',
-                    rules: [{actions: ['membership'], expression: 'user.department == "Engineering"'}],
-                    active: true,
+                    rules: [{actions: ['membership'], expression: 'user.department == "Engineering"', metadata: {auto_add: 'always'}}],
                 },
             });
 

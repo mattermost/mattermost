@@ -65,7 +65,7 @@ const RemoveConfirmModal = ({show, onConfirm, onCancel, inChannel, amount}: Prop
     const button = (
         <FormattedMessage
             id='admin.team_channel_settings.removeConfirmModal.remove'
-            defaultMessage='Save and remove {amount, plural, one {user} other {users}}'
+            defaultMessage='Save and remove {amount, plural, one {# user} other {# users}}'
             values={{amount}}
         />
     );

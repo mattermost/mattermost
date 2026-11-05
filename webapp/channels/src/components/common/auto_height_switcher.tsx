@@ -96,6 +96,7 @@ const AutoHeightSwitcher = ({showSlot, onTransitionEnd, slot1 = null, slot2 = nu
     return (
         <Transition
             in={animate}
+            nodeRef={wrapperRef}
             timeout={duration}
             onEnter={() => {
                 setHeight(prevHeight.current ?? childRef.current!.offsetHeight);
@@ -105,12 +106,12 @@ const AutoHeightSwitcher = ({showSlot, onTransitionEnd, slot1 = null, slot2 = nu
             onEntering={() => {
                 setHeight(childRef.current!.offsetHeight);
             }}
-            onEntered={(node: HTMLElement) => {
+            onEntered={() => {
                 prevHeight.current = childRef.current!.offsetHeight;
                 setHeight('auto');
                 setOverflow('visible');
                 setAnimate(false);
-                onTransitionEnd?.(node);
+                onTransitionEnd?.(wrapperRef.current ?? undefined);
             }}
         >
             <div

@@ -133,6 +133,66 @@ func TestNewCPAFieldFromPropertyField(t *testing.T) {
 	}
 }
 
+func TestNewCPAFieldFromPropertyField_DropsPermissions(t *testing.T) {
+	source := &PropertyField{
+		ID:      NewId(),
+		GroupID: AccessControlPropertyGroupName,
+		Name:    "Test Field",
+		Type:    PropertyFieldTypeText,
+		Permissions: &Permissions{
+			Grants: []Grant{
+				{Identity: Identity{Type: PropertyOwnerTypeUser, ID: NewId()}, Allow: []string{PropertyActionValueWrite}},
+			},
+		},
+	}
+
+	cpaField, err := NewCPAFieldFromPropertyField(source)
+	require.NoError(t, err)
+	require.Nil(t, cpaField.Permissions, "CPAField must never carry the source field's permissions object")
+
+	require.NotNil(t, source.Permissions, "converting to a CPAField must not mutate the source field")
+}
+
+func TestNewCPAFieldFromPropertyField_ProjectsPermissions(t *testing.T) {
+	ownerID := NewId()
+	source := &PropertyField{
+		ID:      NewId(),
+		GroupID: AccessControlPropertyGroupName,
+		Name:    "Test Field",
+		Type:    PropertyFieldTypeText,
+		Attrs: StringInterface{
+			CustomProfileAttributesPropertyAttrsVisibility: CustomProfileAttributesVisibilityAlways,
+		},
+		// PermissionField/Values/Options and Protected are left unset: the
+		// field's access is decided from Permissions alone, and the CPA
+		// payload must report the equivalent legacy keys anyway.
+		Permissions: &Permissions{
+			Restrictions: &Restrictions{
+				Field:  WriteOnly{Write: PermissionLevelNone},
+				Value:  ReadWrite{Read: PermissionLevelEveryone, Write: PermissionLevelMember},
+				Option: ReadWrite{Read: PermissionLevelEveryone, Write: PermissionLevelAdmin},
+			},
+			Grants: []Grant{
+				{Identity: Identity{Type: PropertyOwnerTypeUser, ID: ownerID}, Allow: []string{PropertyActionValueWrite}},
+			},
+		},
+	}
+
+	cpaField, err := NewCPAFieldFromPropertyField(source)
+	require.NoError(t, err)
+	require.NotNil(t, cpaField)
+
+	assert.True(t, cpaField.Attrs.Protected)
+	require.Len(t, cpaField.Attrs.Owners, 1)
+	assert.Equal(t, ownerID, cpaField.Attrs.Owners[0].ID)
+	assert.Nil(t, cpaField.Permissions)
+
+	// The source field, including its Attrs map, must be untouched.
+	assert.NotContains(t, source.Attrs, PropertyAttrsProtected)
+	assert.NotContains(t, source.Attrs, PropertyAttrsOwners)
+	require.NotNil(t, source.Permissions)
+}
+
 func TestCPAFieldToPropertyField(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -544,6 +604,96 @@ func TestCPAField_ToPropertyField_DisplayName(t *testing.T) {
 		roundTripped, err := NewCPAFieldFromPropertyField(pf)
 		require.NoError(t, err)
 		require.Equal(t, "", roundTripped.Attrs.DisplayName)
+	})
+}
+
+func TestCPAField_ToPropertyField_WithheldOptions(t *testing.T) {
+	t.Run("withheld-options markers round-trip through ToPropertyField and NewCPAFieldFromPropertyField", func(t *testing.T) {
+		original := &CPAField{
+			PropertyField: PropertyField{
+				ID:      NewId(),
+				GroupID: AccessControlPropertyGroupName,
+				Name:    "department",
+				Type:    PropertyFieldTypeSelect,
+			},
+			Attrs: CPAAttrs{
+				Visibility:     CustomProfileAttributesVisibilityAlways,
+				OptionsCount:   1500,
+				OptionsOmitted: true,
+			},
+		}
+
+		pf := original.ToPropertyField()
+		require.NotNil(t, pf)
+		require.Equal(t, 1500, pf.Attrs[PropertyFieldAttributeOptionsCount])
+		require.Equal(t, true, pf.Attrs[PropertyFieldAttributeOptionsOmitted])
+
+		roundTripped, err := NewCPAFieldFromPropertyField(pf)
+		require.NoError(t, err)
+		require.Equal(t, 1500, roundTripped.Attrs.OptionsCount)
+		require.True(t, roundTripped.Attrs.OptionsOmitted)
+	})
+
+	t.Run("a normal option list adds neither withheld-options key", func(t *testing.T) {
+		field := &CPAField{
+			PropertyField: PropertyField{
+				ID:      NewId(),
+				GroupID: AccessControlPropertyGroupName,
+				Name:    "department",
+				Type:    PropertyFieldTypeSelect,
+			},
+			Attrs: CPAAttrs{
+				Visibility: CustomProfileAttributesVisibilityAlways,
+				Options: []*CustomProfileAttributesSelectOption{
+					{ID: NewId(), Name: "Option 1"},
+				},
+			},
+		}
+
+		pf := field.ToPropertyField()
+		require.NotContains(t, pf.Attrs, PropertyFieldAttributeOptionsCount)
+		require.NotContains(t, pf.Attrs, PropertyFieldAttributeOptionsOmitted)
+
+		roundTripped, err := NewCPAFieldFromPropertyField(pf)
+		require.NoError(t, err)
+		require.Equal(t, 0, roundTripped.Attrs.OptionsCount)
+		require.False(t, roundTripped.Attrs.OptionsOmitted)
+	})
+}
+
+func TestCPAField_OpenIDLink(t *testing.T) {
+	newField := func(openID string) *CPAField {
+		return &CPAField{
+			PropertyField: PropertyField{
+				ID:      NewId(),
+				GroupID: AccessControlPropertyGroupName,
+				Name:    "department",
+				Type:    PropertyFieldTypeText,
+			},
+			Attrs: CPAAttrs{Visibility: CustomProfileAttributesVisibilityAlways, OpenID: openID},
+		}
+	}
+
+	t.Run("a linked field round-trips its claim path and is synced", func(t *testing.T) {
+		field := newField("address.country")
+		require.True(t, field.IsSynced())
+
+		pf := field.ToPropertyField()
+		require.Equal(t, "address.country", pf.Attrs[PropertyFieldAttrOpenID])
+		require.Equal(t, PropertySyncSourceOpenID, GetPropertyFieldSyncSource(pf))
+
+		roundTripped, err := NewCPAFieldFromPropertyField(pf)
+		require.NoError(t, err)
+		require.Equal(t, "address.country", roundTripped.Attrs.OpenID)
+	})
+
+	t.Run("an unlinked field adds no openid key", func(t *testing.T) {
+		field := newField("")
+		require.False(t, field.IsSynced())
+
+		pf := field.ToPropertyField()
+		require.NotContains(t, pf.Attrs, PropertyFieldAttrOpenID)
+		require.False(t, IsPropertyFieldSynced(pf))
 	})
 }
 

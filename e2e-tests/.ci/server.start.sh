@@ -7,6 +7,12 @@ cd "$(dirname "$0")"
 mme2e_log "Waiting for server image to be available"
 mme2e_wait_image "$SERVER_IMAGE" 4 30
 
+# Registries (quay.io, Docker Hub) answer a pull with 5xx for minutes at a time; `create` pulls once and fails the shard.
+if ! mme2e_wait_command_success "${MME2E_DC_SERVER} pull --quiet" "Pulling E2E images" 5 30; then
+  mme2e_log "Pulling E2E images failed, retry attempts exhausted. Giving up." >&2
+  exit 1
+fi
+
 # Launch mattermost-server, and wait for it to be healthy
 mme2e_log "Starting E2E containers"
 ${MME2E_DC_SERVER} create
@@ -90,7 +96,7 @@ fi
 # shellcheck disable=SC2043
 for MIGRATION in migration_advanced_permissions_phase_2; do
   # Query explanation: if it doesn't find the migration in the table, there are 0 results and the command fails with a divide-by-zero error. Otherwise the command succeeds
-  MIGRATION_CHECK_COMMAND="${MME2E_DC_SERVER} exec -T postgres sh -c 'PGPASSWORD=mostest psql -U mmuser mattermost_test -c \"select 1 / (select count(*) from Systems where name = '\''${MIGRATION}'\'' and value = '\''true'\'');\"'"
+  MIGRATION_CHECK_COMMAND="${MME2E_DC_SERVER} exec -T postgres sh -c 'PGPASSWORD=mostest_password psql -U mmuser mattermost_test -c \"select 1 / (select count(*) from Systems where name = '\''${MIGRATION}'\'' and value = '\''true'\'');\"'"
   if ! mme2e_wait_command_success "$MIGRATION_CHECK_COMMAND" "Waiting for migration to be completed: ${MIGRATION}" "10" "10"; then
     mme2e_log "Migration ${MIGRATION} not completed, retry attempts exhausted. Giving up." >&2
 

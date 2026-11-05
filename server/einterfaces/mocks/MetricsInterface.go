@@ -7,8 +7,8 @@ package mocks
 import (
 	sql "database/sql"
 
-	logr "github.com/mattermost/logr/v2"
 	model "github.com/mattermost/mattermost/server/public/model"
+	mlog "github.com/mattermost/mattermost/server/public/shared/mlog"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -58,19 +58,19 @@ func (_m *MetricsInterface) DecrementWebSocketBroadcastUsersRegistered(hub strin
 }
 
 // GetLoggerMetricsCollector provides a mock function with no fields
-func (_m *MetricsInterface) GetLoggerMetricsCollector() logr.MetricsCollector {
+func (_m *MetricsInterface) GetLoggerMetricsCollector() mlog.MetricsCollector {
 	ret := _m.Called()
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetLoggerMetricsCollector")
 	}
 
-	var r0 logr.MetricsCollector
-	if rf, ok := ret.Get(0).(func() logr.MetricsCollector); ok {
+	var r0 mlog.MetricsCollector
+	if rf, ok := ret.Get(0).(func() mlog.MetricsCollector); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(logr.MetricsCollector)
+			r0 = ret.Get(0).(mlog.MetricsCollector)
 		}
 	}
 
@@ -307,9 +307,14 @@ func (_m *MetricsInterface) IncrementWebsocketEvent(eventType model.WebsocketEve
 	_m.Called(eventType)
 }
 
-// IncrementWebsocketReconnectEventWithDisconnectErrCode provides a mock function with given fields: eventType, disconnectErrCode
-func (_m *MetricsInterface) IncrementWebsocketReconnectEventWithDisconnectErrCode(eventType string, disconnectErrCode string) {
-	_m.Called(eventType, disconnectErrCode)
+// IncrementWebsocketReconnectEvent provides a mock function with given fields: eventType, disconnectErrCode, originClient
+func (_m *MetricsInterface) IncrementWebsocketReconnectEvent(eventType string, disconnectErrCode string, originClient string) {
+	_m.Called(eventType, disconnectErrCode, originClient)
+}
+
+// IncrementWebsocketReconnectFailure provides a mock function with given fields: reason, isRemote, disconnectErrCode, originClient
+func (_m *MetricsInterface) IncrementWebsocketReconnectFailure(reason string, isRemote bool, disconnectErrCode string, originClient string) {
+	_m.Called(reason, isRemote, disconnectErrCode, originClient)
 }
 
 // ObserveAPIEndpointDuration provides a mock function with given fields: endpoint, method, statusCode, originClient, pageLoadContext, elapsed

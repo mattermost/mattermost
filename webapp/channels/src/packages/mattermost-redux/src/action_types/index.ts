@@ -18,7 +18,7 @@ import ErrorTypes from './errors';
 import FileTypes from './files';
 import GeneralTypes from './general';
 import GroupTypes from './groups';
-import HostedCustomerTypes from './hosted_customer';
+import HealthTypes from './health';
 import IntegrationTypes from './integrations';
 import JobTypes from './jobs';
 import LimitsTypes from './limits';
@@ -28,6 +28,7 @@ import PostTypes from './posts';
 import PreferenceTypes from './preferences';
 import PropertyTypes from './properties';
 import RecapTypes from './recaps';
+import RenderPermissionTypes from './render_permissions';
 import RoleTypes from './roles';
 import SchemeTypes from './schemes';
 import ScheduledPostTypes from './scheudled_posts';
@@ -63,7 +64,6 @@ export {
     CloudTypes,
     AppsTypes,
     ThreadTypes,
-    HostedCustomerTypes,
     DraftTypes,
     PlaybookType,
     ChannelBookmarkTypes,
@@ -72,6 +72,8 @@ export {
     ContentFlaggingTypes,
     PropertyTypes,
     AgentTypes,
+    RenderPermissionTypes,
+    HealthTypes,
     WebSocketTypes,
 };
 

@@ -15,12 +15,25 @@ var _ MentionParser = &StandardMentionParser{}
 type StandardMentionParser struct {
 	keywords MentionKeywords
 
+	// multibyteKeywords holds the subset of keywords containing a multibyte character. It's computed
+	// once here because isKeywordMultibyte needs it for every word of every post, and recomputing it
+	// there makes parsing cost the product of the number of keywords and the number of words.
+	multibyteKeywords []string
+
 	results *MentionResults
 }
 
 func makeStandardMentionParser(keywords MentionKeywords) *StandardMentionParser {
+	var multibyteKeywords []string
+	for keyword := range keywords {
+		if len(keyword) != utf8.RuneCountInString(keyword) {
+			multibyteKeywords = append(multibyteKeywords, keyword)
+		}
+	}
+
 	return &StandardMentionParser{
-		keywords: keywords,
+		keywords:          keywords,
+		multibyteKeywords: multibyteKeywords,
 
 		results: &MentionResults{},
 	}
@@ -86,7 +99,7 @@ func (p *StandardMentionParser) ProcessText(text string) {
 			}
 		}
 
-		if ids, match := isKeywordMultibyte(p.keywords, word); match {
+		if ids, match := p.isKeywordMultibyte(word); match {
 			p.addMentions(ids, KeywordMention)
 		}
 	}
@@ -139,22 +152,19 @@ func (p *StandardMentionParser) addMentions(ids []MentionableID, mentionType Men
 }
 
 // isKeywordMultibyte checks if a word containing a multibyte character contains a multibyte keyword
-func isKeywordMultibyte(keywords MentionKeywords, word string) ([]MentionableID, bool) {
+func (p *StandardMentionParser) isKeywordMultibyte(word string) ([]MentionableID, bool) {
 	ids := []MentionableID{}
 	match := false
-	var multibyteKeywords []string
-	for keyword := range keywords {
-		if len(keyword) != utf8.RuneCountInString(keyword) {
-			multibyteKeywords = append(multibyteKeywords, keyword)
+
+	if len(p.multibyteKeywords) == 0 || len(word) == utf8.RuneCountInString(word) {
+		return ids, match
+	}
+
+	for _, key := range p.multibyteKeywords {
+		if strings.Contains(word, key) {
+			ids, match = p.keywords[key]
 		}
 	}
 
-	if len(word) != utf8.RuneCountInString(word) {
-		for _, key := range multibyteKeywords {
-			if strings.Contains(word, key) {
-				ids, match = keywords[key]
-			}
-		}
-	}
 	return ids, match
 }

@@ -97,10 +97,11 @@ export default function AddWorkspaceDropdown({
                     disabled={true}
                 />
             )}
+            {/* A remote cluster is keyed on (remote_id, name), so remote_id alone can repeat here. */}
             {!loading && available.map((rc) => (
                 <Menu.Item
-                    key={rc.remote_id}
-                    id={`${MENU_ID}-item-${rc.remote_id}`}
+                    key={`${rc.remote_id}-${rc.name}`}
+                    id={`${MENU_ID}-item-${rc.remote_id}-${rc.name}`}
                     labels={<span>{rc.display_name || rc.name}</span>}
                     onClick={() => handleSelect(rc)}
                 />

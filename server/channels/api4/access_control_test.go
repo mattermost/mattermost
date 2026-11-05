@@ -6,15 +6,27 @@ package api4
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"slices"
+	"sync"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	"github.com/stretchr/testify/require"
 )
+
+// allowSelfInclusion stubs QueryUsersForExpression so checkSelfInclusion
+// succeeds for userID. Maybe() so tests whose expressions skip the check
+// ("true"/empty) still pass AssertExpectations.
+func allowSelfInclusion(mockACS *mocks.AccessControlServiceInterface, userID string) {
+	mockACS.On("QueryUsersForExpression", mock.Anything, mock.Anything, mock.Anything).
+		Return([]*model.User{{Id: userID}}, int64(1), nil).
+		Maybe()
+}
 
 // maskingOffTestConfig disables attribute-value masking for policy-endpoint
 // tests that do not cover masking. ABAC and other ABAC sub-flags default on.
@@ -146,6 +158,7 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
 		notFound := model.NewAppError("GetPolicy", "app.access_control.not_found.app_error", nil, "", http.StatusNotFound)
 		mockAccessControlService.On("GetPolicy", mock.AnythingOfType("*request.Context"), privateChannel.Id).Return(nil, notFound)
+		allowSelfInclusion(mockAccessControlService, channelAdmin.Id)
 		mockAccessControlService.On("SavePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).Return(channelPolicy, nil).Times(1)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -270,6 +283,7 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 		// Set up mock expectations
 		notFound := model.NewAppError("GetPolicy", "app.access_control.not_found.app_error", nil, "", http.StatusNotFound)
 		mockAccessControlService.On("GetPolicy", mock.AnythingOfType("*request.Context"), ch.Id).Return(nil, notFound)
+		allowSelfInclusion(mockAccessControlService, th.BasicUser.Id)
 		mockAccessControlService.On("SavePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).Return(samplePolicy, nil).Times(1)
 
 		// Set the mock on the app
@@ -598,7 +612,9 @@ func TestCreateAccessControlPolicyPreservesSystemManagedFields(t *testing.T) {
 		_, _, err := client.Login(context.Background(), channelAdmin.Email, channelAdmin.Password)
 		require.NoError(t, err)
 
-		return privateChannel, client, enableABAC()
+		mockACS := enableABAC()
+		allowSelfInclusion(mockACS, channelAdmin.Id)
+		return privateChannel, client, mockACS
 	}
 
 	// Logs th.Client in as a team admin and stubs the per-rule self-inclusion check so the request
@@ -1890,7 +1906,10 @@ func TestSetActiveStatus(t *testing.T) {
 		require.NotNil(t, policies, "expected policies in response")
 		require.Len(t, policies, 1, "expected one policy in response")
 		require.Equal(t, samplePolicy.ID, policies[0].ID, "expected policy ID to match")
-		require.True(t, policies[0].Active, "expected policy to be active")
+		// The deprecated active field maps onto the membership rule's auto-add
+		// setting, and the shim mirrors it back for clients still reading it.
+		require.True(t, policies[0].AutoAddMembers(), "expected policy to auto-add members")
+		require.True(t, policies[0].Active, "expected the response to mirror auto-add on the legacy field")
 	}, "SetActiveStatus with system admin")
 
 	t.Run("SetActiveStatus with channel admin for their channel", func(t *testing.T) {
@@ -1948,7 +1967,7 @@ func TestSetActiveStatus(t *testing.T) {
 		require.NotNil(t, policies, "expected policies in response")
 		require.Len(t, policies, 1, "expected one policy in response")
 		require.Equal(t, channelPolicy.ID, policies[0].ID, "expected policy ID to match")
-		require.True(t, policies[0].Active, "expected policy to be active")
+		require.True(t, policies[0].AutoAddMembers(), "expected policy to auto-add members")
 	})
 
 	t.Run("SetActiveStatus with channel admin for another channel should fail", func(t *testing.T) {
@@ -2013,6 +2032,161 @@ func TestSetActiveStatus(t *testing.T) {
 	})
 }
 
+// wirePolicyStore points the mocked access control service at the real policy
+// store so a test can exercise the wire format end to end instead of asserting
+// against a canned mock response.
+func wirePolicyStore(t *testing.T, th *TestHelper) {
+	t.Helper()
+	require.True(t, th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced)))
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+	})
+
+	policies := th.App.Srv().Store().AccessControlPolicy()
+
+	mockACS := &mocks.AccessControlServiceInterface{}
+	mockACS.On("SavePolicy", mock.Anything, mock.Anything).Return(
+		func(rctx request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError) {
+			saved, err := policies.Save(rctx, policy)
+			if err != nil {
+				return nil, model.NewAppError("SavePolicy", "app.pap.save_policy.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+			return saved, nil
+		})
+	mockACS.On("GetPolicy", mock.Anything, mock.Anything).Return(
+		func(rctx request.CTX, id string) (*model.AccessControlPolicy, *model.AppError) {
+			policy, err := policies.Get(rctx, id)
+			if err != nil {
+				return nil, model.NewAppError("GetPolicy", "app.pap.get_policy.app_error", nil, "", http.StatusNotFound).Wrap(err)
+			}
+			return policy, nil
+		})
+	th.App.Srv().Channels().AccessControl = mockACS
+}
+
+// TestAccessControlPolicyAutoAddWire pins the wire contract for auto-add now
+// that it lives on the membership rule instead of the policy's Active flag.
+func TestAccessControlPolicyAutoAddWire(t *testing.T) {
+	th := SetupConfig(t, maskingOffTestConfig).InitBasic(t)
+	wirePolicyStore(t, th)
+
+	client := th.SystemAdminClient
+	channel := th.CreatePrivateChannel(t)
+
+	membershipRule := model.AccessControlPolicyRule{
+		Actions:    []string{model.AccessControlPolicyActionMembership},
+		Expression: "user.attributes.team == 'engineering'",
+	}
+
+	submit := func(t *testing.T, rules []model.AccessControlPolicyRule, active bool) *model.AccessControlPolicy {
+		t.Helper()
+		saved, resp, err := client.CreateAccessControlPolicy(context.Background(), &model.AccessControlPolicy{
+			ID:       channel.Id,
+			Type:     model.AccessControlPolicyTypeChannel,
+			Version:  model.AccessControlPolicyVersionV0_3,
+			Revision: 1,
+			Active:   active,
+			Rules:    rules,
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		return saved
+	}
+
+	fetch := func(t *testing.T) *model.AccessControlPolicy {
+		t.Helper()
+		policy, resp, err := client.GetAccessControlPolicy(context.Background(), channel.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		return policy
+	}
+
+	onRule := membershipRule
+	onRule.SetAutoAddMode(model.AccessControlAutoAddAlways)
+	created := submit(t, []model.AccessControlPolicyRule{onRule}, false)
+	require.True(t, created.AutoAddMembers())
+
+	t.Run("the mode serializes under the membership rule's metadata", func(t *testing.T) {
+		js, err := json.Marshal(fetch(t))
+		require.NoError(t, err)
+
+		var body struct {
+			Rules []struct {
+				Metadata map[string]any `json:"metadata"`
+			} `json:"rules"`
+		}
+		require.NoError(t, json.Unmarshal(js, &body))
+		require.Len(t, body.Rules, 1)
+		require.Equal(t, model.AccessControlAutoAddAlways, body.Rules[0].Metadata["auto_add"])
+	})
+
+	// A client built before this field existed reads a policy and writes it back
+	// unchanged. Treating the missing bag as "off" would silently stop membership
+	// sync for every such client, so absence has to mean "preserve".
+	t.Run("a client that omits the field preserves the setting", func(t *testing.T) {
+		stale := fetch(t)
+		for i := range stale.Rules {
+			stale.Rules[i].Metadata = nil
+		}
+
+		updated := submit(t, stale.Rules, false)
+		require.True(t, updated.AutoAddMembers())
+		require.True(t, fetch(t).AutoAddMembers())
+	})
+
+	t.Run("an explicit empty mode turns it off and leaves no residue", func(t *testing.T) {
+		offRule := membershipRule
+		offRule.Metadata = map[string]any{model.AccessControlRuleMetadataAutoAdd: ""}
+
+		updated := submit(t, []model.AccessControlPolicyRule{offRule}, false)
+		require.False(t, updated.AutoAddMembers())
+
+		stored := fetch(t)
+		require.False(t, stored.AutoAddMembers())
+		require.Nil(t, stored.MembershipRule().Metadata, "off is the absence of the key, not an explicit empty mode")
+	})
+
+	t.Run("an unrecognized mode is rejected", func(t *testing.T) {
+		futureRule := membershipRule
+		futureRule.Metadata = map[string]any{model.AccessControlRuleMetadataAutoAdd: "only_once"}
+
+		_, resp, err := client.CreateAccessControlPolicy(context.Background(), &model.AccessControlPolicy{
+			ID:       channel.Id,
+			Type:     model.AccessControlPolicyTypeChannel,
+			Version:  model.AccessControlPolicyVersionV0_3,
+			Revision: 1,
+			Rules:    []model.AccessControlPolicyRule{futureRule},
+		})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("active on the wire is ignored", func(t *testing.T) {
+		updated := submit(t, []model.AccessControlPolicyRule{onRule}, true)
+		require.True(t, updated.AutoAddMembers())
+		require.False(t, updated.Active, "the reserved flag is not client-writable")
+		require.False(t, fetch(t).Active)
+	})
+
+	// The activate endpoint stays as a shim for clients that have not moved over.
+	t.Run("the activate shim writes the rule, not the reserved flag", func(t *testing.T) {
+		for _, autoAdd := range []bool{false, true} {
+			policies, resp, err := client.SetAccessControlPolicyActive(context.Background(), model.AccessControlPolicyActiveUpdateRequest{
+				Entries: []model.AccessControlPolicyActiveUpdate{{ID: channel.Id, Active: autoAdd}},
+			})
+			require.NoError(t, err)
+			CheckOKStatus(t, resp)
+			require.Len(t, policies, 1)
+			require.Equal(t, autoAdd, policies[0].AutoAddMembers())
+			require.Equal(t, autoAdd, policies[0].Active, "the shim response mirrors auto-add on the legacy field")
+
+			stored := fetch(t)
+			require.Equal(t, autoAdd, stored.AutoAddMembers())
+			require.False(t, stored.Active, "the shim must not write the reserved flag")
+		}
+	})
+}
+
 func setupTeamAdminABAC(t *testing.T, th *TestHelper) *mocks.AccessControlServiceInterface {
 	t.Helper()
 	ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
@@ -2027,6 +2201,7 @@ func setupTeamAdminABAC(t *testing.T, th *TestHelper) *mocks.AccessControlServic
 	})
 
 	th.AddPermissionToRole(t, model.PermissionManageTeamAccessRules.Id, model.TeamAdminRoleId)
+	allowSelfInclusion(mockACS, th.TeamAdminUser.Id)
 	return mockACS
 }
 
@@ -3284,6 +3459,264 @@ func TestSimulatePolicyForUsers(t *testing.T) {
 	})
 }
 
+// TestConvertToVisualASTLocalModeTagsCaller checks that local mode's masked
+// visual AST reads the referenced field as the local admin: an empty caller
+// has the access control hook hide the field's options from the masking.
+func TestConvertToVisualASTLocalModeTagsCaller(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	th.ConfigStore.SetReadOnlyFF(false)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.AttributeValueMasking = true
+		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
+	})
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+	field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+		GroupID:    group.ID,
+		Name:       "clearance" + model.NewId(),
+		Type:       model.PropertyFieldTypeSelect,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs: model.StringInterface{
+			model.PropertyFieldAttributeOptions: []any{map[string]any{"name": "Secret"}},
+		},
+	}, false, "")
+	require.Nil(t, appErr)
+
+	expression := `user.attributes.` + field.Name + ` == "Secret"`
+	mockACS := &mocks.AccessControlServiceInterface{}
+	th.App.Srv().Channels().AccessControl = mockACS
+	t.Cleanup(func() { th.App.Srv().Channels().AccessControl = nil })
+	mockACS.On("ExpressionToVisualAST", mock.Anything, expression).Return(&model.VisualExpression{
+		Conditions: []model.Condition{{
+			Attribute: "user.attributes." + field.Name,
+			Operator:  "==",
+			Value:     "Secret",
+			ValueType: model.LiteralValue,
+		}},
+	}, nil)
+
+	untaggedCalls := observeUntaggedPropertyCalls(t, th)
+
+	resp, err := th.LocalClient.DoAPIPost(context.Background(), "/access_control_policies/cel/visual_ast", string(mustMarshal(t, map[string]string{"expression": expression})))
+	require.NoError(t, err)
+	defer resp.Body.Close()
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+
+	require.Empty(t, untaggedCalls())
+}
+
+// TestGetAccessControlPolicyLocalModeTagsCaller checks that local mode's GET
+// of a policy masks its expressions reading the referenced field as the local
+// admin. Local admin and an empty caller are masked alike, so the response
+// cannot tell them apart; only the access control hook's no-caller observer
+// can.
+func TestGetAccessControlPolicyLocalModeTagsCaller(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	th.ConfigStore.SetReadOnlyFF(false)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.AttributeValueMasking = true
+		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
+	})
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+	field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+		GroupID:    group.ID,
+		Name:       "clearance" + model.NewId(),
+		Type:       model.PropertyFieldTypeSelect,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs: model.StringInterface{
+			model.PropertyFieldAttributeOptions: []any{map[string]any{"name": "Secret"}},
+		},
+	}, false, "")
+	require.Nil(t, appErr)
+
+	expression := `user.attributes.` + field.Name + ` == "Secret"`
+	policy := &model.AccessControlPolicy{
+		ID:       model.NewId(),
+		Type:     model.AccessControlPolicyTypeChannel,
+		Version:  model.AccessControlPolicyVersionV0_3,
+		Revision: 1,
+		Rules:    []model.AccessControlPolicyRule{{Expression: expression, Actions: []string{model.AccessControlPolicyActionMembership}}},
+	}
+	mockACS := &mocks.AccessControlServiceInterface{}
+	th.App.Srv().Channels().AccessControl = mockACS
+	t.Cleanup(func() { th.App.Srv().Channels().AccessControl = nil })
+	mockACS.On("GetPolicy", mock.Anything, policy.ID).Return(policy, nil)
+	// The masking looks up each field the expression references through the
+	// resolver it is handed.
+	mockACS.On("MaskExpressionForCaller", mock.Anything, expression, mock.Anything).Run(func(args mock.Arguments) {
+		if _, err := args.Get(2).(model.MaskingFieldResolver).Resolve(model.PropertyFieldObjectTypeUser, field.Name); err != nil {
+			t.Errorf("resolving %s: %v", field.Name, err)
+		}
+	}).Return(expression, false, nil)
+
+	untaggedCalls := observeUntaggedPropertyCalls(t, th)
+
+	_, resp, err := th.LocalClient.GetAccessControlPolicy(context.Background(), policy.ID)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+	mockACS.AssertCalled(t, "MaskExpressionForCaller", mock.Anything, expression, mock.Anything)
+
+	require.Empty(t, untaggedCalls())
+}
+
+// TestGetFieldsAutocompleteResourceFields exercises the HTTP boundary of
+// GET /cel/autocomplete/fields for channel-object-type (resource.attributes.*)
+// fields: a channel scope or the include_resource_fields flag surfaces them
+// (tagged with their ObjectType), neither excludes them, and the permission
+// gating holds. This endpoint resolves fields from the property store directly
+// and does not go through the mocked AccessControl engine.
+func TestGetFieldsAutocompleteResourceFields(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	// Setup() only clears the read-only guard on feature flags when it is handed a
+	// config updater, so do it explicitly before flipping one.
+	th.ConfigStore.SetReadOnlyFF(false)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.ResourceAttributesInPolicies = true
+	})
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	mkField := func(objectType string) *model.PropertyField {
+		f, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "region" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: objectType,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		}, false, "")
+		require.Nil(t, appErr)
+		return f
+	}
+	userField := mkField(model.PropertyFieldObjectTypeUser)
+	channelField := mkField(model.PropertyFieldObjectTypeChannel)
+
+	const base = "/access_control_policies/cel/autocomplete/fields"
+
+	get := func(t *testing.T, client *model.Client4, query string) []*model.PropertyField {
+		t.Helper()
+		resp, err := client.DoAPIGet(context.Background(), base+query, "")
+		require.NoError(t, err)
+		defer resp.Body.Close()
+		var fields []*model.PropertyField
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&fields))
+		return fields
+	}
+
+	find := func(fields []*model.PropertyField, id string) *model.PropertyField {
+		for _, f := range fields {
+			if f.ID == id {
+				return f
+			}
+		}
+		return nil
+	}
+
+	t.Run("channel scope surfaces channel fields tagged by object type", func(t *testing.T) {
+		fields := get(t, th.SystemAdminClient, "?limit=100&channelId="+th.BasicChannel.Id)
+		require.NotNil(t, find(fields, userField.ID), "user field must be present when channel-scoped")
+		ch := find(fields, channelField.ID)
+		require.NotNil(t, ch, "channel field must be present when channel-scoped")
+		require.Equal(t, model.PropertyFieldObjectTypeChannel, ch.ObjectType, "channel field must carry its ObjectType")
+	})
+
+	t.Run("include_resource_fields surfaces channel fields with no channel scope", func(t *testing.T) {
+		fields := get(t, th.SystemAdminClient, "?limit=100&include_resource_fields=true")
+		require.NotNil(t, find(fields, channelField.ID), "channel field must be present when include_resource_fields=true")
+	})
+
+	t.Run("channel fields excluded without a channel scope or the flag", func(t *testing.T) {
+		fields := get(t, th.SystemAdminClient, "?limit=100")
+		require.NotNil(t, find(fields, userField.ID), "user field must still be present")
+		require.Nil(t, find(fields, channelField.ID), "channel field must be excluded when neither channelId nor the flag is set")
+	})
+
+	t.Run("channel fields excluded on both paths while the feature is off", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.ResourceAttributesInPolicies = false
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.ResourceAttributesInPolicies = true
+		})
+
+		scoped := get(t, th.SystemAdminClient, "?limit=100&channelId="+th.BasicChannel.Id)
+		require.Nil(t, find(scoped, channelField.ID), "channel scope must not surface a channel field while off")
+		require.NotNil(t, find(scoped, userField.ID), "user fields must keep working while off")
+
+		asked := get(t, th.SystemAdminClient, "?limit=100&include_resource_fields=true")
+		require.Nil(t, find(asked, channelField.ID), "include_resource_fields must not surface a channel field while off")
+	})
+
+	// A local-mode session names no user, so the handler has to tag it as the
+	// local admin: an empty caller has the access control hook hide every
+	// field's options.
+	t.Run("local mode sees a field's options", func(t *testing.T) {
+		selectField, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "clearance" + model.NewId(),
+			Type:       model.PropertyFieldTypeSelect,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"name": "Secret"},
+					map[string]any{"name": "Top secret"},
+				},
+			},
+		}, false, "")
+		require.Nil(t, appErr)
+
+		fields := get(t, th.LocalClient, "?limit=100")
+		found := find(fields, selectField.ID)
+		require.NotNil(t, found, "select field must be present for local mode")
+		cpaField, err := model.NewCPAFieldFromPropertyField(found)
+		require.NoError(t, err)
+		require.Len(t, cpaField.Attrs.Options, 2, "local mode must see the field's options")
+	})
+
+	t.Run("regular user without manage-system is denied when unscoped", func(t *testing.T) {
+		resp, err := th.Client.DoAPIGet(context.Background(), base+"?limit=100", "")
+		require.Error(t, err)
+		defer resp.Body.Close()
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
+
+	t.Run("regular user without channel-manage-access-rules is denied for a channel", func(t *testing.T) {
+		resp, err := th.Client.DoAPIGet(context.Background(), base+"?limit=100&channelId="+th.BasicChannel.Id, "")
+		require.Error(t, err)
+		defer resp.Body.Close()
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
+}
+
+// observeUntaggedPropertyCalls records, until the test ends, every call the
+// property access control hook refuses, or hides options or values from, for
+// want of a caller ID, and returns a func reading what it has recorded.
+func observeUntaggedPropertyCalls(t *testing.T, th *TestHelper) func() []string {
+	t.Helper()
+	var mut sync.Mutex
+	var calls []string
+	th.App.Srv().SetPropertyNoCallerObserverForTests(func(operation, groupID string, fieldIDs []string) {
+		mut.Lock()
+		defer mut.Unlock()
+		calls = append(calls, fmt.Sprintf("%s group_id=%s field_ids=%v", operation, groupID, fieldIDs))
+	})
+	t.Cleanup(func() { th.App.Srv().SetPropertyNoCallerObserverForTests(nil) })
+	return func() []string {
+		mut.Lock()
+		defer mut.Unlock()
+		return slices.Clone(calls)
+	}
+}
+
 func mustMarshal(t *testing.T, v any) []byte {
 	t.Helper()
 	b, err := json.Marshal(v)
@@ -3340,4 +3773,36 @@ func TestGetChannelAccessControlAttributes(t *testing.T) {
 
 		mockACS.AssertCalled(t, "GetPolicyRuleAttributes", mock.Anything, th.BasicChannel.Id, model.AccessControlPolicyActionMembership)
 	})
+}
+
+// TestCreateAccessControlPolicyBurnOnRead ensures create_burn_on_read_post action
+// is gated by the umbrella feature flag for Permission Policies.
+func TestCreateAccessControlPolicyBurnOnRead(t *testing.T) {
+	th := SetupConfig(t, maskingOffTestConfig).InitBasic(t)
+
+	ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	require.True(t, ok, "SetLicense should return true")
+
+	updateTestFeatureFlags(t, th, func(cfg *model.Config) {
+		restoreABACFeatureFlagDefaults(cfg)
+		cfg.FeatureFlags.PermissionPolicies = false
+	})
+
+	channelPolicy := &model.AccessControlPolicy{
+		ID:       th.BasicChannel.Id,
+		Type:     model.AccessControlPolicyTypeChannel,
+		Version:  model.AccessControlPolicyVersionV0_4,
+		Revision: 1,
+		Rules: []model.AccessControlPolicyRule{{
+			Name:       "BoR for engineering",
+			Role:       model.ChannelUserRoleId,
+			Expression: "user.attributes.department == 'engineering'",
+			Actions:    []string{model.AccessControlPolicyActionCreateBurnOnReadPost},
+		}},
+	}
+
+	_, resp, err := th.SystemAdminClient.CreateAccessControlPolicy(context.Background(), channelPolicy)
+	require.Error(t, err)
+	CheckNotImplementedStatus(t, resp)
+	CheckErrorID(t, err, "api.access_control_policy.channel_permission_policies.feature_disabled")
 }

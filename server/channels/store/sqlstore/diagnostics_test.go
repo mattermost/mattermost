@@ -4,8 +4,8 @@
 package sqlstore
 
 import (
-	"context"
 	"database/sql"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -18,10 +18,10 @@ import (
 )
 
 func TestGetDiagnostics(t *testing.T) {
-	StoreTest(t, func(t *testing.T, _ request.CTX, ss store.Store) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
 		sqlStore := ss.(*SqlStore)
 
-		diagnostics, err := sqlStore.GetDiagnostics(context.Background())
+		diagnostics, err := sqlStore.GetDiagnostics(rctx)
 		require.NoError(t, err)
 		require.NotNil(t, diagnostics)
 
@@ -45,6 +45,20 @@ func TestGetDiagnostics(t *testing.T) {
 		require.NotNil(t, diagnostics.LongestQueryDurationSeconds)
 		require.NotNil(t, diagnostics.WaitingForLockCount)
 	})
+}
+
+func TestOnlineReplicas(t *testing.T) {
+	replica := func(online bool) *atomic.Pointer[sqlxDBWrapper] {
+		w := &sqlxDBWrapper{isOnline: &atomic.Bool{}}
+		w.isOnline.Store(online)
+		r := &atomic.Pointer[sqlxDBWrapper]{}
+		r.Store(w)
+		return r
+	}
+
+	assert.Equal(t, 0, onlineReplicas(nil))
+	assert.Equal(t, 0, onlineReplicas([]*atomic.Pointer[sqlxDBWrapper]{replica(false)}))
+	assert.Equal(t, 2, onlineReplicas([]*atomic.Pointer[sqlxDBWrapper]{replica(true), replica(false), replica(true)}))
 }
 
 func TestApplyDBPoolStats(t *testing.T) {

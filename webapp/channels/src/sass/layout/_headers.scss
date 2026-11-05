@@ -50,28 +50,30 @@
         margin-left: 0;
     }
 
-    .btn.channel-header__favorites {
+    // IconButton + compass SVG use currentColor; legacy muted/active colors targeted `i` only.
+    // Keep size='small' for Icon glyph context; override box to 24×24 to match header icons.
+    // Compass already uses :focus-visible; reset residual :focus styles after mouse click.
+    button.channel-header__favorites {
         position: relative;
         z-index: 1;
+        width: 24px;
+        min-width: 24px;
         height: 24px;
-        padding: 4px;
-        border-radius: 4px;
-        color: var(--center-channel-color);
-        float: left;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
 
-        i {
-            position: relative;
-            top: -1px;
-            font-size: 18px !important;
-            opacity: 0.64;
+        svg {
+            color: inherit;
+            fill: currentColor;
         }
 
-        &:hover {
-            background: rgba(functions.v(center-channel-color-rgb), 0.08);
+        &:hover:not(:disabled) {
+            color: rgba(var(--center-channel-color-rgb), 0.8);
+        }
 
-            i {
-                opacity: 0.8;
-            }
+        &:focus:not(:focus-visible) {
+            box-shadow: none;
+            outline-color: transparent;
+            outline-offset: 0;
         }
 
         &:disabled {
@@ -79,16 +81,11 @@
             opacity: 0.32;
         }
 
-        &.inactive {
-            .icon {
-                color: functions.v(center-channel-color);
-            }
-        }
-
         &.active {
-            i {
+            color: var(--button-bg);
+
+            &:hover:not(:disabled) {
                 color: var(--button-bg);
-                opacity: 1;
             }
         }
     }
@@ -107,6 +104,7 @@
     .flex-parent {
         display: flex;
         padding: 0;
+        gap: 4px;
     }
 
     .flex-child {
@@ -344,7 +342,10 @@
 
     .channel-header__title {
         display: flex;
+        width: 100%;
+        min-width: 0;
         height: 24px;
+        align-items: center;
 
         .channel-header__favorites {
             flex: 0 0 auto;
@@ -367,6 +368,14 @@
 
     .channel-header__icons {
         display: flex;
+        min-width: 0;
+
+        // Content-sized so every chip can show while there is room. Shrinks (and
+        // the chips collapse into +N) only after the description has been squeezed
+        // to its 100px floor. min-width:0 lets that shrink happen; the default
+        // min-width:auto would push the call and info controls instead.
+        flex: 0 1 auto;
+        align-items: center;
         margin-right: 8px;
         gap: 4px;
 
@@ -379,8 +388,12 @@
         position: relative;
         display: flex;
         overflow: hidden;
+        min-width: 100px;
         height: 24px;
-        flex: 1;
+
+        // Leftover space after the channel name and chips. Never below 100px, so
+        // the header text stays readable; chips collapse before this is eaten.
+        flex: 1 1 100px;
         align-items: center;
         margin: 0;
         font-size: 12px;
@@ -710,7 +723,7 @@
     .channel-intro__actions {
         display: flex;
         justify-content: center;
-        gap: 4px;
+        gap: var(--spacing-xs);
     }
 }
 

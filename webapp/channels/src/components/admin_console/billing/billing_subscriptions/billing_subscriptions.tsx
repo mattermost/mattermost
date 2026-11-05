@@ -44,7 +44,7 @@ export const paymentFailedBanner = () => {
             message={
                 <FormattedMessage
                     id='billing.subscription.info.mostRecentPaymentFailed.description.mostRecentPaymentFailed'
-                    defaultMessage='It looks your most recent payment failed because the credit card on your account has expired. Please <link>update your payment information</link> to avoid any disruption.'
+                    defaultMessage='It looks like your most recent payment failed because the credit card on your account has expired. Please <link>update your payment information</link> to avoid any disruption.'
                     values={{
                         link: (text) => <BlockableLink to='/admin_console/billing/payment_info'>{text}</BlockableLink>,
                     }}

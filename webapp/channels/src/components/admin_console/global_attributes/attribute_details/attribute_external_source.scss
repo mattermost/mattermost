@@ -1,0 +1,90 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.AttributeExternalSource {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.AttributeExternalSource__synced {
+    display: flex;
+    min-height: 32px;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.AttributeExternalSource__syncedLabel {
+    color: rgba(var(--center-channel-color-rgb), 0.75);
+    font-size: 14px;
+    line-height: 20px;
+    white-space: nowrap;
+}
+
+// Full-width hairline between the Options help/editor and the "add" trigger.
+// Hidden once a source is linked, since the chips then occupy the Options
+// line and the trigger sits directly under them.
+.AttributeExternalSource__divider {
+    margin-bottom: 4px;
+}
+
+.AttributeExternalSource__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.AttributeExternalSource__chip {
+    display: inline-flex;
+    height: 24px;
+    align-items: center;
+    padding: 0 6px 0 8px;
+    border-radius: 12px;
+    background: rgba(var(--center-channel-color-rgb), 0.08);
+    color: var(--center-channel-color);
+    font-size: 12px;
+    font-weight: 600;
+    gap: 6px;
+}
+
+.AttributeExternalSource__chipLabel {
+    line-height: 16px;
+}
+
+.AttributeExternalSource__chipAction {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px;
+    border: none;
+    background: transparent;
+    color: var(--center-channel-color);
+    cursor: pointer;
+
+    &:hover {
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: var(--center-channel-color);
+    }
+
+    &:focus-visible {
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: var(--center-channel-color);
+        outline: 2px solid var(--button-bg);
+        outline-offset: 2px;
+    }
+}
+
+// Compass Button is inline-flex; align-self keeps the flex-column parent
+// from stretching the trigger to the full Options column width.
+// WithTooltip clones this wrap as the floating-ui reference — size to the
+// button so the tooltip anchors over the compact trigger, not empty space.
+.AttributeExternalSource__triggerLockWrap {
+    display: inline-flex;
+    max-width: 100%;
+    align-self: flex-start;
+}
+
+.AttributeExternalSource__trigger {
+    align-self: flex-start;
+}

@@ -357,6 +357,24 @@ describe.skip('PerformanceReporter', () => {
     });
 });
 
+describe('PerformanceReporter.disconnect', () => {
+    test('should stop reporting web vitals once disconnected', () => {
+        const {reporter, sendBeacon} = newTestReporter();
+        reporter.observe();
+
+        const onCLSCallback = (onCLS as jest.Mock).mock.calls.at(-1)[0];
+
+        reporter.disconnect();
+
+        // web-vitals has no way to unregister a callback, so a reporter left behind by an unmounted
+        // component keeps being handed metrics after it has been disconnected.
+        onCLSCallback({name: 'CLS', value: 100});
+        reporter.maybeSendReport();
+
+        expect(sendBeacon).not.toHaveBeenCalled();
+    });
+});
+
 describe('PerformanceReporter.sendReport content-type', () => {
     const sampleReport = {
         version: '0.1.0' as const,
@@ -419,8 +437,6 @@ class TestPerformanceReporter extends PerformanceReporter {
     public sendBeacon: jest.Mock = jest.fn(() => true);
     public reportPeriodBase = 10;
     public reportPeriodJitter = 0;
-
-    public disconnect = super.disconnect;
 
     public handleObservations = jest.fn(super.handleObservations);
 

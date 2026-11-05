@@ -36,7 +36,7 @@ import {LoadingIndicator} from '../../system_users/system_users_filters_popover/
 import './user_multiselect.scss';
 
 export type AutocompleteOptionType<T> = {
-    label: string | ReactElement;
+    label: string | ReactElement<any>;
     value: string;
     raw?: T;
 };
@@ -443,7 +443,7 @@ export function UserSelector({id, isMulti, className, multiSelectOnChange, multi
                 {...baseProps}
                 isMulti={false}
                 onChange={singleSelectHandleOnChange}
-                value={selectInitialValue ? selectInitialValue[0] : null}
+                value={selectInitialValue[0] ?? null}
                 components={singleSelectComponents}
                 isDisabled={disabled}
             />

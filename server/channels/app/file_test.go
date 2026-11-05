@@ -21,7 +21,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/mattermost/mattermost/server/v8/channels/store"
 	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	eMocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
@@ -146,6 +145,69 @@ func TestUploadFile(t *testing.T) {
 	value := fmt.Sprintf("%v/teams/noteam/channels/%v/users/nouser/%v/%v",
 		time.Now().Format("20060102"), channelID, info1.Id, filename)
 	assert.Equal(t, value, info1.Path, "Stored file at incorrect path")
+}
+
+func TestUploadFileSVGDimensions(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	testCases := []struct {
+		name           string
+		svg            string
+		expectedWidth  int
+		expectedHeight int
+	}{
+		{
+			name:           "comma separated viewBox",
+			svg:            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0,0,800,600"></svg>`,
+			expectedWidth:  800,
+			expectedHeight: 600,
+		},
+		{
+			name:           "absolute width and height",
+			svg:            `<svg xmlns="http://www.w3.org/2000/svg" width="640px" height="480px"></svg>`,
+			expectedWidth:  640,
+			expectedHeight: 480,
+		},
+		{
+			// The upload still succeeds, it just carries no dimensions for the web app to use
+			name:           "relative width and height with no viewBox",
+			svg:            `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"></svg>`,
+			expectedWidth:  0,
+			expectedHeight: 0,
+		},
+		{
+			// FileInfo stores dimensions as a 32 bit integer, so a larger one would fail to save
+			name:           "width and height too large to store",
+			svg:            `<svg xmlns="http://www.w3.org/2000/svg" width="3000000000" height="3000000000"></svg>`,
+			expectedWidth:  0,
+			expectedHeight: 0,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			info, appErr := th.App.UploadFileX(th.Context, th.BasicChannel.Id, "dimensions.svg",
+				bytes.NewReader([]byte(tc.svg)),
+				UploadFileSetTeamId(th.BasicTeam.Id),
+				UploadFileSetUserId(th.BasicUser.Id),
+				UploadFileSetTimestamp(time.Now()),
+				UploadFileSetContentLength(int64(len(tc.svg))))
+			require.Nil(t, appErr)
+
+			t.Cleanup(func() {
+				require.NoError(t, th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info.Id))
+				require.Nil(t, th.App.RemoveFile(info.Path))
+			})
+
+			// Read the dimensions back, since they only reach the web app once they are stored
+			stored, err := th.App.Srv().Store().FileInfo().Get(info.Id)
+			require.NoError(t, err)
+
+			assert.Equal(t, tc.expectedWidth, stored.Width)
+			assert.Equal(t, tc.expectedHeight, stored.Height)
+		})
+	}
 }
 
 func TestParseOldFilenames(t *testing.T) {
@@ -472,7 +534,7 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
 		fileInfos := make([]*model.FileInfo, 7)
-		for i := 0; i < cap(fileInfos); i++ {
+		for i := range cap(fileInfos) {
 			fileInfo, err := th.App.Srv().Store().FileInfo().Save(th.Context,
 				&model.FileInfo{
 					CreatorId: th.BasicUser.Id,
@@ -670,97 +732,6 @@ func TestExtractContentFromFileInfo(t *testing.T) {
 
 	// Test that we don't process images.
 	require.NoError(t, app.ExtractContentFromFileInfo(request.TestContext(t), fi))
-}
-
-func TestGetLastAccessibleFileTime(t *testing.T) {
-	mainHelper.Parallel(t)
-	th := SetupWithStoreMock(t)
-
-	r, err := th.App.GetLastAccessibleFileTime()
-	require.Nil(t, err)
-	assert.Equal(t, int64(0), r)
-
-	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
-
-	mockStore := th.App.Srv().Store().(*storemocks.Store)
-
-	mockSystemStore := storemocks.SystemStore{}
-	mockStore.On("System").Return(&mockSystemStore)
-	mockSystemStore.On("GetByName", mock.Anything).Return(nil, store.NewErrNotFound("", ""))
-	r, err = th.App.GetLastAccessibleFileTime()
-	require.Nil(t, err)
-	assert.Equal(t, int64(0), r)
-
-	mockSystemStore = storemocks.SystemStore{}
-	mockStore.On("System").Return(&mockSystemStore)
-	mockSystemStore.On("GetByName", mock.Anything).Return(nil, errors.New("test"))
-	_, err = th.App.GetLastAccessibleFileTime()
-	require.NotNil(t, err)
-
-	mockSystemStore = storemocks.SystemStore{}
-	mockStore.On("System").Return(&mockSystemStore)
-	mockSystemStore.On("GetByName", mock.Anything).Return(&model.System{Name: model.SystemLastAccessibleFileTime, Value: "10"}, nil)
-	r, err = th.App.GetLastAccessibleFileTime()
-	require.Nil(t, err)
-	assert.Equal(t, int64(10), r)
-}
-
-func TestComputeLastAccessibleFileTime(t *testing.T) {
-	mainHelper.Parallel(t)
-	t.Run("Updates the time, if cloud limit is applicable", func(t *testing.T) {
-		th := SetupWithStoreMock(t)
-
-		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
-
-		cloud := &eMocks.CloudInterface{}
-		th.App.Srv().Cloud = cloud
-
-		cloud.Mock.On("GetCloudLimits", mock.Anything).Return(&model.ProductLimits{
-			Files: &model.FilesLimits{
-				TotalStorage: new(int64(1)),
-			},
-		}, nil)
-
-		mockStore := th.App.Srv().Store().(*storemocks.Store)
-		mockFileStore := storemocks.FileInfoStore{}
-		mockFileStore.On("GetUptoNSizeFileTime", mock.Anything).Return(int64(1), nil)
-		mockSystemStore := storemocks.SystemStore{}
-		mockSystemStore.On("SaveOrUpdate", mock.Anything).Return(nil)
-		mockStore.On("FileInfo").Return(&mockFileStore)
-		mockStore.On("System").Return(&mockSystemStore)
-
-		err := th.App.ComputeLastAccessibleFileTime()
-		require.NoError(t, err)
-
-		mockSystemStore.AssertCalled(t, "SaveOrUpdate", mock.Anything)
-	})
-
-	t.Run("Removes the time, if cloud limit is not applicable", func(t *testing.T) {
-		th := SetupWithStoreMock(t)
-
-		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
-
-		cloud := &eMocks.CloudInterface{}
-		th.App.Srv().Cloud = cloud
-
-		cloud.Mock.On("GetCloudLimits", mock.Anything).Return(nil, nil)
-
-		mockStore := th.App.Srv().Store().(*storemocks.Store)
-		mockFileStore := storemocks.FileInfoStore{}
-		mockFileStore.On("GetUptoNSizeFileTime", mock.Anything).Return(int64(1), nil)
-		mockSystemStore := storemocks.SystemStore{}
-		mockSystemStore.On("GetByName", mock.Anything).Return(&model.System{Name: model.SystemLastAccessibleFileTime, Value: "10"}, nil)
-		mockSystemStore.On("PermanentDeleteByName", mock.Anything).Return(nil, nil)
-		mockSystemStore.On("SaveOrUpdate", mock.Anything).Return(nil)
-		mockStore.On("FileInfo").Return(&mockFileStore)
-		mockStore.On("System").Return(&mockSystemStore)
-
-		err := th.App.ComputeLastAccessibleFileTime()
-		require.NoError(t, err)
-
-		mockSystemStore.AssertNotCalled(t, "SaveOrUpdate", mock.Anything)
-		mockSystemStore.AssertCalled(t, "PermanentDeleteByName", mock.Anything)
-	})
 }
 
 func TestSetFileSearchableContent(t *testing.T) {

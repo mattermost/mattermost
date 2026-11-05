@@ -47,7 +47,7 @@ func Merge[T any](base T, patch T, mergeConfig *MergeConfig) (T, error) {
 		ret.Elem().Set(val)
 	}
 
-	r, ok := ret.Elem().Interface().(T)
+	r, ok := reflect.TypeAssert[T](ret.Elem())
 	if !ok {
 		return r, fmt.Errorf(
 			"Unexpected type of return element, expected %s, is %s",
@@ -66,7 +66,7 @@ func merge(base, patch reflect.Value, mergeConfig *MergeConfig) (reflect.Value, 
 	switch commonType.Kind() {
 	case reflect.Struct:
 		merged := reflect.New(commonType).Elem()
-		for i := 0; i < base.NumField(); i++ {
+		for i := range base.NumField() {
 			if !merged.Field(i).CanSet() {
 				continue
 			}
@@ -109,7 +109,7 @@ func merge(base, patch reflect.Value, mergeConfig *MergeConfig) (reflect.Value, 
 		if !patch.IsNil() {
 			// use patch
 			merged := reflect.MakeSlice(commonType, 0, patch.Len())
-			for i := 0; i < patch.Len(); i++ {
+			for i := range patch.Len() {
 				// recursively merge patch with itself. This will clone reference values.
 				val, _ := merge(patch.Index(i), patch.Index(i), mergeConfig)
 				merged = reflect.Append(merged, val)
@@ -118,7 +118,7 @@ func merge(base, patch reflect.Value, mergeConfig *MergeConfig) (reflect.Value, 
 		}
 		// use base
 		merged := reflect.MakeSlice(commonType, 0, base.Len())
-		for i := 0; i < base.Len(); i++ {
+		for i := range base.Len() {
 			// recursively merge base with itself. This will clone reference values.
 			val, _ := merge(base.Index(i), base.Index(i), mergeConfig)
 			merged = reflect.Append(merged, val)

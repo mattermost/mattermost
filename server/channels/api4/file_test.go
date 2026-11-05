@@ -21,6 +21,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -29,9 +30,12 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
+	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
 var testDir = ""
@@ -966,27 +970,177 @@ func TestGetFile(t *testing.T) {
 	t.Run("deleted file is indistinguishable from a file that never existed", func(t *testing.T) {
 		th.LoginBasic(t)
 
+		// Remove the file info through the store. DeletePost does this in a background
+		// goroutine, which would make the test racy.
+		removeWithPost := func(t *testing.T, post *model.Post, _ *model.FileInfo) {
+			t.Helper()
+			_, storeErr := th.App.Srv().Store().FileInfo().DeleteForPost(th.Context, post.Id)
+			require.NoError(t, storeErr)
+		}
+		removeFromPost := func(t *testing.T, post *model.Post, fileInfo *model.FileInfo) {
+			t.Helper()
+			storeErr := th.App.Srv().Store().FileInfo().DeleteForPostByIds(th.Context, post.Id, []string{fileInfo.Id})
+			require.NoError(t, storeErr)
+		}
+
+		memberClient := th.CreateClient()
+		th.LoginBasic2WithClient(t, memberClient)
+
+		testCases := []struct {
+			name           string
+			withCacheLayer bool
+			remove         func(*testing.T, *model.Post, *model.FileInfo)
+			reader         *model.Client4
+		}{
+			{name: "with cache layer, deleted with its post", withCacheLayer: true, remove: removeWithPost, reader: client},
+			{name: "with cache layer, detached from its post", withCacheLayer: true, remove: removeFromPost, reader: client},
+			{name: "without cache layer, deleted with its post", withCacheLayer: false, remove: removeWithPost, reader: client},
+			{name: "without cache layer, detached from its post", withCacheLayer: false, remove: removeFromPost, reader: client},
+			{name: "with cache layer, deleted with its post, another channel member", withCacheLayer: true, remove: removeWithPost, reader: memberClient},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				if tc.withCacheLayer {
+					require.True(t, th.IncludeCacheLayer)
+				} else {
+					// Run this case against the store the harness was given.
+					originalStore := th.App.Srv().Store()
+					th.App.Srv().SetStore(th.Store)
+					t.Cleanup(func() {
+						th.App.Srv().SetStore(originalStore)
+					})
+				}
+
+				post, fileInfo := uploadFileAndCreatePost(t, th, client)
+
+				data, _, err := tc.reader.GetFile(context.Background(), fileInfo.Id)
+				require.NoError(t, err)
+				require.NotEmpty(t, data)
+
+				tc.remove(t, post, fileInfo)
+
+				// A removed file is reported with the same status and error as a file id that was never created.
+				_, deletedResp, err := tc.reader.GetFile(context.Background(), fileInfo.Id)
+				require.Error(t, err)
+				CheckNotFoundStatus(t, deletedResp)
+				CheckErrorID(t, err, "api.file.get_file_info.app_error")
+
+				_, missingResp, err := tc.reader.GetFile(context.Background(), model.NewId())
+				require.Error(t, err)
+				CheckNotFoundStatus(t, missingResp)
+				CheckErrorID(t, err, "api.file.get_file_info.app_error")
+			})
+		}
+	})
+
+	t.Run("deleted file is not served from a lagging replica", func(t *testing.T) {
+		th.LoginBasic(t)
+
 		post, fileInfo := uploadFileAndCreatePost(t, th, client)
 
-		// Soft-delete the file info directly: DeletePost does this in a background
-		// goroutine, which would make the test racy.
-		_, storeErr := th.App.Srv().Store().FileInfo().DeleteForPost(th.Context, post.Id)
+		originalStore := th.App.Srv().Store()
+		beforeDelete, storeErr := originalStore.FileInfo().GetByIds([]string{fileInfo.Id}, true, false, true)
+		require.NoError(t, storeErr)
+		require.Len(t, beforeDelete, 1)
+
+		_, storeErr = originalStore.FileInfo().DeleteForPost(th.Context, post.Id)
 		require.NoError(t, storeErr)
 
-		// GetByIds caches per file ID, and nothing evicts those keys on delete, so a
-		// stale DeleteAt == 0 entry would otherwise make the request succeed.
-		th.App.Srv().Store().FileInfo().ClearCaches()
+		lagging := &replicaLagFileInfoStore{FileInfoStore: originalStore.FileInfo(), staleInfo: beforeDelete[0]}
+		th.App.Srv().SetStore(&replicaLagFileStore{Store: originalStore, fileInfos: lagging})
+		t.Cleanup(func() {
+			th.App.Srv().SetStore(originalStore)
+		})
 
-		_, deletedResp, err := client.GetFile(context.Background(), fileInfo.Id)
+		_, resp, err := client.GetFile(context.Background(), fileInfo.Id)
 		require.Error(t, err)
-		CheckNotFoundStatus(t, deletedResp)
-		CheckErrorID(t, err, "api.file.get_file_info.app_error")
-
-		_, missingResp, err := client.GetFile(context.Background(), model.NewId())
-		require.Error(t, err)
-		CheckNotFoundStatus(t, missingResp)
+		CheckNotFoundStatus(t, resp)
 		CheckErrorID(t, err, "api.file.get_file_info.app_error")
 	})
+
+	t.Run("content reviewer can get a deleted file", func(t *testing.T) {
+		th.LoginBasic(t)
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		require.True(t, ok, "failed to set license")
+		t.Cleanup(func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		})
+
+		appErr := setBasicCommonReviewerConfig(th)
+		require.Nil(t, appErr)
+
+		sent, err := testutils.ReadTestFile("test.png")
+		require.NoError(t, err)
+
+		removeWithPost := func(t *testing.T, post *model.Post, _ *model.FileInfo) {
+			t.Helper()
+			_, storeErr := th.App.Srv().Store().FileInfo().DeleteForPost(th.Context, post.Id)
+			require.NoError(t, storeErr)
+		}
+		removeFromPost := func(t *testing.T, post *model.Post, fileInfo *model.FileInfo) {
+			t.Helper()
+			storeErr := th.App.Srv().Store().FileInfo().DeleteForPostByIds(th.Context, post.Id, []string{fileInfo.Id})
+			require.NoError(t, storeErr)
+		}
+
+		testCases := []struct {
+			name      string
+			priorRead bool
+			remove    func(*testing.T, *model.Post, *model.FileInfo)
+		}{
+			{name: "deleted with its post", priorRead: false, remove: removeWithPost},
+			{name: "deleted with its post after it was read", priorRead: true, remove: removeWithPost},
+			{name: "detached from its post after it was read", priorRead: true, remove: removeFromPost},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				post, fileInfo := uploadFileAndCreatePost(t, th, client)
+
+				if tc.priorRead {
+					data, _, readErr := client.GetFile(context.Background(), fileInfo.Id)
+					require.NoError(t, readErr)
+					require.Equal(t, sent, data)
+				}
+
+				flagPostViaAPI(t, client, post.Id)
+				tc.remove(t, post, fileInfo)
+
+				data, response, getErr := client.GetFileAsContentReviewer(context.Background(), fileInfo.Id, post.Id)
+				require.NoError(t, getErr)
+				CheckOKStatus(t, response)
+				require.Equal(t, sent, data)
+			})
+		}
+	})
+}
+
+// replicaLagFileInfoStore simulates a read replica that still holds an earlier copy
+// of one file info. Any GetByIds lookup of that file which is not pinned to the master
+// DB returns the earlier copy; every other lookup passes through to the real store.
+type replicaLagFileInfoStore struct {
+	store.FileInfoStore
+
+	staleInfo *model.FileInfo
+}
+
+func (s *replicaLagFileInfoStore) GetByIds(ids []string, includeDeleted, allowFromCache, readFromMaster bool) ([]*model.FileInfo, error) {
+	if !readFromMaster && len(ids) == 1 && ids[0] == s.staleInfo.Id {
+		stale := *s.staleInfo
+		return []*model.FileInfo{&stale}, nil
+	}
+	return s.FileInfoStore.GetByIds(ids, includeDeleted, allowFromCache, readFromMaster)
+}
+
+type replicaLagFileStore struct {
+	store.Store
+	fileInfos *replicaLagFileInfoStore
+}
+
+func (s *replicaLagFileStore) FileInfo() store.FileInfoStore {
+	return s.fileInfos
 }
 
 func TestGetFileAsContentReviewer(t *testing.T) {
@@ -1040,6 +1194,29 @@ func TestGetFileAsContentReviewer(t *testing.T) {
 				CheckErrorID(t, err, "api.data_spillage.error.user_not_reviewer")
 				require.Empty(t, data, "no file content should be returned")
 			})
+		}
+	})
+
+	t.Run("reviewer cannot fetch a file from a DM or GM channel", func(t *testing.T) {
+		sent, err := testutils.ReadTestFile("test.png")
+		require.NoError(t, err)
+
+		dmChannel := th.CreateDmChannel(t, th.BasicUser2)
+		gmChannel, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, th.BasicUser2.Id, th.SystemAdminUser.Id}, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		for _, channel := range []*model.Channel{dmChannel, gmChannel} {
+			fileResponse, _, err := th.Client.UploadFile(context.Background(), sent, channel.Id, "test.png")
+			require.NoError(t, err)
+			require.Len(t, fileResponse.FileInfos, 1)
+
+			post := th.CreatePostInChannelWithFiles(t, channel, fileResponse.FileInfos[0])
+
+			data, response, err := th.Client.GetFileAsContentReviewer(context.Background(), fileResponse.FileInfos[0].Id, post.Id)
+			require.Error(t, err)
+			CheckBadRequestStatus(t, response)
+			CheckErrorID(t, err, "api.data_spillage.error.invalid_channel_type")
+			require.Empty(t, data, "no file content should be returned")
 		}
 	})
 }
@@ -1854,5 +2031,124 @@ func TestHeadRequestsFileEndpoints(t *testing.T) {
 		defer resp.Body.Close()
 
 		require.Equal(t, http.StatusNotFound, resp.StatusCode)
+	})
+}
+
+const uploadFileAttachmentDeniedErrorID = "api.file.upload_file.abac_denied.app_error"
+
+// setupUploadFileAttachmentABAC returns a test helper with permission policies
+// enabled, for tests that install mockUploadFileAttachmentPolicy.
+func setupUploadFileAttachmentABAC(t *testing.T) *TestHelper {
+	t.Helper()
+
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PermissionPolicies = true
+		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+	}).InitBasic(t)
+
+	if *th.App.Config().FileSettings.DriverName == "" {
+		t.Skip("skipping because no file driver is enabled")
+	}
+
+	return th
+}
+
+// mockUploadFileAttachmentPolicy swaps in an access control service that denies
+// the upload_file_attachment action in deniedChannelIDs and allows every other
+// evaluation, so unrelated policy checks never get in the way.
+func mockUploadFileAttachmentPolicy(t *testing.T, th *TestHelper, deniedChannelIDs ...string) *mocks.AccessControlServiceInterface {
+	t.Helper()
+
+	mockACS := &mocks.AccessControlServiceInterface{}
+	original := th.App.Srv().Channels().AccessControl
+	th.App.Srv().Channels().AccessControl = mockACS
+	t.Cleanup(func() { th.App.Srv().Channels().AccessControl = original })
+
+	mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+		return req.Action == model.AccessControlPolicyActionUploadFileAttachment && slices.Contains(deniedChannelIDs, req.Resource.ID)
+	})).Return(model.AccessDecision{Decision: false}, (*model.AppError)(nil))
+	mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+		Return(model.AccessDecision{Decision: true}, (*model.AppError)(nil)).Maybe()
+
+	// Channel teardown and policy reads touch the service without being part of the
+	// behaviour under test.
+	mockACS.On("GetPolicy", mock.Anything, mock.AnythingOfType("string")).
+		Return(nil, (*model.AppError)(nil)).Maybe()
+	mockACS.On("DeletePolicy", mock.Anything, mock.AnythingOfType("string")).
+		Return((*model.AppError)(nil)).Maybe()
+
+	return mockACS
+}
+
+// uploadUnattachedFile uploads a file to channelID as th.BasicUser and returns
+// its ID, still unattached to any post.
+func uploadUnattachedFile(t *testing.T, th *TestHelper, channelID string) string {
+	t.Helper()
+
+	data, err := testutils.ReadTestFile("test.png")
+	require.NoError(t, err)
+
+	fileResp, _, err := th.Client.UploadFile(context.Background(), data, channelID, "test.png")
+	require.NoError(t, err)
+	require.Len(t, fileResp.FileInfos, 1)
+
+	return fileResp.FileInfos[0].Id
+}
+
+// disableABACForTest turns attribute-based access control off for the rest of
+// the test, so permission policies are never consulted.
+func disableABACForTest(t *testing.T, th *TestHelper) {
+	t.Helper()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(false)
+	})
+	t.Cleanup(func() {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+		})
+	})
+}
+
+func TestUploadFileABACEnforcement(t *testing.T) {
+	th := setupUploadFileAttachmentABAC(t)
+
+	sent, err := testutils.ReadTestFile("test.png")
+	require.NoError(t, err)
+
+	// UploadFileAsRequestBody drives uploadFileSimple, UploadFile drives uploadFileMultipart.
+	t.Run("simple upload is rejected when the policy denies the upload action", func(t *testing.T) {
+		mockUploadFileAttachmentPolicy(t, th, th.BasicChannel.Id)
+
+		_, resp, err := th.Client.UploadFileAsRequestBody(context.Background(), sent, th.BasicChannel.Id, "test.png")
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, uploadFileAttachmentDeniedErrorID)
+	})
+
+	t.Run("multipart upload is rejected when the policy denies the upload action", func(t *testing.T) {
+		mockUploadFileAttachmentPolicy(t, th, th.BasicChannel.Id)
+
+		_, resp, err := th.Client.UploadFile(context.Background(), sent, th.BasicChannel.Id, "test.png")
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, uploadFileAttachmentDeniedErrorID)
+	})
+
+	t.Run("upload is accepted when the policy allows the upload action", func(t *testing.T) {
+		mockUploadFileAttachmentPolicy(t, th)
+
+		fileResp, _, err := th.Client.UploadFile(context.Background(), sent, th.BasicChannel.Id, "test.png")
+		require.NoError(t, err)
+		require.Len(t, fileResp.FileInfos, 1)
+	})
+
+	t.Run("upload is unaffected when ABAC is disabled", func(t *testing.T) {
+		mockUploadFileAttachmentPolicy(t, th, th.BasicChannel.Id)
+		disableABACForTest(t, th)
+
+		fileResp, _, err := th.Client.UploadFile(context.Background(), sent, th.BasicChannel.Id, "test.png")
+		require.NoError(t, err)
+		require.Len(t, fileResp.FileInfos, 1)
 	})
 }

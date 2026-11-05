@@ -10,40 +10,66 @@ exports[`components/actions_menu/ActionsMenu has actions - marketplace disabled 
       aria-expanded="true"
       aria-haspopup="true"
       aria-label="actions"
-      class="post-menu__item post-menu__item--active"
+      class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 _icon-button--padding-compact_ft92e_72 _icon-button--active_ft92e_31 post-menu__item post-menu__item--active"
+      data-active="true"
       id="center_actions_button_post_id_1"
       type="button"
     >
-      <i
-        class="icon icon-apps"
-      />
-    </button>
-    <div
-      aria-label="Post extra options"
-      class="a11y__popup Menu"
-    >
-      <ul
-        class="Menu__content dropdown-menu openLeft"
-        id="center_actions_dropdown_post_id_1"
-        role="menu"
+      <span
+        aria-hidden="true"
+        class="_icon-button__icon-slot_ft92e_41"
       >
-        <li
-          class="MenuItem"
-          role="menuitem"
+        <div
+          aria-hidden="true"
+          class="_icon_1i355_2 _icon--size-16_1i355_38"
         >
-          <button
-            class="style--none"
-            data-testid="undefined-button"
-            id="undefined-button"
+          <div
+            class="_icon__glyph-area_1i355_9"
           >
-            <span
-              class="MenuItem__primary-text"
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
             >
-              Some text
-            </span>
-          </button>
-        </li>
-      </ul>
+              <path
+                d="M3 11H11V3H3M5 5H9V9H5M13 21H21V13H13M15 15H19V19H15M3 21H11V13H3M5 15H9V19H5M13 3V11H21V3M19 9H15V5H19Z"
+              />
+            </svg>
+          </div>
+        </div>
+      </span>
+    </button>
+    <div>
+      <div
+        aria-label="Post extra options"
+        class="a11y__popup Menu"
+      >
+        <ul
+          class="Menu__content dropdown-menu openLeft"
+          id="center_actions_dropdown_post_id_1"
+          role="menu"
+        >
+          <li
+            class="MenuItem"
+            role="menuitem"
+          >
+            <button
+              class="style--none"
+              data-testid="undefined-button"
+              id="undefined-button"
+            >
+              <span
+                class="MenuItem__primary-text"
+              >
+                Some text
+              </span>
+            </button>
+          </li>
+        </ul>
+      </div>
     </div>
   </div>
 </div>
@@ -59,74 +85,100 @@ exports[`components/actions_menu/ActionsMenu has actions - marketplace enabled a
       aria-expanded="true"
       aria-haspopup="true"
       aria-label="actions"
-      class="post-menu__item post-menu__item--active"
+      class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 _icon-button--padding-compact_ft92e_72 _icon-button--active_ft92e_31 post-menu__item post-menu__item--active"
+      data-active="true"
       id="center_actions_button_post_id_1"
       type="button"
     >
-      <i
-        class="icon icon-apps"
-      />
-    </button>
-    <div
-      aria-label="Post extra options"
-      class="a11y__popup Menu"
-    >
-      <ul
-        class="Menu__content dropdown-menu openLeft"
-        id="center_actions_dropdown_post_id_1"
-        role="menu"
+      <span
+        aria-hidden="true"
+        class="_icon-button__icon-slot_ft92e_41"
       >
-        <li
-          class="MenuItem"
-          role="menuitem"
+        <div
+          aria-hidden="true"
+          class="_icon_1i355_2 _icon--size-16_1i355_38"
         >
-          <button
-            class="style--none"
-            data-testid="undefined-button"
-            id="undefined-button"
+          <div
+            class="_icon__glyph-area_1i355_9"
           >
-            <span
-              class="MenuItem__primary-text"
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
             >
-              Some text
-            </span>
-          </button>
-        </li>
-        <li
-          class="MenuItem__divider"
-          id="divider_post_post_id_1_marketplace"
-          role="menuitem"
-        />
-        <li
-          class="MenuItem MenuItem--with-icon"
-          id="marketplace_icon_post_id_1"
-          role="menuitem"
+              <path
+                d="M3 11H11V3H3M5 5H9V9H5M13 21H21V13H13M15 15H19V19H15M3 21H11V13H3M5 15H9V19H5M13 3V11H21V3M19 9H15V5H19Z"
+              />
+            </svg>
+          </div>
+        </div>
+      </span>
+    </button>
+    <div>
+      <div
+        aria-label="Post extra options"
+        class="a11y__popup Menu"
+      >
+        <ul
+          class="Menu__content dropdown-menu openLeft"
+          id="center_actions_dropdown_post_id_1"
+          role="menu"
         >
-          <button
-            class="style--none"
-            data-testid="marketplace_icon_post_id_1-button"
-            id="marketplace_icon_post_id_1-button"
+          <li
+            class="MenuItem"
+            role="menuitem"
           >
-            <span
-              class="MenuItem__primary-text"
+            <button
+              class="style--none"
+              data-testid="undefined-button"
+              id="undefined-button"
             >
               <span
-                class="icon"
+                class="MenuItem__primary-text"
+              >
+                Some text
+              </span>
+            </button>
+          </li>
+          <li
+            class="MenuItem__divider"
+            id="divider_post_post_id_1_marketplace"
+            role="menuitem"
+          />
+          <li
+            class="MenuItem MenuItem--with-icon"
+            id="marketplace_icon_post_id_1"
+            role="menuitem"
+          >
+            <button
+              class="style--none"
+              data-testid="marketplace_icon_post_id_1-button"
+              id="marketplace_icon_post_id_1-button"
+            >
+              <span
+                class="MenuItem__primary-text"
               >
                 <span
-                  aria-hidden="true"
-                  class="icon-view-grid-plus-outline MenuItem__compass-icon"
-                />
+                  class="icon"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="icon-view-grid-plus-outline MenuItem__compass-icon"
+                  />
+                </span>
+                <div
+                  class="text"
+                >
+                  App Marketplace
+                </div>
               </span>
-              <div
-                class="text"
-              >
-                App Marketplace
-              </div>
-            </span>
-          </button>
-        </li>
-      </ul>
+            </button>
+          </li>
+        </ul>
+      </div>
     </div>
   </div>
 </div>
@@ -141,13 +193,37 @@ exports[`components/actions_menu/ActionsMenu no actions - sysadmin - menu should
     aria-expanded="true"
     aria-haspopup="true"
     aria-label="actions"
-    class="post-menu__item post-menu__item--active"
+    class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 _icon-button--padding-compact_ft92e_72 _icon-button--active_ft92e_31 post-menu__item post-menu__item--active"
+    data-active="true"
     id="center_actions_button_post_id_1"
     type="button"
   >
-    <i
-      class="icon icon-apps"
-    />
+    <span
+      aria-hidden="true"
+      class="_icon-button__icon-slot_ft92e_41"
+    >
+      <div
+        aria-hidden="true"
+        class="_icon_1i355_2 _icon--size-16_1i355_38"
+      >
+        <div
+          class="_icon__glyph-area_1i355_9"
+        >
+          <svg
+            fill="currentColor"
+            height="18"
+            version="1.1"
+            viewBox="0 0 24 24"
+            width="18"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M3 11H11V3H3M5 5H9V9H5M13 21H21V13H13M15 15H19V19H15M3 21H11V13H3M5 15H9V19H5M13 3V11H21V3M19 9H15V5H19Z"
+            />
+          </svg>
+        </div>
+      </div>
+    </span>
   </button>
   <div
     data-testid="mock-popover"

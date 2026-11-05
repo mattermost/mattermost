@@ -5,11 +5,12 @@ import * as ReactRedux from 'react-redux';
 
 import type {PropertyField} from '@mattermost/types/properties';
 
+import {ACCESS_CONTROL_PROPERTY_GROUP} from 'mattermost-redux/constants/properties';
+
 import {
     CLASSIFICATIONS_CHANNEL_FIELD_NAME,
     CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
     CLASSIFICATIONS_FIELD_TARGET_TYPE,
-    CLASSIFICATIONS_GROUP_NAME,
 } from 'components/admin_console/classification_markings/utils';
 
 import {renderHookWithContext} from 'tests/react_testing_utils';
@@ -26,7 +27,7 @@ jest.mock('react-redux', () => ({
 function makeChannelField(overrides: Partial<PropertyField> = {}): PropertyField {
     return {
         id: 'channel1',
-        group_id: CLASSIFICATIONS_GROUP_NAME,
+        group_id: GROUP_ID,
         name: CLASSIFICATIONS_CHANNEL_FIELD_NAME,
         type: 'select',
         attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]},
@@ -43,6 +44,8 @@ function makeChannelField(overrides: Partial<PropertyField> = {}): PropertyField
     };
 }
 
+const GROUP_ID = 'group_access_control';
+
 const ENTERPRISE_LICENSE = {IsLicensed: 'true', SkuShortName: 'enterprise'};
 const STARTER_LICENSE = {IsLicensed: 'true', SkuShortName: 'starter'};
 
@@ -51,6 +54,8 @@ function stateWith({featureFlag, license, fields = {}}: {
     license?: typeof ENTERPRISE_LICENSE | typeof STARTER_LICENSE | Record<string, never>;
     fields?: Record<string, PropertyField>;
 }): PartialState {
+    // Fields are looked up through the group-scoped map, which the fetch action
+    // populates together with the name -> id mapping, so both are set here.
     return {
         entities: {
             general: {
@@ -58,7 +63,15 @@ function stateWith({featureFlag, license, fields = {}}: {
                 license: license ?? {},
             },
             properties: {
-                fields: {byId: fields},
+                groups: {
+                    byId: {[GROUP_ID]: {id: GROUP_ID, name: ACCESS_CONTROL_PROPERTY_GROUP}},
+                    byName: {[ACCESS_CONTROL_PROPERTY_GROUP]: {id: GROUP_ID, name: ACCESS_CONTROL_PROPERTY_GROUP}},
+                },
+                fields: {
+                    byId: fields,
+                    byObjectType: {[CLASSIFICATIONS_CHANNEL_OBJECT_TYPE]: {[GROUP_ID]: fields}},
+                },
+                values: {byTargetId: {}, byFieldId: {}},
             },
         },
     } as PartialState;

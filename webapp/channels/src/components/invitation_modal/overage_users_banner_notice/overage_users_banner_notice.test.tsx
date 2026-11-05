@@ -13,7 +13,7 @@ import {
     screen,
     userEvent,
 } from 'tests/react_testing_utils';
-import {LicenseLinks, OverActiveUserLimits, Preferences, SelfHostedProducts, StatTypes} from 'utils/constants';
+import {LicenseLinks, OverActiveUserLimits, Preferences, StatTypes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 import {generateId} from 'utils/utils';
 
@@ -81,19 +81,6 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
                 myPreferences: {},
             },
             cloud: {},
-            hostedCustomer: {
-                products: {
-                    productsLoaded: true,
-                    products: {
-                        prod_professional: TestHelper.getProductMock({
-                            id: 'prod_professional',
-                            name: 'Professional',
-                            sku: SelfHostedProducts.PROFESSIONAL,
-                            price_per_seat: 7.5,
-                        }),
-                    },
-                },
-            },
         },
     };
 

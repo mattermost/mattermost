@@ -4,6 +4,7 @@
 package model
 
 import (
+	"slices"
 	"strings"
 )
 
@@ -12,6 +13,8 @@ const (
 	PushNotifyAndroid            = "android"
 	PushNotifyAppleReactNative   = "apple_rn"
 	PushNotifyAndroidReactNative = "android_rn"
+	PushNotifyAppleOxide         = "apple_oxide"
+	PushNotifyAndroidOxide       = "android_oxide"
 
 	PushTypeMessage     = "message"
 	PushTypeClear       = "clear"
@@ -42,6 +45,19 @@ const (
 	PushNotSent     = "Not Sent due to preferences"
 	PushReceived    = "Received by device"
 )
+
+// IsMHPNSEndpoint reports whether the given push notification server URL is one of the
+// Mattermost-hosted (HPNS) production endpoints.
+func IsMHPNSEndpoint(url string) bool {
+	return slices.Contains([]string{
+		MHPNSLegacyUS,
+		MHPNSLegacyDE,
+		MHPNSGlobal,
+		MHPNSUS,
+		MHPNSEU,
+		MHPNSAP,
+	}, url)
+}
 
 // PushSubType allows for passing additional message type information
 // to mobile clients in a backwards-compatible way

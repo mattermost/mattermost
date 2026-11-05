@@ -66,6 +66,10 @@ type Client interface {
 	EnablePlugin(ctx context.Context, id string) (*model.Response, error)
 	DisablePlugin(ctx context.Context, id string) (*model.Response, error)
 	GetPlugins(ctx context.Context) (*model.PluginsResponse, *model.Response, error)
+	GetPluginPublicKeys(ctx context.Context) ([]string, *model.Response, error)
+	GetPluginPublicKey(ctx context.Context, name string) ([]byte, *model.Response, error)
+	AddPluginPublicKey(ctx context.Context, name string, key io.Reader) (*model.Response, error)
+	DeletePluginPublicKey(ctx context.Context, name string) (*model.Response, error)
 	GetMe(ctx context.Context, etag string) (*model.User, *model.Response, error)
 	GetUser(ctx context.Context, userID, etag string) (*model.User, *model.Response, error)
 	GetUserByUsername(ctx context.Context, userName, etag string) (*model.User, *model.Response, error)
@@ -184,4 +188,5 @@ type Client interface {
 	PatchCPAValues(ctx context.Context, values map[string]json.RawMessage) (map[string]json.RawMessage, *model.Response, error)
 	PatchCPAValuesForUser(ctx context.Context, userID string, values map[string]json.RawMessage) (map[string]json.RawMessage, *model.Response, error)
 	GetPostsForReporting(ctx context.Context, options model.ReportPostOptions, cursor model.ReportPostOptionsCursor) (*model.ReportPostListResponse, *model.Response, error)
+	GetHealthFindings(ctx context.Context, filter model.HealthFindingFilter) (*model.HealthFindingList, *model.Response, error)
 }

@@ -77,7 +77,9 @@ test.describe('Board Attributes - edge cases', {tag: '@board_attributes'}, () =>
         //   (board_attributes_utils.ts:126), so the server keeps the
         //   underlying option data — the UI is what hides it. Asserting the
         //   server-side wipe would require sending `options: []` explicitly.
-        const fields = await adminClient.getPropertyFields(BOARDS_GROUP, OBJECT_TYPE_POST, SYSTEM_TARGET_TYPE);
+        const fields = await adminClient.getPropertyFields(BOARDS_GROUP, OBJECT_TYPE_POST, {
+            targetType: SYSTEM_TARGET_TYPE,
+        });
         const updated = (fields ?? []).find((f) => f.name === attrName);
         expect(updated).toBeDefined();
         expect(updated!.type).toBe('text');
@@ -100,8 +102,8 @@ test.describe('Board Attributes - edge cases', {tag: '@board_attributes'}, () =>
         // * Save button is enabled (pending changes exist)
         await expect(ba.saveButton).toBeEnabled();
 
-        // # Click another sidebar entry (User Attributes)
-        await systemConsolePage.sidebar.systemAttributes.userAttributes.link.click();
+        // # Click another sidebar entry (Attribute Management)
+        await systemConsolePage.sidebar.systemAttributes.attributeManagement.link.click();
 
         // * The unsaved-changes modal appears
         await expect(systemConsolePage.page.getByText('Discard Changes?', {exact: true})).toBeVisible();

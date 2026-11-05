@@ -34,7 +34,7 @@ export default defineConfig([
                 },
             ],
             'react/style-prop-object': [2, {
-                allow: ['Timestamp'],
+                allow: ['Timestamp', 'IconButton'],
             }],
             'formatjs/enforce-default-message': 2,
             'formatjs/enforce-id': 2,
@@ -68,6 +68,9 @@ export default defineConfig([
                         name: 'mattermost-redux/types/actions',
                         importNames: ['DispatchFunc', 'GetStateFunc', 'ActionFunc', 'ActionFuncAsync', 'ThunkActionFunc'],
                         message: 'Use the web app version of it from types/store',
+                    }, {
+                        name: 'i18n/en.json',
+                        message: 'en.json is not shipped. English renders from the defaultMessage at each call site, so importing it only duplicates every English string in the bundle.',
                     }],
                     patterns: [{
                         group: ['@mattermost/client/src/*', '@mattermost/components/src/*', '@mattermost/types/src/*'],

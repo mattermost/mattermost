@@ -187,33 +187,29 @@ describe('System Console', () => {
         // # Login as sysadmin and navigate to board group page
         navigateToGroup(groupID);
 
-        // # Click the allow reference button
-        cy.findByTestId('allowReferenceSwitch').then((el) => {
-            el.find('button').click();
+        // # Enable group mentions
+        cy.findByTestId('allowReferenceSwitch-button').click({force: true});
 
-            // # Give the group a custom name different from its DisplayName attribute
-            cy.get('#groupMention').find('input').clear().type(groupName);
+        // # Give the group a custom name different from its DisplayName attribute
+        cy.get('#groupMention').find('input').clear().type(groupName);
 
-            // # Click save button
-            saveConfig();
+        // # Click save button
+        saveConfig();
 
-            // * Assert that the group mention works as expected since the group is enabled and sysadmin always has permission to mention
-            assertGroupMentionEnabled(groupName);
+        // * Assert that the group mention works as expected since the group is enabled and sysadmin always has permission to mention
+        assertGroupMentionEnabled(groupName);
 
-            // # Login as sysadmin and navigate to board group page
-            navigateToGroup(groupID);
+        // # Login as sysadmin and navigate to board group page
+        navigateToGroup(groupID);
 
-            // # Click the allow reference button
-            cy.findByTestId('allowReferenceSwitch').then((elSwitch) => {
-                elSwitch.find('button').click();
+        // # Disable group mentions
+        cy.findByTestId('allowReferenceSwitch-button').click({force: true});
 
-                // # Click save button
-                saveConfig();
+        // # Click save button
+        saveConfig();
 
-                // * Assert that the group mention does not do anything since the group is disabled even though sysadmin has permission to mention
-                assertGroupMentionDisabled(groupName);
-            });
-        });
+        // * Assert that the group mention does not do anything since the group is disabled even though sysadmin has permission to mention
+        assertGroupMentionDisabled(groupName);
     });
 
     it('MM-23937 - Can restrict users from mentioning a group through the use_group_mentions permission', () => {

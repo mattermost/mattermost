@@ -9,73 +9,70 @@ exports[`component/view_user_group_modal should match snapshot 1`] = `
     aria-hidden="true"
   />
   <div
-    role="none"
+    class="fade modal-backdrop in"
+  />
+  <div
+    aria-labelledby="viewUserGroupModalLabel"
+    aria-modal="true"
+    class="fade in modal"
+    role="dialog"
+    style="display: block; padding-right: 0px;"
+    tabindex="-1"
   >
     <div
-      class="fade modal-backdrop in"
-    />
-    <div
-      aria-labelledby="viewUserGroupModalLabel"
-      class="fade in modal"
-      role="dialog"
-      style="display: block; padding-right: 0px;"
-      tabindex="-1"
+      class="a11y__modal view-user-groups-modal modal-dialog"
     >
       <div
-        class="a11y__modal view-user-groups-modal modal-dialog"
+        class="modal-content"
+        role="document"
       >
-        <div
-          class="modal-content"
-          role="document"
-        >
-          <div>
-            <div
-              class="modal-header"
+        <div>
+          <div
+            class="modal-header"
+          >
+            <button
+              aria-label="Back"
+              class="_icon-button_ft92e_2 _icon-button--size-medium_ft92e_91 modal-header-back-button"
+              type="button"
             >
-              <div
-                class="d-flex align-items-center"
+              <span
+                aria-hidden="true"
+                class="_icon-button__icon-slot_ft92e_41"
               >
-                <button
-                  aria-label="Back"
-                  class="modal-header-back-button btn btn-icon"
-                  type="button"
-                >
-                  <i
-                    class="icon icon-arrow-left"
-                  />
-                </button>
-                <h1
-                  class="modal-title"
-                  id="viewUserGroupModalLabel"
-                >
-                  Group Name
-                </h1>
-              </div>
-              <div
-                class="d-flex align-items-center"
-              />
-              <button
-                aria-label="Close"
-                class="close"
-                type="button"
-              >
-                <span
+                <div
                   aria-hidden="true"
+                  class="_icon_1i355_2 _icon--size-20_1i355_46"
                 >
-                  ×
-                </span>
-                <span
-                  class="sr-only"
-                >
-                  Close
-                </span>
-              </button>
-            </div>
+                  <div
+                    class="_icon__glyph-area_1i355_9"
+                  >
+                    <svg
+                      fill="currentColor"
+                      height="24"
+                      version="1.1"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z"
+                      />
+                    </svg>
+                  </div>
+                </div>
+              </span>
+            </button>
             <div
-              class="modal-body"
+              class="user-groups-modal__header-title-block"
             >
+              <h1
+                class="modal-title"
+                id="viewUserGroupModalLabel"
+              >
+                Group Name
+              </h1>
               <div
-                class="group-mention-name"
+                class="user-groups-modal__header-subtitle"
               >
                 <span
                   class="group-name"
@@ -83,130 +80,170 @@ exports[`component/view_user_group_modal should match snapshot 1`] = `
                   @group
                 </span>
               </div>
-              <div
-                class="user-groups-search"
+            </div>
+            <div
+              class="user-groups-modal__header-actions d-flex align-items-center"
+            >
+              <button
+                aria-label="Close"
+                class="_icon-button_ft92e_2 _icon-button--size-medium_ft92e_91 user-groups-modal__header-close"
+                type="button"
               >
-                <div
-                  class="Input_container"
+                <span
+                  aria-hidden="true"
+                  class="_icon-button__icon-slot_ft92e_41"
                 >
                   <div
-                    class="Input_fieldset user-group-search-input"
-                    data-testid="input-wrapper"
+                    aria-hidden="true"
+                    class="_icon_1i355_2 _icon--size-20_1i355_46"
                   >
-                    <label
-                      class="Input_legend"
-                      for="input_"
-                    >
-                                              
-                    </label>
                     <div
-                      class="Input_wrapper"
+                      class="_icon__glyph-area_1i355_9"
                     >
-                      <i
-                        class="icon icon-magnify"
-                      />
-                      <input
-                        aria-label="Search group members"
-                        class="Input form-control medium"
-                        data-testid="searchInput"
-                        id="input_"
-                        placeholder="Search group members"
-                        type="text"
-                        value=""
-                      />
+                      <svg
+                        fill="currentColor"
+                        height="24"
+                        version="1.1"
+                        viewBox="0 0 24 24"
+                        width="24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                        />
+                      </svg>
                     </div>
+                  </div>
+                </span>
+              </button>
+            </div>
+          </div>
+          <div
+            class="modal-body"
+          >
+            <div
+              class="user-groups-search"
+            >
+              <div
+                class="Input_container"
+              >
+                <div
+                  class="Input_fieldset user-group-search-input"
+                  data-testid="input-wrapper"
+                >
+                  <label
+                    class="Input_legend"
+                    for="input_"
+                  >
+                                            
+                  </label>
+                  <div
+                    class="Input_wrapper"
+                  >
+                    <i
+                      class="icon icon-magnify"
+                    />
+                    <input
+                      aria-label="Search group members"
+                      class="Input form-control medium"
+                      data-testid="searchInput"
+                      id="input_"
+                      placeholder="Search group members"
+                      type="text"
+                      value=""
+                    />
                   </div>
                 </div>
               </div>
-              <div
-                class="user-groups-modal__content group-member-list"
+            </div>
+            <div
+              class="user-groups-modal__content group-member-list"
+            >
+              <h2
+                class="group-member-count"
               >
-                <h2
-                  class="group-member-count"
+                6 Members
+              </h2>
+              <div
+                class="group-member-row"
+              >
+                <span
+                  class="status-wrapper"
                 >
-                  6 Members
-                </h2>
-                <div
-                  class="group-member-row"
-                >
+                  <img
+                    alt="user1 profile image"
+                    class="Avatar Avatar-sm avatar-post-preview"
+                    loading="lazy"
+                    src="/api/v4/users/user-1/image?_=0"
+                  />
                   <span
-                    class="status-wrapper"
+                    class="status "
                   >
-                    <img
-                      alt="user1 profile image"
-                      class="Avatar Avatar-sm avatar-post-preview"
-                      loading="lazy"
-                      src="/api/v4/users/user-1/image?_=0"
-                    />
-                    <span
-                      class="status "
+                    <svg
+                      aria-label="Offline"
+                      class="offline--icon"
+                      height="100%"
+                      role="img"
+                      style="fill-rule: evenodd; clip-rule: evenodd; stroke-linejoin: round; stroke-miterlimit: 1.41421;"
+                      viewBox="0 0 20 20"
+                      width="100%"
                     >
-                      <svg
-                        aria-label="Offline"
-                        class="offline--icon"
-                        height="100%"
-                        role="img"
-                        style="fill-rule: evenodd; clip-rule: evenodd; stroke-linejoin: round; stroke-miterlimit: 1.41421;"
-                        viewBox="0 0 20 20"
-                        width="100%"
-                      >
-                        <path
-                          d="M10,0c5.519,0 10,4.481 10,10c0,5.519 -4.481,10 -10,10c-5.519,0 -10,-4.481 -10,-10c0,-5.519 4.481,-10 10,-10Zm0,2c4.415,0 8,3.585 8,8c0,4.415 -3.585,8 -8,8c-4.415,0 -8,-3.585 -8,-8c0,-4.415 3.585,-8 8,-8Z"
-                        />
-                      </svg>
-                    </span>
+                      <path
+                        d="M10,0c5.519,0 10,4.481 10,10c0,5.519 -4.481,10 -10,10c-5.519,0 -10,-4.481 -10,-10c0,-5.519 4.481,-10 10,-10Zm0,2c4.415,0 8,3.585 8,8c0,4.415 -3.585,8 -8,8c-4.415,0 -8,-3.585 -8,-8c0,-4.415 3.585,-8 8,-8Z"
+                      />
+                    </svg>
                   </span>
-                  <div
-                    class="group-member-name"
-                  >
-                    user one
-                  </div>
-                  <div
-                    class="group-member-username"
-                  >
-                    @user1
-                  </div>
+                </span>
+                <div
+                  class="group-member-name"
+                >
+                  user one
                 </div>
                 <div
-                  class="group-member-row"
+                  class="group-member-username"
                 >
+                  @user1
+                </div>
+              </div>
+              <div
+                class="group-member-row"
+              >
+                <span
+                  class="status-wrapper"
+                >
+                  <img
+                    alt="user2 profile image"
+                    class="Avatar Avatar-sm avatar-post-preview"
+                    loading="lazy"
+                    src="/api/v4/users/user-2/image?_=0"
+                  />
                   <span
-                    class="status-wrapper"
+                    class="status "
                   >
-                    <img
-                      alt="user2 profile image"
-                      class="Avatar Avatar-sm avatar-post-preview"
-                      loading="lazy"
-                      src="/api/v4/users/user-2/image?_=0"
-                    />
-                    <span
-                      class="status "
+                    <svg
+                      aria-label="Offline"
+                      class="offline--icon"
+                      height="100%"
+                      role="img"
+                      style="fill-rule: evenodd; clip-rule: evenodd; stroke-linejoin: round; stroke-miterlimit: 1.41421;"
+                      viewBox="0 0 20 20"
+                      width="100%"
                     >
-                      <svg
-                        aria-label="Offline"
-                        class="offline--icon"
-                        height="100%"
-                        role="img"
-                        style="fill-rule: evenodd; clip-rule: evenodd; stroke-linejoin: round; stroke-miterlimit: 1.41421;"
-                        viewBox="0 0 20 20"
-                        width="100%"
-                      >
-                        <path
-                          d="M10,0c5.519,0 10,4.481 10,10c0,5.519 -4.481,10 -10,10c-5.519,0 -10,-4.481 -10,-10c0,-5.519 4.481,-10 10,-10Zm0,2c4.415,0 8,3.585 8,8c0,4.415 -3.585,8 -8,8c-4.415,0 -8,-3.585 -8,-8c0,-4.415 3.585,-8 8,-8Z"
-                        />
-                      </svg>
-                    </span>
+                      <path
+                        d="M10,0c5.519,0 10,4.481 10,10c0,5.519 -4.481,10 -10,10c-5.519,0 -10,-4.481 -10,-10c0,-5.519 4.481,-10 10,-10Zm0,2c4.415,0 8,3.585 8,8c0,4.415 -3.585,8 -8,8c-4.415,0 -8,-3.585 -8,-8c0,-4.415 3.585,-8 8,-8Z"
+                      />
+                    </svg>
                   </span>
-                  <div
-                    class="group-member-name"
-                  >
-                    user otwo
-                  </div>
-                  <div
-                    class="group-member-username"
-                  >
-                    @user2
-                  </div>
+                </span>
+                <div
+                  class="group-member-name"
+                >
+                  user otwo
+                </div>
+                <div
+                  class="group-member-username"
+                >
+                  @user2
                 </div>
               </div>
             </div>
