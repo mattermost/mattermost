@@ -83,7 +83,7 @@ describe('components/new_search/SearchBoxTypeSelector', () => {
         expect(baseProps.setSearchType).toHaveBeenCalledWith('test-id');
     });
 
-    test('should show prioritized plugin options before the keyword options', () => {
+    test('should show prioritized plugin options before Messages and Files, without a keyword label', () => {
         renderWithContext(
             <SearchBoxTypeSelector {...baseProps}/>,
             {
@@ -102,18 +102,6 @@ describe('components/new_search/SearchBoxTypeSelector', () => {
 
         const options = screen.getAllByRole('radio').map((option) => option.textContent);
         expect(options).toEqual(['high', 'mid', 'Messages', 'Files', 'low']);
-        expect(screen.getByText('Keyword:')).toBeInTheDocument();
-    });
-
-    test('should not show the keyword label without prioritized plugin options', () => {
-        renderWithContext(
-            <SearchBoxTypeSelector {...baseProps}/>,
-            {
-                plugins: {components: {SearchButtons: [{component: (() => <span>{'test'}</span>) as React.ComponentType, pluginId: 'test-id'}]}},
-                entities: {general: {license: {IsLicensed: 'true'}}},
-            },
-        );
-
         expect(screen.queryByText('Keyword:')).not.toBeInTheDocument();
     });
 });

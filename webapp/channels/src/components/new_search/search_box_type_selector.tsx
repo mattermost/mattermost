@@ -28,21 +28,6 @@ const SearchTypeSelectorContainer = styled.div`
     gap: 3px;
 `;
 
-const SearchTypeDivider = styled.div`
-    align-self: stretch;
-    width: 1px;
-    margin: 2px 4px;
-    background: rgba(var(--center-channel-color-rgb), 0.16);
-`;
-
-const SearchTypeGroupLabel = styled.span`
-    padding: 0 4px 0 2px;
-    color: rgba(var(--center-channel-color-rgb), 0.56);
-    font-size: 11px;
-    line-height: 16px;
-    font-weight: 600;
-`;
-
 type SearchTypeItemProps = {
     selected: boolean;
 };
@@ -94,24 +79,11 @@ const SearchTypeSelector = ({searchType, setSearchType}: Props) => {
         );
     };
 
-    const hasPrimary = primaryPluginButtons.length > 0;
-
     return (
         <SearchTypeSelectorContainer
             role='radiogroup'
         >
             {primaryPluginButtons.map(renderPluginButton)}
-            {hasPrimary && (
-                <>
-                    <SearchTypeDivider aria-hidden={true}/>
-                    <SearchTypeGroupLabel>
-                        <FormattedMessage
-                            id='search_bar.usage.search_type_keyword'
-                            defaultMessage='Keyword:'
-                        />
-                    </SearchTypeGroupLabel>
-                </>
-            )}
             <SearchTypeItem
                 selected={searchType === 'messages'}
                 onClick={setMessagesSearchType}

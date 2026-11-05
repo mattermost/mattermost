@@ -30,20 +30,20 @@ describe('components/new_search/SearchBox', () => {
 
     test('should have the focus on the input field', () => {
         renderWithContext(<SearchBox {...baseProps}/>);
-        expect(screen.getByPlaceholderText('Search messages')).toBeInTheDocument();
-        expect(screen.getByPlaceholderText('Search messages')).toHaveFocus();
+        expect(screen.getByPlaceholderText('Search messages by keyword')).toBeInTheDocument();
+        expect(screen.getByPlaceholderText('Search messages by keyword')).toHaveFocus();
     });
 
     test('should have set the initial search terms', () => {
         const props = {...baseProps, initialSearchTerms: 'test'};
         renderWithContext(<SearchBox {...props}/>);
-        expect(screen.getByPlaceholderText('Search messages')).toHaveValue('test');
+        expect(screen.getByPlaceholderText('Search messages by keyword')).toHaveValue('test');
     });
 
     test('should have the focus on the input field after switching search type', async () => {
         renderWithContext(<SearchBox {...baseProps}/>, fileSearchEnabledState);
         await userEvent.click(screen.getByText('Files'));
-        expect(screen.getByPlaceholderText('Search files')).toHaveFocus();
+        expect(screen.getByPlaceholderText('Search files by keyword')).toHaveFocus();
     });
 
     test('should see files hints when i click on files', async () => {
@@ -56,7 +56,7 @@ describe('components/new_search/SearchBox', () => {
 
     test('should call close on esc keydown', async () => {
         renderWithContext(<SearchBox {...baseProps}/>);
-        const input = screen.getByPlaceholderText('Search messages');
+        const input = screen.getByPlaceholderText('Search messages by keyword');
         input.focus();
         await userEvent.keyboard('{Escape}');
         expect(baseProps.onClose).toHaveBeenCalledTimes(1);
@@ -64,7 +64,7 @@ describe('components/new_search/SearchBox', () => {
 
     test('should call search on enter keydown', async () => {
         renderWithContext(<SearchBox {...baseProps}/>);
-        const input = screen.getByPlaceholderText('Search messages');
+        const input = screen.getByPlaceholderText('Search messages by keyword');
         input.focus();
         await userEvent.keyboard('{Enter}');
         expect(baseProps.onSearch).toHaveBeenCalledTimes(1);
@@ -73,7 +73,7 @@ describe('components/new_search/SearchBox', () => {
     test('should be able to select with the up and down arrows', async () => {
         renderWithContext(<SearchBox {...baseProps}/>, fileSearchEnabledState);
         await userEvent.click(screen.getByText('Files'));
-        await userEvent.type(screen.getByPlaceholderText('Search files'), 'ext:');
+        await userEvent.type(screen.getByPlaceholderText('Search files by keyword'), 'ext:');
         expect(screen.getByText('Text file')).toHaveClass('selected');
         expect(screen.getByText('Word Document')).not.toHaveClass('selected');
         await userEvent.keyboard('{ArrowDown}');

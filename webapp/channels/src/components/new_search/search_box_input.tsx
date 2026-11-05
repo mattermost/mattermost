@@ -80,10 +80,10 @@ const SearchInput = forwardRef<HTMLInputElement, Props>(({searchTerms, searchTyp
     let searchPlaceholder = intl.formatMessage({id: 'search_bar.search', defaultMessage: 'Search'});
 
     if (searchType === 'messages' || searchType === '') {
-        searchPlaceholder = intl.formatMessage({id: 'search_bar.search_messages', defaultMessage: 'Search messages'});
+        searchPlaceholder = intl.formatMessage({id: 'search_bar.search_messages', defaultMessage: 'Search messages by keyword'});
     }
     if (searchType === 'files') {
-        searchPlaceholder = intl.formatMessage({id: 'search_bar.search_files', defaultMessage: 'Search files'});
+        searchPlaceholder = intl.formatMessage({id: 'search_bar.search_files', defaultMessage: 'Search files by keyword'});
     }
 
     const dispatch = useDispatch();
