@@ -13,6 +13,8 @@ Display logs in a human-readable format. As the logs format depends on the serve
 
 The logs are read from every node of the cluster, and filtered on each node. This needs the server to write its log file in JSON format (LogSettings.FileJson). Otherwise mmctl prints the logs unfiltered, and --follow, --level, --node, --search and --since aren't available.
 
+Filtering and following need a v12.2 or later server. Older servers ignore --search, and don't filter the logs of other nodes, so entries can be missing from the output.
+
 Entries are colored when printed to a terminal. Set NO_COLOR to turn the colors off, or CLICOLOR_FORCE to keep them when the output is piped.
 
 ::
