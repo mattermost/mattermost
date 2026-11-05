@@ -15,6 +15,7 @@ import {
     persistUpgradeLicenseFromEnv,
     postMessage,
     readFileDriverName,
+    readRestrictUnauthenticatedWebappPlugins,
     readServerIdentity,
     readUpgradeBaseline,
     readUpgradeLicenseBaseline,
@@ -156,5 +157,14 @@ test.describe.serial('upgrade-from baseline', {tag: ['@upgrade-from']}, () => {
         // # Install and enable the demo plugin on the from-image
         const {adminClient} = await loadUpgradeFromContext(pw);
         await ensureUpgradePluginActive(request, adminClient);
+    });
+
+    test('restrict unauthenticated webapp plugins setting', async ({pw}) => {
+        const {adminClient} = await loadUpgradeFromContext(pw);
+
+        // # Record the from-image value (null when the from-image predates the setting)
+        mergeUpgradeBaseline({
+            restrictUnauthenticatedWebappPlugins: await readRestrictUnauthenticatedWebappPlugins(adminClient),
+        });
     });
 });

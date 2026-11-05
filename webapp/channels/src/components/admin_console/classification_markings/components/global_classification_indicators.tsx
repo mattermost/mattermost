@@ -8,11 +8,10 @@ import BooleanSetting from 'components/admin_console/boolean_setting';
 import Setting from 'components/admin_console/setting';
 import DropdownInput from 'components/dropdown_input';
 import type {ValueType} from 'components/dropdown_input';
+import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
-import {AdminSection, SectionHeader, SectionHeading} from '../../system_properties/controls';
 import {
     ColorSwatch,
-    GlobalBannerSectionContent,
     GlobalBannerSectionSetting,
     LevelOptionLabel,
     PresetDropdownWrapper,
@@ -92,88 +91,81 @@ export default function GlobalClassificationIndicators({levels, globalBanner, di
     }, [onChange]);
 
     return (
-        <AdminSection>
-            <SectionHeader>
-                <hgroup>
-                    <FormattedMessage
-                        tagName={SectionHeading}
-                        {...msg.sectionTitle}
+        <AdminPanel
+            id='global_classification_indicators'
+            title={msg.sectionTitle}
+            subtitle={msg.sectionDescription}
+        >
+            <form
+                className='form-horizontal'
+                onSubmit={(e) => e.preventDefault()}
+            >
+                <GlobalBannerSectionSetting>
+                    <BooleanSetting
+                        id='globalBannerEnabled'
+                        label={<FormattedMessage {...msg.enableTitle}/>}
+                        value={globalBanner.enabled}
+                        onChange={handleEnableChange}
+                        disabled={disabled}
+                        setByEnv={false}
+                        helpText={<FormattedMessage {...msg.enableDescription}/>}
+                        trueText={(
+                            <FormattedMessage
+                                id='admin.classification_markings.global_banner.enable.true'
+                                defaultMessage='True'
+                            />
+                        )}
+                        falseText={(
+                            <FormattedMessage
+                                id='admin.classification_markings.global_banner.enable.false'
+                                defaultMessage='False'
+                            />
+                        )}
                     />
-                    <FormattedMessage {...msg.sectionDescription}/>
-                </hgroup>
-            </SectionHeader>
-            <GlobalBannerSectionContent>
-                <form
-                    className='form-horizontal'
-                    onSubmit={(e) => e.preventDefault()}
-                >
-                    <GlobalBannerSectionSetting>
-                        <BooleanSetting
-                            id='globalBannerEnabled'
-                            label={<FormattedMessage {...msg.enableTitle}/>}
-                            value={globalBanner.enabled}
-                            onChange={handleEnableChange}
-                            disabled={disabled}
-                            setByEnv={false}
-                            helpText={<FormattedMessage {...msg.enableDescription}/>}
-                            trueText={(
-                                <FormattedMessage
-                                    id='admin.classification_markings.global_banner.enable.true'
-                                    defaultMessage='True'
-                                />
-                            )}
-                            falseText={(
-                                <FormattedMessage
-                                    id='admin.classification_markings.global_banner.enable.false'
-                                    defaultMessage='False'
-                                />
-                            )}
-                        />
-                    </GlobalBannerSectionSetting>
-                    {globalBanner.enabled && (
-                        <>
-                            <GlobalBannerSectionSetting>
-                                <BooleanSetting
-                                    id='globalBannerPlacement'
-                                    label={<FormattedMessage {...msg.placementTitle}/>}
-                                    value={globalBanner.placement === 'top'}
-                                    onChange={handlePlacementChange}
-                                    disabled={disabled}
-                                    setByEnv={false}
-                                    helpText={''}
-                                    trueText={<FormattedMessage {...msg.placementTop}/>}
-                                    falseText={<FormattedMessage {...msg.placementTopAndBottom}/>}
-                                />
-                            </GlobalBannerSectionSetting>
-                            <GlobalBannerSectionSetting>
-                                <Setting
-                                    inputId='DropdownInput_globalBannerLevel'
-                                    label={<FormattedMessage {...msg.levelTitle}/>}
-                                    helpText={<FormattedMessage {...msg.levelDescription}/>}
-                                    setByEnv={false}
-                                >
-                                    <PresetDropdownWrapper>
-                                        <DropdownInput
-                                            className='classificationPresetDropdownFieldset'
-                                            name='globalBannerLevel'
-                                            testId='globalBannerLevel'
-                                            options={levelOptions}
-                                            value={selectedLevelOption}
-                                            onChange={handleLevelChange}
-                                            isDisabled={disabled}
-                                            isClearable={false}
-                                            menuPortalTarget={document.body}
-                                            styles={classificationPresetDropdownStyles}
-                                            formatOptionLabel={formatLevelOptionLabel}
-                                            error={levelError}
-                                        />
-                                    </PresetDropdownWrapper>
-                                </Setting>
-                            </GlobalBannerSectionSetting>
-                        </>
-                    )}
-                </form>
-            </GlobalBannerSectionContent>
-        </AdminSection>
+                </GlobalBannerSectionSetting>
+                {globalBanner.enabled && (
+                    <>
+                        <GlobalBannerSectionSetting>
+                            <BooleanSetting
+                                id='globalBannerPlacement'
+                                label={<FormattedMessage {...msg.placementTitle}/>}
+                                value={globalBanner.placement === 'top'}
+                                onChange={handlePlacementChange}
+                                disabled={disabled}
+                                setByEnv={false}
+                                helpText={''}
+                                trueText={<FormattedMessage {...msg.placementTop}/>}
+                                falseText={<FormattedMessage {...msg.placementTopAndBottom}/>}
+                            />
+                        </GlobalBannerSectionSetting>
+                        <GlobalBannerSectionSetting>
+                            <Setting
+                                inputId='DropdownInput_globalBannerLevel'
+                                label={<FormattedMessage {...msg.levelTitle}/>}
+                                helpText={<FormattedMessage {...msg.levelDescription}/>}
+                                setByEnv={false}
+                            >
+                                <PresetDropdownWrapper>
+                                    <DropdownInput
+                                        className='classificationPresetDropdownFieldset'
+                                        name='globalBannerLevel'
+                                        testId='globalBannerLevel'
+                                        options={levelOptions}
+                                        value={selectedLevelOption}
+                                        onChange={handleLevelChange}
+                                        isDisabled={disabled}
+                                        isClearable={false}
+                                        menuPortalTarget={document.body}
+                                        styles={classificationPresetDropdownStyles}
+                                        formatOptionLabel={formatLevelOptionLabel}
+                                        error={levelError}
+                                    />
+                                </PresetDropdownWrapper>
+                            </Setting>
+                        </GlobalBannerSectionSetting>
+                    </>
+                )}
+            </form>
+        </AdminPanel>
     );
 }
