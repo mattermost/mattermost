@@ -18,8 +18,9 @@
         - `read_elasticsearch_post_indexing_job` — `elasticsearch_post_indexing`
         - `read_elasticsearch_post_aggregation_job` — `elasticsearch_post_aggregation`
         - `read_ldap_sync_job` — `ldap_sync`
-        - `read_jobs` — `migrations`, `plugins`, `product_notices`, `expiry_notify`, `active_users`, `import_process`, `import_delete`, `export_process`, `export_delete`, `cloud`, `mobile_session_metadata`, `extract_content`
-        - `manage_system` — `access_control_sync`
+        - `read_jobs` — `migrations`, `plugins`, `product_notices`, `expiry_notify`, `active_users`, `import_process`, `import_delete`, `export_process`, `export_delete`, `cloud`, `extract_content`, `cleanup_expired_access_tokens`, `notify_expiring_access_tokens`, `mobile_session_metadata`, `post_persistent_notifications`, `delete_expired_posts`
+        - `access_control_team_sync` — `manage_system`, or `manage_team_access_rules` granted at the system level
+        - `manage_system` — `access_control_sync` and all other job types
 
         When `job_type` is set, you must have the permission that matches that type (same mapping as above).
 
@@ -78,8 +79,11 @@
         - `create_elasticsearch_post_indexing_job` — `elasticsearch_post_indexing`
         - `create_elasticsearch_post_aggregation_job` — `elasticsearch_post_aggregation`
         - `create_ldap_sync_job` — `ldap_sync`
-        - `manage_jobs` — `migrations`, `plugins`, `product_notices`, `expiry_notify`, `active_users`, `import_process`, `import_delete`, `export_process`, `export_delete`, `cloud`, `extract_content`
+        - `manage_jobs` — `migrations`, `plugins`, `product_notices`, `expiry_notify`, `active_users`, `import_process`, `import_delete`, `export_process`, `export_delete`, `cloud`, `extract_content`, `cleanup_expired_access_tokens`, `notify_expiring_access_tokens`
         - `access_control_sync` — `manage_system`, or `manage_channel_access_rules` on the channel given in job `data`, or `manage_team_access_rules` on the team in job `data` (see server logic for scoped sync jobs)
+        - `access_control_team_sync` — `manage_system`, or `manage_team_access_rules` on the team whose ID is the job's `policy_id`
+
+        Other job types can't be created through the API.
       operationId: CreateJob
       requestBody:
         content:
@@ -127,8 +131,9 @@
         - `read_elasticsearch_post_indexing_job` — `elasticsearch_post_indexing`
         - `read_elasticsearch_post_aggregation_job` — `elasticsearch_post_aggregation`
         - `read_ldap_sync_job` — `ldap_sync`
-        - `read_jobs` — `migrations`, `plugins`, `product_notices`, `expiry_notify`, `active_users`, `import_process`, `import_delete`, `export_process`, `export_delete`, `cloud`, `mobile_session_metadata`, `extract_content`
-        - `manage_system` — `access_control_sync`
+        - `read_jobs` — `migrations`, `plugins`, `product_notices`, `expiry_notify`, `active_users`, `import_process`, `import_delete`, `export_process`, `export_delete`, `cloud`, `extract_content`, `cleanup_expired_access_tokens`, `notify_expiring_access_tokens`, `mobile_session_metadata`, `post_persistent_notifications`, `delete_expired_posts`
+        - `access_control_team_sync` — `manage_system`, or `manage_team_access_rules` granted at the system level
+        - `manage_system` — `access_control_sync` and all other job types
       operationId: GetJob
       parameters:
         - name: job_id
@@ -188,15 +193,17 @@
         Cancel a job.
         __Minimum server version: 4.1__
         ##### Permissions
-        Same as creating that job type (cancel uses the create permission check):
+        Same as creating that job type (cancel uses the create permission check). Job types that can't be created through the API require `manage_system`:
 
         - `create_data_retention_job` — `data_retention`
         - `create_compliance_export_job` — `message_export`
         - `create_elasticsearch_post_indexing_job` — `elasticsearch_post_indexing`
         - `create_elasticsearch_post_aggregation_job` — `elasticsearch_post_aggregation`
         - `create_ldap_sync_job` — `ldap_sync`
-        - `manage_jobs` — `migrations`, `plugins`, `product_notices`, `expiry_notify`, `active_users`, `import_process`, `import_delete`, `export_process`, `export_delete`, `cloud`, `extract_content`
+        - `manage_jobs` — `migrations`, `plugins`, `product_notices`, `expiry_notify`, `active_users`, `import_process`, `import_delete`, `export_process`, `export_delete`, `cloud`, `extract_content`, `cleanup_expired_access_tokens`, `notify_expiring_access_tokens`
         - `access_control_sync` — `manage_system`, or `manage_channel_access_rules` / `manage_team_access_rules` for scoped jobs as when creating
+        - `access_control_team_sync` — `manage_system`, or `manage_team_access_rules` on the team whose ID is the job's `policy_id`
+        - `manage_system` — all other job types
       operationId: CancelJob
       parameters:
         - name: job_id
@@ -239,8 +246,9 @@
         - `read_elasticsearch_post_indexing_job` — `elasticsearch_post_indexing`
         - `read_elasticsearch_post_aggregation_job` — `elasticsearch_post_aggregation`
         - `read_ldap_sync_job` — `ldap_sync`
-        - `read_jobs` — `migrations`, `plugins`, `product_notices`, `expiry_notify`, `active_users`, `import_process`, `import_delete`, `export_process`, `export_delete`, `cloud`, `mobile_session_metadata`, `extract_content`
-        - `manage_system` — `access_control_sync`
+        - `read_jobs` — `migrations`, `plugins`, `product_notices`, `expiry_notify`, `active_users`, `import_process`, `import_delete`, `export_process`, `export_delete`, `cloud`, `extract_content`, `cleanup_expired_access_tokens`, `notify_expiring_access_tokens`, `mobile_session_metadata`, `post_persistent_notifications`, `delete_expired_posts`
+        - `access_control_team_sync` — `manage_system`, or `manage_team_access_rules` granted at the system level
+        - `manage_system` — `access_control_sync` and all other job types
 
         When `job_type` is `access_control_sync` and query parameter `team_id` is set to a valid team GUID, team admins with `manage_team_access_rules` on that team may list jobs scoped to that team without `manage_system`. When `team_id` is set, results include only jobs whose stored data matches that team for the requested type.
       operationId: GetJobsByType
@@ -305,8 +313,9 @@
         - `manage_elasticsearch_post_indexing_job` — `elasticsearch_post_indexing`
         - `manage_elasticsearch_post_aggregation_job` — `elasticsearch_post_aggregation`
         - `manage_ldap_sync_job` — `ldap_sync`
-        - `manage_jobs` — `migrations`, `plugins`, `product_notices`, `expiry_notify`, `active_users`, `import_process`, `import_delete`, `export_process`, `export_delete`, `cloud`, `extract_content`
-        - `manage_system` — `access_control_sync`
+        - `manage_jobs` — `migrations`, `plugins`, `product_notices`, `expiry_notify`, `active_users`, `import_process`, `import_delete`, `export_process`, `export_delete`, `cloud`, `extract_content`, `cleanup_expired_access_tokens`, `notify_expiring_access_tokens`
+        - `access_control_team_sync` — `manage_system`, or `manage_team_access_rules` on the team whose ID is the job's `policy_id`
+        - `manage_system` — `access_control_sync` and all other job types
       operationId: UpdateJobStatus
       parameters:
         - name: job_id

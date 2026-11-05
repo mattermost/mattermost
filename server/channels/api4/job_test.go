@@ -9,9 +9,11 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -185,8 +187,11 @@ func TestGetJobs(t *testing.T) {
 	t.Run("Get job by status", func(t *testing.T) {
 		received, _, err := th.SystemAdminClient.GetJobs(context.Background(), "", model.JobStatusPending, 0, 3)
 		require.NoError(t, err)
-		require.Len(t, received, 1, "received wrong number of jobs")
+		require.NotEmpty(t, received)
 		require.Equal(t, jobs[3].Id, received[0].Id, "should've received the ldap sync job")
+		for _, job := range received {
+			assert.Equal(t, model.JobStatusPending, job.Status)
+		}
 	})
 
 	t.Run("Get job by type and status", func(t *testing.T) {
@@ -885,6 +890,75 @@ func TestCancelJob(t *testing.T) {
 	resp, err = th.SystemAdminClient.CancelJob(context.Background(), model.NewId())
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
+}
+
+func TestInternalJobTypes(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+	th.LoginSystemManager(t)
+
+	saveJob := func(t *testing.T) *model.Job {
+		t.Helper()
+		job, err := th.App.Srv().Store().Job().Save(&model.Job{
+			Id:       model.NewId(),
+			Type:     model.JobTypeRecap,
+			Status:   model.JobStatusPending,
+			CreateAt: model.GetMillis(),
+		})
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			_, err := th.App.Srv().Store().Job().Delete(job.Id)
+			require.NoError(t, err)
+		})
+		return job
+	}
+
+	containsJob := func(jobs []*model.Job, id string) bool {
+		return slices.ContainsFunc(jobs, func(j *model.Job) bool { return j.Id == id })
+	}
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		job := saveJob(t)
+
+		received, _, err := client.GetJob(context.Background(), job.Id)
+		require.NoError(t, err)
+		assert.Equal(t, job.Id, received.Id)
+
+		received2, _, err := client.GetJobs(context.Background(), model.JobTypeRecap, "", 0, 200)
+		require.NoError(t, err)
+		assert.True(t, containsJob(received2, job.Id), "job should be listed when filtering by its type")
+
+		received2, _, err = client.GetJobs(context.Background(), "", "", 0, 200)
+		require.NoError(t, err)
+		assert.True(t, containsJob(received2, job.Id), "job should be listed without a type filter")
+
+		_, err = client.CancelJob(context.Background(), job.Id)
+		require.NoError(t, err)
+
+		_, resp, err := client.CreateJob(context.Background(), &model.Job{Type: model.JobTypeRecap})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("system manager", func(t *testing.T) {
+		job := saveJob(t)
+
+		_, resp, err := th.SystemManagerClient.GetJob(context.Background(), job.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		_, resp, err = th.SystemManagerClient.GetJobs(context.Background(), model.JobTypeRecap, "", 0, 200)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		received, _, err := th.SystemManagerClient.GetJobs(context.Background(), "", "", 0, 200)
+		require.NoError(t, err)
+		assert.False(t, containsJob(received, job.Id), "job should not be listed without a type filter")
+
+		resp, err = th.SystemManagerClient.CancelJob(context.Background(), job.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
 }
 
 func TestUpdateJobStatus(t *testing.T) {

@@ -4,6 +4,7 @@
 package app
 
 import (
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -77,6 +78,11 @@ func TestSessionHasPermissionToCreateJob(t *testing.T) {
 		require.NotNil(t, permissionRequired)
 		assert.Equal(t, testCase.PermissionRequired.Id, permissionRequired.Id)
 	}
+
+	// Job types that aren't creatable through the API have no create permission, even for admins
+	hasPermission, permissionRequired := th.App.SessionHasPermissionToCreateJob(session, &model.Job{Type: model.JobTypeRecap})
+	assert.False(t, hasPermission)
+	assert.Nil(t, permissionRequired)
 
 	session = model.Session{
 		Roles: model.SystemUserRoleId + " " + model.SystemReadOnlyAdminRoleId,
@@ -731,6 +737,11 @@ func TestSessionHasPermissionToReadJob(t *testing.T) {
 		assert.Equal(t, testCase.PermissionRequired.Id, permissionRequired.Id)
 	}
 
+	// Unknown job types have no read permission, even for admins
+	hasPermission, permissionRequired := th.App.SessionHasPermissionToReadJob(session, "unknown")
+	assert.False(t, hasPermission)
+	assert.Nil(t, permissionRequired)
+
 	session = model.Session{
 		Roles: model.SystemUserRoleId + " " + model.SystemManagerRoleId,
 	}
@@ -771,6 +782,19 @@ func TestSessionHasPermissionToReadJob(t *testing.T) {
 		require.NotNil(t, permissionRequired)
 		assert.Equal(t, testCase.PermissionRequired.Id, permissionRequired.Id)
 	}
+}
+
+func TestJobPermissionsCoverAllJobTypes(t *testing.T) {
+	for _, jobType := range model.AllJobTypes {
+		perms, ok := jobPermissions[jobType]
+		if assert.Truef(t, ok, "job type %q has no entry in jobPermissions", jobType) {
+			assert.NotNilf(t, perms.read, "job type %q has no read permission", jobType)
+			assert.NotNilf(t, perms.manage, "job type %q has no manage permission", jobType)
+			creatable := slices.Contains(model.CreatableJobTypes[:], jobType)
+			assert.Equalf(t, creatable, perms.create != nil, "job type %q: create permission must be set if and only if it is in model.CreatableJobTypes", jobType)
+		}
+	}
+	assert.Len(t, jobPermissions, len(model.AllJobTypes), "jobPermissions contains job types missing from model.AllJobTypes")
 }
 
 func TestCreateElasticsearchPostIndexingJob(t *testing.T) {
