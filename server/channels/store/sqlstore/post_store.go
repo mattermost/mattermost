@@ -2296,12 +2296,15 @@ func splitMentionSearchTerms(input string) (string, []string) {
 
 // mentionTermPattern builds a regular expression matching an @mention search term as a whole
 // username, so that "@job" doesn't match "@jobs", or as a prefix when it ends in a wildcard.
+// The @ must not be preceded by a username character, so "@job" doesn't match "foo@job.com".
 func mentionTermPattern(term string) string {
+	const leadingBoundary = `(^|[^[:alnum:]_])`
+
 	term = strings.Trim(term, `"`)
 	if prefix, isWildcard := strings.CutSuffix(term, "*"); isWildcard {
-		return regexp.QuoteMeta(strings.TrimRight(prefix, "*"))
+		return leadingBoundary + regexp.QuoteMeta(strings.TrimRight(prefix, "*"))
 	}
-	return regexp.QuoteMeta(term) + `([^[:alnum:]_-]|$)`
+	return leadingBoundary + regexp.QuoteMeta(term) + `([^[:alnum:]_-]|$)`
 }
 
 // buildCJKSearchClause builds LIKE WHERE clauses for CJK search terms.
@@ -2443,18 +2446,20 @@ func (s *SqlPostStore) search(logger mlog.LoggerIFace, teamId string, userId str
 		textSearchCfg := s.pgDefaultTextSearchConfig
 		searchClause := fmt.Sprintf("to_tsvector('%[1]s', %[2]s) @@  to_tsquery('%[1]s', ?)", textSearchCfg, searchType)
 
+		allTerms := terms
 		var mentionTerms []string
 		if !params.IsHashtag {
 			terms, mentionTerms = splitMentionSearchTerms(terms)
 		}
 
-		if len(mentionTerms) == 0 {
+		switch {
+		case len(mentionTerms) == 0:
 			baseQuery = baseQuery.Where(searchClause, withExcludedClause(toTsQuery(terms, false)))
-		} else {
+		case params.OrTerms:
 			// PostgreSQL's parser treats "@" as a blank, so to_tsquery alone would let "@job"
 			// match any post containing the word "job". Each mention term also has to appear
 			// with its "@" in the message itself.
-			clauses := make([]sq.Sqlizer, 0, len(mentionTerms)+1)
+			clauses := make(sq.Or, 0, len(mentionTerms)+1)
 			for _, term := range mentionTerms {
 				clauses = append(clauses, sq.And{
 					sq.Expr(searchClause, withExcludedClause(toTsQuery(term, false))),
@@ -2464,12 +2469,16 @@ func (s *SqlPostStore) search(logger mlog.LoggerIFace, teamId string, userId str
 			if terms != "" {
 				clauses = append(clauses, sq.Expr(searchClause, withExcludedClause(toTsQuery(terms, false))))
 			}
-
-			if params.OrTerms {
-				baseQuery = baseQuery.Where(sq.Or(clauses))
-			} else {
-				baseQuery = baseQuery.Where(sq.And(clauses))
+			baseQuery = baseQuery.Where(clauses)
+		default:
+			// Keeping every term in one tsquery means stop words are dropped from it instead of
+			// producing a separate clause that can never match.
+			clauses := make(sq.And, 0, len(mentionTerms)+1)
+			clauses = append(clauses, sq.Expr(searchClause, withExcludedClause(toTsQuery(allTerms, false))))
+			for _, term := range mentionTerms {
+				clauses = append(clauses, sq.Expr(searchType+" ~* ?", mentionTermPattern(term)))
 			}
+			baseQuery = baseQuery.Where(clauses)
 		}
 	}
 

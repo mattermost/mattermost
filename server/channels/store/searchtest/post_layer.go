@@ -1893,6 +1893,8 @@ func testSearchMentionTermsRequireAtSign(t *testing.T, th *SearchTestHelper) {
 	require.NoError(t, err)
 	keyword, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "the deploy finished", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
+	email, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "contact foo@testuser.com about testuser", "", model.PostTypeDefault, 0, false)
+	require.NoError(t, err)
 	defer th.deleteUserPosts(th.User.Id)
 
 	testCases := []struct {
@@ -1909,11 +1911,14 @@ func testSearchMentionTermsRequireAtSign(t *testing.T, th *SearchTestHelper) {
 		{name: "mention OR keyword", terms: `"@testuser" deploy`, orTerms: true, expectedIDs: []string{mention.Id, keyword.Id}},
 		{name: "several mentions OR keyword", terms: `"@testuser" "@otheruser" deploy`, orTerms: true, expectedIDs: []string{mention.Id, otherMention.Id, keyword.Id}},
 		{name: "mention AND word", terms: `@testuser system`, expectedIDs: []string{mention.Id}},
+		{name: "mention AND stop word", terms: `@testuser the`, expectedIDs: []string{mention.Id}},
+		{name: "mention inside an email address", terms: `@testuser contact`, expectedIDs: []string{}},
+		{name: "quoted mention OR stop word skips email address", terms: `"@testuser" the`, orTerms: true, expectedIDs: []string{mention.Id}},
 		{name: "mention AND word only in other posts", terms: `@testuser deploy`, expectedIDs: []string{}},
 		{name: "mention with excluded word", terms: `@testuser`, excludedTerms: "system", expectedIDs: []string{}},
 		{name: "mention OR keyword with word excluded from the mention", terms: `"@testuser" deploy`, excludedTerms: "system", orTerms: true, expectedIDs: []string{keyword.Id}},
 		{name: "mention OR keyword with word excluded from the keyword", terms: `"@testuser" deploy`, excludedTerms: "finished", orTerms: true, expectedIDs: []string{mention.Id}},
-		{name: "word without @ still matches every post containing it", terms: `testuser`, expectedIDs: []string{mention.Id, word.Id, hashtag.Id, longerUsername.Id}},
+		{name: "word without @ still matches every post containing it", terms: `testuser`, expectedIDs: []string{mention.Id, word.Id, hashtag.Id, longerUsername.Id, email.Id}},
 	}
 
 	for _, tc := range testCases {
