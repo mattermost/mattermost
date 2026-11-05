@@ -17,9 +17,39 @@
         padding-top: 18px;
         padding-bottom: 18px;
     }
+}
 
-    .admin-console__container {
+.GlobalAttributes__content {
+    // Repeat the class via interpolation to triple specificity and override
+    // the admin console's default content max-width. Dart Sass rejects the
+    // bare `&&&` shorthand, so `&#{&}#{&}` produces the same compound selector.
+    // Same technique as SessionAttributes__content.
+    &#{&}#{&} {
         max-width: 1680px;
+    }
+}
+
+// AdminPanel now supplies surface/border/radius/elevation itself. This page
+// still needs overflow:hidden (table cell backgrounds must clip to the panel
+// radius — row ••• menus still work since Menu.Container portals to document
+// body, unlike SystemUsers' filter popovers which need an unclipped panel).
+// The 920px cap lives on the AdminPanel itself (Compass CSS module), not on
+// an ancestor, so raising .admin-console__content's max-width above is not
+// enough on its own — ServerLogs__panel and SessionAttributes__content hit
+// the same thing. `none` lets this panel fill the 1680px content cap instead
+// (SessionAttributes shrink-wraps its narrower table instead via `fit-content`;
+// this page's table should fill the width).
+.admin-console .GlobalAttributes__root .GlobalAttributes__panel {
+    overflow: hidden;
+    max-width: none;
+
+    // Compass AdminPanel's own body padding (spacing-xxl) would double up with
+    // GlobalAttributes__actions' own 24px below, and push the table in from the
+    // panel edges where it needs to sit flush (like DataGrid elsewhere). Strip
+    // it here instead of in admin_panel.scss, since it's wanted only on this
+    // panel's table-bearing layout, not every AdminPanel.
+    [class*='admin-panel__body'] {
+        padding: 0;
     }
 }
 
