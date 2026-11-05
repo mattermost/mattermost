@@ -35,16 +35,13 @@
     .UserAttributeField.cpa-field {
         line-height: 20px;
 
-        // The vertical margin only applies in the grid of a row with a trailing button.
         .UserAttributeField__name {
-            display: inline;
-            margin: 4px 0 0;
+            display: block;
+            margin: 0 0 4px;
             font-weight: normal;
         }
 
         &.UserAttributeField--graph .UserAttributeField__name {
-            display: block;
-            margin: 0 0 4px;
             font-weight: 600;
         }
     }
