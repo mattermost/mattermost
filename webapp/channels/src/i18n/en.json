@@ -22135,6 +22135,50 @@
     "defaultMessage": "You",
     "description": "Pronoun substituted for the current user's own username inside combined join/leave system messages (e.g. 'You joined the channel'); subject position."
   },
+  "commercial_support_modal.basic_contents.description": {
+    "defaultMessage": "Server version, sanitized configuration, usage counts, job status, permissions, plugin list, and performance profiles. Does not include message content.",
+    "description": ""
+  },
+  "commercial_support_modal.basic_contents.included.config": {
+    "defaultMessage": "Configuration with credentials removed",
+    "description": ""
+  },
+  "commercial_support_modal.basic_contents.included.database_schema": {
+    "defaultMessage": "Database table structure (no data)",
+    "description": ""
+  },
+  "commercial_support_modal.basic_contents.included.diagnostics": {
+    "defaultMessage": "System diagnostics: OS, CPU, memory, database, file storage, and connectivity checks",
+    "description": ""
+  },
+  "commercial_support_modal.basic_contents.included.jobs": {
+    "defaultMessage": "Background job status",
+    "description": ""
+  },
+  "commercial_support_modal.basic_contents.included.permissions": {
+    "defaultMessage": "Permission schemes and roles",
+    "description": ""
+  },
+  "commercial_support_modal.basic_contents.included.plugins": {
+    "defaultMessage": "Installed plugins and their versions",
+    "description": ""
+  },
+  "commercial_support_modal.basic_contents.included.profiles": {
+    "defaultMessage": "Performance profiles (CPU, memory, goroutines)",
+    "description": ""
+  },
+  "commercial_support_modal.basic_contents.included.server_info": {
+    "defaultMessage": "Server version, license, and server ID",
+    "description": ""
+  },
+  "commercial_support_modal.basic_contents.included.usage": {
+    "defaultMessage": "Usage counts: users, posts, channels, teams",
+    "description": ""
+  },
+  "commercial_support_modal.basic_contents.whats_included": {
+    "defaultMessage": "What's included",
+    "description": ""
+  },
   "commercial_support_modal.description": {
     "defaultMessage": "If you're experiencing issues, <supportLink>submit a support ticket</supportLink>. To help with troubleshooting, it's recommended to download the Support Packet below that includes more details about your Mattermost environment.",
     "description": "Intro paragraph of the Commercial Support modal; <supportLink> tags wrap the clickable phrase that opens the support ticket site."
@@ -22142,6 +22186,14 @@
   "commercial_support_modal.download_contents": {
     "defaultMessage": "Select your Support Packet contents to download",
     "description": "Bold heading above the checkboxes where the admin selects which contents to include in the Support Packet download."
+  },
+  "commercial_support_modal.required": {
+    "defaultMessage": "(required)",
+    "description": ""
+  },
+  "commercial_support_modal.server_logs.description": {
+    "defaultMessage": "Recent server log files. May contain user IDs, IP addresses, and error details.",
+    "description": ""
   },
   "commercial_support_modal.warning.banner": {
     "defaultMessage": "Before downloading the Support Packet, set <strong>Output Logs to File</strong> to <strong>true</strong> and set <strong>File Log Level</strong> to <strong>DEBUG</strong> <debugLink>here</debugLink>.",
