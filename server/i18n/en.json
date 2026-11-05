@@ -15297,6 +15297,36 @@
     "description": "Health dashboard finding title when Prometheus performance metrics are turned off; the finding is informational because metrics are optional."
   },
   {
+    "id": "health.rule.node_container_memory_pressure.message",
+    "translation": "The container's memory working set is {{.working_set}} MB of its {{.limit}} MB limit. If it keeps growing, the kernel may kill the server or a plugin process.",
+    "description": "Health dashboard finding detail when a node's container uses at least 90% of its memory limit; {{.working_set}} is the non-reclaimable memory in MB and {{.limit}} is the container limit in MB."
+  },
+  {
+    "id": "health.rule.node_container_memory_pressure.remediation",
+    "translation": "Reduce memory use by Mattermost and its plugins, or raise the container memory limit. Keep enough headroom for plugin processes, the Go runtime and traffic spikes.",
+    "description": "Health dashboard fix-it step when a node's container is close to its memory limit; 'Go' is the programming language name."
+  },
+  {
+    "id": "health.rule.node_container_memory_pressure.title",
+    "translation": "Container memory nearly exhausted",
+    "description": "Health dashboard finding title when a server node's container memory working set is at least 90% of its limit."
+  },
+  {
+    "id": "health.rule.node_container_oom_kills.message",
+    "translation": "The container has recorded {{.kills}} out-of-memory kills since it started. The killed process may have been a plugin or another child process; review the plugin list and the container memory limit.",
+    "description": "Health dashboard finding detail when a node's cgroup recorded an OOM kill; {{.kills}} is the number of processes killed, and 'plugin' means a Mattermost server plugin."
+  },
+  {
+    "id": "health.rule.node_container_oom_kills.remediation",
+    "translation": "Review the plugin processes and container logs to identify what was killed, then reduce its memory use or raise the container memory limit.",
+    "description": "Health dashboard fix-it step when a process in a Mattermost server container was killed for running out of memory."
+  },
+  {
+    "id": "health.rule.node_container_oom_kills.title",
+    "translation": "A container process was killed for running out of memory",
+    "description": "Health dashboard finding title when a server node's cgroup reports one or more OOM kills."
+  },
+  {
     "id": "health.rule.node_fd_exhaustion.message",
     "translation": "The server process has {{.open}} of {{.max}} file descriptors open. Once it reaches the limit, new connections and file operations fail.",
     "description": "Health dashboard finding detail when a node is close to its open file limit; {{.open}} is the number of open file descriptors and {{.max}} is the limit."
@@ -15310,6 +15340,36 @@
     "id": "health.rule.node_fd_exhaustion.title",
     "translation": "File descriptors nearly exhausted",
     "description": "Health dashboard finding title when a server node uses 90% or more of its open file descriptor limit."
+  },
+  {
+    "id": "health.rule.node_go_memory_limit_above_container.message",
+    "translation": "The Go memory limit is {{.go_limit}} MB, but the container limit is {{.container_limit}} MB. The garbage collector may not work harder before the kernel kills the process.",
+    "description": "Health dashboard finding detail when GOMEMLIMIT is at least the container memory limit; {{.go_limit}} and {{.container_limit}} are values in MB, and 'Go' is the programming language name."
+  },
+  {
+    "id": "health.rule.node_go_memory_limit_above_container.remediation",
+    "translation": "Set GOMEMLIMIT to about 80–90% of the container memory limit, leaving headroom for memory outside the Go heap and for plugin processes.",
+    "description": "Health dashboard fix-it step when GOMEMLIMIT is too high for the container; 'GOMEMLIMIT' is a Go runtime environment variable and should not be translated."
+  },
+  {
+    "id": "health.rule.node_go_memory_limit_above_container.title",
+    "translation": "Go memory limit is above the container limit",
+    "description": "Health dashboard finding title when GOMEMLIMIT is equal to or greater than the container memory limit; 'Go' is the programming language name."
+  },
+  {
+    "id": "health.rule.node_host_memory_low.message",
+    "translation": "The host has {{.available}} MB available out of {{.total}} MB. Mattermost and other processes may be killed or become slow if memory continues to fall.",
+    "description": "Health dashboard finding detail when a non-containerized node has less than 10% of host memory available; {{.available}} and {{.total}} are values in MB."
+  },
+  {
+    "id": "health.rule.node_host_memory_low.remediation",
+    "translation": "Find and reduce the processes using the most memory, or add memory to the host. Review Mattermost and plugin memory use before restarting services.",
+    "description": "Health dashboard fix-it step when a non-containerized server host has little memory available."
+  },
+  {
+    "id": "health.rule.node_host_memory_low.title",
+    "translation": "Host memory is running low",
+    "description": "Health dashboard finding title when a non-containerized server node has less than 10% of host memory available."
   },
   {
     "id": "health.rule.node_not_responding.message",

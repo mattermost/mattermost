@@ -18,12 +18,20 @@ server:
   # Capacity (hardware → effective quota)
   cpu_cores: 8 # logical CPUs visible to the OS
   total_memory_mb: 32768 # host/VM total RAM; may exceed container limit
+  available_memory_mb: 24576 # host/VM MemAvailable from /proc/meminfo; Linux only
+  swap_total_mb: 4096 # host/VM total swap; Linux only
+  swap_used_mb: 1024 # host/VM used swap; Linux only
   container_cpu_limit: 6.5 # cgroup v2 CPU quota in CPUs; Linux only, omitted if no limit set
   container_memory_limit_mb: 16384 # cgroup v2 memory quota in MB; Linux only, omitted if no limit set
+  container_memory_usage_mb: 12288 # cgroup v2 memory.current in MB, including page cache; Linux only
+  container_memory_working_set_mb: 10240 # cgroup v2 memory.current minus inactive file cache in MB; Linux only
+  container_oom_kills: 2 # cgroup v2 OOM kills since the cgroup was created; Linux only
   # Process lifecycle
   process_id: 90210
   started_at: 2026-01-02T03:04:05Z # when Mattermost process started
   host_started_at: 2025-12-30T00:00:00Z # when the host OS booted; omitted if unavailable
+  process_rss_mb: 2048 # resident memory of the Mattermost process only; excludes plugin child processes
+  go_memory_limit_mb: 13107 # Go runtime memory limit in MB; omitted when no limit is set
   open_file_descriptors: 512 # current open FDs for this process
   max_file_descriptors: 8192 # system limit (ulimit -n)
   # Software

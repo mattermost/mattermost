@@ -9,10 +9,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"net/url"
 	"os"
 	"runtime"
+	"runtime/debug"
 	rpprof "runtime/pprof"
 	"strings"
 	"time"
@@ -40,17 +42,25 @@ const (
 // cumulative-vs-point-in-time semantics visible at a glance.
 var diagnosticsYAMLComments = yaml.CommentMap{
 	// server: — grouped into Machine / Capacity / Process lifecycle / Software
-	"$.server.os":                        {yaml.HeadComment(" Machine")},
-	"$.server.cpu_cores":                 {yaml.HeadComment(" Capacity (hardware → effective quota)"), yaml.LineComment(" logical CPUs visible to the OS")},
-	"$.server.total_memory_mb":           {yaml.LineComment(" host/VM total RAM; may exceed container limit")},
-	"$.server.container_cpu_limit":       {yaml.LineComment(" cgroup v2 CPU quota in CPUs; Linux only, omitted if no limit set")},
-	"$.server.container_memory_limit_mb": {yaml.LineComment(" cgroup v2 memory quota in MB; Linux only, omitted if no limit set")},
-	"$.server.process_id":                {yaml.HeadComment(" Process lifecycle")},
-	"$.server.started_at":                {yaml.LineComment(" when Mattermost process started")},
-	"$.server.host_started_at":           {yaml.LineComment(" when the host OS booted; omitted if unavailable")},
-	"$.server.open_file_descriptors":     {yaml.LineComment(" current open FDs for this process")},
-	"$.server.max_file_descriptors":      {yaml.LineComment(" system limit (ulimit -n)")},
-	"$.server.version":                   {yaml.HeadComment(" Software")},
+	"$.server.os":                              {yaml.HeadComment(" Machine")},
+	"$.server.cpu_cores":                       {yaml.HeadComment(" Capacity (hardware → effective quota)"), yaml.LineComment(" logical CPUs visible to the OS")},
+	"$.server.total_memory_mb":                 {yaml.LineComment(" host/VM total RAM; may exceed container limit")},
+	"$.server.available_memory_mb":             {yaml.LineComment(" host/VM MemAvailable from /proc/meminfo; Linux only")},
+	"$.server.swap_total_mb":                   {yaml.LineComment(" host/VM total swap; Linux only")},
+	"$.server.swap_used_mb":                    {yaml.LineComment(" host/VM used swap; Linux only")},
+	"$.server.container_cpu_limit":             {yaml.LineComment(" cgroup v2 CPU quota in CPUs; Linux only, omitted if no limit set")},
+	"$.server.container_memory_limit_mb":       {yaml.LineComment(" cgroup v2 memory quota in MB; Linux only, omitted if no limit set")},
+	"$.server.container_memory_usage_mb":       {yaml.LineComment(" cgroup v2 memory.current in MB, including page cache; Linux only")},
+	"$.server.container_memory_working_set_mb": {yaml.LineComment(" cgroup v2 memory.current minus inactive file cache in MB; Linux only")},
+	"$.server.container_oom_kills":             {yaml.LineComment(" cgroup v2 OOM kills since the cgroup was created; Linux only")},
+	"$.server.process_id":                      {yaml.HeadComment(" Process lifecycle")},
+	"$.server.started_at":                      {yaml.LineComment(" when Mattermost process started")},
+	"$.server.host_started_at":                 {yaml.LineComment(" when the host OS booted; omitted if unavailable")},
+	"$.server.process_rss_mb":                  {yaml.LineComment(" resident memory of the Mattermost process only; excludes plugin child processes")},
+	"$.server.go_memory_limit_mb":              {yaml.LineComment(" Go runtime memory limit in MB; omitted when no limit is set")},
+	"$.server.open_file_descriptors":           {yaml.LineComment(" current open FDs for this process")},
+	"$.server.max_file_descriptors":            {yaml.LineComment(" system limit (ulimit -n)")},
+	"$.server.version":                         {yaml.HeadComment(" Software")},
 
 	"$.config.audit_logging_configured": {yaml.LineComment(" this server's audit check of its current config and license; offline health checks use it")},
 
@@ -201,11 +211,28 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 		d.Server.TotalMemoryMB = new(totalMemoryBytes / 1024 / 1024)
 	}
 	containerLimits, err := getContainerLimits()
+	d.Server.ContainerCPULimit = containerLimits.CPULimit
+	d.Server.ContainerMemoryLimitMB = containerLimits.MemoryLimitMB
 	if err != nil {
 		rctx.Logger().Debug("Failed to get container limits for Support Packet", mlog.Err(err))
-	} else {
-		d.Server.ContainerCPULimit = containerLimits.CPULimit
-		d.Server.ContainerMemoryLimitMB = containerLimits.MemoryLimitMB
+	}
+	memory, memoryErr := getMemoryDiagnostics()
+	if memoryErr != nil {
+		fail(model.SectionServerMemory, errors.Wrap(memoryErr, "error while getting memory diagnostics"))
+	}
+	d.Server.AvailableMemoryMB = memory.AvailableMemoryMB
+	d.Server.SwapTotalMB = memory.SwapTotalMB
+	d.Server.SwapUsedMB = memory.SwapUsedMB
+	d.Server.ProcessRSSMB = memory.ProcessRSSMB
+	d.Server.ContainerMemoryUsageMB = memory.ContainerMemoryUsageMB
+	d.Server.ContainerMemoryWorkingSetMB = memory.ContainerMemoryWorkingSetMB
+	d.Server.ContainerOOMKills = memory.ContainerOOMKills
+	if goMemoryLimit := debug.SetMemoryLimit(-1); goMemoryLimit != math.MaxInt64 {
+		goMemoryLimitMB := uint64(0)
+		if goMemoryLimit > 0 {
+			goMemoryLimitMB = uint64((goMemoryLimit-1)/(1024*1024) + 1)
+		}
+		d.Server.GoMemoryLimitMB = &goMemoryLimitMB
 	}
 	serverHostname, err := os.Hostname()
 	if err != nil {

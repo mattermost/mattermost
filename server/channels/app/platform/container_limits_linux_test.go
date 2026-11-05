@@ -85,3 +85,72 @@ func TestGetContainerLimits(t *testing.T) {
 		assert.Equal(t, float64(0), limits.CPULimit)
 	})
 }
+
+func TestGetMemoryDiagnostics(t *testing.T) {
+	dir := t.TempDir()
+
+	originalPaths := cgroupPaths
+	t.Cleanup(func() { cgroupPaths = originalPaths })
+
+	setProcFiles := func(t *testing.T) {
+		t.Helper()
+		cgroupPaths.procMeminfo = writeTempCgroupFile(t, dir, "meminfo", "MemTotal:       8192000 kB\nMemAvailable:   1024000 kB\nSwapTotal:         4096 kB\nSwapFree:          1024 kB\n")
+		cgroupPaths.procSelfStatus = writeTempCgroupFile(t, dir, "status", "Name:\tmattermost\nVmRSS:\t131072 kB\n")
+	}
+
+	t.Run("host and cgroup v2 memory", func(t *testing.T) {
+		setProcFiles(t)
+		cgroupPaths.v2MemoryMax = writeTempCgroupFile(t, dir, "memory.max", "1073741824\n")
+		cgroupPaths.v2MemoryCurrent = writeTempCgroupFile(t, dir, "memory.current", "536870912\n")
+		cgroupPaths.v2MemoryStat = writeTempCgroupFile(t, dir, "memory.stat", "anon 268435456\ninactive_file 134217728\n")
+		cgroupPaths.v2MemoryEvents = writeTempCgroupFile(t, dir, "memory.events", "low 0\nhigh 0\nmax 1\noom 3\noom_kill 2\n")
+
+		got, err := getMemoryDiagnostics()
+		require.NoError(t, err)
+		assert.Equal(t, new(uint64(1000)), got.AvailableMemoryMB)
+		assert.Equal(t, new(uint64(4)), got.SwapTotalMB)
+		assert.Equal(t, new(uint64(3)), got.SwapUsedMB)
+		assert.Equal(t, new(uint64(128)), got.ProcessRSSMB)
+		assert.Equal(t, new(uint64(512)), got.ContainerMemoryUsageMB)
+		assert.Equal(t, new(uint64(384)), got.ContainerMemoryWorkingSetMB)
+		assert.Equal(t, new(uint64(2)), got.ContainerOOMKills)
+	})
+
+	t.Run("Linux host without cgroup v2", func(t *testing.T) {
+		setProcFiles(t)
+		cgroupPaths.v2MemoryMax = filepath.Join(dir, "missing-memory.max")
+
+		got, err := getMemoryDiagnostics()
+		require.NoError(t, err)
+		assert.Equal(t, new(uint64(1000)), got.AvailableMemoryMB)
+		assert.Equal(t, new(uint64(128)), got.ProcessRSSMB)
+		assert.Nil(t, got.ContainerMemoryUsageMB)
+		assert.Nil(t, got.ContainerMemoryWorkingSetMB)
+		assert.Nil(t, got.ContainerOOMKills)
+	})
+
+	t.Run("missing proc field", func(t *testing.T) {
+		cgroupPaths.procMeminfo = writeTempCgroupFile(t, dir, "meminfo_missing", "MemTotal: 8192000 kB\n")
+		cgroupPaths.procSelfStatus = writeTempCgroupFile(t, dir, "status_unused", "VmRSS: 131072 kB\n")
+
+		_, err := getMemoryDiagnostics()
+		require.ErrorContains(t, err, "MemAvailable not found")
+	})
+
+	t.Run("cgroup v2 partial read fails", func(t *testing.T) {
+		setProcFiles(t)
+		cgroupPaths.v2MemoryMax = writeTempCgroupFile(t, dir, "memory.max_partial", "1073741824\n")
+		cgroupPaths.v2MemoryCurrent = filepath.Join(dir, "missing-memory.current")
+
+		_, err := getMemoryDiagnostics()
+		require.ErrorIs(t, err, os.ErrNotExist)
+	})
+
+	t.Run("malformed cgroup memory limit fails", func(t *testing.T) {
+		setProcFiles(t)
+		cgroupPaths.v2MemoryMax = writeTempCgroupFile(t, dir, "memory.max_malformed", "unlimited\n")
+
+		_, err := getMemoryDiagnostics()
+		require.ErrorContains(t, err, "memory.max_malformed")
+	})
+}

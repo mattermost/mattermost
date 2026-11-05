@@ -12,8 +12,22 @@ type ContainerLimits struct {
 	MemoryLimitMB uint64
 }
 
+type memoryDiagnostics struct {
+	AvailableMemoryMB           *uint64
+	SwapTotalMB                 *uint64
+	SwapUsedMB                  *uint64
+	ProcessRSSMB                *uint64
+	ContainerMemoryUsageMB      *uint64
+	ContainerMemoryWorkingSetMB *uint64
+	ContainerOOMKills           *uint64
+}
+
 // getContainerLimits returns zero values on non-Linux platforms.
 // Container limit detection via cgroups is only supported on Linux.
 func getContainerLimits() (ContainerLimits, error) {
 	return ContainerLimits{}, nil
+}
+
+func getMemoryDiagnostics() (memoryDiagnostics, error) {
+	return memoryDiagnostics{}, nil
 }
