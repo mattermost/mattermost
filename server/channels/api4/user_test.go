@@ -1316,6 +1316,26 @@ func TestGetUserByUsername(t *testing.T) {
 		CheckNotFoundStatus(t, resp)
 	})
 
+	t.Run("remote user with colon in username", func(t *testing.T) {
+		remoteUser, err := th.App.Srv().Store().User().Save(th.Context, &model.User{
+			Email:    th.GenerateTestEmail(),
+			Username: "bob." + model.NewId()[:10] + ".xmpp-demo.internal:xmpp",
+			RemoteId: new(model.NewId()),
+		})
+		require.NoError(t, err)
+
+		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+			ruser, _, err := client.GetUserByUsername(context.Background(), remoteUser.Username, "")
+			require.NoError(t, err)
+			require.Equal(t, remoteUser.Id, ruser.Id)
+			require.Equal(t, remoteUser.Username, ruser.Username)
+
+			_, resp, err := client.GetUserByUsername(context.Background(), "Bob:XMPP", "")
+			require.Error(t, err)
+			CheckBadRequestStatus(t, resp)
+		})
+	})
+
 	// Check against privacy config settings
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowEmailAddress = false })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowFullName = false })
