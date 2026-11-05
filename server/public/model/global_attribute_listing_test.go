@@ -15,8 +15,8 @@ import (
 func TestGlobalAttributeListingJSON(t *testing.T) {
 	t.Run("search decodes the documented keys", func(t *testing.T) {
 		var s GlobalAttributeListingSearch
-		require.NoError(t, json.Unmarshal([]byte(`{"term":"50%_off \\ clearance","source":"ldap"}`), &s))
-		assert.Equal(t, GlobalAttributeListingSearch{Term: "50%_off \\ clearance", Source: "ldap"}, s)
+		require.NoError(t, json.Unmarshal([]byte(`{"term":"50%_off \\ clearance","source":"ldap","resource_type":"channel"}`), &s))
+		assert.Equal(t, GlobalAttributeListingSearch{Term: "50%_off \\ clearance", Source: "ldap", ResourceType: "channel"}, s)
 	})
 
 	t.Run("row omits a missing name conflict and owner template", func(t *testing.T) {
@@ -95,6 +95,32 @@ func TestGlobalAttributeListingSearchSourceIsValid(t *testing.T) {
 	}
 }
 
+func TestGlobalAttributeListingSearchResourceTypeIsValid(t *testing.T) {
+	for _, resourceType := range []string{
+		"",
+		PropertyFieldObjectTypeUser,
+		PropertyFieldObjectTypeChannel,
+		PropertyFieldObjectTypePost,
+	} {
+		t.Run("accepts "+resourceType, func(t *testing.T) {
+			s := GlobalAttributeListingSearch{ResourceType: resourceType}
+			assert.NoError(t, s.IsValid())
+		})
+	}
+
+	for name, resourceType := range map[string]string{
+		"template":                          PropertyFieldObjectTypeTemplate,
+		"unknown resource type":             "team",
+		"resource type with different case": "Channel",
+		"hostile resource type":             `channel'); DROP TABLE PropertyFields; --`,
+	} {
+		t.Run(name, func(t *testing.T) {
+			s := GlobalAttributeListingSearch{ResourceType: resourceType}
+			assert.Error(t, s.IsValid())
+		})
+	}
+}
+
 func TestGlobalAttributeListingOptsIsValid(t *testing.T) {
 	valid := func() GlobalAttributeListingOpts {
 		return GlobalAttributeListingOpts{GroupID: NewId()}
@@ -109,6 +135,7 @@ func TestGlobalAttributeListingOptsIsValid(t *testing.T) {
 		o := valid()
 		o.Term = "x"
 		o.Source = GlobalAttributeSourcePlugin
+		o.ResourceType = PropertyFieldObjectTypeChannel
 		o.AllowedResourceTypes = []string{PropertyFieldObjectTypeUser, PropertyFieldObjectTypeChannel, PropertyFieldObjectTypePost}
 		o.ExcludeIDs = []string{NewId()}
 		require.NoError(t, o.IsValid())
@@ -123,6 +150,12 @@ func TestGlobalAttributeListingOptsIsValid(t *testing.T) {
 	t.Run("unknown source", func(t *testing.T) {
 		o := valid()
 		o.Source = "ssh"
+		assert.Error(t, o.IsValid())
+	})
+
+	t.Run("unknown resource type", func(t *testing.T) {
+		o := valid()
+		o.ResourceType = PropertyFieldObjectTypeTemplate
 		assert.Error(t, o.IsValid())
 	})
 

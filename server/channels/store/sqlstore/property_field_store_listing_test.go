@@ -15,18 +15,23 @@ import (
 func TestListingWhereBindsEveryInput(t *testing.T) {
 	const hostile = `x'); DROP TABLE PropertyFields; --`
 
-	for _, source := range []string{
-		"",
-		model.GlobalAttributeSourceManaged,
-		model.GlobalAttributeSourcePlugin,
-		model.GlobalAttributeSourceLDAP,
-		hostile,
-	} {
-		t.Run("source "+source, func(t *testing.T) {
+	filters := map[string]model.GlobalAttributeListingOpts{
+		"no filter":                        {},
+		"source managed":                   {Source: model.GlobalAttributeSourceManaged},
+		"source plugin":                    {Source: model.GlobalAttributeSourcePlugin},
+		"source ldap":                      {Source: model.GlobalAttributeSourceLDAP},
+		"hostile source":                   {Source: hostile},
+		"resource type channel":            {ResourceType: model.PropertyFieldObjectTypeChannel},
+		"hostile resource type":            {ResourceType: hostile},
+		"hostile source and resource type": {Source: hostile, ResourceType: hostile},
+	}
+	for name, filter := range filters {
+		t.Run(name, func(t *testing.T) {
 			sql, args, err := listingWhere(model.GlobalAttributeListingOpts{
 				GroupID:              hostile,
 				Term:                 hostile,
-				Source:               source,
+				Source:               filter.Source,
+				ResourceType:         filter.ResourceType,
 				AllowedResourceTypes: []string{hostile},
 				ExcludeIDs:           []string{hostile},
 			}).ToSql()
