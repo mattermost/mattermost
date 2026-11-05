@@ -55,7 +55,7 @@ func makeStandardMentionParser(keywords MentionKeywords) *StandardMentionParser 
 // mentionTrailingSuffixes groups the non-empty trailing punctuation of keywords
 // that end with it. The fully stripped word is checked separately.
 func mentionTrailingSuffixes(keywords MentionKeywords) map[string][]string {
-	var sets map[string]map[string]struct{}
+	sets := make(map[string]map[string]struct{})
 	for keyword := range keywords {
 		if len(keyword) > model.MentionKeysMaxLength {
 			continue
@@ -66,9 +66,6 @@ func mentionTrailingSuffixes(keywords MentionKeywords) map[string][]string {
 		}
 		base := strings.ToLower(keyword[:end])
 		suffix := keyword[end:]
-		if sets == nil {
-			sets = make(map[string]map[string]struct{})
-		}
 		if sets[base] == nil {
 			sets[base] = make(map[string]struct{})
 		}
