@@ -10,7 +10,7 @@ import {clearPropertyFieldOptionWalks, pageAllAccessControlFieldOptions} from 'c
 import {clearGraphOptionNameCache} from 'components/property_fields/graph/use_graph_option_names';
 
 import {defaultIntl} from 'tests/helpers/intl-test-helper';
-import {renderWithContext, screen, userEvent, act, fireEvent, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, act, fireEvent, waitFor, within} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import UserSettingsGeneral, {UserSettingsGeneralTab} from './user_settings_general';
@@ -441,7 +441,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         };
 
         renderWithContext(<UserSettingsGeneral {...props}/>);
-        expect(await screen.getByText('Option 1')).toBeInTheDocument();
+        expect(screen.getByRole('combobox', {name: 'Test Attribute'})).toHaveValue('Option 1');
     });
 
     test('should show multiselect Custom Attribute Field with value', async () => {
@@ -469,7 +469,9 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         };
 
         renderWithContext(<UserSettingsGeneral {...props}/>);
-        expect(await screen.getByText('Option 2')).toBeInTheDocument();
+        const selections = screen.getByRole('toolbar', {name: 'Test Attribute selections'});
+        expect(within(selections).getByText('Option 2')).toBeInTheDocument();
+        expect(within(selections).queryByText('Option 1')).not.toBeInTheDocument();
     });
 
     test('submitAttribute() should have called saveCustomProfileAttribute', async () => {
@@ -515,7 +517,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         expect(await screen.findByText('Server Error')).toBeInTheDocument();
     });
 
-    test('updateSelectAttribute() should handle single select changes', async () => {
+    test('updateComboboxAttribute() should handle single select changes', async () => {
         const saveCustomProfileAttribute = jest.fn().mockResolvedValue({});
         const selectAttribute: UserPropertyField = {
             ...customProfileAttribute,
@@ -545,9 +547,9 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
 
         renderWithContext(<UserSettingsGeneral {...props}/>);
 
-        const select = await screen.findByText('Select');
-        await userEvent.click(select);
-        await userEvent.click(await screen.findByText('Option 2'));
+        await userEvent.click(screen.getByRole('combobox', {name: 'Test Attribute'}));
+        await userEvent.click(screen.getByRole('option', {name: 'Option 2'}));
+        expect(screen.getByRole('combobox', {name: 'Test Attribute'})).toHaveValue('Option 2');
 
         const saveButton = screen.getByRole('button', {name: 'Save'});
         await userEvent.click(saveButton);
@@ -555,7 +557,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         expect(props.actions.saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', 'opt2');
     });
 
-    test('updateSelectAttribute() should handle multi-select changes', async () => {
+    test('updateComboboxAttribute() should handle multi-select changes', async () => {
         const saveCustomProfileAttribute = jest.fn().mockResolvedValue({});
         const multiselectAttribute: UserPropertyField = {
             ...customProfileAttribute,
@@ -585,12 +587,16 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
 
         renderWithContext(<UserSettingsGeneral {...props}/>);
 
-        const select = await screen.findByText('Select');
-        await userEvent.click(select);
-        await userEvent.click(await screen.findByText('Option 1'));
+        const combobox = screen.getByRole('combobox', {name: 'Test Attribute'});
+        await userEvent.click(combobox);
+        await userEvent.click(screen.getByRole('option', {name: 'Option 1'}));
 
-        await userEvent.click(await screen.findByText('Option 1'));
-        await userEvent.click(await screen.findByText('Option 2'));
+        await userEvent.click(combobox);
+        await userEvent.click(screen.getByRole('option', {name: 'Option 2'}));
+
+        const selections = screen.getByRole('toolbar', {name: 'Test Attribute selections'});
+        expect(within(selections).getByText('Option 1')).toBeInTheDocument();
+        expect(within(selections).getByText('Option 2')).toBeInTheDocument();
 
         const saveButton = screen.getByRole('button', {name: 'Save'});
         await userEvent.click(saveButton);
@@ -598,7 +604,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         expect(props.actions.saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', ['opt1', 'opt2']);
     });
 
-    test('updateSelectAttribute() should handle clearing selections', async () => {
+    test('updateComboboxAttribute() should handle clearing selections', async () => {
         const saveCustomProfileAttribute = jest.fn().mockResolvedValue({});
         const selectAttribute: UserPropertyField = {
             ...customProfileAttribute,
@@ -627,13 +633,18 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             },
         };
 
-        const {container} = renderWithContext(<UserSettingsGeneral {...props}/>);
+        renderWithContext(<UserSettingsGeneral {...props}/>);
 
-        const clearIndicator = container.querySelector('.react-select__clear-indicator');
-        expect(clearIndicator).toBeInTheDocument();
+        const combobox = screen.getByRole('combobox', {name: 'Test Attribute'});
+        expect(combobox).toHaveValue('Option 1');
 
-        await userEvent.click(clearIndicator!);
-        await screen.findByText('Select');
+        const clearButton = screen.getByTestId('customProfileAttribute_field1-clear');
+        expect(clearButton).toHaveAccessibleName('Clear Test Attribute');
+        await userEvent.click(clearButton);
+
+        expect(combobox).toHaveValue('');
+        expect(combobox).toHaveAttribute('placeholder', 'Select');
+        expect(screen.queryByTestId('customProfileAttribute_field1-clear')).not.toBeInTheDocument();
 
         const saveButton = screen.getByRole('button', {name: 'Save'});
         await userEvent.click(saveButton);
@@ -674,9 +685,9 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
 
         renderWithContext(<UserSettingsGeneral {...props}/>);
 
-        // Should not display any value since the option no longer exists
-        expect(screen.queryByText('Option 2')).not.toBeInTheDocument();
-        expect(await screen.findByText('Click \'Edit\' to add your custom attribute')).toBeInTheDocument();
+        // The raw id stands in for the deleted option, as in multiselect.
+        expect(await screen.findByText('opt2')).toBeInTheDocument();
+        expect(screen.queryByText('Click \'Edit\' to add your custom attribute')).not.toBeInTheDocument();
     });
 
     test('should handle multiselect with removed options', async () => {
@@ -751,12 +762,14 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
 
         renderWithContext(<UserSettingsGeneral {...props}/>);
 
-        // Should show empty select since the option no longer exists
-        expect(await screen.findByText('Select')).toBeInTheDocument();
+        // The raw id stands in for the deleted option, as in multiselect.
+        const combobox = screen.getByRole('combobox', {name: 'Test Attribute'});
+        expect(combobox).toHaveValue('opt2');
+        expect(screen.getByTestId('customProfileAttribute_field1-clear')).toBeInTheDocument();
 
         // Select a valid option and save
-        await userEvent.click(screen.getByText('Select'));
-        await userEvent.click(await screen.findByText('Option 1'));
+        await userEvent.click(combobox);
+        await userEvent.click(screen.getByRole('option', {name: 'Option 1'}));
         await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
         expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', 'opt1');
@@ -796,13 +809,15 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
 
         renderWithContext(<UserSettingsGeneral {...props}/>);
 
-        expect(await screen.findByText('Option 1')).toBeInTheDocument();
-        expect(screen.getByText('opt2')).toBeInTheDocument();
+        const selections = screen.getByRole('toolbar', {name: 'Test Attribute selections'});
+        expect(within(selections).getByText('Option 1')).toBeInTheDocument();
+        expect(within(selections).getByText('opt2')).toBeInTheDocument();
 
         // Add another live option and save. The ghost id must still be
         // emitted -- "just add another option" used to persist a shrink.
-        await userEvent.click(await screen.findByText('Option 1'));
-        await userEvent.click(await screen.findByText('Option 3'));
+        await userEvent.click(screen.getByRole('combobox', {name: 'Test Attribute'}));
+        await userEvent.click(screen.getByRole('option', {name: 'Option 3'}));
+        expect(within(selections).getByText('Option 3')).toBeInTheDocument();
         await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
         expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', ['opt1', 'opt2', 'opt3']);

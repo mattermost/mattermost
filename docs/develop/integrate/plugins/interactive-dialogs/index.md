@@ -38,6 +38,8 @@ Interactive dialogs support the following parameters:
 | `state`             | String  | (Optional) String provided by the integration that will be echoed back with dialog submission. Default is the empty string.                                                        |
 | `source_url`        | String  | (Optional) URL for field refresh requests. When a select element with `refresh: true` changes value, Mattermost sends a refresh request to this URL. Also used as the endpoint for multi-step form responses. |
 | `size`              | String  | (Optional) Width tier of the dialog: `small`, `medium`, or `large`. Default is `small`. (Minimum server version 12.1.) See [Dialog width](#dialog-width). |
+| `submit_buttons`    | String  | (Optional) Name of a `select` element whose options are shown as separate submit buttons in place of the single submit button. The element itself isn't shown; the `value` of the clicked option is submitted under the element's `name`. The element must be a static (no `data_source`), single-value (no `multiselect`) select with at least one option. Leave empty to use the standard submit button. (Minimum server version 12.2.) |
+| `refresh_on_return` | Boolean | (Optional) When `true`, the dialog is re-fetched from `source_url` each time a child dialog opened on top of it (see [Action button elements](#action-button-elements)) closes. The request is a [field refresh](#field-refresh-webhook) request with the current form values and no `selected_field`. Requires `source_url`. Default is `false`. (Minimum server version 12.2.) |
 
 Sample JSON is given below. Form submissions are sent back to the URL defined by the integration. You must also include the trigger ID you received from the slash command or interactive message.
 
@@ -54,7 +56,9 @@ Sample JSON is given below. Form submissions are sent back to the URL defined by
         "notify_on_cancel": false,
         "state": "<string provided by the integration that will be echoed back with dialog submission>",
         "source_url": "<optional URL for field refresh and multi-step form handling>",
-        "size": "<optional width tier of the dialog: small, medium, or large>"
+        "size": "<optional width tier of the dialog: small, medium, or large>",
+        "submit_buttons": "<optional name of a select element whose options are shown as submit buttons>",
+        "refresh_on_return": false
     }
 }
 ```
@@ -416,6 +420,8 @@ The full list of supported fields are included below:
 | `default`      | String | (Optional) Set a default value for this form element.                                                                              |
 | `label_position` | String | (Optional) Set to `before` to render each option's label before its radio button, or `after` to render it after. Default is `after`. Minimum server version 12.0. |
 
+If a radio element is `optional`, users can clear their selection. A cleared radio element is submitted with an empty-string value. (Minimum server version 12.0.)
+
 ### Checkbox group elements
 #### Minimum Server Version: 12.0
 
@@ -561,8 +567,6 @@ The full list of supported fields for `date` elements is included below:
 | `help_text`       | String  | (Optional) Help text displayed below the field. Maximum 150 characters.                                                            |
 | `optional`        | Boolean | (Optional) Set to `true` if this form element is not required. Default is `false`.                                                 |
 | `datetime_config` | Object  | (Optional) Nested date configuration object. See [datetime_config object](#datetime_config-object) for supported properties.       |
-| `min_date`        | String  | (Deprecated — use `datetime_config.min_date`.) Earliest selectable date. Supports ISO date format (YYYY-MM-DD) or relative formats (`today`, `tomorrow`, `+1d`, `-7d`, etc.). Full ISO datetime strings are accepted, but only the date part is parsed; timezone information is ignored. |
-| `max_date`        | String  | (Deprecated — use `datetime_config.max_date`.) Latest selectable date. Supports ISO date format (YYYY-MM-DD) or relative formats (`today`, `+30d`, `+1y`, etc.). Full ISO datetime strings are accepted, but only the date part is parsed; timezone information is ignored. |
 
 #### Date field usage examples
 
@@ -630,9 +634,6 @@ The full list of supported fields for `datetime` elements is included below:
 | `help_text`       | String  | (Optional) Help text displayed below the field. Maximum 150 characters.                                                            |
 | `optional`        | Boolean | (Optional) Set to `true` if this form element is not required. Default is `false`.                                                 |
 | `datetime_config` | Object  | (Optional) Nested datetime configuration object. See [datetime_config object](#datetime_config-object) for supported properties.   |
-| `min_date`        | String  | (Deprecated — use `datetime_config.min_date`.) Earliest selectable date. Supports ISO format or relative formats (`today`, `tomorrow`, `+1d`, `-7d`, etc.). |
-| `max_date`        | String  | (Deprecated — use `datetime_config.max_date`.) Latest selectable date. Supports ISO format or relative formats (`today`, `+30d`, `+1y`, etc.). |
-| `time_interval`   | Integer | (Deprecated — use `datetime_config.time_interval`.) Time selection interval in minutes. Must be between 1 and 1440, and must be a divisor of 1440 to create evenly spaced intervals throughout the day. Common values: 15, 30, 60, 90, 120. Default is 60. |
 
 #### DateTime field usage examples
 
@@ -695,9 +696,8 @@ The `datetime_config` object groups date/datetime configuration into a single ne
 | `time_interval`           | Integer | `datetime`         | 11.6   | (Optional) Time selection interval in minutes. Must be between 1 and 1440, and must be a divisor of 1440. Default is 60.    |
 | `location_timezone`       | String  | `datetime`         | 11.6   | (Optional) IANA timezone used to display and submit the time (e.g. `America/Denver`, `Asia/Tokyo`). When set, all users see the same wall-clock time regardless of their own timezone. Defaults to the viewing user's timezone. |
 | `manual_time_entry`       | Boolean | `datetime`         | 11.8   | (Optional) When `true`, users can type the time directly in addition to using the dropdown. Default is `false`.             |
-| `allow_manual_time_entry` | Boolean | `datetime`         | 11.6 (deprecated in 11.8) | (Deprecated — use `manual_time_entry`.) When both are set, either enabling turns the feature on.         |
 
-**Backward compatibility (new in 11.8):** The top-level `min_date`, `max_date`, and `time_interval` fields on `date` and `datetime` elements are still accepted for existing integrations, but are deprecated in favor of `datetime_config`. When both are provided on the same element, values inside `datetime_config` take precedence over the legacy top-level values.
+> **Breaking change (12.0):** The top-level `min_date`, `max_date`, and `time_interval` fields on `date`/`datetime` elements, and the `datetime_config.allow_manual_time_entry` field, have been removed. Integrations must send these values under `datetime_config` (using `manual_time_entry` instead of `allow_manual_time_entry`) or they will be silently ignored.
 
 #### Date and DateTime field specifications
 
@@ -814,6 +814,7 @@ The full list of supported fields is included below:
 | `name`          | String | Name of the field element used by the integration. Maximum 300 characters. You should use unique `name` fields in the same dialog.                |
 | `type`          | String | Set this value to `action_button` for an action button element.                                                                                   |
 | `action_button` | Object | Action button configuration. Required for this element type. See the fields below.                                                                |
+| `help_text`     | String | (Optional) Markdown-formatted description shown beside the button. Maximum 150 characters. (Minimum server version 12.2.)                         |
 
 The `action_button` object supports:
 
@@ -1148,7 +1149,7 @@ The field refresh request uses the standard `SubmitDialogRequest` structure with
 }
 ```
 
-The `submission` map contains the current values of all form fields, plus a `selected_field` key indicating which field triggered the refresh. Cleared fields are sent as empty strings.
+The `submission` map contains the current values of all form fields, plus a `selected_field` key indicating which field triggered the refresh. Cleared fields are sent as empty strings. A refresh triggered by [`refresh_on_return`](#parameters) has no `selected_field` key.
 
 Your integration should respond with a complete updated dialog wrapped in a `form` response:
 

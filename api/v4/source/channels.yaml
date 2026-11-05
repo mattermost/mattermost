@@ -580,6 +580,9 @@
         If you permanently delete a channel this action is not recoverable outside of a database backup.
 
 
+        Before permanently deleting a large number of channels (on the order of 100,000 channel memberships), set `ElasticsearchSettings.EnableIndexing` to `false` so live indexing does not reindex every channel member. Leave the Elasticsearch or OpenSearch cluster running. After the deletes finish, set `ElasticsearchSettings.EnableIndexing` back to `true` and run a bulk index. See the [Enable Elasticsearch indexing](https://docs.mattermost.com/administration-guide/configure/environment-configuration-settings#enable-elasticsearch-indexing) documentation.
+
+
         ##### Permissions
 
         `delete_public_channel` permission if the channel is public,

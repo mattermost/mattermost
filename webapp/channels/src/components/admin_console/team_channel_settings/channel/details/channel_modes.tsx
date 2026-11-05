@@ -198,40 +198,36 @@ export const ChannelModes = (props: Props): JSX.Element => {
             title={defineMessage({id: 'admin.channel_settings.channel_detail.manageTitle', defaultMessage: 'Channel Management'})}
             subtitle={defineMessage({id: 'admin.channel_settings.channel_detail.manageDescription', defaultMessage: 'Choose between inviting members manually or syncing members automatically from groups.'})}
         >
-            <div className='group-teams-and-channels'>
-                <div className='group-teams-and-channels--body'>
-                    {!policyEnforced && groupsSupported &&
-                        <SyncGroupsToggle
-                            isPublic={isPublic}
-                            isSynced={isSynced}
-                            isDefault={isDefault}
-                            onToggle={onToggle}
-                            isDisabled={isDisabled}
-                            policyEnforced={policyEnforced}
-                            policyEnforcedToggleAvailable={policyEnforcedToggleAvailable}
-                        /> }
-                    <AllowAllToggle
-                        isPublic={isPublic}
-                        isSynced={isSynced}
-                        isDefault={isDefault}
-                        onToggle={onToggle}
-                        isDisabled={isDisabled}
-                        policyEnforced={policyEnforced}
-                        policyEnforcedToggleAvailable={policyEnforcedToggleAvailable}
-                    />
-                    {abacSupported &&
-                        <PolicyEnforceToggle
-                            isPublic={isPublic}
-                            isSynced={isSynced}
-                            isDefault={isDefault}
-                            onToggle={onToggle}
-                            isDisabled={isDisabled}
-                            policyEnforced={policyEnforced}
-                            policyEnforcedToggleAvailable={policyEnforcedToggleAvailable}
-                        />
-                    }
-                </div>
-            </div>
+            {!policyEnforced && groupsSupported &&
+                <SyncGroupsToggle
+                    isPublic={isPublic}
+                    isSynced={isSynced}
+                    isDefault={isDefault}
+                    onToggle={onToggle}
+                    isDisabled={isDisabled}
+                    policyEnforced={policyEnforced}
+                    policyEnforcedToggleAvailable={policyEnforcedToggleAvailable}
+                /> }
+            <AllowAllToggle
+                isPublic={isPublic}
+                isSynced={isSynced}
+                isDefault={isDefault}
+                onToggle={onToggle}
+                isDisabled={isDisabled}
+                policyEnforced={policyEnforced}
+                policyEnforcedToggleAvailable={policyEnforcedToggleAvailable}
+            />
+            {abacSupported &&
+                <PolicyEnforceToggle
+                    isPublic={isPublic}
+                    isSynced={isSynced}
+                    isDefault={isDefault}
+                    onToggle={onToggle}
+                    isDisabled={isDisabled}
+                    policyEnforced={policyEnforced}
+                    policyEnforcedToggleAvailable={policyEnforcedToggleAvailable}
+                />
+            }
         </AdminPanel>
     );
 };

@@ -3754,6 +3754,21 @@
     "description": "API error shown to a system admin when downloading a plugin from a URL or the Marketplace fails."
   },
   {
+    "id": "api.plugin.public_key.no_file.app_error",
+    "translation": "Exactly one plugin public key file must be uploaded in the public_key field.",
+    "description": "Error returned by the local-mode API when a plugin-signing public key upload is missing its file; 'public_key' is the literal form field name and must not be translated."
+  },
+  {
+    "id": "api.plugin.public_key.not_found.app_error",
+    "translation": "Plugin public key {{.Name}} is not configured.",
+    "description": "Error returned by the local-mode API when the requested plugin-signing public key is not in PluginSettings.SignaturePublicKeyFiles."
+  },
+  {
+    "id": "api.plugin.public_key.parse.app_error",
+    "translation": "Unable to parse the uploaded plugin public key.",
+    "description": "Error returned by the local-mode API when the multipart request uploading a plugin-signing public key cannot be parsed or is too large."
+  },
+  {
     "id": "api.plugin.upload.array.app_error",
     "translation": "File array is empty in multipart/form request.",
     "description": "API error when a plugin upload request's multipart form contains an empty file array; technical message aimed at admins/integrators."
@@ -4688,11 +4703,6 @@
     "id": "api.server.cws.needs_enterprise_edition",
     "translation": "Service only available in Mattermost Enterprise edition",
     "description": "API error when a customer-portal-related endpoint is called on a server that is not Mattermost Enterprise edition; 'Mattermost Enterprise' is a product name."
-  },
-  {
-    "id": "api.server.hosted_signup_unavailable.error",
-    "translation": "Portal unavailable for self-hosted signup.",
-    "description": "API error when the Mattermost customer portal cannot be reached during self-hosted license signup; 'Portal' is the customer portal; admin audience."
   },
   {
     "id": "api.server.license_up_for_renewal.error_sending_email",
@@ -8721,11 +8731,6 @@
     "description": "Error during a bulk data export when adding a file to the export zip archive fails."
   },
   {
-    "id": "app.file.cloud.get.app_error",
-    "translation": "Cannot fetch the file as it is past the cloud plan's limit.",
-    "description": "Error when a file cannot be fetched because it exceeds the Mattermost Cloud plan's storage limit; end-user audience."
-  },
-  {
     "id": "app.file_info.delete_for_post_ids.app_error",
     "translation": "Failed to remove the requested files from database",
     "description": "Internal error when deleting file attachment records for a set of posts fails; log/admin-facing."
@@ -9876,11 +9881,6 @@
     "description": "API error shown to admins when a background job's status cannot be changed because the requested status transition is invalid."
   },
   {
-    "id": "app.last_accessible_file.app_error",
-    "translation": "Error fetching last accessible file",
-    "description": "Internal API error when reading the cloud plan's file-access cutoff (the oldest file accessible under message/file limits) fails."
-  },
-  {
     "id": "app.last_accessible_post.app_error",
     "translation": "Error fetching last accessible post",
     "description": "Internal error when determining the oldest post visible under cloud message-history limits fails."
@@ -10509,6 +10509,21 @@
     "id": "app.pdp.resource_policy_governs_action.app_error",
     "translation": "Failed to determine if the resource's access policy governs the action.",
     "description": "Internal error when the server cannot tell whether a channel's attribute-based access policy, or a policy it imports, declares a given action; the server then evaluates the policy anyway. Logged for admins, not shown to end users."
+  },
+  {
+    "id": "app.plugin.add_public_key.file_exists.app_error",
+    "translation": "A configuration file named {{.Name}} already exists.",
+    "description": "Error when adding a plugin-signing public key would overwrite an existing configuration file of the same name."
+  },
+  {
+    "id": "app.plugin.add_public_key.invalid_key.app_error",
+    "translation": "The file is not a valid OpenPGP public key.",
+    "description": "Error when the uploaded plugin-signing public key cannot be parsed as an OpenPGP public key, or contains a private key."
+  },
+  {
+    "id": "app.plugin.add_public_key.invalid_name.app_error",
+    "translation": "Invalid plugin public key name {{.Name}}. Names may contain only letters, numbers, '.', '_' and '-'.",
+    "description": "Error when adding a plugin-signing public key whose file name contains disallowed characters or is reserved."
   },
   {
     "id": "app.plugin.addon_not_licensed.app_error",
@@ -17368,8 +17383,8 @@
   },
   {
     "id": "model.config.is_valid.max_channels.app_error",
-    "translation": "Invalid maximum channels per team for team settings. Must be a positive number.",
-    "description": "Config validation error shown to system admins for the maximum channels per team setting; must be a positive number."
+    "translation": "Invalid maximum channels per team for team settings. Must be 0 (unlimited) or a positive number.",
+    "description": "Config validation error shown to system admins for the maximum channels per team setting; must be 0, meaning no limit, or a positive number."
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
@@ -17398,8 +17413,8 @@
   },
   {
     "id": "model.config.is_valid.max_users.app_error",
-    "translation": "Invalid maximum users per team for team settings. Must be a positive number.",
-    "description": "Config validation error shown to system admins for the maximum users per team setting; must be a positive number."
+    "translation": "Invalid maximum users per team for team settings. Must be 0 (unlimited) or a positive number.",
+    "description": "Config validation error shown to system admins for the maximum users per team setting; must be 0, meaning no limit, or a positive number."
   },
   {
     "id": "model.config.is_valid.message_export.batch_size.app_error",
@@ -18235,6 +18250,11 @@
     "id": "model.log_filter.is_valid.date_to.app_error",
     "translation": "Invalid date_to filter. Expected the format \"{{.Layout}}\".",
     "description": "API error (400) returned to a system admin filtering server logs in the System Console when the end-date filter is unparseable. {{.Layout}} is the expected date format pattern (a Go time layout string) and must not be translated."
+  },
+  {
+    "id": "model.log_filter.is_valid.search.app_error",
+    "translation": "Invalid search filter. It must be at most {{.MaxLength}} characters.",
+    "description": "API error (400) returned to a system admin searching server logs in the System Console when the search term is too long. {{.MaxLength}} is the maximum number of characters."
   },
   {
     "id": "model.member.is_valid.channel.app_error",
@@ -19417,6 +19437,16 @@
     "description": "Error returned to plugins when listing channel users is called with an unsupported sort option; developer-facing."
   },
   {
+    "id": "plugin.api.kv_list_with_options.not_implemented",
+    "translation": "The server does not support listing plugin keys with options.",
+    "description": "Error a plugin receives when it lists its key-value store keys with filter options on a server version that does not support that API. The plugin library then falls back to listing all keys."
+  },
+  {
+    "id": "plugin.api.kv_list_with_options.rpc_error",
+    "translation": "Unable to list plugin keys with options.",
+    "description": "Error a plugin receives when the call from the plugin process to the server fails while it lists its key-value store keys with filter options."
+  },
+  {
     "id": "plugin.api.thread.invalid_thread_id.app_error",
     "translation": "Invalid thread id.",
     "description": "Error returned to plugins when GetThreadFollowers or SetThreadFollowing is called with a thread id that is not a valid Mattermost id; developer-facing."
@@ -19683,12 +19713,12 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 150+",
+    "translation": "Version 156+",
     "description": "Compact version requirement label on the Chrome card of the 'unsupported browser' page; the number is the minimum Chrome version."
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 150+",
+    "translation": "Version 156+",
     "description": "Compact version requirement label on the Edge card of the 'unsupported browser' page; the number is the minimum Edge version."
   },
   {

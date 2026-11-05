@@ -1431,8 +1431,8 @@ func (a *App) PatchPost(rctx request.CTX, postID string, patch *model.PostPatch,
 		return nil, false, err
 	}
 
-	// only allow to update the pinned status of burn-on-read posts if the status is different
-	if post.Type == model.PostTypeBurnOnRead {
+	// Removing the link preview is the only change allowed on burn-on-read posts.
+	if post.Type == model.PostTypeBurnOnRead && !isRemoveLinkPreviewPatch(patch) {
 		return nil, false, model.NewAppError("PatchPost", "api.post.patch_post.can_not_update_burn_on_read_post.error", nil, "", http.StatusBadRequest)
 	}
 
@@ -1455,6 +1455,10 @@ func (a *App) PatchPost(rctx request.CTX, postID string, patch *model.PostPatch,
 		return nil, false, model.NewAppError("PatchPost", "api.post.patch_post.can_not_update_post_in_restricted_dm.error", nil, "", http.StatusBadRequest)
 	}
 
+	if post.Type == model.PostTypeBurnOnRead {
+		return a.removeBurnOnReadLinkPreview(rctx, post.Id)
+	}
+
 	if ok, _ := a.HasPermissionToChannel(rctx, post.UserId, post.ChannelId, model.PermissionUseChannelMentions); !ok {
 		patch.DisableMentionHighlights()
 	}
@@ -1468,6 +1472,48 @@ func (a *App) PatchPost(rctx request.CTX, postID string, patch *model.PostPatch,
 	}
 
 	return updatedPost, isMemberForPreviews, nil
+}
+
+func isRemoveLinkPreviewPatch(patch *model.PostPatch) bool {
+	if patch.Props == nil || patch.Message != nil || patch.FileIds != nil || patch.IsPinned != nil || patch.HasReactions != nil {
+		return false
+	}
+	return (*patch.Props)[model.PostPropsRemoveLinkPreview] == "true"
+}
+
+// removeBurnOnReadLinkPreview sets remove_link_preview on the stored burn-on-read post. It
+// bypasses UpdatePost because the revealed content lives in TemporaryPosts and must never be
+// written to the Posts row.
+func (a *App) removeBurnOnReadLinkPreview(rctx request.CTX, postID string) (*model.Post, bool, *model.AppError) {
+	masterCtx := sqlstore.RequestContextWithMaster(rctx)
+	storedPost, err := a.Srv().Store().Post().GetSingle(masterCtx, postID, false)
+	if err != nil {
+		return nil, false, model.NewAppError("PatchPost", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	storedPost.AddProp(model.PostPropsRemoveLinkPreview, "true")
+	updatedPost, err := a.Srv().Store().Post().Overwrite(rctx, storedPost)
+	if err != nil {
+		return nil, false, model.NewAppError("PatchPost", "app.post.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	a.invalidateCacheForChannelPosts(updatedPost.ChannelId)
+
+	// Only the author's clients get the edit: recipients would receive the unrevealed post
+	// and their already revealed copy would be concealed again.
+	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", updatedPost.ChannelId, updatedPost.UserId, nil, "")
+	broadcastPost := a.PreparePostForClient(rctx, updatedPost, &model.PreparePostForClientOpts{IsEditPost: true, IncludePriority: true})
+	if appErr := a.publishWebsocketEventForPost(rctx, broadcastPost, message); appErr != nil {
+		return nil, false, appErr
+	}
+
+	revealedPost, appErr := a.GetSinglePost(masterCtx, postID, false)
+	if appErr != nil {
+		return nil, false, appErr
+	}
+	revealedPost = a.PreparePostForClientWithEmbedsAndImages(rctx, revealedPost, &model.PreparePostForClientOpts{IsEditPost: true, IncludePriority: true})
+
+	return a.SanitizePostMetadataForUser(rctx, revealedPost, rctx.Session().UserId)
 }
 
 func (a *App) GetPostsPage(rctx request.CTX, options model.GetPostsOptions) (*model.PostList, *model.AppError) {
@@ -2778,12 +2824,12 @@ func (a *App) GetFileInfosForPostWithMigration(rctx request.CTX, postID string, 
 		}
 	}
 
-	infos, firstInaccessibleFileTime, appErr := a.GetFileInfosForPost(rctx, post, false, includeDeleted)
+	infos, appErr := a.GetFileInfosForPost(rctx, post, false, includeDeleted)
 	if appErr != nil {
 		return nil, appErr
 	}
 
-	if len(infos) == 0 && firstInaccessibleFileTime == 0 && len(post.Filenames) > 0 {
+	if len(infos) == 0 && len(post.Filenames) > 0 {
 		a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, false)
 		a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, true)
 		// The post has Filenames that need to be replaced with FileInfos
@@ -2793,20 +2839,19 @@ func (a *App) GetFileInfosForPostWithMigration(rctx request.CTX, postID string, 
 	return infos, nil
 }
 
-// GetFileInfosForPost also returns firstInaccessibleFileTime based on cloud plan's limit.
-func (a *App) GetFileInfosForPost(rctx request.CTX, post *model.Post, fromMaster bool, includeDeleted bool) ([]*model.FileInfo, int64, *model.AppError) {
+func (a *App) GetFileInfosForPost(rctx request.CTX, post *model.Post, fromMaster bool, includeDeleted bool) ([]*model.FileInfo, *model.AppError) {
 	fileIDs := post.FileIds
 	if fromMaster {
 		masterPost, err := a.Srv().Store().Post().GetSingle(sqlstore.RequestContextWithMaster(rctx), post.Id, includeDeleted)
 		if err != nil {
-			return nil, 0, model.NewAppError("GetFileInfosForPost", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return nil, model.NewAppError("GetFileInfosForPost", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 		fileIDs = masterPost.FileIds
 	}
 
 	fileInfos, err := a.Srv().Store().FileInfo().GetByIds(fileIDs, includeDeleted, true, fromMaster)
 	if err != nil {
-		return nil, 0, model.NewAppError("GetFileInfosForPost", "app.file_info.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("GetFileInfosForPost", "app.file_info.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	// GetByIds does not preserve the order of post.FileIds (the SQL store sorts
@@ -2814,14 +2859,9 @@ func (a *App) GetFileInfosForPost(rctx request.CTX, post *model.Post, fromMaster
 	// reorder to match the post's stored attachment order.
 	fileInfos = orderFileInfosByID(post.FileIds, fileInfos)
 
-	firstInaccessibleFileTime, appErr := a.removeInaccessibleContentFromFilesSlice(fileInfos)
-	if appErr != nil {
-		return nil, 0, appErr
-	}
-
 	a.generateMiniPreviewForInfos(rctx, fileInfos)
 
-	return fileInfos, firstInaccessibleFileTime, nil
+	return fileInfos, nil
 }
 
 func orderFileInfosByID(ids []string, infos []*model.FileInfo) []*model.FileInfo {
