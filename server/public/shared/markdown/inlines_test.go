@@ -4,6 +4,7 @@
 package markdown
 
 import (
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -27,10 +28,12 @@ func parseAllInlines(markdown string) []Inline {
 }
 
 // fastestOf returns the shortest of several runs of f, which filters out scheduling noise
-// better than an average.
+// better than an average. Each run starts from a collected heap so that garbage left by
+// earlier runs is not charged to it.
 func fastestOf(runs int, f func()) time.Duration {
 	fastest := time.Duration(-1)
 	for range runs {
+		runtime.GC()
 		start := time.Now()
 		f()
 		if elapsed := time.Since(start); fastest < 0 || elapsed < fastest {
@@ -67,6 +70,7 @@ func TestInlineParsingScalesLinearly(t *testing.T) {
 	t.Cleanup(func() { SetMaxPostRunes(defaultMaxPostRunes) })
 
 	parse := func(markdown string) { parseAllInlines(markdown) }
+	inspect := func(markdown string) { Inspect(markdown, func(any) bool { return true }) }
 
 	for name, build := range map[string]func(n int) string{
 		// MM-71267: autolink candidates after a completed link above many inactive link openers.
@@ -111,7 +115,12 @@ func TestInlineParsingScalesLinearly(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			assertLinearGrowth(t, build, 8192, parse)
+			t.Run("parsing inlines", func(t *testing.T) {
+				assertLinearGrowth(t, build, 8192, parse)
+			})
+			t.Run("inspecting", func(t *testing.T) {
+				assertLinearGrowth(t, build, 8192, inspect)
+			})
 		})
 	}
 
