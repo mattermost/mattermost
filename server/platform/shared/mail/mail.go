@@ -223,6 +223,8 @@ func TestConnection(ctx context.Context, config *SMTPConfig) error {
 		return errors.Wrap(err, "unable to connect")
 	}
 	// NewSMTPClient ignores a failed StartTLS, so a handshake that ctx cut short can still return a client.
+	// TODO: MM-71213 remove this check once NewSMTPClient returns the StartTLS error; the error branch above
+	// then reports the deadline.
 	if !stop() {
 		return errors.Wrap(ctx.Err(), "unable to connect")
 	}
