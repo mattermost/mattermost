@@ -179,6 +179,28 @@ describe('components/CommercialSupportModal', () => {
             expect(window.URL.revokeObjectURL).toHaveBeenCalledWith('mock-url');
         });
 
+        test('should abort the download as soon as the modal is closed', async () => {
+            getSupportPacket.mockReturnValue(new Promise(() => {})); // never resolves
+
+            const ref = React.createRef<CommercialSupportModal>();
+            const user = userEvent.setup();
+            renderWithContext(
+                <CommercialSupportModal
+                    {...baseProps}
+                    ref={ref}
+                />,
+            );
+            await user.click(screen.getByRole('button', {name: 'Download Support Packet'}));
+            const signal: AbortSignal = getSupportPacket.mock.calls[0][1];
+
+            act(() => {
+                ref.current?.doHide();
+            });
+
+            expect(signal.aborted).toBe(true);
+            expect(baseProps.onExited).not.toHaveBeenCalled();
+        });
+
         test('should abort the download when the modal unmounts', async () => {
             getSupportPacket.mockReturnValue(new Promise(() => {})); // never resolves
 

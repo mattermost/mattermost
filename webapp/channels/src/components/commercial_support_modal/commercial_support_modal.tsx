@@ -86,6 +86,8 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
     };
 
     doHide = () => {
+        // Cancel now rather than on unmount, which only happens after the close transition.
+        this.abortController?.abort();
         this.setState({show: false});
     };
 
