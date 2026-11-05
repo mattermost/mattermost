@@ -148,8 +148,23 @@ test.describe(
             // * Now it is asked for, and holds up Create until a level is chosen
             await expect(asAdmin.channelsPage.page.getByTestId('channelAttribute-classification')).toBeVisible();
             await expect(modal.createButton).toBeDisabled();
-            await asAdmin.channelsPage.page.getByTestId('channelAttribute-classification').click();
-            await asAdmin.channelsPage.page.getByText(levels[0].name, {exact: true}).click();
+
+            // # Open the levels
+            const listbox = await modal.openAttributeCombobox('classification');
+
+            // * Highest rank first, each coloured level with a swatch
+            await modal.expectAttributeOptionOrder(
+                'classification',
+                [...levels].reverse().map((level) => level.id),
+            );
+            await expect(listbox.getByTestId('attribute-option-swatch')).toHaveCount(levels.length);
+
+            // # Pick the lowest level
+            await modal.selectAttributeOption('classification', levels[0].name);
+
+            // * The field shows the level with its swatch and Create is enabled
+            await expect(modal.getAttributeCombobox('classification')).toHaveValue(levels[0].name);
+            await expect(modal.getAttributeRow('classification').getByTestId('attribute-option-swatch')).toHaveCount(1);
             await expect(modal.createButton).toBeEnabled();
         });
 
