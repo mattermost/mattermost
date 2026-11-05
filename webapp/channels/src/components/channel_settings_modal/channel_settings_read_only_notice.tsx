@@ -30,7 +30,7 @@ export default function ChannelSettingsReadOnlyNotice() {
             message={
                 <FormattedMessage
                     id='channel_settings.read_only.message'
-                    defaultMessage='An access policy prevents you from making changes in this channel. These settings are shown for reference only.'
+                    defaultMessage='An access policy prevents you from making changes in this channel.'
                 />
             }
         />

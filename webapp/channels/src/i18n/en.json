@@ -21088,7 +21088,7 @@
     "description": "Field label for the channel purpose text area on the Info tab of Channel Settings."
   },
   "channel_settings.read_only.message": {
-    "defaultMessage": "An access policy prevents you from making changes in this channel. These settings are shown for reference only.",
+    "defaultMessage": "An access policy prevents you from making changes in this channel.",
     "description": ""
   },
   "channel_settings.read_only.title": {
