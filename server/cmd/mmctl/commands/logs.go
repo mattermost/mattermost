@@ -316,6 +316,8 @@ type logFollower struct {
 
 	// seen holds, per node, the entries printed within the window a poll can repeat
 	seen map[string]*seenLogs
+	// newest holds, per node, the newest timestamp among the entries printed, by the node's clock
+	newest map[string]time.Time
 	// failed holds the nodes last reported as unreachable, so they're reported once until they recover
 	failed map[string]bool
 	// floor holds, per node, the oldest entry the first fetch printed when it filled a page. Later
@@ -337,6 +339,7 @@ func newLogFollower(c client.Client, opts *logsOptions, out io.Writer) *logFollo
 		nodes:          make(map[string]bool),
 		prefixedWriter: make(map[string]human.LogWriter),
 		seen:           make(map[string]*seenLogs),
+		newest:         make(map[string]time.Time),
 		failed:         make(map[string]bool),
 		floor:          make(map[string]time.Time),
 	}
@@ -502,9 +505,9 @@ func (f *logFollower) hasPlainTextLogs(ctx context.Context) bool {
 	return false
 }
 
-// warnTruncated warns about the nodes whose poll filled a page with entries no older than from.
-// The server fills the page from the newest entry back, so the entries between from and the
-// oldest one returned are missing.
+// warnTruncated warns about the nodes whose poll filled a page with entries no older than from,
+// and newer than every entry printed before. The server fills the page from the newest entry
+// back, so the entries between the last one printed and the oldest one returned are missing.
 func (f *logFollower) warnTruncated(logs map[string][]json.RawMessage, from time.Time) {
 	for _, node := range slices.Sorted(maps.Keys(logs)) {
 		lines := logs[node]
@@ -515,7 +518,10 @@ func (f *logFollower) warnTruncated(logs map[string][]json.RawMessage, from time
 		// unfiltered, which reaches past from unless the node logged that much since
 		for _, raw := range lines {
 			if entry := parseLogQueryEntry(raw); !entry.Time.IsZero() {
-				if !entry.Time.Before(from) {
+				// Polls overlap, so a full page can reach back to entries printed before, and then
+				// nothing is missing
+				newest, printed := f.newest[node]
+				if !entry.Time.Before(from) && (!printed || entry.Time.After(newest)) {
 					f.warn(fmt.Sprintf("node %q logged more than %d matching entries since the previous poll, so the older ones were skipped. Poll more often with a shorter --interval, or narrow the logs with --level or --search", node, logsMaxPerPage))
 				}
 				break
@@ -597,6 +603,9 @@ func (f *logFollower) print(logs map[string][]json.RawMessage, from, fetchedAt t
 				continue
 			}
 			seen.add(entry.key, sortTime)
+			if !entry.Time.IsZero() && entry.Time.After(f.newest[node]) {
+				f.newest[node] = entry.Time
+			}
 			if emit {
 				pending = append(pending, pendingLog{node: node, time: sortTime, entry: entry.LogEntry})
 			}

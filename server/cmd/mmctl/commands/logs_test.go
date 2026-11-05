@@ -734,6 +734,49 @@ func (s *MmctlUnitTestSuite) TestLogFollower() {
 		s.Empty(stderr)
 	})
 
+	s.Run("Don't warn about a full page that reaches back to entries printed before", func() {
+		// The overlap repeats entries already printed, so a full page whose entries are all no
+		// older than the poll's start can still leave nothing out
+		printed := make([]json.RawMessage, 5000)
+		for i := range printed {
+			printed[i] = testLogLine(t0.Add(time.Duration(i)*time.Millisecond), "info", fmt.Sprintf("entry %d", i))
+		}
+		page := make([]json.RawMessage, logsMaxPerPage)
+		for i := range page {
+			page[i] = testLogLine(t0.Add(2500*time.Millisecond+time.Duration(i)*time.Millisecond), "info", fmt.Sprintf("entry %d", 2500+i))
+		}
+
+		filters, stdout, stderr := follow(&logsOptions{number: 0},
+			respond(map[string][]json.RawMessage{"default": {testLogLine(t0.Add(-2*time.Hour), "info", "last")}}),
+			respond(map[string][]json.RawMessage{"default": printed}),
+			respond(map[string][]json.RawMessage{"default": page}),
+		)
+
+		// The last page starts after the poll's start, which alone used to warn
+		from, err := time.Parse(model.LogFilterDateLayout, filters[2].DateFrom)
+		s.Require().NoError(err)
+		s.True(t0.Add(2500 * time.Millisecond).After(from))
+
+		s.Empty(stderr)
+		s.Len(testLogMessages(stdout), 2500+logsMaxPerPage)
+	})
+
+	s.Run("Warn about a full page newer than every entry printed before", func() {
+		printed := []json.RawMessage{testLogLine(t0, "info", "printed")}
+		page := make([]json.RawMessage, logsMaxPerPage)
+		for i := range page {
+			page[i] = testLogLine(t0.Add(time.Second+time.Duration(i)*time.Microsecond), "info", fmt.Sprintf("entry %d", i))
+		}
+
+		_, _, stderr := follow(&logsOptions{number: 0},
+			respond(map[string][]json.RawMessage{"default": {testLogLine(t0.Add(-2*time.Hour), "info", "last")}}),
+			respond(map[string][]json.RawMessage{"default": printed}),
+			respond(map[string][]json.RawMessage{"default": page}),
+		)
+
+		s.Contains(stderr, "so the older ones were skipped")
+	})
+
 	s.Run("Report a failed node once until it recovers", func() {
 		failed := json.RawMessage(`{"timestamp":"2026-11-03 08:00:00.000 Z","level":"error","msg":"Failed to fetch logs from node","error":"timeout","failed_node":true}`)
 		local := testLogLine(t0, "info", "local")
