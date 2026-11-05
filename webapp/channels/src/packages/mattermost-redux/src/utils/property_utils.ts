@@ -108,22 +108,21 @@ export function getPropertyFieldOptions(field: PropertyField): PropertyFieldOpti
     return (field.attrs?.options as PropertyFieldOption[] | undefined) ?? [];
 }
 
-// The server normalises rank fields to a contiguous 1..N, so the positional
-// fallback only covers option lists cached before that ran.
-export function getOptionRank(field: PropertyField, optionId: string): number | undefined {
-    const options = getPropertyFieldOptions(field);
-    const index = options.findIndex((option) => option.id === optionId);
-    if (index < 0) {
-        return undefined;
-    }
-    const {rank} = options[index];
-    return typeof rank === 'number' ? rank : index + 1;
+// Only a stored rank counts. The server refuses a rank field whose options lack
+// one and fails closed when a change-policy check meets one, so no position is
+// invented here either; such options can only come from a stale cache.
+function getStoredRank(option: PropertyFieldOption): number | undefined {
+    return typeof option.rank === 'number' ? option.rank : undefined;
 }
 
-// Highest rank first. Unranked options (stale caches only, per the note above)
-// go last in stored order, unlike getOptionRank's positional fallback.
+export function getOptionRank(field: PropertyField, optionId: string): number | undefined {
+    const option = getPropertyFieldOptions(field).find((candidate) => candidate.id === optionId);
+    return option ? getStoredRank(option) : undefined;
+}
+
+// Highest rank first; unranked options last. Equal ranks keep their stored order.
 export function sortOptionsByRank<T extends PropertyFieldOption>(options: readonly T[]): T[] {
-    const rankOf = (option: T) => (typeof option.rank === 'number' ? option.rank : -Infinity);
+    const rankOf = (option: T) => getStoredRank(option) ?? -Infinity;
 
     return [...options].sort((a, b) => {
         const rankA = rankOf(a);

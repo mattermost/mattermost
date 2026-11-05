@@ -292,9 +292,9 @@ describe('getOptionRank', () => {
         expect(getOptionRank(makeRankField(), 'mid')).toBe(2);
     });
 
-    test('falls back to position for options cached before the server normalised them', () => {
-        const field = makeField({type: 'rank', attrs: {options: [{id: 'a', name: 'A'}, {id: 'b', name: 'B'}]}});
-        expect(getOptionRank(field, 'a')).toBe(1);
+    test('returns undefined for an option without a stored rank', () => {
+        const field = makeField({type: 'rank', attrs: {options: [{id: 'a', name: 'A'}, {id: 'b', name: 'B', rank: 2}]}});
+        expect(getOptionRank(field, 'a')).toBeUndefined();
         expect(getOptionRank(field, 'b')).toBe(2);
     });
 
@@ -392,5 +392,23 @@ describe('canMoveToOption', () => {
 
     test('fails closed when the stored option is gone', () => {
         expect(canMoveToOption(makeRankField('raise_only'), 'deleted-option', 'high')).toBe(false);
+    });
+
+    test('fails closed when either option has no stored rank', () => {
+        const field = makeField({
+            type: 'rank',
+            attrs: {
+                change_policy: 'raise_only',
+                options: [
+                    {id: 'low', name: 'LOW', rank: 1},
+                    {id: 'odd', name: 'ODD'},
+                    {id: 'high', name: 'HIGH', rank: 3},
+                ],
+            },
+        });
+
+        expect(canMoveToOption(field, 'low', 'odd')).toBe(false);
+        expect(canMoveToOption(field, 'odd', 'high')).toBe(false);
+        expect(canMoveToOption(field, 'low', 'high')).toBe(true);
     });
 });

@@ -12,7 +12,7 @@ import {valueRefersToOptions, type PropertyFieldOption} from '@mattermost/types/
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {getInputTypeFromValueType} from 'mattermost-redux/utils/helpers';
-import {getPropertyFieldSyncSources} from 'mattermost-redux/utils/property_utils';
+import {getPropertyFieldSyncSources, sortOptionsByRank} from 'mattermost-redux/utils/property_utils';
 import type {PropertySyncSource} from 'mattermost-redux/utils/property_utils';
 
 import {getPluginDisplayName} from 'selectors/plugins';
@@ -48,9 +48,7 @@ type CPARankSelectProps = {
 };
 
 const CPARankSelect: React.FC<CPARankSelectProps> = ({fieldId, options, value, onChange, disabled, placeholder, errorId}) => {
-    // Highest rank first. Options missing a rank (shouldn't happen on a ranked
-    // field) sort to the bottom.
-    const orderedOptions = [...options].sort((a, b) => (b.rank ?? -Infinity) - (a.rank ?? -Infinity));
+    const orderedOptions = sortOptionsByRank(options);
     const selectedOption = options.find((option) => option.id === value);
 
     return (
@@ -308,7 +306,7 @@ export default function UserAttributeField({
                 controlId: comboboxId,
                 control: (
                     <AttributeCombobox
-                        multiple={multiple}
+                        type={field.type}
                         id={comboboxId}
                         testId={comboboxId}
                         label={fieldLabel}

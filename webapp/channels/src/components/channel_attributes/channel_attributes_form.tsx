@@ -12,7 +12,7 @@ import {isTextField, supportsHierarchy, supportsOptions} from '@mattermost/types
 import {PROPERTY_TEXT_VALUE_MAX_LENGTH} from 'mattermost-redux/constants/properties';
 import {getPropertyFieldLabel, isPropertyFieldRequired, isPropertyValueSet} from 'mattermost-redux/utils/property_utils';
 
-import {AttributeCombobox, AttributeRankCombobox} from 'components/property_fields/attribute_combobox';
+import {AttributeCombobox, getAttributeComboboxType} from 'components/property_fields/attribute_combobox';
 import {asGraphFieldRef, asGraphValueIds} from 'components/property_fields/graph';
 import AssignmentGraphPicker from 'components/property_fields/hierarchical_value_menu/assignment_picker';
 import Input from 'components/widgets/inputs/input/input';
@@ -135,51 +135,34 @@ const ChannelAttributesForm = ({fields, values, onChange, disabled}: Props) => {
                         />
                     );
                 } else {
-                    const shared = {
-                        id: comboboxId,
-                        testId: `channelAttribute-${field.name}`,
-                        label,
-                        options: getOptions(field),
-                        placeholder: selectPlaceholder,
-                        zIndex: ZIndex.MENU,
-                        required,
-                        disabled,
-                        invalid: showError,
-                        'aria-describedby': showError ? errorId : undefined,
-                        onBlur: () => markTouched(field.id),
-                    };
+                    const type = getAttributeComboboxType(field);
+                    const combobox = (
+                        <AttributeCombobox
+                            id={comboboxId}
+                            testId={`channelAttribute-${field.name}`}
+                            type={type}
+                            label={label}
+                            options={getOptions(field)}
+                            value={selected ?? ''}
+                            onChange={(next) => handleOptionsChange(field.id, next)}
+                            placeholder={selectPlaceholder}
+                            zIndex={ZIndex.MENU}
+                            required={required}
+                            disabled={disabled}
+                            invalid={showError}
+                            aria-describedby={showError ? errorId : undefined}
+                            onBlur={() => markTouched(field.id)}
+                        />
+                    );
 
-                    if (field.type === 'rank') {
-                        control = (
-                            <AttributeRankCombobox
-                                {...shared}
-                                value={selected ?? ''}
-                                onChange={(next) => handleOptionsChange(field.id, next)}
-                            />
-                        );
-                    } else if (field.type === 'multiselect') {
-                        control = (
-                            <div
-                                role='presentation'
-                                onKeyDown={stopChipEnter}
-                            >
-                                <AttributeCombobox
-                                    {...shared}
-                                    multiple={true}
-                                    value={selected ?? []}
-                                    onChange={(next) => handleOptionsChange(field.id, next)}
-                                />
-                            </div>
-                        );
-                    } else {
-                        control = (
-                            <AttributeCombobox
-                                {...shared}
-                                value={selected ?? ''}
-                                onChange={(next) => handleOptionsChange(field.id, next)}
-                            />
-                        );
-                    }
+                    control = type === 'multiselect' ? (
+                        <div
+                            role='presentation'
+                            onKeyDown={stopChipEnter}
+                        >
+                            {combobox}
+                        </div>
+                    ) : combobox;
                 }
 
                 // Decorative: the control carries required for assistive technology

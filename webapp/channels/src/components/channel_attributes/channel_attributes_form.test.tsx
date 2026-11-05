@@ -624,7 +624,7 @@ describe('ChannelAttributesForm', () => {
                     <AttributeCombobox
                         id='bare'
                         label='Caveats'
-                        multiple={true}
+                        type='multiselect'
                         options={caveatOptions}
                         value={value}
                         onChange={(next) => setValue(next as string[])}
