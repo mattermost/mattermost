@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -228,4 +229,65 @@ func TestIncomingWebhookRequestFromJSONRootId(t *testing.T) {
 	require.Nil(t, err)
 	require.NotNil(t, iwr)
 	require.Equal(t, id, iwr.RootId)
+}
+
+func TestIncomingWebhookRequestFromJSONNullCharacters(t *testing.T) {
+	t.Run("removes NULL characters from text, attachments and props", func(t *testing.T) {
+		payload := `{
+			"text": "te\u0000st",
+			"username": "bot\u0000",
+			"attachments": [{
+				"pretext": "pre\u0000text",
+				"text": "attachment\u0000 text",
+				"author_name": "\u0000author",
+				"fields": [{"title": "ti\u0000tle", "value": "va\u0000lue", "short": true}]
+			}],
+			"props": {"ke\u0000y": "va\u0000lue", "count": 3}
+		}`
+
+		iwr, err := IncomingWebhookRequestFromJSON(strings.NewReader(payload))
+		require.Nil(t, err)
+		require.NotNil(t, iwr)
+
+		assert.Equal(t, "test", iwr.Text)
+		assert.Equal(t, "bot", iwr.Username)
+		require.Len(t, iwr.Attachments, 1)
+		attachment := iwr.Attachments[0]
+		assert.Equal(t, "pretext", attachment.Pretext)
+		assert.Equal(t, "attachment text", attachment.Text)
+		assert.Equal(t, "author", attachment.AuthorName)
+		require.Len(t, attachment.Fields, 1)
+		assert.Equal(t, "title", attachment.Fields[0].Title)
+		assert.Equal(t, "value", attachment.Fields[0].Value)
+		assert.Equal(t, "value", iwr.Props["key"])
+		assert.NotContains(t, iwr.Props, "ke\x00y")
+		assert.Equal(t, float64(3), iwr.Props["count"])
+	})
+
+	t.Run("removes NULL characters from payloads that need control characters escaped", func(t *testing.T) {
+		payload := "{\"text\": \"line one\nline\\u0000 two\"}"
+
+		iwr, err := IncomingWebhookRequestFromJSON(strings.NewReader(payload))
+		require.Nil(t, err)
+		require.NotNil(t, iwr)
+		assert.Equal(t, "line one\nline two", iwr.Text)
+	})
+
+	t.Run("keeps an escaped backslash followed by u0000", func(t *testing.T) {
+		payload := `{"text": "literal \\u0000 text"}`
+
+		iwr, err := IncomingWebhookRequestFromJSON(strings.NewReader(payload))
+		require.Nil(t, err)
+		require.NotNil(t, iwr)
+		assert.Equal(t, `literal \u0000 text`, iwr.Text)
+	})
+
+	t.Run("keeps HTML characters unescaped", func(t *testing.T) {
+		payload := `{"text": "<b>a & b</b>\u0000"}`
+
+		iwr, err := IncomingWebhookRequestFromJSON(strings.NewReader(payload))
+		require.Nil(t, err)
+		require.NotNil(t, iwr)
+		assert.Equal(t, "<b>a & b</b>", iwr.Text)
+	})
 }

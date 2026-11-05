@@ -9,6 +9,7 @@ import (
 	"io"
 	"net/http"
 	"regexp"
+	"strings"
 )
 
 const (
@@ -200,6 +201,47 @@ func escapeControlCharsFromPayload(by []byte) []byte {
 	return re.ReplaceAllFunc(by, repl)
 }
 
+// removeNullCharactersFromPayload removes NULL characters from every string,
+// including object keys, in the given JSON payload. It returns false if the
+// payload could not be processed, in which case it should be used unchanged.
+func removeNullCharactersFromPayload(by []byte) ([]byte, bool) {
+	decoder := json.NewDecoder(bytes.NewReader(by))
+	decoder.UseNumber()
+	var payload any
+	if err := decoder.Decode(&payload); err != nil {
+		return nil, false
+	}
+
+	var buf bytes.Buffer
+	encoder := json.NewEncoder(&buf)
+	encoder.SetEscapeHTML(false)
+	if err := encoder.Encode(removeNullCharacters(payload)); err != nil {
+		return nil, false
+	}
+
+	return buf.Bytes(), true
+}
+
+func removeNullCharacters(value any) any {
+	switch v := value.(type) {
+	case string:
+		return strings.ReplaceAll(v, "\x00", "")
+	case []any:
+		for i := range v {
+			v[i] = removeNullCharacters(v[i])
+		}
+		return v
+	case map[string]any:
+		sanitized := make(map[string]any, len(v))
+		for key, item := range v {
+			sanitized[strings.ReplaceAll(key, "\x00", "")] = removeNullCharacters(item)
+		}
+		return sanitized
+	default:
+		return value
+	}
+}
+
 func decodeIncomingWebhookRequest(by []byte) (*IncomingWebhookRequest, error) {
 	decoder := json.NewDecoder(bytes.NewReader(by))
 	var o IncomingWebhookRequest
@@ -219,9 +261,21 @@ func IncomingWebhookRequestFromJSON(data io.Reader) (*IncomingWebhookRequest, *A
 	// characters from the strings contained in the JSON data.
 	o, err := decodeIncomingWebhookRequest(by)
 	if err != nil {
-		o, err = decodeIncomingWebhookRequest(escapeControlCharsFromPayload(by))
+		by = escapeControlCharsFromPayload(by)
+		o, err = decodeIncomingWebhookRequest(by)
 		if err != nil {
 			return nil, NewAppError("IncomingWebhookRequestFromJSON", "model.incoming_hook.parse_data.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		}
+	}
+
+	// The database cannot store NULL characters, so a payload containing an
+	// escaped NULL character (\u0000) would otherwise fail with an internal
+	// server error when the post is saved.
+	if bytes.Contains(by, []byte(`\u0000`)) {
+		if sanitized, ok := removeNullCharactersFromPayload(by); ok {
+			if sanitizedRequest, sanitizeErr := decodeIncomingWebhookRequest(sanitized); sanitizeErr == nil {
+				o = sanitizedRequest
+			}
 		}
 	}
 
