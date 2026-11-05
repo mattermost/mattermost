@@ -8,6 +8,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"strings"
 	"sync"
 	"time"
@@ -146,6 +147,16 @@ func (s *MmctlE2ETestSuite) TestlogsCmdF() {
 		s.Require().NoError(<-done)
 		// Only read after the follower stopped
 		s.Empty(warnings)
+	})
+
+	s.RunForSystemAdminAndLocal("Refuse to follow plain-text log files", func(c client.Client) {
+		fileJSON := *s.th.App.Config().LogSettings.FileJson
+		s.th.App.UpdateConfig(func(cfg *model.Config) { cfg.LogSettings.FileJson = new(false) })
+		defer s.th.App.UpdateConfig(func(cfg *model.Config) { cfg.LogSettings.FileJson = new(fileJSON) })
+
+		opts := &logsOptions{number: DefaultPageSize, follow: true, interval: logsMinInterval}
+		err := newLogFollower(c, opts, io.Discard).run(s.T().Context())
+		s.Require().ErrorIs(err, errPlainTextLogs)
 	})
 
 	s.Run("Should not allow normal user to retrieve logs", func() {

@@ -44,6 +44,17 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 		return testLogMessages(out.String()), warnings, err
 	}
 
+	// expectLogFormat expects the config read for LogSettings.FileJson. Without a value, the config
+	// can't be read, as without the permission, and mmctl checks the last log line instead
+	expectLogFormat := func(fileJSON *bool) {
+		call := s.client.EXPECT().GetConfig(gomock.Any()).Times(1)
+		if fileJSON == nil {
+			call.Return(nil, &model.Response{StatusCode: http.StatusForbidden}, errors.New("forbidden"))
+			return
+		}
+		call.Return(&model.Config{LogSettings: model.LogSettings{FileJson: fileJSON}}, &model.Response{}, nil)
+	}
+
 	// expectServerVersion expects the ping that reads the server version, which X-Version-Id carries
 	expectServerVersion := func(version string) {
 		s.client.
@@ -161,6 +172,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 	s.Run("Fall back to unfiltered logs with plain-text log files", func() {
 		const plainLine = "2026-11-03 08:00:00.000 Z info Server is listening"
 
+		expectLogFormat(nil)
 		s.client.
 			EXPECT().
 			QueryLogs(gomock.Any(), 0, 2, gomock.Any()).
@@ -190,6 +202,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 		s.Require().NoError(cmd.Flags().Set("level", "error"))
 
 		expectServerVersion("12.2.0.12345.abcdef.true")
+		expectLogFormat(nil)
 		s.client.
 			EXPECT().
 			QueryLogs(gomock.Any(), 0, DefaultPageSize, gomock.Any()).
@@ -204,6 +217,52 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 		_, _, err := testLogsCmdF(s.client, cmd, []string{})
 		s.Require().ErrorIs(err, errPlainTextLogs)
 		s.Contains(err.Error(), "LogSettings.FileJson")
+	})
+
+	s.Run("Refuse to follow plain-text log files without querying them", func() {
+		expectLogFormat(new(false))
+
+		data, warnings, err := runLogs(&logsOptions{number: DefaultPageSize, follow: true, interval: logsMinInterval})
+		s.Require().ErrorIs(err, errPlainTextLogs)
+		s.Empty(data)
+		s.Empty(warnings)
+	})
+
+	s.Run("Fall back to unfiltered logs when the config says they're plain text", func() {
+		const plainLine = "2026-11-03 08:00:00.000 Z info Server is listening"
+
+		s.client.
+			EXPECT().
+			QueryLogs(gomock.Any(), 0, 2, gomock.Any()).
+			Return(map[string][]json.RawMessage{"default": {}}, &model.Response{}, nil).
+			Times(1)
+		expectLogFormat(new(false))
+		// No GetLogs for the last line: the config tells
+		s.client.
+			EXPECT().
+			GetLogs(gomock.Any(), 0, 2).
+			Return([]string{plainLine, "\n" + plainLine}, &model.Response{}, nil).
+			Times(1)
+
+		data, warnings, err := runLogs(&logsOptions{number: 2})
+		s.Require().NoError(err)
+		s.Equal([]string{plainLine, plainLine}, data)
+		s.Equal([]string{"the server's log file is not in JSON format, printing the logs unfiltered instead"}, warnings)
+	})
+
+	s.Run("Print nothing when the config says the logs are JSON and nothing matches", func() {
+		s.client.
+			EXPECT().
+			QueryLogs(gomock.Any(), 0, DefaultPageSize, gomock.Any()).
+			Return(map[string][]json.RawMessage{"default": {}}, &model.Response{}, nil).
+			Times(1)
+		expectLogFormat(new(true))
+		// No GetLogs: the config tells
+
+		data, warnings, err := runLogs(&logsOptions{number: DefaultPageSize, levels: []string{"error"}})
+		s.Require().NoError(err)
+		s.Empty(data)
+		s.Empty(warnings)
 	})
 
 	s.Run("Detect the log format behind cluster separators", func() {
@@ -227,6 +286,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 				cmd := newTestCmd(s.T(), LogsCmd)
 				s.Require().NoError(cmd.Flags().Set("search", "nothing"))
 				expectServerVersion("12.2.0.12345.abcdef.true")
+				expectLogFormat(nil)
 
 				s.client.
 					EXPECT().
@@ -254,6 +314,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 		cmd := newTestCmd(s.T(), LogsCmd)
 		s.Require().NoError(cmd.Flags().Set("search", "nothing"))
 		expectServerVersion("12.2.0.12345.abcdef.true")
+		expectLogFormat(nil)
 
 		s.client.
 			EXPECT().
@@ -296,6 +357,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 
 		// Local mode doesn't report a version
 		expectServerVersion("")
+		expectLogFormat(nil)
 		s.client.
 			EXPECT().
 			QueryLogs(gomock.Any(), 0, DefaultPageSize, gomock.Any()).
@@ -353,6 +415,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 		cmd.SetContext(ctx)
 
 		expectServerVersion("12.2.0.12345.abcdef.true")
+		expectLogFormat(new(true))
 		s.client.
 			EXPECT().
 			QueryLogs(gomock.Any(), 0, DefaultPageSize, gomock.Any()).
@@ -533,6 +596,7 @@ func (s *MmctlUnitTestSuite) TestLogFollower() {
 		f := newLogFollower(s.client, opts, &out)
 		f.warn = func(msg string) { fmt.Fprintln(&errOut, msg) }
 		f.newWriter = func(w io.Writer) human.LogWriter { return testMessageWriter{out: w} }
+		f.logFormat = func(context.Context) (bool, bool) { return true, true }
 		now := t0
 		f.now = func() time.Time {
 			current := now

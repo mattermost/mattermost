@@ -663,6 +663,31 @@ func TestLogsAudit(t *testing.T) {
 	}
 }
 
+func TestDecodeLogLines(t *testing.T) {
+	t.Run("decodes JSON lines and counts the others", func(t *testing.T) {
+		entries, skipped, firstErr := decodeLogLines([]string{
+			`{"level":"info","msg":"first"}`,
+			"2026-11-05T12:00:00.000Z info plain text",
+			`{"level":"warn","msg":"second"}`,
+			"another plain line",
+		})
+		require.Equal(t, []any{
+			map[string]any{"level": "info", "msg": "first"},
+			map[string]any{"level": "warn", "msg": "second"},
+		}, entries)
+		assert.Equal(t, 2, skipped)
+		assert.Error(t, firstErr)
+	})
+
+	t.Run("no lines", func(t *testing.T) {
+		entries, skipped, firstErr := decodeLogLines(nil)
+		require.NotNil(t, entries, "a node without lines is still sent as an empty array")
+		assert.Empty(t, entries)
+		assert.Zero(t, skipped)
+		assert.NoError(t, firstErr)
+	})
+}
+
 func TestDownloadLogs(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)

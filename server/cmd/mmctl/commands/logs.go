@@ -301,6 +301,10 @@ type logFollower struct {
 	now  func() time.Time
 	// newWriter returns the writer that formats the entries printed to out
 	newWriter func(io.Writer) human.LogWriter
+	// logFormat reports whether the server writes its log file as JSON, and whether it could tell
+	logFormat func(ctx context.Context) (isJSON, known bool)
+	// format caches what logFormat returned, as it's only asked once
+	format *logFileFormat
 
 	levels map[string]bool
 	search string
@@ -327,6 +331,7 @@ func newLogFollower(c client.Client, opts *logsOptions, out io.Writer) *logFollo
 		warn:           printer.PrintWarning,
 		now:            time.Now,
 		newWriter:      opts.newWriter,
+		logFormat:      configLogFormat(c),
 		levels:         make(map[string]bool, len(opts.levels)),
 		search:         strings.ToLower(opts.search),
 		nodes:          make(map[string]bool),
@@ -346,6 +351,14 @@ func (f *logFollower) run(ctx context.Context) error {
 	var since time.Time
 	if f.opts.since > 0 {
 		since = start.Add(-f.opts.since)
+	}
+
+	// Following plain-text logs would print nothing, and servers before v12.2 log a warning for
+	// every line the query skips, which the next poll reads back
+	if f.opts.follow {
+		if isJSON, known := f.logsAreJSON(ctx); known && !isJSON {
+			return errPlainTextLogs
+		}
 	}
 
 	// With --number 0, one entry per node still shows where the logs end, by the server's clock
@@ -431,10 +444,41 @@ func (f *logFollower) fetch(ctx context.Context, from time.Time, perPage int) (m
 	return f.c.QueryLogs(ctx, 0, perPage, filter)
 }
 
+type logFileFormat struct {
+	isJSON bool
+	known  bool
+}
+
+// configLogFormat reads LogSettings.FileJson from the server's config, as the System Console does.
+// It can't tell without the permission to read the config.
+func configLogFormat(c client.Client) func(ctx context.Context) (bool, bool) {
+	return func(ctx context.Context) (bool, bool) {
+		cfg, _, err := c.GetConfig(ctx)
+		if err != nil || cfg == nil || cfg.LogSettings.FileJson == nil {
+			return false, false
+		}
+		return *cfg.LogSettings.FileJson, true
+	}
+}
+
+// logsAreJSON reports whether the server writes its log file as JSON, and whether it could tell.
+// It reads the config at most once.
+func (f *logFollower) logsAreJSON(ctx context.Context) (isJSON, known bool) {
+	if f.format == nil {
+		isJSON, known := f.logFormat(ctx)
+		f.format = &logFileFormat{isJSON: isJSON, known: known}
+	}
+	return f.format.isJSON, f.format.known
+}
+
 // hasPlainTextLogs reports whether the server writes its log file as plain text, which the query
 // skips. It's only called when a query returned no entries, as that's the only way plain-text
-// logs show.
+// logs show. It goes by the config, and without it, by the last log line.
 func (f *logFollower) hasPlainTextLogs(ctx context.Context) bool {
+	if isJSON, known := f.logsAreJSON(ctx); known {
+		return !isJSON
+	}
+
 	// Each node returns its last line. On a cluster, a separator comes before each node's line:
 	// two rules, the node's name, and two more rules
 	lines, _, err := f.c.GetLogs(ctx, 0, 1)
