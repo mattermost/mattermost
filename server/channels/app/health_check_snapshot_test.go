@@ -303,9 +303,10 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 		t.Helper()
 
 		evaluations := engine.Evaluate(snapshot)
-		// Each collection samples the open file descriptor count separately.
+		// Independently sampled values can differ between the live and packet collections.
 		for i := range evaluations {
-			if evaluations[i].Code == "NODE_FD_EXHAUSTION" {
+			switch evaluations[i].Code {
+			case "NODE_FD_EXHAUSTION", "FILESTORE_DISK_LOW", "FILESTORE_DISK_FULL":
 				require.NotNil(t, evaluations[i].Result.Value)
 				evaluations[i].Result.Value = nil
 			}

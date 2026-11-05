@@ -38,6 +38,7 @@ const (
 
 	complianceDirSubject      = "ComplianceSettings.Directory"
 	expiresAtSubject          = "license.expires_at"
+	filestoreDiskSubject      = "FileStore.AvailableMB"
 	globalRelayTimeoutSubject = "MessageExportSettings.GlobalRelaySettings.SMTPServerTimeout"
 	seatsSubject              = "license.users"
 )
@@ -157,6 +158,8 @@ func TestReadGoldenPackets(t *testing.T) {
 				{Code: "DB_HA_FAILOVER_STORM_RISK", State: healthcheck.StateFiring, Subject: "SqlSettings.MaxOpenConns"},
 				{Code: "ES_LIVE_BATCH_SYNC", State: healthcheck.StateFiring, Subject: "ElasticsearchSettings.LiveIndexingBatchSize"},
 				{Code: "EXPORT_GR_TIMEOUT_LOW", State: healthcheck.StateFiring, Subject: globalRelayTimeoutSubject},
+				{Code: "FILESTORE_DISK_FULL", State: healthcheck.StateFiring, Subject: filestoreDiskSubject, Scope: "app-3.example.com"},
+				{Code: "FILESTORE_DISK_LOW", State: healthcheck.StateFiring, Subject: filestoreDiskSubject, Scope: "app-1.example.com"},
 				{Code: "FILESTORE_LOCAL_IN_CLUSTER", State: healthcheck.StateFiring, Subject: "FileSettings.Directory"},
 				{Code: "JOB_STUCK", State: healthcheck.StateFiring, Subject: model.JobTypeMessageExport},
 				{Code: "JOB_WEDGED_AT_ZERO", State: healthcheck.StateFiring, Subject: model.JobTypeMessageExport},

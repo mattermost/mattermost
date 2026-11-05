@@ -219,6 +219,138 @@ func withBucket(bucket string) func(*model.Config) {
 	}
 }
 
+func filestoreDiskNode(driver string, totalMB, availableMB *uint64) *healthcheck.NodeSnapshot {
+	return diagNode("app-2", false, func(diag *model.SupportPacketDiagnostics) {
+		diag.FileStore.Driver = driver
+		diag.FileStore.TotalMB = totalMB
+		diag.FileStore.AvailableMB = availableMB
+	})
+}
+
+func TestFilestoreDiskRules(t *testing.T) {
+	t.Parallel()
+
+	rules := []healthcheck.Rule{filestoreDiskLow, filestoreDiskFull}
+	diskFiring := func(messageID string, availableGiB, totalGiB, percent string, value float64) want {
+		return firing(messageID, map[string]string{
+			"available_gib": availableGiB,
+			"total_gib":     totalGiB,
+			"percent":       percent,
+		}).withValue(value)
+	}
+	both := func(w want) map[string]want {
+		return map[string]want{"FILESTORE_DISK_LOW": w, "FILESTORE_DISK_FULL": w}
+	}
+
+	localSectionMissing := withoutSection(filestoreDiskNode(model.ImageDriverLocal, new(uint64(100*1024)), new(uint64(9*1024))), model.SectionFilestoreDisk)
+	localSectionFailed := filestoreDiskNode(model.ImageDriverLocal, new(uint64(100*1024)), new(uint64(9*1024)))
+	localSectionFailed.Diagnostics.Errors[model.SectionFilestoreDisk] = errors.New("statfs failed")
+	s3SectionMissing := withoutSection(filestoreDiskNode(model.ImageDriverS3, nil, nil), model.SectionFilestoreDisk)
+
+	testCases := []struct {
+		name string
+		node *healthcheck.NodeSnapshot
+		want map[string]want
+	}{
+		{
+			name: "healthy local disk",
+			node: filestoreDiskNode(model.ImageDriverLocal, new(uint64(100*1024)), new(uint64(20*1024))),
+			want: both(resolved.withValue(0.20)),
+		},
+		{
+			name: "low local disk",
+			node: filestoreDiskNode(model.ImageDriverLocal, new(uint64(100*1024)), new(uint64(9*1024))),
+			want: map[string]want{
+				"FILESTORE_DISK_LOW":  diskFiring("health.rule.filestore_disk_low.message", "9.0", "100.0", "9.00", 0.09),
+				"FILESTORE_DISK_FULL": resolved.withValue(0.09),
+			},
+		},
+		{
+			name: "low percentage on a large disk stays quiet above the cap",
+			node: filestoreDiskNode(model.ImageDriverLocal, new(uint64(1024*1024)), new(uint64(90*1024))),
+			want: both(resolved.withValue(0.087890625)),
+		},
+		{
+			name: "full by percentage",
+			node: filestoreDiskNode(model.ImageDriverLocal, new(uint64(100*1024)), new(uint64(4*1024))),
+			want: map[string]want{
+				"FILESTORE_DISK_LOW":  resolved.withValue(0.04),
+				"FILESTORE_DISK_FULL": diskFiring("health.rule.filestore_disk_full.message", "4.0", "100.0", "4.00", 0.04),
+			},
+		},
+		{
+			name: "just below five percent does not round to the threshold",
+			node: filestoreDiskNode(model.ImageDriverLocal, new(uint64(100_000)), new(uint64(4_999))),
+			want: map[string]want{
+				"FILESTORE_DISK_LOW":  resolved.withValue(0.04999),
+				"FILESTORE_DISK_FULL": diskFiring("health.rule.filestore_disk_full.message", "4.9", "97.7", "4.99", 0.04999),
+			},
+		},
+		{
+			name: "full by absolute space",
+			node: filestoreDiskNode(model.ImageDriverLocal, new(uint64(10*1024)), new(uint64(1023))),
+			want: map[string]want{
+				"FILESTORE_DISK_LOW":  resolved.withValue(float64(1023) / (10 * 1024)),
+				"FILESTORE_DISK_FULL": diskFiring("health.rule.filestore_disk_full.message", "0.999", "10.0", "9.99", float64(1023)/(10*1024)),
+			},
+		},
+		{
+			name: "zero available space",
+			node: filestoreDiskNode(model.ImageDriverLocal, new(uint64(100*1024)), new(uint64(0))),
+			want: map[string]want{
+				"FILESTORE_DISK_LOW":  resolved.withValue(0),
+				"FILESTORE_DISK_FULL": diskFiring("health.rule.filestore_disk_full.message", "0.0", "100.0", "0.00", 0),
+			},
+		},
+		{
+			name: "exactly ten percent is not low",
+			node: filestoreDiskNode(model.ImageDriverLocal, new(uint64(100*1024)), new(uint64(10*1024))),
+			want: both(resolved.withValue(0.10)),
+		},
+		{
+			name: "exactly five percent is low but not full",
+			node: filestoreDiskNode(model.ImageDriverLocal, new(uint64(100*1024)), new(uint64(5*1024))),
+			want: map[string]want{
+				"FILESTORE_DISK_LOW":  diskFiring("health.rule.filestore_disk_low.message", "5.0", "100.0", "5.00", 0.05),
+				"FILESTORE_DISK_FULL": resolved.withValue(0.05),
+			},
+		},
+		{
+			name: "exactly fifty GiB does not pass the low-space cap",
+			node: filestoreDiskNode(model.ImageDriverLocal, new(uint64(800*1024)), new(uint64(50*1024))),
+			want: both(resolved.withValue(0.0625)),
+		},
+		{
+			name: "exactly one GiB is not full",
+			node: filestoreDiskNode(model.ImageDriverLocal, new(uint64(15*1024)), new(uint64(1024))),
+			want: map[string]want{
+				"FILESTORE_DISK_LOW":  diskFiring("health.rule.filestore_disk_low.message", "1.0", "15.0", "6.66", float64(1)/15),
+				"FILESTORE_DISK_FULL": resolved.withValue(float64(1) / 15),
+			},
+		},
+		{name: "S3 without disk data is not applicable", node: s3SectionMissing, want: both(resolved)},
+		{name: "driver missing", node: filestoreDiskNode("", new(uint64(100*1024)), new(uint64(9*1024))), want: both(diagUnknown)},
+		{name: "nil diagnostics", node: &healthcheck.NodeSnapshot{Hostname: "app-2"}, want: both(diagUnknown)},
+		{name: "local disk section absent", node: localSectionMissing, want: both(diagUnknown)},
+		{name: "local disk section failed", node: localSectionFailed, want: both(diagUnknown)},
+		{name: "total missing", node: filestoreDiskNode(model.ImageDriverLocal, nil, new(uint64(1024))), want: both(diagUnknown)},
+		{name: "available missing", node: filestoreDiskNode(model.ImageDriverLocal, new(uint64(100*1024)), nil), want: both(diagUnknown)},
+		{name: "total zero", node: filestoreDiskNode(model.ImageDriverLocal, new(uint64(0)), new(uint64(0))), want: both(diagUnknown)},
+		{name: "available exceeds total", node: filestoreDiskNode(model.ImageDriverLocal, new(uint64(100)), new(uint64(101))), want: both(diagUnknown)},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			snapshot := healthcheck.NewSnapshot([]*healthcheck.NodeSnapshot{tc.node})
+			for _, rule := range rules {
+				assertResult(t, tc.want[rule.Code], rule.EvalNode(snapshot, tc.node), rule.Code)
+			}
+		})
+	}
+}
+
 func TestFilestoreUnreachable(t *testing.T) {
 	t.Parallel()
 

@@ -4,16 +4,28 @@
 package platform
 
 import (
+	"math"
+	"strconv"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/rules/internal/probes"
 )
 
 func init() {
-	healthcheck.Register(filestoreLocalInCluster, filestoreS3NoBucket, filestoreS3SSLOff, filestoreUnreachable)
+	healthcheck.Register(filestoreLocalInCluster, filestoreS3NoBucket, filestoreS3SSLOff, filestoreDiskLow, filestoreDiskFull, filestoreUnreachable)
 }
 
-const filestoreConsolePath = "/admin_console/environment/file_storage"
+const (
+	filestoreConsolePath = "/admin_console/environment/file_storage"
+
+	filestoreDiskLowRatio     = 0.10
+	filestoreDiskFullRatio    = 0.05
+	filestoreDiskLowCapMB     = 50 * 1024
+	filestoreDiskFullFloorMB  = 1024
+	filestoreDiskSpaceSubject = "FileStore.AvailableMB"
+	megabytesPerGigabyte      = 1024
+)
 
 var filestoreLocalInCluster = healthcheck.Rule{
 	Code:     "FILESTORE_LOCAL_IN_CLUSTER",
@@ -59,6 +71,36 @@ var filestoreS3SSLOff = healthcheck.Rule{
 	Volatility: healthcheck.VolatilityStable,
 	Subject:    "FileSettings.AmazonS3SSL",
 	Eval:       healthcheck.Gate(usesS3, healthcheck.ReasonConfigUnavailable, evalFilestoreS3SSLOff),
+}
+
+var filestoreDiskLow = healthcheck.Rule{
+	Code:     "FILESTORE_DISK_LOW",
+	Area:     model.AreaPlatform,
+	Severity: healthcheck.SeverityWarning,
+	RuleText: model.RuleText{
+		TitleID:       healthcheck.TranslationId("health.rule.filestore_disk_low.title"),
+		RemediationID: healthcheck.TranslationId("health.rule.filestore_disk_low.remediation"),
+		ConsolePath:   filestoreConsolePath,
+	},
+	Surface:    healthcheck.SurfaceProduct,
+	Volatility: healthcheck.VolatilityThreshold,
+	Subject:    filestoreDiskSpaceSubject,
+	EvalNode:   healthcheck.SingleNode(evalFilestoreDiskLow),
+}
+
+var filestoreDiskFull = healthcheck.Rule{
+	Code:     "FILESTORE_DISK_FULL",
+	Area:     model.AreaPlatform,
+	Severity: healthcheck.SeverityCritical,
+	RuleText: model.RuleText{
+		TitleID:       healthcheck.TranslationId("health.rule.filestore_disk_full.title"),
+		RemediationID: healthcheck.TranslationId("health.rule.filestore_disk_full.remediation"),
+		ConsolePath:   filestoreConsolePath,
+	},
+	Surface:    healthcheck.SurfaceProduct,
+	Volatility: healthcheck.VolatilityThreshold,
+	Subject:    filestoreDiskSpaceSubject,
+	EvalNode:   healthcheck.SingleNode(evalFilestoreDiskFull),
 }
 
 var filestoreUnreachable = healthcheck.Rule{
@@ -119,6 +161,61 @@ func evalFilestoreS3SSLOff(s *healthcheck.Snapshot) healthcheck.Result {
 	default:
 		return healthcheck.Resolved()
 	}
+}
+
+func filestoreDiskIsFull(freeRatio float64, availableMB uint64) bool {
+	return freeRatio < filestoreDiskFullRatio || availableMB < filestoreDiskFullFloorMB
+}
+
+func formatFilestoreGiB(megabytes uint64) string {
+	precision := 1
+	if megabytes > 0 && megabytes < megabytesPerGigabyte {
+		precision = 3
+	}
+	return strconv.FormatFloat(float64(megabytes)/megabytesPerGigabyte, 'f', precision, 64)
+}
+
+func formatFilestorePercent(freeRatio float64) string {
+	percent := math.Floor(10_000*freeRatio) / 100
+	return strconv.FormatFloat(percent, 'f', 2, 64)
+}
+
+func evalFilestoreDisk(n *healthcheck.NodeSnapshot, messageID string, fires func(float64, uint64) bool) healthcheck.Result {
+	diag, ok := n.Diag()
+	if !ok || diag.FileStore.Driver == "" {
+		return healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)
+	}
+	if diag.FileStore.Driver != model.ImageDriverLocal {
+		return healthcheck.Resolved()
+	}
+	if !n.Has(model.SectionFilestoreDisk) || diag.FileStore.TotalMB == nil || diag.FileStore.AvailableMB == nil || *diag.FileStore.TotalMB == 0 {
+		return healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)
+	}
+
+	totalMB, availableMB := *diag.FileStore.TotalMB, *diag.FileStore.AvailableMB
+	if availableMB > totalMB {
+		return healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)
+	}
+	freeRatio := float64(availableMB) / float64(totalMB)
+	if !fires(freeRatio, availableMB) {
+		return healthcheck.Resolved().WithValue(freeRatio)
+	}
+
+	return healthcheck.Firing(messageID).
+		WithDetail("available_gib", formatFilestoreGiB(availableMB)).
+		WithDetail("total_gib", formatFilestoreGiB(totalMB)).
+		WithDetail("percent", formatFilestorePercent(freeRatio)).
+		WithValue(freeRatio)
+}
+
+func evalFilestoreDiskLow(_ *healthcheck.Snapshot, n *healthcheck.NodeSnapshot) healthcheck.Result {
+	return evalFilestoreDisk(n, healthcheck.TranslationId("health.rule.filestore_disk_low.message"), func(freeRatio float64, availableMB uint64) bool {
+		return !filestoreDiskIsFull(freeRatio, availableMB) && freeRatio < filestoreDiskLowRatio && availableMB < filestoreDiskLowCapMB
+	})
+}
+
+func evalFilestoreDiskFull(_ *healthcheck.Snapshot, n *healthcheck.NodeSnapshot) healthcheck.Result {
+	return evalFilestoreDisk(n, healthcheck.TranslationId("health.rule.filestore_disk_full.message"), filestoreDiskIsFull)
 }
 
 func evalFilestoreUnreachable(s *healthcheck.Snapshot) healthcheck.Result {
