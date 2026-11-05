@@ -54,7 +54,8 @@ def parse_ics(text: str) -> list[Event]:
         if line == "BEGIN:VEVENT":
             current = {}
         elif line == "END:VEVENT":
-            if current and current.get("SUMMARY") and current.get("DTSTART"):
+            cancelled = (current or {}).get("STATUS", ("", ""))[1].strip().upper() == "CANCELLED"
+            if current and current.get("SUMMARY") and current.get("DTSTART") and not cancelled:
                 day, time = _start(*current["DTSTART"])
                 events.append(Event(" ".join(_unescape(current["SUMMARY"][1]).split()), day, time))
             current = None

@@ -64,6 +64,9 @@ def run(version, epics: list[dict], calendar, now: datetime, feature_complete: d
     if feature_complete is None:
         result.todo(f"no Feature Complete for {version.short} on the calendar, so the review's occurrence can't be found")
         return result
+    if now.date() <= feature_complete:
+        result.text = f"Feature Complete for {version.short} has not passed, so the description is not changed yet."
+        return result
     event, problem = release_occurrence(calendar, feature_complete, release_day)
     if event is None:
         result.todo(f"{problem}; nothing was changed (an occurrence is never created)")

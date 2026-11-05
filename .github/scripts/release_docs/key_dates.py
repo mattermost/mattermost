@@ -50,8 +50,9 @@ def milestone_key(title: str) -> str | None:
 def names_release(title: str, release: schedule.Schedule) -> bool:
     text = clean(title)
     if milestone_key(text) == "mobile_release_day":
-        return re.search(rf"Mobile {re.escape(release.mobile)}(?![\d.])", text) is not None
-    return re.search(rf"(?<![\w.]){re.escape(release.version.short)}(?![\d.])", text) is not None
+        return re.search(rf"Mobile {re.escape(release.mobile)}(?![\d.])", text, re.IGNORECASE) is not None
+    # "v12.3 Release Day" or "v12.3.0 Release Day", not a dot release such as v12.3.1.
+    return re.search(rf"(?<![\w.]){re.escape(release.version.short)}(?!\d)(?!\.[1-9])", text, re.IGNORECASE) is not None
 
 
 def event_day(event: dict):

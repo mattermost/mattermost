@@ -177,11 +177,13 @@ def released_together(gh, trigger: Version, now: datetime) -> list[Version]:
     """The dot releases published on GitHub in the last few days, besides ``trigger``."""
     found = []
     for release in gh.recent_releases(SERVER_REPO):
-        tag, created = release.get("tag_name", ""), release.get("created_at") or ""
-        if release.get("draft") or not FINAL_TAG.fullmatch(tag) or not created:
+        # published_at, not created_at: GitHub sets that to the commit's date, so a release tagged days
+        # before it was published would be skipped as old.
+        tag, published = release.get("tag_name", ""), release.get("published_at") or ""
+        if release.get("draft") or not FINAL_TAG.fullmatch(tag) or not published:
             continue
         version = Version.parse(tag)
-        age = now - datetime.fromisoformat(created.replace("Z", "+00:00"))
+        age = now - datetime.fromisoformat(published.replace("Z", "+00:00"))
         if version.is_dot and version != trigger and age.days < SWEEP_DAYS:
             found.append(version)
     return sorted(set(found), reverse=True)
@@ -241,7 +243,12 @@ def changelog_entry(gh, version: Version) -> tuple[str | None, str]:
     """(the entry, where it came from): master, else the open changelog PR's branch."""
     path = changelog_path(version.tag)
     base = Version(version.major, version.minor, 0)
-    for ref in (gh.default_branch(SERVER_REPO), f"changelog/{base.tag}"):
+    branch = f"changelog/{base.tag}"
+    refs = [gh.default_branch(SERVER_REPO)]
+    # The branch of a closed, unmerged changelog PR is not a source: only an open PR's.
+    if any(p.get("state") == "open" for p in gh.pulls_for_branch(SERVER_REPO, branch)):
+        refs.append(branch)
+    for ref in refs:
         found = changelog.entry(gh.file(SERVER_REPO, path, ref) or "", version)
         if found:
             return found, f"{path} on {ref}"
@@ -670,7 +677,7 @@ def run_esr_comms(raw: str, env: dict, gh, hub, jira_client, holidays, today: da
     if hub_lines:
         message = "ESR comms: Jira tickets\n" + "\n".join(hub_lines)
         marker = f"release-docs:esr-comms:{raw}:{today}"
-        lines.append(f"- Jira tickets: {report_in_hub(hub, hublib.review_channel_id(env, live), marker, message, live)}")
+        lines.append(f"- Jira tickets: {report_in_hub(hub, hublib.review_channel_id(env, live, hublib.release_channel(hub, item.old) if hub else None), marker, message, live)}")
     result.text = "\n".join(lines)
     return result
 
@@ -705,8 +712,12 @@ def run_hub_task(task: str, raw: str, env: dict, gh, read_gh, claude, fetch) -> 
         else:
             version, day = due_release(task, events, today, holidays)
             if version is None:
-                note = f" ({problem})" if problem else ""
-                return Run(Result(task, label, skipped=f"nothing is due on {today}{note}"), f"Not due on {today}.")
+                if problem:
+                    # An unreadable calendar is a failure, not a quiet day: the exact-day tasks don't retry.
+                    result = Result(task, label)
+                    result.todo(f"the Release Dates calendar could not be read: {problem}")
+                    return Run(result, "Nothing done.")
+                return Run(Result(task, label, skipped=f"nothing is due on {today}"), f"Not due on {today}.")
         if day is None and task != key_dates.TASK:
             result = Result(task, version.tag)
             result.todo(f"no Release Day for {version.short}: set the release_date input or the calendar URL")

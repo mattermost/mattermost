@@ -22,7 +22,7 @@ from dataclasses import dataclass, field
 from datetime import date
 from pathlib import Path
 
-from changelog_release import NOT_A_FEATURE_PAGE, REDIRECTS_FILE, DocsSite, docs_urls, page_title
+from changelog_release import DOCS_URL_RE, NOT_A_FEATURE_PAGE, REDIRECTS_FILE, DocsSite, docs_urls, page_title
 
 from .result import Result
 from .versions import Version
@@ -213,6 +213,9 @@ def doc_link(epic: Epic, name: str, docs: DocsIndex, notes: list) -> tuple[str, 
         if not url.startswith(("https://docs.mattermost.com", "http://docs.mattermost.com")):
             continue
         url = url.rstrip(".,;:")
+        if not DOCS_URL_RE.fullmatch(url):  # e.g. https://docs.mattermost.com.attacker.example/
+            notes.append(f"{epic.key}: the description links {url}, which is not a docs.mattermost.com page.")
+            continue
         problem = docs.check(url)
         if problem is None:
             return url, "the epic description"

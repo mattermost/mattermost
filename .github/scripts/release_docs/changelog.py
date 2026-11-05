@@ -90,7 +90,8 @@ def pick_highlights(bullets: list[str], claude) -> tuple[list[Highlight], str | 
         if not isinstance(source, int) or not 0 <= source < len(bullets) or not name:
             continue
         url = str(item.get("url") or "").strip()
-        if url and url not in urls_in(bullets[source]):
+        # Only a docs.mattermost.com page that the bullet itself links: never a forum or issue URL.
+        if url and (url not in urls_in(bullets[source]) or not re.match(r"https?://docs\.mattermost\.com(?:[/?#]|$)", url)):
             url = ""
         highlights.append(Highlight(name, url, bullets[source]))
     if not highlights:

@@ -121,7 +121,8 @@ def blog_and_email(version: Version, bullets: list[str], prs: list[dict], epics:
     for problem in problems:
         result.todo(problem)
     result.counts = {"PRs with a release note": sum(1 for p in prs if p["note"]), "Jira epics": len(epics)}
-    allowed = {p["id"]: p["url"] for p in prs} | {e["key"]: e["url"] for e in epics}
+    # Only PRs with a release note: those are the ones Claude is shown, so a citation of another is unsourced.
+    allowed = {p["id"]: p["url"] for p in prs if p["note"]} | {e["key"]: e["url"] for e in epics}
     if claude is None:
         result.todo("ANTHROPIC_API_KEY is not set, so nothing was drafted")
         result.text = _sources_appendix(prs, epics)
@@ -146,6 +147,8 @@ def blog_and_email(version: Version, bullets: list[str], prs: list[dict], epics:
             return f"- {text} {result.todo(f'no valid source for: {text[:60]}')}"
         return f"- {text} ({', '.join(f'[{s}]({allowed[s]})' for s in dict.fromkeys(cited))})"
 
+    if not answer.get("blog_outline"):
+        result.todo("Claude returned no blog outline sections")
     lines = [f"# Mattermost {version.short}: blog outline", ""]
     for section in answer.get("blog_outline", []):
         lines += [f"## {section.get('heading', '')}", ""] + [point(p) for p in section.get("points", [])] + [""]

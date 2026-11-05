@@ -153,10 +153,11 @@ def revert_pairs(commits: list[dict]) -> set[str]:
         match = REVERT.match(_core_title(commit["title"]))
         if not match:
             continue
-        target = by_title.get(_core_title(match.group(1)))
+        # By SHA first: a title can match a newer commit that is not the one reverted.
         reverted = REVERTED_SHA.search(commit.get("message", ""))
-        if not target and reverted:
-            target = next((s for s in shas if s.startswith(reverted.group(1))), None)
+        target = next((s for s in shas if reverted and s.startswith(reverted.group(1))), None)
+        if not target:
+            target = by_title.get(_core_title(match.group(1)))
         if target:
             paired |= {commit["sha"], target}
     return paired
@@ -1026,7 +1027,9 @@ def check_pr(title: str, files: dict, base: dict) -> list[str]:
             problems.append(f"{tag}: the changelog still says <SEVERITY>")
         problems += [f"{tag}: the {EDITIONS[e]} SHA-256 in the version archive is TBD" for e in archive_tbd(files.get(ARCHIVE), v)]
     for path, text in files.items():
-        if "TODO(release-agent)" in (text or "") and "TODO(release-agent)" not in (base.get(path) or ""):
+        # Each added marker line counts, not each file: the base may already have one.
+        base_lines = set((base.get(path) or "").splitlines())
+        if any("TODO(release-agent)" in line and line not in base_lines for line in (text or "").splitlines()):
             problems.append(f"{path} has a TODO(release-agent) marker")
     found, _ = consistency(files, base, releases)
     return problems + found

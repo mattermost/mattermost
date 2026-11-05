@@ -829,11 +829,11 @@ class EventsTest(unittest.TestCase):
     def test_release_event_also_checks_the_others_published_with_it(self):
         class Releases:
             def recent_releases(self, repo, count=30):
-                return [{"tag_name": "v12.1.1", "created_at": "2026-11-02T08:00:00Z"},
-                        {"tag_name": "v11.7.15", "created_at": "2026-11-02T07:00:00Z", "prerelease": True},
-                        {"tag_name": "v12.2.0", "created_at": "2026-11-02T07:00:00Z"},
-                        {"tag_name": "v11.11.9", "created_at": "2026-11-02T07:00:00Z", "draft": True},
-                        {"tag_name": "v11.6.9", "created_at": "2026-10-20T07:00:00Z"}]
+                return [{"tag_name": "v12.1.1", "published_at": "2026-11-02T08:00:00Z"},
+                        {"tag_name": "v11.7.15", "published_at": "2026-11-02T07:00:00Z", "prerelease": True},
+                        {"tag_name": "v12.2.0", "published_at": "2026-11-02T07:00:00Z"},
+                        {"tag_name": "v11.11.9", "published_at": "2026-11-02T07:00:00Z", "draft": True},
+                        {"tag_name": "v11.6.9", "published_at": "2026-10-20T07:00:00Z"}]
         now = datetime(2026, 11, 2, 12, tzinfo=timezone.utc)
         self.assertEqual(cli.released_together(Releases(), V("v12.1.1"), now), [V("v11.7.15")])
 

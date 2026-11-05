@@ -57,6 +57,10 @@ def update(notices: str, version: Version, display_day: date, highlights: list[H
         result.skipped = f"{PATH} already has the notice for v{latest.major}.{latest.minor}"
         return notices
     start, end = _object_bounds(notices, match.start())
+    if json.loads(notices[start:end]).get("id") != f"server_upgrade_v{latest.major}.{latest.minor}":
+        # _object_bounds assumes "id" is the notice's first key; otherwise it found a nested object.
+        result.todo(f"{PATH} has the server upgrade notice with an unexpected key order")
+        return notices
     line_start = notices.rfind("\n", 0, start) + 1
     indent = re.match(r"[ \t]*", notices[line_start:start]).group(0)
     updated = notices[:start] + _indented(rendered, indent) + notices[end:]

@@ -5,7 +5,7 @@ import re
 from . import templates
 from .changelog import Highlight, join_names
 from .result import Result
-from .versions import Version, is_esr
+from .versions import Version, esr_lines, is_esr
 
 TASK = "github-release"
 MARKDOWN = re.compile(r"[\[\]*`#_<>|]")
@@ -20,6 +20,9 @@ def build(version: Version, esr_versions: str, highlights: list[Highlight]) -> R
     result = Result(TASK, version.tag, repo="mattermost/mattermost")
     if version.is_dot:
         result.skipped = "dot release descriptions state the security severity, which a person decides"
+        return result
+    if not esr_lines(esr_versions):
+        result.todo("CHANGELOG_ESR_VERSIONS is empty, so it is unknown whether this is an ESR")
         return result
     names = [plain(h.name) for h in highlights if plain(h.name)]
     sentence = templates.render("github-release.txt", {

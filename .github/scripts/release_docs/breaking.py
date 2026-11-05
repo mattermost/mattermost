@@ -29,6 +29,14 @@ from .versions import Version
 TASK = drafts.BREAKING_TASK
 DEFAULT_REPO = "mattermost/mattermost"
 LABEL_SIGNAL = re.compile(r"(?i)breaking|deprecat")
+NEGATED_LABEL = re.compile(r"(?i)\b(?:non|no|not|without)[-_\s]*(?:breaking|deprecat)")
+
+
+def _is_signal(label: str) -> bool:
+    """A breaking-change or deprecation label, not "Non-breaking" or "No deprecation"."""
+    return bool(LABEL_SIGNAL.search(label)) and not NEGATED_LABEL.search(label)
+
+
 NOTE_WORDS = re.compile(r"(?i)\b(?:breaking|removed|deprecated|no longer|must now)\b")
 CHECKER_REMOVAL = re.compile(r"^Removed `{1,2}[^`]+`{1,2}.*(?:configuration setting|API endpoint)\.|^🗑️\s+Removed API file:")
 DESTRUCTIVE_SQL = re.compile(r"(?i)\bDROP\s+(?:TABLE|COLUMN)\b|\bRENAME\s+(?:COLUMN\b|TO\b)"
@@ -46,8 +54,8 @@ def signals(labels, body: str, jira: set = frozenset()) -> list[tuple[str, bool]
     """
     from generate_changelog import extract_release_notes  # needs requests; imported where used
 
-    found = [(f"PR label `{label}`", True) for label in sorted(labels) if LABEL_SIGNAL.search(label)]
-    found += [(f"Jira label `{label}`", True) for label in sorted(jira) if LABEL_SIGNAL.search(label)]
+    found = [(f"PR label `{label}`", True) for label in sorted(labels) if _is_signal(label)]
+    found += [(f"Jira label `{label}`", True) for label in sorted(jira) if _is_signal(label)]
     for note in extract_release_notes(body or "") or []:
         for line in (part.strip() for part in note.splitlines()):
             if CHECKER_REMOVAL.match(line):

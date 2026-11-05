@@ -92,7 +92,10 @@ def run(version, release_day: date, render, hub, env: dict, live: bool, now: dat
         result.text = "Posted the draft in the review channel for approval."
         return result
 
-    if hublib.find_reply(hub, draft["id"], mark["scheduled"]) or already_scheduled(hub, announcements, mark["scheduled"]):
+    # Also a post already delivered: delivery removes the scheduled row, so a run after a failed confirmation
+    # reply would otherwise schedule it again.
+    if (hublib.find_reply(hub, draft["id"], mark["scheduled"]) or already_scheduled(hub, announcements, mark["scheduled"])
+            or hublib.find_post(hub, announcements, mark["scheduled"])):
         result.text = "Already scheduled in Announcements; nothing to do."
         return result
     if not approved(hub, draft, manager):

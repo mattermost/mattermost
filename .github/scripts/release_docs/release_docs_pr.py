@@ -63,6 +63,8 @@ def server_release_row(version: Version, esr_versions: str, release_day: date | 
             f'<li><a href="{sbom_url(v, "team")}">Team Edition</a></li>'
             f'<li><a href="{sbom_url(v, "enterprise")}">Enterprise</a></li></ul></details>')
     esr = is_esr(version, esr_versions)
+    if not re.search(r"\d", esr_versions or ""):
+        result.todo("CHANGELOG_ESR_VERSIONS is empty, so the support end assumes a non-ESR release")
     released = _day(release_day, result, f"release date for {version.short}")
     ends = support_end(release_day, esr).isoformat() if release_day else result.todo(f"no support end for {version.short}")
     if esr:
@@ -266,6 +268,10 @@ def add_postgres_row(content: str, version: Version, esr_versions: str, release_
     rows = list(PG_ROW.finditer(content, intro, table_end))
     own = next((r for r in rows if (int(r.group(1)), int(r.group(2))) == version.line), None)
     if own and TODO_MARKER in own.group(0):
+        if code_minimum is None:
+            # Keep the placeholder row: removing it would leave nothing to show the missing input.
+            result.todo(f"MinimumPostgresMajorVersion not found in {POSTGRES_REQUIREMENT} on release-{version.major}.{version.minor}")
+            return content
         content = content[:own.start()] + content[own.end():]
         table_end = content.find("</tbody>", intro)
         rows = list(PG_ROW.finditer(content, intro, table_end))
@@ -300,7 +306,8 @@ def add_postgres_row(content: str, version: Version, esr_versions: str, release_
 WGET = re.compile(r"https://releases\.mattermost\.com/(\d+\.\d+\.\d+)/mattermost-(\d+\.\d+\.\d+)-linux-amd64\.tar\.gz")
 
 
-def update_deploy_page(content: str, version: Version, esr_versions: str) -> str:
+def update_deploy_page(content: str, version: Version, esr_versions: str, result: Result | None = None,
+                       path: str = "the deploy page") -> str:
     """The Latest release tab (and Current ESR tab, for an ESR) download the new version. Never lowered."""
     tabs = ["latest"] + (["esr"] if is_esr(version, esr_versions) else [])
     for tab in tabs:
@@ -310,6 +317,8 @@ def update_deploy_page(content: str, version: Version, esr_versions: str) -> str
             continue
         block = content[start:end]
         match = WGET.search(block)
+        if not match and result is not None:
+            result.todo(f"{path} has no download line in its {tab} tab to update")
         if not match or Version.parse(match.group(1)) >= version:
             continue
         block = block.replace(match.group(0), download_url(version, "enterprise"))
@@ -358,7 +367,7 @@ def build(version: Version, files: dict, esr_versions: str, release_day: date | 
     apply(DESKTOP_RELEASES, lambda c: add_desktop_compatibility(c, version, esr_versions, release_day, result))
     apply(REQUIREMENTS, lambda c: add_postgres_row(c, version, esr_versions, release_day, code_minimum, result))
     for path in DEPLOY_PAGES:
-        apply(path, lambda c: update_deploy_page(c, version, esr_versions))
+        apply(path, lambda c, path=path: update_deploy_page(c, version, esr_versions, result, path))
     for path, after, what in PLACEHOLDERS:
         apply(path, lambda c, after=after, what=what: add_placeholder(c, after, placeholder(version, what)))
 
