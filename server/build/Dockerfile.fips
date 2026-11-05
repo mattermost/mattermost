@@ -43,6 +43,8 @@ FROM cgr.dev/mattermost.com/glibc-openssl-fips:16@sha256:0718ac97b4bec26e9640197
 ENV PATH="/mattermost/bin:${PATH}"
 ENV MM_SERVICESETTINGS_ENABLELOCALMODE="true"
 ENV MM_INSTALL_TYPE="docker"
+# Use only the OpenSSL FIPS provider at runtime, overriding the toolchain default (openssl+geomys)
+ENV GODEBUG="cgr_fips=openssl"
 
 # Copy over metadata files needed by runtime
 COPY --from=builder /etc/mime.types /etc

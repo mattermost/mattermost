@@ -10,7 +10,6 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/dgryski/dgoogauth"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/rsc/qr"
 	"github.com/pkg/errors"
@@ -144,17 +143,16 @@ func (m *MFA) ValidateToken(user *model.User, token string) (bool, error) {
 	return true, nil
 }
 
-func (*MFA) authenticate(userMfaSecret string, usedTs []int, token string) (*dgoogauth.OTPConfig, error) {
+func (*MFA) authenticate(userMfaSecret string, usedTs []int, token string) (*totpConfig, error) {
 	trimmedToken := strings.TrimSpace(token)
 
-	otpConfig := &dgoogauth.OTPConfig{
+	otpConfig := &totpConfig{
 		Secret:        userMfaSecret,
 		WindowSize:    3,
-		HotpCounter:   0,
 		DisallowReuse: usedTs,
 	}
 
-	ok, err := otpConfig.Authenticate(trimmedToken)
+	ok, err := otpConfig.authenticate(trimmedToken)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to parse the token")
 	}
