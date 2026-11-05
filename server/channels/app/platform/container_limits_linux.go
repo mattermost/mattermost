@@ -182,7 +182,7 @@ func getMemoryDiagnostics() (memoryDiagnostics, error) {
 }
 
 func parseProcKB(contents, key string) (uint64, error) {
-	for _, line := range strings.Split(contents, "\n") {
+	for line := range strings.SplitSeq(contents, "\n") {
 		fields := strings.Fields(line)
 		if len(fields) == 3 && fields[0] == key+":" && fields[2] == "kB" {
 			value, err := strconv.ParseUint(fields[1], 10, 64)
@@ -212,7 +212,7 @@ func parseNamedUintFile(path, key string) (uint64, error) {
 	if err != nil {
 		return 0, err
 	}
-	for _, line := range strings.Split(contents, "\n") {
+	for line := range strings.SplitSeq(contents, "\n") {
 		fields := strings.Fields(line)
 		if len(fields) == 2 && fields[0] == key {
 			value, err := strconv.ParseUint(fields[1], 10, 64)
