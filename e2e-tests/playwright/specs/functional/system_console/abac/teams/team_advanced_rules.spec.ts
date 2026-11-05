@@ -86,13 +86,19 @@ async function expectServerRejection(
     expect(error?.server_error_id, because).toBe(errorId);
 }
 
-type FixtureLabel = 'engUS' | 'engAPAC' | 'salesEU' | 'salesAPAC';
+// Team rosters only ever draw on the first four.
+type MemberLabel = 'engUS' | 'engAPAC' | 'salesEU' | 'salesAPAC';
+type FixtureLabel = MemberLabel | 'newEU' | 'salesUS' | 'sysAPAC' | 'teamAdminSalesUS';
 
 const FIXTURE_ATTRIBUTES: Record<FixtureLabel, {dept: string; loc: string}> = {
     engUS: {dept: 'Engineering', loc: 'US'},
     engAPAC: {dept: 'Engineering', loc: 'APAC'},
     salesEU: {dept: 'Sales', loc: 'EU'},
     salesAPAC: {dept: 'Sales', loc: 'APAC'},
+    newEU: {dept: 'Sales', loc: 'EU'},
+    salesUS: {dept: 'Sales', loc: 'US'},
+    sysAPAC: {dept: 'Engineering', loc: 'APAC'},
+    teamAdminSalesUS: {dept: 'Sales', loc: 'US'},
 };
 
 test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_membership']}, () => {
@@ -100,18 +106,63 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
     const createdPolicyIds: string[] = [];
     const createdTeamIds: string[] = [];
     const createdUserIds: string[] = [];
+    const fixtureUserIds: string[] = [];
+    let users = {} as Record<FixtureLabel, UserProfile>;
 
+    // Users and attributes are shared: the attribute view refreshes only every 30s, so
+    // waiting for it once here instead of per test is most of this file's runtime.
     test.beforeAll(async () => {
+        test.setTimeout(120_000);
         const {adminClient} = await getAdminClient({skipLog: true});
+        const license = await adminClient.getClientLicenseOld();
+        test.skip(license.IsLicensed === 'false', 'Skipping test - server not licensed');
+
         await enableTeamMembershipPolicies(adminClient);
         for (const name of [DEPT, LOC]) {
             const field = await createUserAttributeField(adminClient, name);
             fieldIds.push(field.id);
         }
+
+        users = {} as Record<FixtureLabel, UserProfile>;
+        for (const [label, attrs] of Object.entries(FIXTURE_ATTRIBUTES) as Array<
+            [FixtureLabel, {dept: string; loc: string}]
+        >) {
+            users[label] = await createFixtureUser(adminClient, label, attrs.dept, attrs.loc);
+            fixtureUserIds.push(users[label].id);
+        }
+        await adminClient.updateUserRoles(users.sysAPAC.id, 'system_user system_admin');
+
+        await waitForAttributeViewToInclude(adminClient, orRule(), [
+            users.engUS.id,
+            users.salesEU.id,
+            users.newEU.id,
+            users.salesUS.id,
+            users.teamAdminSalesUS.id,
+        ]);
+        await waitForAttributeViewToInclude(adminClient, `user.attributes.${LOC} == "APAC"`, [
+            users.engAPAC.id,
+            users.salesAPAC.id,
+            users.sysAPAC.id,
+        ]);
+        await waitForAttributeViewToInclude(adminClient, engineeringRule(), [
+            users.engUS.id,
+            users.engAPAC.id,
+            users.sysAPAC.id,
+        ]);
+        await waitForAttributeViewToInclude(adminClient, simpleRule(), [
+            users.salesEU.id,
+            users.salesAPAC.id,
+            users.newEU.id,
+            users.salesUS.id,
+            users.teamAdminSalesUS.id,
+        ]);
     });
 
     test.afterAll(async () => {
         const {adminClient} = await getAdminClient({skipLog: true});
+        for (const id of fixtureUserIds.splice(0)) {
+            await adminClient.updateUserActive(id, false).catch(() => {});
+        }
         for (const id of fieldIds.splice(0)) {
             await (adminClient as any)
                 .doFetch(`${adminClient.getBaseRoute()}/custom_profile_attributes/fields/${id}`, {method: 'DELETE'})
@@ -139,21 +190,22 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
 
     async function createFixtureUser(adminClient: Client4, label: string, dept: string, loc: string) {
         const username = `${label.toLowerCase()}${getRandomId()}`;
+        const password = newTestPassword();
         const user = await adminClient.createUser(
-            {email: `${username}@sample.mattermost.com`, username, password: newTestPassword()} as any,
+            {email: `${username}@sample.mattermost.com`, username, password} as any,
             '',
             '',
         );
-        createdUserIds.push(user.id);
+        user.password = password;
         await setUserAttribute(adminClient, user.id, DEPT, dept);
         await setUserAttribute(adminClient, user.id, LOC, loc);
         return user;
     }
 
-    // Waits for the attribute view to catch up; it lags behind attribute writes.
+    // Each test gets its own team; the users come from beforeAll.
     async function setupFixture(
         pw: PlaywrightExtended,
-        options: {members?: FixtureLabel[]; publicTeam?: boolean} = {},
+        options: {members?: MemberLabel[]; publicTeam?: boolean} = {},
     ): Promise<{adminClient: Client4; adminUser: UserProfile; team: Team; users: Record<FixtureLabel, UserProfile>}> {
         const {members = ['engUS', 'engAPAC', 'salesEU'], publicTeam = false} = options;
 
@@ -175,23 +227,9 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
         // Keep the sysadmin creator out of the roster so it is never a sync casualty.
         await adminClient.removeFromTeam(team.id, adminUser.id).catch(() => {});
 
-        const users = {} as Record<FixtureLabel, UserProfile>;
-        for (const [label, attrs] of Object.entries(FIXTURE_ATTRIBUTES) as Array<
-            [FixtureLabel, {dept: string; loc: string}]
-        >) {
-            users[label] = await createFixtureUser(adminClient, label, attrs.dept, attrs.loc);
-        }
         for (const label of members) {
             await adminClient.addToTeam(team.id, users[label].id);
         }
-
-        await waitForAttributeViewToInclude(adminClient, orRule(), [users.engUS.id, users.salesEU.id]);
-        await waitForAttributeViewToInclude(adminClient, `user.attributes.${LOC} == "APAC"`, [
-            users.engAPAC.id,
-            users.salesAPAC.id,
-        ]);
-        await waitForAttributeViewToInclude(adminClient, engineeringRule(), [users.engUS.id, users.engAPAC.id]);
-        await waitForAttributeViewToInclude(adminClient, simpleRule(), [users.salesEU.id, users.salesAPAC.id]);
 
         return {adminClient, adminUser, team, users};
     }
@@ -229,7 +267,6 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
     }
 
     test('MM-71104-T1 toggle defaults to Simple and carries the rule across modes', async ({pw}) => {
-        test.setTimeout(180_000);
         const {adminUser, team} = await setupFixture(pw);
 
         const {page} = await pw.testBrowser.login(adminUser);
@@ -252,7 +289,6 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
     });
 
     test('MM-71104-T2 saves a valid Advanced OR rule on a private team', async ({pw}) => {
-        test.setTimeout(180_000);
         const {adminClient, adminUser, team} = await setupFixture(pw);
 
         const {page} = await pw.testBrowser.login(adminUser);
@@ -281,7 +317,6 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
     });
 
     test('MM-71104-T3 a saved complex rule opens in Advanced with Simple locked', async ({pw}) => {
-        test.setTimeout(180_000);
         const {adminClient, adminUser, team} = await setupFixture(pw);
         await createTeamMembershipPolicy(adminClient, team.id, orRule(), false);
 
@@ -295,7 +330,6 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
     });
 
     test('MM-71104-T4 a simple rule typed in Advanced can go back to Simple', async ({pw}) => {
-        test.setTimeout(180_000);
         const {adminUser, team} = await setupFixture(pw);
 
         const {page} = await pw.testBrowser.login(adminUser);
@@ -313,7 +347,6 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
     });
 
     test('MM-71104-T5 invalid CEL blocks Save and nothing is persisted, including a parent link', async ({pw}) => {
-        test.setTimeout(180_000);
         const {adminClient, adminUser, team} = await setupFixture(pw);
 
         const parentName = `Eng Parent ${pw.random.id()}`;
@@ -347,7 +380,6 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
     });
 
     test('MM-71104-T6 Save during the validation delay is still blocked', async ({pw}) => {
-        test.setTimeout(180_000);
         const {adminClient, adminUser, team} = await setupFixture(pw);
 
         const {page} = await pw.testBrowser.login(adminUser);
@@ -366,7 +398,6 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
     });
 
     test('MM-71104-T7 resource attribute references are rejected', async ({pw}) => {
-        test.setTimeout(180_000);
         const {adminUser, team} = await setupFixture(pw);
 
         const {page} = await pw.testBrowser.login(adminUser);
@@ -383,7 +414,6 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
     });
 
     test('MM-71104-T8 session attribute references are rejected', async ({pw}) => {
-        test.setTimeout(180_000);
         const {adminUser, team} = await setupFixture(pw);
 
         const {page} = await pw.testBrowser.login(adminUser);
@@ -408,7 +438,6 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
     });
 
     test('MM-71104-T9 Test access rule in Advanced previews workspace-wide matches', async ({pw}) => {
-        test.setTimeout(180_000);
         const {adminUser, team, users} = await setupFixture(pw, {members: ['engUS', 'engAPAC']});
 
         const {page} = await pw.testBrowser.login(adminUser);
@@ -428,7 +457,6 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
     });
 
     test('MM-71104-T10 join gate honors OR, returns the generic 403 and does not exempt admins', async ({pw}) => {
-        test.setTimeout(180_000);
         const {adminClient, team, users} = await setupFixture(pw, {members: []});
         await createTeamMembershipPolicy(adminClient, team.id, orRule(), false);
 
@@ -449,19 +477,16 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
         expect(denied.body.message).not.toMatch(/policy/i);
 
         // * A non-qualifying system admin is not exempt.
-        const sysAPAC = await createFixtureUser(adminClient, 'sysapac', 'Engineering', 'APAC');
-        await adminClient.updateUserRoles(sysAPAC.id, 'system_user system_admin');
-        await waitForAttributeViewToInclude(adminClient, `user.attributes.${LOC} == "APAC"`, [sysAPAC.id]);
-        const adminDenied = await addTeamMemberRaw(token, base, team.id, sysAPAC.id);
+        const adminDenied = await addTeamMemberRaw(token, base, team.id, users.sysAPAC.id);
         expect(adminDenied.status).toBe(403);
 
         const memberIds = await getTeamMemberIds(adminClient, team.id);
         expect(memberIds).not.toContain(users.salesAPAC.id);
-        expect(memberIds).not.toContain(sysAPAC.id);
+        expect(memberIds).not.toContain(users.sysAPAC.id);
     });
 
     test('MM-71104-T10b a grouped rule is enforced as written by both the join gate and sync', async ({pw}) => {
-        test.setTimeout(240_000);
+        test.setTimeout(120_000);
         const {adminClient, team, users} = await setupFixture(pw, {members: ['engUS', 'salesEU', 'salesAPAC']});
 
         // engUS passes the group but fails the AND; read as A || (B && C) it would be kept.
@@ -486,21 +511,16 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
             .toEqual({engUS: false, salesEU: true, salesAPAC: false});
 
         // * The join gate (CEL) agrees.
-        const salesUS = await createFixtureUser(adminClient, 'salesus', 'Sales', 'US');
-        await waitForAttributeViewToInclude(adminClient, groupedRule, [salesUS.id]);
         const base = adminClient.getBaseRoute();
         const token = adminClient.getToken();
-        expect((await addTeamMemberRaw(token, base, team.id, salesUS.id)).status).toBe(201);
+        expect((await addTeamMemberRaw(token, base, team.id, users.salesUS.id)).status).toBe(201);
         expect((await addTeamMemberRaw(token, base, team.id, users.engUS.id)).status).toBe(403);
         expect((await addTeamMemberRaw(token, base, team.id, users.salesAPAC.id)).status).toBe(403);
     });
 
     test('MM-71104-T11 sync removes non-qualifiers, auto-adds qualifiers and cascades to channels', async ({pw}) => {
-        test.setTimeout(240_000);
+        test.setTimeout(120_000);
         const {adminClient, adminUser, team, users} = await setupFixture(pw);
-
-        const newEU = await createFixtureUser(adminClient, 'neweu', 'Sales', 'EU');
-        await waitForAttributeViewToInclude(adminClient, orRule(), [newEU.id]);
 
         const channel = await createPrivateChannel(adminClient, team.id);
         await adminClient.addToChannel(users.engAPAC.id, channel.id);
@@ -528,7 +548,7 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
                     return {
                         engUS: ids.includes(users.engUS.id),
                         salesEU: ids.includes(users.salesEU.id),
-                        newEU: ids.includes(newEU.id),
+                        newEU: ids.includes(users.newEU.id),
                         engAPAC: ids.includes(users.engAPAC.id),
                         salesAPAC: ids.includes(users.salesAPAC.id),
                     };
@@ -543,7 +563,6 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
     });
 
     test('MM-71104-T12 an Advanced rule is ANDed with a linked parent policy', async ({pw}) => {
-        test.setTimeout(180_000);
         const {adminClient, adminUser, team, users} = await setupFixture(pw, {members: []});
 
         // Custom rule first: the helper hard-codes empty imports, and assigning the
@@ -592,7 +611,6 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
     });
 
     test('MM-71104-T13 an Advanced rule on a public team stays advisory', async ({pw}) => {
-        test.setTimeout(180_000);
         const {adminClient, team, users} = await setupFixture(pw, {members: [], publicTeam: true});
         await createTeamMembershipPolicy(adminClient, team.id, orRule(), false);
 
@@ -607,7 +625,6 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
     });
 
     test('MM-71104-T14a clearing the Advanced rule with no parent drops enforcement', async ({pw}) => {
-        test.setTimeout(180_000);
         const {adminClient, adminUser, team} = await setupFixture(pw);
         await createTeamMembershipPolicy(adminClient, team.id, orRule(), false);
 
@@ -625,7 +642,6 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
     });
 
     test('MM-71104-T14b clearing the Advanced rule with a parent keeps only the parent', async ({pw}) => {
-        test.setTimeout(180_000);
         const {adminClient, adminUser, team} = await setupFixture(pw);
         await createTeamMembershipPolicy(adminClient, team.id, orRule(), false);
         const parentName = `Eng Parent ${pw.random.id()}`;
@@ -659,7 +675,6 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
         });
 
         test('MM-71104-T15a the rules section is hidden while the team toggle is off', async ({pw}) => {
-            test.setTimeout(180_000);
             const {adminUser, team} = await setupFixture(pw);
 
             const {page} = await pw.testBrowser.login(adminUser);
@@ -670,7 +685,6 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
         });
 
         test('MM-71104-T15b the ABAC section is hidden when attribute-based access control is off', async ({pw}) => {
-            test.setTimeout(180_000);
             const {adminClient, adminUser, team} = await setupFixture(pw);
             await adminClient.patchConfig({AccessControlSettings: {EnableAttributeBasedAccessControl: false}} as any);
 
@@ -683,7 +697,6 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
     });
 
     test('MM-71104-T16 the Team Admin settings modal has no Advanced mode', async ({pw}) => {
-        test.setTimeout(180_000);
         const {adminClient, team} = await setupFixture(pw);
 
         // Before the policy: joining a governed private team would be gated.
@@ -715,7 +728,6 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
     });
 
     test('MM-71104-T16b the Team Admin settings modal keeps the table for a rule the parser accepts', async ({pw}) => {
-        test.setTimeout(180_000);
         const {adminClient, team} = await setupFixture(pw);
 
         const teamAdmin = await createTeamAdmin(adminClient, team.id);
@@ -743,7 +755,6 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
     test('MM-71104-T16c the Team Admin settings modal keeps a masked rule editable and saves without losing hidden values', async ({
         pw,
     }) => {
-        test.setTimeout(180_000);
         const {adminClient, team} = await setupFixture(pw);
         await enableMaskingFlag(adminClient);
 
@@ -808,7 +819,6 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
     });
 
     test('MM-71104-T17 discarding Advanced edits leaves the saved rule', async ({pw}) => {
-        test.setTimeout(180_000);
         const {adminClient, adminUser, team} = await setupFixture(pw);
         await createTeamMembershipPolicy(adminClient, team.id, orRule(), false);
 
@@ -830,7 +840,6 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
     });
 
     test('MM-71104-T18 the toggle and Advanced editor are keyboard operable and accessible', async ({pw, axe}) => {
-        test.setTimeout(180_000);
         const {adminUser, team} = await setupFixture(pw);
 
         const {page} = await pw.testBrowser.login(adminUser);
@@ -866,16 +875,15 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
      * @objective The server, not just the UI, keeps Advanced team rules System Admin only.
      */
     test('MM-71104-T19 team admin API writes and deletes of an Advanced rule are refused', async ({pw}) => {
-        test.setTimeout(180_000);
         const {adminClient, team, users} = await setupFixture(pw);
 
         // # A team admin who satisfies both rules, so self-inclusion never decides the outcome
-        const teamAdmin = await createTeamAdmin(adminClient, team.id);
-        createdUserIds.push(teamAdmin.id);
-        await setUserAttribute(adminClient, teamAdmin.id, DEPT, 'Sales');
-        await setUserAttribute(adminClient, teamAdmin.id, LOC, 'US');
-        await waitForAttributeViewToInclude(adminClient, simpleRule(), [users.salesEU.id, teamAdmin.id]);
-        await waitForAttributeViewToInclude(adminClient, orRule(), [users.engUS.id, teamAdmin.id]);
+        const teamAdmin = users.teamAdminSalesUS;
+        await adminClient.addToTeam(team.id, teamAdmin.id);
+        await (adminClient as any).doFetch(`${adminClient.getBaseRoute()}/teams/${team.id}/members/${teamAdmin.id}/roles`, {
+            method: 'put',
+            body: JSON.stringify({roles: 'team_user team_admin'}),
+        });
         const {client: teamAdminClient} = await pw.makeClient({
             username: teamAdmin.username,
             password: teamAdmin.password,
@@ -924,7 +932,6 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
      *            on save, instead of being stored and silently never enforced.
      */
     test('MM-71104-T20 a rule membership sync cannot evaluate is rejected', async ({pw}) => {
-        test.setTimeout(180_000);
         const {adminClient, adminUser, team} = await setupFixture(pw);
 
         // * The API refuses it even for a System Admin
@@ -961,7 +968,6 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
     // catches a ternary before save, so this needs a rule only the save rejects, such as
     // one that excludes the admin.
     test.fixme('MM-71104-T20b a rejected save does not leave a parent link behind', async ({pw}) => {
-        test.setTimeout(180_000);
         const {adminClient, adminUser, team} = await setupFixture(pw);
 
         const parentName = `Eng Parent ${pw.random.id()}`;
@@ -998,7 +1004,6 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
      *            a System Manager sees neither the rule nor the Advanced toggle.
      */
     test('MM-71104-T21 a System Manager does not see the team membership rules section', async ({pw}) => {
-        test.setTimeout(180_000);
         const {adminClient, team} = await setupFixture(pw);
 
         // Assigning system_manager needs the Custom Permission Schemes license feature.

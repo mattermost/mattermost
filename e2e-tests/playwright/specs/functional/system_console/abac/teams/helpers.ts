@@ -81,18 +81,25 @@ export async function triggerSyncJobAndPoll(
     });
     const jobId: string = job.id;
 
-    const deadline = Date.now() + timeoutMs;
-    while (Date.now() < deadline) {
-        await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
-        const current: any = await (client as any).doFetch(`${client.getBaseRoute()}/jobs/${jobId}`, {method: 'GET'});
-        if (current.status === 'success' || current.status === 'warning') {
-            return current.status;
-        }
-        if (current.status === 'error') {
-            throw new Error(`access_control_team_sync job failed: ${JSON.stringify(current)}`);
-        }
+    let current: any;
+    await expect
+        .poll(
+            async () => {
+                current = await (client as any).doFetch(`${client.getBaseRoute()}/jobs/${jobId}`, {method: 'GET'});
+                return current.status;
+            },
+            {
+                message: 'access_control_team_sync job did not finish',
+                timeout: timeoutMs,
+                intervals: [pollIntervalMs],
+            },
+        )
+        .toMatch(/^(success|warning|error)$/);
+
+    if (current.status === 'error') {
+        throw new Error(`access_control_team_sync job failed: ${JSON.stringify(current)}`);
     }
-    throw new Error('Timed out waiting for access_control_team_sync job to finish');
+    return current.status;
 }
 
 /**
@@ -117,16 +124,19 @@ export async function assignTeamsToPolicy(client: Client4, policyId: string, tea
  */
 export async function openTeamConfig(page: Page, teamDisplayName: string): Promise<void> {
     await page.goto('/admin_console/user_management/teams');
-    await page.waitForLoadState('networkidle');
 
-    const search = page.locator('input[placeholder*="Search" i]').first();
-    await search.fill(teamDisplayName);
-    await page.waitForTimeout(1000);
+    // Let the unfiltered first load land, so it can't overwrite the search results.
+    const rows = page.locator('.DataGrid_row');
+    await expect(rows.first()).toBeVisible({timeout: 15_000});
 
-    const row = page.locator('.DataGrid_row').filter({hasText: teamDisplayName}).first();
-    await row.waitFor({state: 'visible', timeout: 10000});
+    await page.locator('input[placeholder*="Search" i]').first().fill(teamDisplayName);
+
+    const row = rows.filter({hasText: teamDisplayName}).first();
+    await expect(row).toBeVisible({timeout: 15_000});
     await row.getByText('Edit').click();
-    await page.waitForLoadState('networkidle');
+
+    await page.waitForURL(/\/admin_console\/user_management\/teams\/[a-z0-9]+$/, {timeout: 15_000});
+    await expect(page.getByText('Team Management', {exact: true})).toBeVisible({timeout: 15_000});
 }
 
 /**
