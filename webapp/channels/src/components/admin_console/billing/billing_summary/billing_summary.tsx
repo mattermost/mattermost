@@ -5,48 +5,50 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {Button} from '@mattermost/compass-ui/components/button';
+import {EmptyState} from '@mattermost/compass-ui/components/empty-state';
+import BillingHistoryIllustration from '@mattermost/compass-ui/illustrations/billing-history';
 
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
-import EmptyBillingHistorySvg from 'components/common/svg_images_components/empty_billing_history_svg';
 import UpgradeSvg from 'components/common/svg_images_components/upgrade_svg';
 import ExternalLink from 'components/external_link';
 
 import {CloudLinks, TrialPeriodDays} from 'utils/constants';
 
 export const noBillingHistory = (
-    <div className='BillingSummary__noBillingHistory'>
-        <EmptyBillingHistorySvg
-            height={116}
-            width={152}
-        />
-        <div className='BillingSummary__noBillingHistory-title'>
+    <EmptyState
+        illustration={{
+            'aria-label': '',
+            children: <BillingHistoryIllustration/>,
+        }}
+        title={
             <FormattedMessage
                 id='admin.billing.subscriptions.billing_summary.noBillingHistory.title'
                 defaultMessage='No billing history yet'
             />
-        </div>
-        <div className='BillingSummary__noBillingHistory-message'>
+        }
+        description={
             <FormattedMessage
                 id='admin.billing.subscriptions.billing_summary.noBillingHistory.description'
                 defaultMessage='In the future, this is where your most recent bill summary will show.'
             />
-        </div>
-        <Button
-            asChild={true}
-            emphasis='primary'
-            className='BillingSummary__noBillingHistory-link'
-        >
-            <ExternalLink
-                location='billing_summary'
-                href={CloudLinks.BILLING_DOCS}
+        }
+        actionSlot={
+            <Button
+                asChild={true}
+                emphasis='primary'
             >
-                <FormattedMessage
-                    id='admin.billing.subscriptions.billing_summary.noBillingHistory.link'
-                    defaultMessage='See how billing works'
-                />
-            </ExternalLink>
-        </Button>
-    </div>
+                <ExternalLink
+                    location='billing_summary'
+                    href={CloudLinks.BILLING_DOCS}
+                >
+                    <FormattedMessage
+                        id='admin.billing.subscriptions.billing_summary.noBillingHistory.link'
+                        defaultMessage='See how billing works'
+                    />
+                </ExternalLink>
+            </Button>
+        }
+    />
 );
 
 type FreeTrialProps = {

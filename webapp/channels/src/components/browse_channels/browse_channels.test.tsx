@@ -138,6 +138,7 @@ describe('components/BrowseChannels', () => {
         currentUserId: 'user-1',
         teamId: 'team_1',
         teamName: 'team_name',
+        canCreatePublicChannel: true,
         channelsRequestStarted: false,
         shouldHideJoinedChannels: false,
         shouldHideArchivedChannels: true,

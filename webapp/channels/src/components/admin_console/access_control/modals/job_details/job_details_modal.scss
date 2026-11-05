@@ -1,3 +1,5 @@
+@use 'utils/mixins';
+
 #job-details-modal {
     .modal-header{
         padding: 16px 64px 4px 32px;
@@ -63,6 +65,18 @@
                 border: 2px solid var(--button-bg);
             }
         }
+    }
+
+    // Give the empty state the full height of the list area so the Compass
+    // EmptyState can center itself vertically.
+    .more-modal__list > div:has(> .sync-job-empty-state) {
+        @include mixins.fill-height-column;
+
+        overflow: hidden;
+    }
+
+    .sync-job-empty-state {
+        @include mixins.fill-empty-state;
     }
 
     .sync-job-channel-count-label {

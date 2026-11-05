@@ -21,8 +21,6 @@ jest.mock('react-router-dom', () => ({
     useHistory: () => ({replace: mockHistoryReplace, push: jest.fn()}),
 }));
 
-jest.mock('./chat.svg', () => () => <svg data-testid='chat-svg'/>);
-
 jest.mock('./team_selector', () => {
     return function MockTeamSelector(props: {testId: string; onChange: (teamId: string) => void}) {
         return (
@@ -169,7 +167,7 @@ describe('SecureConnectionDetail', () => {
         renderAtPath('/admin_console/site_config/secure_connections/rc-1');
 
         await waitFor(() => {
-            expect(screen.getByTestId('chat-svg')).toBeInTheDocument();
+            expect(screen.getByRole('heading', {name: "Acme hasn't shared any channels"})).toBeInTheDocument();
         });
         expect(getSharedChannelRemotes).toHaveBeenCalled();
     });

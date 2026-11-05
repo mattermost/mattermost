@@ -5,8 +5,7 @@ import React from 'react';
 import {useIntl} from 'react-intl';
 
 import NoResultsIndicator from 'components/no_results_indicator/no_results_indicator';
-
-import EmptyDraftListIllustration from './empty_draft_list_illustration';
+import {DraftsEmptyIllustration} from 'components/no_results_indicator/no_results_variant_illustration';
 
 export default function EmptyDraftList() {
     const {formatMessage} = useIntl();
@@ -15,7 +14,7 @@ export default function EmptyDraftList() {
         <div className='DraftList Drafts__main'>
             <NoResultsIndicator
                 expanded={true}
-                iconGraphic={EmptyDraftListIllustration}
+                iconGraphic={<DraftsEmptyIllustration/>}
                 title={formatMessage({
                     id: 'drafts.empty.title',
                     defaultMessage: 'No drafts at the moment',

@@ -114,14 +114,6 @@ const UserGroupsList = (props: Props) => {
     }, [actions.openModal, onExited, backButtonAction]);
 
     const Item = ({index, style}: ListChildComponentProps) => {
-        if (groups.length === 0 && searchTerm) {
-            return (
-                <NoResultsIndicator
-                    variant={NoResultsVariant.Search}
-                    titleValues={{channelName: `${searchTerm}`}}
-                />
-            );
-        }
         if (isItemLoaded(index)) {
             const group = groups[index] as Group;
             if (!group) {
@@ -232,6 +224,21 @@ const UserGroupsList = (props: Props) => {
         }
         return null;
     };
+
+    // Rendered outside the virtualized list: a list row is a fixed 52px tall, and the list
+    // never asks for a row at all once every page has loaded, so the empty state could not
+    // be shown or centered there.
+    if (groups.length === 0 && searchTerm && !loading) {
+        return (
+            <div className='user-groups-modal__content user-groups-list'>
+                <NoResultsIndicator
+                    variant={NoResultsVariant.Search}
+                    titleValues={{channelName: `${searchTerm}`}}
+                />
+                <ADLDAPUpsellBanner/>
+            </div>
+        );
+    }
 
     return (
         <div

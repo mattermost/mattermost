@@ -13,8 +13,6 @@ import {TestHelper} from 'utils/test_helper';
 
 import SecureConnections from './secure_connections';
 
-jest.mock('./building.svg', () => () => <svg data-testid='building-svg'/>);
-
 jest.mock('./modals/modal_utils', () => ({
     useRemoteClusterAcceptInvite: () => ({promptAcceptInvite: jest.fn().mockResolvedValue(undefined)}),
     useRemoteClusterDelete: () => ({promptDelete: jest.fn().mockResolvedValue(undefined)}),

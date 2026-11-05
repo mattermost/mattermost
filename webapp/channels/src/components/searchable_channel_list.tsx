@@ -2,18 +2,20 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {type JSX} from 'react';
+import React, {type ReactNode} from 'react';
 import {FormattedMessage, defineMessage, defineMessages, injectIntl, type WrappedComponentProps} from 'react-intl';
 import {connect, shallowEqual} from 'react-redux';
 
 import {ArchiveOutlineIcon, CheckIcon, ChevronDownIcon, GlobeIcon, LockOutlineIcon, AccountOutlineIcon, GlobeCheckedIcon, AccountPlusOutlineIcon, ClockOutlineIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/compass-ui/components/button';
+import type {ButtonProps} from '@mattermost/compass-ui/components/button';
+import {EmptyState} from '@mattermost/compass-ui/components/empty-state';
+import SearchIllustration from '@mattermost/compass-ui/illustrations/search';
 import * as UserAgent from '@mattermost/shared/utils/user_agent';
 import type {Channel, ChannelJoinRequest, ChannelMembership} from '@mattermost/types/channels';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
 
 import {ChannelIcon} from 'components/channel_type_icon';
-import MagnifyingGlassSVG from 'components/common/svg_images_components/magnifying_glass_svg';
 import LoadingScreen from 'components/loading_screen';
 import * as Menu from 'components/menu';
 import QuickInput from 'components/quick_input';
@@ -39,7 +41,8 @@ interface Props extends WrappedComponentProps {
     isSearch: boolean;
     search: (term: string) => void;
     handleJoin: (channel: Channel, done: () => void) => void;
-    noResultsText: JSX.Element;
+    noResultsDescription?: ReactNode;
+    noResultsAction?: ButtonProps;
     changeFilter: (filter: FilterType) => void;
     filter: FilterType;
     myChannelMemberships: RelationOneToOne<Channel, ChannelMembership>;
@@ -469,7 +472,6 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             return (
                 <FormattedMessage
                     id='more_channels.noMore'
-                    tagName='strong'
                     defaultMessage='No results for "{text}"'
                     values={{text: this.state.channelSearchValue}}
                 />
@@ -480,7 +482,6 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             return (
                 <FormattedMessage
                     id={'more_channels.noArchived'}
-                    tagName='strong'
                     defaultMessage={'No archived channels'}
                 />
             );
@@ -488,7 +489,6 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             return (
                 <FormattedMessage
                     id={'more_channels.noPrivate'}
-                    tagName='strong'
                     defaultMessage={'No private channels'}
                 />
             );
@@ -496,7 +496,6 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             return (
                 <FormattedMessage
                     id={'more_channels.noPublic'}
-                    tagName='strong'
                     defaultMessage={'No public channels'}
                 />
             );
@@ -504,7 +503,6 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             return (
                 <FormattedMessage
                     id={'more_channels.noRecommended'}
-                    tagName='strong'
                     defaultMessage={'No recommended channels'}
                 />
             );
@@ -512,7 +510,6 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             return (
                 <FormattedMessage
                     id={'more_channels.noDiscoverable'}
-                    tagName='strong'
                     defaultMessage={'No discoverable private channels'}
                 />
             );
@@ -520,7 +517,6 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             return (
                 <FormattedMessage
                     id={'more_channels.noPendingRequests'}
-                    tagName='strong'
                     defaultMessage={'You have no pending join requests'}
                 />
             );
@@ -528,7 +524,6 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             return (
                 <FormattedMessage
                     id={'more_channels.noChannels'}
-                    tagName='strong'
                     defaultMessage={'No channels'}
                 />
             );
@@ -599,15 +594,19 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
         } else if (channels.length === 0) {
             listContent = (
                 <div
-                    className='no-channel-message'
+                    className='browse-channels-empty-state'
                     aria-label={this.state.channelSearchValue.length > 0 ? this.props.intl.formatMessage(messages.noMore, {text: this.state.channelSearchValue}) : this.props.intl.formatMessage({id: 'widgets.channels_input.empty', defaultMessage: 'No channels found'})
                     }
                 >
-                    <MagnifyingGlassSVG/>
-                    <h3 className='primary-message'>
-                        {this.getEmptyStateMessage()}
-                    </h3>
-                    {this.props.noResultsText}
+                    <EmptyState
+                        illustration={{
+                            'aria-label': '',
+                            children: <SearchIllustration/>,
+                        }}
+                        title={this.getEmptyStateMessage()}
+                        description={this.props.noResultsDescription}
+                        action={this.props.noResultsAction}
+                    />
                 </div>
             );
         } else {

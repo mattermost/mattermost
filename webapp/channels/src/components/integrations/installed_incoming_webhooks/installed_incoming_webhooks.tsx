@@ -4,6 +4,7 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import IncomingWebhookSvg from '@mattermost/compass-ui/illustrations/incoming-webhook';
 import type {Channel} from '@mattermost/types/channels';
 import type {IncomingWebhook, IncomingWebhooksWithCount} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
@@ -144,6 +145,7 @@ export default class InstalledIncomingWebhooks extends React.PureComponent<Props
                 }
                 addLink={'/' + this.props.team.name + '/integrations/incoming_webhooks/add'}
                 addButtonId='addIncomingWebhook'
+                emptyIllustration={<IncomingWebhookSvg/>}
                 emptyText={
                     <FormattedMessage
                         id='installed_incoming_webhooks.empty'
