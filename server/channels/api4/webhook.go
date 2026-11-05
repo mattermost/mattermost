@@ -50,16 +50,10 @@ func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if ok, _ := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel); !ok {
+	// Channel access policies do not apply to incoming webhooks, so this is the RBAC check alone.
+	if ok, _ := c.App.SessionHasPermissionToReadChannelRBACOnly(c.AppContext, *c.AppContext.Session(), channel); !ok {
 		c.LogAudit("fail - bad channel permissions")
 		c.SetPermissionError(model.PermissionReadChannelContent)
-		return
-	}
-
-	// The hook posts into this channel without a session to evaluate later, so a user
-	// the channel's write rules deny must not be able to set one up.
-	if !requireChannelWriteAccess(c, channel) {
-		c.LogAudit("fail - channel write access denied")
 		return
 	}
 
@@ -174,7 +168,7 @@ func updateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if channel.Type != model.ChannelTypeOpen {
-		if ok, _ := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel); !ok {
+		if ok, _ := c.App.SessionHasPermissionToReadChannelRBACOnly(c.AppContext, *c.AppContext.Session(), channel); !ok {
 			c.LogAudit("fail - bad channel permissions")
 			c.SetPermissionError(model.PermissionReadChannelContent)
 			return
@@ -183,10 +177,6 @@ func updateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Moving the hook must not attribute its owner's posts to a channel they cannot access.
 	if updatedHook.ChannelId != oldHook.ChannelId {
-		if !requireChannelWriteAccess(c, channel) {
-			c.LogAudit("fail - channel write access denied")
-			return
-		}
 		if appErr := c.App.ValidateIncomingWebhookUserChannelAccess(c.AppContext, oldHook.UserId, channel); appErr != nil {
 			c.LogAudit("fail - invalid webhook user")
 			c.Err = appErr
@@ -317,7 +307,7 @@ func getIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	isPrivate := channel.Type != model.ChannelTypeOpen
 	restrictedChannel := false
 	if isPrivate {
-		hasChannelPermission, _ := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
+		hasChannelPermission, _ := c.App.SessionHasPermissionToReadChannelRBACOnly(c.AppContext, *c.AppContext.Session(), channel)
 		restrictedChannel = !hasChannelPermission
 	}
 
@@ -377,7 +367,7 @@ func deleteIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	isPrivate := channel.Type != model.ChannelTypeOpen
 	restrictedChannel := false
 	if isPrivate {
-		hasChannelPermission, _ := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
+		hasChannelPermission, _ := c.App.SessionHasPermissionToReadChannelRBACOnly(c.AppContext, *c.AppContext.Session(), channel)
 		restrictedChannel = !hasChannelPermission
 	}
 

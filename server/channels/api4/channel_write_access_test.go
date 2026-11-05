@@ -469,54 +469,37 @@ func TestChannelWriteAccessChecksScheduledPostStoredChannel(t *testing.T) {
 	require.Equal(t, th.BasicChannel.Id, stored.ChannelId)
 }
 
-// An incoming webhook posts into its channel with no session to evaluate later, so
-// setting one up there -- creating it, or moving an existing hook in -- is the write.
-func TestChannelWriteAccessGatesIncomingWebhooks(t *testing.T) {
-	setup := func(t *testing.T, allow bool) *channelWriteAccessFixture {
-		t.Helper()
-		f, _ := setupChannelWriteAccessAPI(t, allow)
-		f.th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.EnableIncomingWebhooks = true
-		})
-		defaultRolePermissions := f.th.SaveDefaultRolePermissions(t)
-		t.Cleanup(func() { f.th.RestoreDefaultRolePermissions(t, defaultRolePermissions) })
-		addIncomingWebhookPermissions(t, f.th, model.TeamUserRoleId)
-		return f
-	}
-
-	create := func(f *channelWriteAccessFixture) error {
-		_, _, err := f.th.Client.CreateIncomingWebhook(context.Background(), &model.IncomingWebhook{ChannelId: f.th.BasicChannel.Id})
-		return err
-	}
-
-	// The hook starts in BasicChannel2, set up through the app so the gate under test
-	// is only the move into BasicChannel.
-	move := func(t *testing.T, f *channelWriteAccessFixture) error {
-		hook, appErr := f.th.App.CreateIncomingWebhookForChannel(f.th.BasicUser.Id, f.th.BasicChannel2, &model.IncomingWebhook{
-			ChannelId: f.th.BasicChannel2.Id,
-		})
-		require.Nil(t, appErr)
-		hook.ChannelId = f.th.BasicChannel.Id
-		_, _, err := f.th.Client.UpdateIncomingWebhook(context.Background(), hook)
-		return err
-	}
-
-	t.Run("denied", func(t *testing.T) {
-		f := setup(t, false)
-
-		err := create(f)
-		require.True(t, isChannelReadAccessDenial(err, abacWriteDeniedErrorID), "creating a hook: expected the write denial, got %v", err)
-
-		err = move(t, f)
-		require.True(t, isChannelReadAccessDenial(err, abacWriteDeniedErrorID), "moving a hook in: expected the write denial, got %v", err)
+// Channel access policies do not apply to incoming webhooks. With every action denied,
+// a user who passes RBAC still creates, moves, reads and deletes a hook, and the hook
+// still posts. The hook moves into a private channel because get and delete only
+// check channel permissions there.
+func TestChannelAccessDoesNotGateIncomingWebhooks(t *testing.T) {
+	f, _ := setupChannelActionAccessAPI(t, mock.Anything, false)
+	th := f.th
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableIncomingWebhooks = true
 	})
+	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
+	t.Cleanup(func() { th.RestoreDefaultRolePermissions(t, defaultRolePermissions) })
+	addIncomingWebhookPermissions(t, th, model.TeamUserRoleId)
 
-	t.Run("allowed", func(t *testing.T) {
-		f := setup(t, true)
+	hook, resp, err := th.Client.CreateIncomingWebhook(context.Background(), &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
+	require.NoError(t, err, "create")
+	require.Equal(t, http.StatusCreated, resp.StatusCode)
 
-		require.NoError(t, create(f))
-		require.NoError(t, move(t, f))
-	})
+	hook.ChannelId = th.BasicPrivateChannel.Id
+	hook, _, err = th.Client.UpdateIncomingWebhook(context.Background(), hook)
+	require.NoError(t, err, "move")
+	require.Equal(t, th.BasicPrivateChannel.Id, hook.ChannelId)
+
+	_, _, err = th.Client.GetIncomingWebhook(context.Background(), hook.Id, "")
+	require.NoError(t, err, "get")
+
+	appErr := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{Text: "delivered"})
+	require.Nil(t, appErr, "delivery")
+
+	_, err = th.Client.DeleteIncomingWebhook(context.Background(), hook.Id)
+	require.NoError(t, err, "delete")
 }
 
 // The gate is inert until a channel_write_access policy governs the channel: a
