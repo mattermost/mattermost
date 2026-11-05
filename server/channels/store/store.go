@@ -607,6 +607,9 @@ type RemoteClusterStore interface {
 	Save(rc *model.RemoteCluster) (*model.RemoteCluster, error)
 	Update(rc *model.RemoteCluster) (*model.RemoteCluster, error)
 	Delete(remoteClusterID string) (bool, error)
+	// PermanentDelete removes the row for remoteClusterID and name. It is meant for a connection
+	// that was never established, so shared channel remotes are left untouched.
+	PermanentDelete(remoteClusterID string, name string) error
 	Get(remoteClusterID string, includeDeleted bool) (*model.RemoteCluster, error)
 	// Deprecated: GetByPluginID returns a single remote for the plugin. Only correct
 	// when the plugin has one registration. Use GetAllByPluginID instead.
