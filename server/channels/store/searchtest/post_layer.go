@@ -1943,6 +1943,8 @@ func testSearchMentionTermsRequireAtSign(t *testing.T, th *SearchTestHelper) {
 func testSearchMentionTermsWithPeriods(t *testing.T, th *SearchTestHelper) {
 	endOfSentence, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "thanks @sam.", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
+	ellipsis, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "sam thanks @sam...", "", model.PostTypeDefault, 0, false)
+	require.NoError(t, err)
 	dotted, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "sam ping @sam.smith", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
 	dottedEnd, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "sam ping @sam.smith.", "", model.PostTypeDefault, 0, false)
@@ -1954,9 +1956,9 @@ func testSearchMentionTermsWithPeriods(t *testing.T, th *SearchTestHelper) {
 		terms       string
 		expectedIDs []string
 	}{
-		{name: "period ending a sentence ends the username", terms: `@sam`, expectedIDs: []string{endOfSentence.Id}},
+		{name: "periods ending a sentence end the username", terms: `@sam`, expectedIDs: []string{endOfSentence.Id, ellipsis.Id}},
 		{name: "longer dotted username is a different user", terms: `@sam.smith`, expectedIDs: []string{dotted.Id, dottedEnd.Id}},
-		{name: "wildcard matches dotted usernames", terms: `@sam*`, expectedIDs: []string{endOfSentence.Id, dotted.Id, dottedEnd.Id}},
+		{name: "wildcard matches dotted usernames", terms: `@sam*`, expectedIDs: []string{endOfSentence.Id, ellipsis.Id, dotted.Id, dottedEnd.Id}},
 	}
 
 	for _, tc := range testCases {

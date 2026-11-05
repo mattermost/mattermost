@@ -2297,8 +2297,8 @@ func splitMentionSearchTerms(input string) (string, []string) {
 // mentionTermPattern builds a regular expression matching an @mention search term as a whole
 // username, so that "@job" doesn't match "@jobs", or as a prefix when it ends in a wildcard.
 // The @ must not be preceded by a username character, so "@job" doesn't match "foo@job.com".
-// A trailing period only ends the username when no username character follows it, so "@job"
-// doesn't match "@job.smith" but does match "ask @job.".
+// Trailing periods only end the username when no username character follows them, so "@job"
+// doesn't match "@job.smith" but does match "ask @job." and "ask @job...".
 func mentionTermPattern(term string) string {
 	const leadingBoundary = `(^|[^[:alnum:]_])`
 
@@ -2306,7 +2306,7 @@ func mentionTermPattern(term string) string {
 	if prefix, isWildcard := strings.CutSuffix(term, "*"); isWildcard {
 		return leadingBoundary + regexp.QuoteMeta(strings.TrimRight(prefix, "*"))
 	}
-	return leadingBoundary + regexp.QuoteMeta(term) + `([^[:alnum:]_.-]|\.([^[:alnum:]_.-]|$)|$)`
+	return leadingBoundary + regexp.QuoteMeta(term) + `([^[:alnum:]_.-]|\.+([^[:alnum:]_.-]|$)|$)`
 }
 
 // buildCJKSearchClause builds LIKE WHERE clauses for CJK search terms.
