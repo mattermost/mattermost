@@ -128,7 +128,7 @@ def report_differences(hub, version, differences: list, env: dict, live: bool, r
         result.notes.append("RELEASE_AGENT_MM_TOKEN is not set, so the differences were not reported in Hub.")
         return
     channel = hublib.release_channel(hub, version)
-    review = env.get("REVIEW_CHANNEL_ID") or (channel or {}).get("id", "")
+    review = hublib.review_channel_id(env, live, channel)
     marker = f"release-docs:key-dates-differences:{version.short}"
     if not review or hublib.find_post(hub, review, marker):
         result.notes.append("Differences already reported, or no review channel to report them in.")

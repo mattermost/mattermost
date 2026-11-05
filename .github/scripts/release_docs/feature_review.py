@@ -14,7 +14,9 @@ from .result import Result
 
 TASK = "feature-review"
 TITLE = "Feature Ready Review"
-PLAYBOOK_ITEMS = ["Schedule a Feature Ready Review meeting"]
+# The trailing "…" matches by the start of the title, as the Twitter item does: on Hub it reads
+# "Schedule a Feature Ready Review meeting with these guidelines."
+PLAYBOOK_ITEMS = ["Schedule a Feature Ready Review meeting…"]
 INTRO = ("This is a monthly Feature Ready Review meeting where the development lead for each new feature gives a short "
          "(10 minute maximum) demo and explanation of new features. These monthly meetings are recorded.")
 PLAN_TBD = "plan TBD"  # Jira epics have no plan field yet (Phase 6)

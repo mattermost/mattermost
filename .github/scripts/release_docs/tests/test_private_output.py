@@ -190,6 +190,18 @@ class PrivateOutputTest(unittest.TestCase):
         for secret in SECRETS:
             self.assertNotIn(secret, public)
 
+    def test_the_report_goes_to_the_test_channel_in_a_dry_run_and_the_release_channel_when_live(self):
+        def deliver(env):
+            hub = FakeHub([{"id": "release", "display_name": "Release: v12.2", "team_id": "team"}])
+            sent = report.deliver(cli.Result("drafts", "v12.2.0", text="x", private=True), env, hub)
+            return sent, sorted({p["channel_id"] for p in hub.posts.values()})
+        self.assertEqual(deliver({"MODE": "dry_run", "TEST_CHANNEL_ID": "test"})[1], ["test"])
+        self.assertEqual(deliver({"MODE": "dry_run", "TEST_CHANNEL_ID": "test", "REVIEW_CHANNEL_ID": "review"})[1], ["review"])
+        self.assertEqual(deliver({"MODE": "live"})[1], ["release"])
+        posted, channels = deliver({"MODE": "dry_run"})  # no test channel: never the release channel
+        self.assertEqual((posted[0], channels), (False, []))
+        self.assertIn("RELEASE_AGENT_TEST_CHANNEL_ID", posted[1])
+
     def test_long_output_is_split_across_replies(self):
         text = "\n".join(f"- line {i} " + "x" * 80 for i in range(400))
         parts = report.chunks(text)

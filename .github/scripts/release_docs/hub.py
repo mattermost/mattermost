@@ -173,6 +173,21 @@ def release_run(hub, channel: dict | None) -> dict | None:
     return runs[0] if len(runs) == 1 else None
 
 
+def review_channel_id(env: dict, live: bool, release_channel: dict | None = None) -> str:
+    """The channel for Hub reports: RELEASE_DOCS_REVIEW_CHANNEL_ID when set. Otherwise, in a dry run, the
+    test channel (RELEASE_AGENT_TEST_CHANNEL_ID), never the release channel; in a live run, the release
+    channel, if there is one."""
+    if env.get("REVIEW_CHANNEL_ID"):
+        return env["REVIEW_CHANNEL_ID"]
+    if not live:
+        return env.get("TEST_CHANNEL_ID", "")
+    return (release_channel or {}).get("id", "")
+
+
+NO_REVIEW_CHANNEL = ("no review channel (RELEASE_DOCS_REVIEW_CHANNEL_ID; for a dry run, RELEASE_AGENT_TEST_CHANNEL_ID; "
+                     "for a live run, a release channel the bot is in)")
+
+
 def release_manager(hub, run: dict | None) -> dict | None:
     """The playbook run's owner, or None: there is no one to fall back on."""
     if run and run.get("owner_user_id"):

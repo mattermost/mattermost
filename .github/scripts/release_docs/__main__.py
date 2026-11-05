@@ -612,7 +612,7 @@ def mobile_esr_pr(item, env: dict, gh, mobile_gh, hub, live: bool, result: Resul
         result.todo(f"no changelog write app token for {esr.MOBILE_REPO}, so the mobile ESR PR was not opened; "
                     "its changes are posted in Hub")
         marker = f"release-docs:mobile-esr:{built.version}"
-        posted = report_in_hub(hub, env.get("REVIEW_CHANNEL_ID", ""), marker,
+        posted = report_in_hub(hub, hublib.review_channel_id(env, live), marker,
                                mobile_hub_message(built, target, base_files), live)
         return f"not opened (no write token for {esr.MOBILE_REPO}); the changes were {posted}"
     return publish.apply(mobile_gh or gh, built, target, live)
@@ -670,7 +670,7 @@ def run_esr_comms(raw: str, env: dict, gh, hub, jira_client, holidays, today: da
     if hub_lines:
         message = "ESR comms: Jira tickets\n" + "\n".join(hub_lines)
         marker = f"release-docs:esr-comms:{raw}:{today}"
-        lines.append(f"- Jira tickets: {report_in_hub(hub, env.get('REVIEW_CHANNEL_ID', ''), marker, message, live)}")
+        lines.append(f"- Jira tickets: {report_in_hub(hub, hublib.review_channel_id(env, live), marker, message, live)}")
     result.text = "\n".join(lines)
     return result
 

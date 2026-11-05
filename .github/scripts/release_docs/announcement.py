@@ -62,10 +62,9 @@ def run(version, release_day: date, render, hub, env: dict, live: bool, now: dat
     mark = markers(version.short)
     announcements = env.get("ANNOUNCEMENTS_CHANNEL_ID", "")
     channel = hublib.release_channel(hub, version)
-    review = env.get("REVIEW_CHANNEL_ID") or (channel or {}).get("id", "")
+    review = hublib.review_channel_id(env, live, channel)
     if not announcements or not review:
-        result.todo("no Announcements channel (RELEASE_DOCS_ANNOUNCEMENTS_CHANNEL_ID) or review channel "
-                    "(RELEASE_DOCS_REVIEW_CHANNEL_ID, or a release channel the bot is in)")
+        result.todo("no Announcements channel (RELEASE_DOCS_ANNOUNCEMENTS_CHANNEL_ID) or " + hublib.NO_REVIEW_CHANNEL)
         return result
     manager = hublib.release_manager(hub, hublib.release_run(hub, channel))
     at = scheduled_at(release_day, env.get("ANNOUNCEMENT_TIME"))

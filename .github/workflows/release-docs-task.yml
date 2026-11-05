@@ -50,8 +50,11 @@ name: Release Docs Task
 #   RELEASE_AGENT_MM_URL            (variable) Hub, default https://hub.mattermost.com
 #   RELEASE_DOCS_ANNOUNCEMENTS_CHANNEL_ID (variable) Staff: Announcements
 #   RELEASE_DOCS_MARKETING_CHANNEL_ID     (variable) Staff: Marketing
-#   RELEASE_DOCS_REVIEW_CHANNEL_ID  (variable) where approvals are asked; default: the release channel
-#                                              ("Release: vX.Y"), found by name as the release agent does
+#   RELEASE_DOCS_REVIEW_CHANNEL_ID  (variable) where reports and approvals go. When unset: a live run uses the
+#                                              release channel ("Release: vX.Y"), found by name as the release
+#                                              agent does; a dry run uses RELEASE_AGENT_TEST_CHANNEL_ID, never
+#                                              the release channel
+#   RELEASE_AGENT_TEST_CHANNEL_ID   (variable) the release agent's test channel, the dry runs' fallback above
 #   RELEASE_DOCS_MARKETING_EMAIL_OWNER  (variable) Hub username to mention in the Marketing email post. No
 #                                              default: when unset, nobody is mentioned and the post says so
 #   RELEASE_DOCS_MARKETING_SOCIAL_OWNER (variable) the same for the social post
@@ -248,6 +251,7 @@ jobs:
           ANNOUNCEMENTS_CHANNEL_ID: ${{ vars.RELEASE_DOCS_ANNOUNCEMENTS_CHANNEL_ID }}
           MARKETING_CHANNEL_ID: ${{ vars.RELEASE_DOCS_MARKETING_CHANNEL_ID }}
           REVIEW_CHANNEL_ID: ${{ vars.RELEASE_DOCS_REVIEW_CHANNEL_ID }}
+          TEST_CHANNEL_ID: ${{ vars.RELEASE_AGENT_TEST_CHANNEL_ID }}
           MARKETING_EMAIL_OWNER: ${{ vars.RELEASE_DOCS_MARKETING_EMAIL_OWNER }}
           MARKETING_SOCIAL_OWNER: ${{ vars.RELEASE_DOCS_MARKETING_SOCIAL_OWNER }}
           ASANA_FORM_URL: ${{ vars.RELEASE_DOCS_ASANA_FORM_URL }}

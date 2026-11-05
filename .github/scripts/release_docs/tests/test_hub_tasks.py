@@ -11,6 +11,7 @@ from unittest import mock
 
 from release_docs import __main__ as cli
 from release_docs import announcement, drafts, esr, feature_review, gcal, key_dates, marketing, schedule
+from release_docs import hub as hublib
 from release_docs.changelog import Highlight
 from release_docs.result import TODO_MARKER, Result
 from release_docs.versions import Version
@@ -35,7 +36,7 @@ DESKTOP = json.dumps({"v10.11": "v5.13", "v11.7": "v6.2", "v12.4": "v6.5"})
 RELEASE_CHANNEL = {"id": "release", "display_name": "Release: v12.2", "team_id": "team"}
 ENV = {"ANNOUNCEMENTS_CHANNEL_ID": "announcements", "MARKETING_CHANNEL_ID": "marketing",
        "MARKETING_EMAIL_OWNER": "caroline.knoche", "MARKETING_SOCIAL_OWNER": "a-rosa.lear",
-       "ASANA_FORM_URL": "https://form.asana.com/?k=test"}
+       "ASANA_FORM_URL": "https://form.asana.com/?k=test", "TEST_CHANNEL_ID": "test"}
 V12_2 = Version(12, 2)
 RELEASE_DAY = date(2026, 12, 16)
 
@@ -199,6 +200,23 @@ class AnnouncementTest(unittest.TestCase):
         self.assertEqual(len(waiting), 1)
         self.assertTrue(waiting[0]["message"].startswith("Still waiting for :white_check_mark:"))
         self.assertIn("No release manager is known", waiting[0]["message"])
+
+    def test_a_dry_run_reports_in_the_test_channel_never_the_release_channel(self):
+        env = {k: v for k, v in ENV.items() if k != "TEST_CHANNEL_ID"}
+        run = lambda env, live: announcement.run(V12_2, RELEASE_DAY, self.render, self.hub, env, live,  # noqa: E731
+                                                 at("2026-12-15"), holidays(), False)
+        # No review channel and no test channel: a dry run has nowhere to report, and doesn't use the release channel.
+        result = run(env, False)
+        self.assertTrue(result.failed)
+        self.assertIn("RELEASE_AGENT_TEST_CHANNEL_ID", result.todos[0])
+        # An existing draft in the test channel is the one a dry run finds, not one in the release channel.
+        self.hub.create_post("release", "x", {hublib.MARKER_PROP: "release-docs:announcement-draft:v12.2"})
+        self.assertIn("would have posted the draft", run(ENV, False).text)
+        # The review channel, when set, wins; a live run with none keeps the release channel.
+        self.assertEqual(hublib.review_channel_id({**ENV, "REVIEW_CHANNEL_ID": "review"}, False), "review")
+        self.assertEqual(hublib.review_channel_id(ENV, True, RELEASE_CHANNEL), "release")
+        self.assertEqual(hublib.review_channel_id(ENV, False, RELEASE_CHANNEL), "test")
+        self.assertEqual(hublib.review_channel_id(env, False, RELEASE_CHANNEL), "")
 
     def test_dry_run_writes_nothing(self):
         result = self.run_at(at("2026-12-15"), live=False)
@@ -549,6 +567,19 @@ class FeatureReviewTest(unittest.TestCase):
         self.assertNotIn("MM-1", result.text)
         review(calendar, "2026-11-25")
         self.assertEqual(len(calendar.writes), 1)  # unchanged on a rerun
+
+    def test_ticks_the_item_by_the_start_of_its_hub_title(self):
+        title = "Schedule a Feature Ready Review meeting with these guidelines."
+        self.assertEqual(feature_review.PLAYBOOK_ITEMS, ["Schedule a Feature Ready Review meeting…"])
+        hub = FakeHub([RELEASE_CHANNEL], playbook_run("release", "Check the dates", title))
+        result = feature_review.run(V12_2, EPICS, series_calendar(), at("2026-11-24"), V12_2_FC, RELEASE_DAY, hub, True)
+        self.assertEqual([w for w in hub.writes if w[0] == "tick"], [("tick", title)])
+        self.assertFalse(result.failed)
+        run = hub.runs_in_channel("release")[0]
+        self.assertEqual([i["state"] for i in run["checklists"][0]["items"]], ["", "closed"])  # only that item
+        # A rerun finds it closed and ticks nothing more.
+        feature_review.run(V12_2, EPICS, series_calendar(), at("2026-11-25"), V12_2_FC, RELEASE_DAY, hub, True)
+        self.assertEqual(len([w for w in hub.writes if w[0] == "tick"]), 1)
 
     def test_after_the_releases_occurrence_the_next_one_is_left_alone(self):
         calendar = series_calendar()

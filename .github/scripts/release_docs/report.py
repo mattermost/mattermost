@@ -3,8 +3,8 @@
 drafts, release-highlights and breaking-changes read Jira and mattermost/enterprise, so
 their text, notes, missing inputs and artifacts can name Jira keys, epics and enterprise
 PRs. The Actions log, run summary and artifacts of this public repo are public, so all of
-that is posted to the review channel in Hub instead (RELEASE_DOCS_REVIEW_CHANNEL_ID, else
-the release channel), with the artifacts attached. Actions keep the outcome, the counts,
+that is posted to the review channel in Hub instead (RELEASE_DOCS_REVIEW_CHANNEL_ID; else, in
+a dry run, the test channel RELEASE_AGENT_TEST_CHANNEL_ID, and in a live run the release channel), with the artifacts attached. Actions keep the outcome, the counts,
 how many inputs are missing, and mattermost/mattermost PR refs.
 
 Outside GitHub Actions (GITHUB_ACTIONS unset), the full report and its files are also written
@@ -70,14 +70,15 @@ def chunks(text: str) -> list[str]:
 
 
 def review_channel(hub, env: dict, version_text: str) -> str:
-    if env.get("REVIEW_CHANNEL_ID"):
-        return env["REVIEW_CHANNEL_ID"]
+    """RELEASE_DOCS_REVIEW_CHANNEL_ID; else in a dry run the test channel, in a live run the release channel."""
+    live = env.get("MODE") == "live"
+    if env.get("REVIEW_CHANNEL_ID") or not live:
+        return hublib.review_channel_id(env, live)
     try:
         version = Version.parse(version_text)
     except ValueError:
         return ""
-    channel = hublib.release_channel(hub, version)
-    return channel["id"] if channel else ""
+    return hublib.review_channel_id(env, live, hublib.release_channel(hub, version))
 
 
 def deliver(result: Result, env: dict, hub, run_url: str = "") -> tuple[bool, str]:
@@ -86,7 +87,7 @@ def deliver(result: Result, env: dict, hub, run_url: str = "") -> tuple[bool, st
         return False, "not posted: RELEASE_AGENT_MM_TOKEN is not set"
     channel = review_channel(hub, env, result.version)
     if not channel:
-        return False, "not posted: no RELEASE_DOCS_REVIEW_CHANNEL_ID and no release channel the bot is in"
+        return False, "not posted: " + hublib.NO_REVIEW_CHANNEL
     report = full_report(result, run_url)
     digest = hashlib.sha256((report + "".join(f"{k}\n{v}" for k, v in sorted(result.artifacts.items()))).encode()).hexdigest()
     marker = f"release-docs:report:{result.task}:{result.version}"

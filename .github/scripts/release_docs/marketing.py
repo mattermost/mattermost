@@ -119,7 +119,7 @@ def run(version, day_text: str, email: str, email_todos: list, social: str, foru
     channel = hublib.release_channel(hub, version)
     run_ = hublib.release_run(hub, channel)
     manager = hublib.release_manager(hub, run_)
-    review = env.get("REVIEW_CHANNEL_ID") or (channel or {}).get("id", "")
+    review = hublib.review_channel_id(env, live, channel)
     done = []
 
     def post(channel_id, key, message, root_id=""):
@@ -149,7 +149,7 @@ def run(version, day_text: str, email: str, email_todos: list, social: str, foru
         link = f"{hub.base_url}/_redirect/pl/{email_post['id']}" if email_post.get("id") else "(the Marketing post)"
         post(review, "asana", asana_text(version, day_text, email, link, manager, asana_url))
     else:
-        result.notes.append("No review or release channel, so the Asana form text was not posted.")
+        result.notes.append("No review channel for this mode, so the Asana form text was not posted.")
     result.notes.append(hublib.tick(hub, run_, SOCIAL_ITEMS, live))
     result.notes.append(f'"{EMAIL_ITEM}" stays with the release manager, who ticks it after submitting the form.')
     result.text = "\n".join(f"- {line}" for line in done)
