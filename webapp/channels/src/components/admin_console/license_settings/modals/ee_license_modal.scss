@@ -9,34 +9,13 @@
         }
     }
 
-    .title {
-        margin: 10px 0;
-        color: #3f4350;
-        font-family: Metropolis;
-        font-size: 22px;
-        font-weight: 700;
-        line-height: 28px;
-    }
-
     .enterprise-license-text {
         max-height: 200px;
-        padding: 10px;
+
+        // The modal has no footer, so the body needs its own bottom spacing
+        margin-bottom: 32px;
         background: white;
         overflow-y: auto;
         text-align: justify;
-    }
-
-    .content-footer {
-        display: flex;
-
-        button {
-            border-radius: 4px;
-            margin-top: 15px !important;
-            margin-left: auto;
-        }
-    }
-
-    .modal-footer {
-        border-top: none !important;
     }
 }
