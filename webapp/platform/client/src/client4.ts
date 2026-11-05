@@ -4864,6 +4864,27 @@ export default class Client4 {
         );
     };
 
+    getSupportPacket = async (
+        {basicServerLogs, pluginPackets = []}: {basicServerLogs: boolean; pluginPackets?: string[]},
+        signal?: AbortSignal,
+    ): Promise<{blob: Blob; filename: string}> => {
+        const params = new URLSearchParams({basic_server_logs: String(basicServerLogs)});
+        pluginPackets.forEach((pluginId) => params.append('plugin_packets', pluginId));
+
+        const {data, headers} = await this.doFetchWithResponse<Blob>(
+            `${this.getSystemRoute()}/support_packet?${params}`,
+            {method: 'get', signal},
+        );
+
+        return {
+            blob: data,
+            filename: extractFilenameFromContentDisposition(
+                headers.get('Content-Disposition'),
+                `mm_support_packet_${new Date().toISOString().slice(0, 16).replace(':', '-')}.zip`,
+            ),
+        };
+    };
+
     getCallsChannelState = (channelId: string) => {
         return this.doFetch<{enabled: boolean; id: string}>(
             `${this.url}/plugins/${'com.mattermost.calls'}/${channelId}`,

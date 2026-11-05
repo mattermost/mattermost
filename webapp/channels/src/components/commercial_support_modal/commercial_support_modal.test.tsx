@@ -3,6 +3,8 @@
 
 import React from 'react';
 
+import {ClientError} from '@mattermost/client';
+
 import {Client4} from 'mattermost-redux/client';
 
 import ConnectedCommercialSupportModal from 'components/commercial_support_modal';
@@ -34,9 +36,6 @@ jest.mock('components/widgets/loading/loading_spinner', () => () => <div>{'Loadi
 
 describe('components/CommercialSupportModal', () => {
     beforeAll(() => {
-        // Mock getSystemRoute to return a valid URL
-        jest.spyOn(Client4, 'getSystemRoute').mockImplementation(() => 'http://localhost:8065/api/v4/system');
-
         // Mock createObjectURL and revokeObjectURL
         window.URL.createObjectURL = jest.fn().mockReturnValue('mock-url');
         window.URL.revokeObjectURL = jest.fn();
@@ -88,138 +87,88 @@ describe('components/CommercialSupportModal', () => {
         expect(serverLogs).toBeChecked();
     });
 
-    test('should show error message when download fails', async () => {
-        const errorMessage = 'Failed to download';
-        const detailedError = 'Permission denied';
+    describe('download', () => {
+        let getSupportPacket: jest.SpyInstance;
 
-        // Mock the fetch call to return an error
-        global.fetch = jest.fn().mockImplementation(() =>
-            Promise.resolve({
-                ok: false,
-                json: () => Promise.resolve({
-                    message: errorMessage,
-                    detailed_error: detailedError,
-                }),
-            }),
-        );
-
-        renderWithContext(<CommercialSupportModal {...baseProps}/>);
-
-        const user = userEvent.setup();
-        const downloadLink = screen.getByRole('button', {name: 'Download Support Packet'});
-        if (!downloadLink) {
-            throw new Error('Download Support Packet link not found');
-        }
-        await user.click(downloadLink);
-
-        // Verify error message is shown
-        expect(await screen.findByText(`${errorMessage}: ${detailedError}`)).toBeInTheDocument();
-    });
-
-    test('should clear error when starting new download', async () => {
-        // Mock the fetch call to succeed
-        global.fetch = jest.fn().mockImplementation(() =>
-            Promise.resolve({
-                ok: true,
-                blob: () => Promise.resolve(new Blob()),
-                headers: {get: () => null},
-            }),
-        );
-
-        const ref = React.createRef<CommercialSupportModal>();
-        renderWithContext(
-            <CommercialSupportModal
-                {...baseProps}
-                ref={ref}
-            />,
-        );
-
-        act(() => {
-            ref.current?.setState({error: 'Previous error'});
-        });
-        expect(screen.getByText('Previous error')).toBeInTheDocument();
-
-        // Start download
-        const user = userEvent.setup();
-        const downloadLink = screen.getByText('Download Support Packet').closest('button');
-        if (!downloadLink) {
-            throw new Error('Download Support Packet link not found');
-        }
-        await user.click(downloadLink);
-
-        // Verify error is cleared
-        await waitFor(() => {
-            expect(screen.queryByText('Previous error')).not.toBeInTheDocument();
-        });
-    });
-
-    test('should request the packet without a Content-Type header and with an abort signal', async () => {
-        global.fetch = jest.fn().mockResolvedValue({
-            ok: true,
-            blob: () => Promise.resolve(new Blob()),
-            headers: {get: () => null},
+        beforeEach(() => {
+            getSupportPacket = jest.spyOn(Client4, 'getSupportPacket').mockResolvedValue({blob: new Blob(), filename: 'packet.zip'});
         });
 
-        renderWithContext(<CommercialSupportModal {...baseProps}/>);
-
-        await userEvent.setup().click(screen.getByRole('button', {name: 'Download Support Packet'}));
-
-        await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(1));
-        const [url, options] = (global.fetch as jest.Mock).mock.calls[0];
-        expect(url).toBe('http://localhost:8065/api/v4/system/support_packet?basic_server_logs=true');
-        expect(options.headers).toBeUndefined();
-        expect(options.signal).toBeInstanceOf(AbortSignal);
-    });
-
-    test('should show only the message when the server returns no detailed error', async () => {
-        global.fetch = jest.fn().mockResolvedValue({
-            ok: false,
-            json: () => Promise.resolve({message: 'Failed to download', detailed_error: ''}),
+        afterEach(() => {
+            jest.useRealTimers();
         });
 
-        renderWithContext(<CommercialSupportModal {...baseProps}/>);
-
-        await userEvent.setup().click(screen.getByRole('button', {name: 'Download Support Packet'}));
-
-        expect(await screen.findByText('Failed to download')).toBeInTheDocument();
-    });
-
-    test('should show a generic error when the error response is not JSON', async () => {
-        global.fetch = jest.fn().mockResolvedValue({
-            ok: false,
-            json: () => Promise.reject(new SyntaxError('Unexpected token < in JSON')),
-        });
-
-        renderWithContext(<CommercialSupportModal {...baseProps}/>);
-
-        await userEvent.setup().click(screen.getByRole('button', {name: 'Download Support Packet'}));
-
-        expect(await screen.findByText('Unable to download the Support Packet. Please try again.')).toBeInTheDocument();
-    });
-
-    test('should show a generic error when the request fails', async () => {
-        global.fetch = jest.fn().mockRejectedValue(new TypeError('Failed to fetch'));
-
-        renderWithContext(<CommercialSupportModal {...baseProps}/>);
-
-        await userEvent.setup().click(screen.getByRole('button', {name: 'Download Support Packet'}));
-
-        expect(await screen.findByText('Unable to download the Support Packet. Please try again.')).toBeInTheDocument();
-    });
-
-    test('should release the downloaded file from memory after the download starts', async () => {
-        jest.useFakeTimers();
-        try {
-            global.fetch = jest.fn().mockResolvedValue({
-                ok: true,
-                blob: () => Promise.resolve(new Blob()),
-                headers: {get: () => null},
-            });
-
-            renderWithContext(<CommercialSupportModal {...baseProps}/>);
-
-            const user = userEvent.setup({advanceTimers: jest.advanceTimersByTime});
+        const renderAndDownload = async (props: Partial<typeof baseProps> = {}, user = userEvent.setup()) => {
+            const utils = renderWithContext(
+                <CommercialSupportModal
+                    {...baseProps}
+                    {...props}
+                />,
+            );
             await user.click(screen.getByRole('button', {name: 'Download Support Packet'}));
+            return utils;
+        };
+
+        const genericError = 'Unable to download the Support Packet. Please try again.';
+        const clientError = (message: string, detailedError?: string) => new ClientError('http://localhost:8065', {message, detailed_error: detailedError, url: ''});
+
+        test('should request the selected contents', async () => {
+            const user = userEvent.setup();
+            renderWithContext(
+                <CommercialSupportModal
+                    {...baseProps}
+                    packetContents={[
+                        ...baseProps.packetContents,
+                        {id: 'com.mattermost.calls', label: 'Calls', selected: false, mandatory: false},
+                        {id: 'com.mattermost.boards', label: 'Boards', selected: false, mandatory: false},
+                    ]}
+                />,
+            );
+
+            await user.click(screen.getByRole('checkbox', {name: 'Server Logs'}));
+            await user.click(screen.getByRole('checkbox', {name: 'Calls'}));
+            await user.click(screen.getByRole('button', {name: 'Download Support Packet'}));
+
+            expect(getSupportPacket).toHaveBeenCalledWith({basicServerLogs: false, pluginPackets: ['com.mattermost.calls']}, expect.any(AbortSignal));
+        });
+
+        test.each([
+            ['message and detailed error', clientError('Failed to download', 'Permission denied'), 'Failed to download: Permission denied'],
+            ['message only', clientError('Failed to download', ''), 'Failed to download'],
+            ['an empty server error', clientError(''), genericError],
+            ['a network error', new TypeError('Failed to fetch'), genericError],
+        ])('should show the right error for %s', async (_, err, expected) => {
+            getSupportPacket.mockRejectedValue(err);
+
+            await renderAndDownload();
+
+            expect(await screen.findByText(expected)).toBeInTheDocument();
+        });
+
+        test('should clear error when starting new download', async () => {
+            const ref = React.createRef<CommercialSupportModal>();
+            const user = userEvent.setup();
+            renderWithContext(
+                <CommercialSupportModal
+                    {...baseProps}
+                    ref={ref}
+                />,
+            );
+
+            act(() => {
+                ref.current?.setState({error: 'Previous error'});
+            });
+            expect(screen.getByText('Previous error')).toBeInTheDocument();
+
+            await user.click(screen.getByRole('button', {name: 'Download Support Packet'}));
+
+            await waitFor(() => expect(screen.queryByText('Previous error')).not.toBeInTheDocument());
+        });
+
+        test('should download the file and release it from memory afterwards', async () => {
+            jest.useFakeTimers();
+
+            await renderAndDownload({}, userEvent.setup({advanceTimers: jest.advanceTimersByTime}));
 
             await waitFor(() => expect(window.URL.createObjectURL).toHaveBeenCalled());
             expect(window.URL.revokeObjectURL).not.toHaveBeenCalled();
@@ -228,27 +177,19 @@ describe('components/CommercialSupportModal', () => {
                 jest.runOnlyPendingTimers();
             });
             expect(window.URL.revokeObjectURL).toHaveBeenCalledWith('mock-url');
-        } finally {
-            jest.useRealTimers();
-        }
-    });
-
-    test('should abort the download when the modal unmounts', async () => {
-        let signal: AbortSignal | undefined;
-        global.fetch = jest.fn().mockImplementation((_url: string, options: RequestInit) => {
-            signal = options.signal ?? undefined;
-            return new Promise(() => {}); // never resolves
         });
 
-        const {unmount} = renderWithContext(<CommercialSupportModal {...baseProps}/>);
+        test('should abort the download when the modal unmounts', async () => {
+            getSupportPacket.mockReturnValue(new Promise(() => {})); // never resolves
 
-        await userEvent.setup().click(screen.getByRole('button', {name: 'Download Support Packet'}));
-        await waitFor(() => expect(signal).toBeDefined());
-        expect(signal?.aborted).toBe(false);
+            const {unmount} = await renderAndDownload();
+            const signal: AbortSignal = getSupportPacket.mock.calls[0][1];
+            expect(signal.aborted).toBe(false);
 
-        unmount();
+            unmount();
 
-        expect(signal?.aborted).toBe(true);
+            expect(signal.aborted).toBe(true);
+        });
     });
 
     test('should encode the user details in the cloud support link', () => {
@@ -314,22 +255,14 @@ describe('components/CommercialSupportModal', () => {
             expect(screen.getByRole('link', {name: 'here'})).toHaveAttribute('href', '/admin_console/environment/logging');
         });
 
-        test('should show the banner when file logging is on but the level is not DEBUG', () => {
-            renderWithContext(<ConnectedCommercialSupportModal onExited={jest.fn()}/>, getState({enableFile: 'true', fileLevel: 'INFO'}));
+        test.each([
+            ['file logging is on but the level is not DEBUG', {enableFile: 'true', fileLevel: 'INFO'}, true],
+            ['file logging is on at DEBUG level', {enableFile: 'true', fileLevel: 'DEBUG'}, false],
+            ['the server is on Cloud', {isCloud: true}, false],
+        ])('should set banner visibility correctly when %s', (_, state, shown) => {
+            renderWithContext(<ConnectedCommercialSupportModal onExited={jest.fn()}/>, getState(state));
 
-            expect(screen.getByText(bannerText)).toBeInTheDocument();
-        });
-
-        test('should not show the banner when file logging is on at DEBUG level', () => {
-            renderWithContext(<ConnectedCommercialSupportModal onExited={jest.fn()}/>, getState({enableFile: 'true', fileLevel: 'DEBUG'}));
-
-            expect(screen.queryByText(bannerText)).not.toBeInTheDocument();
-        });
-
-        test('should not show the banner on Cloud', () => {
-            renderWithContext(<ConnectedCommercialSupportModal onExited={jest.fn()}/>, getState({isCloud: true}));
-
-            expect(screen.queryByText(bannerText)).not.toBeInTheDocument();
+            expect(Boolean(screen.queryByText(bannerText))).toBe(shown);
         });
 
         test('should hide the banner when dismissed', async () => {

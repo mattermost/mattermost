@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import moment from 'moment';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
-import {defineMessages, FormattedMessage} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
-import {extractFilenameFromContentDisposition} from '@mattermost/client';
+import {ClientError} from '@mattermost/client';
+import {buildQueryString} from '@mattermost/client/lib/helpers';
 import {DownloadOutlineIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/compass-ui/components/button';
 import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
@@ -50,26 +50,16 @@ type State = {
     error?: string | true;
 };
 
-const messages = defineMessages({
-    genericError: {
-        id: 'commercial_support_modal.download_error',
-        defaultMessage: 'Unable to download the Support Packet. Please try again.',
-    },
-});
-
 // Delay before releasing the downloaded file from memory. Revoking the object URL
 // synchronously after click() can cancel the download in some browsers.
 const REVOKE_OBJECT_URL_DELAY_MS = 40 * 1000;
 
-function formatDownloadError(data: unknown): string | undefined {
-    if (!data || typeof data !== 'object') {
-        return undefined;
+// Returns the server's error text, or true to show the generic message (e.g. for network errors).
+function getDownloadError(err: unknown): string | true {
+    if (err instanceof ClientError) {
+        return [err.message, err.detailed_error].filter(Boolean).join(': ') || true;
     }
-
-    const {message, detailed_error: detailedError} = data as {message?: unknown; detailed_error?: unknown};
-    const parts = [message, detailedError].filter((part): part is string => typeof part === 'string' && part.length > 0);
-
-    return parts.length ? parts.join(': ') : undefined;
+    return true;
 }
 
 export default class CommercialSupportModal extends React.PureComponent<Props, State> {
@@ -115,24 +105,14 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
         });
     };
 
-    generateDownloadURLWithParams = (): string => {
-        const url = new URL(Client4.getSystemRoute() + '/support_packet');
-        this.state.packetContents.forEach((content) => {
-            if (content.id === 'basic.server.logs') {
-                url.searchParams.set('basic_server_logs', String(content.selected));
-            } else if (!content.mandatory && content.selected) {
-                url.searchParams.append('plugin_packets', content.id);
-            }
-        });
-        return url.toString();
-    };
-
-    extractFilename = (input: string | null): string => {
-        // construct the expected filename in case of an error in the header
-        const formattedDate = (moment(new Date())).format('YYYY-MM-DDTHH-mm');
-        const presumedFileName = `mm_support_packet_${formattedDate}.zip`;
-
-        return extractFilenameFromContentDisposition(input, presumedFileName);
+    getSupportPacketOptions = () => {
+        const {packetContents} = this.state;
+        return {
+            basicServerLogs: packetContents.some((content) => content.id === 'basic.server.logs' && content.selected),
+            pluginPackets: packetContents.
+                filter((content) => content.id !== 'basic.server.logs' && !content.mandatory && content.selected).
+                map((content) => content.id),
+        };
     };
 
     downloadSupportPacket = async () => {
@@ -142,48 +122,28 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
 
         this.setState({loading: true, error: undefined});
 
-        let blob: Blob;
-        let filename: string;
+        let packet: {blob: Blob; filename: string} | undefined;
+        let error: State['error'];
         try {
-            const res = await fetch(this.generateDownloadURLWithParams(), {
-                method: 'GET',
-                signal: abortController.signal,
-            });
-
-            if (!res.ok) {
-                let data: unknown;
-                try {
-                    data = await res.json();
-                } catch {
-                    // The body isn't JSON, e.g. an HTML error page from a proxy.
-                }
-
-                if (!abortController.signal.aborted) {
-                    this.setState({loading: false, error: formatDownloadError(data) ?? true});
-                }
-                return;
-            }
-
-            blob = await res.blob();
-            filename = this.extractFilename(res.headers.get('content-disposition'));
-        } catch {
-            // Aborted requests mean the modal was closed or a new download started; there is nothing to report.
-            if (!abortController.signal.aborted) {
-                this.setState({loading: false, error: true});
-            }
-            return;
+            packet = await Client4.getSupportPacket(this.getSupportPacketOptions(), abortController.signal);
+        } catch (err) {
+            error = getDownloadError(err);
         }
 
+        // The modal was closed or a new download started; there is nothing to report.
         if (abortController.signal.aborted) {
             return;
         }
 
-        this.setState({loading: false});
+        this.setState({loading: false, error});
+        if (!packet) {
+            return;
+        }
 
-        const href = window.URL.createObjectURL(blob);
+        const href = window.URL.createObjectURL(packet.blob);
         const link = document.createElement('a');
         link.href = href;
-        link.setAttribute('download', filename);
+        link.setAttribute('download', packet.filename);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -197,24 +157,16 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
             return 'https://support.mattermost.com/hc/en-us/requests/new';
         }
 
-        const params = new URLSearchParams({
+        return 'https://customers.mattermost.com/cloud/contact-us' + buildQueryString({
             name: [currentUser.first_name, currentUser.last_name].filter(Boolean).join(' '),
             email: currentUser.email,
             inquiry: 'technical',
         });
-
-        // URLSearchParams encodes spaces as "+", but the link previously sent them as "%20". Keep
-        // "%20" so pages that decode with decodeURIComponent don't show "+" in the name. A literal
-        // "+" is already encoded as "%2B", so this replacement only affects spaces.
-        return `https://customers.mattermost.com/cloud/contact-us?${params.toString().replace(/\+/g, '%20')}`;
     };
 
     render() {
         const {showBannerWarning, error} = this.state;
         const supportLink = this.getSupportLink();
-
-        // The banner text has several <strong> tags, so each needs its own key.
-        let strongCount = 0;
         return (
             <Modal
                 id='commercialSupportModal'
@@ -256,7 +208,7 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
                                         id='commercial_support_modal.warning.banner'
                                         defaultMessage='Before downloading the Support Packet, set <strong>Output Logs to File</strong> to <strong>true</strong> and set <strong>File Log Level</strong> to <strong>DEBUG</strong> <debugLink>here</debugLink>.'
                                         values={{
-                                            strong: (chunks) => <strong key={`strong-${strongCount++}`}>{chunks}</strong>,
+                                            strong: (chunks) => <strong key='strong'>{chunks}</strong>,
                                             debugLink: (chunks) => (
                                                 <Link
                                                     key='debugLink'
@@ -301,7 +253,12 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
                             {error && (
                                 <div className='CommercialSupportModal__error'>
                                     <span className='error-text'>
-                                        {error === true ? <FormattedMessage {...messages.genericError}/> : error}
+                                        {error === true ? (
+                                            <FormattedMessage
+                                                id='commercial_support_modal.download_error'
+                                                defaultMessage='Unable to download the Support Packet. Please try again.'
+                                            />
+                                        ) : error}
                                     </span>
                                 </div>
                             )}
