@@ -44,6 +44,15 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 		return testLogMessages(out.String()), warnings, err
 	}
 
+	// expectServerVersion expects the ping that reads the server version, which X-Version-Id carries
+	expectServerVersion := func(version string) {
+		s.client.
+			EXPECT().
+			GetPing(gomock.Any()).
+			Return("OK", &model.Response{ServerVersion: version}, nil).
+			Times(1)
+	}
+
 	s.Run("Display single log line", func() {
 		cmd := newTestCmd(s.T(), LogsCmd)
 		s.Require().NoError(cmd.Flags().Set("number", "1"))
@@ -111,6 +120,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 		s.Equal("search", cmd.Flags().ShorthandLookup("s").Name)
 		s.Require().NoError(cmd.Flags().Set("since", "15m"))
 
+		expectServerVersion("12.2.0.12345.abcdef.true")
 		before := time.Now()
 		var filter *model.LogFilter
 		s.client.
@@ -179,6 +189,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 		cmd := newTestCmd(s.T(), LogsCmd)
 		s.Require().NoError(cmd.Flags().Set("level", "error"))
 
+		expectServerVersion("12.2.0.12345.abcdef.true")
 		s.client.
 			EXPECT().
 			QueryLogs(gomock.Any(), 0, DefaultPageSize, gomock.Any()).
@@ -215,6 +226,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 			s.Run(tc.name, func() {
 				cmd := newTestCmd(s.T(), LogsCmd)
 				s.Require().NoError(cmd.Flags().Set("search", "nothing"))
+				expectServerVersion("12.2.0.12345.abcdef.true")
 
 				s.client.
 					EXPECT().
@@ -241,6 +253,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 	s.Run("Print nothing when no JSON entry matches", func() {
 		cmd := newTestCmd(s.T(), LogsCmd)
 		s.Require().NoError(cmd.Flags().Set("search", "nothing"))
+		expectServerVersion("12.2.0.12345.abcdef.true")
 
 		s.client.
 			EXPECT().
@@ -281,6 +294,8 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 		cmd := newTestCmd(s.T(), LogsCmd)
 		s.Require().NoError(cmd.Flags().Set("follow", "true"))
 
+		// Local mode doesn't report a version
+		expectServerVersion("")
 		s.client.
 			EXPECT().
 			QueryLogs(gomock.Any(), 0, DefaultPageSize, gomock.Any()).
@@ -337,6 +352,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 		ctx, cancel := context.WithCancel(s.T().Context())
 		cmd.SetContext(ctx)
 
+		expectServerVersion("12.2.0.12345.abcdef.true")
 		s.client.
 			EXPECT().
 			QueryLogs(gomock.Any(), 0, DefaultPageSize, gomock.Any()).
@@ -350,6 +366,95 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 		s.Require().NoError(err)
 		s.Require().Len(data, 1)
 		s.Contains(data[0], "first")
+	})
+
+	s.Run("Refuse the flags that need a v12.2 server on older servers", func() {
+		for _, tc := range []struct {
+			name  string
+			flags map[string]string
+			err   string
+		}{
+			{"follow", map[string]string{"follow": "true"}, "--follow needs a v12.2.0 or later server, and the server runs v12.1.1. Upgrade the server, or run mmctl logs without it"},
+			{"level", map[string]string{"level": "error"}, "--level needs a v12.2.0 or later server, and the server runs v12.1.1. Upgrade the server, or run mmctl logs without it"},
+			{"search", map[string]string{"search": "abc"}, "--search needs a v12.2.0 or later server, and the server runs v12.1.1. Upgrade the server, or run mmctl logs without it"},
+			{"since", map[string]string{"since": "15m"}, "--since needs a v12.2.0 or later server, and the server runs v12.1.1. Upgrade the server, or run mmctl logs without it"},
+			{"several", map[string]string{"follow": "true", "level": "error", "search": "abc", "node": "node-1"}, "--follow, --level and --search need a v12.2.0 or later server, and the server runs v12.1.1. Upgrade the server, or run mmctl logs without them"},
+		} {
+			s.Run(tc.name, func() {
+				cmd := newTestCmd(s.T(), LogsCmd)
+				for name, value := range tc.flags {
+					s.Require().NoError(cmd.Flags().Set(name, value))
+				}
+
+				expectServerVersion("12.1.1.12345.abcdef.true")
+
+				_, _, err := testLogsCmdF(s.client, cmd, []string{})
+				s.Require().EqualError(err, tc.err)
+			})
+		}
+	})
+
+	s.Run("Allow the flags that need a v12.2 server", func() {
+		for _, tc := range []struct {
+			name    string
+			version string
+		}{
+			{"on v12.2", "12.2.0.12345.abcdef.true"},
+			{"on a later version", "13.0.0.dev.abcdef.false"},
+			{"without a version", ""},
+			{"with a version that can't be read", "dev"},
+		} {
+			s.Run(tc.name, func() {
+				cmd := newTestCmd(s.T(), LogsCmd)
+				s.Require().NoError(cmd.Flags().Set("level", "error"))
+
+				expectServerVersion(tc.version)
+				s.client.
+					EXPECT().
+					QueryLogs(gomock.Any(), 0, DefaultPageSize, gomock.Any()).
+					Return(map[string][]json.RawMessage{"default": {testLogLine(time.Now(), "error", "failed")}}, &model.Response{}, nil).
+					Times(1)
+
+				data, _, err := testLogsCmdF(s.client, cmd, []string{})
+				s.Require().NoError(err)
+				s.Require().Len(data, 1)
+			})
+		}
+	})
+
+	s.Run("Allow the flags that need a v12.2 server when the ping fails", func() {
+		cmd := newTestCmd(s.T(), LogsCmd)
+		s.Require().NoError(cmd.Flags().Set("search", "abc"))
+
+		s.client.
+			EXPECT().
+			GetPing(gomock.Any()).
+			Return("", &model.Response{}, errors.New("mock error")).
+			Times(1)
+		s.client.
+			EXPECT().
+			QueryLogs(gomock.Any(), 0, DefaultPageSize, gomock.Any()).
+			Return(nil, &model.Response{}, errors.New("mock error")).
+			Times(1)
+
+		_, _, err := testLogsCmdF(s.client, cmd, []string{})
+		s.Require().EqualError(err, "Unable to retrieve logs. Error: mock error")
+	})
+
+	s.Run("Don't read the server version without the flags that need it", func() {
+		cmd := newTestCmd(s.T(), LogsCmd)
+		s.Require().NoError(cmd.Flags().Set("node", "node-1"))
+
+		// No GetPing expected: --node works on older servers too
+		s.client.
+			EXPECT().
+			QueryLogs(gomock.Any(), 0, DefaultPageSize, gomock.Any()).
+			Return(map[string][]json.RawMessage{"node-1": {testLogLine(time.Now(), "info", "started")}}, &model.Response{}, nil).
+			Times(1)
+
+		data, _, err := testLogsCmdF(s.client, cmd, []string{})
+		s.Require().NoError(err)
+		s.Require().Len(data, 1)
 	})
 
 	s.Run("Error when using format flag", func() {

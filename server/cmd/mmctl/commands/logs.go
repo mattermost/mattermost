@@ -18,6 +18,7 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"github.com/Masterminds/semver/v3"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"golang.org/x/term"
@@ -40,6 +41,11 @@ const (
 	logsMaxSeenPerNode = 2 * logsMaxPerPage
 )
 
+// logsMinServerVersion is the first server version that filters the logs of every node, stops
+// reading the log file at date_from, and supports search. Older servers ignore --search, don't
+// filter the logs of other nodes, and read the whole log file on every --follow poll.
+var logsMinServerVersion = semver.MustParse("12.2.0")
+
 // logLevelGroups are the level groups the System Console offers, and the server levels each stands for.
 var logLevelGroups = map[string][]string{
 	"error": {"panic", "fatal", "critical", "error"},
@@ -61,7 +67,7 @@ var LogsCmd = &cobra.Command{
 
 The logs are read from every node of the cluster, and filtered on each node. This needs the server to write its log file in JSON format (LogSettings.FileJson). Otherwise mmctl prints the logs unfiltered, and --follow, --level, --node, --search and --since aren't available.
 
-Filtering and following need a v12.2 or later server. Older servers ignore --search, and don't filter the logs of other nodes, so entries can be missing from the output.
+--follow, --level, --search and --since need a v12.2 or later server. Older servers ignore --search, don't filter the logs of other nodes, and read their whole log file on every --follow poll, so mmctl refuses these flags with them.
 
 Entries are colored when printed to a terminal. Set NO_COLOR to turn the colors off, or CLICOLOR_FORCE to keep them when the output is piped.`,
 	Example: `  # print the last 200 entries of each node
@@ -125,6 +131,10 @@ func logsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		ctx = context.Background()
 	}
 
+	if err := checkLogsServerVersion(ctx, c, opts); err != nil {
+		return err
+	}
+
 	return newLogFollower(c, opts, os.Stdout).run(ctx)
 }
 
@@ -179,6 +189,72 @@ func logsOptionsFromFlags(cmd *cobra.Command) (*logsOptions, error) {
 // needsQuery reports whether the options need POST /api/v4/logs/query, which GET /api/v4/logs can't serve.
 func (o *logsOptions) needsQuery() bool {
 	return o.follow || len(o.levels) > 0 || len(o.nodes) > 0 || o.search != "" || o.since > 0
+}
+
+// serverFilterFlags returns the flags set that need a v12.2 or later server.
+func (o *logsOptions) serverFilterFlags() []string {
+	var flags []string
+	if o.follow {
+		flags = append(flags, "--follow")
+	}
+	if len(o.levels) > 0 {
+		flags = append(flags, "--level")
+	}
+	if o.search != "" {
+		flags = append(flags, "--search")
+	}
+	if o.since > 0 {
+		flags = append(flags, "--since")
+	}
+	return flags
+}
+
+// checkLogsServerVersion refuses the flags that need a v12.2 or later server when the server is
+// older. Without a version it can read, it lets the query run.
+func checkLogsServerVersion(ctx context.Context, c client.Client, opts *logsOptions) error {
+	flags := opts.serverFilterFlags()
+	if len(flags) == 0 {
+		return nil
+	}
+
+	_, resp, err := c.GetPing(ctx)
+	if err != nil || resp == nil {
+		// The query reports why the server can't be reached
+		return nil
+	}
+	version, ok := parseServerVersion(resp.ServerVersion)
+	if !ok || !version.LessThan(logsMinServerVersion) {
+		return nil
+	}
+
+	verb, pronoun := "needs", "it"
+	if len(flags) > 1 {
+		verb, pronoun = "need", "them"
+	}
+	return fmt.Errorf("%s %s a v%s or later server, and the server runs v%s. Upgrade the server, or run mmctl logs without %s",
+		joinFlags(flags), verb, logsMinServerVersion, version, pronoun)
+}
+
+// parseServerVersion reads the major, minor and patch version from the X-Version-Id header,
+// e.g. 12.1.1.12345.abcdef.true.
+func parseServerVersion(header string) (*semver.Version, bool) {
+	parts := strings.Split(header, ".")
+	if len(parts) < 3 {
+		return nil, false
+	}
+	version, err := semver.StrictNewVersion(strings.Join(parts[:3], "."))
+	if err != nil {
+		return nil, false
+	}
+	return version, true
+}
+
+// joinFlags joins flags as "a", "a and b", or "a, b and c".
+func joinFlags(flags []string) string {
+	if len(flags) == 1 {
+		return flags[0]
+	}
+	return strings.Join(flags[:len(flags)-1], ", ") + " and " + flags[len(flags)-1]
 }
 
 func (o *logsOptions) newWriter(out io.Writer) human.LogWriter {
