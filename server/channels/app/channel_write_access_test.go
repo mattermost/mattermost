@@ -165,19 +165,18 @@ func TestChannelWriteAccessDecision(t *testing.T) {
 		mockACS.AssertNotCalled(t, "AccessEvaluation", mock.Anything, mock.Anything)
 	})
 
-	t.Run("allows a bot session without evaluating", func(t *testing.T) {
+	t.Run("evaluates a bot session", func(t *testing.T) {
 		h := setupChannelReadAccessTest(t)
 		mockACS := h.mockACS(t)
 		writeGoverned(mockACS, true)
-		decidesPerAction(mockACS, false, false, false)
+		decidesPerAction(mockACS, true, false, true)
 
 		session := h.rctx.Session().DeepCopy()
 		session.Props[model.SessionPropIsBot] = model.SessionPropIsBotValue
 		rctx := WithChannelAccessMemo(h.th.Context.WithSession(session))
 
-		require.True(t, h.th.App.EnforceChannelWriteAccess(rctx, session.UserId, h.th.BasicChannel),
-			"a bot has no interactive session, so a rule over user.session.* has nothing to evaluate")
-		mockACS.AssertNotCalled(t, "AccessEvaluation", mock.Anything, mock.Anything)
+		require.False(t, h.th.App.EnforceChannelWriteAccess(rctx, session.UserId, h.th.BasicChannel),
+			"a bot is bound by channel_write_access like any user")
 	})
 
 	t.Run("memoises the decision for the request", func(t *testing.T) {
@@ -328,7 +327,7 @@ func TestChannelManagementAccessDecision(t *testing.T) {
 		rctx := WithChannelAccessMemo(h.th.Context.WithSession(session))
 
 		require.False(t, h.th.App.EnforceChannelManagementAccess(rctx, session.UserId, h.th.BasicChannel),
-			"unlike writes, managing a channel from a bot session is policy-gated")
+			"a bot is bound by channel_management_access like any user")
 	})
 
 	t.Run("allows a system admin without evaluating", func(t *testing.T) {

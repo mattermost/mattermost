@@ -226,6 +226,20 @@ func TestHasChannelReadAccess(t *testing.T) {
 		}
 	})
 
+	t.Run("evaluates a bot session", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		mockACS := h.mockACS(t)
+		governed(mockACS)
+		decides(mockACS, false)
+
+		session := h.rctx.Session().DeepCopy()
+		session.Props[model.SessionPropIsBot] = model.SessionPropIsBotValue
+		rctx := WithChannelAccessMemo(h.th.Context.WithSession(session))
+
+		require.False(t, h.th.App.HasChannelReadAccess(rctx, session.UserId, h.th.BasicChannel),
+			"a bot is bound by channel_read_access like any user")
+	})
+
 	t.Run("fails closed when evaluation errors", func(t *testing.T) {
 		h := setupChannelReadAccessTest(t)
 		mockACS := h.mockACS(t)

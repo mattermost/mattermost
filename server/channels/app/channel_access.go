@@ -391,27 +391,16 @@ func (a *App) HasChannelReadAccess(rctx request.CTX, userID string, channel *mod
 // channelWriteAccessDecision evaluates channel_write_access alone: a channel_read_access
 // denial does not refuse a write.
 func (a *App) channelWriteAccessDecision(rctx request.CTX, userID string, channel *model.Channel) bool {
-	if !a.channelAccessGateApplies(userID, channel) {
-		return true
-	}
-
-	// Integrations are out of scope. A bot has no interactive session, so a rule
-	// over user.session.* has nothing to evaluate and would deny every bot post.
-	// Webhook and plugin writes never reach a permission check at all, so they are
-	// already exempt; this covers the one integration that does carry a session.
-	if userID == rctx.Session().UserId && rctx.Session().IsBotUser() {
-		return true
-	}
-
-	if !a.channelActionGoverned(rctx, channel, model.AccessControlPolicyActionChannelWriteAccess) {
+	if !a.channelAccessGateApplies(userID, channel) ||
+		!a.channelActionGoverned(rctx, channel, model.AccessControlPolicyActionChannelWriteAccess) {
 		return true
 	}
 
 	return a.hasChannelAccess(rctx, userID, channel, model.AccessControlPolicyActionChannelWriteAccess)
 }
 
-// channelManagementAccessDecision evaluates channel_management_access alone. Unlike
-// writes, bot sessions are evaluated too; system admins are never bound.
+// channelManagementAccessDecision evaluates channel_management_access alone. Bots are
+// evaluated like any user; system admins are never bound.
 func (a *App) channelManagementAccessDecision(rctx request.CTX, userID string, channel *model.Channel) bool {
 	if !a.channelAccessGateApplies(userID, channel) ||
 		!a.channelActionGoverned(rctx, channel, model.AccessControlPolicyActionChannelManagementAccess) {
