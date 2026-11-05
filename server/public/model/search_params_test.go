@@ -152,6 +152,45 @@ func TestParseSearchFlags2(t *testing.T) {
 			Flags: []flag{},
 		},
 		{
+			Name:  "string is a mention",
+			Input: "@word",
+			Words: []searchWord{
+				{
+					value:   "@word",
+					exclude: false,
+				},
+			},
+			Flags: []flag{},
+		},
+		{
+			Name:  "string is a mention wrapped in punctuation",
+			Input: "(@word),",
+			Words: []searchWord{
+				{
+					value:   "@word",
+					exclude: false,
+				},
+			},
+			Flags: []flag{},
+		},
+		{
+			Name:  "string is a mention with a - prefix",
+			Input: "-@word",
+			Words: []searchWord{
+				{
+					value:   "@word",
+					exclude: true,
+				},
+			},
+			Flags: []flag{},
+		},
+		{
+			Name:  "string is a lone @",
+			Input: "@",
+			Words: []searchWord{},
+			Flags: []flag{},
+		},
+		{
 			Name:  "string is multiple words all with - prefix",
 			Input: "-apple -banana -cherry",
 			Words: []searchWord{

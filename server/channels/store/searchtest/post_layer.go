@@ -213,7 +213,12 @@ var searchPostStoreTests = []searchTest{
 	{
 		Name: "Should be able to search matching by mentions",
 		Fn:   testSearchShouldBeAbleToMatchByMentions,
-		Tags: []string{EngineAll},
+		Tags: []string{EngineElasticSearch},
+	},
+	{
+		Name: "Should only match posts containing the @mention when searching for one",
+		Fn:   testSearchMentionTermsRequireAtSign,
+		Tags: []string{EnginePostgres},
 	},
 	{
 		Name: "Should be able to search in deleted/archived channels",
@@ -1873,6 +1878,56 @@ func testSearchShouldBeAbleToMatchByMentions(t *testing.T, th *SearchTestHelper)
 	th.checkPostInSearchResults(t, p1.Id, results.Posts)
 	th.checkPostInSearchResults(t, p2.Id, results.Posts)
 	th.checkPostInSearchResults(t, p3.Id, results.Posts)
+}
+
+func testSearchMentionTermsRequireAtSign(t *testing.T, th *SearchTestHelper) {
+	mention, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "test system @testuser", "", model.PostTypeDefault, 0, false)
+	require.NoError(t, err)
+	word, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "test system testuser", "", model.PostTypeDefault, 0, false)
+	require.NoError(t, err)
+	hashtag, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "test system #testuser", "#testuser", model.PostTypeDefault, 0, false)
+	require.NoError(t, err)
+	longerUsername, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "ping @testusers about testuser", "", model.PostTypeDefault, 0, false)
+	require.NoError(t, err)
+	otherMention, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "ping @otheruser", "", model.PostTypeDefault, 0, false)
+	require.NoError(t, err)
+	keyword, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "the deploy finished", "", model.PostTypeDefault, 0, false)
+	require.NoError(t, err)
+	defer th.deleteUserPosts(th.User.Id)
+
+	testCases := []struct {
+		name          string
+		terms         string
+		excludedTerms string
+		orTerms       bool
+		expectedIDs   []string
+	}{
+		{name: "unquoted mention", terms: `@testuser`, expectedIDs: []string{mention.Id}},
+		{name: "quoted mention", terms: `"@testuser"`, orTerms: true, expectedIDs: []string{mention.Id}},
+		{name: "mention matches case-insensitively", terms: `@TestUser`, expectedIDs: []string{mention.Id}},
+		{name: "mention with wildcard matches longer usernames", terms: `@testus*`, expectedIDs: []string{mention.Id, longerUsername.Id}},
+		{name: "mention OR keyword", terms: `"@testuser" deploy`, orTerms: true, expectedIDs: []string{mention.Id, keyword.Id}},
+		{name: "several mentions OR keyword", terms: `"@testuser" "@otheruser" deploy`, orTerms: true, expectedIDs: []string{mention.Id, otherMention.Id, keyword.Id}},
+		{name: "mention AND word", terms: `@testuser system`, expectedIDs: []string{mention.Id}},
+		{name: "mention AND word only in other posts", terms: `@testuser deploy`, expectedIDs: []string{}},
+		{name: "mention with excluded word", terms: `@testuser`, excludedTerms: "system", expectedIDs: []string{}},
+		{name: "mention OR keyword with word excluded from the mention", terms: `"@testuser" deploy`, excludedTerms: "system", orTerms: true, expectedIDs: []string{keyword.Id}},
+		{name: "mention OR keyword with word excluded from the keyword", terms: `"@testuser" deploy`, excludedTerms: "finished", orTerms: true, expectedIDs: []string{mention.Id}},
+		{name: "word without @ still matches every post containing it", terms: `testuser`, expectedIDs: []string{mention.Id, word.Id, hashtag.Id, longerUsername.Id}},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			params := &model.SearchParams{Terms: tc.terms, ExcludedTerms: tc.excludedTerms, OrTerms: tc.orTerms}
+			results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+			require.NoError(t, err)
+
+			require.Len(t, results.Posts, len(tc.expectedIDs))
+			for _, id := range tc.expectedIDs {
+				th.checkPostInSearchResults(t, id, results.Posts)
+			}
+		})
+	}
 }
 
 func testSearchInDeletedOrArchivedChannels(t *testing.T, th *SearchTestHelper) {
