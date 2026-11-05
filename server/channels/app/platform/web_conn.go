@@ -871,6 +871,12 @@ func (wc *WebConn) ShouldSendEventToGuest(msg *model.WebSocketEvent) bool {
 		}
 		userID = id
 	case model.WebsocketEventPropertyValuesUpdated:
+		// Field-wide clears (a field deleted or its values reset) carry no
+		// object_type or target_id and an empty values list, so they reveal
+		// nothing about any user and every client needs them to drop its cache.
+		if isPropertyFieldValuesClearedEvent(msg) {
+			return true
+		}
 		objectType, ok := msg.GetData()["object_type"].(string)
 		if !ok || objectType == "" {
 			wc.Platform.logger.Debug("webhub.shouldSendEvent: object_type not found in message", mlog.Any("object_type", msg.GetData()["object_type"]))
@@ -900,6 +906,21 @@ func (wc *WebConn) ShouldSendEventToGuest(msg *model.WebSocketEvent) bool {
 	}
 
 	return canSee
+}
+
+// isPropertyFieldValuesClearedEvent reports whether msg is the field-wide
+// property_values_updated event published when a field's values are cleared.
+func isPropertyFieldValuesClearedEvent(msg *model.WebSocketEvent) bool {
+	data := msg.GetData()
+	if _, ok := data["object_type"]; ok {
+		return false
+	}
+	if _, ok := data["target_id"]; ok {
+		return false
+	}
+	fieldID, _ := data["field_id"].(string)
+	values, _ := data["values"].(string)
+	return fieldID != "" && values == "[]"
 }
 
 // ShouldSendEvent returns whether the message should be sent or not.

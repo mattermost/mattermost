@@ -327,6 +327,31 @@ func TestWebConnShouldSendEventToGuest(t *testing.T) {
 		assert.False(t, newGuestConn(true).ShouldSendEventToGuest(propertyEvent(42, targetUserID)))
 	})
 
+	fieldClearedEvent := func() *model.WebSocketEvent {
+		msg := model.NewWebSocketEvent(model.WebsocketEventPropertyValuesUpdated, "", "", "", nil, "")
+		msg.Add("field_id", model.NewId())
+		msg.Add("values", "[]")
+		return msg
+	}
+
+	t.Run("field-wide property values cleared is sent to a guest", func(t *testing.T) {
+		assert.True(t, newGuestConn(false).ShouldSendEventToGuest(fieldClearedEvent()))
+	})
+
+	t.Run("field-wide property values event is not sent when it carries a target or values", func(t *testing.T) {
+		withValues := fieldClearedEvent()
+		withValues.Add("values", `[{"value":"secret"}]`)
+		assert.False(t, newGuestConn(false).ShouldSendEventToGuest(withValues))
+
+		withTarget := fieldClearedEvent()
+		withTarget.Add("target_id", targetUserID)
+		assert.False(t, newGuestConn(false).ShouldSendEventToGuest(withTarget))
+
+		withoutField := fieldClearedEvent()
+		withoutField.Add("field_id", "")
+		assert.False(t, newGuestConn(false).ShouldSendEventToGuest(withoutField))
+	})
+
 	t.Run("unrelated events are unaffected", func(t *testing.T) {
 		msg := model.NewWebSocketEvent(model.WebsocketEventTyping, "", "", "", nil, "")
 		assert.True(t, newGuestConn(false).ShouldSendEventToGuest(msg))

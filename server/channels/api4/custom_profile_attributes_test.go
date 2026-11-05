@@ -2075,3 +2075,122 @@ func TestSysadminManagesCPAFieldOwners(t *testing.T) {
 		require.Error(t, err)
 	})
 }
+
+func TestCPAValuesWebSocketEventsForGuests(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+
+	textField, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), &model.PropertyField{
+		Name: celSafeName(),
+		Type: model.PropertyFieldTypeText,
+	})
+	CheckCreatedStatus(t, resp)
+	require.NoError(t, err)
+
+	// The guest shares the basic team and channels with BasicUser, but no team
+	// or channel with otherUser.
+	guest, guestClient := th.CreateGuestAndClient(t)
+	otherUser := th.CreateUser(t)
+	guestWS := th.CreateConnectedWebSocketClientWithClient(t, guestClient)
+
+	patchValue := func(userID string) {
+		t.Helper()
+		_, resp, err := th.SystemAdminClient.PatchCPAValuesForUser(context.Background(), userID, map[string]json.RawMessage{
+			textField.ID: json.RawMessage(`"` + model.NewId() + `"`),
+		})
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+	}
+
+	// eventUserID returns the user a CPA or user property values event is about.
+	eventUserID := func(event *model.WebSocketEvent) string {
+		switch event.EventType() {
+		case model.WebsocketEventCPAValuesUpdated:
+			userID, _ := event.GetData()["user_id"].(string)
+			return userID
+		case model.WebsocketEventPropertyValuesUpdated:
+			if objectType, _ := event.GetData()["object_type"].(string); objectType == model.PropertyFieldObjectTypeUser {
+				targetID, _ := event.GetData()["target_id"].(string)
+				return targetID
+			}
+		}
+		return ""
+	}
+
+	t.Run("guest only receives value events for users it can see", func(t *testing.T) {
+		patchValue(otherUser.Id)
+		patchValue(th.BasicUser.Id)
+		patchValue(guest.Id)
+
+		// Events reach a connection in publish order, so once both events for
+		// the guest's own values arrive, any event for otherUser would have too.
+		received := map[string]map[string]bool{}
+		require.Eventually(t, func() bool {
+			for {
+				select {
+				case event := <-guestWS.EventChannel:
+					if userID := eventUserID(event); userID != "" {
+						if received[userID] == nil {
+							received[userID] = map[string]bool{}
+						}
+						received[userID][string(event.EventType())] = true
+					}
+				default:
+					return len(received[guest.Id]) == 2
+				}
+			}
+		}, 5*time.Second, 100*time.Millisecond)
+
+		assert.Empty(t, received[otherUser.Id], "guest must not receive value events for a user it cannot see")
+		assert.Len(t, received[th.BasicUser.Id], 2, "guest should receive both value events for a user it can see")
+	})
+
+	t.Run("guest receives field-wide value clears", func(t *testing.T) {
+		selectField, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), &model.PropertyField{
+			Name: celSafeName(),
+			Type: model.PropertyFieldTypeSelect,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"name": "Option 1"},
+				},
+			},
+		})
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+
+		selectCPA, err := model.NewCPAFieldFromPropertyField(selectField)
+		require.NoError(t, err)
+		require.NotEmpty(t, selectCPA.Attrs.Options)
+		_, resp, err = th.SystemAdminClient.PatchCPAValuesForUser(context.Background(), th.BasicUser.Id, map[string]json.RawMessage{
+			selectField.ID: json.RawMessage(`"` + selectCPA.Attrs.Options[0].ID + `"`),
+		})
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+
+		// Changing the type clears every value of the field.
+		_, resp, err = th.SystemAdminClient.PatchCPAField(context.Background(), selectField.ID, &model.PropertyFieldPatch{
+			Type: model.NewPointer(model.PropertyFieldTypeText),
+		})
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+
+		require.Eventually(t, func() bool {
+			for {
+				select {
+				case event := <-guestWS.EventChannel:
+					if event.EventType() != model.WebsocketEventPropertyValuesUpdated {
+						continue
+					}
+					if fieldID, _ := event.GetData()["field_id"].(string); fieldID == selectField.ID {
+						return true
+					}
+				default:
+					return false
+				}
+			}
+		}, 5*time.Second, 100*time.Millisecond, "guest should receive the field-wide clear")
+	})
+}
