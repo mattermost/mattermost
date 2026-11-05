@@ -23,19 +23,48 @@ exports[`components/PluginManagement should match snapshot 1`] = `
       <div
         class="admin-console__content"
       >
-        <div
-          class="Card console expanded"
+        <section
+          aria-labelledby="_r_0_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix"
+          id="global_policy"
         >
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
+          >
+            <div
+              class="_admin-panel-header__main_19tix_10"
+            >
+              <div
+                class="_admin-panel-header__start_19tix_19"
+              >
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
+                >
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_0_"
+                    >
+                      Global retention policy
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Applies to all teams and channels, but does not apply to custom retention policies.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </header>
           <div
-            class="Card__body expanded expanding"
-            style="height: 0px;"
+            class="_admin-panel__body_iwm08_25"
           >
             <div
               class="global_policy"
             >
-              <p>
-                Applies to all teams and channels, but does not apply to custom retention policies.
-              </p>
               <div
                 id="global_direct_message_dropdown"
               >
@@ -232,7 +261,7 @@ exports[`components/PluginManagement should match snapshot 1`] = `
               </div>
             </div>
           </div>
-        </div>
+        </section>
       </div>
     </div>
     <div
