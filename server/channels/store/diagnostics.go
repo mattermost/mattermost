@@ -31,5 +31,6 @@ type DatabaseDiagnostics struct {
 	LongestQueryDurationSeconds         *float64
 	WaitingForLockCount                 *int64
 	PostsDeadTuples                     *int64
+	PostsLastVacuum                     *time.Time
 	PostsLastAutovacuum                 *time.Time
 }

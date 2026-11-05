@@ -74,6 +74,7 @@ var diagnosticsYAMLComments = yaml.CommentMap{
 	"$.database.longest_query_duration_seconds": {yaml.LineComment(" point-in-time; max age of any active query right now")},
 	"$.database.waiting_for_lock_count":         {yaml.LineComment(" point-in-time count of backends waiting on a Lock wait_event_type")},
 	"$.database.posts_dead_tuples":              {yaml.LineComment(" n_dead_tup for the posts table from pg_stat_user_tables")},
+	"$.database.posts_last_vacuum":              {yaml.LineComment(" last manual vacuum on posts; null if never manually vacuumed (then omitted)")},
 	"$.database.posts_last_autovacuum":          {yaml.LineComment(" last autovacuum on posts; null if never autovacuumed (then omitted)")},
 
 	// file_store: local driver only fields
@@ -265,9 +266,12 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 	d.Database.ReplicaConnections = ps.Store.TotalReadDbConnections()
 	d.Database.SearchConnections = ps.Store.TotalSearchDbConnections()
 
-	err = ps.applyStoreDiagnostics(rctx, &d)
-	if err != nil {
-		fail(model.SectionDatabaseStats, err)
+	poolErr, statsErr := ps.applyStoreDiagnostics(rctx, &d)
+	if poolErr != nil {
+		fail(model.SectionDatabasePool, poolErr)
+	}
+	if statsErr != nil {
+		fail(model.SectionDatabaseStats, statsErr)
 	}
 
 	/* File store */
@@ -434,13 +438,14 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 	return &model.NodeDiagnostics{Diagnostics: &d, Errors: sectionErrors}, rErr.ErrorOrNil()
 }
 
-func (ps *PlatformService) applyStoreDiagnostics(rctx request.CTX, diagnostics *model.SupportPacketDiagnostics) error {
+func (ps *PlatformService) applyStoreDiagnostics(rctx request.CTX, diagnostics *model.SupportPacketDiagnostics) (error, error) {
 	storeDiagnostics, err := ps.Store.GetDiagnostics(rctx)
 	if storeDiagnostics == nil {
 		if err != nil {
-			return errors.Wrap(err, "error while collecting support packet database diagnostics")
+			wrapped := errors.Wrap(err, "error while collecting support packet database diagnostics")
+			return wrapped, wrapped
 		}
-		return nil
+		return nil, nil
 	}
 
 	diagnostics.Database.MasterConnectionsInUse = new(storeDiagnostics.MasterConnectionsInUse)
@@ -465,13 +470,14 @@ func (ps *PlatformService) applyStoreDiagnostics(rctx request.CTX, diagnostics *
 	diagnostics.Database.LongestQueryDurationSeconds = storeDiagnostics.LongestQueryDurationSeconds
 	diagnostics.Database.WaitingForLockCount = storeDiagnostics.WaitingForLockCount
 	diagnostics.Database.PostsDeadTuples = storeDiagnostics.PostsDeadTuples
+	diagnostics.Database.PostsLastVacuum = storeDiagnostics.PostsLastVacuum
 	diagnostics.Database.PostsLastAutovacuum = storeDiagnostics.PostsLastAutovacuum
 
 	if err != nil {
-		return errors.Wrap(err, "error while collecting support packet database diagnostics")
+		return nil, errors.Wrap(err, "error while collecting support packet database diagnostics")
 	}
 
-	return nil
+	return nil, nil
 }
 
 // probeOAuthProvider checks connectivity for an OAuth2/OpenID Connect provider.

@@ -14702,6 +14702,21 @@
     "description": "Health dashboard finding title when the database runs a PostgreSQL version older than Mattermost supports. 'PostgreSQL' is a product name and should not be translated."
   },
   {
+    "id": "health.rule.db_posts_vacuum_stale.message",
+    "translation": "The Posts table has {{.dead_tuples}} estimated dead tuples ({{.dead_percent}}% of {{.posts}} posts), and its most recent vacuum was {{.age_days}} days ago at {{.last_vacuum}}. Table and index bloat can degrade query performance and increase disk use.",
+    "description": "Health dashboard finding detail when the PostgreSQL Posts table has many dead tuples and has not been vacuumed recently; {{.dead_tuples}}, {{.dead_percent}}, {{.posts}} and {{.age_days}} are numbers, and {{.last_vacuum}} is an RFC 3339 timestamp. 'Posts', 'vacuum' and 'dead tuples' are PostgreSQL technical terms and should not be translated."
+  },
+  {
+    "id": "health.rule.db_posts_vacuum_stale.remediation",
+    "translation": "Check for long-running transactions that block vacuum progress, verify autovacuum is enabled, and tune the Posts table's autovacuum thresholds if it cannot keep up. After addressing blockers, schedule a targeted VACUUM (ANALYZE) of the Posts table during a low-traffic period. Do not use VACUUM FULL without planning for its exclusive lock and extra disk space.",
+    "description": "Health dashboard fix-it step when the PostgreSQL Posts table has many dead tuples and has not been vacuumed recently. 'Posts', 'autovacuum', 'VACUUM (ANALYZE)' and 'VACUUM FULL' are PostgreSQL technical terms and should not be translated."
+  },
+  {
+    "id": "health.rule.db_posts_vacuum_stale.title",
+    "translation": "Posts table vacuum is stale",
+    "description": "Health dashboard finding title when the PostgreSQL Posts table has many dead tuples and has not been vacuumed recently. 'Posts' and 'vacuum' are PostgreSQL technical terms and should not be translated."
+  },
+  {
     "id": "health.rule.db_query_timeout_high.message",
     "translation": "QueryTimeout is set to {{.timeout}} seconds. Long timeouts let runaway queries hold locks for the full duration, blocking autovacuum, schema migrations, and writers behind the same row. This compounds risk on busy databases without read replicas.",
     "description": "Health dashboard finding detail when the database query timeout is high; {{.timeout}} is a number of seconds. 'QueryTimeout' is a setting name and 'autovacuum' is a PostgreSQL process; do not translate them."

@@ -351,6 +351,8 @@ database:
   type: postgres
   version: "15.8"
   master_connections_in_use: 1
+  posts_dead_tuples: 0
+  posts_last_vacuum: 2026-09-25T09:00:00Z
 elastic:
   status: disabled
 file_store:
@@ -503,6 +505,34 @@ Version
 		s.Equal("PushNotificationServer does not use https://", findings[1].Title)
 		s.Equal(time.UnixMilli(healthTestPacketGeneratedAt).UnixMilli(), findings[1].FirstSeenAt)
 		s.Equal([]string{healthPacketDisclaimer}, printer.GetErrorLines())
+	})
+
+	s.Run("renders a stale Posts vacuum finding", func() {
+		printer.Clean()
+		printer.SetFormat(printer.FormatJSON)
+		files := healthTestPacketFiles()
+		files[model.SupportPacketDiagnosticsFileName] = strings.Replace(
+			files[model.SupportPacketDiagnosticsFileName],
+			"  posts_dead_tuples: 0\n  posts_last_vacuum: 2026-09-25T09:00:00Z\n",
+			"  posts_dead_tuples: 200001\n  posts_last_vacuum: 2026-09-10T10:00:00Z\n",
+			1,
+		)
+		files[model.SupportPacketStatsFileName] = strings.Replace(files[model.SupportPacketStatsFileName], "posts: 1000", "posts: 500000", 1)
+
+		err := healthCheckPacketCmdF(healthPacketTestCommand(s.writeHealthTestPacket(files), false, false), []string{})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 1)
+		list, ok := printer.GetLines()[0].(*model.HealthFindingList)
+		s.Require().True(ok)
+
+		index := slices.IndexFunc(list.Findings, func(f *model.HealthFinding) bool {
+			return f.Code == "DB_POSTS_VACUUM_STALE"
+		})
+		s.Require().NotEqual(-1, index)
+		finding := list.Findings[index]
+		s.Equal("Posts table vacuum is stale", finding.Title)
+		s.Equal("The Posts table has 200001 estimated dead tuples (40.0% of 500000 posts), and its most recent vacuum was 15 days ago at 2026-09-10T10:00:00Z. Table and index bloat can degrade query performance and increase disk use.", finding.Message)
+		s.Contains(finding.Remediation, "verify autovacuum is enabled")
 	})
 
 	s.Run("audit logging is judged by the server that generated the packet, not this machine", func() {

@@ -44,6 +44,14 @@ func TestGetDiagnostics(t *testing.T) {
 		require.NotNil(t, diagnostics.IdleInTransactionCount)
 		require.NotNil(t, diagnostics.LongestQueryDurationSeconds)
 		require.NotNil(t, diagnostics.WaitingForLockCount)
+		require.NotNil(t, diagnostics.PostsDeadTuples)
+
+		_, err = sqlStore.GetMaster().Exec("VACUUM posts")
+		require.NoError(t, err)
+		diagnostics, err = sqlStore.GetDiagnostics(rctx)
+		require.NoError(t, err)
+		require.NotNil(t, diagnostics.PostsLastVacuum)
+		assert.Equal(t, time.UTC, diagnostics.PostsLastVacuum.Location())
 	})
 }
 

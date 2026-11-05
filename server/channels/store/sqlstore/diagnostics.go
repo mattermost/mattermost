@@ -161,12 +161,14 @@ WHERE datname = current_database()`
 func collectPGStatUserTablesDiagnostics(ctx context.Context, db *sqlx.DB, diagnostics *store.DatabaseDiagnostics) error {
 	var row struct {
 		NDeadTup       int64        `db:"n_dead_tup"`
+		LastVacuum     sql.NullTime `db:"last_vacuum"`
 		LastAutovacuum sql.NullTime `db:"last_autovacuum"`
 	}
 
 	const query = `
 SELECT
     n_dead_tup,
+    last_vacuum,
     last_autovacuum
 FROM pg_stat_user_tables
 WHERE lower(relname) = 'posts'
@@ -181,6 +183,10 @@ LIMIT 1`
 	}
 
 	diagnostics.PostsDeadTuples = &row.NDeadTup
+	if row.LastVacuum.Valid {
+		ts := row.LastVacuum.Time.UTC()
+		diagnostics.PostsLastVacuum = &ts
+	}
 	if row.LastAutovacuum.Valid {
 		ts := row.LastAutovacuum.Time.UTC()
 		diagnostics.PostsLastAutovacuum = &ts

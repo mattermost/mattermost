@@ -110,6 +110,7 @@ type SupportPacketDiagnostics struct {
 		LongestQueryDurationSeconds         *float64   `yaml:"longest_query_duration_seconds,omitempty"`
 		WaitingForLockCount                 *int64     `yaml:"waiting_for_lock_count,omitempty"`
 		PostsDeadTuples                     *int64     `yaml:"posts_dead_tuples,omitempty"`
+		PostsLastVacuum                     *time.Time `yaml:"posts_last_vacuum,omitempty"`
 		PostsLastAutovacuum                 *time.Time `yaml:"posts_last_autovacuum,omitempty"`
 	} `yaml:"database"`
 
