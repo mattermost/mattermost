@@ -221,6 +221,11 @@ var searchPostStoreTests = []searchTest{
 		Tags: []string{EnginePostgres},
 	},
 	{
+		Name: "Should treat a period as part of the username in a @mention only when a username character follows it",
+		Fn:   testSearchMentionTermsWithPeriods,
+		Tags: []string{EnginePostgres},
+	},
+	{
 		Name: "Should be able to search in deleted/archived channels",
 		Fn:   testSearchInDeletedOrArchivedChannels,
 		Tags: []string{EnginePostgres},
@@ -1924,6 +1929,39 @@ func testSearchMentionTermsRequireAtSign(t *testing.T, th *SearchTestHelper) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			params := &model.SearchParams{Terms: tc.terms, ExcludedTerms: tc.excludedTerms, OrTerms: tc.orTerms}
+			results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+			require.NoError(t, err)
+
+			require.Len(t, results.Posts, len(tc.expectedIDs))
+			for _, id := range tc.expectedIDs {
+				th.checkPostInSearchResults(t, id, results.Posts)
+			}
+		})
+	}
+}
+
+func testSearchMentionTermsWithPeriods(t *testing.T, th *SearchTestHelper) {
+	endOfSentence, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "thanks @sam.", "", model.PostTypeDefault, 0, false)
+	require.NoError(t, err)
+	dotted, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "sam ping @sam.smith", "", model.PostTypeDefault, 0, false)
+	require.NoError(t, err)
+	dottedEnd, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "sam ping @sam.smith.", "", model.PostTypeDefault, 0, false)
+	require.NoError(t, err)
+	defer th.deleteUserPosts(th.User.Id)
+
+	testCases := []struct {
+		name        string
+		terms       string
+		expectedIDs []string
+	}{
+		{name: "period ending a sentence ends the username", terms: `@sam`, expectedIDs: []string{endOfSentence.Id}},
+		{name: "longer dotted username is a different user", terms: `@sam.smith`, expectedIDs: []string{dotted.Id, dottedEnd.Id}},
+		{name: "wildcard matches dotted usernames", terms: `@sam*`, expectedIDs: []string{endOfSentence.Id, dotted.Id, dottedEnd.Id}},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			params := &model.SearchParams{Terms: tc.terms}
 			results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
 			require.NoError(t, err)
 
