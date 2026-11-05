@@ -452,7 +452,7 @@ func (a *App) evaluateChannelAccessGoverned(rctx request.CTX, channel *model.Cha
 	if appErr != nil {
 		// A failed governance check says nothing about whether a policy applies, so
 		// fall through to the evaluation rather than skipping a gate that would deny.
-		rctx.Logger().Debug("Failed to check whether permission policies govern the channel action; evaluating anyway",
+		rctx.Logger().Error("Failed to check whether permission policies govern the channel action; evaluating anyway",
 			mlog.String("action", action),
 			mlog.String("channel_id", channel.Id),
 			mlog.Err(appErr),
