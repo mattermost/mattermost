@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"encoding/json"
@@ -15,6 +16,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
 	einterfacesmocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -2243,6 +2245,41 @@ func TestListChannelBookmarksSinceKeepsBookmarkIdentity(t *testing.T) {
 		return client
 	}
 
+	uploadBookmarkFile := func(t *testing.T, channelID, name string) *model.FileInfo {
+		t.Helper()
+		data := []byte("bookmark file " + name)
+		file, appErr := th.App.UploadFileX(th.Context, channelID, name, bytes.NewReader(data),
+			app.UploadFileSetTeamId(FileTeamId),
+			app.UploadFileSetUserId(model.BookmarkFileOwner),
+			app.UploadFileSetTimestamp(time.Now()),
+			app.UploadFileSetContentLength(int64(len(data))))
+		require.Nil(t, appErr)
+		return file
+	}
+
+	requireFileAvailable := func(t *testing.T, client *model.Client4, file *model.FileInfo, searchTerm string) {
+		t.Helper()
+		_, resp, err := client.GetFile(context.Background(), file.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		results, _, err := client.SearchFiles(context.Background(), th.BasicTeam.Id, searchTerm, false)
+		require.NoError(t, err)
+		require.Contains(t, results.Order, file.Id)
+	}
+
+	requireFileUnavailable := func(t *testing.T, client *model.Client4, file *model.FileInfo, searchTerm string) {
+		t.Helper()
+		_, resp, err := client.GetFile(context.Background(), file.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+		_, resp, err = client.GetFileInfo(context.Background(), file.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+		results, _, err := client.SearchFiles(context.Background(), th.BasicTeam.Id, searchTerm, false)
+		require.NoError(t, err)
+		require.NotContains(t, results.Order, file.Id)
+	}
+
 	testCases := []struct {
 		name string
 		run  func(t *testing.T)
@@ -2372,27 +2409,13 @@ func TestListChannelBookmarksSinceKeepsBookmarkIdentity(t *testing.T) {
 			},
 		},
 		{
-			name: "file bookmark whose file another member replaced omits the previous file id for a later channel member",
+			name: "file bookmark whose file another member replaced omits the previous file for a later channel member",
 			run: func(t *testing.T) {
 				channel := th.CreatePrivateChannel(t)
 				th.AddUserToChannel(t, th.BasicUser2, channel)
 
-				newBookmarkFile := func(name string) *model.FileInfo {
-					file := &model.FileInfo{
-						Id:        model.NewId(),
-						ChannelId: channel.Id,
-						CreatorId: model.BookmarkFileOwner,
-						Path:      "somepath",
-						Name:      name,
-						MimeType:  "application/octet-stream",
-						Size:      100,
-					}
-					_, saveErr := th.App.Srv().Store().FileInfo().Save(th.Context, file)
-					require.NoError(t, saveErr)
-					return file
-				}
-				fileA := newBookmarkFile("bm-file-a-k3m8.bin")
-				fileB := newBookmarkFile("bm-file-b-p5q2.bin")
+				fileA := uploadBookmarkFile(t, channel.Id, "bmswapa k3m8 report.txt")
+				fileB := uploadBookmarkFile(t, channel.Id, "bmswapb p5q2 report.txt")
 
 				created, appErr := th.App.CreateChannelBookmark(th.Context, &model.ChannelBookmark{
 					ChannelId:   channel.Id,
@@ -2427,6 +2450,77 @@ func TestListChannelBookmarksSinceKeepsBookmarkIdentity(t *testing.T) {
 				require.Empty(t, removed.FileId)
 				require.Nil(t, removed.FileInfo)
 				requireBodyOmits(t, body, []string{fileA.Id, fileA.Name})
+
+				requireFileUnavailable(t, client, fileA, "bmswapa")
+				requireFileAvailable(t, client, fileB, "bmswapb")
+			},
+		},
+		{
+			name: "file bookmark whose file the owner replaced omits the previous file for a later channel member",
+			run: func(t *testing.T) {
+				channel := th.CreatePrivateChannel(t)
+
+				fileA := uploadBookmarkFile(t, channel.Id, "bmownera w2e6 report.txt")
+				fileB := uploadBookmarkFile(t, channel.Id, "bmownerb r9t3 report.txt")
+
+				created, appErr := th.App.CreateChannelBookmark(th.Context, &model.ChannelBookmark{
+					ChannelId:   channel.Id,
+					DisplayName: "File mark owner swap",
+					Type:        model.ChannelBookmarkFile,
+					FileId:      fileA.Id,
+				}, "")
+				require.Nil(t, appErr)
+
+				edited, resp, updateErr := th.Client.UpdateChannelBookmark(context.Background(), channel.Id, created.Id, &model.ChannelBookmarkPatch{
+					FileId: &fileB.Id,
+				})
+				require.NoError(t, updateErr)
+				CheckOKStatus(t, resp)
+				require.Equal(t, created.Id, edited.Updated.Id)
+				require.Equal(t, fileB.Id, edited.Updated.FileId)
+				require.Nil(t, edited.Deleted)
+
+				client := laterMemberClient(t, channel)
+				requireFileUnavailable(t, client, fileA, "bmownera")
+				requireFileAvailable(t, client, fileB, "bmownerb")
+			},
+		},
+		{
+			name: "file bookmark renamed by the owner and by another member keeps its file",
+			run: func(t *testing.T) {
+				channel := th.CreatePrivateChannel(t)
+				th.AddUserToChannel(t, th.BasicUser2, channel)
+
+				file := uploadBookmarkFile(t, channel.Id, "bmrename y4u8 report.txt")
+				created, appErr := th.App.CreateChannelBookmark(th.Context, &model.ChannelBookmark{
+					ChannelId:   channel.Id,
+					DisplayName: "File mark rename",
+					Type:        model.ChannelBookmarkFile,
+					FileId:      file.Id,
+				}, "")
+				require.Nil(t, appErr)
+
+				ownerName := "File mark renamed by owner"
+				ownerEdit, resp, updateErr := th.Client.UpdateChannelBookmark(context.Background(), channel.Id, created.Id, &model.ChannelBookmarkPatch{
+					DisplayName: &ownerName,
+				})
+				require.NoError(t, updateErr)
+				CheckOKStatus(t, resp)
+				require.Equal(t, file.Id, ownerEdit.Updated.FileId)
+
+				editor := th.CreateClient()
+				th.LoginBasic2WithClient(t, editor)
+				memberName := "File mark renamed by member"
+				memberEdit, resp, updateErr := editor.UpdateChannelBookmark(context.Background(), channel.Id, created.Id, &model.ChannelBookmarkPatch{
+					DisplayName: &memberName,
+				})
+				require.NoError(t, updateErr)
+				CheckOKStatus(t, resp)
+				require.NotNil(t, memberEdit.Deleted)
+				require.Equal(t, file.Id, memberEdit.Updated.FileId)
+
+				client := laterMemberClient(t, channel)
+				requireFileAvailable(t, client, file, "bmrename")
 			},
 		},
 		{
