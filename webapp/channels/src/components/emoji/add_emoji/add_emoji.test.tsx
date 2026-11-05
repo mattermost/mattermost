@@ -163,6 +163,54 @@ describe('components/emoji/components/AddEmoji', () => {
         expect(screen.queryByText('A name is required for the emoji')).not.toBeInTheDocument();
     });
 
+    test('should disable image selection while saving and re-enable it after a failed save', async () => {
+        let resolveCreate: (value: unknown) => void = () => {};
+        const pendingMock = jest.fn().mockImplementation(() => new Promise((resolve) => {
+            resolveCreate = resolve;
+        }));
+        const props: AddEmojiProps = {
+            ...baseProps,
+            actions: {
+                createCustomEmoji: pendingMock,
+            },
+        };
+
+        const {container} = renderWithContext(<AddEmoji {...props}/>);
+
+        const file = new File([image], 'emoji.png', {type: 'image/png'});
+        setupFileReaderMock(image);
+
+        const nameInput = screen.getByRole('textbox');
+        const fileInput = container.querySelector('#select-emoji') as HTMLInputElement;
+        const selectButton = screen.getByRole('button', {name: 'Select'});
+
+        await userEvent.type(nameInput, 'emojiName');
+        await userEvent.upload(fileInput, file);
+
+        expect(fileInput).toBeEnabled();
+        expect(selectButton).toBeEnabled();
+
+        await userEvent.click(screen.getByTestId('save-button'));
+        expect(pendingMock).toHaveBeenCalledTimes(1);
+
+        expect(fileInput).toBeDisabled();
+        expect(selectButton).toBeDisabled();
+
+        // Uploading another file while saving must not replace the selected image
+        const otherFile = new File([image], 'other.png', {type: 'image/png'});
+        await userEvent.upload(fileInput, otherFile);
+        expect(screen.getByText('emoji.png')).toBeInTheDocument();
+        expect(screen.queryByText('other.png')).not.toBeInTheDocument();
+
+        resolveCreate({error: {message: 'failed to save'}});
+
+        await waitFor(() => {
+            expect(fileInput).toBeEnabled();
+        });
+        expect(selectButton).toBeEnabled();
+        expect(screen.getByText('failed to save')).toBeInTheDocument();
+    });
+
     test('should show error if emoji name unset', async () => {
         renderWithContext(<AddEmoji {...baseProps}/>);
 

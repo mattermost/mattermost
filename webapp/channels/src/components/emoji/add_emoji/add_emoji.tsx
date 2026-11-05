@@ -345,7 +345,10 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
                             <div className='col-md-5 col-sm-8'>
                                 <div>
                                     <div className='add-emoji__upload'>
-                                        <Button emphasis='primary'>
+                                        <Button
+                                            emphasis='primary'
+                                            disabled={this.state.saving}
+                                        >
                                             <FormattedMessage
                                                 id='add_emoji.image.button'
                                                 defaultMessage='Select'
@@ -356,6 +359,7 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
                                             type='file'
                                             accept={Constants.ACCEPT_EMOJI_IMAGE}
                                             multiple={false}
+                                            disabled={this.state.saving}
                                             onChange={this.updateImage}
                                         />
                                     </div>
