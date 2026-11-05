@@ -24,7 +24,12 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
-const cwsTokenEnv = "CWS_CLOUD_TOKEN"
+const (
+	cwsTokenEnv = "CWS_CLOUD_TOKEN"
+	// cwsLoginIDEnv names the only user the CWS token may log in as. Setting it also enables CWS
+	// login on non-Cloud licenses, which preview installations use.
+	cwsLoginIDEnv = "CWS_CLOUD_LOGIN_ID"
+)
 
 func (a *App) AuthenticateUserForLogin(rctx request.CTX, id, loginId, password, mfaToken, cwsToken string, ldapOnly bool) (user *model.User, err *model.AppError) {
 	// Do statistics
@@ -38,8 +43,14 @@ func (a *App) AuthenticateUserForLogin(rctx request.CTX, id, loginId, password, 
 		}
 	}()
 
-	if password == "" && !isCWSLogin(a, cwsToken) {
+	cwsLogin := isCWSLogin(a, cwsToken)
+	if password == "" && !cwsLogin {
 		return nil, model.NewAppError("AuthenticateUserForLogin", "api.user.login.blank_pwd.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if cwsLogin && !a.cwsLoginIDAllowed(id, loginId) {
+		return nil, model.NewAppError("AuthenticateUserForLogin",
+			"api.user.login_by_cws.invalid_token.app_error", nil, "login_id does not match the CWS login user", http.StatusBadRequest)
 	}
 
 	// Get the MM user we are trying to login
@@ -49,7 +60,7 @@ func (a *App) AuthenticateUserForLogin(rctx request.CTX, id, loginId, password, 
 
 	// CWS login allow to use the one-time token to login the users when they're redirected to their
 	// installation for the first time
-	if isCWSLogin(a, cwsToken) {
+	if cwsLogin {
 		if err = checkUserNotDisabled(user); err != nil {
 			return nil, err
 		}
@@ -364,6 +375,29 @@ func GetProtocol(r *http.Request) string {
 	return "http"
 }
 
+func (a *App) cwsLoginID() string {
+	if a.Srv().cwsLoginIDOverride != "" {
+		return a.Srv().cwsLoginIDOverride
+	}
+	return os.Getenv(cwsLoginIDEnv)
+}
+
+// IsCWSLoginEnabled reports whether the installation accepts the CWS one-time login: always on
+// Cloud, and on other licenses only when CWS_CLOUD_LOGIN_ID binds it to a user.
+func (a *App) IsCWSLoginEnabled() bool {
+	return a.License().IsCloud() || a.cwsLoginID() != ""
+}
+
+// cwsLoginIDAllowed reports whether a CWS login may look up the requested user. When
+// CWS_CLOUD_LOGIN_ID is set, login_id must match it case-insensitively, as GetForLogin does.
+func (a *App) cwsLoginIDAllowed(id, loginID string) bool {
+	expected := a.cwsLoginID()
+	if expected == "" {
+		return true
+	}
+	return id == "" && strings.EqualFold(loginID, expected)
+}
+
 func isCWSLogin(a *App, token string) bool {
-	return a.License().IsCloud() && token != ""
+	return token != "" && a.IsCWSLoginEnabled()
 }
