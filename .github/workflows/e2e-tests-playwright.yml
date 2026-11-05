@@ -228,6 +228,7 @@ jobs:
       - generate-build-variables
     if: inputs.should_run != 'false'
     permissions:
+      actions: read
       contents: read
       statuses: write
       id-token: write

@@ -136,11 +136,114 @@ func (th *TestHelper) RegisterCPAPropertyGroup(tb testing.TB) *TestHelper {
 	require.NoError(tb, groupErr)
 	th.CPAGroupID = group.ID
 
-	// Create and register the access control hook now that the group ID is known
-	hook := NewAccessControlHook(th.service, nil, nil, nil, group.ID)
+	// The ladder checker defaults to defaultLadderCheckerForTests rather than
+	// nil, so a field carrying a real Restrictions object is judged by its
+	// tier instead of being denied outright; a test that needs a specific
+	// human decision still overrides it with setLadderCheckerForTests.
+	hook := NewAccessControlHook(th.service, nil, defaultLadderCheckerForTests, nil)
 	th.service.AddHook(hook)
 
+	// Production also runs AccessControlAttributeValidationHook.PreCreatePropertyField
+	// on this group, which pins PermissionField/PermissionOptions to sysadmin
+	// and fills PermissionValues so a converted field never has an unset
+	// permission column, the shape decidePropertyFieldPermission expects. The
+	// real hook also validates field names against the CEL grammar and
+	// auto-IDs options, which many fixtures in this package don't satisfy, so
+	// this registers only the column-pinning half.
+	th.service.AddHook(newColumnPinningStubHook(th.service, group.ID))
+
 	return th
+}
+
+// defaultLadderCheckerForTests stands in for the app-layer human decision
+// that access_control_permissions_test.go and app/authorization's own tests
+// already cover with explicit injected checkers. It treats the fabricated
+// caller IDs used across this package as an ordinary member — there is no
+// real user or channel membership to check them against — and allows the
+// action only when a member satisfies the field's tier, using the same
+// ladder comparison production code uses. A test needing an admin or
+// sysadmin caller sets its own checker through setLadderCheckerForTests
+// rather than this default inferring privilege from a fixture's caller ID.
+func defaultLadderCheckerForTests(_ request.CTX, _ string, field *model.PropertyField, action, _ string) bool {
+	if field.Permissions == nil {
+		return false
+	}
+	return model.PermissionLevelMember.AtMostAsPermissiveAs(field.Permissions.Restrictions.TierFor(action))
+}
+
+// sysadminLadderCheckerForTests is the escape hatch defaultLadderCheckerForTests's
+// own doc comment points to: a test whose caller is meant to hold administrator
+// standing installs this instead, since the default only clears a tier up to
+// member.
+func sysadminLadderCheckerForTests(_ request.CTX, _ string, field *model.PropertyField, action, _ string) bool {
+	if field.Permissions == nil {
+		return false
+	}
+	return model.PermissionLevelSysadmin.AtMostAsPermissiveAs(field.Permissions.Restrictions.TierFor(action))
+}
+
+// columnPinningStubHook stands in for the column-pinning half of
+// AccessControlAttributeValidationHook.enforceGroupPermissions, without its
+// field-name and option validation, so a field converted to carry
+// Permissions still has PermissionField, PermissionOptions and
+// PermissionValues set the way a field created through the API always does.
+// It skips the managed=admin upgrade: that needs a permission checker the
+// harness doesn't build, and no fixture in this package sets that attr.
+type columnPinningStubHook struct {
+	BasePropertyHook
+	service         *PropertyService
+	managedGroupIDs map[string]struct{}
+}
+
+func newColumnPinningStubHook(service *PropertyService, managedGroupIDs ...string) *columnPinningStubHook {
+	ids := make(map[string]struct{}, len(managedGroupIDs))
+	for _, id := range managedGroupIDs {
+		ids[id] = struct{}{}
+	}
+	return &columnPinningStubHook{service: service, managedGroupIDs: ids}
+}
+
+func (h *columnPinningStubHook) isGroupManaged(groupID string) bool {
+	_, ok := h.managedGroupIDs[groupID]
+	return ok
+}
+
+// pinPermissionColumns mirrors enforceGroupPermissions's column pinning:
+// PermissionField and PermissionOptions go to sysadmin (PermissionField to
+// none on a protected field), and
+// PermissionValues is pinned to sysadmin for a field created owner-managed or
+// whose owners an update changes, or default-filled by object type when unset.
+// existing is nil on create.
+func (h *columnPinningStubHook) pinPermissionColumns(field, existing *model.PropertyField) *model.PropertyField {
+	sysadmin := model.PermissionLevelSysadmin
+	switch {
+	case model.HasPropertyFieldOwners(field) && (existing == nil || legacyOwnersChanged(field, existing)):
+		field.PermissionValues = &sysadmin
+	case field.PermissionValues == nil:
+		defaultLevel := defaultPermissionValuesForObjectType(field.ObjectType)
+		field.PermissionValues = &defaultLevel
+	}
+	pinFieldPermission(field, existing)
+	field.PermissionOptions = &sysadmin
+	return field
+}
+
+func (h *columnPinningStubHook) PreCreatePropertyField(_ request.CTX, field *model.PropertyField) (*model.PropertyField, error) {
+	if !h.isGroupManaged(field.GroupID) {
+		return field, nil
+	}
+	return h.pinPermissionColumns(field, nil), nil
+}
+
+func (h *columnPinningStubHook) PreUpdatePropertyField(rctx request.CTX, groupID string, field *model.PropertyField) (*model.PropertyField, error) {
+	if !h.isGroupManaged(groupID) {
+		return field, nil
+	}
+	existing, err := h.service.getPropertyField(rctx, groupID, field.ID)
+	if err != nil {
+		return nil, err
+	}
+	return h.pinPermissionColumns(field, existing), nil
 }
 
 // RegisterPropertyGroup registers a new property group with the given version and a unique name.
@@ -210,6 +313,20 @@ func (th *TestHelper) CreatePropertyField(tb testing.TB, rctx request.CTX, field
 	result, err := th.service.CreatePropertyField(rctx, field)
 	require.NoError(tb, err)
 	return result
+}
+
+// openPermissions is the permissions object for a fixture whose test is about
+// something other than access control -- every action at everyone, so the hook
+// admits an ordinary member and the test exercises what it was written for.
+// Fixtures that go through the store directly need one explicitly:
+// CreatePropertyFieldDirect skips defaultPropertyFieldPermissions, and a field
+// reaching a hook gate with a nil Permissions is refused.
+func openPermissions() *model.Permissions {
+	return &model.Permissions{Restrictions: &model.Restrictions{
+		Value:  model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelEveryone},
+		Option: model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelEveryone},
+		Field:  model.WriteOnly{Write: model.PermissionLevelEveryone},
+	}}
 }
 
 // CreatePropertyFieldDirect creates a property field directly via store (bypasses conflict check and access control)

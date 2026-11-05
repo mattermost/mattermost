@@ -607,6 +607,9 @@ type RemoteClusterStore interface {
 	Save(rc *model.RemoteCluster) (*model.RemoteCluster, error)
 	Update(rc *model.RemoteCluster) (*model.RemoteCluster, error)
 	Delete(remoteClusterID string) (bool, error)
+	// PermanentDelete removes the row for remoteClusterID and name. It is meant for a connection
+	// that was never established, so shared channel remotes are left untouched.
+	PermanentDelete(remoteClusterID string, name string) error
 	Get(remoteClusterID string, includeDeleted bool) (*model.RemoteCluster, error)
 	// Deprecated: GetByPluginID returns a single remote for the plugin. Only correct
 	// when the plugin has one registration. Use GetAllByPluginID instead.
@@ -761,6 +764,7 @@ type TokenStore interface {
 
 type DesktopTokensStore interface {
 	GetUserId(token string, minCreatedAt int64) (*string, error)
+	ConsumeToken(token string, minCreateAt int64) (*string, error)
 	Insert(token string, createAt int64, userID string) error
 	Delete(token string) error
 	DeleteByUserId(userID string) error
@@ -815,8 +819,6 @@ type FileInfoStore interface {
 	GetFilesBatchForIndexing(startTime int64, startFileID string, includeDeleted bool, limit int) ([]*model.FileForIndexing, error)
 	ClearCaches()
 	GetStorageUsage(allowFromCache, includeDeleted bool) (int64, error)
-	// GetUptoNSizeFileTime returns the CreateAt time of the last accessible file with a running-total size upto n bytes.
-	GetUptoNSizeFileTime(n int64) (int64, error)
 	// RefreshFileStats recomputes the fileinfo materialized views.
 	RefreshFileStats() error
 }
@@ -902,6 +904,7 @@ type PluginStore interface {
 	DeleteAllForPlugin(PluginID string) error
 	DeleteAllExpired() error
 	List(pluginID string, page, perPage int) ([]string, error)
+	ListWithOptions(pluginID string, options model.PluginKVListOptions, page, perPage int) ([]string, error)
 }
 
 type RoleStore interface {
@@ -1244,6 +1247,10 @@ type PropertyFieldStore interface {
 	GetOptionDescendantsOrSelf(field *model.PropertyField, optionIDs []string) (map[string][]string, error)
 	GetOptionChildren(field *model.PropertyField, optionIDs []string) (map[string][]string, error)
 	SearchPropertyFields(rctx request.CTX, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error)
+	// GetFieldsMissingPermissions returns one page, in (CreateAt, Id) order
+	// after cursor, of the live PSAv2 fields in version 2 and 3 groups that
+	// have no permissions object: the fields the permissions backfill converts.
+	GetFieldsMissingPermissions(rctx request.CTX, cursor model.PropertyFieldSearchCursor, perPage int) ([]*model.PropertyField, error)
 	Update(groupID string, fields []*model.PropertyField, expectedUpdateAts map[string]int64) ([]*model.PropertyField, error)
 	Delete(groupID string, id string) error
 	CheckPropertyNameConflict(field *model.PropertyField, excludeID string) (model.PropertyFieldTargetLevel, error)

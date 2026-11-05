@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"maps"
 	"net/http"
+	"reflect"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -210,8 +211,20 @@ func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Permission branching (session-bound).
-	isOptionsOnly := isOptionsOnlyPatch(patch)
+	// Mirrors patchPropertyField's optionsChanged: gate on option.write only
+	// when the submitted option list actually differs from what is stored.
+	optionsChanged := false
+	if patch.Attrs != nil {
+		if newOptions, ok := (*patch.Attrs)[model.PropertyFieldAttributeOptions]; ok {
+			optionsChanged = !reflect.DeepEqual(existingField.Attrs[model.PropertyFieldAttributeOptions], newOptions)
+		}
+	}
+
+	// Permission branching (session-bound). This handler never applies a
+	// permissions patch -- CPA is served the v2 shape, so patch.Permissions is
+	// dropped rather than applied -- which means a patch cannot change the
+	// permissions here and the routing is never a field write on that account.
+	isOptionsOnly := isOptionsOnlyPatch(patch, false, optionsChanged)
 	if isOptionsOnly && !existingField.Type.SupportsOptions() {
 		isOptionsOnly = false
 	}
@@ -304,7 +317,8 @@ func deleteCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToEditPropertyField(rctx, *c.AppContext.Session(), existingField) {
+	decideOn, _ := c.App.OrphanedPropertyFieldForDelete(existingField)
+	if !c.App.SessionHasPermissionToEditPropertyField(rctx, *c.AppContext.Session(), decideOn) {
 		c.Err = model.NewAppError("deleteCPAField", "api.property_field.delete.no_permission.app_error", nil, "", http.StatusForbidden)
 		return
 	}
@@ -460,9 +474,10 @@ func cpaPatchValues(c *Context, w http.ResponseWriter, r *http.Request, userID s
 	// CPA-specific websocket event (backward compat). Broadcast copies, never
 	// results: results is what the caller who just wrote these values gets
 	// back over HTTP, and that caller is allowed to see them.
+	broadcastValue := c.App.PropertyValueBroadcaster(rctx)
 	broadcastResults := make(map[string]json.RawMessage, len(upserted))
 	for _, value := range upserted {
-		broadcastResults[value.FieldID] = model.BroadcastValue(fieldByID[value.FieldID], value.Value)
+		broadcastResults[value.FieldID] = broadcastValue(fieldByID[value.FieldID], value.Value)
 	}
 	message := model.NewWebSocketEvent(model.WebsocketEventCPAValuesUpdated, "", "", "", nil, "")
 	message.Add("user_id", userID)

@@ -13,7 +13,7 @@ type FileInfoList struct {
 	FileInfos      map[string]*FileInfo `json:"file_infos"`
 	NextFileInfoId string               `json:"next_file_info_id"`
 	PrevFileInfoId string               `json:"prev_file_info_id"`
-	// If there are inaccessible files, FirstInaccessibleFileTime is the time of the latest inaccessible file
+	// Deprecated: the server no longer filters inaccessible files, so this is always zero.
 	FirstInaccessibleFileTime int64 `json:"first_inaccessible_file_time"`
 }
 

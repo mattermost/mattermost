@@ -2164,6 +2164,117 @@ func TestPluginAPIReceiveSharedChannelProfileImageSyncMsg(t *testing.T) {
 	})
 }
 
+// inactiveSharedChannelService simulates a cluster follower node, where the
+// shared channel service exists but is not active.
+type inactiveSharedChannelService struct {
+	SharedChannelServiceIFace
+}
+
+func (inactiveSharedChannelService) Active() bool {
+	return false
+}
+
+func TestPluginAPIReceiveSharedChannelOnInactiveService(t *testing.T) {
+	th := setupSharedChannels(t).InitBasic(t)
+
+	channel := th.CreateChannel(t, th.BasicTeam)
+	pluginID := "com.test.inactive-service-plugin"
+	rc := registerPluginRemoteForTest(t, th, pluginID, channel)
+
+	remoteUser, appErr := th.App.CreateUser(th.Context, &model.User{
+		Email:    model.NewId() + "@remote.test",
+		Username: "remote-inactive-" + model.NewId()[:8],
+		Password: model.NewTestPassword(),
+		RemoteId: new(rc.RemoteId),
+	})
+	require.Nil(t, appErr)
+
+	pngData, err := os.ReadFile("tests/test.png")
+	require.NoError(t, err, "Failed to load tests/test.png")
+
+	scService := th.Server.GetSharedChannelSyncService()
+	require.NotNil(t, scService)
+	require.True(t, scService.Active())
+
+	inactive := inactiveSharedChannelService{SharedChannelServiceIFace: scService}
+	th.Server.SetSharedChannelSyncService(inactive)
+	t.Cleanup(func() {
+		th.Server.SetSharedChannelSyncService(scService)
+	})
+	require.False(t, th.Server.GetSharedChannelSyncService().Active())
+
+	api := NewPluginAPI(th.App, th.Context, &model.Manifest{Id: pluginID})
+
+	newFileInfo := func() *model.FileInfo {
+		return &model.FileInfo{Id: model.NewId(), Name: "follower.txt", Size: 4, CreatorId: remoteUser.Id}
+	}
+
+	t.Run("sync msg succeeds", func(t *testing.T) {
+		userID := model.NewId()
+		msg := model.NewSyncMsg(channel.Id)
+		msg.Users = map[string]*model.User{
+			userID: {
+				Id:       userID,
+				Username: "follower-user-" + model.NewId()[:8],
+				Email:    model.NewId() + "@remote.test",
+				RemoteId: new(rc.RemoteId),
+			},
+		}
+
+		resp, err := api.ReceiveSharedChannelSyncMsg(rc.RemoteId, msg)
+		require.NoError(t, err)
+		assert.Contains(t, resp.UsersSyncd, userID)
+		assert.Empty(t, resp.UserErrors)
+
+		user, appErr := th.App.GetUser(th.Context, userID)
+		require.Nil(t, appErr)
+		assert.Equal(t, rc.RemoteId, user.GetRemoteID())
+	})
+
+	t.Run("attachment succeeds", func(t *testing.T) {
+		fi := newFileInfo()
+		saved, err := api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, channel.Id, fi, bytes.NewReader([]byte("data")))
+		require.NoError(t, err)
+		require.NotNil(t, saved)
+		assert.Equal(t, fi.Id, saved.Id)
+
+		storedFI, appErr := th.App.GetFileInfo(th.Context, fi.Id)
+		require.Nil(t, appErr)
+		assert.Equal(t, rc.RemoteId, *storedFI.RemoteId)
+	})
+
+	t.Run("profile image succeeds", func(t *testing.T) {
+		err := api.ReceiveSharedChannelProfileImageSyncMsg(rc.RemoteId, remoteUser.Id, pngData)
+		require.NoError(t, err)
+
+		updatedUser, appErr := th.App.GetUser(th.Context, remoteUser.Id)
+		require.Nil(t, appErr)
+		assert.Greater(t, updatedUser.LastPictureUpdate, remoteUser.LastPictureUpdate)
+	})
+
+	t.Run("nil service returns service disabled error", func(t *testing.T) {
+		th.Server.SetSharedChannelSyncService(nil)
+		defer th.Server.SetSharedChannelSyncService(inactive)
+
+		requireServiceDisabled := func(t *testing.T, err error) {
+			t.Helper()
+			require.Error(t, err)
+			var appErr *model.AppError
+			require.True(t, errors.As(err, &appErr))
+			assert.Equal(t, "api.command_share.service_disabled", appErr.Id)
+		}
+
+		_, err := api.ReceiveSharedChannelSyncMsg(rc.RemoteId, model.NewSyncMsg(channel.Id))
+		requireServiceDisabled(t, err)
+
+		_, err = api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, channel.Id, newFileInfo(), bytes.NewReader([]byte("data")))
+		requireServiceDisabled(t, err)
+
+		err = api.ReceiveSharedChannelProfileImageSyncMsg(rc.RemoteId, remoteUser.Id, pngData)
+		requireServiceDisabled(t, err)
+	})
+}
+
 // activatePluginFromTemplate compiles a Go plugin from a .go.tmpl template file located
 // in the tests/ directory, executes the template with the provided data, activates it in
 // a real plugin environment with full RPC, and returns the environment. The plugin's
