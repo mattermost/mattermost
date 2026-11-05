@@ -2155,14 +2155,6 @@
     "defaultMessage": "Delete orphaned field",
     "description": "Accessible label for the delete button on a user attribute whose owning plugin has been uninstalled. \"Field\" is the attribute: use the same word as in Attribute Management. \"Orphaned\" means its plugin is no longer installed, as the neighbouring orphaned-attribute strings say; prefer that meaning over a literal calque."
   },
-  "admin.accessibility.next_page": {
-    "defaultMessage": "Next page",
-    "description": "Accessible label for the next-page button in the reusable System Console data grid."
-  },
-  "admin.accessibility.previous_page": {
-    "defaultMessage": "Previous page",
-    "description": "Accessible label for the previous-page button in the reusable System Console data grid."
-  },
   "admin.advance.cluster": {
     "defaultMessage": "High Availability",
     "description": "Page title of the High Availability (server clustering) page in the System Console."
@@ -4438,6 +4430,10 @@
   "admin.data_retention.jobTimePM": {
     "defaultMessage": "{time} PM (UTC)",
     "description": "Displays the daily deletion job start time in the afternoon/evening; {time} is an hour:minute value, UTC timezone noted."
+  },
+  "admin.data_retention.policyActionsMenu": {
+    "defaultMessage": "Policy actions menu",
+    "description": "Accessible name and tooltip for the row actions menu button in the global and custom data retention policy tables."
   },
   "admin.data_retention.retention_days": {
     "defaultMessage": "{count} {count, plural, one {day} other {days}}",
@@ -14855,6 +14851,10 @@
     "defaultMessage": "Disable attribute",
     "description": "Title of the confirmation modal for disabling a session attribute in the System Console."
   },
+  "admin.session_attributes.dotmenu.button.aria_label": {
+    "defaultMessage": "Attribute actions",
+    "description": "Accessibility label and tooltip for the per-row '...' actions menu button in the session attributes table."
+  },
   "admin.session_attributes.dotmenu.disable.label": {
     "defaultMessage": "Disable",
     "description": "Menu item in a session attribute row's '...' menu; disables the attribute."
@@ -17020,12 +17020,12 @@
     "description": "Help text for a System Console user management setting that locks profile fields for email/password accounts; 'Invite Users' is a permission name."
   },
   "admin.team.maxChannelsDescription": {
-    "defaultMessage": "Maximum total number of channels per team, including both active and archived channels.",
+    "defaultMessage": "Maximum total number of channels per team, including both active and archived channels. Set to 0 for no limit.",
     "description": "Admin console help text for the 'Max Channels Per Team' number setting."
   },
   "admin.team.maxChannelsExample": {
-    "defaultMessage": "E.g.: \"100\"",
-    "description": "Placeholder text in the 'Max Channels Per Team' number input showing an example value."
+    "defaultMessage": "E.g.: \"100\", or \"0\" for no limit",
+    "description": "Placeholder text in the 'Max Channels Per Team' number input showing an example value; 0 is a literal value meaning no limit."
   },
   "admin.team.maxChannelsTitle": {
     "defaultMessage": "Max Channels Per Team:",
@@ -17044,12 +17044,12 @@
     "description": "Field label on the Push Notification Server admin page for the mention/typing-indicator user limit; ends with a colon."
   },
   "admin.team.maxUsersDescription": {
-    "defaultMessage": "Maximum number of active users per team. Deactivated users are not counted toward this limit.",
+    "defaultMessage": "Maximum number of active users per team. Deactivated users are not counted toward this limit. Set to 0 for no limit.",
     "description": "Admin console help text for the 'Max Users Per Team' number setting."
   },
   "admin.team.maxUsersExample": {
-    "defaultMessage": "E.g.: \"25\"",
-    "description": "Placeholder text in the 'Max Users Per Team' number input showing an example value."
+    "defaultMessage": "E.g.: \"25\", or \"0\" for no limit",
+    "description": "Placeholder text in the 'Max Users Per Team' number input showing an example value; 0 is a literal value meaning no limit."
   },
   "admin.team.maxUsersTitle": {
     "defaultMessage": "Max Users Per Team:",
@@ -17306,10 +17306,6 @@
   "admin.user_item.member": {
     "defaultMessage": "Member",
     "description": "Role label shown in the Role column of admin console member lists for regular (non-admin) members."
-  },
-  "admin.user_item.menuAriaLabel": {
-    "defaultMessage": "User Actions Menu",
-    "description": "Accessibility label for the per-row '...' actions menu; reused here for retention policy rows in the Data Retention tables despite the 'User' wording."
   },
   "admin.user_item.remoteUser": {
     "defaultMessage": "Remote user",
@@ -17668,12 +17664,12 @@
     "description": "Empty-state text shown inside admin console tables when there are no rows to display."
   },
   "adminConsole.list.table.pagination.next": {
-    "defaultMessage": "Go to next page",
-    "description": "Accessibility label for the next-page arrow button below admin console tables."
+    "defaultMessage": "Next page",
+    "description": "Accessibility label and tooltip for the next-page arrow in shared list pagination controls (admin console and backstage lists)."
   },
   "adminConsole.list.table.pagination.previous": {
-    "defaultMessage": "Go to previous page",
-    "description": "Accessibility label for the previous-page arrow button below admin console tables."
+    "defaultMessage": "Previous page",
+    "description": "Accessibility label and tooltip for the previous-page arrow in shared list pagination controls (admin console and backstage lists)."
   },
   "adminConsole.list.table.rowCount.label": {
     "defaultMessage": "Show {count} rows per page",
@@ -18763,17 +18759,9 @@
     "defaultMessage": "{overflowUnnamedCount, plural, =0 {{names}} =1 {{names} and one other} other {{names} and # others}}",
     "description": "Tooltip for the overflow indicator on a stack of user avatars; {names} is a list of usernames and {overflowUnnamedCount} the count of further unnamed people."
   },
-  "backstage_list.nextButton.ariaLabel": {
-    "defaultMessage": "Next",
-    "description": "Aria-label of the icon-only next-page button in the pagination footer of backstage lists (integrations, emoji)."
-  },
   "backstage_list.paginatorCount": {
     "defaultMessage": "{startCount, number} - {endCount, number} of {total, number}",
     "description": "Pagination range indicator in the footer of backstage lists; {startCount} and {endCount} are the first/last visible item numbers, {total} is the total item count."
-  },
-  "backstage_list.previousButton.ariaLabel": {
-    "defaultMessage": "Previous",
-    "description": "Aria-label of the icon-only previous-page button in the pagination footer of backstage lists."
   },
   "backstage_list.search": {
     "defaultMessage": "Search",
@@ -19402,10 +19390,6 @@
   "channel_attributes.labels.overflow": {
     "defaultMessage": "+{count}",
     "description": "Compact button after the row of channel attribute chips in the channel header and thread headers, when some chips do not fit. {count} is the number of hidden chips. Opens a popover that lists them."
-  },
-  "channel_attributes.labels.overflow_aria": {
-    "defaultMessage": "{count, plural, one {# more attribute} other {# more attributes}}",
-    "description": "Screen-reader label for the '+N' button after the channel attribute chips in the channel header. # is the number of attributes hidden from the row."
   },
   "channel_attributes.labels.view_all": {
     "defaultMessage": "View all attributes",
@@ -24231,6 +24215,10 @@
     "defaultMessage": "Cancel",
     "description": "Default cancel button label of the shared generic modal component used across the app."
   },
+  "generic_modal.close": {
+    "defaultMessage": "Close",
+    "description": ""
+  },
   "generic_modal.confirm": {
     "defaultMessage": "Confirm",
     "description": "Default confirm button label of the shared generic modal component used across the app."
@@ -24254,6 +24242,10 @@
   "generic.enterprise_feature": {
     "defaultMessage": "Enterprise Feature",
     "description": "Tooltip title shown over buttons for features locked behind an Enterprise license (e.g. the disabled Manage User Settings button)."
+  },
+  "generic.more_attributes": {
+    "defaultMessage": "{count, plural, one {# more attribute} other {# more attributes}}",
+    "description": "Accessible label (screen readers only) on the overflow badge that stands in for attribute chips that do not fit, shown on channel attribute labels and on post attribute chips. {count} is the number of hidden attributes."
   },
   "generic.next": {
     "defaultMessage": "Next",
@@ -28179,6 +28171,66 @@
     "defaultMessage": "Open in new window",
     "description": "Menu item that opens the current view in a separate popped-out window."
   },
+  "post_attributes.card.edit": {
+    "defaultMessage": "Edit",
+    "description": "Button in the hover card on the attribute chips of a post. Opens the modal for editing the attributes of that post. Verb."
+  },
+  "post_attributes.card.title": {
+    "defaultMessage": "Attributes",
+    "description": "Heading of the hover card that appears over the attribute chips of a post, above the list of attribute names and values. Plural noun."
+  },
+  "post_attributes.chips.overflow": {
+    "defaultMessage": "+{count, number}",
+    "description": "Visible text of the overflow badge after the attribute chips under a post, for chips that do not fit. {count} is the number of hidden attributes."
+  },
+  "post_attributes.chips.unavailable": {
+    "defaultMessage": "Attributes unavailable",
+    "description": "Message shown in place of the attribute chips under a post when the attributes could not be loaded."
+  },
+  "post_attributes.composer.add": {
+    "defaultMessage": "Add attributes",
+    "description": "Tooltip and accessible label of the button in the message composer formatting bar that opens the modal for adding attributes to the message being written. Plural noun after a verb."
+  },
+  "post_attributes.dot_menu.attributes": {
+    "defaultMessage": "Attributes",
+    "description": "Item in the three-dot (More actions) menu of a post that opens the modal for viewing and editing the attributes of that post. Plural noun."
+  },
+  "post_attributes.modal.add": {
+    "defaultMessage": "Add attribute",
+    "description": "Button text (after a + icon) at the bottom of the post attributes modal. It opens a menu listing the attributes that can be added to the post. Verb."
+  },
+  "post_attributes.modal.clear": {
+    "defaultMessage": "Clear {attribute}",
+    "description": "Accessible label (screen readers only) of the button that clears the value of one attribute in the post attributes modal. {attribute} is the display name of that attribute."
+  },
+  "post_attributes.modal.empty": {
+    "defaultMessage": "There are no attributes on this post that you can view or add.",
+    "description": "Shown in the post attributes modal when the post has no attributes this user can see and there is none they are allowed to add."
+  },
+  "post_attributes.modal.error.forbidden": {
+    "defaultMessage": "You do not have permission to change this attribute",
+    "description": "Error shown in the post attributes modal when the server refuses to save a change to an attribute because the user lacks permission."
+  },
+  "post_attributes.modal.error.generic": {
+    "defaultMessage": "Could not update this attribute. Please try again.",
+    "description": "Error shown in the post attributes modal when saving a change to an attribute fails for any reason other than missing permission."
+  },
+  "post_attributes.modal.locked": {
+    "defaultMessage": "You don't have permission to modify this attribute.",
+    "description": "Tooltip on an attribute row in the post attributes modal that is read-only for the current user, explaining that they cannot change it."
+  },
+  "post_attributes.modal.picker.label": {
+    "defaultMessage": "Add an attribute",
+    "description": "Accessible label (screen readers only) of the menu, opened by the add attribute button in the post attributes modal, that lists attributes which can be added to the post."
+  },
+  "post_attributes.modal.subtitle": {
+    "defaultMessage": "{author} · {channel}",
+    "description": "Subtitle under the title of the post attributes modal, identifying the post. {author} is the name of the post author and {channel} is the name of the channel it was posted in; the dot between them is a separator."
+  },
+  "post_attributes.modal.title": {
+    "defaultMessage": "Post attributes",
+    "description": "Title of the modal where users view and edit the attributes (structured metadata fields) attached to a post."
+  },
   "post_body.check_for_out_of_channel_groups_mentions.message": {
     "defaultMessage": "did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups.",
     "description": "Ephemeral notice shown after mentioning group members who are not in the channel; concatenated after the list of mentioned usernames (e.g. '@user did not get notified...'); channel membership is controlled by linked LDAP groups."
@@ -28910,6 +28962,26 @@
   "property_card.field.team.label": {
     "defaultMessage": "Team",
     "description": "Field label in the flagged-message review card for the team the message belongs to."
+  },
+  "property_fields.attribute_combobox.clear": {
+    "defaultMessage": "Clear {label}",
+    "description": "Accessible name of the button that clears a single-value attribute. {label} is the attribute name."
+  },
+  "property_fields.attribute_combobox.empty": {
+    "defaultMessage": "No results",
+    "description": "Shown in an attribute dropdown when no option matches the typed text."
+  },
+  "property_fields.attribute_combobox.listbox": {
+    "defaultMessage": "Options",
+    "description": "Accessible name of an attribute dropdown's option list when no field name is available."
+  },
+  "property_fields.attribute_combobox.loading": {
+    "defaultMessage": "Loading…",
+    "description": "Shown in an attribute dropdown while options load."
+  },
+  "property_fields.attribute_combobox.selections": {
+    "defaultMessage": "{label} selections",
+    "description": "Accessible name of the group of selected-value chips in a multi-value attribute. {label} is the attribute name."
   },
   "property_fields.hierarchical_value_menu.also_under": {
     "defaultMessage": "Also under {names}",
@@ -29898,6 +29970,10 @@
   "saveChangesPanel.cancel": {
     "defaultMessage": "Undo",
     "description": "Button in the unsaved-changes panel at the bottom of settings screens that reverts the pending changes; 'Undo' is a verb."
+  },
+  "saveChangesPanel.dismiss": {
+    "defaultMessage": "Dismiss",
+    "description": ""
   },
   "saveChangesPanel.error": {
     "defaultMessage": "There was an error saving your settings",
@@ -31319,10 +31395,6 @@
     "defaultMessage": "Manually",
     "description": "Sorting option label meaning channels in a sidebar category are ordered manually by the user (drag and drop); adverb."
   },
-  "sidebar.team_menu.button.plusIcon": {
-    "defaultMessage": "Plus Icon",
-    "description": "Accessible label of the plus icon on the team sidebar button for joining or creating teams."
-  },
   "sidebar.team_menu.button.teamImage": {
     "defaultMessage": "{teamName} Team Image",
     "description": "Alt text for a team's icon image in the team sidebar; {teamName} is the team's display name."
@@ -32739,6 +32811,10 @@
     "defaultMessage": "Use SSO (with OpenID, SAML, Google, O365)",
     "description": "Carousel slide title in the trial benefits modal; SSO means single sign-on."
   },
+  "tutorial_tip.close": {
+    "defaultMessage": "Close",
+    "description": "Accessible name and tooltip for the dismiss control on an in-app tour tip."
+  },
   "tutorial_tip.done": {
     "defaultMessage": "Done",
     "description": "Button on the final step of an in-app tour tip; dismisses the tour."
@@ -33434,6 +33510,14 @@
   "user.settings.display.clockDisplay": {
     "defaultMessage": "Clock Display",
     "description": "Setting title in Settings > Display choosing between 12-hour and 24-hour time format."
+  },
+  "user.settings.display.collapseCategoryWithUnreadsDescription": {
+    "defaultMessage": "When enabled, collapsing a sidebar category hides all of its channels, including unread channels and channels with mentions. The channel you are viewing stays visible.",
+    "description": "Help text for the Settings > Display option that lets a collapsed left-sidebar channel category also hide its unread and muted-with-mention channels."
+  },
+  "user.settings.display.collapseCategoryWithUnreadsTitle": {
+    "defaultMessage": "Collapse category with unread channels",
+    "description": "Setting title in Settings > Display, with On/Off options, for whether collapsing a left-sidebar channel category also hides its unread channels."
   },
   "user.settings.display.collapseDesc": {
     "defaultMessage": "Set whether previews of image links and image attachment thumbnails show as expanded or collapsed by default. This setting can also be controlled using the slash commands /expand and /collapse.",

@@ -18,7 +18,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
         class="admin-console__content"
       >
         <section
-          aria-labelledby="_r_9_"
+          aria-labelledby="_r_19_"
           class="_admin-panel_iwm08_2 AdminPanel clearfix"
           id="global_policy"
         >
@@ -39,7 +39,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                   >
                     <h2
                       class="_admin-panel-header__title_19tix_37"
-                      id="_r_9_"
+                      id="_r_19_"
                     >
                       Global retention policy
                     </h2>
@@ -81,7 +81,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
           </div>
         </section>
         <section
-          aria-labelledby="_r_a_"
+          aria-labelledby="_r_1d_"
           class="_admin-panel_iwm08_2 AdminPanel clearfix AdminPanelWithButton"
           id="custom_policies"
         >
@@ -102,7 +102,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                   >
                     <h2
                       class="_admin-panel-header__title_19tix_37"
-                      id="_r_a_"
+                      id="_r_1d_"
                     >
                       Custom retention policies
                     </h2>
@@ -172,7 +172,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
           </div>
         </section>
         <section
-          aria-labelledby="_r_b_"
+          aria-labelledby="_r_1e_"
           class="_admin-panel_iwm08_2 AdminPanel clearfix AdminPanelWithButton"
           id="policy_log"
         >
@@ -193,7 +193,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                   >
                     <h2
                       class="_admin-panel-header__title_19tix_37"
-                      id="_r_b_"
+                      id="_r_1e_"
                     >
                       Policy log
                     </h2>
@@ -310,7 +310,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
         class="admin-console__content"
       >
         <section
-          aria-labelledby="_r_3_"
+          aria-labelledby="_r_9_"
           class="_admin-panel_iwm08_2 AdminPanel clearfix"
           id="global_policy"
         >
@@ -331,7 +331,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                   >
                     <h2
                       class="_admin-panel-header__title_19tix_37"
-                      id="_r_3_"
+                      id="_r_9_"
                     >
                       Global retention policy
                     </h2>
@@ -373,7 +373,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
           </div>
         </section>
         <section
-          aria-labelledby="_r_4_"
+          aria-labelledby="_r_d_"
           class="_admin-panel_iwm08_2 AdminPanel clearfix AdminPanelWithButton"
           id="custom_policies"
         >
@@ -394,7 +394,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                   >
                     <h2
                       class="_admin-panel-header__title_19tix_37"
-                      id="_r_4_"
+                      id="_r_d_"
                     >
                       Custom retention policies
                     </h2>
@@ -473,25 +473,69 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                     </span>
                     <button
                       aria-label="Previous page"
-                      class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"
+                      class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 ml-2 prev"
                       disabled=""
                       type="button"
                     >
-                      <i
-                        class="icon icon-chevron-left"
-                        title="Previous Icon"
-                      />
+                      <span
+                        aria-hidden="true"
+                        class="_icon-button__icon-slot_ft92e_41"
+                      >
+                        <div
+                          aria-hidden="true"
+                          class="_icon_1i355_2 _icon--size-16_1i355_38"
+                        >
+                          <div
+                            class="_icon__glyph-area_1i355_9"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="18"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="18"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M15.41,16.58L10.83,12L15.41,7.41L14,6L8,12L14,18L15.41,16.58Z"
+                              />
+                            </svg>
+                          </div>
+                        </div>
+                      </span>
                     </button>
                     <button
                       aria-label="Next page"
-                      class="btn btn-quaternary btn-icon btn-sm next disabled"
+                      class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 next"
                       disabled=""
                       type="button"
                     >
-                      <i
-                        class="icon icon-chevron-right"
-                        title="Next Icon"
-                      />
+                      <span
+                        aria-hidden="true"
+                        class="_icon-button__icon-slot_ft92e_41"
+                      >
+                        <div
+                          aria-hidden="true"
+                          class="_icon_1i355_2 _icon--size-16_1i355_38"
+                        >
+                          <div
+                            class="_icon__glyph-area_1i355_9"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="18"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="18"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"
+                              />
+                            </svg>
+                          </div>
+                        </div>
+                      </span>
                     </button>
                   </div>
                 </div>
@@ -500,7 +544,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
           </div>
         </section>
         <section
-          aria-labelledby="_r_5_"
+          aria-labelledby="_r_i_"
           class="_admin-panel_iwm08_2 AdminPanel clearfix AdminPanelWithButton"
           id="policy_log"
         >
@@ -521,7 +565,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                   >
                     <h2
                       class="_admin-panel-header__title_19tix_37"
-                      id="_r_5_"
+                      id="_r_i_"
                     >
                       Policy log
                     </h2>
@@ -637,7 +681,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
         class="admin-console__content"
       >
         <section
-          aria-labelledby="_r_6_"
+          aria-labelledby="_r_p_"
           class="_admin-panel_iwm08_2 AdminPanel clearfix"
           id="global_policy"
         >
@@ -658,7 +702,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                   >
                     <h2
                       class="_admin-panel-header__title_19tix_37"
-                      id="_r_6_"
+                      id="_r_p_"
                     >
                       Global retention policy
                     </h2>
@@ -700,7 +744,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
           </div>
         </section>
         <section
-          aria-labelledby="_r_7_"
+          aria-labelledby="_r_t_"
           class="_admin-panel_iwm08_2 AdminPanel clearfix AdminPanelWithButton"
           id="custom_policies"
         >
@@ -721,7 +765,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                   >
                     <h2
                       class="_admin-panel-header__title_19tix_37"
-                      id="_r_7_"
+                      id="_r_t_"
                     >
                       Custom retention policies
                     </h2>
@@ -800,25 +844,69 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                     </span>
                     <button
                       aria-label="Previous page"
-                      class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"
+                      class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 ml-2 prev"
                       disabled=""
                       type="button"
                     >
-                      <i
-                        class="icon icon-chevron-left"
-                        title="Previous Icon"
-                      />
+                      <span
+                        aria-hidden="true"
+                        class="_icon-button__icon-slot_ft92e_41"
+                      >
+                        <div
+                          aria-hidden="true"
+                          class="_icon_1i355_2 _icon--size-16_1i355_38"
+                        >
+                          <div
+                            class="_icon__glyph-area_1i355_9"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="18"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="18"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M15.41,16.58L10.83,12L15.41,7.41L14,6L8,12L14,18L15.41,16.58Z"
+                              />
+                            </svg>
+                          </div>
+                        </div>
+                      </span>
                     </button>
                     <button
                       aria-label="Next page"
-                      class="btn btn-quaternary btn-icon btn-sm next disabled"
+                      class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 next"
                       disabled=""
                       type="button"
                     >
-                      <i
-                        class="icon icon-chevron-right"
-                        title="Next Icon"
-                      />
+                      <span
+                        aria-hidden="true"
+                        class="_icon-button__icon-slot_ft92e_41"
+                      >
+                        <div
+                          aria-hidden="true"
+                          class="_icon_1i355_2 _icon--size-16_1i355_38"
+                        >
+                          <div
+                            class="_icon__glyph-area_1i355_9"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="18"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="18"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"
+                              />
+                            </svg>
+                          </div>
+                        </div>
+                      </span>
                     </button>
                   </div>
                 </div>
@@ -827,7 +915,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
           </div>
         </section>
         <section
-          aria-labelledby="_r_8_"
+          aria-labelledby="_r_12_"
           class="_admin-panel_iwm08_2 AdminPanel clearfix AdminPanelWithButton"
           id="policy_log"
         >
@@ -848,7 +936,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                   >
                     <h2
                       class="_admin-panel-header__title_19tix_37"
-                      id="_r_8_"
+                      id="_r_12_"
                     >
                       Policy log
                     </h2>
@@ -1027,7 +1115,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
           </div>
         </section>
         <section
-          aria-labelledby="_r_1_"
+          aria-labelledby="_r_4_"
           class="_admin-panel_iwm08_2 AdminPanel clearfix AdminPanelWithButton"
           id="custom_policies"
         >
@@ -1048,7 +1136,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                   >
                     <h2
                       class="_admin-panel-header__title_19tix_37"
-                      id="_r_1_"
+                      id="_r_4_"
                     >
                       Custom retention policies
                     </h2>
@@ -1118,7 +1206,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
           </div>
         </section>
         <section
-          aria-labelledby="_r_2_"
+          aria-labelledby="_r_5_"
           class="_admin-panel_iwm08_2 AdminPanel clearfix AdminPanelWithButton"
           id="policy_log"
         >
@@ -1139,7 +1227,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                   >
                     <h2
                       class="_admin-panel-header__title_19tix_37"
-                      id="_r_2_"
+                      id="_r_5_"
                     >
                       Policy log
                     </h2>
