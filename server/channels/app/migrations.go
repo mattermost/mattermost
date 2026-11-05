@@ -39,7 +39,7 @@ const (
 	boardsPropertyMigrationVersion                   = "v2"
 	cpaDisplayNameBackfillKey                        = "cpa_display_name_backfill_done"
 	cpaToGlobalAttributesMigrationKey                = "cpa_to_global_attributes_migration_done"
-	sessionAttributesMinTTLMigrationKey              = "session_attributes_min_ttl_migration_done"
+	sessionAttributesMinDurationMigrationKey         = "session_attributes_min_duration_migration_done"
 
 	contentFlaggingPropertyNameFlaggedPostId       = "flagged_post_id"
 	ContentFlaggingPropertyNameStatus              = "status"
@@ -1113,15 +1113,16 @@ func (s *Server) doSetupSessionAttributesProperties() error {
 	return nil
 }
 
-// doSessionAttributesMinTTLMigration raises any session attribute TTL below
-// model.SessionAttributeMinTTLSeconds to that minimum. The seed preserves an
-// existing field's TTL, so fields seeded with the old sub-minute default or
-// tuned below a minute by an admin are only corrected here.
-func (s *Server) doSessionAttributesMinTTLMigration() error {
-	if _, err := s.Store().System().GetByName(sessionAttributesMinTTLMigrationKey); err == nil {
+// doSessionAttributesMinDurationMigration raises any session attribute TTL or
+// grace period below model.SessionAttributeMinDurationSeconds to that minimum.
+// The seed preserves an existing field's TTL and grace period, so fields seeded
+// with the old sub-minute defaults or tuned below a minute by an admin are only
+// corrected here.
+func (s *Server) doSessionAttributesMinDurationMigration() error {
+	if _, err := s.Store().System().GetByName(sessionAttributesMinDurationMigrationKey); err == nil {
 		return nil
 	} else if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
-		return fmt.Errorf("could not query session attributes minimum TTL migration: %w", err)
+		return fmt.Errorf("could not query session attributes minimum duration migration: %w", err)
 	}
 
 	group, err := s.propertyService.Group(model.SessionAttributesPropertyGroupName)
@@ -1140,11 +1141,18 @@ func (s *Server) doSessionAttributesMinTTLMigration() error {
 		if err != nil {
 			return fmt.Errorf("failed to read session attribute field %q: %w", field.Name, err)
 		}
-		if saField.Attrs.TTLSeconds >= model.SessionAttributeMinTTLSeconds {
-			continue
+		changed := false
+		if saField.Attrs.TTLSeconds < model.SessionAttributeMinDurationSeconds {
+			field.Attrs[model.SAAttrTTLSeconds] = model.SessionAttributeMinDurationSeconds
+			changed = true
 		}
-		field.Attrs[model.SAAttrTTLSeconds] = model.SessionAttributeMinTTLSeconds
-		fieldsToUpdate = append(fieldsToUpdate, field)
+		if saField.Attrs.GracePeriodSeconds < model.SessionAttributeMinDurationSeconds {
+			field.Attrs[model.SAAttrGracePeriodSeconds] = model.SessionAttributeMinDurationSeconds
+			changed = true
+		}
+		if changed {
+			fieldsToUpdate = append(fieldsToUpdate, field)
+		}
 	}
 
 	if len(fieldsToUpdate) > 0 {
@@ -1153,12 +1161,12 @@ func (s *Server) doSessionAttributesMinTTLMigration() error {
 			if _, ok := errors.AsType[*store.ErrConflict](err); ok {
 				return nil
 			}
-			return fmt.Errorf("failed to update session attribute TTLs: %w", err)
+			return fmt.Errorf("failed to update session attribute durations: %w", err)
 		}
 	}
 
-	if err := s.Store().System().SaveOrUpdate(&model.System{Name: sessionAttributesMinTTLMigrationKey, Value: "true"}); err != nil {
-		return fmt.Errorf("failed to mark session attributes minimum TTL migration as complete: %w", err)
+	if err := s.Store().System().SaveOrUpdate(&model.System{Name: sessionAttributesMinDurationMigrationKey, Value: "true"}); err != nil {
+		return fmt.Errorf("failed to mark session attributes minimum duration migration as complete: %w", err)
 	}
 
 	return nil
@@ -1593,7 +1601,7 @@ func (s *Server) doAppMigrations() {
 		{"Boards Properties Setup", s.doSetupBoardsProperties},
 		{"Managed Category Properties Setup", s.doSetupManagedCategoryProperties},
 		{"Session Attributes Properties Setup", s.doSetupSessionAttributesProperties},
-		{"Session Attributes Minimum TTL Migration", s.doSessionAttributesMinTTLMigration},
+		{"Session Attributes Minimum Duration Migration", s.doSessionAttributesMinDurationMigration},
 	}
 
 	for i := range m1 {

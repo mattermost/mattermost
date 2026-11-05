@@ -1258,43 +1258,60 @@ func TestDoSetupSessionAttributesProperties(t *testing.T) {
 	})
 }
 
-func TestDoSessionAttributesMinTTLMigration(t *testing.T) {
-	setTTL := func(t *testing.T, th *TestHelper, groupID, name string, ttl int) {
+func TestDoSessionAttributesMinDurationMigration(t *testing.T) {
+	setDurations := func(t *testing.T, th *TestHelper, groupID, name string, ttl, grace int) {
 		t.Helper()
 		field := sessionAttributeFieldByName(t, th, groupID, name)
 		field.Attrs[model.SAAttrTTLSeconds] = ttl
+		field.Attrs[model.SAAttrGracePeriodSeconds] = grace
 		_, _, _, err := th.Server.propertyService.UpdatePropertyFields(RequestContextWithCallerID(th.Context, model.CallerIDSessionAttributesSystem), groupID, []*model.PropertyField{field})
 		require.NoError(t, err)
 	}
 
-	getTTL := func(t *testing.T, th *TestHelper, groupID, name string) int {
+	getDurations := func(t *testing.T, th *TestHelper, groupID, name string) (int, int) {
 		t.Helper()
 		saField, err := model.SAFieldFromPropertyField(sessionAttributeFieldByName(t, th, groupID, name))
 		require.NoError(t, err)
-		return saField.Attrs.TTLSeconds
+		return saField.Attrs.TTLSeconds, saField.Attrs.GracePeriodSeconds
 	}
 
-	t.Run("raises sub-minute TTLs to one minute and leaves the rest alone", func(t *testing.T) {
+	t.Run("raises sub-minute TTLs and grace periods to one minute and leaves the rest alone", func(t *testing.T) {
 		th := Setup(t)
 
 		group, appErr := th.App.GetPropertyGroup(th.Context, model.SessionAttributesPropertyGroupName)
 		require.Nil(t, appErr)
 
-		_, err := th.Store.System().PermanentDeleteByName(sessionAttributesMinTTLMigrationKey)
+		_, err := th.Store.System().PermanentDeleteByName(sessionAttributesMinDurationMigrationKey)
 		require.NoError(t, err)
 
-		setTTL(t, th, group.ID, model.SessionAttributesPropertyFieldIPAddress, 15)
-		setTTL(t, th, group.ID, model.SessionAttributesPropertyFieldVPNActive, 30)
-		setTTL(t, th, group.ID, model.SessionAttributesPropertyFieldOSVersion, 3600)
+		setDurations(t, th, group.ID, model.SessionAttributesPropertyFieldIPAddress, 15, 15)
+		setDurations(t, th, group.ID, model.SessionAttributesPropertyFieldVPNActive, 30, 3600)
+		setDurations(t, th, group.ID, model.SessionAttributesPropertyFieldSSID, 3600, 30)
+		setDurations(t, th, group.ID, model.SessionAttributesPropertyFieldOSVersion, 3600, 300)
 
-		require.NoError(t, th.Server.doSessionAttributesMinTTLMigration())
+		require.NoError(t, th.Server.doSessionAttributesMinDurationMigration())
 
-		require.Equal(t, model.SessionAttributeMinTTLSeconds, getTTL(t, th, group.ID, model.SessionAttributesPropertyFieldIPAddress))
-		require.Equal(t, model.SessionAttributeMinTTLSeconds, getTTL(t, th, group.ID, model.SessionAttributesPropertyFieldVPNActive))
-		require.Equal(t, 3600, getTTL(t, th, group.ID, model.SessionAttributesPropertyFieldOSVersion))
-		require.Equal(t, model.SessionAttributeDefaultTTLIdentity, getTTL(t, th, group.ID, model.SessionAttributesPropertyFieldHardwareID))
+		ttl, grace := getDurations(t, th, group.ID, model.SessionAttributesPropertyFieldIPAddress)
+		require.Equal(t, model.SessionAttributeMinDurationSeconds, ttl)
+		require.Equal(t, model.SessionAttributeMinDurationSeconds, grace)
 
-		data, sysErr := th.Store.System().GetByName(sessionAttributesMinTTLMigrationKey)
+		ttl, grace = getDurations(t, th, group.ID, model.SessionAttributesPropertyFieldVPNActive)
+		require.Equal(t, model.SessionAttributeMinDurationSeconds, ttl)
+		require.Equal(t, 3600, grace)
+
+		ttl, grace = getDurations(t, th, group.ID, model.SessionAttributesPropertyFieldSSID)
+		require.Equal(t, 3600, ttl)
+		require.Equal(t, model.SessionAttributeMinDurationSeconds, grace)
+
+		ttl, grace = getDurations(t, th, group.ID, model.SessionAttributesPropertyFieldOSVersion)
+		require.Equal(t, 3600, ttl)
+		require.Equal(t, 300, grace)
+
+		ttl, grace = getDurations(t, th, group.ID, model.SessionAttributesPropertyFieldHardwareID)
+		require.Equal(t, model.SessionAttributeDefaultTTLIdentity, ttl)
+		require.Equal(t, model.SessionAttributeDefaultGraceIdentity, grace)
+
+		data, sysErr := th.Store.System().GetByName(sessionAttributesMinDurationMigrationKey)
 		require.NoError(t, sysErr)
 		require.Equal(t, "true", data.Value)
 	})
@@ -1305,11 +1322,13 @@ func TestDoSessionAttributesMinTTLMigration(t *testing.T) {
 		group, appErr := th.App.GetPropertyGroup(th.Context, model.SessionAttributesPropertyGroupName)
 		require.Nil(t, appErr)
 
-		setTTL(t, th, group.ID, model.SessionAttributesPropertyFieldIPAddress, 15)
+		setDurations(t, th, group.ID, model.SessionAttributesPropertyFieldIPAddress, 15, 15)
 
-		require.NoError(t, th.Server.doSessionAttributesMinTTLMigration())
+		require.NoError(t, th.Server.doSessionAttributesMinDurationMigration())
 
-		require.Equal(t, 15, getTTL(t, th, group.ID, model.SessionAttributesPropertyFieldIPAddress))
+		ttl, grace := getDurations(t, th, group.ID, model.SessionAttributesPropertyFieldIPAddress)
+		require.Equal(t, 15, ttl)
+		require.Equal(t, 15, grace)
 	})
 }
 
