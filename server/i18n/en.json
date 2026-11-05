@@ -14939,12 +14939,12 @@
   {
     "id": "health.rule.filestore_disk_full.message",
     "translation": "The volume containing FileSettings.Directory has {{.available_gib}} GiB ({{.percent}}%) available of {{.total_gib}} GiB. File uploads and other file operations can fail when the volume fills.",
-    "description": "Health dashboard finding detail when the local file storage volume has less than 5% or 1 GiB available; {{.available_gib}} and {{.total_gib}} are disk sizes in GiB, and {{.percent}} is the available percentage. 'FileSettings.Directory' is a config setting path and 'GiB' is a unit; neither should be translated."
+    "description": "Health dashboard finding detail when the local file storage volume has less than 1 GiB available, or has both less than 5% and less than 5 GiB available; {{.available_gib}} and {{.total_gib}} are disk sizes in GiB, and {{.percent}} is the available percentage. 'FileSettings.Directory' is a config setting path and 'GiB' is a unit; neither should be translated."
   },
   {
     "id": "health.rule.filestore_disk_full.remediation",
-    "translation": "Immediately expand the volume or remove unrelated data from its filesystem; do not manually delete files managed by Mattermost from FileSettings.Directory. Restore at least 5% and at least 1 GiB available; then keep at least 10% or 50 GiB available.",
-    "description": "Health dashboard fix-it step for a nearly full local file storage volume. It warns against deleting Mattermost-managed files and states both minimums needed to clear the critical finding. 'Mattermost' is a product name, 'FileSettings.Directory' is a config setting path and 'GiB' is a unit; none should be translated."
+    "translation": "Immediately expand the volume or remove unrelated data from its filesystem; do not manually delete files managed by Mattermost from FileSettings.Directory. Ensure at least 1 GiB is available. If the volume is also below 5%, restore either 5% or 5 GiB available to clear the critical finding. Then keep at least 10% or 10 GiB available.",
+    "description": "Health dashboard fix-it step for a critically low local file storage volume. It warns against deleting Mattermost-managed files, explains the emergency 1 GiB floor and the percentage-plus-capacity threshold, and gives the warning-level target. 'Mattermost' is a product name, 'FileSettings.Directory' is a config setting path and 'GiB' is a unit; none should be translated."
   },
   {
     "id": "health.rule.filestore_disk_full.title",
@@ -14954,11 +14954,11 @@
   {
     "id": "health.rule.filestore_disk_low.message",
     "translation": "The volume containing FileSettings.Directory has {{.available_gib}} GiB ({{.percent}}%) available of {{.total_gib}} GiB.",
-    "description": "Health dashboard finding detail when the local file storage volume has less than 10% and less than 50 GiB available; {{.available_gib}} and {{.total_gib}} are disk sizes in GiB, and {{.percent}} is the available percentage. 'FileSettings.Directory' is a config setting path and 'GiB' is a unit; neither should be translated."
+    "description": "Health dashboard finding detail when the local file storage volume has less than 10% and less than 10 GiB available, unless the critical disk-space rule applies; {{.available_gib}} and {{.total_gib}} are disk sizes in GiB, and {{.percent}} is the available percentage. 'FileSettings.Directory' is a config setting path and 'GiB' is a unit; neither should be translated."
   },
   {
     "id": "health.rule.filestore_disk_low.remediation",
-    "translation": "Expand the volume or remove unrelated data from its filesystem; do not manually delete files managed by Mattermost from FileSettings.Directory. Keep at least 10% or 50 GiB available.",
+    "translation": "Expand the volume or remove unrelated data from its filesystem; do not manually delete files managed by Mattermost from FileSettings.Directory. Keep at least 10% or 10 GiB available.",
     "description": "Health dashboard fix-it step for a local file storage volume with low available space. It warns against deleting Mattermost-managed files. 'Mattermost' is a product name, 'FileSettings.Directory' is a config setting path and 'GiB' is a unit; none should be translated."
   },
   {

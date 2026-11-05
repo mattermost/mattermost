@@ -21,8 +21,9 @@ const (
 
 	filestoreDiskLowRatio     = 0.10
 	filestoreDiskFullRatio    = 0.05
-	filestoreDiskLowCapMB     = 50 * 1024
-	filestoreDiskFullFloorMB  = 1024
+	filestoreDiskLowCapMB     = 10 * 1024
+	filestoreDiskFullCapMB    = 5 * 1024
+	filestoreDiskEmergencyMB  = 1024
 	filestoreDiskSpaceSubject = "FileStore.AvailableMB"
 	megabytesPerGigabyte      = 1024
 )
@@ -164,7 +165,11 @@ func evalFilestoreS3SSLOff(s *healthcheck.Snapshot) healthcheck.Result {
 }
 
 func filestoreDiskIsFull(freeRatio float64, availableMB uint64) bool {
-	return freeRatio < filestoreDiskFullRatio || availableMB < filestoreDiskFullFloorMB
+	return availableMB < filestoreDiskEmergencyMB || (freeRatio < filestoreDiskFullRatio && availableMB < filestoreDiskFullCapMB)
+}
+
+func filestoreDiskIsLow(freeRatio float64, availableMB uint64) bool {
+	return !filestoreDiskIsFull(freeRatio, availableMB) && freeRatio < filestoreDiskLowRatio && availableMB < filestoreDiskLowCapMB
 }
 
 func formatFilestoreGiB(megabytes uint64) string {
@@ -209,9 +214,7 @@ func evalFilestoreDisk(n *healthcheck.NodeSnapshot, messageID string, fires func
 }
 
 func evalFilestoreDiskLow(_ *healthcheck.Snapshot, n *healthcheck.NodeSnapshot) healthcheck.Result {
-	return evalFilestoreDisk(n, healthcheck.TranslationId("health.rule.filestore_disk_low.message"), func(freeRatio float64, availableMB uint64) bool {
-		return !filestoreDiskIsFull(freeRatio, availableMB) && freeRatio < filestoreDiskLowRatio && availableMB < filestoreDiskLowCapMB
-	})
+	return evalFilestoreDisk(n, healthcheck.TranslationId("health.rule.filestore_disk_low.message"), filestoreDiskIsLow)
 }
 
 func evalFilestoreDiskFull(_ *healthcheck.Snapshot, n *healthcheck.NodeSnapshot) healthcheck.Result {

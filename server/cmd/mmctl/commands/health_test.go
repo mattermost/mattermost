@@ -355,6 +355,9 @@ elastic:
   status: disabled
 file_store:
   file_status: OK
+  file_driver: local
+  total_mb: 102400
+  available_mb: 51200
 notifications:
   email:
     status: OK
@@ -418,8 +421,8 @@ func (s *MmctlUnitTestSuite) TestHealthCheckPacket() {
 		files := healthTestPacketFiles()
 		files[model.SupportPacketDiagnosticsFileName] = strings.Replace(
 			files[model.SupportPacketDiagnosticsFileName],
-			"file_store:\n  file_status: OK\n",
-			"file_store:\n  file_status: OK\n  file_driver: local\n  total_mb: "+strconv.FormatUint(totalMB, 10)+"\n  available_mb: "+strconv.FormatUint(availableMB, 10)+"\n",
+			"  total_mb: 102400\n  available_mb: 51200\n",
+			"  total_mb: "+strconv.FormatUint(totalMB, 10)+"\n  available_mb: "+strconv.FormatUint(availableMB, 10)+"\n",
 			1,
 		)
 		return s.writeHealthTestPacket(files)
@@ -477,7 +480,7 @@ Version
 		output := s.printedHealthFindings()
 		s.Contains(output, "CRITICAL  File storage disk is nearly full on mm.example.com")
 		s.Contains(output, "The volume containing FileSettings.Directory has 4.0 GiB (4.00%) available of 100.0 GiB. File uploads and other file operations can fail when the volume fills.")
-		s.Contains(output, "Immediately expand the volume or remove unrelated data from its filesystem; do not manually delete files managed by Mattermost from FileSettings.Directory. Restore at least 5% and at least 1 GiB available; then keep at least 10% or 50 GiB available.")
+		s.Contains(output, "Immediately expand the volume or remove unrelated data from its filesystem; do not manually delete files managed by Mattermost from FileSettings.Directory. Ensure at least 1 GiB is available. If the volume is also below 5%, restore either 5% or 5 GiB available to clear the critical finding. Then keep at least 10% or 10 GiB available.")
 	})
 
 	s.Run("plain output localizes a low filestore disk finding", func() {
@@ -490,7 +493,7 @@ Version
 		output := s.printedHealthFindings()
 		s.Contains(output, "WARNING   File storage disk space is low on mm.example.com")
 		s.Contains(output, "The volume containing FileSettings.Directory has 9.0 GiB (9.00%) available of 100.0 GiB.")
-		s.Contains(output, "Expand the volume or remove unrelated data from its filesystem; do not manually delete files managed by Mattermost from FileSettings.Directory. Keep at least 10% or 50 GiB available.")
+		s.Contains(output, "Expand the volume or remove unrelated data from its filesystem; do not manually delete files managed by Mattermost from FileSettings.Directory. Keep at least 10% or 10 GiB available.")
 	})
 
 	s.Run("an old packet is not reported as stopped evaluation", func() {

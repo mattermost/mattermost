@@ -271,11 +271,35 @@ func TestFilestoreDiskRules(t *testing.T) {
 			want: both(resolved.withValue(0.087890625)),
 		},
 		{
-			name: "full by percentage",
+			name: "full below five percent and five GiB",
 			node: filestoreDiskNode(model.ImageDriverLocal, new(uint64(100*1024)), new(uint64(4*1024))),
 			want: map[string]want{
 				"FILESTORE_DISK_LOW":  resolved.withValue(0.04),
 				"FILESTORE_DISK_FULL": diskFiring("health.rule.filestore_disk_full.message", "4.0", "100.0", "4.00", 0.04),
+			},
+		},
+		{
+			name: "below five percent with more than five GiB is low",
+			node: filestoreDiskNode(model.ImageDriverLocal, new(uint64(150*1024)), new(uint64(6*1024))),
+			want: map[string]want{
+				"FILESTORE_DISK_LOW":  diskFiring("health.rule.filestore_disk_low.message", "6.0", "150.0", "4.00", 0.04),
+				"FILESTORE_DISK_FULL": resolved.withValue(0.04),
+			},
+		},
+		{
+			name: "below five percent at exactly five GiB is low",
+			node: filestoreDiskNode(model.ImageDriverLocal, new(uint64(125*1024)), new(uint64(5*1024))),
+			want: map[string]want{
+				"FILESTORE_DISK_LOW":  diskFiring("health.rule.filestore_disk_low.message", "5.0", "125.0", "4.00", 0.04),
+				"FILESTORE_DISK_FULL": resolved.withValue(0.04),
+			},
+		},
+		{
+			name: "exactly five percent below five GiB is low",
+			node: filestoreDiskNode(model.ImageDriverLocal, new(uint64(80*1024)), new(uint64(4*1024))),
+			want: map[string]want{
+				"FILESTORE_DISK_LOW":  diskFiring("health.rule.filestore_disk_low.message", "4.0", "80.0", "5.00", 0.05),
+				"FILESTORE_DISK_FULL": resolved.withValue(0.05),
 			},
 		},
 		{
@@ -295,6 +319,14 @@ func TestFilestoreDiskRules(t *testing.T) {
 			},
 		},
 		{
+			name: "emergency below one GiB regardless of percentage",
+			node: filestoreDiskNode(model.ImageDriverLocal, new(uint64(2*1024)), new(uint64(512))),
+			want: map[string]want{
+				"FILESTORE_DISK_LOW":  resolved.withValue(0.25),
+				"FILESTORE_DISK_FULL": diskFiring("health.rule.filestore_disk_full.message", "0.500", "2.0", "25.00", 0.25),
+			},
+		},
+		{
 			name: "zero available space",
 			node: filestoreDiskNode(model.ImageDriverLocal, new(uint64(100*1024)), new(uint64(0))),
 			want: map[string]want{
@@ -304,7 +336,7 @@ func TestFilestoreDiskRules(t *testing.T) {
 		},
 		{
 			name: "exactly ten percent is not low",
-			node: filestoreDiskNode(model.ImageDriverLocal, new(uint64(100*1024)), new(uint64(10*1024))),
+			node: filestoreDiskNode(model.ImageDriverLocal, new(uint64(90*1024)), new(uint64(9*1024))),
 			want: both(resolved.withValue(0.10)),
 		},
 		{
@@ -316,9 +348,14 @@ func TestFilestoreDiskRules(t *testing.T) {
 			},
 		},
 		{
-			name: "exactly fifty GiB does not pass the low-space cap",
-			node: filestoreDiskNode(model.ImageDriverLocal, new(uint64(800*1024)), new(uint64(50*1024))),
+			name: "exactly ten GiB does not pass the low-space cap",
+			node: filestoreDiskNode(model.ImageDriverLocal, new(uint64(160*1024)), new(uint64(10*1024))),
 			want: both(resolved.withValue(0.0625)),
+		},
+		{
+			name: "below five percent at the low-space cap is resolved",
+			node: filestoreDiskNode(model.ImageDriverLocal, new(uint64(250*1024)), new(uint64(10*1024))),
+			want: both(resolved.withValue(0.04)),
 		},
 		{
 			name: "exactly one GiB is not full",
@@ -327,6 +364,11 @@ func TestFilestoreDiskRules(t *testing.T) {
 				"FILESTORE_DISK_LOW":  diskFiring("health.rule.filestore_disk_low.message", "1.0", "15.0", "6.66", float64(1)/15),
 				"FILESTORE_DISK_FULL": resolved.withValue(float64(1) / 15),
 			},
+		},
+		{
+			name: "exactly one GiB at a high percentage is resolved",
+			node: filestoreDiskNode(model.ImageDriverLocal, new(uint64(2*1024)), new(uint64(1024))),
+			want: both(resolved.withValue(0.50)),
 		},
 		{name: "S3 without disk data is not applicable", node: s3SectionMissing, want: both(resolved)},
 		{name: "driver missing", node: filestoreDiskNode("", new(uint64(100*1024)), new(uint64(9*1024))), want: both(diagUnknown)},
