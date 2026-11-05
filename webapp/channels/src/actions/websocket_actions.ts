@@ -123,11 +123,12 @@ import {
     getChannelsInTeam,
     getCurrentChannel,
     getCurrentChannelId,
+    getMyChannelMemberships,
     getRedirectChannelNameForTeam,
     hasAutotranslationBecomeEnabled,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
-import {getConfig, getCustomProfileAttributes, getFeatureFlagValue, getLicense, isPermissionPoliciesEnabled} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getCustomProfileAttributes, getFeatureFlagValue, getLicense, isChannelPermissionActionsEnabled, isPermissionPoliciesEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getGroup} from 'mattermost-redux/selectors/entities/groups';
 import {getPost, getMostRecentPostIdInChannel, getTeamIdFromPost} from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
@@ -1067,7 +1068,7 @@ function handleChannelJoinRequestUpdated(msg: WebSocketMessages.ChannelJoinReque
     };
 }
 
-function handleChannelMemberUpdatedEvent(msg: WebSocketMessages.ChannelMemberUpdated): ThunkActionFunc<void> {
+export function handleChannelMemberUpdatedEvent(msg: WebSocketMessages.ChannelMemberUpdated): ThunkActionFunc<void> {
     return (doDispatch, doGetState) => {
         const channelMember = JSON.parse(msg.data.channelMember) as ChannelMembership;
         const roles = channelMember.roles.split(' ');
@@ -1075,13 +1076,29 @@ function handleChannelMemberUpdatedEvent(msg: WebSocketMessages.ChannelMemberUpd
 
         const state = doGetState();
         const becameEnabled = hasAutotranslationBecomeEnabled(state, channelMember);
+        const channelRoleChanged = hasChannelRoleChanged(state, channelMember);
 
         doDispatch({type: ChannelTypes.RECEIVED_MY_CHANNEL_MEMBER, data: channelMember});
 
         if (becameEnabled) {
             doDispatch(resetReloadPostsInChannel(channelMember.channel_id));
         }
+
+        if (channelRoleChanged && isChannelPermissionActionsEnabled(state)) {
+            doDispatch(reconcileChannelReadAccess());
+        }
     };
+}
+
+function hasChannelRoleChanged(state: GlobalState, member: ChannelMembership): boolean {
+    const previous = getMyChannelMemberships(state)[member.channel_id];
+    if (!previous) {
+        return false;
+    }
+
+    return previous.roles !== member.roles ||
+        previous.scheme_admin !== member.scheme_admin ||
+        previous.scheme_user !== member.scheme_user;
 }
 
 function debouncePostEvent(wait: number) {
@@ -2077,6 +2094,11 @@ function handleUserRoleUpdated(msg: WebSocketMessages.UserRoleUpdated) {
                 isPermissionPoliciesEnabled(store.getState())) {
             store.dispatch(clearRenderDecisions());
             store.dispatch(refreshPostsAfterPolicyChange());
+        }
+
+        if (msg.data.user_id === getCurrentUserId(store.getState()) &&
+                isChannelPermissionActionsEnabled(store.getState())) {
+            store.dispatch(reconcileChannelReadAccess());
         }
 
         if (demoted && global.location.pathname.startsWith('/admin_console')) {
