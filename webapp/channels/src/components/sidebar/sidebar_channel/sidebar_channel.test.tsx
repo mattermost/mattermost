@@ -51,6 +51,7 @@ describe('components/sidebar/sidebar_channel', () => {
         multiSelectedChannelIds: [],
         autoSortedCategoryIds: new Set<string>(),
         isChannelSelected: false,
+        collapseCategoryWithUnreads: false,
     };
 
     test('should match snapshot', () => {
@@ -159,5 +160,100 @@ describe('components/sidebar/sidebar_channel', () => {
         );
 
         expect(screen.getByRole('listitem')).toHaveClass('expanded');
+    });
+
+    describe('collapse category with unread channels', () => {
+        const mutedMentionProps = {
+            isUnread: true,
+            unreadMentions: 2,
+        };
+
+        test('with the setting off, should keep unread and current channels in a collapsed category', () => {
+            const {rerender} = renderWithContext(
+                <SidebarChannel
+                    {...baseProps}
+                    isCategoryCollapsed={true}
+                    isUnread={true}
+                />,
+            );
+            expect(screen.getByRole('listitem')).toHaveClass('expanded');
+
+            rerender(
+                <SidebarChannel
+                    {...baseProps}
+                    isCategoryCollapsed={true}
+                    isCurrentChannel={true}
+                />,
+            );
+            expect(screen.getByRole('listitem')).toHaveClass('expanded');
+        });
+
+        test('with the setting on, should hide an unread channel in a collapsed category', () => {
+            renderWithContext(
+                <SidebarChannel
+                    {...baseProps}
+                    collapseCategoryWithUnreads={true}
+                    isCategoryCollapsed={true}
+                    isUnread={true}
+                />,
+            );
+
+            expect(screen.getByRole('listitem')).toHaveClass('collapsed');
+        });
+
+        test('with the setting on, should hide a muted channel with a mention count in a collapsed category', () => {
+            renderWithContext(
+                <SidebarChannel
+                    {...baseProps}
+                    {...mutedMentionProps}
+                    collapseCategoryWithUnreads={true}
+                    isCategoryCollapsed={true}
+                />,
+            );
+
+            expect(screen.getByRole('listitem')).toHaveClass('collapsed');
+        });
+
+        test('with the setting on, should keep the current channel in a collapsed category', () => {
+            renderWithContext(
+                <SidebarChannel
+                    {...baseProps}
+                    collapseCategoryWithUnreads={true}
+                    isCategoryCollapsed={true}
+                    isCurrentChannel={true}
+                    isUnread={true}
+                />,
+            );
+
+            expect(screen.getByRole('listitem')).toHaveClass('expanded');
+        });
+
+        test('with the setting on, should keep every channel in an open category', () => {
+            const {rerender} = renderWithContext(
+                <SidebarChannel
+                    {...baseProps}
+                    collapseCategoryWithUnreads={true}
+                />,
+            );
+            expect(screen.getByRole('listitem')).toHaveClass('expanded');
+
+            rerender(
+                <SidebarChannel
+                    {...baseProps}
+                    collapseCategoryWithUnreads={true}
+                    isUnread={true}
+                />,
+            );
+            expect(screen.getByRole('listitem')).toHaveClass('expanded');
+
+            rerender(
+                <SidebarChannel
+                    {...baseProps}
+                    {...mutedMentionProps}
+                    collapseCategoryWithUnreads={true}
+                />,
+            );
+            expect(screen.getByRole('listitem')).toHaveClass('expanded');
+        });
     });
 });
