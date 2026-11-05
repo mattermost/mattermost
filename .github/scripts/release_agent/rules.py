@@ -17,9 +17,25 @@ SCHEMA_PATH = CONFIG_DIR / "rules.schema.json"
 TEMPLATE_PATH = CONFIG_DIR / "playbook-template.yml"
 
 
+class UniqueKeyLoader(yaml.SafeLoader):
+    """SafeLoader that refuses a mapping with the same key twice, which safe_load would
+    quietly resolve to the last one (so a rule could tick another item than it reads)."""
+
+    def construct_mapping(self, node, deep=False):
+        seen = set()
+        for key_node, _ in node.value:
+            if key_node.tag == "tag:yaml.org,2002:merge":
+                continue  # `<<: *anchor`, expanded by the parent class
+            key = self.construct_object(key_node, deep=deep)
+            if key in seen:
+                raise yaml.constructor.ConstructorError(None, None, f"duplicate key {key!r}", key_node.start_mark)
+            seen.add(key)
+        return super().construct_mapping(node, deep)
+
+
 def load_yaml(path: Path) -> dict:
     with open(path, encoding="utf-8") as handle:
-        return yaml.safe_load(handle)
+        return yaml.load(handle, Loader=UniqueKeyLoader)  # a SafeLoader subclass
 
 
 def template_items(template: dict) -> set[str]:

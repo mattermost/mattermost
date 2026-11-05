@@ -120,6 +120,17 @@ class RulesFileTest(unittest.TestCase):
         for title in items.values():
             self.assertIn(title, self.titles)
 
+    def test_a_duplicate_key_in_the_yaml_is_an_error(self):
+        import tempfile
+        from pathlib import Path
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "rules.yml"
+            path.write_text("rules:\n  - task: a\n    playbook_item: One\n    playbook_item: Two\n")
+            with self.assertRaisesRegex(Exception, "duplicate key 'playbook_item'"):
+                rules.load_yaml(path)
+            path.write_text("base: &b {state: exists}\nrules:\n  - {<<: *b, state: ready}\n")
+            self.assertEqual(rules.load_yaml(path)["rules"], [{"state": "ready"}])  # merge keys still work
+
     def test_rejects_a_holiday_that_is_not_a_calendar_date(self):
         broken = copy.deepcopy(self.rules)
         broken["holidays"] = ["2026-12-25", "2026-02-30"]

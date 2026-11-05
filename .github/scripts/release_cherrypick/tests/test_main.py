@@ -10,4 +10,4 @@ class DispatchTest(unittest.TestCase):
         github = FakeGitHub()
         _, _, code = cli.run(env, FakeJira(), github)
         self.assertEqual(code, 1)
-        self.assertEqual(github.labelled if hasattr(github, "labelled") else [], [])
+        self.assertEqual(github.writes, [])

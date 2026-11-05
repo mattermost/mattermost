@@ -223,12 +223,18 @@ def post_report(report: posting.ReleaseReport, rules: dict, settings: Settings, 
             if tick.action == playbook.FAILED:
                 report.flags.append(f"Ticking “{tick.playbook_item}” ({tick.task}) failed.")
         message = posting.format_post(report, today, rules["calendar"]["milestones"], rules["false_alarm_emoji"])
-        posting.upsert_post(services.hub, channel, marker, message, post, {posting.SEEN_PROP: seen})
+        try:
+            posting.upsert_post(services.hub, channel, marker, message, post, {posting.SEEN_PROP: seen})
+        except Exception as err:  # noqa: BLE001 - the status post is up; this only corrects it
+            report.flags.append(f"Couldn't update the status post after a failed tick: {public_error(err)}")
     for tick in report.ticks:
         if tick.action == playbook.TICKED and tick.done:
             proof = f" · [proof]({tick.proof_url})" if tick.proof_url else ""
-            services.hub.create_post(channel, f"Ticked **{tick.playbook_item}** in the playbook run: {tick.summary}{proof}",
-                                     root_id=post["id"])
+            try:
+                services.hub.create_post(channel, f"Ticked **{tick.playbook_item}** in the playbook run: {tick.summary}{proof}",
+                                         root_id=post["id"])
+            except Exception as err:  # noqa: BLE001 - the item is closed and the status post is up
+                report.flags.append(f"Couldn't reply with the proof for “{tick.playbook_item}” ({tick.task}): {public_error(err)}")
     return {"post": action, "post_id": post.get("id", "")}
 
 
@@ -272,7 +278,8 @@ def page_holidays(rules: dict, settings: Settings, services: Services, today: da
         flags.append("Couldn't read the holidays page, so T-days may count a holiday as a working day.")
         details.append(f"holidays page: {private_error(err)}")
         return set()
-    return checks.page_holidays(text, heading, (today.year, today.year + 1))
+    # Last year's too: a working-day offset from a late-December milestone can cross into the new year.
+    return checks.page_holidays(text, heading, (today.year - 1, today.year, today.year + 1))
 
 
 def run(rules: dict, settings: Settings, services: Services, today: date) -> tuple[dict, list]:

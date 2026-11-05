@@ -220,7 +220,7 @@ class PageHolidaysRunTest(unittest.TestCase):
         confluence = FakeConfluence(holidays_page_text())
         body, _ = self.run_v121(confluence)
         self.assertEqual(body["releases"][0]["t_day"], "T-10")
-        self.assertEqual(body["holidays_used"], 40)
+        self.assertEqual(body["holidays_used"], 42)  # 2025, 2026 and 2027
         self.assertEqual(confluence.requested, ["page9"])  # once, shared with the holidays-page check
         self.assertNotIn("holidays page", json.dumps(body["flags"]))
         holidays = frozenset(agent.checks.page_holidays(holidays_page_text(), rules.load_rules()["holidays_page_heading"], (2026,)))
@@ -228,6 +228,12 @@ class PageHolidaysRunTest(unittest.TestCase):
             agent.release_calendar.parse_ics(V121_NO_HOLIDAYS), rules.load_rules()["calendar"]["milestones"])[0][(12, 1)]
         self.assertEqual(agent.release_calendar.resolve_due("T-6", v121, holidays), date(2026, 11, 5))
         self.assertEqual(agent.release_calendar.resolve_due("T-6", v121, frozenset()), date(2026, 11, 6))
+
+    def test_last_years_holidays_count_for_offsets_from_a_late_december_milestone(self):
+        svc = services(confluence=FakeConfluence(holidays_page_text()))
+        found = agent.page_holidays(rules.load_rules(), settings(), svc, date(2027, 1, 5), [], [])
+        self.assertIn(date(2026, 12, 24), found)
+        self.assertIn(date(2026, 12, 28), found)
 
     def test_without_the_page_nov_11_counts(self):
         body, _ = self.run_v121(FakeConfluence(holidays_page_text()), page_id="")
@@ -311,6 +317,24 @@ class TickAfterPostTest(unittest.TestCase):
         body, _ = run(svc)  # the next run, with Hub back
         self.assertEqual(len(svc.hub.closed), 6)
         self.assertEqual(len(body["releases"][0]["ticked"]), 6)
+
+    def test_a_failed_proof_reply_is_a_flag_not_a_failed_status_post(self):
+        svc = services()
+        create = svc.hub.create_post
+
+        def create_post(channel_id, message, props=None, root_id=""):
+            if root_id:
+                raise ServiceError("Mattermost", 500)
+            return create(channel_id, message, props, root_id)
+        svc.hub.create_post = create_post
+        body, _ = run(svc)
+        release = body["releases"][0]
+        self.assertEqual(release["post"], "created")
+        self.assertTrue(release["post_id"])
+        self.assertEqual(len(release["ticked"]), 6)
+        replies = [f for f in release["flags"] if f.startswith("Couldn't reply with the proof for")]
+        self.assertEqual(len(replies), 6)  # each reply fails on its own; none stops the rest
+        self.assertNotIn("Couldn't post the status.", release["flags"])
 
     def test_items_are_closed_after_the_post_exists(self):
         svc = services()

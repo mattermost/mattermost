@@ -218,6 +218,13 @@ def clean_rewrite(rewrite: str, original: str) -> str | None:
         return None
     if len(text.split()) < MIN_REWRITE_WORDS or changelog_note_is_weak(text):
         return None
+    # No new link or HTML: the model reads a PR description anyone can write, and a reviewer can
+    # apply the suggestion in one click. Links the bullet already had are allowed.
+    rest = text
+    for link in re.findall(r"\[[^\]]*\]\([^)]*\)|https?://\S+", original):
+        rest = rest.replace(link, "")
+    if re.search(r"https?://|www\.|\]\(|[<>]", rest):
+        return None
     for link in re.findall(r"\[[^\]]*\]\([^)]*\)", original):
         if link not in text:
             text = f"{text} {link}"
@@ -319,8 +326,13 @@ def suggest_rewrites(api, source_api, number: int, head_sha: str, content: str |
             # public comment, so only this repo's PRs get a rewrite.
             skipped += 1
             continue
-        facts = pr_facts(source_api, bullet["source"])
-        replacement = clean_rewrite(rewrite(facts, bullet["text"], bullet["reason"]), bullet["text"]) if facts else None
+        try:
+            facts = pr_facts(source_api, bullet["source"])
+            replacement = clean_rewrite(rewrite(facts, bullet["text"], bullet["reason"]), bullet["text"]) if facts else None
+        except Exception as err:  # noqa: BLE001 - rewrites are best effort: one bad source must not stop the rest
+            skipped += 1
+            print(f"Could not prepare a rewrite for {bullet['source']}: {type(err).__name__}")
+            continue
         if not replacement:
             skipped += 1
             print(f"No usable rewrite for {bullet['source']}")

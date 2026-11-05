@@ -160,6 +160,35 @@ class SuggestionTest(unittest.TestCase):
             api = comments_api()
             self.assertEqual(self.suggest(api, rewriter=lambda *a, bad=bad: bad)["posted"], 0, bad)
 
+    def test_a_new_link_or_html_in_a_rewrite_is_refused(self):
+        original = "Layout. [Docs](https://docs.mattermost.com/x)"
+        for bad in ("Added the new sidebar layout, see https://evil.example for every team member.",
+                    "Added the new sidebar layout for every team [member](https://evil.example) today.",
+                    "Added the new sidebar layout for <b>every</b> team member today.",
+                    "Added the new sidebar layout for every team member, see www.evil.example now."):
+            self.assertIsNone(ca.clean_rewrite(bad, original), bad)
+        kept = "Added the new sidebar layout for every team member. [Docs](https://docs.mattermost.com/x)"
+        self.assertEqual(ca.clean_rewrite(kept, original), kept)  # the original's link inline is fine
+
+    def test_one_source_that_cannot_be_read_does_not_stop_the_others(self):
+        report = {**REPORT, "sections": [{"section": "Improvements", "subsection": "User Interface", "items": [
+            {"text": "Updated sidebar.", "sources": [SRC]}, {"text": GOOD, "sources": ["mattermost/mattermost#102"]}]}],
+            "readiness": {**REPORT["readiness"], "note_quality": [
+                {"source": "mattermost/mattermost#102", "title": "t", "reason": "r", "excerpt": "x"},
+                {"source": SRC, "title": "t", "reason": "under 6 words", "excerpt": "x"}]}}
+        # #101 is readable through source_api(); #102 is a 404 there.
+        api = comments_api()
+        result = self.suggest(api, report)
+        self.assertEqual((result["posted"], result["skipped"]), (1, 1))
+        (_, _, body), = api.calls_to("POST", "/repos/mattermost/mattermost/pulls/50/comments")
+        self.assertEqual(body["line"], 12)
+
+    def test_a_rewrite_that_raises_is_skipped_too(self):
+        def boom(*args):
+            raise RuntimeError("overloaded")
+        result = self.suggest(comments_api(), rewriter=boom)
+        self.assertEqual((result["posted"], result["skipped"]), (0, 1))
+
     def test_links_on_the_original_bullet_are_kept(self):
         text = ca.clean_rewrite("Added the new sidebar layout for every team member.", "Layout. [Docs](https://docs.mattermost.com/x)")
         self.assertEqual(text, "Added the new sidebar layout for every team member. [Docs](https://docs.mattermost.com/x)")
