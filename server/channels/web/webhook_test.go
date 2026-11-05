@@ -5,6 +5,7 @@ package web
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -14,6 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 func TestIncomingWebhook(t *testing.T) {
@@ -213,11 +215,11 @@ func TestIncomingWebhook(t *testing.T) {
 		channel, err := th.App.CreateChannel(th.Context, &model.Channel{TeamId: th.BasicTeam.Id, Name: model.NewId(), DisplayName: model.NewId(), Type: model.ChannelTypeOpen, CreatorId: th.BasicUser.Id}, true)
 		require.Nil(t, err)
 
-		hook, err := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id, ChannelLocked: true})
+		lockedHook, err := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id, ChannelLocked: true})
 		require.Nil(t, err)
-		require.NotNil(t, hook)
+		require.NotNil(t, lockedHook)
 
-		apiHookURL := apiClient.URL + "/hooks/" + hook.Id
+		apiHookURL := apiClient.URL + "/hooks/" + lockedHook.Id
 
 		payload := "payload={\"text\": \"test text\"}"
 		resp, err2 := http.Post(apiHookURL, "application/x-www-form-urlencoded", strings.NewReader(payload))
@@ -231,6 +233,83 @@ func TestIncomingWebhook(t *testing.T) {
 		resp, err2 = http.Post(apiHookURL, "application/json", strings.NewReader(fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"%s\"}", channel.Name)))
 		require.NoError(t, err2)
 		assert.True(t, resp.StatusCode == http.StatusForbidden)
+	})
+
+	t.Run("WebhookDebuggingDoesNotLogPayload", func(t *testing.T) {
+		const secretText = "secret message text"
+
+		originalEnableWebhookDebugging := *th.App.Config().LogSettings.EnableWebhookDebugging
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.LogSettings.EnableWebhookDebugging = originalEnableWebhookDebugging })
+		})
+
+		findDebugEntries := func(t *testing.T, buffer *mlog.Buffer) []map[string]any {
+			require.NoError(t, th.TestLogger.Flush())
+
+			var entries []map[string]any
+			dec := json.NewDecoder(strings.NewReader(buffer.String()))
+			for dec.More() {
+				var entry map[string]any
+				require.NoError(t, dec.Decode(&entry))
+				if entry["msg"] == "Incoming webhook received" && entry["webhook_id"] == hook.Id {
+					entries = append(entries, entry)
+				}
+			}
+			return entries
+		}
+
+		testCases := []struct {
+			name        string
+			contentType string
+			body        string
+		}{
+			{"json", "application/json", `{"text": "` + secretText + `", "channel": "junk"}`},
+			{"form", "application/x-www-form-urlencoded", `payload={"text": "` + secretText + `", "channel": "junk"}`},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				th.App.UpdateConfig(func(cfg *model.Config) { *cfg.LogSettings.EnableWebhookDebugging = true })
+				buffer := &mlog.Buffer{}
+				require.NoError(t, mlog.AddWriterTarget(th.TestLogger, buffer, true, mlog.StdAll...))
+
+				resp, err := http.Post(url, tc.contentType, strings.NewReader(tc.body))
+				require.NoError(t, err)
+				require.Equal(t, http.StatusNotFound, resp.StatusCode)
+
+				entries := findDebugEntries(t, buffer)
+				require.Len(t, entries, 1)
+				entry := entries[0]
+				assert.Equal(t, "debug", entry["level"])
+				assert.Equal(t, tc.contentType, entry["content_type"])
+				assert.EqualValues(t, len(tc.body), entry["payload_size"])
+				assert.Contains(t, entry["error"], "Couldn't find the channel")
+				assert.NotEmpty(t, entry["request_id"])
+
+				keys := make([]string, 0, len(entry))
+				for key := range entry {
+					keys = append(keys, key)
+				}
+				assert.ElementsMatch(t, []string{
+					"timestamp", "level", "msg", "caller",
+					"path", "request_id", "ip_addr", "user_id", "method",
+					"webhook_id", "content_type", "payload_size", "error",
+				}, keys, "debug entry must only contain request metadata")
+				assert.NotContains(t, buffer.String(), secretText)
+			})
+		}
+
+		t.Run("disabled", func(t *testing.T) {
+			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.LogSettings.EnableWebhookDebugging = false })
+			buffer := &mlog.Buffer{}
+			require.NoError(t, mlog.AddWriterTarget(th.TestLogger, buffer, true, mlog.StdAll...))
+
+			resp, err := http.Post(url, "application/json", strings.NewReader(`{"text": "`+secretText+`", "channel": "junk"}`))
+			require.NoError(t, err)
+			require.Equal(t, http.StatusNotFound, resp.StatusCode)
+
+			assert.Empty(t, findDebugEntries(t, buffer))
+		})
 	})
 
 	t.Run("DisableWebhooks", func(t *testing.T) {

@@ -4,7 +4,6 @@
 package web
 
 import (
-	"encoding/json"
 	"io"
 	"mime"
 	"net/http"
@@ -48,18 +47,13 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	defer func() {
-		if *c.App.Config().LogSettings.EnableWebhookDebugging {
-			if c.Err != nil {
-				fields := []mlog.Field{mlog.String("webhook_id", id), mlog.String("request_id", c.AppContext.RequestId())}
-				payload, err := json.Marshal(incomingWebhookPayload)
-				if err != nil {
-					fields = append(fields, mlog.NamedErr("encoding_err", err))
-				} else {
-					fields = append(fields, mlog.String("payload", payload))
-				}
-
-				mlog.Debug("Incoming webhook received", fields...)
-			}
+		if *c.App.Config().LogSettings.EnableWebhookDebugging && c.Err != nil {
+			c.Logger.Debug("Incoming webhook received",
+				mlog.String("webhook_id", id),
+				mlog.String("content_type", contentType),
+				mlog.Int("payload_size", r.ContentLength),
+				mlog.Err(c.Err),
+			)
 		}
 	}()
 
