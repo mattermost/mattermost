@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"sync"
 	"testing"
 	"time"
 
@@ -27,8 +28,27 @@ type propertyValuesTestHelper struct {
 
 func setupPropertyValuesTest(t *testing.T) *propertyValuesTestHelper {
 	t.Helper()
-	th := Setup(t).InitBasic(t)
+	return newPropertyValuesTestHelper(t, Setup(t).InitBasic(t))
+}
 
+// setupPropertyValuesCreateTest is setupPropertyValuesTest with the PostAttributes flag set as
+// asked: CreatePost refuses values while the flag is off.
+func setupPropertyValuesCreateTest(t *testing.T, flagEnabled bool) *propertyValuesTestHelper {
+	t.Helper()
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PostAttributes = flagEnabled
+	}).InitBasic(t)
+
+	// config.Store.Set re-applies environment overrides on every write, so MM_FEATUREFLAGS_POSTATTRIBUTES
+	// exported in a shell wins over the flag asked for here.
+	require.Equal(t, flagEnabled, th.App.Config().FeatureFlags.PostAttributes,
+		"unset MM_FEATUREFLAGS_POSTATTRIBUTES: it overrides the flag this test configures")
+
+	return newPropertyValuesTestHelper(t, th)
+}
+
+func newPropertyValuesTestHelper(t *testing.T, th *TestHelper) *propertyValuesTestHelper {
+	t.Helper()
 	group, appErr := th.App.GetPropertyGroup(th.Context, model.PostAttributesPropertyGroupName)
 	require.Nil(t, appErr)
 
@@ -595,17 +615,37 @@ func (th *propertyValuesTestHelper) assertPendingPostIDReleased(t *testing.T, pe
 		"the pending post id must be released so the client can retry, got %q", postID)
 }
 
-// recordingPostStore wraps a real PostStore to watch, and optionally break, the compensating
-// delete. CreatePost returns a nil post on the failure path, so PermanentDelete is the only
-// place the doomed post's ID becomes observable to a test.
+// recordingPostStore wraps a real PostStore to watch the save and the compensating delete, and
+// optionally break the delete. CreatePost returns a nil post on the failure path, so these two
+// calls are the only place the doomed post's ID becomes observable to a test. Save also records
+// the caller ID on the context it was given, which is the context CreatePost ran with.
 type recordingPostStore struct {
 	store.PostStore
-	deleteErr  error
-	deletedIDs []string
+	deleteErr error
+
+	mu            sync.Mutex
+	savedIDs      []string
+	saveCallerIDs []string
+	deletedIDs    []string
+}
+
+func (r *recordingPostStore) Save(rctx request.CTX, post *model.Post) (*model.Post, error) {
+	saved, err := r.PostStore.Save(rctx, post)
+
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	callerID, _ := CallerIDFromRequestContext(rctx)
+	r.saveCallerIDs = append(r.saveCallerIDs, callerID)
+	if err == nil {
+		r.savedIDs = append(r.savedIDs, saved.Id)
+	}
+	return saved, err
 }
 
 func (r *recordingPostStore) PermanentDelete(rctx request.CTX, postID string) error {
+	r.mu.Lock()
 	r.deletedIDs = append(r.deletedIDs, postID)
+	r.mu.Unlock()
 	if r.deleteErr != nil {
 		return r.deleteErr
 	}
@@ -619,10 +659,10 @@ type recordingPostStoreWrapper struct {
 
 func (w *recordingPostStoreWrapper) Post() store.PostStore { return w.posts }
 
-// watchPostDeletes swaps in a store whose PostStore records every PermanentDelete, failing it
-// when deleteErr is non-nil. Every other store call passes through to the real store, so the
-// rest of CreatePost behaves normally.
-func (th *propertyValuesTestHelper) watchPostDeletes(t *testing.T, deleteErr error) *recordingPostStore {
+// watchPostStore swaps in a store whose PostStore records every Save and PermanentDelete,
+// failing the delete when deleteErr is non-nil. Every other store call passes through to the
+// real store, so the rest of CreatePost behaves normally.
+func (th *propertyValuesTestHelper) watchPostStore(t *testing.T, deleteErr error) *recordingPostStore {
 	t.Helper()
 	original := th.App.Srv().Store()
 	posts := &recordingPostStore{PostStore: original.Post(), deleteErr: deleteErr}
@@ -650,7 +690,7 @@ func TestCreatePostPropertyValues(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	t.Run("staged values are written, attached and persisted", func(t *testing.T) {
-		th := setupPropertyValuesTest(t)
+		th := setupPropertyValuesCreateTest(t, true)
 		th.asUser(t, th.BasicUser.Id)
 		field := th.createField(t, string(model.PropertyFieldTargetLevelChannel), th.BasicChannel.Id, "sensitivity")
 
@@ -683,7 +723,7 @@ func TestCreatePostPropertyValues(t *testing.T) {
 	})
 
 	t.Run("a reply behaves like a root post", func(t *testing.T) {
-		th := setupPropertyValuesTest(t)
+		th := setupPropertyValuesCreateTest(t, true)
 		th.asUser(t, th.BasicUser.Id)
 		field := th.createField(t, string(model.PropertyFieldTargetLevelChannel), th.BasicChannel.Id, "sensitivity")
 		root := th.post(t, th.BasicChannel)
@@ -709,7 +749,7 @@ func TestCreatePostPropertyValues(t *testing.T) {
 	// Every existing caller leaves Metadata nil or without PropertyValues, and must
 	// keep behaving exactly as it did.
 	t.Run("no staged values writes nothing", func(t *testing.T) {
-		th := setupPropertyValuesTest(t)
+		th := setupPropertyValuesCreateTest(t, true)
 		th.asUser(t, th.BasicUser.Id)
 		th.createField(t, string(model.PropertyFieldTargetLevelChannel), th.BasicChannel.Id, "sensitivity")
 
@@ -742,9 +782,9 @@ func TestCreatePostPropertyValues(t *testing.T) {
 	})
 
 	t.Run("a failed value write removes the post and releases the pending id", func(t *testing.T) {
-		th := setupPropertyValuesTest(t)
+		th := setupPropertyValuesCreateTest(t, true)
 		th.asUser(t, th.BasicUser.Id)
-		deletes := th.watchPostDeletes(t, nil)
+		deletes := th.watchPostStore(t, nil)
 
 		pendingPostID := model.NewId()
 		created, _, appErr := th.App.CreatePost(th.Context, &model.Post{
@@ -772,9 +812,9 @@ func TestCreatePostPropertyValues(t *testing.T) {
 	})
 
 	t.Run("a failed value write whose compensating delete also fails", func(t *testing.T) {
-		th := setupPropertyValuesTest(t)
+		th := setupPropertyValuesCreateTest(t, true)
 		th.asUser(t, th.BasicUser.Id)
-		deletes := th.watchPostDeletes(t, assert.AnError)
+		deletes := th.watchPostStore(t, assert.AnError)
 
 		pendingPostID := model.NewId()
 		created, _, appErr := th.App.CreatePost(th.Context, &model.Post{
@@ -810,7 +850,7 @@ func TestCreatePostPropertyValues(t *testing.T) {
 	// Values are attached to the post before handlePostEvents runs, so a client that is
 	// watching the channel sees them without refetching the post.
 	t.Run("the posted websocket event carries the values", func(t *testing.T) {
-		th := setupPropertyValuesTest(t)
+		th := setupPropertyValuesCreateTest(t, true)
 		th.asUser(t, th.BasicUser.Id)
 		field := th.createField(t, string(model.PropertyFieldTargetLevelChannel), th.BasicChannel.Id, "sensitivity")
 
@@ -857,7 +897,7 @@ func TestCreatePostPropertyValues(t *testing.T) {
 	// attaching values earlier in CreatePost cannot leak them to a non-author. Pinned here
 	// because the two are far apart and nothing else couples them.
 	t.Run("an unrevealed burn-on-read post carries no values for a non-author", func(t *testing.T) {
-		th := setupPropertyValuesTest(t)
+		th := setupPropertyValuesCreateTest(t, true)
 		th.asUser(t, th.BasicUser.Id)
 
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
@@ -896,5 +936,254 @@ func TestCreatePostPropertyValues(t *testing.T) {
 		prepared := th.App.PreparePostForClient(th.Context, created, &model.PreparePostForClientOpts{})
 		require.NotNil(t, prepared.Metadata)
 		assert.Empty(t, prepared.Metadata.PropertyValues)
+	})
+}
+
+func TestCreatePostPropertyValuesFeatureFlagOff(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := setupPropertyValuesCreateTest(t, false)
+	th.asUser(t, th.BasicUser.Id)
+	// The field exists and the value is staged as a caller would after validating it, so the
+	// refusal is the flag's doing and not a failed lookup or write.
+	field := th.createField(t, string(model.PropertyFieldTargetLevelChannel), th.BasicChannel.Id, "sensitivity")
+	posts := th.watchPostStore(t, nil)
+
+	pendingPostID := model.NewId()
+	created, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+		ChannelId:     th.BasicChannel.Id,
+		UserId:        th.BasicUser.Id,
+		Message:       "flag off",
+		PendingPostId: pendingPostID,
+		Metadata: &model.PostMetadata{
+			PropertyValues: []*model.PropertyValue{th.staged(field, `"confidential"`)},
+		},
+	}, th.BasicChannel, model.CreatePostFlags{})
+
+	require.NotNil(t, appErr)
+	assert.Equal(t, "api.post.create_post.attributes_feature_disabled.app_error", appErr.Id)
+	assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	assert.Nil(t, created)
+
+	// Refused before the save, so there is no post row and nothing to roll back.
+	assert.Empty(t, posts.savedIDs)
+	assert.Empty(t, posts.deletedIDs)
+	th.assertPendingPostIDReleased(t, pendingPostID)
+}
+
+const (
+	replaceWithoutValuesMessage = "replacement without values"
+	replaceWithValuesMessage    = "replacement with values"
+)
+
+// replacementPostPlugin builds a MessageWillBePosted plugin that hands back a replacement post
+// carrying its own metadata, picked by the post's message: replaceWithoutValuesMessage gets
+// metadata with a priority and no values, replaceWithValuesMessage gets metadata with a value
+// for fieldID. Any other message is let through unchanged.
+func replacementPostPlugin(groupID, fieldID string) string {
+	return `
+		package main
+
+		import (
+			"encoding/json"
+
+			"github.com/mattermost/mattermost/server/public/model"
+			"github.com/mattermost/mattermost/server/public/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
+			switch post.Message {
+			case "` + replaceWithoutValuesMessage + `":
+				post.Metadata = &model.PostMetadata{
+					Priority: &model.PostPriority{Priority: model.NewPointer(model.PostPriorityUrgent)},
+				}
+				return post, ""
+			case "` + replaceWithValuesMessage + `":
+				post.Metadata = &model.PostMetadata{
+					PropertyValues: []*model.PropertyValue{{
+						GroupID: "` + groupID + `",
+						FieldID: "` + fieldID + `",
+						Value:   json.RawMessage("\"injected\""),
+					}},
+				}
+				return post, ""
+			}
+			return nil, ""
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`
+}
+
+// A plugin's replacement post keeps the values CreatePost was given: they were validated
+// before the hooks ran, and a plugin sets values through the plugin API instead. Both places
+// that take a replacement are covered: the MessageWillBePosted fan-out and the channel guard.
+func TestCreatePostPropertyValuesReplacementPost(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	testCases := []struct {
+		name  string
+		guard bool
+	}{
+		{"from a MessageWillBePosted plugin", false},
+		{"from a channel guard plugin", true},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			th := setupPropertyValuesCreateTest(t, true)
+			th.asUser(t, th.BasicUser.Id)
+			field := th.createField(t, string(model.PropertyFieldTargetLevelChannel), th.BasicChannel.Id, "sensitivity")
+
+			tearDown, pluginIDs, errs := SetAppEnvironmentWithPlugins(t, []string{replacementPostPlugin(th.groupID, field.ID)}, th.App, th.NewPluginAPI)
+			t.Cleanup(tearDown)
+			require.Len(t, errs, 1)
+			require.NoError(t, errs[0])
+			require.Len(t, pluginIDs, 1)
+
+			if tc.guard {
+				require.Nil(t, th.App.RegisterChannelGuard(th.Context, th.BasicChannel.Id, pluginIDs[0]))
+				require.Len(t, th.App.Channels().getGuardsForChannel(th.BasicChannel.Id), 1)
+			}
+
+			t.Run("a replacement with its own metadata keeps the original values", func(t *testing.T) {
+				created, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+					ChannelId: th.BasicChannel.Id,
+					UserId:    th.BasicUser.Id,
+					Message:   replaceWithoutValuesMessage,
+					Metadata: &model.PostMetadata{
+						PropertyValues: []*model.PropertyValue{th.staged(field, `"confidential"`)},
+					},
+				}, th.BasicChannel, model.CreatePostFlags{})
+				require.Nil(t, appErr)
+
+				require.Len(t, created.Metadata.PropertyValues, 1)
+				assert.Equal(t, field.ID, created.Metadata.PropertyValues[0].FieldID)
+				assert.JSONEq(t, `"confidential"`, string(created.Metadata.PropertyValues[0].Value))
+				assert.Equal(t, []string{field.ID}, th.storedValueFieldIDs(t, created.Id))
+			})
+
+			// The original carries a priority, so it has metadata of its own and the replacement's
+			// metadata is the one kept, with only the priority and the values restored.
+			t.Run("a replacement cannot add values", func(t *testing.T) {
+				created, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+					ChannelId: th.BasicChannel.Id,
+					UserId:    th.BasicUser.Id,
+					Message:   replaceWithValuesMessage,
+					Metadata: &model.PostMetadata{
+						Priority: &model.PostPriority{Priority: model.NewPointer(model.PostPriorityUrgent)},
+					},
+				}, th.BasicChannel, model.CreatePostFlags{})
+				require.Nil(t, appErr)
+
+				assert.Empty(t, created.Metadata.PropertyValues)
+				assert.Empty(t, th.storedValueFieldIDs(t, created.Id))
+			})
+		})
+	}
+}
+
+func TestPreparePostPropertyValuesForCreate(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := setupPropertyValuesTest(t)
+	systemField := th.createField(t, string(model.PropertyFieldTargetLevelSystem), "", "f_"+model.NewId())
+	teamField := th.createField(t, string(model.PropertyFieldTargetLevelTeam), th.BasicTeam.Id, "f_"+model.NewId())
+	channelField := th.createField(t, string(model.PropertyFieldTargetLevelChannel), th.BasicChannel.Id, "f_"+model.NewId())
+
+	// submitted builds the shape a caller hands in: field and value, nothing the server owns.
+	submitted := func(fieldID, raw string) *model.PropertyValue {
+		return &model.PropertyValue{FieldID: fieldID, Value: json.RawMessage(raw)}
+	}
+
+	requireInvalid := func(t *testing.T, items ...*model.PropertyValue) {
+		t.Helper()
+		values, fields, appErr := th.App.PreparePostPropertyValuesForCreate(th.Context, items, th.BasicChannel)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "api.post.create_post.invalid_attribute.app_error", appErr.Id)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Nil(t, values)
+		assert.Nil(t, fields)
+	}
+
+	t.Run("system, team and channel values come back fresh, each with its field", func(t *testing.T) {
+		values, fields, appErr := th.App.PreparePostPropertyValuesForCreate(th.Context, []*model.PropertyValue{
+			submitted(systemField.ID, `"sys"`),
+			submitted(teamField.ID, `"team"`),
+			submitted(channelField.ID, `"chan"`),
+		}, th.BasicChannel)
+		require.Nil(t, appErr)
+
+		require.Len(t, values, 3)
+		require.Len(t, fields, 3)
+		expected := []struct {
+			field *model.PropertyField
+			raw   string
+		}{
+			{systemField, `"sys"`},
+			{teamField, `"team"`},
+			{channelField, `"chan"`},
+		}
+		for i, want := range expected {
+			assert.Equal(t, want.field.ID, fields[i].ID)
+			assert.Equal(t, want.field.ID, values[i].FieldID)
+			assert.JSONEq(t, want.raw, string(values[i].Value))
+			// The group is the server's to fill in; everything CreatePost assigns stays unset.
+			assert.Equal(t, th.groupID, values[i].GroupID)
+			assert.Empty(t, values[i].ID)
+			assert.Empty(t, values[i].TargetID)
+			assert.Empty(t, values[i].TargetType)
+			assert.Empty(t, values[i].CreatedBy)
+		}
+	})
+
+	t.Run("a field scoped to another channel is unknown", func(t *testing.T) {
+		otherChannelField := th.createField(t, string(model.PropertyFieldTargetLevelChannel), th.CreateChannel(t, th.BasicTeam).Id, "f_"+model.NewId())
+		requireInvalid(t, submitted(otherChannelField.ID, `"x"`))
+	})
+
+	t.Run("a well-formed id no field has is unknown", func(t *testing.T) {
+		requireInvalid(t, submitted(model.NewId(), `"x"`))
+	})
+
+	t.Run("the same field twice is refused", func(t *testing.T) {
+		requireInvalid(t, submitted(channelField.ID, `"first"`), submitted(channelField.ID, `"second"`))
+	})
+
+	t.Run("a malformed field id is refused", func(t *testing.T) {
+		requireInvalid(t, submitted("not-an-id", `"x"`))
+	})
+
+	t.Run("a nil value is refused", func(t *testing.T) {
+		requireInvalid(t, submitted(channelField.ID, `"x"`), nil)
+	})
+
+	// One subtest per server-owned field rather than a loop, so a regression in handling any one
+	// of them names itself in the failure output.
+	t.Run("server-owned fields set by the caller are refused", func(t *testing.T) {
+		refuse := func(t *testing.T, set func(v *model.PropertyValue)) {
+			t.Helper()
+			value := submitted(channelField.ID, `"x"`)
+			set(value)
+			requireInvalid(t, value)
+		}
+
+		t.Run("id", func(t *testing.T) { refuse(t, func(v *model.PropertyValue) { v.ID = model.NewId() }) })
+		t.Run("group_id", func(t *testing.T) { refuse(t, func(v *model.PropertyValue) { v.GroupID = th.groupID }) })
+		t.Run("target_id", func(t *testing.T) { refuse(t, func(v *model.PropertyValue) { v.TargetID = model.NewId() }) })
+		t.Run("target_type", func(t *testing.T) {
+			refuse(t, func(v *model.PropertyValue) { v.TargetType = model.PropertyValueTargetTypePost })
+		})
+		t.Run("create_at", func(t *testing.T) { refuse(t, func(v *model.PropertyValue) { v.CreateAt = model.GetMillis() }) })
+		t.Run("update_at", func(t *testing.T) { refuse(t, func(v *model.PropertyValue) { v.UpdateAt = model.GetMillis() }) })
+		t.Run("delete_at", func(t *testing.T) { refuse(t, func(v *model.PropertyValue) { v.DeleteAt = model.GetMillis() }) })
+		t.Run("created_by", func(t *testing.T) { refuse(t, func(v *model.PropertyValue) { v.CreatedBy = th.BasicUser.Id }) })
+		t.Run("updated_by", func(t *testing.T) { refuse(t, func(v *model.PropertyValue) { v.UpdatedBy = th.BasicUser.Id }) })
 	})
 }

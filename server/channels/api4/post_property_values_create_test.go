@@ -292,6 +292,12 @@ func TestCreatePostWithPropertyValues(t *testing.T) {
 			value.UpdateAt = model.GetMillis()
 			refuse(t, value)
 		})
+
+		t.Run("delete_at", func(t *testing.T) {
+			value := submittedPropertyValue(field.ID, `"x"`)
+			value.DeleteAt = model.GetMillis()
+			refuse(t, value)
+		})
 	})
 
 	t.Run("a field scoped to another channel is unknown to this post", func(t *testing.T) {

@@ -160,6 +160,91 @@ func markPropertyValuesUnavailable(posts []*model.Post) {
 	}
 }
 
+// PreparePostPropertyValuesForCreate checks values submitted for a post about to be created in
+// channel and returns fresh PropertyValues carrying only the group, the field and the value,
+// together with the field each one is for, in the same order. It runs before the post is saved,
+// so bad input is refused before there is a post to roll back.
+//
+// It does not check whether the caller may set the values: an API caller asks
+// CanSetPostPropertyValueOnCreate for each returned field, and every caller's write is judged
+// again by the property hook when CreatePost stores the values. Nor does it check the feature
+// flag; callers do that first, so a request with the flag off makes no lookup.
+//
+// Errors never name an attribute: which attributes a server defines is itself sensitive, and
+// the caller may not be allowed to see them.
+func (a *App) PreparePostPropertyValuesForCreate(rctx request.CTX, submitted []*model.PropertyValue, channel *model.Channel) ([]*model.PropertyValue, []*model.PropertyField, *model.AppError) {
+	invalid := func(detail string) *model.AppError {
+		return model.NewAppError("PreparePostPropertyValuesForCreate", "api.post.create_post.invalid_attribute.app_error", nil, detail, http.StatusBadRequest)
+	}
+
+	group, appErr := a.GetPropertyGroup(rctx, model.PostAttributesPropertyGroupName)
+	if appErr != nil {
+		return nil, nil, appErr
+	}
+
+	// One call covers all three scopes a post's fields can come from: the system, the
+	// post's team and its channel.
+	fields, appErr := a.SearchPropertyFields(rctx, group.ID, model.PropertyFieldSearchOpts{
+		ObjectTypes: []string{model.PropertyFieldObjectTypePost},
+		ChannelID:   channel.Id,
+		TeamID:      channel.TeamId,
+		PerPage:     model.PostAttributesMaxApplicableFields + 1,
+	})
+	if appErr != nil {
+		return nil, nil, appErr
+	}
+
+	// The per-target cap keeps a post's applicable fields within the page. Were it ever
+	// bypassed, a field past PostAttributesMaxApplicableFields would be refused as unknown.
+	fieldByID := make(map[string]*model.PropertyField, len(fields))
+	for _, field := range fields {
+		fieldByID[field.ID] = field
+	}
+
+	seen := make(map[string]bool, len(submitted))
+	values := make([]*model.PropertyValue, 0, len(submitted))
+	valueFields := make([]*model.PropertyField, 0, len(submitted))
+	for _, item := range submitted {
+		if item == nil {
+			return nil, nil, invalid("nil value")
+		}
+		// The caller submits full PropertyValue structs, so everything the server owns has to
+		// be rejected rather than quietly dropped: a caller that sent an ID or a TargetID meant
+		// something by it and should not be told the write succeeded as asked.
+		if hasServerOwnedFields(item) {
+			return nil, nil, invalid("server-owned field set by caller")
+		}
+		if !model.IsValidId(item.FieldID) {
+			return nil, nil, invalid("invalid field id")
+		}
+		if seen[item.FieldID] {
+			return nil, nil, invalid("duplicate field")
+		}
+		field, ok := fieldByID[item.FieldID]
+		if !ok {
+			return nil, nil, invalid("unknown field")
+		}
+
+		seen[item.FieldID] = true
+		values = append(values, &model.PropertyValue{
+			GroupID: group.ID,
+			FieldID: field.ID,
+			Value:   item.Value,
+		})
+		valueFields = append(valueFields, field)
+	}
+
+	return values, valueFields, nil
+}
+
+// hasServerOwnedFields reports whether a submitted value sets anything the server assigns
+// itself when it writes the value.
+func hasServerOwnedFields(v *model.PropertyValue) bool {
+	return v.ID != "" || v.GroupID != "" || v.TargetID != "" || v.TargetType != "" ||
+		v.CreateAt != 0 || v.UpdateAt != 0 || v.DeleteAt != 0 ||
+		v.CreatedBy != "" || v.UpdatedBy != ""
+}
+
 // CanSetPostPropertyValueOnCreate reports whether userID may set field's value on a post they
 // are about to create in channel.
 //

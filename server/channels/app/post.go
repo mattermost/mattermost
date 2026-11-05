@@ -215,6 +215,12 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		}
 	}()
 
+	// Every caller reaches CreatePost, not only the API, so the flag is enforced here as well
+	// as where each caller validates the values.
+	if len(post.Metadata.GetPropertyValues()) > 0 && !a.Config().FeatureFlags.PostAttributes {
+		return nil, false, model.NewAppError("CreatePost", "api.post.create_post.attributes_feature_disabled.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	if flags.SilentNotification {
 		if persistentNotification := post.GetPersistentNotification(); persistentNotification != nil && *persistentNotification {
 			rctx.Logger().Warn("Rejected silent notification post with persistent notifications",
