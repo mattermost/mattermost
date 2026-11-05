@@ -1,0 +1,9 @@
+.AttributeOptionSwatch {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    box-sizing: border-box;
+    flex-shrink: 0;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: 2px;
+}

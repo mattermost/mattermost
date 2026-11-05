@@ -9,6 +9,7 @@ import {act, fireEvent, renderWithContext, screen, userEvent, within} from 'test
 import {ZIndex} from 'utils/constants';
 
 import {AttributeCombobox} from './attribute_combobox';
+import type {AttributeComboboxProps, AttributeOptionDecoration} from './attribute_combobox';
 
 const OPTIONS: PropertyFieldOption[] = [
     {id: 'opt3', name: 'Option 3'},
@@ -16,21 +17,30 @@ const OPTIONS: PropertyFieldOption[] = [
     {id: 'opt2', name: 'Option 2'},
 ];
 
+const COLOURED: PropertyFieldOption[] = [
+    {id: 'red', name: 'Red', color: '#c8102e'},
+    {id: 'plain', name: 'Plain', color: ''},
+    {id: 'none', name: 'None'},
+];
+
 const TEST_ID = 'attr';
 
-type HarnessProps = {
+type ExtraProps = Partial<Pick<AttributeComboboxProps, 'options' | 'decorateOption' | 'required' | 'onBlur'>>;
+
+type HarnessProps = ExtraProps & {
     initialValue?: string | string[];
     onChange?: (value: string | string[]) => void;
 };
 
-function SingleHarness({initialValue = '', onChange}: HarnessProps) {
+function SingleHarness({initialValue = '', onChange, options = OPTIONS, ...extra}: HarnessProps) {
     const [value, setValue] = useState(initialValue);
     return (
         <AttributeCombobox
+            {...extra}
             id='attr-input'
             testId={TEST_ID}
             label='Department'
-            options={OPTIONS}
+            options={options}
             value={value}
             onChange={(next) => {
                 onChange?.(next);
@@ -40,14 +50,15 @@ function SingleHarness({initialValue = '', onChange}: HarnessProps) {
     );
 }
 
-function MultiHarness({initialValue = [], onChange}: HarnessProps) {
+function MultiHarness({initialValue = [], onChange, options = OPTIONS, ...extra}: HarnessProps) {
     const [value, setValue] = useState(initialValue);
     return (
         <AttributeCombobox
+            {...extra}
             multiple={true}
             testId={TEST_ID}
             label='Skills'
-            options={OPTIONS}
+            options={options}
             value={value}
             onChange={(next) => {
                 onChange?.(next);
@@ -579,6 +590,317 @@ describe('AttributeCombobox', () => {
         });
     });
 
+    describe('option visuals', () => {
+        const getRow = (id: string) => within(screen.getByTestId(`${TEST_ID}-option-${id}`));
+        const SWATCH = 'attribute-option-swatch';
+        const PLACEHOLDER = 'attribute-option-visual-placeholder';
+
+        const decorate = (option: PropertyFieldOption): AttributeOptionDecoration => {
+            return option.id === 'red' ? {leadingVisual: <span data-testid='deco'/>, secondaryLabel: 'Extra'} : {};
+        };
+        const makeHook = () => jest.fn(decorate);
+
+        test('a single field shows a swatch only for options with a colour', async () => {
+            renderWithContext(<SingleHarness options={COLOURED}/>);
+
+            await userEvent.click(screen.getByRole('combobox', {name: 'Department'}));
+
+            expect(getRow('red').getByTestId(SWATCH)).toHaveStyle({backgroundColor: 'rgb(200, 16, 46)'});
+            expect(getRow('plain').queryByTestId(SWATCH)).not.toBeInTheDocument();
+            expect(getRow('none').queryByTestId(SWATCH)).not.toBeInTheDocument();
+        });
+
+        test('uncoloured rows get a placeholder when any option has a visual', async () => {
+            renderWithContext(<SingleHarness options={COLOURED}/>);
+
+            await userEvent.click(screen.getByRole('combobox', {name: 'Department'}));
+
+            expect(getRow('red').queryByTestId(PLACEHOLDER)).not.toBeInTheDocument();
+            expect(getRow('plain').getByTestId(PLACEHOLDER)).toBeInTheDocument();
+            expect(getRow('none').getByTestId(PLACEHOLDER)).toBeInTheDocument();
+        });
+
+        test('rows are unchanged when no option has a colour', async () => {
+            renderWithContext(<SingleHarness/>);
+
+            await userEvent.click(screen.getByRole('combobox', {name: 'Department'}));
+
+            expect(screen.queryByTestId(SWATCH)).not.toBeInTheDocument();
+            expect(screen.queryByTestId(PLACEHOLDER)).not.toBeInTheDocument();
+            expect(screen.getAllByRole('option').map((o) => o.textContent)).toEqual(['Option 3', 'Option 1', 'Option 2']);
+            expect(screen.getByTestId(`${TEST_ID}-option-opt1`)).toHaveAccessibleName('Option 1');
+        });
+
+        test('a multiple field shows no swatch in rows or chips', async () => {
+            renderWithContext(
+                <MultiHarness
+                    options={COLOURED}
+                    initialValue={['red']}
+                />,
+            );
+
+            await userEvent.click(screen.getByRole('combobox', {name: 'Skills'}));
+
+            expect(screen.queryByTestId(SWATCH)).not.toBeInTheDocument();
+            expect(screen.queryByTestId(PLACEHOLDER)).not.toBeInTheDocument();
+            expect(getChips().map((chip) => chip.textContent)).toEqual(['Red']);
+        });
+
+        test('the closed single field shows the committed option\'s swatch', async () => {
+            const {container} = renderWithContext(
+                <SingleHarness
+                    options={COLOURED}
+                    initialValue='red'
+                />,
+            );
+            const input = screen.getByRole('combobox', {name: 'Department'});
+
+            expect(within(container).getByTestId(SWATCH)).toBeInTheDocument();
+
+            await userEvent.click(input);
+            await userEvent.click(screen.getByRole('option', {name: 'Plain'}));
+            expect(within(container).queryByTestId(SWATCH)).not.toBeInTheDocument();
+
+            await userEvent.click(input);
+            await userEvent.click(screen.getByRole('option', {name: 'Red'}));
+            expect(within(container).getByTestId(SWATCH)).toBeInTheDocument();
+
+            await userEvent.click(screen.getByTestId(`${TEST_ID}-clear`));
+            expect(within(container).queryByTestId(SWATCH)).not.toBeInTheDocument();
+        });
+
+        test('the closed single field uses the first id of a list for its swatch', () => {
+            const {container} = renderWithContext(
+                <SingleHarness
+                    options={COLOURED}
+                    initialValue={['red', 'plain']}
+                />,
+            );
+
+            expect(within(container).getByTestId(SWATCH)).toBeInTheDocument();
+        });
+
+        test.each([
+            {name: 'an empty value', initialValue: ''},
+            {name: 'a raw id', initialValue: 'ghost'},
+        ])('the closed single field has no icon for $name', ({initialValue}) => {
+            const {container} = renderWithContext(
+                <SingleHarness
+                    options={COLOURED}
+                    initialValue={initialValue}
+                />,
+            );
+
+            expect(within(container).queryByTestId(SWATCH)).not.toBeInTheDocument();
+        });
+
+        test('the closed multiple field has no icon', () => {
+            const {container} = renderWithContext(
+                <MultiHarness
+                    options={COLOURED}
+                    initialValue={['red']}
+                />,
+            );
+
+            expect(within(container).queryByTestId(SWATCH)).not.toBeInTheDocument();
+        });
+
+        test('a disabled single field still shows the swatch', () => {
+            const {container} = renderWithContext(
+                <AttributeCombobox
+                    label='Department'
+                    options={COLOURED}
+                    value='red'
+                    disabled={true}
+                    onChange={jest.fn()}
+                />,
+            );
+
+            expect(within(container).getByTestId(SWATCH)).toBeInTheDocument();
+        });
+
+        test('picking a coloured option still reports its id', async () => {
+            const onChange = jest.fn();
+            renderWithContext(
+                <SingleHarness
+                    options={COLOURED}
+                    onChange={onChange}
+                />,
+            );
+
+            await userEvent.click(screen.getByRole('combobox', {name: 'Department'}));
+            await userEvent.click(screen.getByRole('option', {name: 'Red'}));
+
+            expect(onChange).toHaveBeenLastCalledWith('red');
+        });
+
+        test('decorateOption supplies the visual and secondary text, replacing the swatch', async () => {
+            const {container} = renderWithContext(
+                <SingleHarness
+                    options={COLOURED}
+                    initialValue='red'
+                    decorateOption={makeHook()}
+                />,
+            );
+
+            expect(within(container).getByTestId('deco')).toBeInTheDocument();
+            expect(within(container).queryByTestId(SWATCH)).not.toBeInTheDocument();
+
+            await userEvent.click(screen.getByRole('combobox', {name: 'Department'}));
+
+            expect(getRow('red').getByTestId('deco')).toBeInTheDocument();
+            expect(getRow('red').queryByTestId(SWATCH)).not.toBeInTheDocument();
+            expect(screen.getByTestId(`${TEST_ID}-option-red`)).toHaveAccessibleName('Red Extra');
+            expect(getRow('plain').getByTestId(PLACEHOLDER)).toBeInTheDocument();
+            expect(getRow('none').getByTestId(PLACEHOLDER)).toBeInTheDocument();
+        });
+
+        test('decorateOption removes the default swatch from options it leaves undecorated', async () => {
+            renderWithContext(
+                <SingleHarness
+                    options={[{id: 'red', name: 'Red', color: '#c8102e'}, {id: 'blue', name: 'Blue', color: '#0000ff'}]}
+                    decorateOption={() => ({})}
+                />,
+            );
+
+            await userEvent.click(screen.getByRole('combobox', {name: 'Department'}));
+
+            expect(screen.queryByTestId(SWATCH)).not.toBeInTheDocument();
+            expect(screen.queryByTestId(PLACEHOLDER)).not.toBeInTheDocument();
+        });
+
+        test('a hook that returns only secondary text reserves no visual slot', async () => {
+            renderWithContext(
+                <SingleHarness
+                    options={COLOURED}
+                    decorateOption={(option) => ({secondaryLabel: `About ${option.name}`})}
+                />,
+            );
+
+            await userEvent.click(screen.getByRole('combobox', {name: 'Department'}));
+
+            expect(screen.queryByTestId(PLACEHOLDER)).not.toBeInTheDocument();
+            expect(screen.getByTestId(`${TEST_ID}-option-red`)).toHaveAccessibleName('Red About Red');
+        });
+
+        test('a hook returning a boolean visual is treated as no visual', async () => {
+            const {container} = renderWithContext(
+                <SingleHarness
+                    options={COLOURED}
+                    initialValue='plain'
+                    decorateOption={(option) => (
+                        {leadingVisual: option.id === 'red' ? <span data-testid='deco'/> : false}
+                    )}
+                />,
+            );
+
+            expect(within(container).queryByTestId(PLACEHOLDER)).not.toBeInTheDocument();
+
+            await userEvent.click(screen.getByRole('combobox', {name: 'Department'}));
+
+            expect(getRow('red').getByTestId('deco')).toBeInTheDocument();
+            expect(getRow('plain').getByTestId(PLACEHOLDER)).toBeInTheDocument();
+            expect(getRow('none').getByTestId(PLACEHOLDER)).toBeInTheDocument();
+        });
+
+        test('decorateOption is ignored in multiple mode', async () => {
+            const decorateOption = makeHook();
+            renderWithContext(
+                <MultiHarness
+                    options={COLOURED}
+                    initialValue={['red']}
+                    decorateOption={decorateOption}
+                />,
+            );
+
+            await userEvent.click(screen.getByRole('combobox', {name: 'Skills'}));
+
+            expect(decorateOption).not.toHaveBeenCalled();
+            expect(screen.queryByTestId('deco')).not.toBeInTheDocument();
+        });
+
+        test('filtering matches the label, not the secondary text', async () => {
+            renderWithContext(
+                <SingleHarness
+                    options={COLOURED}
+                    decorateOption={makeHook()}
+                />,
+            );
+
+            await userEvent.click(screen.getByRole('combobox', {name: 'Department'}));
+            await userEvent.keyboard('Extra');
+
+            expect(screen.queryAllByRole('option')).toHaveLength(0);
+            expect(screen.getByText('No results')).toBeInTheDocument();
+        });
+
+        test('filtering by label keeps the decorated row and its visual', async () => {
+            renderWithContext(
+                <SingleHarness
+                    options={COLOURED}
+                    decorateOption={makeHook()}
+                />,
+            );
+
+            await userEvent.click(screen.getByRole('combobox', {name: 'Department'}));
+            await userEvent.keyboard('Red');
+
+            expect(screen.getAllByRole('option')).toHaveLength(1);
+            expect(getRow('red').getByTestId('deco')).toBeInTheDocument();
+        });
+
+        test('decorations are recomputed only when options or the hook change', () => {
+            const decorateOption = makeHook();
+            const otherHook = makeHook();
+            const renderCombobox = (options: PropertyFieldOption[], hook: typeof decorateOption) => (
+                <AttributeCombobox
+                    testId={TEST_ID}
+                    label='Department'
+                    options={options}
+                    value=''
+                    decorateOption={hook}
+                    onChange={jest.fn()}
+                />
+            );
+            const {rerender} = renderWithContext(renderCombobox(COLOURED, decorateOption));
+            expect(decorateOption).toHaveBeenCalledTimes(COLOURED.length);
+
+            rerender(renderCombobox(COLOURED, decorateOption));
+            expect(decorateOption).toHaveBeenCalledTimes(COLOURED.length);
+
+            const copy = [...COLOURED];
+            rerender(renderCombobox(copy, decorateOption));
+            expect(decorateOption).toHaveBeenCalledTimes(COLOURED.length * 2);
+
+            rerender(renderCombobox(copy, otherHook));
+            expect(otherHook).toHaveBeenCalledTimes(COLOURED.length);
+            expect(decorateOption).toHaveBeenCalledTimes(COLOURED.length * 2);
+        });
+
+        test('switching a field from single to multiple drops its decorations', () => {
+            const decorateOption = makeHook();
+            const renderCombobox = (multiple: boolean) => (
+                <AttributeCombobox
+                    multiple={multiple}
+                    testId={TEST_ID}
+                    label='Department'
+                    options={COLOURED}
+                    value='red'
+                    decorateOption={decorateOption}
+                    onChange={jest.fn()}
+                />
+            );
+            const {rerender} = renderWithContext(renderCombobox(false));
+            expect(screen.getByTestId('deco')).toBeInTheDocument();
+            expect(decorateOption).toHaveBeenCalledTimes(COLOURED.length);
+
+            rerender(renderCombobox(true));
+
+            expect(screen.queryByTestId('deco')).not.toBeInTheDocument();
+            expect(decorateOption).toHaveBeenCalledTimes(COLOURED.length);
+        });
+    });
+
     describe('pass-through props', () => {
         test('puts className on the wrapper only, and renders no class there without it', () => {
             const {rerender} = renderWithContext(
@@ -662,6 +984,57 @@ describe('AttributeCombobox', () => {
             );
 
             expect(screen.getByRole('combobox', {name: 'Skills'})).not.toHaveAttribute('aria-invalid');
+        });
+
+        test('marks the input aria-required only with required', () => {
+            const {rerender} = renderWithContext(
+                <AttributeCombobox
+                    label='Department'
+                    options={OPTIONS}
+                    value=''
+                    required={true}
+                    onChange={jest.fn()}
+                />,
+            );
+
+            expect(screen.getByRole('combobox', {name: 'Department'})).toHaveAttribute('aria-required', 'true');
+
+            rerender(
+                <AttributeCombobox
+                    label='Department'
+                    options={OPTIONS}
+                    value=''
+                    onChange={jest.fn()}
+                />,
+            );
+
+            expect(screen.getByRole('combobox', {name: 'Department'})).not.toHaveAttribute('aria-required');
+        });
+
+        test('calls onBlur when the input loses focus', async () => {
+            const user = userEvent.setup();
+            const onBlur = jest.fn();
+            renderWithContext(<SingleHarness onBlur={onBlur}/>);
+            const input = screen.getByRole('combobox', {name: 'Department'});
+
+            await user.click(input);
+            expect(onBlur).not.toHaveBeenCalled();
+
+            await user.tab();
+
+            expect(onBlur).toHaveBeenCalledTimes(1);
+            expect(onBlur.mock.calls[0][0].target).toBe(input);
+        });
+
+        test('calls onBlur in multiple mode too', async () => {
+            const user = userEvent.setup();
+            const onBlur = jest.fn();
+            renderWithContext(<MultiHarness onBlur={onBlur}/>);
+
+            await user.click(screen.getByRole('combobox', {name: 'Skills'}));
+            await user.tab();
+
+            expect(onBlur).toHaveBeenCalledTimes(1);
         });
     });
 });
