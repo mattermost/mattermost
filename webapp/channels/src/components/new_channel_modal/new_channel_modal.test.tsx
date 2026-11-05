@@ -11,6 +11,8 @@ import {createChannel} from 'mattermost-redux/actions/channels';
 import {Client4} from 'mattermost-redux/client';
 import Permissions from 'mattermost-redux/constants/permissions';
 
+import {closeModal} from 'actions/views/modals';
+
 import useChannelAttributes from 'components/common/hooks/useChannelAttributes';
 import useClassificationMarkings from 'components/common/hooks/useClassificationMarkings';
 import {clearPropertyFieldOptionWalks} from 'components/property_fields/graph/page_all_access_control_field_options';
@@ -22,6 +24,7 @@ import {
     screen,
     userEvent,
     waitFor,
+    within,
     fireEvent,
 } from 'tests/react_testing_utils';
 import {ModalIdentifiers, suitePluginIds} from 'utils/constants';
@@ -592,7 +595,6 @@ describe('components/new_channel_modal', () => {
 
 describe('components/new_channel_modal - plugin channel-type options', () => {
     const {switchToChannel} = require('actions/views/channel');
-    const {closeModal} = require('actions/views/modals');
 
     const baseState: DeepPartial<GlobalState> = {
         entities: {
@@ -1474,10 +1476,19 @@ describe('components/new_channel_modal - channel attributes', () => {
         });
     });
 
-    async function fillAndSelect() {
+    const getProgramCombobox = () => screen.getByRole('combobox', {name: 'Program'});
+    const getChips = () => Array.from(document.querySelectorAll<HTMLElement>('[data-chip]'));
+    const createButton = () => screen.getByRole('button', {name: 'Create channel'}).closest('button');
+    const alertIn = (name: string) => within(screen.getByTestId(`channelAttributeRow-${name}`)).queryByRole('alert');
+
+    async function fillName() {
         await userEvent.type(screen.getByPlaceholderText('Enter a name for your new channel'), 'My Channel');
-        await userEvent.click(screen.getByText('Select a value'));
-        await userEvent.click(screen.getByText('AURORA'));
+    }
+
+    async function fillAndSelect() {
+        await fillName();
+        await userEvent.click(getProgramCombobox());
+        await userEvent.click(screen.getByRole('option', {name: 'AURORA'}));
     }
 
     test('sends the selected attribute values with the channel it creates', async () => {
@@ -1705,6 +1716,245 @@ describe('components/new_channel_modal - channel attributes', () => {
 
         await userEvent.type(screen.getByPlaceholderText('Enter a name for your new channel'), 'My Channel');
         expect(screen.getByRole('button', {name: 'Create channel'}).closest('button')).toBeDisabled();
+    });
+
+    describe('keyboard in the modal', () => {
+        let documentKeys: string[];
+        const onDocumentKeyDown = (e: KeyboardEvent) => documentKeys.push(e.key);
+
+        beforeEach(() => {
+            documentKeys = [];
+            document.addEventListener('keydown', onDocumentKeyDown);
+        });
+
+        afterEach(() => {
+            document.removeEventListener('keydown', onDocumentKeyDown);
+        });
+
+        test('Enter that picks an option does not confirm the modal', async () => {
+            renderWithContext(<NewChannelModal/>, state);
+            await fillAndSelect();
+
+            const user = userEvent.setup();
+            await user.click(getProgramCombobox());
+            await user.keyboard('{ArrowDown}{Enter}');
+
+            expect(getProgramCombobox()).toHaveValue('BOREALIS');
+            expect(createChannel).not.toHaveBeenCalled();
+            expect(documentKeys).not.toContain('Enter');
+
+            await user.click(screen.getByRole('button', {name: 'Create channel'}));
+
+            await waitFor(() => expect(createChannel).toHaveBeenCalledTimes(1));
+            expect((createChannel as jest.Mock).mock.calls[0][0]).toMatchObject({
+                property_values: [{field_id: 'f_program', value: 'opt_b'}],
+            });
+        });
+
+        test('Escape on an open menu closes only the menu', async () => {
+            renderWithContext(<NewChannelModal/>, state);
+
+            const user = userEvent.setup();
+            const combobox = getProgramCombobox();
+            await user.click(combobox);
+            expect(combobox).toHaveAttribute('aria-expanded', 'true');
+
+            await user.keyboard('{Escape}');
+
+            // The modal listens for Escape on document, so a key that never gets there cannot close it.
+            expect(combobox).toHaveAttribute('aria-expanded', 'false');
+            expect(documentKeys).not.toContain('Escape');
+            expect(closeModal).not.toHaveBeenCalled();
+            expect(screen.getByRole('button', {name: 'Create channel'})).toBeInTheDocument();
+
+            // Control: with the menu closed, Escape reaches the modal. closeModal itself
+            // waits on the exit transition, which jsdom doesn't run, so it isn't asserted here.
+            await user.keyboard('{Escape}');
+            expect(documentKeys).toContain('Escape');
+        });
+
+        test('Enter on a closed field confirms a complete form', async () => {
+            renderWithContext(<NewChannelModal/>, state);
+            await fillAndSelect();
+
+            const combobox = getProgramCombobox();
+            act(() => combobox.focus());
+            expect(combobox).toHaveAttribute('aria-expanded', 'false');
+
+            await userEvent.keyboard('{Enter}');
+
+            await waitFor(() => expect(createChannel).toHaveBeenCalledTimes(1));
+            expect((createChannel as jest.Mock).mock.calls[0][0]).toMatchObject({
+                property_values: [{field_id: 'f_program', value: 'opt_a'}],
+            });
+        });
+
+        test('Enter on a closed field does not create an incomplete channel', async () => {
+            renderWithContext(<NewChannelModal/>, state);
+            await fillName();
+
+            act(() => getProgramCombobox().focus());
+            await userEvent.keyboard('{Enter}');
+
+            expect(createChannel).not.toHaveBeenCalled();
+            expect(createButton()).toBeDisabled();
+        });
+
+        test('Enter on a focused chip removes it without confirming', async () => {
+            const caveats: PropertyField = {
+                ...program,
+                id: 'f_caveats',
+                name: 'caveats',
+                type: 'multiselect',
+                attrs: {display_name: 'Caveats', required: true, options: [{id: 'opt_a', name: 'NOFORN'}, {id: 'opt_b', name: 'ORCON'}]},
+            };
+            mockedUseChannelAttributes.mockReturnValue({enabled: true, loading: false, failed: false, fields: [caveats]});
+
+            renderWithContext(<NewChannelModal/>, state);
+            await fillName();
+
+            const user = userEvent.setup();
+            const combobox = screen.getByRole('combobox', {name: 'Caveats'});
+            await user.click(combobox);
+            await user.click(screen.getByRole('option', {name: 'NOFORN'}));
+            await user.click(combobox);
+            await user.click(screen.getByRole('option', {name: 'ORCON'}));
+            expect(getChips()).toHaveLength(2);
+
+            await user.tab({shift: true});
+            expect(document.activeElement).toHaveAttribute('data-chip');
+
+            await user.keyboard('{Enter}');
+
+            // One chip left keeps the form complete, so a bubbled Enter would have created the channel.
+            expect(getChips()).toHaveLength(1);
+            expect(createChannel).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('Enter in a multiselect input', () => {
+        test('confirms a complete form when the menu is closed', async () => {
+            const caveats: PropertyField = {
+                ...program,
+                id: 'f_caveats',
+                name: 'caveats',
+                type: 'multiselect',
+                attrs: {display_name: 'Caveats', required: true, options: [{id: 'opt_a', name: 'NOFORN'}, {id: 'opt_b', name: 'ORCON'}]},
+            };
+            mockedUseChannelAttributes.mockReturnValue({enabled: true, loading: false, failed: false, fields: [caveats]});
+
+            renderWithContext(<NewChannelModal/>, state);
+            await fillName();
+
+            const user = userEvent.setup();
+            const combobox = screen.getByRole('combobox', {name: 'Caveats'});
+            await user.click(combobox);
+            await user.click(screen.getByRole('option', {name: 'NOFORN'}));
+            await user.keyboard('{Escape}');
+
+            expect(getChips()).toHaveLength(1);
+            expect(combobox).toHaveFocus();
+            expect(combobox).toHaveAttribute('aria-expanded', 'false');
+            expect(createChannel).not.toHaveBeenCalled();
+
+            await user.keyboard('{Enter}');
+
+            await waitFor(() => expect(createChannel).toHaveBeenCalledTimes(1));
+            expect((createChannel as jest.Mock).mock.calls[0][0]).toMatchObject({
+                property_values: [{field_id: 'f_caveats', value: ['opt_a']}],
+            });
+        });
+    });
+
+    test('clearing a required attribute disables Create and shows the error', async () => {
+        renderWithContext(<NewChannelModal/>, state);
+        await fillAndSelect();
+        expect(createButton()).toBeEnabled();
+
+        await userEvent.click(screen.getByTestId('channelAttribute-program-clear'));
+
+        expect(createButton()).toBeDisabled();
+        expect(alertIn('program')).toHaveTextContent('This field is required');
+
+        await userEvent.click(screen.getByRole('button', {name: 'Create channel'}));
+        expect(createChannel).not.toHaveBeenCalled();
+    });
+
+    describe('rank classification', () => {
+        const classification: PropertyField = {
+            ...program,
+            id: 'f_classification',
+            name: 'classification',
+            type: 'rank',
+            attrs: {
+                display_name: 'Classification',
+                required: true,
+                options: [
+                    {id: 'lvl1', name: 'UNCLASSIFIED', rank: 1, color: '#007A33'},
+                    {id: 'lvl2', name: 'SECRET', rank: 2, color: '#C8102E'},
+                ],
+            },
+        };
+
+        beforeEach(() => {
+            mockedUseClassificationMarkings.mockReturnValue({available: true, loading: false, channelField: classification, levels: []});
+            mockedUseChannelAttributes.mockReturnValue({enabled: true, loading: false, failed: false, fields: [classification]});
+        });
+
+        test('a required rank Classification is offered highest first and blocks Create', async () => {
+            renderWithContext(<NewChannelModal/>, state);
+            await fillName();
+
+            const combobox = screen.getByRole('combobox', {name: 'Classification'});
+            expect(combobox).toHaveAttribute('aria-required', 'true');
+            expect(screen.getByTestId('channelAttributeRow-classification')).toHaveTextContent('Classification*');
+            expect(createButton()).toBeDisabled();
+
+            await userEvent.click(combobox);
+            expect(screen.getAllByRole('option').map((o) => o.id)).toEqual([
+                'channelAttribute-f_classification-listbox-option-lvl2',
+                'channelAttribute-f_classification-listbox-option-lvl1',
+            ]);
+
+            await userEvent.click(screen.getByRole('option', {name: 'SECRET Rank 2'}));
+            expect(createButton()).toBeEnabled();
+
+            await userEvent.click(screen.getByRole('button', {name: 'Create channel'}));
+
+            await waitFor(() => expect(createChannel).toHaveBeenCalledTimes(1));
+            expect((createChannel as jest.Mock).mock.calls[0][0].property_values).toEqual([{field_id: 'f_classification', value: 'lvl2'}]);
+        });
+
+        test('a rank Classification is optional with ChannelAttributesRequired off', async () => {
+            const stateWithRequiredEnforcementOff: DeepPartial<GlobalState> = {
+                ...state,
+                entities: {
+                    ...state.entities,
+                    general: {config: {...state.entities?.general?.config, FeatureFlagChannelAttributesRequired: 'false'}},
+                },
+            };
+            renderWithContext(<NewChannelModal/>, stateWithRequiredEnforcementOff);
+
+            const combobox = screen.getByRole('combobox', {name: 'Classification'});
+            expect(combobox).not.toHaveAttribute('aria-required');
+            expect(screen.getByTestId('channelAttributeRow-classification')).not.toHaveTextContent('Classification*');
+
+            await fillName();
+            expect(createButton()).toBeEnabled();
+
+            const user = userEvent.setup();
+            await user.click(combobox);
+            await user.tab();
+            expect(alertIn('classification')).not.toBeInTheDocument();
+            expect(combobox).not.toHaveAttribute('aria-invalid');
+
+            await user.click(combobox);
+            await user.click(screen.getByRole('option', {name: 'SECRET Rank 2'}));
+            await user.click(screen.getByTestId('channelAttribute-classification-clear'));
+
+            expect(alertIn('classification')).not.toBeInTheDocument();
+            expect(createButton()).toBeEnabled();
+        });
     });
 
     describe('graph attributes', () => {
