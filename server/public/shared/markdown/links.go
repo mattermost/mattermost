@@ -7,6 +7,11 @@ import (
 	"unicode/utf8"
 )
 
+// maxLinkDestinationNesting limits how deeply a link destination may nest parentheses. CommonMark
+// allows the limit to keep destinations that share unmatched parentheses from being read again for
+// each link, and cmark uses the same value.
+const maxLinkDestinationNesting = 32
+
 func parseLinkDestination(markdown string, position int) (raw Range, next int, ok bool) {
 	if position >= len(markdown) {
 		return
@@ -50,6 +55,9 @@ func parseLinkDestination(markdown string, position int) (raw Range, next int, o
 			isEscaped = true
 		case '(':
 			openCount++
+			if openCount > maxLinkDestinationNesting {
+				return
+			}
 		case ')':
 			if openCount < 1 {
 				return Range{position, position + offset}, position + offset, true
@@ -91,6 +99,12 @@ func parseLinkTitle(markdown string, position int) (raw Range, next int, ok bool
 			}
 		case closer:
 			return Range{originalPosition + 1, position}, position + 1, true
+		case '(':
+			// A parenthesized title may only contain escaped parentheses.
+			if closer == ')' {
+				return
+			}
+			position++
 		default:
 			position++
 		}
