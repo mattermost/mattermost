@@ -69,7 +69,7 @@ func TestFileInfoStoreCache(t *testing.T) {
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider, logger)
 		require.NoError(t, err)
 
-		fileInfos, err := cachedStore.FileInfo().GetByIds([]string{"123"}, true, true)
+		fileInfos, err := cachedStore.FileInfo().GetByIds([]string{"123"}, true, true, false)
 		require.NoError(t, err)
 		assert.Equal(t, fileInfos, []*model.FileInfo{&fakeFileInfo})
 		mockStore.FileInfo().(*mocks.FileInfoStore).AssertNumberOfCalls(t, "GetByIds", 1)

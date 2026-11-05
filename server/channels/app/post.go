@@ -2677,7 +2677,7 @@ func (a *App) getEditHistoryForPost(rctx request.CTX, postID, requesterID string
 // requesterID means there is no reader to authorize and nothing is redacted.
 func (a *App) populateEditHistoryFileMetadata(rctx request.CTX, editHistoryPosts []*model.Post, requesterID string) *model.AppError {
 	for _, post := range editHistoryPosts {
-		fileInfos, err := a.Srv().Store().FileInfo().GetByIds(post.FileIds, true, true)
+		fileInfos, err := a.Srv().Store().FileInfo().GetByIds(post.FileIds, true, true, false)
 		if err != nil {
 			return model.NewAppError("app.populateEditHistoryFileMetadata", "app.file_info.get_by_ids.app_error", map[string]any{"post_id": post.Id}, "", http.StatusInternalServerError).Wrap(err)
 		}
