@@ -2842,6 +2842,82 @@ func TestCPAValuesWebSocketEventsForGuests(t *testing.T) {
 			}
 		}, 5*time.Second, 100*time.Millisecond, "guest should receive the field-wide clear")
 	})
+
+	t.Run("guest stops receiving value events once it loses the shared channels", func(t *testing.T) {
+		for _, channel := range []*model.Channel{th.BasicChannel, th.BasicPrivateChannel} {
+			resp, err := th.SystemAdminClient.RemoveUserFromChannel(context.Background(), channel.Id, guest.Id)
+			CheckOKStatus(t, resp)
+			require.NoError(t, err)
+		}
+
+		patchValue(th.BasicUser.Id)
+		patchValue(guest.Id)
+
+		sawOwn := false
+		require.Eventually(t, func() bool {
+			for {
+				select {
+				case event := <-guestWS.EventChannel:
+					switch eventUserID(event) {
+					case th.BasicUser.Id:
+						require.Fail(t, "guest received a value event for a user it no longer shares a channel with")
+					case guest.Id:
+						sawOwn = true
+					}
+				default:
+					return sawOwn
+				}
+			}
+		}, 5*time.Second, 100*time.Millisecond)
+	})
+
+	t.Run("guest stops receiving value events once the target user leaves the shared channels", func(t *testing.T) {
+		otherGuest, otherGuestClient := th.CreateGuestAndClient(t)
+		otherGuestWS := th.CreateConnectedWebSocketClientWithClient(t, otherGuestClient)
+
+		// Each value change publishes two events; wait for both so none is left
+		// over to be mistaken for a post-revocation event.
+		patchValue(th.BasicUser.Id)
+		receivedBefore := map[model.WebsocketEventType]bool{}
+		require.Eventually(t, func() bool {
+			for {
+				select {
+				case event := <-otherGuestWS.EventChannel:
+					if eventUserID(event) == th.BasicUser.Id {
+						receivedBefore[event.EventType()] = true
+					}
+				default:
+					return len(receivedBefore) == 2
+				}
+			}
+		}, 5*time.Second, 100*time.Millisecond, "guest should receive both value events for a user sharing its channels")
+
+		for _, channel := range []*model.Channel{th.BasicChannel, th.BasicPrivateChannel} {
+			resp, err := th.SystemAdminClient.RemoveUserFromChannel(context.Background(), channel.Id, th.BasicUser.Id)
+			CheckOKStatus(t, resp)
+			require.NoError(t, err)
+		}
+
+		patchValue(th.BasicUser.Id)
+		patchValue(otherGuest.Id)
+
+		sawOwn := false
+		require.Eventually(t, func() bool {
+			for {
+				select {
+				case event := <-otherGuestWS.EventChannel:
+					switch eventUserID(event) {
+					case th.BasicUser.Id:
+						require.Fail(t, "guest received a value event for a user that left the shared channels")
+					case otherGuest.Id:
+						sawOwn = true
+					}
+				default:
+					return sawOwn
+				}
+			}
+		}, 5*time.Second, 100*time.Millisecond)
+	})
 }
 
 func TestUserValuesTargetAccessAudit(t *testing.T) {
