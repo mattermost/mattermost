@@ -163,6 +163,15 @@ def replay_fetch(recorded: dict):
     return fetch
 
 
+# Labels of the Jira tickets named by PRs of the 2026-10-19 day, read from Jira on 2026-11-05. MM-70601 and
+# MM-69969 are the security fixes among the PRs that carry release-note-none and Changelog/Not Needed.
+JIRA_LABELS = {"MM-70601": {"customer-bug", "security"}, "MM-69969": {"security"}}
+
+
+def jira_labels(keys) -> set:
+    return set().union(*(JIRA_LABELS.get(key, set()) for key in keys))
+
+
 class TitleClaude:
     """Stands in for Claude: one sentence from the PR title, in the changelog's form."""
 

@@ -287,6 +287,7 @@ class Release:
     plugins: list = field(default_factory=list)
     changes: list = field(default_factory=list)
     skipped: list = field(default_factory=list)  # (source, title, reason)
+    opted_out_security: list = field(default_factory=list)  # (bullet, source, url, label): a security fix with an opt-out label
     checksums: dict = field(default_factory=dict)  # edition -> SHA-256 or None
     commit_range: str = ""
 
@@ -405,20 +406,24 @@ def gather(gh, release: Release, changelogs: list[str], claude, fetch, jira_labe
         # The opt-out is read from the PR whose release note is used: the original, not its backport,
         # since a backport carries Changelog/Not Needed and release-note-none whatever the original says.
         opted_out = sorted({l["name"] for l in original.get("labels", [])} & _changelog_module().NO_NOTE_LABELS)
-        if opted_out:
+        keys = jira_keys(original.get("title", ""), (original.get("head") or {}).get("ref", ""), original.get("body") or "")
+        jira = (jira_labels(keys) or set()) if keys and jira_labels else set()
+        security = _security(labels, jira)
+        if opted_out and not security:
             # As in the changelog generator, an opt-out label settles it, even next to a release-note block.
             release.skipped.append((source, _core_title(original.get("title", "")),
                                     f"has the {opted_out[0]} label, so it is left out"))
             continue
-        keys = jira_keys(original.get("title", ""), (original.get("head") or {}).get("ref", ""), original.get("body") or "")
-        jira = (jira_labels(keys) or set()) if keys and jira_labels else set()
-        security = _security(labels, jira)
         found = breaking_signals(labels, original.get("body") or "", jira)
         breaking = any(strong for _, strong in found)
         maybe = [] if breaking else [reason for reason, _ in found]
         author = (original.get("user") or {}).get("login", "")
         bullets = note_bullets(original.get("body")) or note_bullets(pr.get("body"))
         dependency = author in DEPENDENCY_AUTHORS or bool(DEPENDENCY_TITLE.search(_core_title(original.get("title", ""))))
+        if opted_out:
+            # A security fix is never left out, whatever its opt-out label: its release note, if any, is not
+            # used (it may say too much), and Claude writes a vague one for a person to confirm.
+            bullets, dependency = [], False
         if dependency and not bullets:
             release.skipped.append((source, title, "dependency update with no release note"))
             continue
@@ -428,6 +433,9 @@ def gather(gh, release: Release, changelogs: list[str], claude, fetch, jira_labe
             if problem:
                 bullet = result.todo(f"{version}: no bullet for {source} ({_core_title(original.get('title', ''))}): {problem}")
             bullets, written = [bullet], bullet and not problem
+            if opted_out and written:
+                release.opted_out_security.append((bullet, source, original.get("html_url", ""), opted_out[0]))
+                written = False  # listed under its own heading, not as an ordinary written bullet
         kind = "fix"
         if any(f.startswith(MIGRATIONS_DIR) and f.endswith(".up.sql") for f in commit.get("files", [])):
             kind = "database"
@@ -854,6 +862,7 @@ def release_state(release: Release) -> dict:
         "kind": kind_name(release.tabs), "tabs": release.tabs, "date": release.date, "date_source": release.date_source,
         "severity": release.severity, "checksums": release.checksums, "range": release.commit_range,
         "written": [[c.text, c.source, c.url] for c in release.changes if c.written],
+        "opted_out_security": [list(item) for item in release.opted_out_security],
         "security": [[c.text, c.source, c.url] for c in release.changes if c.security],
         "breaking": [[c.text, c.source, c.url] for c in release.changes if c.breaking],
         "maybe_breaking": [[c.text, c.source, c.url, "; ".join(c.maybe_breaking)] for c in release.changes if c.maybe_breaking],
@@ -913,6 +922,9 @@ def details(state: dict, files: dict, others: list[str], branch: str) -> str:
             needs.append(f"- **{v.tag} bullet written by Claude** (the PR has no release note), from {_link(source, url)}: {text}")
         for text, source, url in s.get("breaking", []):
             needs.append(f"- **{v.tag} breaking change callout**, from {_link(source, url)}: {text}")
+        for text, source, url, label in s.get("opted_out_security", []):
+            needs.append(f"- [ ] **{v.tag} security fix with the {label} label**, from {_link(source, url)}: a vague bullet was "
+                         f"written by Claude, since a security fix is never left out. Check it, or delete it: {text}")
         for text, source, url, why in s.get("maybe_breaking", []):
             needs.append(f"- [ ] **{v.tag} possible breaking change** (no callout added), from {_link(source, url)}: {text} "
                          f"Signals: {why}. Add a Breaking Changes callout if admins must act.")

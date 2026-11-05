@@ -301,6 +301,40 @@ class GatherTest(unittest.TestCase):
         self.assertEqual(skipped["#17"], "has the release-note/na label, so it is left out")
         self.assertIn("#50", {c.source for c in release.changes})  # a PR without the label is still written up
 
+    def test_a_security_fix_is_never_left_out_whatever_its_opt_out_label(self):
+        for how in ("label", "jira"):
+            scene = release_scene()
+            scene.commits.append({"sha": "c18", "message": "Tighten session lookups (MM-5555) (#18)",
+                                  "files": ["server/channels/app/session.go"]})
+            scene.pulls[18] = pull(18, "Tighten session lookups (MM-5555)", note("Fixed a flaw that let anyone read sessions."),
+                                   labels=["Changelog/Not Needed", "release-note-none"] + (["Security"] if how == "label" else []))
+            release = dr.Release(V("v12.1.1"), tabs=["latest"], severity="Medium")
+            claude = WritingClaude()
+            jira = (lambda keys: {"security"} if "MM-5555" in keys else set()) if how == "jira" else None
+            dr.gather(scene, release, [], claude, lambda url, method="GET": (200, ""), jira, Result(dr.TASK, "v12.1.1"))
+            changes = [c for c in release.changes if c.source == "#18"]
+            self.assertEqual([(c.text, c.security, c.written) for c in changes],
+                             [("Fixed an issue with session handling.", True, False)], how)  # Claude's vague one, never the note
+            self.assertEqual([(s[1], s[3]) for s in release.opted_out_security], [("#18", "Changelog/Not Needed")], how)
+            self.assertNotIn("#18", [s for s, _, _ in release.skipped], how)
+            state = {"order": ["v12.1.1"], "versions": {"v12.1.1": dr.release_state(release)}}
+            text = dr.details(state, {}, [], "branch")
+            self.assertIn("**v12.1.1 security fix with the Changelog/Not Needed label**, from [#18]", text)
+            self.assertTrue(any("Tighten session lookups" in a for a in claude.asked), how)
+
+    def test_a_security_fix_with_an_opt_out_label_needs_claude(self):
+        scene = release_scene()
+        scene.commits.append({"sha": "c19", "message": "Tighten token checks (#19)", "files": ["server/channels/app/token.go"]})
+        scene.pulls[19] = pull(19, "Tighten token checks", note("NONE"), labels=["release-note-none", "Security"])
+
+        class Down:
+            def ask_json(self, *args, **kwargs):
+                raise RuntimeError("overloaded")
+        release = dr.Release(V("v12.1.1"), tabs=["latest"], severity="none")
+        result = Result(dr.TASK, "v12.1.1")
+        dr.gather(scene, release, [], Down(), lambda url, method="GET": (200, ""), None, result)
+        self.assertTrue(any("no bullet for #19" in t for t in result.todos), result.todos)  # a TODO, not a silent drop
+
     def test_written_security_and_breaking_are_marked(self):
         release, _ = self.gather()
         by_source = {c.source: c for c in release.changes}
@@ -588,7 +622,8 @@ def replay_run(day=OCT22, versions=None, severity=None, fetch=None, gh=None, liv
     recorded = dot_replay.load(day)
     gh = gh or dot_replay.ReplayGitHub(recorded, before_docs(day))
     env = {"SEVERITY": config["severity"] if severity is None else severity, "RELEASE_DATE": day, "WAIT_ATTEMPTS": "1"}
-    return dr.run(gh, versions, env, dot_replay.TitleClaude(), fetch or dot_replay.replay_fetch(recorded), live)
+    return dr.run(gh, versions, env, dot_replay.TitleClaude(), fetch or dot_replay.replay_fetch(recorded), live,
+                  jira_labels=dot_replay.jira_labels)
 
 
 class CheckTest(unittest.TestCase):
@@ -847,12 +882,19 @@ class ReplayTest(unittest.TestCase):
         _, got_entries = dot_replay.entries(dot_replay.plugin_order_free(got))
         _, want_entries = dot_replay.entries(dot_replay.plugin_order_free(after[path]))
         # The hand-made entries also list three PRs that carry release-note-none and Changelog/Not
-        # Needed (#38781 and, in v11.10.3, #38479 and #38048). The task leaves a PR with an opt-out
-        # label out, as the changelog generator does, and lists it under what was left out.
-        for tag, dropped in (("11.11.2", 1), ("11.10.3", 3)):
+        # Needed: #38781 (a PDF parsing bump) and, in v11.10.3, #38479 and #38048. The task leaves a
+        # PR with an opt-out label out, as the changelog generator does, unless it is a security fix:
+        # #38479 and #38048 are (their Jira tickets have the security label), so they stay, with a
+        # vague bullet to confirm. #38781 has no security signal, so it is left out and listed.
+        for tag, dropped in (("11.11.2", 1), ("11.10.3", 1)):
             self.assertEqual(got_entries[tag]["fixes"], want_entries[tag]["fixes"] - dropped, tag)
             self.assertEqual({k: v for k, v in got_entries[tag].items() if k != "fixes"},
                              {k: v for k, v in want_entries[tag].items() if k != "fixes"}, tag)
+        for source in ("#38479", "#38048"):
+            self.assertIn(f"security fix with the Changelog/Not Needed label**, from [{source}]", result.body)
+        self.assertIn("v11.10.3: #38781 Bump mattermost/pdf for content-stream array parsing fix: has the Changelog/Not Needed label, "
+                      "so it is left out", result.body)
+        self.assertNotIn("#38479 MM-70601", result.body.split("**Left out**")[1])
         self.assertEqual(got_entries["11.7.13"]["fixed"][:2], want_entries["11.7.13"]["fixed"][:2])
         entry = dr._entry_text(got, V("v11.7.13")).split("\n")
         self.assertEqual(dot_replay.closing_kind([line.removeprefix("  - ") for line in entry[-2:]]),
