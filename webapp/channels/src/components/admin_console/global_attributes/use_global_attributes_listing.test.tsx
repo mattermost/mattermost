@@ -129,6 +129,72 @@ describe('useGlobalAttributesListing', () => {
         expect(result.current.cachedField?.id).toBe('a');
     });
 
+    describe('source', () => {
+        it('sends the source with the term', async () => {
+            setup({term: 'clear', source: 'ldap'});
+            await advance(0);
+
+            expect(lastRequest()).toStrictEqual({term: 'clear', source: 'ldap'});
+        });
+
+        it('sends no source for All', async () => {
+            setup();
+            await advance(0);
+
+            expect(lastRequest().source).toBeUndefined();
+        });
+
+        it('requests a new source right away, without waiting for the debounce', async () => {
+            const {update} = setup({term: 'clear'});
+            await advance(0);
+            searchGlobalAttributes.mockClear();
+
+            update({source: 'plugin'});
+            await advance(0);
+
+            expect(searchGlobalAttributes).toHaveBeenCalledTimes(1);
+            expect(lastRequest()).toStrictEqual({term: 'clear', source: 'plugin'});
+
+            update({source: undefined});
+            await advance(0);
+
+            expect(searchGlobalAttributes).toHaveBeenCalledTimes(2);
+            expect(lastRequest().source).toBeUndefined();
+        });
+
+        it('ignores a slower response for the previous source', async () => {
+            const ldap = deferred<GlobalAttributeListing>();
+            const saml = deferred<GlobalAttributeListing>();
+            searchGlobalAttributes.
+                mockReturnValueOnce(ldap.promise).
+                mockReturnValueOnce(saml.promise);
+
+            const {result, update} = setup({source: 'ldap'});
+            await advance(0);
+            update({source: 'saml'});
+            await advance(0);
+
+            await act(async () => {
+                saml.resolve(listing(['saml_row']));
+                ldap.resolve(listing(['ldap_row']));
+            });
+
+            expect(result.current.listing.rows.map((row) => row.field.id)).toEqual(['saml_row']);
+        });
+
+        it('refetches with the current source', async () => {
+            const {result} = setup({source: 'openid'});
+            await advance(0);
+            searchGlobalAttributes.mockClear();
+
+            await act(async () => {
+                await result.current.listing.refetch();
+            });
+
+            expect(lastRequest()).toStrictEqual({term: undefined, source: 'openid'});
+        });
+    });
+
     describe('debounce', () => {
         it('waits 300ms after the last term change before requesting', async () => {
             const {update} = setup();

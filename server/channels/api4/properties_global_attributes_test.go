@@ -217,11 +217,15 @@ func TestSearchGlobalAttributeListing(t *testing.T) {
 
 	t.Run("invalid input is a bad request", func(t *testing.T) {
 		for name, body := range map[string]string{
-			"malformed JSON":      `{"term":`,
-			"not JSON":            `term=abc`,
-			"empty body":          ``,
-			"wrong type for term": `{"term":5}`,
-			"term too long":       `{"term":"` + strings.Repeat("a", model.PropertyFieldNameMaxRunes+1) + `"}`,
+			"malformed JSON":        `{"term":`,
+			"not JSON":              `term=abc`,
+			"empty body":            ``,
+			"wrong type for term":   `{"term":5}`,
+			"term too long":         `{"term":"` + strings.Repeat("a", model.PropertyFieldNameMaxRunes+1) + `"}`,
+			"unknown source":        `{"source":"bogus"}`,
+			"source kind":           `{"source":"external"}`,
+			"uppercase source":      `{"source":"LDAP"}`,
+			"wrong type for source": `{"source":["ldap"]}`,
 		} {
 			t.Run(name, func(t *testing.T) {
 				_, resp, err := searchGlobalAttributes(t, th.SystemAdminClient, body)
@@ -244,6 +248,29 @@ func TestSearchGlobalAttributeListing(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, listing.Rows, 1)
 		assert.Equal(t, token+"_bravo", listing.Rows[0].Field.Name)
+	})
+
+	t.Run("the source filters the rows and combines with the term", func(t *testing.T) {
+		listing, _, err := searchGlobalAttributes(t, th.SystemAdminClient, byToken(model.GlobalAttributeListingSearch{Source: model.GlobalAttributeSourceLDAP}))
+		require.NoError(t, err)
+		require.Len(t, listing.Rows, 1)
+		assert.Equal(t, token+"_ldap_user", listing.Rows[0].Field.Name)
+
+		listing, _, err = searchGlobalAttributes(t, th.SystemAdminClient, byToken(model.GlobalAttributeListingSearch{Source: model.GlobalAttributeSourceManaged}))
+		require.NoError(t, err)
+		names := make([]string, 0, len(listing.Rows))
+		for _, row := range listing.Rows {
+			names = append(names, row.Field.Name)
+		}
+		assert.Equal(t, []string{token + "_alpha", token + "_bravo", token + "_charlie"}, names)
+
+		listing, _, err = searchGlobalAttributes(t, th.SystemAdminClient, searchGlobalAttributesBody(t, model.GlobalAttributeListingSearch{Term: token + "_bravo", Source: model.GlobalAttributeSourceLDAP}))
+		require.NoError(t, err)
+		assert.Empty(t, listing.Rows, "bravo is managed here, not LDAP-synced")
+
+		listing, _, err = searchGlobalAttributes(t, th.SystemAdminClient, byToken(model.GlobalAttributeListingSearch{Source: model.GlobalAttributeSourcePlugin}))
+		require.NoError(t, err)
+		assert.Empty(t, listing.Rows)
 	})
 
 	t.Run("a term with LIKE wildcards matches them literally", func(t *testing.T) {

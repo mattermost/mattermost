@@ -7,6 +7,7 @@ import {FormattedMessage, defineMessages} from 'react-intl';
 import {MagnifyIcon, PlusIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/compass-ui/components/button';
 import {Icon} from '@mattermost/compass-ui/components/icon';
+import type {GlobalAttributeSource} from '@mattermost/types/global_attributes';
 
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
@@ -17,6 +18,7 @@ import {CPA_FIELD_NAME_MAX_RUNES} from 'utils/properties';
 
 import {ATTRIBUTE_DETAILS_ROUTE} from './constants';
 import GlobalAttributesTable from './global_attributes_table';
+import SourceFilter from './source_filter';
 
 import './global_attributes.scss';
 
@@ -38,6 +40,7 @@ type Props = {
 
 const GlobalAttributes = ({disabled = false}: Props) => {
     const [searchQuery, setSearchQuery] = useState('');
+    const [source, setSource] = useState<GlobalAttributeSource>();
 
     const handleSearchChange = useCallback((event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setSearchQuery(event.target.value);
@@ -45,6 +48,11 @@ const GlobalAttributes = ({disabled = false}: Props) => {
 
     const handleSearchClear = useCallback(() => {
         setSearchQuery('');
+    }, []);
+
+    const handleClearFilters = useCallback(() => {
+        setSearchQuery('');
+        setSource(undefined);
     }, []);
 
     return (
@@ -98,9 +106,15 @@ const GlobalAttributes = ({disabled = false}: Props) => {
                                 onClear={handleSearchClear}
                                 data-testid='global-attributes-search'
                             />
+                            <SourceFilter
+                                value={source}
+                                onChange={setSource}
+                            />
                         </div>
                         <GlobalAttributesTable
                             searchQuery={searchQuery}
+                            source={source}
+                            onClearFilters={handleClearFilters}
                             disabled={disabled}
                         />
                     </AdminPanel>

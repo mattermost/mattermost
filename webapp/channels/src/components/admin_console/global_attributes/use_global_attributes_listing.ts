@@ -4,7 +4,7 @@
 import {useCallback, useEffect, useRef, useState} from 'react';
 import {useDispatch} from 'react-redux';
 
-import type {GlobalAttributeListingRow, GlobalAttributeListingSearch} from '@mattermost/types/global_attributes';
+import type {GlobalAttributeListingRow, GlobalAttributeListingSearch, GlobalAttributeSource} from '@mattermost/types/global_attributes';
 
 import PropertyTypes from 'mattermost-redux/action_types/properties';
 import {Client4} from 'mattermost-redux/client';
@@ -18,6 +18,7 @@ export const LISTING_DEBOUNCE_MS = 300;
 
 export type GlobalAttributesListingOptions = {
     term?: string;
+    source?: GlobalAttributeSource;
 };
 
 export type GlobalAttributesListingResult = {
@@ -45,10 +46,11 @@ function useDebouncedValue<T>(value: T, delay: number): T {
     return debounced;
 }
 
-// Owns the listing request: the search term (debounced), one in-flight request
-// at a time that matters, and the refetch triggers.
+// Owns the listing request: the search term (debounced) and source filter, one
+// in-flight request at a time that matters, and the refetch triggers.
 export default function useGlobalAttributesListing({
     term = '',
+    source,
 }: GlobalAttributesListingOptions = {}): GlobalAttributesListingResult {
     const dispatch = useDispatch();
 
@@ -62,6 +64,7 @@ export default function useGlobalAttributesListing({
     const fetchListing = useCallback(async () => {
         const search: GlobalAttributeListingSearch = {
             term: debouncedTerm || undefined,
+            source,
         };
         const requestId = ++latestRequestId.current;
         setLoading(true);
@@ -86,7 +89,7 @@ export default function useGlobalAttributesListing({
             setError(true);
             setLoading(false);
         }
-    }, [debouncedTerm, dispatch]);
+    }, [debouncedTerm, source, dispatch]);
 
     useEffect(() => {
         fetchListing();

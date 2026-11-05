@@ -39,7 +39,9 @@ type GlobalAttributeListingPolicy struct {
 //
 // Rows are composed from the stored fields, as the generic property endpoints
 // return them, so owners and sync sources agree with what a GET of the same field
-// shows.
+// shows. A plugin owner present only as a grant of the field's permissions
+// object, with no entry in its stored owners attr, is not seen by the source
+// filter, which reads the stored attrs in SQL.
 func (ps *PropertyService) SearchGlobalAttributeListing(rctx request.CTX, groupID string, search model.GlobalAttributeListingSearch, policy GlobalAttributeListingPolicy) (*model.GlobalAttributeListing, error) {
 	classificationID, err := ps.classificationTemplateID(rctx, groupID)
 	if err != nil {
@@ -49,6 +51,7 @@ func (ps *PropertyService) SearchGlobalAttributeListing(rctx request.CTX, groupI
 	opts := model.GlobalAttributeListingOpts{
 		GroupID:              groupID,
 		Term:                 search.Term,
+		Source:               search.Source,
 		AllowedResourceTypes: policy.AllowedResourceTypes,
 	}
 	if classificationID != "" && !policy.ClassificationReachable {
@@ -192,7 +195,7 @@ func listingOwners(field *model.PropertyField, linked []*model.PropertyField) []
 // listingSourceKind classifies where a row's definition comes from, the way the
 // Source column does: a plugin-created protected field, a field synced from an
 // identity source, or neither. Owners do not change it. Protection is read from
-// the protected attr, as the access control hook reads it.
+// the protected attr, as the access control hook and the source filter read it.
 func listingSourceKind(field *model.PropertyField) string {
 	sourcePluginID, _ := field.Attrs[model.PropertyAttrsSourcePluginID].(string)
 	if sourcePluginID != "" && model.IsPropertyFieldProtected(field) {
