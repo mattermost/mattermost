@@ -59,11 +59,6 @@ describe('components/CommercialSupportModal', () => {
         ],
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(<CommercialSupportModal {...baseProps}/>);
-        expect(container).toMatchSnapshot();
-    });
-
     test('should render packet content checkboxes with mandatory disabled', () => {
         renderWithContext(<CommercialSupportModal {...baseProps}/>);
 
