@@ -4,6 +4,7 @@
 package properties
 
 import (
+	"encoding/json"
 	"errors"
 	"testing"
 
@@ -149,4 +150,53 @@ func TestBoundsParent(t *testing.T) {
 		_, _, _, err := newHook(model.NewId(), nil).boundsParent(rctx, system, model.PropertyValueSystemTargetID)
 		require.ErrorIs(t, err, errBoundsCheckFailed)
 	})
+}
+
+func TestCompareByRank(t *testing.T) {
+	field := &model.PropertyField{
+		ID:   model.NewId(),
+		Type: model.PropertyFieldTypeRank,
+		Attrs: model.StringInterface{
+			model.PropertyFieldAttributeOptions: []any{
+				map[string]any{"id": "optlow", "name": "LOW", "rank": 1},
+				map[string]any{"id": "optmid", "name": "MID", "rank": 2},
+				map[string]any{"id": "opthigh", "name": "HIGH", "rank": 3},
+				map[string]any{"id": "optnone", "name": "UNRANKED"},
+			},
+		},
+	}
+	val := func(id string) json.RawMessage { return json.RawMessage(`"` + id + `"`) }
+
+	below, above := model.PropertyBoundsOperatorAtOrBelow, model.PropertyBoundsOperatorAtOrAbove
+	for name, tc := range map[string]struct {
+		op        model.PropertyBoundsOperator
+		next, ref json.RawMessage
+		want      error
+	}{
+		"below, lower passes":        {below, val("optlow"), val("optmid"), nil},
+		"below, equal passes":        {below, val("optmid"), val("optmid"), nil},
+		"below, higher violates":     {below, val("opthigh"), val("optmid"), errBoundsViolated},
+		"above, higher passes":       {above, val("opthigh"), val("optmid"), nil},
+		"above, equal passes":        {above, val("optmid"), val("optmid"), nil},
+		"above, lower violates":      {above, val("optlow"), val("optmid"), errBoundsViolated},
+		"unknown next option":        {below, val("gone"), val("optmid"), errBoundsCheckFailed},
+		"unknown ref option":         {below, val("optmid"), val("gone"), errBoundsCheckFailed},
+		"next option without a rank": {below, val("optnone"), val("optmid"), errBoundsCheckFailed},
+		"ref option without a rank":  {below, val("optmid"), val("optnone"), errBoundsCheckFailed},
+		"empty next":                 {below, nil, val("optmid"), errBoundsCheckFailed},
+		"empty ref":                  {below, val("optmid"), nil, errBoundsCheckFailed},
+		"unknown operator":           {"sideways", val("optlow"), val("opthigh"), errBoundsCheckFailed},
+	} {
+		t.Run(name, func(t *testing.T) {
+			err := compareByRank(field, tc.op, tc.next, tc.ref)
+			if tc.want == nil {
+				require.NoError(t, err)
+				return
+			}
+			require.ErrorIs(t, err, tc.want)
+			for _, secret := range []string{"optlow", "optmid", "opthigh", "optnone", "gone"} {
+				assert.NotContains(t, err.Error(), secret)
+			}
+		})
+	}
 }

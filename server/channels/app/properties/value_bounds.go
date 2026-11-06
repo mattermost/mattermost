@@ -4,6 +4,7 @@
 package properties
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -15,6 +16,38 @@ import (
 // data it depends on is broken, such as a missing parent object. It refuses the
 // write, unlike a rule that simply has nothing to compare against.
 var errBoundsCheckFailed = errors.New("bounds check failed")
+
+// errBoundsViolated marks a value that breaks a bounds rule.
+var errBoundsViolated = errors.New("bounds violated")
+
+// compareByRank checks next against ref by option rank under op. Which value
+// ref is (the parent's or the object's own) is the caller's to resolve, and
+// empty values are the caller's to handle: an empty one fails the check.
+// Messages never carry option IDs or ranks, since the writer may not be allowed
+// to see ref.
+func compareByRank(field *model.PropertyField, op model.PropertyBoundsOperator, next, ref json.RawMessage) error {
+	ranks := buildOptionRankMap(field)
+	nextRank, nextOK := singleOptionRank(field.Type, next, ranks)
+	refRank, refOK := singleOptionRank(field.Type, ref, ranks)
+	if !nextOK || !refOK {
+		return fmt.Errorf("field %s: operator %q: a value can't be ranked: %w", field.ID, op, errBoundsCheckFailed)
+	}
+
+	var ok bool
+	switch op {
+	case model.PropertyBoundsOperatorAtOrBelow:
+		ok = nextRank <= refRank
+	case model.PropertyBoundsOperatorAtOrAbove:
+		ok = nextRank >= refRank
+	default:
+		// Save refuses unknown operators, so this is bad data; passing would quietly stop the rule applying.
+		return fmt.Errorf("field %s: unknown operator %q: %w", field.ID, op, errBoundsCheckFailed)
+	}
+	if !ok {
+		return fmt.Errorf("field %s: operator %q: %w", field.ID, op, errBoundsViolated)
+	}
+	return nil
+}
 
 // boundsParent returns the field and the object that hold the value a parent
 // rule on field compares against, for a value written to targetID. Every
