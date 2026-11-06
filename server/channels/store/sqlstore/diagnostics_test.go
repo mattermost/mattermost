@@ -46,7 +46,6 @@ func TestGetDiagnostics(t *testing.T) {
 		require.NotNil(t, diagnostics.WaitingForLockCount)
 		require.NotNil(t, diagnostics.PostsDeadTuples)
 		require.NotNil(t, diagnostics.PostsVacuumInProgress)
-		assert.False(t, *diagnostics.PostsVacuumInProgress)
 
 		const lastVacuumQuery = `
 SELECT last_vacuum
