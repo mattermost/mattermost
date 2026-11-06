@@ -659,12 +659,35 @@ func (ps *PropertyService) parentMatchingFields(rctx request.CTX, field *model.P
 	if parentType == "" || field.LinkSourceID() == "" {
 		return nil, nil
 	}
+	return ps.templateFieldsOfType(rctx, field, parentType, 2)
+}
+
+// templateFieldsOfType returns up to perPage fields of objectType linked to the
+// same template as field.
+func (ps *PropertyService) templateFieldsOfType(rctx request.CTX, field *model.PropertyField, objectType string, perPage int) ([]*model.PropertyField, error) {
 	// Master: a field created a moment ago must count, or two saves in a row could each miss the other.
 	return ps.searchPropertyFields(store.RequestContextWithMaster(rctx), field.GroupID, model.PropertyFieldSearchOpts{
-		ObjectTypes:   []string{parentType},
+		ObjectTypes:   []string{objectType},
 		LinkedFieldID: field.LinkSourceID(),
-		PerPage:       2,
+		PerPage:       perPage,
 	})
+}
+
+// isOnlyDependedParentField reports whether field is the only field of its
+// object type on its template while a child field's parent rule reads from it.
+// Deleting or unlinking it would leave every write to the child refusing as
+// broken data; with another such field present, one is still left. Store
+// errors are returned unwrapped.
+func (ps *PropertyService) isOnlyDependedParentField(rctx request.CTX, field *model.PropertyField) (bool, error) {
+	depended, err := ps.childFieldHasParentRule(rctx, field)
+	if err != nil || !depended {
+		return false, err
+	}
+	matches, err := ps.templateFieldsOfType(rctx, field, field.ObjectType, 2)
+	if err != nil {
+		return false, err
+	}
+	return len(matches) == 1, nil
 }
 
 // enforceParentField refuses a field carrying a parent rule unless its parent's
@@ -742,11 +765,7 @@ func (ps *PropertyService) enforceSingleParentField(rctx request.CTX, field *mod
 		return nil
 	}
 
-	existing, err := ps.searchPropertyFields(store.RequestContextWithMaster(rctx), field.GroupID, model.PropertyFieldSearchOpts{
-		ObjectTypes:   []string{field.ObjectType},
-		LinkedFieldID: field.LinkSourceID(),
-		PerPage:       1,
-	})
+	existing, err := ps.templateFieldsOfType(rctx, field, field.ObjectType, 1)
 	if err != nil {
 		return fmt.Errorf("CreatePropertyField: failed to look up the existing %s field: %w", field.ObjectType, err)
 	}
@@ -1061,6 +1080,24 @@ func (ps *PropertyService) updatePropertyFieldsIfUnchanged(rctx request.CTX, gro
 					"app.property_field.update.unlink_mask_holdings.app_error",
 					map[string]any{"FieldID": field.ID, "TemplateID": template.ID},
 					fmt.Sprintf("field %q is the holdings source named by template %q's mask_by_field_id, so it cannot be unlinked", field.ID, template.ID),
+					http.StatusConflict,
+				)
+			}
+
+			// A parent-side field is unlinked like it is deleted: refused when
+			// it is the only one a child field's parent rule reads from. Checked
+			// on the stored field, so a call that also removes the child's rule
+			// is still refused; remove the rule first.
+			onlyDepended, dErr := ps.isOnlyDependedParentField(rctx, existing)
+			if dErr != nil {
+				return nil, nil, nil, fmt.Errorf("UpdatePropertyFields: failed to look up child fields: %w", dErr)
+			}
+			if onlyDepended {
+				return nil, nil, nil, model.NewAppError(
+					"UpdatePropertyFields",
+					"app.property_field.update.unlink_parent_rule_dependents.app_error",
+					map[string]any{"FieldID": field.ID, "TemplateID": existing.LinkSourceID()},
+					fmt.Sprintf("field %q is the only %s field on template %q and a child field's parent rule depends on it, so it cannot be unlinked", field.ID, existing.ObjectType, existing.LinkSourceID()),
 					http.StatusConflict,
 				)
 			}
@@ -1771,28 +1808,18 @@ func (ps *PropertyService) deletePropertyField(rctx request.CTX, groupID, id str
 	// Nor the only parent-side field a child field's parent rule compares
 	// against: every write to the child would then refuse as broken data.
 	// Deleting one of several is allowed, since it leaves exactly one.
-	depended, err := ps.childFieldHasParentRule(rctx, field)
+	onlyDepended, err := ps.isOnlyDependedParentField(rctx, field)
 	if err != nil {
 		return fmt.Errorf("DeletePropertyField: failed to look up child fields: %w", err)
 	}
-	if depended {
-		matches, mErr := ps.searchPropertyFields(store.RequestContextWithMaster(rctx), field.GroupID, model.PropertyFieldSearchOpts{
-			ObjectTypes:   []string{field.ObjectType},
-			LinkedFieldID: field.LinkSourceID(),
-			PerPage:       2,
-		})
-		if mErr != nil {
-			return fmt.Errorf("DeletePropertyField: failed to look up the %s fields on the template: %w", field.ObjectType, mErr)
-		}
-		if len(matches) == 1 {
-			return model.NewAppError(
-				"DeletePropertyField",
-				"app.property_field.delete.parent_rule_dependents.app_error",
-				map[string]any{"FieldID": id, "TemplateID": field.LinkSourceID()},
-				fmt.Sprintf("field %q is the only %s field on template %q and a child field's parent rule depends on it, so it cannot be deleted", id, field.ObjectType, field.LinkSourceID()),
-				http.StatusConflict,
-			)
-		}
+	if onlyDepended {
+		return model.NewAppError(
+			"DeletePropertyField",
+			"app.property_field.delete.parent_rule_dependents.app_error",
+			map[string]any{"FieldID": id, "TemplateID": field.LinkSourceID()},
+			fmt.Sprintf("field %q is the only %s field on template %q and a child field's parent rule depends on it, so it cannot be deleted", id, field.ObjectType, field.LinkSourceID()),
+			http.StatusConflict,
+		)
 	}
 
 	if err := ps.valueStore.DeleteForField(groupID, id); err != nil {

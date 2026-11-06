@@ -11471,6 +11471,11 @@
     "description": "API error when unlinking a property field from its template while that masked template names it as the field holding each person's own values ('holdings'); masking shows a reader only the values that overlap their own."
   },
   {
+    "id": "app.property_field.update.unlink_parent_rule_dependents.app_error",
+    "translation": "Cannot unlink this field while a parent rule on another field depends on it. Remove the parent rule first.",
+    "description": "API error (409) when unlinking the only field of its object type linked to a template while another field's parent bounds rule compares against it."
+  },
+  {
     "id": "app.property_field.version_mismatch.app_error",
     "translation": "The property field and group versions are incompatible.",
     "description": "API error when a property field's schema version does not match its property group's version; developer-facing."

@@ -4701,6 +4701,76 @@ func TestPropertyFieldBoundsParentField(t *testing.T) {
 		})
 	})
 
+	t.Run("unlinking a parent-side field is refused while a child field's parent rule depends on it", func(t *testing.T) {
+		unlink := func(groupID string, field *model.PropertyField) error {
+			field.LinkedFieldID = model.NewPointer("")
+			_, _, err := th.service.UpdatePropertyField(rctx, groupID, field)
+			return err
+		}
+
+		t.Run("system field with a channel child", func(t *testing.T) {
+			groupID, template, create := setup(t)
+			system, err := create(model.PropertyFieldObjectTypeSystem, nil)
+			require.NoError(t, err)
+			_, err = create(model.PropertyFieldObjectTypeChannel, belowParent)
+			require.NoError(t, err)
+
+			err = unlink(groupID, system)
+			var appErr *model.AppError
+			require.ErrorAs(t, err, &appErr)
+			assert.Equal(t, "app.property_field.update.unlink_parent_rule_dependents.app_error", appErr.Id)
+			assert.Equal(t, http.StatusConflict, appErr.StatusCode)
+
+			stored, err := th.service.GetPropertyField(rctx, groupID, system.ID)
+			require.NoError(t, err)
+			assert.Equal(t, template.ID, stored.LinkSourceID())
+		})
+
+		t.Run("allowed once the child's parent rule is removed", func(t *testing.T) {
+			groupID, _, create := setup(t)
+			system, err := create(model.PropertyFieldObjectTypeSystem, nil)
+			require.NoError(t, err)
+			channel, err := create(model.PropertyFieldObjectTypeChannel, belowParent)
+			require.NoError(t, err)
+
+			channel.Bounds = model.PropertyBounds{}
+			_, _, err = th.service.UpdatePropertyField(rctx, groupID, channel)
+			require.NoError(t, err)
+
+			require.NoError(t, unlink(groupID, system))
+		})
+
+		t.Run("children with no parent rule", func(t *testing.T) {
+			groupID, _, create := setup(t)
+			system, err := create(model.PropertyFieldObjectTypeSystem, nil)
+			require.NoError(t, err)
+			_, err = create(model.PropertyFieldObjectTypeChannel, selfOnly)
+			require.NoError(t, err)
+
+			require.NoError(t, unlink(groupID, system))
+		})
+
+		t.Run("one of two parent-side fields may go", func(t *testing.T) {
+			groupID, template, create := setup(t)
+			system, err := create(model.PropertyFieldObjectTypeSystem, nil)
+			require.NoError(t, err)
+			_, err = create(model.PropertyFieldObjectTypeChannel, belowParent)
+			require.NoError(t, err)
+			// Saving a second system field is refused, so build the broken state directly.
+			th.CreatePropertyFieldDirect(t, &model.PropertyField{
+				GroupID:       groupID,
+				ObjectType:    model.PropertyFieldObjectTypeSystem,
+				TargetType:    string(model.PropertyFieldTargetLevelSystem),
+				Type:          model.PropertyFieldTypeRank,
+				Name:          "system " + model.NewId(),
+				LinkedFieldID: &template.ID,
+				Permissions:   openPermissions(),
+			})
+
+			require.NoError(t, unlink(groupID, system))
+		})
+	})
+
 	t.Run("at_or_above parent is checked the same way", func(t *testing.T) {
 		_, _, create := setup(t)
 
