@@ -648,20 +648,15 @@ func (scs *Service) syncRemoteAcknowledgementsMetadata(rctx request.CTX, post *m
 			mlog.String("post_id", post.Id),
 			mlog.Err(appErrGet),
 		)
-		return rpost
-	}
-
-	// The replace below writes new rows with a new AcknowledgedAt and no RemoteId,
-	// which the next sync sends back as local changes. Skip it when nothing changed.
-	if sameAcknowledgedUsers(existingAcks, acknowledgements) {
+	} else if sameAcknowledgedUsers(existingAcks, acknowledgements) {
+		// The replace below writes new rows with a new AcknowledgedAt and no RemoteId,
+		// which the next sync sends back as local changes. Skip it when nothing changed.
 		if rpost.Metadata == nil {
 			rpost.Metadata = &model.PostMetadata{}
 		}
 		rpost.Metadata.Acknowledgements = existingAcks
 		return rpost
-	}
-
-	if len(existingAcks) > 0 {
+	} else if len(existingAcks) > 0 {
 		// Use batch delete for better performance
 		if nErr := scs.server.GetStore().PostAcknowledgement().BatchDelete(existingAcks); nErr != nil {
 			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "Error batch deleting acknowledgements for remote sync",
