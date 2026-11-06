@@ -51,15 +51,15 @@ describe('getBoardChannelIds', () => {
 });
 
 describe('getProductRailSection', () => {
-    test('should return the section while the rail is on and boards are registered', () => {
+    test('should return the section while boards are registered', () => {
         expect(getProductRailSection(getState({section: 'boards'}))).toBe('boards');
     });
 
-    test('should return null while the rail is off', () => {
-        expect(getProductRailSection(getState({enabled: false}))).toBeNull();
+    test('should return the section while the rail is off, since the product menu switches it there', () => {
+        expect(getProductRailSection(getState({enabled: false, section: 'boards'}))).toBe('boards');
     });
 
-    test('should return null on mobile, where the rail is hidden', () => {
+    test('should return null on mobile, where neither the rail nor the product menu can switch it', () => {
         const state = getState({section: 'boards'});
         expect(getProductRailSection({...state, views: {...state.views, browser: {windowSize: 'mobileView'}}} as GlobalState)).toBeNull();
     });

@@ -379,5 +379,18 @@ describe('ProductRail', () => {
             const saved = JSON.parse(localStorage.getItem(`product_rail_last_paths_${user.id}`) ?? '{}');
             expect(saved.boards).toEqual({[team.id]: '/team-one/channels/roadmap'});
         });
+
+        test('should keep track while the flag is off, since the product menu switches Channels and Boards then', () => {
+            const state = getBoardsState(roadmap.id);
+            const {store} = renderAt('/team-one/channels/roadmap', {
+                ...state,
+                entities: {...state.entities, general: {config: {FeatureFlagProductRail: 'false'}}},
+            });
+
+            expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
+            expect(store.getState().views.productRail.section).toBe('boards');
+            const saved = JSON.parse(localStorage.getItem(`product_rail_last_paths_${user.id}`) ?? '{}');
+            expect(saved.boards).toEqual({[team.id]: '/team-one/channels/roadmap'});
+        });
     });
 });

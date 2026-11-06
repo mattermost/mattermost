@@ -2,19 +2,33 @@
 // See LICENSE.txt for license information.
 
 import React, {type JSX} from 'react';
+import {useIntl} from 'react-intl';
 
-import glyphMap, {ProductChannelsIcon} from '@mattermost/compass-icons/components';
+import glyphMap, {ProductBoardsIcon, ProductChannelsIcon} from '@mattermost/compass-icons/components';
 import type {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
 
 import {useCurrentProduct} from 'utils/products';
 
-const ProductBranding = (): JSX.Element => {
-    const currentProduct = useCurrentProduct();
+import useInBoardsSection from './use_in_boards_section';
 
-    const productName = currentProduct ? currentProduct.switcherText : 'Channels';
+const ProductBranding = (): JSX.Element => {
+    const {formatMessage} = useIntl();
+    const currentProduct = useCurrentProduct();
+    const inBoards = useInBoardsSection();
+
+    let productName: React.ReactNode = 'Channels';
+    if (currentProduct) {
+        productName = currentProduct.switcherText;
+    } else if (inBoards) {
+        productName = formatMessage({id: 'product_rail.boards', defaultMessage: 'Boards'});
+    }
 
     // Products may register either a compass icon name or a React element.
     const renderIcon = () => {
+        if (inBoards) {
+            return <ProductBoardsIcon size={24}/>;
+        }
+
         if (!currentProduct?.switcherIcon) {
             return <ProductChannelsIcon size={24}/>;
         }

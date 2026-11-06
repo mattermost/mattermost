@@ -13,12 +13,15 @@ import {getConfig, isCloudLicense} from 'mattermost-redux/selectors/entities/gen
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
+import {getProductRailSection} from 'selectors/views/product_rail';
+
 import * as Menu from 'components/menu';
 import useProductRailShown from 'components/product_rail/use_product_rail_shown';
 
 import {isChannels} from 'utils/products';
 
 import ProductSwitcherAboutMenuItem from './switch_product_about_menuitem';
+import ProductSwitcherBoardsMenuItem from './switch_product_boards_menuitem';
 import ProductSwitcherChannelsMenuItem from './switch_product_channels_menuitem';
 import ProductSwitcherCloudTrialMenuItem from './switch_product_cloud_trial_menuitem';
 import ProductSwitcherDownloadMenuItem from './switch_product_download_menuitem';
@@ -75,6 +78,9 @@ export function SwitchProductMenu(props: Props) {
     // needs a current team and isn't shown on mobile or backstage pages, so there the menu keeps them too.
     const productRailShown = useProductRailShown();
 
+    // While a plugin registers boards, Channels and Boards split the channel sidebar between them.
+    const section = useSelector(getProductRailSection);
+
     useEffect(() => {
         dispatch(getPrevTrialLicense());
     }, [dispatch]);
@@ -109,8 +115,11 @@ export function SwitchProductMenu(props: Props) {
         >
             {!productRailShown && (
                 <ProductSwitcherChannelsMenuItem
-                    isChannelsProductActive={isChannelsProductActive}
+                    isChannelsProductActive={isChannelsProductActive && section !== 'boards'}
                 />
+            )}
+            {!productRailShown && section !== null && (
+                <ProductSwitcherBoardsMenuItem isActive={isChannelsProductActive && section === 'boards'}/>
             )}
             {!productRailShown && (
                 <ProductSwitcherProductsMenuItems

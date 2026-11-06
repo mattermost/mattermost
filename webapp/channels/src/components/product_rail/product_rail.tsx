@@ -12,7 +12,7 @@ import type {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
 
 import {selectTeam} from 'mattermost-redux/actions/teams';
 import {getThreadCounts} from 'mattermost-redux/actions/threads';
-import {getCurrentChannel, getRedirectChannelNameForTeam, getTeamsUnreadStatuses} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentChannel, getTeamsUnreadStatuses} from 'mattermost-redux/selectors/entities/channels';
 import {isProductRailEnabled} from 'mattermost-redux/selectors/entities/general';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
@@ -23,7 +23,6 @@ import {productRailPathsLoaded, productRailPathViewed, setProductRailSection} fr
 import {selectProducts} from 'selectors/products';
 import {
     getBoardChannelIds,
-    getFirstBoardInCurrentTeam,
     getProductRailLastPath,
     getProductRailLastPaths,
     getProductRailSection,
@@ -42,6 +41,7 @@ import type {ProductComponent} from 'types/store/plugins';
 import type {ProductRailSection, ProductRailTab} from 'types/store/views';
 
 import ProductRailTeamMenu from './product_rail_team_menu';
+import useProductRailSectionPaths from './use_product_rail_section_paths';
 
 import './product_rail.scss';
 
@@ -118,6 +118,10 @@ function saveLastPaths(userId: string, lastPaths: Record<string, Record<string, 
 // in the channels product, so they split the channel sidebar in two: boards (channels a plugin
 // registers with registerChannelKind) in Boards, everything else in Channels. Threads opens the
 // threads view, and each registered product (Playbooks, ...) brings its own LHS.
+//
+// The sidebar is split whether or not the rail is shown, since the product menu switches between
+// Channels and Boards where it isn't, so this also keeps track of the section and of where the user
+// was under each item while the flag is off.
 export default function ProductRail() {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
@@ -136,9 +140,9 @@ export default function ProductRail() {
 
     // Set while a plugin registers boards, which splits Channels from Boards.
     const section = useSelector(getProductRailSection);
+    const tracking = enabled || section !== null;
     const sectionUnreads = useSelector(getProductRailSectionUnreads);
     const currentChannelIsBoard = useSelector((state: GlobalState) => getBoardChannelIds(state).has(currentChannelId));
-    const firstBoard = useSelector(getFirstBoardInCurrentTeam);
     const teamSidebarHidden = useSelector(isTeamSidebarHidden);
     const boardsShownInChannels = useSelector(areBoardsShownInChannels);
 
@@ -146,9 +150,8 @@ export default function ProductRail() {
     const lastPaths = useSelector(getProductRailLastPaths);
     const lastPathsLoaded = useSelector(areProductRailLastPathsLoaded);
     const lastChannelPath = useSelector((state: GlobalState) => getProductRailLastPath(state, 'channels', currentTeamId));
-    const lastBoardPath = useSelector((state: GlobalState) => getProductRailLastPath(state, 'boards', currentTeamId));
     const lastThreadsPath = useSelector((state: GlobalState) => getProductRailLastPath(state, 'threads', currentTeamId));
-    const defaultChannelName = useSelector((state: GlobalState) => (currentTeamId ? getRedirectChannelNameForTeam(state, currentTeamId) : ''));
+    const {channelsPath, boardsPath} = useProductRailSectionPaths();
 
     const channelMatch = matchPath<{team: string; path: string; identifier: string}>(pathname, {path: channelRoutePath});
     const inThreads = matchPath(pathname, {path: threadsRoutePath}) !== null;
@@ -195,10 +198,10 @@ export default function ProductRail() {
 
     // Bring back where each item was in earlier sessions.
     useEffect(() => {
-        if (enabled && currentUserId) {
+        if (tracking && currentUserId) {
             dispatch(productRailPathsLoaded(readSavedLastPaths(currentUserId)));
         }
-    }, [dispatch, enabled, currentUserId]);
+    }, [dispatch, tracking, currentUserId]);
 
     // Remember where the user is under the current item, however they got there (the rail, the
     // sidebar, a link, the channel switcher). A channel or board also moves the sidebar to its
@@ -212,18 +215,18 @@ export default function ProductRail() {
             return;
         }
 
-        if (enabled && viewedTab && currentTeamId) {
+        if (tracking && viewedTab && currentTeamId) {
             const followsKind = (viewedTab === 'boards' || viewedTab === 'channels') && !boardViewedInChannels;
             dispatch(productRailPathViewed(viewedTab, currentTeamId, viewedPath, section && followsKind ? viewedTab as ProductRailSection : undefined));
         }
-    }, [dispatch, enabled, viewedTab, currentTeamId, viewedPath, section !== null, boardViewedInChannels, boardsShownInChannels]);
+    }, [dispatch, tracking, viewedTab, currentTeamId, viewedPath, section !== null, boardViewedInChannels, boardsShownInChannels]);
 
     // Saved only once the earlier paths are restored, so they're never overwritten unseen.
     useEffect(() => {
-        if (enabled && currentUserId && lastPathsLoaded) {
+        if (tracking && currentUserId && lastPathsLoaded) {
             saveLastPaths(currentUserId, lastPaths);
         }
-    }, [enabled, currentUserId, lastPaths, lastPathsLoaded]);
+    }, [tracking, currentUserId, lastPaths, lastPathsLoaded]);
 
     // Backstage pages (Integrations, Custom Emoji) take the whole page, with their own way back.
     if (!enabled || !currentTeam || isBackstagePath(pathname)) {
@@ -285,17 +288,11 @@ export default function ProductRail() {
             unread: sectionUnreads.channels.unread || sectionUnreads.boards.unread,
         } : sectionUnreads.channels;
 
-        // Return to the last board, else open the first one. With none to open, Boards still
-        // switches the sidebar so it can say there are none.
-        let boardsPath = lastBoardPath;
-        if (!boardsPath && firstBoard) {
-            boardsPath = `/${currentTeam.name}/channels/${firstBoard.name}`;
-        }
-
+        // With no board to open, Boards still switches the sidebar so it can say there are none.
         channelsItem = (
             <ProductRailItem
                 id='product-rail-item-channels'
-                to={lastChannelPath ?? `/${currentTeam.name}/channels/${defaultChannelName}`}
+                to={channelsPath ?? pathname}
                 onClick={() => dispatch(setProductRailSection('channels'))}
                 icon={<ProductChannelsIcon size={20}/>}
                 label={formatMessage(messages.channels)}

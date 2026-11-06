@@ -105,12 +105,14 @@ export const getBoardChannelIds: (state: GlobalState) => Set<string> = (() => {
 })();
 
 /**
- * The section of the product rail the channel sidebar is showing, or null when the rail doesn't
- * split the sidebar: it's off, or no plugin registers boards, so there's nothing to split.
+ * The section the channel sidebar is showing, Channels or Boards, or null when it isn't split: no
+ * plugin registers boards, so there's nothing to split. The product rail switches sections, and
+ * the product menu does wherever the rail isn't shown.
  */
 export function getProductRailSection(state: GlobalState): ProductRailSection | null {
-    // On mobile the rail is hidden, so there'd be no way to switch sections: show everything.
-    if (!isProductRailEnabled(state) || !hasBoardChannelKind(state) || getIsMobileView(state)) {
+    // On mobile neither the rail nor the product menu is shown, so there'd be no way to switch
+    // sections: show everything.
+    if (!hasBoardChannelKind(state) || getIsMobileView(state)) {
         return null;
     }
     return state.views.productRail.section;

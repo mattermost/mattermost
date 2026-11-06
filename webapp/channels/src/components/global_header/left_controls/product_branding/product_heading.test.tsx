@@ -8,7 +8,14 @@ import {TopLevelProducts} from 'utils/constants';
 import * as productUtils from 'utils/products';
 import {TestHelper} from 'utils/test_helper';
 
+import type {GlobalState} from 'types/store';
+
 import {ProductHeading} from './product_heading';
+
+const boardsSectionState = {
+    plugins: {components: {ChannelKind: [{id: 'kind', pluginId: 'boards', kind: 'board', matcher: () => false}]}},
+    views: {productRail: {section: 'boards'}, browser: {windowSize: 'desktopView'}},
+} as unknown as Partial<GlobalState>;
 
 describe('ProductHeading', () => {
     afterEach(() => {
@@ -31,5 +38,13 @@ describe('ProductHeading', () => {
         renderWithContext(<ProductHeading/>);
 
         expect(screen.getByRole('heading', {name: 'Channels'})).toBeInTheDocument();
+    });
+
+    test('should name Boards while the channel sidebar is narrowed to boards', () => {
+        jest.spyOn(productUtils, 'useCurrentProduct').mockReturnValue(null);
+
+        renderWithContext(<ProductHeading/>, boardsSectionState);
+
+        expect(screen.getByRole('heading', {name: 'Boards'})).toBeInTheDocument();
     });
 });

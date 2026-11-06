@@ -112,4 +112,67 @@ describe('SwitchProductMenu', () => {
 
         expect(screen.getByRole('menuitem', {name: 'Channels'})).toBeInTheDocument();
     });
+
+    describe('with boards split from channels', () => {
+        const board = TestHelper.getChannelMock({id: 'board_id', name: 'roadmap', team_id: 'team_id'});
+        const withBoards = (section: 'channels' | 'boards', config: Record<string, string> = {}): DeepPartial<GlobalState> => ({
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                general: {...initialState.entities!.general, config},
+                teams: {currentTeamId: 'team_id', teams: {team_id: TestHelper.getTeamMock({id: 'team_id', name: 'team'})}},
+                channels: {channels: {board_id: board}, myMembers: {board_id: TestHelper.getChannelMembershipMock({channel_id: 'board_id'})}},
+            },
+            plugins: {components: {Product: [], ProductSwitcherMenuItem: [], ChannelKind: [{id: 'kind', pluginId: 'boards', kind: 'board', matcher: (_: unknown, channel: {id: string}) => channel.id === 'board_id'}]}} as unknown as DeepPartial<GlobalState['plugins']>,
+            views: {productRail: {section, lastPathByTeam: {}, lastPathsLoaded: true}, browser: {windowSize: 'desktopView'}} as DeepPartial<GlobalState['views']>,
+        });
+        const isChecked = (name: string) => screen.getByRole('menuitem', {name}).querySelector('.trailing-elements') !== null;
+
+        test('should list Boards after Channels, and check Channels while the sidebar shows channels', async () => {
+            renderWithContext(<SwitchProductMenu productId={null}/>, withBoards('channels'));
+
+            await userEvent.click(screen.getByRole('button', {name: 'Open product menu'}));
+
+            const names = screen.getAllByRole('menuitem').map((item) => item.textContent);
+            expect(names.slice(0, 2)).toEqual(['Channels', 'Boards']);
+            expect(isChecked('Channels')).toBe(true);
+            expect(isChecked('Boards')).toBe(false);
+        });
+
+        test('should check Boards, and not Channels, while the sidebar shows boards', async () => {
+            renderWithContext(<SwitchProductMenu productId={null}/>, withBoards('boards'));
+
+            await userEvent.click(screen.getByRole('button', {name: 'Open product menu'}));
+
+            expect(isChecked('Boards')).toBe(true);
+            expect(isChecked('Channels')).toBe(false);
+        });
+
+        test('should switch the sidebar to boards and open the first board when Boards is chosen', async () => {
+            const {store} = renderWithContext(<SwitchProductMenu productId={null}/>, withBoards('channels'), {useMockedStore: true});
+
+            await userEvent.click(screen.getByRole('button', {name: 'Open product menu'}));
+            await userEvent.click(screen.getByRole('menuitem', {name: 'Boards'}));
+
+            await waitFor(() => {
+                expect((store as unknown as {getActions: () => AnyAction[]}).getActions()).toContainEqual({type: ActionTypes.SET_PRODUCT_RAIL_SECTION, data: {section: 'boards'}});
+            });
+        });
+
+        test('should leave Boards to the product rail while it shows', async () => {
+            renderWithContext(<SwitchProductMenu productId={null}/>, withBoards('channels', {FeatureFlagProductRail: 'true'}));
+
+            await userEvent.click(screen.getByRole('button', {name: 'Open product menu'}));
+
+            expect(screen.queryByRole('menuitem', {name: 'Boards'})).not.toBeInTheDocument();
+        });
+
+        test('should not list Boards when no plugin registers boards', async () => {
+            renderWithContext(<SwitchProductMenu productId={null}/>, initialState);
+
+            await userEvent.click(screen.getByRole('button', {name: 'Open product menu'}));
+
+            expect(screen.queryByRole('menuitem', {name: 'Boards'})).not.toBeInTheDocument();
+        });
+    });
 });

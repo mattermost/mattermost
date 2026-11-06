@@ -9,6 +9,7 @@ import {TopLevelProducts, WindowSizes} from 'utils/constants';
 import * as productUtils from 'utils/products';
 import {TestHelper} from 'utils/test_helper';
 
+import type {GlobalState} from 'types/store';
 import type {ProductComponent} from 'types/store/plugins';
 
 import {ProductBranding} from './product_branding';
@@ -117,6 +118,21 @@ describe('ProductBranding', () => {
         renderWithContext(<ProductBranding/>, state);
 
         expect(screen.getAllByText('Channels').length).toBeGreaterThan(0);
+    });
+
+    test('should show Boards while the channel sidebar is narrowed to boards', () => {
+        jest.spyOn(productUtils, 'useCurrentProduct').mockReturnValue(null);
+
+        const state = {
+            ...licensedState,
+            plugins: {components: {ChannelKind: [{id: 'kind', pluginId: 'boards', kind: 'board', matcher: () => false}]}},
+            views: {productRail: {section: 'boards'}, browser: {windowSize: 'desktopView'}},
+        } as unknown as Partial<GlobalState>;
+
+        renderWithContext(<ProductBranding/>, state);
+
+        expect(screen.getByText('Boards')).toBeInTheDocument();
+        expect(screen.queryByTestId('ProductChannelsIcon')).not.toBeInTheDocument();
     });
 
     test('should show Playbooks when on Playbooks product', () => {
