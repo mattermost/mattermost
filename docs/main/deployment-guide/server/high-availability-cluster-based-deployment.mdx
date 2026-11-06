@@ -297,7 +297,7 @@ For high-scale deployments, the NGINX proxy documentation includes additional **
 
    ```bash
    sudo tee "$NGINX_CONF" > /dev/null <<EOF
-   # cache for static files and profile images, used by the locations below
+   # cache for static files, used by location /
    proxy_cache_path /var/cache/nginx levels=1:2 keys_zone=mattermost_cache:10m max_size=3g inactive=120m use_temp_path=off;
 
    upstream backend {
@@ -325,28 +325,6 @@ For high-scale deployments, the NGINX proxy documentation includes additional **
            proxy_pass http://backend;                                     # forward to Mattermost
        }
 
-       location ~ "/api/v[0-9]+/users/[a-z0-9]{26}/image\$" {
-           proxy_set_header Host \$host;                                  # pass the original host name
-           proxy_set_header X-Real-IP \$remote_addr;                      # the user's real IP address
-           proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;  # IP chain of all proxies, can be faked
-           proxy_set_header X-Forwarded-Proto \$scheme;                   # pass the original scheme
-           proxy_set_header Connection "";                                # lets NGINX reuse upstream connections
-           proxy_http_version 1.1;                                        # needed for upstream connection reuse
-           proxy_connect_timeout 10s;                                     # give up after 10s, then try the next node
-           proxy_read_timeout 300s;                                       # Mattermost ends requests after 5 minutes
-           proxy_buffer_size 16k;                                         # fits large OAuth and SAML response headers
-           proxy_buffers 8 16k;                                           # required with a 16k proxy_buffer_size
-           client_max_body_size 101M;                                     # allow uploads up to Mattermost's 100 MiB limit
-           proxy_pass http://backend;                                     # forward to Mattermost
-           proxy_cache mattermost_cache;                                  # cache profile images
-           proxy_cache_revalidate on;                                     # refresh stale entries with conditional requests
-           proxy_cache_min_uses 2;                                        # cache an image after its second request
-           proxy_cache_use_stale timeout;                                 # serve the cached image if Mattermost times out
-           proxy_cache_lock on;                                           # one request fills the cache for an image
-           proxy_ignore_headers Cache-Control Expires;                    # Mattermost marks images private, cache anyway
-           proxy_cache_valid 200 24h;                                     # keep an image for 24 hours
-       }
-
        location / {
            proxy_set_header Host \$host;                                  # pass the original host name
            proxy_set_header X-Real-IP \$remote_addr;                      # the user's real IP address
@@ -370,7 +348,7 @@ For high-scale deployments, the NGINX proxy documentation includes additional **
    EOF
    ```
 
-   This configuration includes high-performance optimizations such as marking a server unavailable for ten seconds only after three failed attempts (`max_fails=3 fail_timeout=10s`), user image caching for 24 hours, and extended timeouts for long-running operations. For additional NGINX performance tuning options, including worker process optimization and advanced buffer settings, see the [high-performance scaling configuration](/deployment-guide/server/setup-nginx-proxy#high-performance-scaling-configuration) section.
+   This configuration includes high-performance optimizations such as marking a server unavailable for ten seconds only after three failed attempts (`max_fails=3 fail_timeout=10s`), static file caching, and extended timeouts for long-running operations. For additional NGINX performance tuning options, including worker process optimization and advanced buffer settings, see the [high-performance scaling configuration](/deployment-guide/server/setup-nginx-proxy#high-performance-scaling-configuration) section.
 
    Add one `server` line to the `upstream` block for each additional Mattermost server in the cluster. Also review the [Mattermost settings behind NGINX](/deployment-guide/server/setup-nginx-proxy#mattermost-settings-behind-nginx), including `TrustedProxyIPHeader`, which applies to every node.
 
@@ -388,8 +366,7 @@ For high-scale deployments, the NGINX proxy documentation includes additional **
 4. **Test and apply NGINX configuration:**
 
    ```bash
-   sudo nginx -t
-   sudo systemctl restart nginx
+   sudo nginx -t && sudo systemctl restart nginx
    sudo systemctl enable nginx
    ```
 

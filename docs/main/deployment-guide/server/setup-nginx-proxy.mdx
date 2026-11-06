@@ -146,12 +146,12 @@ OCSP stapling is optional. Let's Encrypt stopped supporting it in 2025, but othe
 openssl x509 -noout -ocsp_uri -in /etc/ssl/mattermost/fullchain.pem
 ```
 
-To enable stapling, add these lines to your TLS profile and replace `<your DNS server>` with the IP address of a DNS server that NGINX can use:
+To enable stapling, save the root and intermediate certificates of your certificate authority in one file, such as `/etc/ssl/mattermost/ca-bundle.pem`. Then add these lines to your TLS profile and replace `<your DNS server>` with the IP address of a DNS server that NGINX can use:
 
 ```nginx
 ssl_stapling on;                                            # send OCSP responses with the certificate
 ssl_stapling_verify on;                                     # verify the responses
-ssl_trusted_certificate /etc/ssl/mattermost/fullchain.pem;  # certificates used to verify the responses
+ssl_trusted_certificate /etc/ssl/mattermost/ca-bundle.pem;  # CA root and intermediates to verify the responses
 resolver <your DNS server>;                                 # DNS server for reaching the OCSP responder
 ```
 
@@ -159,13 +159,13 @@ resolver <your DNS server>;                                 # DNS server for rea
 
 3.  Create the site file as *root* in a text editor: `/etc/nginx/sites-available/mattermost` on Ubuntu and Debian, or `/etc/nginx/conf.d/mattermost.conf` on RHEL/CentOS. Copy the following configuration into the empty file, then make these changes:
 
-    - Paste the TLS profile lines that you copied in the previous step into the HTTPS server, where the comment says so.
+    - Paste the TLS profile lines that you copied in the previous step into the HTTPS server, where the comment says so. If other HTTPS sites share port 443 on this NGINX, NGINX before 1.29.2 takes the TLS versions from the default HTTPS server. In that case, add `default_server` to both `listen 443` lines of the Mattermost server, or give it its own IP address.
     - Replace `127.0.0.1:8065` with the address of your Mattermost Server if it runs on another machine.
     - Replace `mattermost.example.com` with your FQDN in both `server_name` lines.
     - Replace `/etc/ssl/mattermost/fullchain.pem` and `/etc/ssl/mattermost/privkey.pem` with the paths of your certificate chain and your private key.
 
     ```nginx
-    # cache for static files and profile images
+    # cache for static files, used by location /
     proxy_cache_path /var/cache/nginx levels=1:2 keys_zone=mattermost_cache:10m max_size=3g inactive=120m use_temp_path=off;
 
     upstream backend {
@@ -249,8 +249,7 @@ resolver <your DNS server>;                                 # DNS server for rea
 5.  Test the configuration and restart NGINX. This also starts NGINX if it is stopped:
 
     ```sh
-    sudo nginx -t
-    sudo systemctl restart nginx
+    sudo nginx -t && sudo systemctl restart nginx
     ```
 
     On NGINX 1.25.1 and later, `nginx -t` warns that the `http2` parameter of `listen` is deprecated. The configuration still works. On RHEL/CentOS with SELinux enforcing, also allow NGINX to connect to Mattermost: `sudo setsebool -P httpd_can_network_connect 1`.
@@ -274,7 +273,7 @@ resolver <your DNS server>;                                 # DNS server for rea
 Adjust the configuration in these cases:
 
 - **Larger uploads:** NGINX allows uploads up to 101 MiB. If you raise Mattermost's [Maximum file size](/administration-guide/configure/environment-configuration-settings#maximum-file-size), raise `client_max_body_size` too.
-- **Public port other than 443:** If users reach NGINX on another port, such as `https://mattermost.example.com:8443`, use `$http_host` instead of `$host` in both `proxy_set_header Host` lines.
+- **Public port other than 443:** If users reach NGINX on another port, such as `https://mattermost.example.com:8443`, use `$http_host` instead of `$host` in both `proxy_set_header Host` lines. Also change the redirect in the port 80 server so it keeps the port, for example `return 301 https://$host:8443$request_uri;`. Otherwise users are sent to port 443.
 - **Another load balancer in front of NGINX:** Use the NGINX `real_ip` module, so that `$remote_addr` holds the user's address. Limit `set_real_ip_from` to the addresses of the load balancer.
 
 ## Use Certbot to obtain and renew certificates
@@ -321,10 +320,10 @@ NGINX can't start with the HTTPS server before the certificate files exist, and 
     sudo certbot renew --dry-run
     ```
 
-If step 6 or the dry run fails, keep the standalone method and let Certbot stop NGINX briefly while it renews. Open connections drop for those seconds, and clients reconnect automatically.
+If step 6 or the dry run fails, use the standalone method and let Certbot stop NGINX briefly while it renews. Open connections drop for those seconds, and clients reconnect automatically. This command saves the settings for all future renewals. Its test run also stops NGINX briefly:
 
 ```sh
-sudo certbot renew --pre-hook "systemctl stop nginx" --post-hook "systemctl start nginx"
+sudo certbot reconfigure --cert-name mattermost.example.com --authenticator standalone --pre-hook "systemctl stop nginx" --post-hook "systemctl start nginx"
 ```
 
 ## High-performance scaling configuration
@@ -392,23 +391,6 @@ listen 443 ssl http2 reuseport;       # HTTPS and HTTP/2 on IPv4, one socket per
 listen [::]:443 ssl http2 reuseport;  # HTTPS and HTTP/2 on IPv6, one socket per worker
 ```
 
-### User profile image cache
-
-The site file above already caches static files in `location /`. To also cache user profile images for 24 hours, add this location to the HTTPS server, above `location /`:
-
-```nginx
-location ~ "/api/v[0-9]+/users/[a-z0-9]{26}/image$" {
-    ...                                          # same proxy lines, timeouts and buffers as location /
-    proxy_cache mattermost_cache;                # cache profile images
-    proxy_cache_revalidate on;                   # refresh stale entries with conditional requests
-    proxy_cache_min_uses 2;                      # cache an image after its second request
-    proxy_cache_use_stale timeout;               # serve the cached image if Mattermost times out
-    proxy_cache_lock on;                         # one request fills the cache for an image
-    proxy_ignore_headers Cache-Control Expires;  # Mattermost marks images private, cache anyway
-    proxy_cache_valid 200 24h;                   # keep an image for 24 hours
-}
-```
-
 ### Implementation notes
 
 1.  **Replace IP addresses**: Update the backend server IPs (172.27.205.186, 172.27.213.167) with your actual Mattermost server addresses.
@@ -470,7 +452,16 @@ Set the Site URL to the exact public URL that clients use, including `https://` 
 "SiteURL": "https://mattermost.example.com",
 ```
 
-If clients load Mattermost from other origins, add those origins to the `AllowCorsFrom` setting. Your NGINX log helps you see which `Origin` and `Host` values clients send.
+If clients load Mattermost from other origins, add those origins to the `AllowCorsFrom` setting.
+
+The default `combined` access log doesn't record `Origin` and `Host`. To see which values clients send, add a temporary log to your site file and reload NGINX. Add the `log_format` line above the `upstream` block and the `access_log` line to the HTTPS server. Remove both lines when you're done.
+
+```nginx
+# log format with the Origin and Host headers
+log_format origin_check '$remote_addr "$request" $status origin="$http_origin" host="$http_host"';
+# write requests to a separate log file in that format
+access_log /var/log/nginx/origin-check.log origin_check;
+```
 
 ### How do I set up an NGINX proxy with the Mattermost Docker installation?
 

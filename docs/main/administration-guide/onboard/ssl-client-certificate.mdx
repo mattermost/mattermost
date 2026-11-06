@@ -113,6 +113,8 @@ server {
 
 Each location passes the client certificate and its subject to Mattermost, plus the certificate fingerprint as the device ID. Mattermost only uses the device ID when [`AccessControlSettings.TrustProxyDeviceIdentityHeader`](/administration-guide/manage/admin/session-attributes#trust-proxy-device-identity-header) is enabled. Read the warning on that page first.
 
+Set the same three headers in every other location that proxies to Mattermost, such as the subpath location from the [NGINX FAQ](/deployment-guide/server/setup-nginx-proxy#why-am-i-seeing-the-error-too-many-redirects). A location without them forwards any value that a client sends.
+
 6.  Confirm the CA key for `mmuser` works by the following curl command to the proxy:
 
 ``` sh
