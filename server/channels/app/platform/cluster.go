@@ -193,7 +193,7 @@ func (ps *PlatformService) Publish(message *model.WebSocketEvent) {
 
 	ps.PublishSkipClusterSend(message)
 
-	if ps.clusterIFace != nil {
+	if cluster := ps.clusterIFace; cluster != nil {
 		data, err := message.ToJSON()
 		if err != nil {
 			mlog.Warn("Failed to encode message to JSON", mlog.Err(err))
@@ -213,7 +213,7 @@ func (ps *PlatformService) Publish(message *model.WebSocketEvent) {
 			cm.SendType = model.ClusterSendReliable
 		}
 
-		ps.clusterIFace.SendClusterMessage(cm)
+		cluster.SendClusterMessage(cm)
 	}
 }
 
