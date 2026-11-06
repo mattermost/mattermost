@@ -5,6 +5,7 @@ package model
 
 import (
 	"encoding/json"
+	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -103,4 +104,157 @@ func TestPropertyBoundsEqual(t *testing.T) {
 	assert.False(t, PropertyBoundsEqual(PropertyBounds{below}, PropertyBounds{belowSelf}), "different reference")
 	assert.False(t, PropertyBoundsEqual(PropertyBounds{below}, nil))
 	assert.False(t, PropertyBoundsEqual(PropertyBounds{below}, PropertyBounds{below, above}))
+}
+
+func TestPropertyFieldIsValidBounds(t *testing.T) {
+	below := func(ref PropertyBoundsReference) PropertyBoundsRule {
+		return PropertyBoundsRule{Operator: PropertyBoundsOperatorAtOrBelow, Reference: ref}
+	}
+	above := func(ref PropertyBoundsReference) PropertyBoundsRule {
+		return PropertyBoundsRule{Operator: PropertyBoundsOperatorAtOrAbove, Reference: ref}
+	}
+	parent, self := PropertyBoundsReferenceParent, PropertyBoundsReferenceSelf
+
+	// A linked channel rank field with no rules, which every case below adjusts.
+	field := func(mutate func(pf *PropertyField)) *PropertyField {
+		pf := &PropertyField{
+			ID:            NewId(),
+			GroupID:       NewId(),
+			Name:          "rank field",
+			Type:          PropertyFieldTypeRank,
+			ObjectType:    PropertyFieldObjectTypeChannel,
+			TargetType:    string(PropertyFieldTargetLevelSystem),
+			LinkedFieldID: NewPointer(NewId()),
+			CreateAt:      GetMillis(),
+			UpdateAt:      GetMillis(),
+		}
+		mutate(pf)
+		return pf
+	}
+
+	valid := map[string]func(pf *PropertyField){
+		"no rules, unstated mutability": func(pf *PropertyField) {},
+		"linked channel rank field with a parent rule and write_once": func(pf *PropertyField) {
+			pf.Bounds = PropertyBounds{below(parent)}
+			pf.Mutability = PropertyFieldMutabilityWriteOnce
+		},
+		"unlinked user rank field with raise-only": func(pf *PropertyField) {
+			pf.ObjectType = PropertyFieldObjectTypeUser
+			pf.LinkedFieldID = nil
+			pf.Bounds = PropertyBounds{above(self)}
+		},
+		"system field with write_once and no rules": func(pf *PropertyField) {
+			pf.ObjectType = PropertyFieldObjectTypeSystem
+			pf.Type = PropertyFieldTypeText
+			pf.LinkedFieldID = nil
+			pf.Mutability = PropertyFieldMutabilityWriteOnce
+		},
+		"empty mutability": func(pf *PropertyField) { pf.Mutability = "" },
+		"explicit mutable": func(pf *PropertyField) { pf.Mutability = PropertyFieldMutabilityMutable },
+		"post set_on_create": func(pf *PropertyField) {
+			pf.ObjectType = PropertyFieldObjectTypePost
+			pf.Mutability = PropertyFieldMutabilitySetOnCreate
+		},
+		"template with nothing set": func(pf *PropertyField) {
+			pf.ObjectType = PropertyFieldObjectTypeTemplate
+			pf.LinkedFieldID = nil
+		},
+		"four distinct rules": func(pf *PropertyField) {
+			pf.Bounds = PropertyBounds{below(parent), above(parent), below(self), above(self)}
+		},
+	}
+	for name, mutate := range valid {
+		t.Run("valid: "+name, func(t *testing.T) {
+			require.NoError(t, field(mutate).IsValid())
+		})
+	}
+
+	refused := []struct {
+		name      string
+		mutate    func(pf *PropertyField)
+		fieldName string
+	}{
+		{"unknown operator", func(pf *PropertyField) {
+			pf.Bounds = PropertyBounds{below(parent), {Operator: "nearly", Reference: parent}}
+		}, "bounds[1]"},
+		{"unknown reference", func(pf *PropertyField) {
+			pf.Bounds = PropertyBounds{{Operator: PropertyBoundsOperatorAtOrBelow, Reference: "sibling"}}
+		}, "bounds[0]"},
+		{"empty operator and reference", func(pf *PropertyField) { pf.Bounds = PropertyBounds{{}} }, "bounds[0]"},
+		{"empty reference", func(pf *PropertyField) {
+			pf.Bounds = PropertyBounds{{Operator: PropertyBoundsOperatorAtOrBelow}}
+		}, "bounds[0]"},
+		{"unknown mutability", func(pf *PropertyField) { pf.Mutability = "frozen" }, "mutability"},
+		{"too many rules", func(pf *PropertyField) {
+			pf.Bounds = make(PropertyBounds, PropertyFieldMaxBoundsRules+1)
+			for i := range pf.Bounds {
+				pf.Bounds[i] = below(parent)
+			}
+		}, "bounds"},
+		{"same rule twice", func(pf *PropertyField) { pf.Bounds = PropertyBounds{below(parent), above(parent), below(parent)} }, "bounds[2]"},
+		{"rule on a non-rank field", func(pf *PropertyField) {
+			pf.Type = PropertyFieldTypeSelect
+			pf.Bounds = PropertyBounds{below(parent)}
+		}, "bounds[0]"},
+		{"parent rule on an unlinked field", func(pf *PropertyField) {
+			pf.LinkedFieldID = nil
+			pf.Bounds = PropertyBounds{below(parent)}
+		}, "bounds[0]"},
+		{"parent rule on an object type with no parent", func(pf *PropertyField) {
+			pf.ObjectType = PropertyFieldObjectTypeSystem
+			pf.Bounds = PropertyBounds{below(parent)}
+		}, "bounds[0]"},
+		{"self rule with write_once", func(pf *PropertyField) {
+			pf.Bounds = PropertyBounds{above(self)}
+			pf.Mutability = PropertyFieldMutabilityWriteOnce
+		}, "bounds[0]"},
+		{"self rule with set_on_create", func(pf *PropertyField) {
+			pf.Bounds = PropertyBounds{below(parent), below(self)}
+			pf.Mutability = PropertyFieldMutabilitySetOnCreate
+		}, "bounds[1]"},
+		{"rule on a template field", func(pf *PropertyField) {
+			pf.ObjectType = PropertyFieldObjectTypeTemplate
+			pf.LinkedFieldID = nil
+			pf.Bounds = PropertyBounds{below(self)}
+		}, "bounds"},
+		{"mutability on a template field", func(pf *PropertyField) {
+			pf.ObjectType = PropertyFieldObjectTypeTemplate
+			pf.LinkedFieldID = nil
+			pf.Mutability = PropertyFieldMutabilityWriteOnce
+		}, "mutability"},
+		{"write_once on a session field", func(pf *PropertyField) {
+			pf.ObjectType = PropertyFieldObjectTypeSession
+			pf.LinkedFieldID = nil
+			pf.Mutability = PropertyFieldMutabilityWriteOnce
+		}, "mutability"},
+		{"set_on_create on a user field", func(pf *PropertyField) {
+			pf.ObjectType = PropertyFieldObjectTypeUser
+			pf.Mutability = PropertyFieldMutabilitySetOnCreate
+		}, "mutability"},
+		{"set_on_create on a system field", func(pf *PropertyField) {
+			pf.ObjectType = PropertyFieldObjectTypeSystem
+			pf.LinkedFieldID = nil
+			pf.Mutability = PropertyFieldMutabilitySetOnCreate
+		}, "mutability"},
+		// A later save that makes a held rule stop applying is refused at that save.
+		{"rank field with a rule changed to select", func(pf *PropertyField) {
+			pf.Bounds = PropertyBounds{below(parent)}
+			pf.Type = PropertyFieldTypeSelect
+		}, "bounds[0]"},
+		{"field with a parent rule unlinked", func(pf *PropertyField) {
+			pf.Bounds = PropertyBounds{below(parent)}
+			pf.LinkedFieldID = nil
+		}, "bounds[0]"},
+	}
+	for _, tc := range refused {
+		t.Run("refused: "+tc.name, func(t *testing.T) {
+			err := field(tc.mutate).IsValid()
+			require.Error(t, err)
+			var appErr *AppError
+			require.ErrorAs(t, err, &appErr)
+			assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+			assert.Equal(t, tc.fieldName, appErr.params["FieldName"])
+			assert.NotEmpty(t, appErr.params["Reason"])
+		})
+	}
 }

@@ -663,6 +663,10 @@ func (pf *PropertyField) IsValid() error {
 		}
 	}
 
+	if err := pf.validateBounds(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
