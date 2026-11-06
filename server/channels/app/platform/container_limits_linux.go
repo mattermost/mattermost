@@ -124,13 +124,19 @@ func parseCgroupV2Membership(contents string) (string, bool, error) {
 		if len(parts) != 3 || parts[0] != "0" || parts[1] != "" {
 			continue
 		}
-		membership := filepath.Clean(parts[2])
-		if !filepath.IsAbs(membership) {
+		if !filepath.IsAbs(parts[2]) {
 			return "", false, fmt.Errorf("invalid cgroup v2 membership path %q", parts[2])
 		}
-		return membership, true, nil
+		return parts[2], true, nil
 	}
 	return "", false, nil
+}
+
+// cleanCgroupPath cleans a cgroup path as a path relative to the cgroup
+// namespace root. Unlike filepath.Clean on the absolute path, it keeps leading
+// ".." elements, which point above the namespace root.
+func cleanCgroupPath(path string) string {
+	return filepath.Clean(strings.TrimLeft(path, "/"))
 }
 
 func resolveCgroupV2Dir(membership, contents string) (string, error) {
@@ -138,6 +144,7 @@ func resolveCgroupV2Dir(membership, contents string) (string, error) {
 		bestDir     string
 		bestRootLen int
 	)
+	cleanMembership := cleanCgroupPath(membership)
 	for line := range strings.SplitSeq(contents, "\n") {
 		fields := strings.Split(line, " ")
 		separator := slices.Index(fields, "-")
@@ -145,12 +152,13 @@ func resolveCgroupV2Dir(membership, contents string) (string, error) {
 			continue
 		}
 
-		root := filepath.Clean(mountInfoPathReplacer.Replace(fields[3]))
+		root := mountInfoPathReplacer.Replace(fields[3])
 		mountPoint := filepath.Clean(mountInfoPathReplacer.Replace(fields[4]))
 		if !filepath.IsAbs(root) || !filepath.IsAbs(mountPoint) {
 			continue
 		}
-		relative, err := filepath.Rel(root, membership)
+		root = cleanCgroupPath(root)
+		relative, err := filepath.Rel(root, cleanMembership)
 		if err != nil || relative == ".." || strings.HasPrefix(relative, ".."+string(filepath.Separator)) {
 			continue
 		}

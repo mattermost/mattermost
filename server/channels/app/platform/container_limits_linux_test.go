@@ -105,10 +105,30 @@ func TestGetCgroupV2Info(t *testing.T) {
 		assert.Equal(t, mountPoint, info.dir)
 	})
 
-	t.Run("namespace-relative mount root maps to private root", func(t *testing.T) {
-		mountPoint := filepath.Join(dir, "namespace-relative")
-		info := setTempCgroupLayout(t, dir, "/", "/../..", mountPoint)
-		assert.Equal(t, mountPoint, info.dir)
+	t.Run("mount root above the namespace root does not match the namespace root", func(t *testing.T) {
+		mountPoint := filepath.Join(dir, "ancestor-root")
+		resourcePaths.procSelfCgroup = writeTempCgroupFile(t, dir, "proc-self-cgroup-ancestor", "0::/\n")
+		resourcePaths.procSelfMountInfo = writeTempCgroupFile(t, dir, "proc-self-mountinfo-ancestor", "31 30 0:28 /../.. "+mountPoint+" rw - cgroup2 cgroup rw\n")
+		writeTempCgroupFile(t, mountPoint, "memory.max", "max\n")
+
+		_, err := getCgroupV2Info()
+		require.ErrorContains(t, err, "no matching cgroup2 mount")
+	})
+
+	t.Run("membership outside the namespace maps through an ancestor mount root", func(t *testing.T) {
+		mountPoint := filepath.Join(dir, "outside-namespace")
+		info := setTempCgroupLayout(t, dir, "/../../init", "/../..", mountPoint)
+		assert.Equal(t, filepath.Join(mountPoint, "init"), info.dir)
+	})
+
+	t.Run("membership outside the namespace does not match a namespace mount", func(t *testing.T) {
+		mountPoint := filepath.Join(dir, "namespace-mount")
+		resourcePaths.procSelfCgroup = writeTempCgroupFile(t, dir, "proc-self-cgroup-outside", "0::/../../init\n")
+		resourcePaths.procSelfMountInfo = writeTempCgroupFile(t, dir, "proc-self-mountinfo-outside", "31 30 0:28 / "+mountPoint+" rw - cgroup2 cgroup rw\n")
+		writeTempCgroupFile(t, filepath.Join(mountPoint, "init"), "memory.max", "max\n")
+
+		_, err := getCgroupV2Info()
+		require.ErrorContains(t, err, "no matching cgroup2 mount")
 	})
 
 	t.Run("membership preserves trailing spaces", func(t *testing.T) {
