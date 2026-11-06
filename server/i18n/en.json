@@ -6350,11 +6350,6 @@
     "description": "Login error; {{.Service}} is the OAuth provider name whose returned user object could not be parsed."
   },
   {
-    "id": "api.user.login_cws.license.error",
-    "translation": "CWS login is forbidden.",
-    "description": "Login error when a Customer Web Server (CWS) portal login is attempted where it is not permitted; 'CWS' is the Mattermost customer portal."
-  },
-  {
     "id": "api.user.login_ldap.not_available.app_error",
     "translation": "AD/LDAP not available on this server.",
     "description": "Login error when AD/LDAP sign-in is attempted but LDAP is not configured or licensed on the server."
