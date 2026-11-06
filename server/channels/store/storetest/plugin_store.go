@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -24,6 +25,7 @@ func TestPluginStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore)
 	t.Run("DeleteAllForPlugin", func(t *testing.T) { testPluginDeleteAllForPlugin(t, rctx, ss) })
 	t.Run("DeleteAllExpired", func(t *testing.T) { testPluginDeleteAllExpired(t, rctx, ss) })
 	t.Run("List", func(t *testing.T) { testPluginList(t, rctx, ss) })
+	t.Run("ListWithOptions", func(t *testing.T) { testPluginListWithOptions(t, rctx, ss) })
 }
 
 func setupKVs(t *testing.T, rctx request.CTX, ss store.Store) (string, func()) {
@@ -1356,5 +1358,226 @@ func testPluginList(t *testing.T, rctx request.CTX, ss store.Store) {
 			require.NoError(t, err)
 			require.Len(t, keys2, 1)
 		})
+	})
+}
+
+func testPluginListWithOptions(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("no match", func(t *testing.T) {
+		pluginID := model.NewId()
+
+		kv := &model.PluginKeyValue{
+			PluginId: pluginID,
+			Key:      "alpha_1",
+			Value:    []byte("v"),
+			ExpireAt: 0,
+		}
+		_, err := ss.Plugin().SaveOrUpdate(kv)
+		require.NoError(t, err)
+
+		keys, err := ss.Plugin().ListWithOptions(pluginID, model.PluginKVListOptions{Prefix: "beta_"}, 0, 100)
+		require.NoError(t, err)
+		assert.Empty(t, keys)
+	})
+
+	t.Run("partial match", func(t *testing.T) {
+		pluginID := model.NewId()
+
+		for _, key := range []string{"alpha_1", "alpha_2", "beta_1", "beta_2"} {
+			kv := &model.PluginKeyValue{
+				PluginId: pluginID,
+				Key:      key,
+				Value:    []byte("v"),
+				ExpireAt: 0,
+			}
+			_, err := ss.Plugin().SaveOrUpdate(kv)
+			require.NoError(t, err)
+		}
+
+		keys, err := ss.Plugin().ListWithOptions(pluginID, model.PluginKVListOptions{Prefix: "alpha_"}, 0, 100)
+		require.NoError(t, err)
+		assert.ElementsMatch(t, []string{"alpha_1", "alpha_2"}, keys)
+	})
+
+	t.Run("all match", func(t *testing.T) {
+		pluginID := model.NewId()
+
+		for _, key := range []string{"prefix_a", "prefix_b", "prefix_c"} {
+			kv := &model.PluginKeyValue{
+				PluginId: pluginID,
+				Key:      key,
+				Value:    []byte("v"),
+				ExpireAt: 0,
+			}
+			_, err := ss.Plugin().SaveOrUpdate(kv)
+			require.NoError(t, err)
+		}
+
+		keys, err := ss.Plugin().ListWithOptions(pluginID, model.PluginKVListOptions{Prefix: "prefix_"}, 0, 100)
+		require.NoError(t, err)
+		assert.ElementsMatch(t, []string{"prefix_a", "prefix_b", "prefix_c"}, keys)
+	})
+
+	t.Run("SQL wildcard escaping", func(t *testing.T) {
+		pluginID := model.NewId()
+
+		for _, key := range []string{"100%_done", "100%_todo", "100x_other"} {
+			kv := &model.PluginKeyValue{
+				PluginId: pluginID,
+				Key:      key,
+				Value:    []byte("v"),
+				ExpireAt: 0,
+			}
+			_, err := ss.Plugin().SaveOrUpdate(kv)
+			require.NoError(t, err)
+		}
+
+		keys, err := ss.Plugin().ListWithOptions(pluginID, model.PluginKVListOptions{Prefix: "100%_"}, 0, 100)
+		require.NoError(t, err)
+		assert.ElementsMatch(t, []string{"100%_done", "100%_todo"}, keys)
+	})
+
+	t.Run("SQL underscore escaping", func(t *testing.T) {
+		pluginID := model.NewId()
+
+		for _, key := range []string{"a_b_1", "a_b_2", "axb_3"} {
+			kv := &model.PluginKeyValue{
+				PluginId: pluginID,
+				Key:      key,
+				Value:    []byte("v"),
+				ExpireAt: 0,
+			}
+			_, err := ss.Plugin().SaveOrUpdate(kv)
+			require.NoError(t, err)
+		}
+
+		keys, err := ss.Plugin().ListWithOptions(pluginID, model.PluginKVListOptions{Prefix: "a_b_"}, 0, 100)
+		require.NoError(t, err)
+		assert.ElementsMatch(t, []string{"a_b_1", "a_b_2"}, keys)
+	})
+
+	t.Run("backslash in prefix is matched literally", func(t *testing.T) {
+		pluginID := model.NewId()
+
+		for _, key := range []string{`a\b_1`, "ab_1"} {
+			kv := &model.PluginKeyValue{
+				PluginId: pluginID,
+				Key:      key,
+				Value:    []byte("v"),
+				ExpireAt: 0,
+			}
+			_, err := ss.Plugin().SaveOrUpdate(kv)
+			require.NoError(t, err)
+		}
+
+		keys, err := ss.Plugin().ListWithOptions(pluginID, model.PluginKVListOptions{Prefix: `a\b`}, 0, 100)
+		require.NoError(t, err)
+		assert.Equal(t, []string{`a\b_1`}, keys)
+	})
+
+	t.Run("asterisk in prefix is matched literally", func(t *testing.T) {
+		pluginID := model.NewId()
+
+		for _, key := range []string{"a*%_1", "a*%b", "ab_1"} {
+			kv := &model.PluginKeyValue{
+				PluginId: pluginID,
+				Key:      key,
+				Value:    []byte("v"),
+				ExpireAt: 0,
+			}
+			_, err := ss.Plugin().SaveOrUpdate(kv)
+			require.NoError(t, err)
+		}
+
+		keys, err := ss.Plugin().ListWithOptions(pluginID, model.PluginKVListOptions{Prefix: "a*%_"}, 0, 100)
+		require.NoError(t, err)
+		assert.Equal(t, []string{"a*%_1"}, keys)
+	})
+
+	t.Run("pagination with prefix", func(t *testing.T) {
+		pluginID := model.NewId()
+
+		for i := range 10 {
+			kv := &model.PluginKeyValue{
+				PluginId: pluginID,
+				Key:      fmt.Sprintf("p_%02d", i),
+				Value:    []byte("v"),
+				ExpireAt: 0,
+			}
+			_, err := ss.Plugin().SaveOrUpdate(kv)
+			require.NoError(t, err)
+		}
+
+		// Also add some non-matching keys
+		for i := range 5 {
+			kv := &model.PluginKeyValue{
+				PluginId: pluginID,
+				Key:      fmt.Sprintf("other_%02d", i),
+				Value:    []byte("v"),
+				ExpireAt: 0,
+			}
+			_, err := ss.Plugin().SaveOrUpdate(kv)
+			require.NoError(t, err)
+		}
+
+		keys1, err := ss.Plugin().ListWithOptions(pluginID, model.PluginKVListOptions{Prefix: "p_"}, 0, 4)
+		require.NoError(t, err)
+		assert.Equal(t, []string{"p_00", "p_01", "p_02", "p_03"}, keys1)
+
+		keys2, err := ss.Plugin().ListWithOptions(pluginID, model.PluginKVListOptions{Prefix: "p_"}, 4, 4)
+		require.NoError(t, err)
+		assert.Equal(t, []string{"p_04", "p_05", "p_06", "p_07"}, keys2)
+
+		keys3, err := ss.Plugin().ListWithOptions(pluginID, model.PluginKVListOptions{Prefix: "p_"}, 8, 4)
+		require.NoError(t, err)
+		assert.Equal(t, []string{"p_08", "p_09"}, keys3)
+	})
+
+	t.Run("expired keys excluded", func(t *testing.T) {
+		pluginID := model.NewId()
+
+		kv1 := &model.PluginKeyValue{
+			PluginId: pluginID,
+			Key:      "test_active",
+			Value:    []byte("v"),
+			ExpireAt: 0,
+		}
+		_, err := ss.Plugin().SaveOrUpdate(kv1)
+		require.NoError(t, err)
+
+		kv2 := &model.PluginKeyValue{
+			PluginId: pluginID,
+			Key:      "test_expired",
+			Value:    []byte("v"),
+			ExpireAt: 1,
+		}
+		_, err = ss.Plugin().SaveOrUpdate(kv2)
+		require.NoError(t, err)
+
+		keys, err := ss.Plugin().ListWithOptions(pluginID, model.PluginKVListOptions{Prefix: "test_"}, 0, 100)
+		require.NoError(t, err)
+		assert.Equal(t, []string{"test_active"}, keys)
+	})
+
+	t.Run("empty prefix behaves like List", func(t *testing.T) {
+		pluginID := model.NewId()
+
+		for _, key := range []string{"a", "b", "c"} {
+			kv := &model.PluginKeyValue{
+				PluginId: pluginID,
+				Key:      key,
+				Value:    []byte("v"),
+				ExpireAt: 0,
+			}
+			_, err := ss.Plugin().SaveOrUpdate(kv)
+			require.NoError(t, err)
+		}
+
+		keysWithOptions, err := ss.Plugin().ListWithOptions(pluginID, model.PluginKVListOptions{}, 0, 100)
+		require.NoError(t, err)
+
+		keysList, err := ss.Plugin().List(pluginID, 0, 100)
+		require.NoError(t, err)
+
+		assert.Equal(t, keysList, keysWithOptions)
 	})
 }

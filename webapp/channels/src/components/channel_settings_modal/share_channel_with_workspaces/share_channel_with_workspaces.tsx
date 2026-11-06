@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {FormattedMessage, defineMessage, useIntl} from 'react-intl';
 
 import {Switch} from '@mattermost/compass-ui/components/switch';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
@@ -10,6 +10,10 @@ import type {RemoteCluster} from '@mattermost/types/remote_clusters';
 import type {RemoteClusterInfo} from '@mattermost/types/shared_channels';
 
 import {Client4} from 'mattermost-redux/client';
+
+import type {KindMessages} from 'utils/channel_kind';
+
+import type {ChannelKind} from 'types/store/plugins';
 
 import AddWorkspaceDropdown, {type RemoteToAdd} from './add_workspace_dropdown';
 import type {WorkspaceWithStatus} from './types';
@@ -25,6 +29,9 @@ type Props = {
     onRemotesChange: React.Dispatch<React.SetStateAction<WorkspaceWithStatus[]>>;
     enabled: boolean;
     onToggle?: (enabled: boolean) => void;
+
+    /** The kind of the channel being shared, which picks the words: "board" rather than "channel" for a board. */
+    channelKind?: ChannelKind;
 };
 
 const emptyRemotes: RemoteClusterInfo[] = [];
@@ -35,6 +42,7 @@ export default function ShareChannelWithWorkspaces({
     onRemotesChange,
     enabled,
     onToggle,
+    channelKind = 'channel',
 }: Props) {
     const {formatMessage} = useIntl();
 
@@ -104,10 +112,8 @@ export default function ShareChannelWithWorkspaces({
         id: 'channel_settings.share_channel_with_workspaces.title',
         defaultMessage: 'Share with connected workspaces',
     });
-    const subheading = formatMessage({
-        id: 'channel_settings.share_channel_with_workspaces.description',
-        defaultMessage: 'Collaborate with trusted organizations in this channel.',
-    });
+    const subheading = formatMessage(messages.description[channelKind]);
+    const listHeader = remotes.length > 0 ? messages.workspacesLabel : messages.workspacesLabelEmpty;
 
     return (
         <div className='channel_shared_with_workspaces_container'>
@@ -154,17 +160,7 @@ export default function ShareChannelWithWorkspaces({
             {hasAvailableWorkspaces && enabled && (
                 <div className='channel_shared_with_workspaces_section_body'>
                     <span className='ShareChannelWithWorkspaces__listHeader'>
-                        {remotes.length > 0 ? (
-                            <FormattedMessage
-                                id='channel_settings.share_channel_with_workspaces.workspaces_label'
-                                defaultMessage='Workspaces this channel is shared with'
-                            />
-                        ) : (
-                            <FormattedMessage
-                                id='channel_settings.share_channel_with_workspaces.workspaces_label_empty'
-                                defaultMessage='This channel is not shared with any connected workspaces yet.'
-                            />
-                        )}
+                        <FormattedMessage {...listHeader[channelKind]}/>
                     </span>
 
                     <WorkspaceList
@@ -182,3 +178,36 @@ export default function ShareChannelWithWorkspaces({
         </div>
     );
 }
+
+const messages = {
+    description: {
+        channel: defineMessage({
+            id: 'channel_settings.share_channel_with_workspaces.description',
+            defaultMessage: 'Collaborate with trusted organizations in this channel.',
+        }),
+        board: defineMessage({
+            id: 'channel_settings.share_channel_with_workspaces.description.board',
+            defaultMessage: 'Collaborate with trusted organizations in this board.',
+        }),
+    },
+    workspacesLabel: {
+        channel: defineMessage({
+            id: 'channel_settings.share_channel_with_workspaces.workspaces_label',
+            defaultMessage: 'Workspaces this channel is shared with',
+        }),
+        board: defineMessage({
+            id: 'channel_settings.share_channel_with_workspaces.workspaces_label.board',
+            defaultMessage: 'Workspaces this board is shared with',
+        }),
+    },
+    workspacesLabelEmpty: {
+        channel: defineMessage({
+            id: 'channel_settings.share_channel_with_workspaces.workspaces_label_empty',
+            defaultMessage: 'This channel is not shared with any connected workspaces yet.',
+        }),
+        board: defineMessage({
+            id: 'channel_settings.share_channel_with_workspaces.workspaces_label_empty.board',
+            defaultMessage: 'This board is not shared with any connected workspaces yet.',
+        }),
+    },
+} satisfies Record<string, KindMessages>;

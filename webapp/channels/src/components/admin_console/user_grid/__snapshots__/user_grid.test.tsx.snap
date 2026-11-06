@@ -10,68 +10,103 @@ exports[`components/admin_console/user_grid/UserGrid should match snapshot with 
       class="DataGrid_search"
     >
       <div
-        class="DataGrid_searchBar"
+        class="DataGrid_searchControls"
       >
-        <span
-          aria-hidden="true"
-          class="DataGrid_searchIcon"
-        >
-          <i
-            class="fa fa-search"
-            title="Search Icon"
-          />
-        </span>
-        <input
-          data-testid="searchInput"
-          placeholder="Search"
-          type="text"
-          value=""
-        />
-        <i
-          class="DataGrid_clearButton fa fa-times-circle hidden"
-          data-testid="clear-search"
-        />
-      </div>
-      <div
-        class="Filter"
-      >
-        <button
-          class="Filter_button"
-          type="button"
-        >
-          <i
-            class="Icon icon-filter-variant"
-          />
-          Filters
-        </button>
         <div
-          class="Filter_content"
+          class="DataGrid_searchBar"
         >
-          <div
-            class="Filter_header"
+          <span
+            aria-hidden="true"
+            class="DataGrid_searchIcon"
           >
-            <div
-              class="Filter_title"
-            >
-              Filter by
-            </div>
-            <a
-              class="Filter_reset"
-            >
-              Reset filters
-            </a>
-          </div>
-          <hr />
-          <div
-            class="Filter_lists"
+            <i
+              class="fa fa-search"
+              title="Search Icon"
+            />
+          </span>
+          <input
+            data-testid="searchInput"
+            placeholder="Search"
+            type="text"
+            value=""
           />
+          <i
+            class="DataGrid_clearButton fa fa-times-circle hidden"
+            data-testid="clear-search"
+          />
+        </div>
+        <div
+          class="Filter"
+        >
           <button
-            class="btn btn-primary btn-sm Filter_apply"
-            disabled=""
+            aria-expanded="false"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-small_we8pe_53 Filter_button"
             type="button"
           >
-            Apply
+            <span
+              class="_button__icon-slot_we8pe_35"
+            >
+              <div
+                aria-hidden="true"
+                class="_icon_1i355_2 _icon--size-12_1i355_30"
+              >
+                <div
+                  class="_icon__glyph-area_1i355_9"
+                >
+                  <svg
+                    fill="currentColor"
+                    height="14"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="14"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M6,13H18V11H6M3,6V8H21V6M10,18H14V16H10V18Z"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </span>
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Filters
+            </span>
           </button>
+          <div
+            class="Filter_content"
+          >
+            <div
+              class="Filter_header"
+            >
+              <div
+                class="Filter_title"
+              >
+                Filter by
+              </div>
+              <a
+                class="Filter_reset"
+              >
+                Reset filters
+              </a>
+            </div>
+            <hr />
+            <div
+              class="Filter_lists"
+            />
+            <button
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-small_we8pe_53 Filter_apply"
+              disabled=""
+              type="button"
+            >
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Apply
+              </span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -242,25 +277,69 @@ exports[`components/admin_console/user_grid/UserGrid should match snapshot with 
         </span>
         <button
           aria-label="Previous page"
-          class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"
+          class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 ml-2 prev"
           disabled=""
           type="button"
         >
-          <i
-            class="icon icon-chevron-left"
-            title="Previous Icon"
-          />
+          <span
+            aria-hidden="true"
+            class="_icon-button__icon-slot_ft92e_41"
+          >
+            <div
+              aria-hidden="true"
+              class="_icon_1i355_2 _icon--size-16_1i355_38"
+            >
+              <div
+                class="_icon__glyph-area_1i355_9"
+              >
+                <svg
+                  fill="currentColor"
+                  height="18"
+                  version="1.1"
+                  viewBox="0 0 24 24"
+                  width="18"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M15.41,16.58L10.83,12L15.41,7.41L14,6L8,12L14,18L15.41,16.58Z"
+                  />
+                </svg>
+              </div>
+            </div>
+          </span>
         </button>
         <button
           aria-label="Next page"
-          class="btn btn-quaternary btn-icon btn-sm next disabled"
+          class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 next"
           disabled=""
           type="button"
         >
-          <i
-            class="icon icon-chevron-right"
-            title="Next Icon"
-          />
+          <span
+            aria-hidden="true"
+            class="_icon-button__icon-slot_ft92e_41"
+          >
+            <div
+              aria-hidden="true"
+              class="_icon_1i355_2 _icon--size-16_1i355_38"
+            >
+              <div
+                class="_icon__glyph-area_1i355_9"
+              >
+                <svg
+                  fill="currentColor"
+                  height="18"
+                  version="1.1"
+                  viewBox="0 0 24 24"
+                  width="18"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"
+                  />
+                </svg>
+              </div>
+            </div>
+          </span>
         </button>
       </div>
     </div>
@@ -278,68 +357,103 @@ exports[`components/admin_console/user_grid/UserGrid should match snapshot with 
       class="DataGrid_search"
     >
       <div
-        class="DataGrid_searchBar"
+        class="DataGrid_searchControls"
       >
-        <span
-          aria-hidden="true"
-          class="DataGrid_searchIcon"
-        >
-          <i
-            class="fa fa-search"
-            title="Search Icon"
-          />
-        </span>
-        <input
-          data-testid="searchInput"
-          placeholder="Search"
-          type="text"
-          value=""
-        />
-        <i
-          class="DataGrid_clearButton fa fa-times-circle hidden"
-          data-testid="clear-search"
-        />
-      </div>
-      <div
-        class="Filter"
-      >
-        <button
-          class="Filter_button"
-          type="button"
-        >
-          <i
-            class="Icon icon-filter-variant"
-          />
-          Filters
-        </button>
         <div
-          class="Filter_content"
+          class="DataGrid_searchBar"
         >
-          <div
-            class="Filter_header"
+          <span
+            aria-hidden="true"
+            class="DataGrid_searchIcon"
           >
-            <div
-              class="Filter_title"
-            >
-              Filter by
-            </div>
-            <a
-              class="Filter_reset"
-            >
-              Reset filters
-            </a>
-          </div>
-          <hr />
-          <div
-            class="Filter_lists"
+            <i
+              class="fa fa-search"
+              title="Search Icon"
+            />
+          </span>
+          <input
+            data-testid="searchInput"
+            placeholder="Search"
+            type="text"
+            value=""
           />
+          <i
+            class="DataGrid_clearButton fa fa-times-circle hidden"
+            data-testid="clear-search"
+          />
+        </div>
+        <div
+          class="Filter"
+        >
           <button
-            class="btn btn-primary btn-sm Filter_apply"
-            disabled=""
+            aria-expanded="false"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-small_we8pe_53 Filter_button"
             type="button"
           >
-            Apply
+            <span
+              class="_button__icon-slot_we8pe_35"
+            >
+              <div
+                aria-hidden="true"
+                class="_icon_1i355_2 _icon--size-12_1i355_30"
+              >
+                <div
+                  class="_icon__glyph-area_1i355_9"
+                >
+                  <svg
+                    fill="currentColor"
+                    height="14"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="14"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M6,13H18V11H6M3,6V8H21V6M10,18H14V16H10V18Z"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </span>
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Filters
+            </span>
           </button>
+          <div
+            class="Filter_content"
+          >
+            <div
+              class="Filter_header"
+            >
+              <div
+                class="Filter_title"
+              >
+                Filter by
+              </div>
+              <a
+                class="Filter_reset"
+              >
+                Reset filters
+              </a>
+            </div>
+            <hr />
+            <div
+              class="Filter_lists"
+            />
+            <button
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-small_we8pe_53 Filter_apply"
+              disabled=""
+              type="button"
+            >
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Apply
+              </span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -585,25 +699,69 @@ exports[`components/admin_console/user_grid/UserGrid should match snapshot with 
         </span>
         <button
           aria-label="Previous page"
-          class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"
+          class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 ml-2 prev"
           disabled=""
           type="button"
         >
-          <i
-            class="icon icon-chevron-left"
-            title="Previous Icon"
-          />
+          <span
+            aria-hidden="true"
+            class="_icon-button__icon-slot_ft92e_41"
+          >
+            <div
+              aria-hidden="true"
+              class="_icon_1i355_2 _icon--size-16_1i355_38"
+            >
+              <div
+                class="_icon__glyph-area_1i355_9"
+              >
+                <svg
+                  fill="currentColor"
+                  height="18"
+                  version="1.1"
+                  viewBox="0 0 24 24"
+                  width="18"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M15.41,16.58L10.83,12L15.41,7.41L14,6L8,12L14,18L15.41,16.58Z"
+                  />
+                </svg>
+              </div>
+            </div>
+          </span>
         </button>
         <button
           aria-label="Next page"
-          class="btn btn-quaternary btn-icon btn-sm next disabled"
+          class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 next"
           disabled=""
           type="button"
         >
-          <i
-            class="icon icon-chevron-right"
-            title="Next Icon"
-          />
+          <span
+            aria-hidden="true"
+            class="_icon-button__icon-slot_ft92e_41"
+          >
+            <div
+              aria-hidden="true"
+              class="_icon_1i355_2 _icon--size-16_1i355_38"
+            >
+              <div
+                class="_icon__glyph-area_1i355_9"
+              >
+                <svg
+                  fill="currentColor"
+                  height="18"
+                  version="1.1"
+                  viewBox="0 0 24 24"
+                  width="18"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"
+                  />
+                </svg>
+              </div>
+            </div>
+          </span>
         </button>
       </div>
     </div>
@@ -621,68 +779,103 @@ exports[`components/admin_console/user_grid/UserGrid should match snapshot with 
       class="DataGrid_search"
     >
       <div
-        class="DataGrid_searchBar"
+        class="DataGrid_searchControls"
       >
-        <span
-          aria-hidden="true"
-          class="DataGrid_searchIcon"
-        >
-          <i
-            class="fa fa-search"
-            title="Search Icon"
-          />
-        </span>
-        <input
-          data-testid="searchInput"
-          placeholder="Search"
-          type="text"
-          value=""
-        />
-        <i
-          class="DataGrid_clearButton fa fa-times-circle hidden"
-          data-testid="clear-search"
-        />
-      </div>
-      <div
-        class="Filter"
-      >
-        <button
-          class="Filter_button"
-          type="button"
-        >
-          <i
-            class="Icon icon-filter-variant"
-          />
-          Filters
-        </button>
         <div
-          class="Filter_content"
+          class="DataGrid_searchBar"
         >
-          <div
-            class="Filter_header"
+          <span
+            aria-hidden="true"
+            class="DataGrid_searchIcon"
           >
-            <div
-              class="Filter_title"
-            >
-              Filter by
-            </div>
-            <a
-              class="Filter_reset"
-            >
-              Reset filters
-            </a>
-          </div>
-          <hr />
-          <div
-            class="Filter_lists"
+            <i
+              class="fa fa-search"
+              title="Search Icon"
+            />
+          </span>
+          <input
+            data-testid="searchInput"
+            placeholder="Search"
+            type="text"
+            value=""
           />
+          <i
+            class="DataGrid_clearButton fa fa-times-circle hidden"
+            data-testid="clear-search"
+          />
+        </div>
+        <div
+          class="Filter"
+        >
           <button
-            class="btn btn-primary btn-sm Filter_apply"
-            disabled=""
+            aria-expanded="false"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-small_we8pe_53 Filter_button"
             type="button"
           >
-            Apply
+            <span
+              class="_button__icon-slot_we8pe_35"
+            >
+              <div
+                aria-hidden="true"
+                class="_icon_1i355_2 _icon--size-12_1i355_30"
+              >
+                <div
+                  class="_icon__glyph-area_1i355_9"
+                >
+                  <svg
+                    fill="currentColor"
+                    height="14"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="14"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M6,13H18V11H6M3,6V8H21V6M10,18H14V16H10V18Z"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </span>
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Filters
+            </span>
           </button>
+          <div
+            class="Filter_content"
+          >
+            <div
+              class="Filter_header"
+            >
+              <div
+                class="Filter_title"
+              >
+                Filter by
+              </div>
+              <a
+                class="Filter_reset"
+              >
+                Reset filters
+              </a>
+            </div>
+            <hr />
+            <div
+              class="Filter_lists"
+            />
+            <button
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-small_we8pe_53 Filter_apply"
+              disabled=""
+              type="button"
+            >
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Apply
+              </span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -788,25 +981,69 @@ exports[`components/admin_console/user_grid/UserGrid should match snapshot with 
         </span>
         <button
           aria-label="Previous page"
-          class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"
+          class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 ml-2 prev"
           disabled=""
           type="button"
         >
-          <i
-            class="icon icon-chevron-left"
-            title="Previous Icon"
-          />
+          <span
+            aria-hidden="true"
+            class="_icon-button__icon-slot_ft92e_41"
+          >
+            <div
+              aria-hidden="true"
+              class="_icon_1i355_2 _icon--size-16_1i355_38"
+            >
+              <div
+                class="_icon__glyph-area_1i355_9"
+              >
+                <svg
+                  fill="currentColor"
+                  height="18"
+                  version="1.1"
+                  viewBox="0 0 24 24"
+                  width="18"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M15.41,16.58L10.83,12L15.41,7.41L14,6L8,12L14,18L15.41,16.58Z"
+                  />
+                </svg>
+              </div>
+            </div>
+          </span>
         </button>
         <button
           aria-label="Next page"
-          class="btn btn-quaternary btn-icon btn-sm next disabled"
+          class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 next"
           disabled=""
           type="button"
         >
-          <i
-            class="icon icon-chevron-right"
-            title="Next Icon"
-          />
+          <span
+            aria-hidden="true"
+            class="_icon-button__icon-slot_ft92e_41"
+          >
+            <div
+              aria-hidden="true"
+              class="_icon_1i355_2 _icon--size-16_1i355_38"
+            >
+              <div
+                class="_icon__glyph-area_1i355_9"
+              >
+                <svg
+                  fill="currentColor"
+                  height="18"
+                  version="1.1"
+                  viewBox="0 0 24 24"
+                  width="18"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"
+                  />
+                </svg>
+              </div>
+            </div>
+          </span>
         </button>
       </div>
     </div>

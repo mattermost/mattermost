@@ -504,6 +504,11 @@
         "RedisPassword": null,
         "RedisDB": null,
         "RedisCachePrefix": null,
+        "RedisEnableTLS": null,
+        "RedisTLSSkipVerify": null,
+        "RedisTLSCA": null,
+        "RedisTLSClientCert": null,
+        "RedisTLSClientKey": null,
         "DisableClientCache": null
     },
     "ClusterSettings": {
@@ -625,7 +630,8 @@
         "AutomaticPrepackagedPlugins": null,
         "RequirePluginSignature": null,
         "MarketplaceURL": null,
-        "SignaturePublicKeyFiles": null
+        "SignaturePublicKeyFiles": null,
+        "RestrictUnauthenticatedWebappPlugins": null
     },
     "DisplaySettings": {
         "CustomURLSchemes": null,
@@ -740,6 +746,7 @@
         "EnableAIRecaps": false,
         "IntegratedBoards": false,
         "EnableDocs": false,
+        "ProductRail": false,
         "CJKSearch": false,
         "AggregatePluginMetrics": false,
         "ManagedChannelCategories": false,
@@ -749,6 +756,7 @@
         "MobileEphemeralMode": false,
         "PropertyFieldRank": false,
         "PropertyFieldGraph": false,
+        "PropertyFieldPermissionsV3": false,
         "TeamMembershipAccessControl": false,
         "ChannelAttributes": false,
         "ChannelAttributesRequired": false,

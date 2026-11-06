@@ -18,12 +18,12 @@ const (
 
 // ldapRule checks the LDAP license feature before the config gate: the server ignores LDAP settings without it.
 func ldapRule(gate func(*healthcheck.Snapshot) (bool, bool), check func(*healthcheck.Snapshot) healthcheck.Result) func(*healthcheck.Snapshot) []healthcheck.Result {
-	return healthcheck.Licensed(func(f *model.Features) *bool { return f.LDAP }, healthcheck.Gate(gate, healthcheck.ReasonConfigUnavailable, check))
+	return healthcheck.Licensed(healthcheck.FeatureLDAP, healthcheck.Gate(gate, healthcheck.ReasonConfigUnavailable, check))
 }
 
 // samlRule checks the SAML license feature before SamlSettings.Enable: the server ignores SAML settings without it.
 func samlRule(check func(*healthcheck.Snapshot) healthcheck.Result) func(*healthcheck.Snapshot) []healthcheck.Result {
-	return healthcheck.Licensed(func(f *model.Features) *bool { return f.SAML }, healthcheck.Gate(samlEnabled, healthcheck.ReasonConfigUnavailable, check))
+	return healthcheck.Licensed(healthcheck.FeatureSAML, healthcheck.Gate(samlEnabled, healthcheck.ReasonConfigUnavailable, check))
 }
 
 // ldapEnabled matches the server's own test before probing LDAP: sync-only installs count.

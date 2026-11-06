@@ -5,7 +5,9 @@ import React, {type JSX} from 'react';
 import type {WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, defineMessage, injectIntl} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {ChevronDownIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {ChannelWithTeamData} from '@mattermost/types/channels';
 import {
     SyncableType,
@@ -698,12 +700,12 @@ export class GroupDetails extends React.PureComponent<Props, State> {
                                             type='button'
                                             id='add_team_or_channel'
                                             emphasis='primary'
+                                            trailingIcon={<Icon glyph={<ChevronDownIcon/>}/>}
                                         >
                                             <FormattedMessage
                                                 id='admin.group_settings.group_details.add_team_or_channel'
                                                 defaultMessage='Add Team or Channel'
                                             />
-                                            <i className={'fa fa-caret-down'}/>
                                         </Button>
                                         <Menu
                                             ariaLabel={this.props.intl.formatMessage({

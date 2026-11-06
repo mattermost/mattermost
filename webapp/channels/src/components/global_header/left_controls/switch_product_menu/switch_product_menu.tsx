@@ -14,12 +14,12 @@ import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import * as Menu from 'components/menu';
+import useProductRailShown from 'components/product_rail/use_product_rail_shown';
 
 import {isChannels} from 'utils/products';
 
 import ProductSwitcherAboutMenuItem from './switch_product_about_menuitem';
 import ProductSwitcherChannelsMenuItem from './switch_product_channels_menuitem';
-import ProductSwitcherCloudLimitsFooter from './switch_product_cloud_limits_footer';
 import ProductSwitcherCloudTrialMenuItem from './switch_product_cloud_trial_menuitem';
 import ProductSwitcherDownloadMenuItem from './switch_product_download_menuitem';
 import ProductSwitcherEditionMenuItem from './switch_product_edition_menuitem';
@@ -31,6 +31,8 @@ import ProductSwitcherSystemConsoleMenuItem from './switch_product_system_consol
 import ProductSwitcherUserGroupsMenuItem from './switch_product_user_groups_menuitem';
 
 import ProductBranding from '../product_branding';
+
+import '../../header_icon_button/header_icon_button.scss';
 
 export const ELEMENT_ID_FOR_SWITCH_PRODUCT_MENU = 'switchProductMenu';
 export const ELEMENT_ID_FOR_SWITCH_PRODUCT_MENU_BUTTON = 'switchProductMenuButton';
@@ -69,6 +71,10 @@ export function SwitchProductMenu(props: Props) {
 
     const isChannelsProductActive = isChannels(props.productId);
 
+    // The product rail lists Channels and every product, so the menu keeps only the rest. The rail
+    // needs a current team and isn't shown on mobile or backstage pages, so there the menu keeps them too.
+    const productRailShown = useProductRailShown();
+
     useEffect(() => {
         dispatch(getPrevTrialLicense());
     }, [dispatch]);
@@ -78,7 +84,7 @@ export function SwitchProductMenu(props: Props) {
             menuButton={{
                 id: ELEMENT_ID_FOR_SWITCH_PRODUCT_MENU_BUTTON,
 
-                // HeaderIconButton is the same classname as the HeaderIconButton component
+                // Styled by header_icon_button.scss, imported above
                 class: 'HeaderIconButton globalHeader-leftControls-productMenuButton',
 
                 // The branding sits inside the button so that clicking the product
@@ -100,22 +106,19 @@ export function SwitchProductMenu(props: Props) {
                 className: 'globalHeader-leftControls-productSwitcherMenu',
                 'aria-label': formatMessage({id: 'globalHeader.productSwitcherMenu.ariaLabel', defaultMessage: 'Product menu'}),
             }}
-            menuFooter={
-                <ProductSwitcherCloudLimitsFooter
-                    isUserAdmin={isUserAdmin}
-                    isCloudLicensed={isCloudLicensed}
-                    isFreeTrialSubscription={isFreeTrialSubscription}
-                />
-            }
         >
-            <ProductSwitcherChannelsMenuItem
-                isChannelsProductActive={isChannelsProductActive}
-            />
-            <ProductSwitcherProductsMenuItems
-                currentProductID={props.productId}
-            />
+            {!productRailShown && (
+                <ProductSwitcherChannelsMenuItem
+                    isChannelsProductActive={isChannelsProductActive}
+                />
+            )}
+            {!productRailShown && (
+                <ProductSwitcherProductsMenuItems
+                    currentProductID={props.productId}
+                />
+            )}
             <ProductSwitcherPluginMenuItems/>
-            <Menu.Separator/>
+            {!productRailShown && <Menu.Separator/>}
             <ProductSwitcherCloudTrialMenuItem
                 isUserAdmin={isUserAdmin}
                 isCloudLicensed={isCloudLicensed}

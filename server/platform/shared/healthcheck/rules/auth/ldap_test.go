@@ -177,6 +177,12 @@ func TestLdapSettingRules(t *testing.T) {
 	}
 }
 
+func withLeaderLicense(s *healthcheck.Snapshot, license model.SupportPacketLicense) *healthcheck.Snapshot {
+	leader, _ := s.Leader()
+	leader.Diagnostics.Diagnostics.License = license
+	return s
+}
+
 func TestLdapRecommendedAtScale(t *testing.T) {
 	t.Parallel()
 
@@ -223,6 +229,15 @@ func TestLdapRecommendedAtScale(t *testing.T) {
 			cfg.OpenIdSettings.Enable = new(true)
 		}), resolved},
 		{"OpenID setting absent", snapshot(new(int64(500)), func(cfg *model.Config) { cfg.OpenIdSettings.Enable = nil }), configUnavailable},
+		{"unlicensed", withLeaderLicense(snapshot(new(int64(101)), nil), model.SupportPacketLicense{}), resolved},
+		{"license without any named provider", withLeaderLicense(snapshot(new(int64(101)), nil), model.SupportPacketLicense{
+			SkuShortName: model.LicenseShortSkuProfessional,
+			Features:     &model.Features{LDAP: new(false), SAML: new(false), OpenId: new(false)},
+		}), resolved},
+		{"license with OpenID only", withLeaderLicense(snapshot(new(int64(101)), nil), model.SupportPacketLicense{
+			SkuShortName: model.LicenseShortSkuProfessional,
+			Features:     &model.Features{LDAP: new(false), SAML: new(false), OpenId: new(true)},
+		}), firingAt("101", 101)},
 	}
 
 	for _, tc := range testCases {
