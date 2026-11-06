@@ -38,10 +38,9 @@ func MakeScheduler(jobServer *jobs.JobServer, licenseFunc func() *model.License)
 	}
 }
 
-// ScheduleJob skips without an Enterprise license: the run would be a no-op, yet its job would
-// succeed and report the server as evaluated. The license is checked here rather than in
-// Enabled, which the framework only re-reads on config changes, so a license added later still
-// gets the next hourly run.
+// ScheduleJob skips without an Enterprise license, as the run would only fail. The license is
+// checked here rather than in Enabled, which the framework only re-reads on config changes, so
+// a license added later still gets the next hourly run.
 //
 // It also keeps runs from overlapping, which the framework doesn't: it passes pendingJobs but
 // PeriodicScheduler ignores it and creates a job every period. A job pending or in progress

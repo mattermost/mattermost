@@ -73,15 +73,18 @@ func (ch *Channels) stopHealthCheckWorkers() {
 }
 
 // RunHealthCheck performs one evaluation cycle over every connected node and stores the
-// resulting findings. It is a no-op unless the HealthDashboard feature flag is on and the
-// license is at least Enterprise.
+// resulting findings. It is a no-op unless the HealthDashboard feature flag is on, and fails
+// without at least an Enterprise license, so a job run then isn't recorded as an evaluation.
 func (a *App) RunHealthCheck(rctx request.CTX) error {
 	return a.runHealthCheck(rctx, NewHealthCheckService(a.Srv().Store(), a.Log()))
 }
 
 func (a *App) runHealthCheck(rctx request.CTX, svc *HealthCheckService) error {
-	if !a.Config().FeatureFlags.HealthDashboard || !model.MinimumEnterpriseLicense(a.License()) {
+	if !a.Config().FeatureFlags.HealthDashboard {
 		return nil
+	}
+	if !model.MinimumEnterpriseLicense(a.License()) {
+		return errors.New("health check requires an Enterprise license")
 	}
 
 	snapshot, err := a.BuildHealthSnapshot(rctx)
