@@ -40,6 +40,8 @@ export type PluginsState = {
         ChannelHeaderIcon: ChannelHeaderIconComponent[];
         ChannelHeaderButton: ChannelHeaderButtonAction[];
         MobileChannelHeaderButton: MobileChannelHeaderButtonAction[];
+        ChannelInfoMenu: ChannelInfoMenuAction[];
+        ChannelBookmarksMenu: ChannelBookmarksMenuAction[];
         AppBar: AppBarAction[];
         UserGuideDropdown: UserGuideDropdownAction[];
         FileUploadMethod: FileUploadMethodAction[];
@@ -182,6 +184,24 @@ export type ChannelHeaderAction = PluginComponent & {
     text: PluggableText;
     action: (channelId: string) => void;
     shouldRender: (state: GlobalState) => boolean;
+};
+
+export type ChannelInfoMenuAction = PluginComponent & {
+    icon: React.ReactNode;
+    text: PluggableText;
+    action: (channelId: string) => void;
+    shouldRender: (state: GlobalState, channel: Channel) => boolean;
+
+    // Optional trailing badge (e.g. item count), matching built-in Files / Members rows.
+    badge?: string | number | React.ReactNode;
+    opensSubpanel?: boolean;
+};
+
+export type ChannelBookmarksMenuAction = PluginComponent & {
+    icon: React.ReactNode;
+    text: PluggableText;
+    action: (channelId: string) => void;
+    shouldRender: (state: GlobalState, channelId: string) => boolean;
 };
 
 export type ChannelHeaderButtonAction = PluginComponent & {
