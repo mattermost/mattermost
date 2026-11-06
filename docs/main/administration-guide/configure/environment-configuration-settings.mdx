@@ -2940,7 +2940,7 @@ Typically set to **true** in a production environment.
 </colgroup>
 <tbody>
 <tr>
-<td><p>Configure Mattermost to log failed incoming webhook requests to console and/or file logs for debugging. Only request metadata, such as the webhook ID and error, is logged. Message content isn’t logged.</p><ul><li><strong>true</strong>: <strong>(Default)</strong> Failed incoming webhook requests are logged for debugging.</li><li><strong>false</strong>: Failed incoming webhook requests aren’t logged.</li></ul></td>
+<td><p>Configure Mattermost to log an additional debug entry for failed incoming webhook requests to console and/or file logs. The entry contains request metadata, such as the webhook ID and error ID. This setting doesn’t log the request payload.</p><ul><li><strong>true</strong>: <strong>(Default)</strong> The additional debug entry is logged for failed incoming webhook requests.</li><li><strong>false</strong>: The additional debug entry isn’t logged. Failed requests can still appear in the general request error logs.</li></ul></td>
 <td><ul><li>System Config path: <strong>Environment &gt; Logging</strong></li><li><code>config.json</code> setting: <code>LogSettings</code> &gt; <code>EnableWebhookDebugging</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_LOGSETTINGS_ENABLEWEBHOOKDEBUGGING</code></li></ul></td>
 </tr>
 </tbody>
@@ -2948,7 +2948,7 @@ Typically set to **true** in a production environment.
 
 <Note>
 
-Enable debug logs by changing the [file log level](#file-log-level) to `DEBUG` to also log failed incoming webhook requests, such as the webhook ID and error. Message content isn't logged.
+Enable debug logs by changing the [file log level](#file-log-level) to `DEBUG` to also log failed incoming webhook requests, such as the webhook ID and error ID. This setting doesn't log the request payload.
 
 </Note>
 
