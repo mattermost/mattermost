@@ -56,6 +56,7 @@ import type {GlobalState} from 'types/store';
 import {
     handleChannelUpdatedEvent,
     handleChannelAccessControlUpdatedEvent,
+    handleChannelMemberUpdatedEvent,
     handlePermissionPolicyUpdatedEvent,
     handleTeamAccessControlUpdatedEvent,
     handleEvent,
@@ -1281,14 +1282,7 @@ describe('handleCloudSubscriptionChanged', () => {
         const initialState = {
             entities: {
                 cloud: {
-                    limits: {
-                        messages: {
-                            history: 10000,
-                        },
-                        integrations: {
-                            enabled: 10,
-                        },
-                    },
+                    subscription: {...baseSubscription},
                 },
                 general: {
                     license: {
@@ -1297,11 +1291,6 @@ describe('handleCloudSubscriptionChanged', () => {
                 },
             },
         } as unknown as GlobalState;
-        const newLimits = {
-            messages: {
-                history: 10001,
-            },
-        };
 
         const newSubscription = {
             ...baseSubscription,
@@ -1310,7 +1299,6 @@ describe('handleCloudSubscriptionChanged', () => {
         const msg = wsMessage<WebSocketMessages.CloudSubscriptionChanged>({
             event: WebSocketEvents.CloudSubscriptionChanged,
             data: {
-                limits: newLimits,
                 subscription: newSubscription,
             },
         });
@@ -1321,48 +1309,7 @@ describe('handleCloudSubscriptionChanged', () => {
         expect(testStore.getActions()).toEqual([]);
     });
 
-    test('when on cloud, entirely replaces cloud limits in store', () => {
-        const initialState = {
-            entities: {
-                cloud: {
-                    limits: {
-                        messages: {
-                            history: 10000,
-                        },
-                        integrations: {
-                            enabled: 10,
-                        },
-                    },
-                },
-                general: {
-                    license: {
-                        Cloud: 'true',
-                    },
-                },
-            },
-        } as unknown as GlobalState;
-        const newLimits = {
-            messages: {
-                history: 10001,
-            },
-        };
-        const msg = wsMessage<WebSocketMessages.CloudSubscriptionChanged>({
-            event: WebSocketEvents.CloudSubscriptionChanged,
-            data: {
-                limits: newLimits,
-            },
-        });
-
-        const testStore = configureStore(initialState);
-        testStore.dispatch(handleCloudSubscriptionChanged(msg));
-
-        expect(testStore.getActions()).toContainEqual({
-            type: CloudTypes.RECEIVED_CLOUD_LIMITS,
-            data: newLimits,
-        });
-    });
-
-    test('when on cloud, entirely replaces cloud limits in store', () => {
+    test('when on cloud, replaces cloud subscription in store', () => {
         const initialState = {
             entities: {
                 cloud: {
@@ -2480,5 +2427,119 @@ describe('handleJobUpdated', () => {
         expect(testStore.getActions()).not.toContainEqual(
             expect.objectContaining({type: 'MOCK_GET_JOBS_BY_TYPE'}),
         );
+    });
+});
+
+// A read rule can target a system role or a channel role, so a change to the current
+// user's role can hide or reveal channels, and the channel list is reconciled at once.
+describe('channel read access on role changes', () => {
+    const channelPermissionActions = (enabled: boolean) => ({
+        entities: {general: {config: {FeatureFlagChannelPermissionActions: String(enabled)}}},
+    });
+
+    describe('system role', () => {
+        let originalState: typeof mockState;
+        beforeEach(() => {
+            originalState = mockState;
+        });
+        afterEach(() => {
+            mockState = originalState;
+        });
+
+        const roleUpdated = (userId: string) => ({
+            event: WebSocketEvents.UserRoleUpdated,
+            data: {user_id: userId, roles: 'system_user'},
+        } as unknown as WebSocketMessage);
+
+        test('reconciles when the role of the current user changes', () => {
+            mockState = mergeObjects(mockState, channelPermissionActions(true));
+
+            handleEvent(roleUpdated('currentUserId'));
+
+            expect(reconcileChannelReadAccess).toHaveBeenCalled();
+            expect(store.dispatch).toHaveBeenCalledWith({type: 'MOCK_RECONCILE_CHANNEL_READ_ACCESS'});
+        });
+
+        test('does not reconcile when the role of another user changes', () => {
+            mockState = mergeObjects(mockState, channelPermissionActions(true));
+
+            handleEvent(roleUpdated('user'));
+
+            expect(reconcileChannelReadAccess).not.toHaveBeenCalled();
+        });
+
+        test('does not reconcile while channel permission actions are off', () => {
+            mockState = mergeObjects(mockState, channelPermissionActions(false));
+
+            handleEvent(roleUpdated('currentUserId'));
+
+            expect(reconcileChannelReadAccess).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('channel role', () => {
+        const channelId = 'role-channel';
+        const member = {
+            channel_id: channelId,
+            user_id: 'currentUserId',
+            roles: 'channel_user',
+            scheme_user: true,
+            scheme_admin: false,
+            notify_props: {},
+        };
+        const stateWithMember = (enabled: boolean) => mergeObjects(mockState, mergeObjects(channelPermissionActions(enabled), {
+            entities: {channels: {myMembers: {[channelId]: member}}},
+        }));
+        const memberUpdated = (changes: Record<string, unknown>) => wsMessage<WebSocketMessages.ChannelMemberUpdated>({
+            data: {channelMember: JSON.stringify({...member, ...changes})},
+        });
+
+        test.each([
+            ['promoted through the scheme', {scheme_admin: true}],
+            ['given an explicit role', {roles: 'channel_user custom_role'}],
+        ])('reconciles when the current user is %s', (_, changes) => {
+            const testStore = configureStore(stateWithMember(true));
+
+            testStore.dispatch(handleChannelMemberUpdatedEvent(memberUpdated(changes)));
+
+            expect(testStore.getActions()).toContainEqual({type: 'MOCK_RECONCILE_CHANNEL_READ_ACCESS'});
+        });
+
+        test('invalidates the cached decisions for the channel when the role changes', () => {
+            const testStore = configureStore(stateWithMember(true));
+
+            testStore.dispatch(handleChannelMemberUpdatedEvent(memberUpdated({scheme_admin: true})));
+
+            expect(testStore.getActions()).toContainEqual({
+                type: RenderPermissionTypes.INVALIDATE_RENDER_DECISIONS_FOR_CHANNEL,
+                data: {channelId, generation: expect.any(Number)},
+            });
+        });
+
+        test('keeps the cached decisions when only notification preferences change', () => {
+            const testStore = configureStore(stateWithMember(true));
+
+            testStore.dispatch(handleChannelMemberUpdatedEvent(memberUpdated({notify_props: {desktop: 'none'}})));
+
+            expect(testStore.getActions()).not.toContainEqual(expect.objectContaining({
+                type: RenderPermissionTypes.INVALIDATE_RENDER_DECISIONS_FOR_CHANNEL,
+            }));
+        });
+
+        test('does not reconcile when only notification preferences change', () => {
+            const testStore = configureStore(stateWithMember(true));
+
+            testStore.dispatch(handleChannelMemberUpdatedEvent(memberUpdated({notify_props: {desktop: 'none'}})));
+
+            expect(reconcileChannelReadAccess).not.toHaveBeenCalled();
+        });
+
+        test('does not reconcile while channel permission actions are off', () => {
+            const testStore = configureStore(stateWithMember(false));
+
+            testStore.dispatch(handleChannelMemberUpdatedEvent(memberUpdated({scheme_admin: true})));
+
+            expect(reconcileChannelReadAccess).not.toHaveBeenCalled();
+        });
     });
 });

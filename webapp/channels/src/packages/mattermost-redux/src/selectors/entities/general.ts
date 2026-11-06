@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {ClientConfig, FeatureFlags, ClientLicense} from '@mattermost/types/config';
+import {POST_ATTRIBUTES_PROPERTY_GROUP_NAME} from '@mattermost/types/properties_post';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {GlobalState} from '@mattermost/types/store';
 
@@ -26,8 +27,16 @@ export function isPostAttributesEnabled(state: GlobalState): boolean {
     return getConfig(state).FeatureFlagPostAttributes === 'true';
 }
 
+export function isProductRailEnabled(state: GlobalState): boolean {
+    return getConfig(state).FeatureFlagProductRail === 'true';
+}
+
 export function isPostDeliveryTrackingEnabled(state: GlobalState): boolean {
     return getConfig(state).FeatureFlagPostDeliveryTracking === 'true';
+}
+
+export function getPostPropertyGroups(state: GlobalState): string | undefined {
+    return isPostAttributesEnabled(state) ? POST_ATTRIBUTES_PROPERTY_GROUP_NAME : undefined;
 }
 
 // Discoverable Private Channels is gated by the FeatureFlagDiscoverableChannels
@@ -91,6 +100,15 @@ export function isChannelPermissionPoliciesEnabled(state: GlobalState): boolean 
 export function isPolicySimulationEnabled(state: GlobalState): boolean {
     return isPermissionPoliciesEnabled(state) &&
         getConfig(state).FeatureFlagPolicySimulation === 'true';
+}
+
+/**
+ * Whether policies may use the channel permission actions
+ * (channel_read_access). The server rejects saving a policy that uses one
+ * while this is off, so the policy editors don't offer them.
+ */
+export function isChannelPermissionActionsEnabled(state: GlobalState): boolean {
+    return getConfig(state).FeatureFlagChannelPermissionActions === 'true';
 }
 
 export type PasswordConfig = {

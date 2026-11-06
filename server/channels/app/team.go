@@ -5,11 +5,11 @@ package app
 
 import (
 	"bytes"
-	"cmp"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
+	"maps"
 	"mime/multipart"
 	"net/http"
 	"net/url"
@@ -28,79 +28,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 )
-
-func (a *App) AdjustTeamsFromProductLimits(teamLimits *model.TeamsLimits) *model.AppError {
-	maxActiveTeams := *teamLimits.Active
-	teams, appErr := a.GetAllTeams()
-	if appErr != nil {
-		return appErr
-	}
-
-	if teams == nil {
-		return nil
-	}
-	// Sort the list of teams based on their creation date
-	slices.SortFunc(teams, func(a, b *model.Team) int {
-		return cmp.Compare(a.CreateAt, b.CreateAt)
-	})
-
-	var activeTeams []*model.Team
-	var cloudArchivedTeams []*model.Team
-	for _, team := range teams {
-		if team.DeleteAt == 0 {
-			activeTeams = append(activeTeams, team)
-		}
-		if team.DeleteAt > 0 && team.CloudLimitsArchived {
-			cloudArchivedTeams = append(cloudArchivedTeams, team)
-		}
-	}
-
-	if len(activeTeams) > maxActiveTeams {
-		// If there are more active teams than allowed, we must archive them
-		// Remove the first n elements (where n is the allowed number of teams) so they aren't archived
-
-		teamsToArchive := activeTeams[maxActiveTeams:]
-
-		for _, team := range teamsToArchive {
-			cloudLimitsArchived := true
-			// Archive the remainder
-			patch := model.TeamPatch{CloudLimitsArchived: &cloudLimitsArchived}
-			_, err := a.PatchTeam(team.Id, &patch)
-			if err != nil {
-				return err
-			}
-			err = a.SoftDeleteTeam(team.Id)
-			if err != nil {
-				return err
-			}
-		}
-	} else if len(activeTeams) < maxActiveTeams && len(cloudArchivedTeams) > 0 {
-		// If the number of activeTeams is less than the allowed limit, and there are some cloudArchivedTeams, we can restore these cloudArchivedTeams
-		activeTeamsBeforeLimit := maxActiveTeams - len(activeTeams)
-		teamsToRestore := cloudArchivedTeams
-		// If the number of active teams remaining before the limit is hit is fewer than the number of cloudArchivedTeams, trim the list (still according to CreateAt)
-		// Otherwise, we can restore all of the cloudArchivedTeams without hitting the limit, so don't filter the list
-		if activeTeamsBeforeLimit < len(cloudArchivedTeams) {
-			teamsToRestore = cloudArchivedTeams[:(activeTeamsBeforeLimit)]
-		}
-
-		cloudLimitsArchived := false
-		patch := &model.TeamPatch{CloudLimitsArchived: &cloudLimitsArchived}
-		for _, team := range teamsToRestore {
-			err := a.RestoreTeam(team.Id)
-			if err != nil {
-				return err
-			}
-
-			_, err = a.PatchTeam(team.Id, patch)
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
-}
 
 func (a *App) CreateTeam(rctx request.CTX, team *model.Team) (*model.Team, *model.AppError) {
 	rteam, err := a.ch.srv.teamService.CreateTeam(rctx, team)
@@ -1212,10 +1139,15 @@ func (a *App) AddTeamMemberByInviteId(rctx request.CTX, inviteId, userID string)
 	return teamMember, nil
 }
 
-func (a *App) GetTeamUnread(teamID, userID string) (*model.TeamUnread, *model.AppError) {
+func (a *App) GetTeamUnread(rctx request.CTX, teamID, userID string) (*model.TeamUnread, *model.AppError) {
 	channelUnreads, err := a.Srv().Store().Team().GetChannelUnreadsForTeam(teamID, userID)
 	if err != nil {
 		return nil, model.NewAppError("GetTeamUnread", "app.team.get_unread.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	denied, appErr := a.channelReadAccessDeniedChannelSet(rctx, userID)
+	if appErr != nil {
+		return nil, appErr
 	}
 
 	teamUnread := &model.TeamUnread{
@@ -1226,6 +1158,10 @@ func (a *App) GetTeamUnread(teamID, userID string) (*model.TeamUnread, *model.Ap
 		TeamId:           teamID,
 	}
 	for _, cu := range channelUnreads {
+		if _, ok := denied[cu.ChannelId]; ok {
+			continue
+		}
+
 		teamUnread.MentionCount += cu.MentionCount
 		teamUnread.MentionCountRoot += cu.MentionCountRoot
 
@@ -2002,16 +1938,25 @@ func (a *App) FindTeamByName(name string) bool {
 	return true
 }
 
-func (a *App) GetTeamsUnreadForUser(excludeTeamId string, userID string, includeCollapsedThreads bool) ([]*model.TeamUnread, *model.AppError) {
+func (a *App) GetTeamsUnreadForUser(rctx request.CTX, excludeTeamId string, userID string, includeCollapsedThreads bool) ([]*model.TeamUnread, *model.AppError) {
 	data, err := a.Srv().Store().Team().GetChannelUnreadsForAllTeams(excludeTeamId, userID)
 	if err != nil {
 		return nil, model.NewAppError("GetTeamsUnreadForUser", "app.team.get_unread.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	denied, appErr := a.channelReadAccessDeniedChannelSet(rctx, userID)
+	if appErr != nil {
+		return nil, appErr
+	}
+
 	members := []*model.TeamUnread{}
 	membersMap := make(map[string]*model.TeamUnread)
 
+	// A denied channel still lists its team, with nothing counted for it.
 	unreads := func(cu *model.ChannelUnread, tu *model.TeamUnread) *model.TeamUnread {
+		if _, ok := denied[cu.ChannelId]; ok {
+			return tu
+		}
 		tu.MentionCount += cu.MentionCount
 		tu.MentionCountRoot += cu.MentionCountRoot
 
@@ -2046,7 +1991,7 @@ func (a *App) GetTeamsUnreadForUser(excludeTeamId string, userID string, include
 	includeCollapsedThreads = includeCollapsedThreads && *a.Config().ServiceSettings.CollapsedThreads != model.CollapsedThreadsDisabled
 
 	if includeCollapsedThreads {
-		teamUnreads, err := a.Srv().Store().Thread().GetTeamsUnreadForUser(userID, teamIDs, a.IsPostPriorityEnabled())
+		teamUnreads, err := a.Srv().Store().Thread().GetTeamsUnreadForUser(userID, teamIDs, a.IsPostPriorityEnabled(), slices.Collect(maps.Keys(denied)))
 		if err != nil {
 			return nil, model.NewAppError("GetTeamsUnreadForUser", "app.team.get_unread.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}

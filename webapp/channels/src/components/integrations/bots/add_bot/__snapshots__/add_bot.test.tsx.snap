@@ -36,6 +36,32 @@ exports[`components/integrations/bots/AddBot blank 1`] = `
         >
           <label
             class="control-label col-sm-4"
+            for="displayName"
+          >
+            Display Name
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="displayName"
+              maxlength="64"
+              type="text"
+              value=""
+            />
+            <div
+              class="form__help"
+            >
+              (Optional) You can choose to display your bot's full name rather than its username.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
             for="username"
           >
             Username
@@ -78,42 +104,23 @@ exports[`components/integrations/bots/AddBot blank 1`] = `
                 src="test-file-stub"
               />
             </div>
-            <div
-              class="btn btn-primary btn-file"
-            >
-              Upload Image
-              <input
-                accept=".jpeg,.jpg,.png,.bmp"
-                class="btn-file__input"
-                type="file"
-              />
-            </div>
-          </div>
-        </div>
-        <div
-          class="form-group"
-        >
-          <label
-            class="control-label col-sm-4"
-            for="displayName"
-          >
-            Display Name
-          </label>
-          <div
-            class="col-md-5 col-sm-8"
-          >
             <input
-              class="form-control"
-              id="displayName"
-              maxlength="64"
-              type="text"
-              value=""
+              accept=".jpeg,.jpg,.png,.bmp"
+              aria-hidden="true"
+              class="hidden"
+              tabindex="-1"
+              type="file"
             />
-            <div
-              class="form__help"
+            <button
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+              type="button"
             >
-              (Optional) You can choose to display your bot's full name rather than its username.
-            </div>
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Upload Image
+              </span>
+            </button>
           </div>
         </div>
         <div
@@ -331,17 +338,25 @@ exports[`components/integrations/bots/AddBot blank 1`] = `
           class="backstage-form__footer"
         >
           <a
-            class="btn btn-tertiary"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
             href="/DN/integrations/bots"
           >
-            Cancel
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Cancel
+            </span>
           </a>
           <button
-            class="btn btn-primary"
+            class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
             id="saveBot"
             type="submit"
           >
-            Create Bot Account
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Create Bot Account
+            </span>
           </button>
         </div>
       </form>

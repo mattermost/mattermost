@@ -7,6 +7,9 @@ import {FormattedMessage, defineMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
 
+import {CheckIcon, ContentCopyIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {LogNodeKey} from '@mattermost/types/admin';
 
 import {useUser} from 'components/common/hooks/useUser';
@@ -18,7 +21,7 @@ import type {GlobalState} from 'types/store';
 
 import type {LogObjectWithAdditionalInfo} from './types';
 import useClipboardCopy from './use_clipboard_copy';
-import {formatLogValue} from './utils';
+import {formatLogValue, levelGroup} from './utils';
 
 import './log_list.scss';
 
@@ -26,6 +29,9 @@ type Props = {
     log: LogObjectWithAdditionalInfo;
     isExpanded: boolean;
     isFocused: boolean;
+
+    // Arrived in the latest live tail update
+    isNew?: boolean;
     onToggleExpand: (log: LogObjectWithAdditionalInfo) => void;
     onFocus: (log: LogObjectWithAdditionalInfo) => void;
     searchTerm: string;
@@ -202,12 +208,16 @@ function DetailValue({fieldKey, value}: {fieldKey: string; value: string}) {
     );
 }
 
-function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm, wrapText, showNode}: Props) {
+function LogRow({log, isExpanded, isFocused, isNew, onToggleExpand, onFocus, searchTerm, wrapText, showNode}: Props) {
     const [copyJsonStatus, copyJson] = useClipboardCopy();
     const [copyLineStatus, copyLine] = useClipboardCopy();
     const copyJsonSuccess = copyJsonStatus === 'copied';
     const copyLineSuccess = copyLineStatus === 'copied';
     const levelConfig = LEVEL_CONFIG[log.level];
+
+    // Levels such as fatal or trace keep their own name but take their group's color
+    const group = levelGroup(log.level);
+    const levelClassName = LEVEL_CONFIG[group ?? 'debug'].className;
 
     const handleClick = useCallback((e: React.MouseEvent<HTMLElement>) => {
         // Finishing a text selection in the row ends with a click, which shouldn't toggle it
@@ -252,8 +262,9 @@ function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm
         'LogRow--compact',
         isExpanded ? 'LogRow--expanded' : '',
         isFocused ? 'LogRow--focused' : '',
-        log.level === 'error' ? 'LogRow--error-bg' : '',
-        log.level === 'warn' ? 'LogRow--warn-bg' : '',
+        isNew ? 'LogRow--new' : '',
+        group === 'error' ? 'LogRow--error-bg' : '',
+        group === 'warn' ? 'LogRow--warn-bg' : '',
         wrapText || isExpanded ? 'LogRow--wrap' : 'LogRow--nowrap',
         showNode ? 'LogRow--with-node' : '',
     ].filter(Boolean).join(' ');
@@ -282,7 +293,7 @@ function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm
                 tabIndex={0}
                 aria-expanded={isExpanded}
             >
-                <span className={`LogRow__level ${levelConfig ? levelConfig.className : 'LogRow__level--debug'}`}>
+                <span className={`LogRow__level ${levelClassName}`}>
                     {levelConfig ? <FormattedMessage {...levelConfig.label}/> : log.level}
                 </span>
                 <span
@@ -296,7 +307,7 @@ function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm
                         className='LogRow__node'
                         title={log[LogNodeKey]}
                     >
-                        {highlightSearchTerm(log[LogNodeKey] ?? '', searchTerm)}
+                        {log[LogNodeKey]}
                     </span>
                 )}
                 <span className='LogRow__message'>
@@ -362,12 +373,12 @@ function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm
                     )}
 
                     <div className='LogRow__details-actions'>
-                        <button
-                            type='button'
-                            className='btn btn-sm btn-quaternary'
+                        <Button
+                            emphasis='tertiary'
+                            size='small'
                             onClick={handleCopyJson}
+                            leadingIcon={<Icon glyph={copyJsonSuccess ? <CheckIcon/> : <ContentCopyIcon/>}/>}
                         >
-                            <i className={copyJsonSuccess ? 'icon icon-check' : 'icon icon-content-copy'}/>
                             {copyJsonSuccess ? (
                                 <FormattedMessage
                                     id='admin.logs.copied'
@@ -379,16 +390,16 @@ function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm
                                     defaultMessage='Copy JSON'
                                 />
                             )}
-                        </button>
-                        <button
-                            type='button'
-                            className='btn btn-sm btn-quaternary'
+                        </Button>
+                        <Button
+                            emphasis='tertiary'
+                            size='small'
                             onClick={handleCopyLine}
+                            leadingIcon={<Icon glyph={copyLineSuccess ? <CheckIcon/> : <ContentCopyIcon/>}/>}
                         >
-                            <i className={copyLineSuccess ? 'icon icon-check' : 'icon icon-content-copy'}/>
                             {copyLineSuccess ? (
                                 <FormattedMessage
-                                    id='admin.logs.copiedLine'
+                                    id='admin.logs.copied'
                                     defaultMessage='Copied!'
                                 />
                             ) : (
@@ -397,7 +408,7 @@ function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm
                                     defaultMessage='Copy log line'
                                 />
                             )}
-                        </button>
+                        </Button>
                     </div>
                 </div>
             )}

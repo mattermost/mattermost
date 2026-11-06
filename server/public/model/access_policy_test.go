@@ -1883,6 +1883,28 @@ func TestChannelReadAccessAction(t *testing.T) {
 		require.True(t, policy.HasPermissionRuleAction())
 	})
 
+	t.Run("is gated by the ChannelPermissionActions flag", func(t *testing.T) {
+		require.True(t, IsChannelPermissionAction(AccessControlPolicyActionChannelReadAccess))
+		require.True(t, IsChannelPermissionAction(AccessControlPolicyActionChannelWriteAccess))
+		require.True(t, IsChannelPermissionAction(AccessControlPolicyActionChannelManagementAccess))
+		require.False(t, IsChannelPermissionAction(AccessControlPolicyActionUploadFileAttachment))
+		require.False(t, IsChannelPermissionAction(AccessControlPolicyActionMembership))
+
+		policy := &AccessControlPolicy{Rules: []AccessControlPolicyRule{
+			{Actions: []string{AccessControlPolicyActionMembership}},
+			{Actions: []string{AccessControlPolicyActionChannelReadAccess}},
+		}}
+		require.True(t, policy.HasChannelPermissionAction())
+
+		fileOnly := &AccessControlPolicy{Rules: []AccessControlPolicyRule{
+			{Actions: []string{AccessControlPolicyActionUploadFileAttachment}},
+		}}
+		require.False(t, fileOnly.HasChannelPermissionAction())
+
+		var nilPolicy *AccessControlPolicy
+		require.False(t, nilPolicy.HasChannelPermissionAction())
+	})
+
 	t.Run("accepted on a v0.3 system permission policy", func(t *testing.T) {
 		// Session attributes are allowed here, unlike on a membership rule.
 		policy := &AccessControlPolicy{
@@ -2059,6 +2081,56 @@ func TestChannelWriteAndManagementAccessActions(t *testing.T) {
 			}},
 		}
 		require.Nil(t, policy.IsValid())
+	})
+}
+
+// A v0.3 system permission policy's subject only ever carries system_admin, system_guest
+// or system_user and no channel role, so a channel-access rule shaped any other way would
+// save but never apply.
+func TestChannelAccessActionsOnPermissionPolicyRoles(t *testing.T) {
+	permissionPolicy := func(role, ruleRole, action string) *AccessControlPolicy {
+		return &AccessControlPolicy{
+			ID:      NewId(),
+			Type:    AccessControlPolicyTypePermission,
+			Name:    "Channel access",
+			Version: AccessControlPolicyVersionV0_3,
+			Roles:   []string{role},
+			Rules: []AccessControlPolicyRule{{
+				Role:       ruleRole,
+				Actions:    []string{action},
+				Expression: `user.attributes.dept == "eng"`,
+			}},
+		}
+	}
+
+	for _, action := range []string{
+		AccessControlPolicyActionChannelReadAccess,
+		AccessControlPolicyActionChannelWriteAccess,
+		AccessControlPolicyActionChannelManagementAccess,
+	} {
+		t.Run(action, func(t *testing.T) {
+			for _, role := range []string{SystemUserRoleId, SystemGuestRoleId, SystemAdminRoleId} {
+				t.Run("accepted for "+role, func(t *testing.T) {
+					require.Nil(t, permissionPolicy(role, "", action).IsValid())
+				})
+			}
+
+			t.Run("rejected for a custom system role", func(t *testing.T) {
+				appErr := permissionPolicy("custom_auditor", "", action).IsValid()
+				require.NotNil(t, appErr)
+				require.Equal(t, "model.access_policy.is_valid.actions.channel_access_policy_role.app_error", appErr.Id)
+			})
+
+			t.Run("rejected for a rule carrying a role", func(t *testing.T) {
+				appErr := permissionPolicy(SystemUserRoleId, ChannelUserRoleId, action).IsValid()
+				require.NotNil(t, appErr)
+				require.Equal(t, "model.access_policy.is_valid.actions.channel_access_rule_role.app_error", appErr.Id)
+			})
+		})
+	}
+
+	t.Run("file actions on a custom system role are left as they were", func(t *testing.T) {
+		require.Nil(t, permissionPolicy("custom_auditor", "", AccessControlPolicyActionUploadFileAttachment).IsValid())
 	})
 }
 

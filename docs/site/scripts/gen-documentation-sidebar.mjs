@@ -511,6 +511,7 @@ const ADMIN_MANAGE_GROUPS = {
     items: [
       'mmctl-command-line-tool',
       'command-line-tools',
+      'offline-documentation',
       'logging',
     ],
   },
@@ -571,7 +572,7 @@ const ADMIN_MANAGE_HIDDEN = new Set([
   'admin/attribute-based-access-control', 'admin/abac-system-wide-policies',
   'admin/abac-team-channel-policies', 'admin/abac-team-membership', 'admin/abac-channel-access-rules',
   'admin/session-attributes',
-  'command-line-tools', 'mmctl-command-line-tool', 'logging',
+  'command-line-tools', 'mmctl-command-line-tool', 'offline-documentation', 'logging',
   'admin/self-hosted-billing', 'admin/installing-license-key',
   'cloud-workspace-management', 'cloud-data-export', 'cloud-data-residency', 'cloud-ip-filtering',
   'cloud-byok',

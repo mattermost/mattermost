@@ -8,6 +8,7 @@ import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {act, renderWithContext, screen} from 'tests/react_testing_utils';
+import {boardChannelsState} from 'utils/channel_kind_test_utils';
 import {ModalIdentifiers} from 'utils/constants';
 
 import ChannelInfoRHS from './channel_info_rhs';
@@ -159,5 +160,24 @@ describe('channel_info_rhs', () => {
                 }),
             }),
         );
+    });
+
+    test('says the board is archived for an archived board', async () => {
+        props.channel = {id: 'board1', display_name: 'my board title', type: 'O'} as Channel;
+        props.isArchived = true;
+
+        renderWithContext(
+            <ChannelInfoRHS
+                {...props}
+            />,
+            boardChannelsState('board1'),
+        );
+
+        await act(async () => {
+            props.actions.getChannelStats();
+        });
+
+        expect(screen.getByText('This board is archived.')).toBeInTheDocument();
+        expect(screen.queryByText('This channel is archived.')).not.toBeInTheDocument();
     });
 });

@@ -51,6 +51,9 @@ func TestMigration000223(t *testing.T) {
 	store, err := New(*settings, logger, nil)
 	require.NoError(t, err)
 	defer store.Close()
+	// The test runs the down migration, which drops PropertyOptions out from
+	// under the AttributeView that 000242 builds on it.
+	defer withoutLegacyAttributeView(t, store)()
 
 	// New() applies all migrations, so 000223 is already in effect.
 	require.True(t, tableExists(t, store, "PropertyOptions"), "PropertyOptions should exist after migration")
@@ -529,17 +532,17 @@ func TestMigration000223(t *testing.T) {
 		t.Helper()
 		var hash string
 		require.NoError(t, store.GetMaster().Get(&hash,
-			`SELECT COALESCE(md5(string_agg(FieldID || ID || COALESCE(Name,'') || SortOrder || DeleteAt, '|' ORDER BY FieldID, ID)), '') FROM PropertyOptions`))
+			`SELECT COALESCE(encode(sha256(convert_to(string_agg(FieldID || ID || COALESCE(Name,'') || SortOrder || DeleteAt, '|' ORDER BY FieldID, ID), 'UTF8')), 'hex'), '') FROM PropertyOptions`))
 		return hash
 	}
 
-	// Down: first unwind 000236, whose live views read PropertyOptions and so
+	// Down: first unwind 000243, whose live views read PropertyOptions and so
 	// would block dropping it, then drop the CONCURRENTLY-built keys, then the
 	// options go back into every field's own blob, including a copy in each
 	// linked field, the blob-reading view bodies come back, and both tables go
 	// away.
-	_, err = store.GetMaster().ExecNoTimeout(readMigrationSQL(t, "000236_attribute_live_views.down.sql"))
-	require.NoError(t, err, "applying 000236 down")
+	_, err = store.GetMaster().ExecNoTimeout(readMigrationSQL(t, "000243_attribute_live_views.down.sql"))
+	require.NoError(t, err, "applying 000243 down")
 	for _, name := range indexDownSQL {
 		_, err = store.GetMaster().ExecNoTimeout(readMigrationSQL(t, name))
 		require.NoError(t, err, "applying %s", name)
@@ -593,9 +596,9 @@ func TestMigration000223(t *testing.T) {
 	require.NoError(t, err)
 	applyOptionIndexes(t)
 	for _, name := range []string{
-		"000236_attribute_live_views.up.sql",
-		"000237_create_userattributeview_target_index.up.sql",
-		"000238_create_channelattributeview_target_index.up.sql",
+		"000243_attribute_live_views.up.sql",
+		"000244_create_userattributeview_target_index.up.sql",
+		"000245_create_channelattributeview_target_index.up.sql",
 	} {
 		_, err = store.GetMaster().ExecNoTimeout(readMigrationSQL(t, name))
 		require.NoError(t, err, "re-applying %s", name)

@@ -834,7 +834,7 @@ func testAttributesStoreSearchUsersBySubjectID(t *testing.T, rctx request.CTX, s
 	})
 }
 
-// testAttributesStoreGetSubjectIsLive pins the contract of migration 000236:
+// testAttributesStoreGetSubjectIsLive pins the contract of migration 000243:
 // GetSubject reads through the live attribute views, so a write is visible
 // without RefreshAttributes, and the live result is exactly what the
 // materialized view holds once it is refreshed. The drift guard covers every

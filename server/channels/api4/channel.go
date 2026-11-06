@@ -6,6 +6,7 @@ package api4
 import (
 	"encoding/json"
 	"net/http"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -259,7 +260,7 @@ func channelAttributeValuesForCreate(c *Context, channel *model.Channel, license
 
 	// The group's field budget is capped, so every caller reads one oversized page
 	// rather than paginating.
-	fields, appErr := c.App.SearchPropertyFields(c.AppContext, group.ID, model.PropertyFieldSearchOpts{
+	fields, appErr := c.App.SearchPropertyFields(app.RequestContextWithCallerID(c.AppContext, sessionCallerID(c)), group.ID, model.PropertyFieldSearchOpts{
 		GroupID:    group.ID,
 		ObjectType: model.PropertyFieldObjectTypeChannel,
 		TargetType: model.PropertyValueTargetTypeSystem,
@@ -481,6 +482,12 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	c.LogAudit("name=" + channel.Name)
 
+	// The response carries the channel's stored name, display name and props, not only
+	// what the caller sent.
+	if !sessionCanReadChannel(c, oldChannel.Id) {
+		oldChannel = channelWithoutContent(oldChannel)
+	}
+
 	if err := json.NewEncoder(w).Encode(oldChannel); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
@@ -550,6 +557,11 @@ func updateChannelPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventObjectType("channel")
 	auditRec.Success()
 	c.LogAudit("name=" + updatedChannel.Name)
+
+	// Setting the privacy it already has still returns the whole channel.
+	if !sessionCanReadChannel(c, updatedChannel.Id) {
+		updatedChannel = channelWithoutContent(updatedChannel)
+	}
 
 	if err := json.NewEncoder(w).Encode(updatedChannel); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
@@ -795,6 +807,10 @@ func restoreChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventObjectType("channel")
 	auditRec.Success()
 	c.LogAudit("name=" + channel.Name)
+
+	if !sessionCanReadChannel(c, channel.Id) {
+		channel = channelWithoutContent(channel)
+	}
 
 	if err := json.NewEncoder(w).Encode(channel); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
@@ -2269,7 +2285,9 @@ func getChannelMembersForTeamForUser(c *Context, w http.ResponseWriter, r *http.
 		return
 	}
 
-	members = c.App.FilterChannelMembersByReadAccess(c.AppContext, c.Params.UserId, members)
+	// Evaluated for the session, not the queried user, like getChannelsForUser: a
+	// requester acting for someone else must not learn of a channel their own policy denies.
+	members = c.App.FilterChannelMembersByReadAccess(c.AppContext, c.AppContext.Session().UserId, members)
 
 	// Sanitize members for current user
 	currentUserId := c.AppContext.Session().UserId
@@ -2708,9 +2726,11 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	// point below, because the public-channel self-add path is authorised on a team
 	// permission and never reaches that point. Joining is a read-tier action: a
 	// management rule that excludes non-members would otherwise make a channel you can
-	// plainly see unjoinable. Adding *other* users still gets the management gate, from
-	// the manage_*_channel_members checks below. Matches requestJoinChannel.
-	if !requireChannelReadAccess(c, channel) {
+	// plainly see unjoinable. So only a request that adds the caller is gated on read.
+	// Adding *other* users gets the management gate alone, from the manage_*_channel_members
+	// checks below, like /invite, team invites and member removal. Matches
+	// requestJoinChannel.
+	if slices.Contains(userIds, c.AppContext.Session().UserId) && !requireChannelReadAccess(c, channel) {
 		return
 	}
 
@@ -3335,6 +3355,13 @@ func patchChannelModerations(c *Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 	model.AddEventParameterAuditableToAuditRec(auditRec, "channel", channel)
+
+	// The same sysconsole permission as restoreChannel, gated the same way: moderations
+	// decide who may post and who may manage members. A system admin is never bound, so
+	// a policy that denies everyone else stays repairable.
+	if !requireChannelManagementAccess(c, channel) {
+		return
+	}
 
 	var channelModerationsPatch []*model.ChannelModerationPatch
 	err := json.NewDecoder(r.Body).Decode(&channelModerationsPatch)

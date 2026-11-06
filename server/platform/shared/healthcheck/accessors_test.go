@@ -235,21 +235,19 @@ func TestLicenseExpiresAt(t *testing.T) {
 func TestLicenseFeature(t *testing.T) {
 	t.Parallel()
 
-	ldap := func(f *model.Features) *bool { return f.LDAP }
-
 	t.Run("no license", func(t *testing.T) {
-		_, ok := (&Snapshot{}).LicenseFeature(ldap)
+		_, ok := (&Snapshot{}).LicenseFeature(FeatureLDAP)
 		require.False(t, ok)
 	})
 
 	t.Run("unlicensed", func(t *testing.T) {
-		value, ok := licensedSnapshot(model.SupportPacketLicense{}).LicenseFeature(ldap)
+		value, ok := licensedSnapshot(model.SupportPacketLicense{}).LicenseFeature(FeatureLDAP)
 		require.True(t, ok)
 		require.False(t, value)
 	})
 
 	t.Run("features not in packet", func(t *testing.T) {
-		_, ok := licensedSnapshot(model.SupportPacketLicense{SkuShortName: model.LicenseShortSkuEnterprise}).LicenseFeature(ldap)
+		_, ok := licensedSnapshot(model.SupportPacketLicense{SkuShortName: model.LicenseShortSkuEnterprise}).LicenseFeature(FeatureLDAP)
 		require.False(t, ok)
 	})
 
@@ -261,20 +259,20 @@ func TestLicenseFeature(t *testing.T) {
 
 	t.Run("unset feature value", func(t *testing.T) {
 		s := licensedSnapshot(model.SupportPacketLicense{Features: &model.Features{}})
-		_, ok := s.LicenseFeature(ldap)
+		_, ok := s.LicenseFeature(FeatureLDAP)
 		require.False(t, ok)
 	})
 
 	t.Run("feature enabled", func(t *testing.T) {
 		s := licensedSnapshot(model.SupportPacketLicense{Features: &model.Features{LDAP: new(true)}})
-		value, ok := s.LicenseFeature(ldap)
+		value, ok := s.LicenseFeature(FeatureLDAP)
 		require.True(t, ok)
 		require.True(t, value)
 	})
 
 	t.Run("feature disabled", func(t *testing.T) {
 		s := licensedSnapshot(model.SupportPacketLicense{Features: &model.Features{LDAP: new(false)}})
-		value, ok := s.LicenseFeature(ldap)
+		value, ok := s.LicenseFeature(FeatureLDAP)
 		require.True(t, ok)
 		require.False(t, value)
 	})
@@ -283,7 +281,6 @@ func TestLicenseFeature(t *testing.T) {
 func TestLicenseAllows(t *testing.T) {
 	t.Parallel()
 
-	ldap := func(f *model.Features) *bool { return f.LDAP }
 	enterprise := func(features *model.Features) *Snapshot {
 		return licensedSnapshot(model.SupportPacketLicense{SkuShortName: model.LicenseShortSkuEnterprise, Features: features})
 	}
@@ -304,7 +301,7 @@ func TestLicenseAllows(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			allowed, ok := tc.snapshot.LicenseAllows(ldap)
+			allowed, ok := tc.snapshot.LicenseAllows(FeatureLDAP)
 			require.Equal(t, tc.ok, ok)
 			assert.Equal(t, tc.allowed, allowed)
 		})

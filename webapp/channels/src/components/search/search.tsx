@@ -296,6 +296,8 @@ const Search = ({
         }
 
         if (isMentionSearch) {
+            // The team belongs to the mention filters, not to the search being started.
+            updateSearchTeam(null);
             updateRhsState(RHSStates.SEARCH);
         }
 
@@ -321,7 +323,9 @@ const Search = ({
             return;
         }
 
-        const {error} = await showSearchResults(Boolean(isMentionSearch)) as any;
+        // Submitting the search bar is a search for what was typed, even from the mentions view. A
+        // mention search is rebuilt from its filters and would drop the typed terms.
+        const {error} = await showSearchResults(false) as any;
 
         if (!error) {
             handleSearchOnSuccess();

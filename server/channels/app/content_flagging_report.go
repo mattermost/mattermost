@@ -197,7 +197,7 @@ func (a *App) writeBasePostSection(rctx request.CTX, zw *zip.Writer, rc *model.F
 		return model.NewAppError("GenerateFlaggedPostReport", "app.data_spillage.report.write_post_yaml.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	baseFiles, _, appErr := a.GetFileInfosForPost(rctx, rc.Post, false, true)
+	baseFiles, appErr := a.GetFileInfosForPost(rctx, rc.Post, false, true)
 	if appErr != nil {
 		return appErr
 	}

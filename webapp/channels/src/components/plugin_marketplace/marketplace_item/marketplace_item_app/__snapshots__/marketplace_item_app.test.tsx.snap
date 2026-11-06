@@ -77,9 +77,14 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render 1`] = `
       class="more-modal__actions"
     >
       <button
-        class="app-install always-show-enabled"
+        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 app-install"
+        type="button"
       >
-        Install
+        <span
+          class="_button__label_we8pe_31"
+        >
+          Install
+        </span>
       </button>
     </div>
   </div>
@@ -163,10 +168,15 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render installed a
       class="more-modal__actions"
     >
       <button
-        class="app-installed"
+        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64 app-installed"
         disabled=""
+        type="button"
       >
-        Installed
+        <span
+          class="_button__label_we8pe_31"
+        >
+          Installed
+        </span>
       </button>
     </div>
   </div>
@@ -250,9 +260,14 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with empty 
       class="more-modal__actions"
     >
       <button
-        class="app-install always-show-enabled"
+        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 app-install"
+        type="button"
       >
-        Install
+        <span
+          class="_button__label_we8pe_31"
+        >
+          Install
+        </span>
       </button>
     </div>
   </div>
@@ -304,9 +319,14 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with icon 1
       class="more-modal__actions"
     >
       <button
-        class="app-install always-show-enabled"
+        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 app-install"
+        type="button"
       >
-        Install
+        <span
+          class="_button__label_we8pe_31"
+        >
+          Install
+        </span>
       </button>
     </div>
   </div>
@@ -382,9 +402,14 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with no hom
       class="more-modal__actions"
     >
       <button
-        class="app-install always-show-enabled"
+        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 app-install"
+        type="button"
       >
-        Install
+        <span
+          class="_button__label_we8pe_31"
+        >
+          Install
+        </span>
       </button>
     </div>
   </div>
@@ -466,9 +491,14 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with no plu
       class="more-modal__actions"
     >
       <button
-        class="app-install always-show-enabled"
+        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 app-install"
+        type="button"
       >
-        Install
+        <span
+          class="_button__label_we8pe_31"
+        >
+          Install
+        </span>
       </button>
     </div>
   </div>
@@ -570,9 +600,14 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with one la
       class="more-modal__actions"
     >
       <button
-        class="app-install always-show-enabled"
+        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 app-install"
+        type="button"
       >
-        Install
+        <span
+          class="_button__label_we8pe_31"
+        >
+          Install
+        </span>
       </button>
     </div>
   </div>
@@ -656,9 +691,14 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with server
       class="more-modal__actions"
     >
       <button
-        class="app-install always-show-enabled"
+        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 app-install"
+        type="button"
       >
-        Try Again
+        <span
+          class="_button__label_we8pe_31"
+        >
+          Try Again
+        </span>
       </button>
     </div>
   </div>
@@ -778,9 +818,14 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with two la
       class="more-modal__actions"
     >
       <button
-        class="app-install always-show-enabled"
+        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 app-install"
+        type="button"
       >
-        Install
+        <span
+          class="_button__label_we8pe_31"
+        >
+          Install
+        </span>
       </button>
     </div>
   </div>
@@ -864,9 +909,26 @@ exports[`components/MarketplaceItemApp MarketplaceItem when installing 1`] = `
       class="more-modal__actions"
     >
       <button
-        class="app-install always-show-enabled"
+        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 app-install"
+        disabled=""
+        type="button"
       >
-        Install
+        <span
+          aria-hidden="true"
+          class="_button__icon-slot_we8pe_35"
+        >
+          <span
+            aria-label="Loading"
+            class="_spinner_3elm7_10"
+            role="status"
+            style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
+          />
+        </span>
+        <span
+          class="_button__label_we8pe_31"
+        >
+          Installing...
+        </span>
       </button>
     </div>
   </div>

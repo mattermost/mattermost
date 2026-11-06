@@ -155,8 +155,10 @@ func (a *App) SearchAllowedActionsForCurrentUser(rctx request.CTX, req model.Act
 			continue
 		}
 
-		// No active policy — the per-action default.
-		if !active {
+		// No active policy, or a channel permission action while its enforcement is off (the
+		// flag, ABAC or an Enterprise Advanced license is missing, so enforcement allows
+		// everything) — the per-action default.
+		if !active || (model.IsChannelPermissionAction(action) && !a.ChannelAccessEnforcementActive()) {
 			record(action, model.RenderPermissionDecision{
 				Allowed:   renderableABACActions[action].DefaultWhenInactive,
 				Evaluated: true,

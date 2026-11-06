@@ -38,6 +38,7 @@ func setupChannelReadAccessTest(t *testing.T) *channelReadAccessHarness {
 
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.PermissionPolicies = true
+		cfg.FeatureFlags.ChannelPermissionActions = true
 	}).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -238,6 +239,20 @@ func TestHasChannelReadAccess(t *testing.T) {
 		}
 	})
 
+	t.Run("evaluates a bot session", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		mockACS := h.mockACS(t)
+		governed(mockACS)
+		decides(mockACS, false)
+
+		session := h.rctx.Session().DeepCopy()
+		session.Props[model.SessionPropIsBot] = model.SessionPropIsBotValue
+		rctx := WithChannelAccessMemo(h.th.Context.WithSession(session))
+
+		require.False(t, h.th.App.HasChannelReadAccess(rctx, session.UserId, h.th.BasicChannel),
+			"a bot is bound by channel_read_access like any user")
+	})
+
 	t.Run("fails closed when evaluation errors", func(t *testing.T) {
 		h := setupChannelReadAccessTest(t)
 		mockACS := h.mockACS(t)
@@ -368,6 +383,14 @@ func TestHasChannelReadAccess(t *testing.T) {
 
 func TestHasChannelReadAccessShortCircuits(t *testing.T) {
 	cases := map[string]func(t *testing.T, h *channelReadAccessHarness) *model.Channel{
+		"ChannelPermissionActions flag off": func(t *testing.T, h *channelReadAccessHarness) *model.Channel {
+			h.th.Server.platform.SetConfigReadOnlyFF(false)
+			t.Cleanup(func() { h.th.Server.platform.SetConfigReadOnlyFF(true) })
+			h.th.App.UpdateConfig(func(cfg *model.Config) {
+				cfg.FeatureFlags.ChannelPermissionActions = false
+			})
+			return h.th.BasicChannel
+		},
 		"ABAC disabled": func(t *testing.T, h *channelReadAccessHarness) *model.Channel {
 			h.th.App.UpdateConfig(func(cfg *model.Config) {
 				*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = false
@@ -441,55 +464,53 @@ func TestHasChannelReadAccessByID(t *testing.T) {
 	})
 }
 
-// A push carries the post body without the recipient asking for it, so a denied
-// channel downgrades to an id-only payload rather than being suppressed. The device
-// then fetches by id, and that fetch re-runs the gate live.
+// A push carries the post body to every device the recipient is signed in on, and is
+// built without any of their sessions. A read rule can depend on the session, so while
+// read access is governed in the channel no recipient gets the body, whatever the PDP
+// would say about them: the device fetches by id, and that fetch evaluates its own
+// session. The PDP is not consulted at all, since its answer could not be trusted here.
 func TestBuildPushNotificationMessageChannelReadAccess(t *testing.T) {
-	cases := []struct {
-		name  string
-		allow bool
-	}{
-		{name: "an allowed recipient gets the full content", allow: true},
-		{name: "a denied recipient gets no post content", allow: false},
+	build := func(t *testing.T, h *channelReadAccessHarness) *model.PushNotification {
+		t.Helper()
+		recipient := h.th.BasicUser2
+		h.th.AddUserToChannel(t, recipient, h.th.BasicChannel)
+
+		msg, appErr := h.th.App.BuildPushNotificationMessage(
+			h.th.Context,
+			model.FullNotification,
+			h.th.BasicPost,
+			recipient,
+			h.th.BasicChannel,
+			h.th.BasicChannel.Name,
+			h.th.BasicUser.Username,
+			true, false, "",
+		)
+		require.Nil(t, appErr)
+		return msg
 	}
 
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			h := setupChannelReadAccessTest(t)
-			recipient := h.th.BasicUser2
-			h.th.AddUserToChannel(t, recipient, h.th.BasicChannel)
+	t.Run("governed: no recipient gets the body, even one the PDP allows", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		mockACS := h.mockACS(t)
+		governed(mockACS)
+		decides(mockACS, true)
 
-			mockACS := h.mockACS(t)
-			mockACS.Test(t)
-			governed(mockACS)
-			// No fallback: a subject built for anyone but the recipient fails the test.
-			mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
-				return req.Subject.ID == recipient.Id
-			})).Return(model.AccessDecision{Decision: tc.allow}, nil)
+		msg := build(t, h)
+		require.NotEmpty(t, msg.PostId, "the notification still goes out, just without the body")
+		require.NotContains(t, msg.Message, h.th.BasicPost.Message)
+		mockACS.AssertNotCalled(t, "AccessEvaluation", mock.Anything, mock.Anything)
+	})
 
-			// The push worker runs without a session and builds the message for a
-			// recipient other than the poster.
-			msg, appErr := h.th.App.BuildPushNotificationMessage(
-				h.th.Context,
-				model.FullNotification,
-				h.th.BasicPost,
-				recipient,
-				h.th.BasicChannel,
-				h.th.BasicChannel.Name,
-				h.th.BasicUser.Username,
-				true, false, "",
-			)
-			require.Nil(t, appErr)
-			mockACS.AssertNumberOfCalls(t, "AccessEvaluation", 1)
+	t.Run("ungoverned: the recipient gets the full content", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		mockACS := h.mockACS(t)
+		mockACS.On("ActionHasPermissionPolicy", mock.Anything, model.AccessControlPolicyActionChannelReadAccess).
+			Return(false, nil)
 
-			if tc.allow {
-				require.Contains(t, msg.Message, h.th.BasicPost.Message)
-			} else {
-				require.NotEmpty(t, msg.PostId, "the notification still goes out, just without the body")
-				require.NotContains(t, msg.Message, h.th.BasicPost.Message)
-			}
-		})
-	}
+		msg := build(t, h)
+		require.Contains(t, msg.Message, h.th.BasicPost.Message)
+		mockACS.AssertNotCalled(t, "AccessEvaluation", mock.Anything, mock.Anything)
+	})
 }
 
 // A render "allowed" can never disagree with what enforcement would decide: the
@@ -1703,9 +1724,18 @@ func captureWebsocketEvents(t *testing.T, h *channelReadAccessHarness, run func(
 // An email reaches no session, so a policy can't be evaluated for its recipient: while
 // channel_read_access governs the channel, every recipient gets the generic email.
 func TestNotificationEmailWithholdsContentsUnderReadAccessPolicy(t *testing.T) {
+	// Creating a post also sends push notifications in the background, whose content gate
+	// asks the mock ACS questions this test doesn't answer and races its assertions.
+	disablePushes := func(h *channelReadAccessHarness) {
+		h.th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.EmailSettings.SendPushNotifications = false
+		})
+	}
+
 	buildFor := func(t *testing.T, h *channelReadAccessHarness, channel *model.Channel) *model.EmailNotification {
 		t.Helper()
 
+		disablePushes(h)
 		post := h.th.CreatePost(t, channel)
 		notification := buildTestPostNotification(post, channel, h.th.BasicUser)
 		return h.th.App.buildEmailNotification(h.rctx, notification, h.th.BasicUser2, h.th.BasicTeam)
@@ -1798,6 +1828,7 @@ func TestNotificationEmailWithholdsContentsUnderReadAccessPolicy(t *testing.T) {
 		h.th.App.Srv().EmailService = emailServiceMock
 		t.Cleanup(func() { h.th.App.Srv().EmailService = original })
 
+		disablePushes(h)
 		post := h.th.CreatePost(t, h.th.BasicChannel)
 		notification := buildTestPostNotification(post, h.th.BasicChannel, h.th.BasicUser)
 		emailNotification, err := h.th.App.sendNotificationEmail(h.rctx, notification, h.th.BasicUser2, h.th.BasicTeam, nil)
@@ -1904,7 +1935,16 @@ func TestAttachChannelReadAccessHook(t *testing.T) {
 		mockACS.AssertNotCalled(t, "ActionHasPermissionPolicy", mock.Anything, mock.Anything)
 	})
 
-	t.Run("leaves exempt events and plugin events alone", func(t *testing.T) {
+	t.Run("hooks a plugin event sent to a governed channel", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		governed(h.mockACS(t))
+
+		message := event("custom_com.example.plugin_refresh", h.th.BasicChannel.Id, "")
+		h.th.App.attachChannelReadAccessHook(message)
+		requireHooked(t, message, h.th.BasicChannel.Id)
+	})
+
+	t.Run("leaves exempt events alone", func(t *testing.T) {
 		h := setupChannelReadAccessTest(t)
 		mockACS := h.mockACS(t)
 		governed(mockACS)
@@ -1915,7 +1955,6 @@ func TestAttachChannelReadAccessHook(t *testing.T) {
 			model.WebsocketEventTyping,
 			model.WebsocketEventEphemeralMessage,
 			model.WebsocketEventThreadReadChanged,
-			"custom_com.example.plugin_refresh",
 		} {
 			message := event(eventType, h.th.BasicChannel.Id, "")
 			h.th.App.attachChannelReadAccessHook(message)
@@ -1984,6 +2023,20 @@ func TestPublishAttachesTheReadAccessHook(t *testing.T) {
 		events := []model.WebsocketEventType{model.WebsocketEventPostEdited}
 		requireReadAccessHook(t, h, events, func(t *testing.T, h *channelReadAccessHarness) {
 			h.th.Server.Platform().Publish(model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", h.th.BasicChannel.Id, "", nil, ""))
+		})
+	})
+
+	// What the Agents plugin publishes while streaming a bot reply: the reply text,
+	// sent to the whole channel.
+	t.Run("a plugin event sent to the channel", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		governed(h.mockACS(t))
+
+		events := []model.WebsocketEventType{"custom_mattermost-ai_postupdate"}
+		requireReadAccessHook(t, h, events, func(t *testing.T, h *channelReadAccessHarness) {
+			api := NewPluginAPI(h.th.App, h.rctx, &model.Manifest{Id: "mattermost-ai"})
+			api.PublishWebSocketEvent("postupdate", map[string]any{"post_id": model.NewId(), "next": "streamed reply"},
+				&model.WebsocketBroadcast{ChannelId: h.th.BasicChannel.Id})
 		})
 	})
 }
@@ -2106,4 +2159,48 @@ func TestChannelAccessDecisionCache(t *testing.T) {
 		require.True(t, check(t, h), "and the next check evaluates again")
 		mockACS.AssertNumberOfCalls(t, "AccessEvaluation", 2)
 	})
+}
+
+// The push worker has no session for the recipient, so a policy on session attributes
+// can't be evaluated for the badge. It counts every channel, denied ones included.
+func TestUserBadgeCountIncludesDeniedChannels(t *testing.T) {
+	h := setupChannelReadAccessTest(t)
+	user := h.th.BasicUser2
+	h.th.AddUserToChannel(t, user, h.th.BasicChannel)
+	require.NoError(t, h.th.App.Srv().Store().Channel().IncrementMentionCount(h.th.BasicChannel.Id, []string{user.Id}, false, false))
+
+	mockACS := h.mockACS(t)
+	governed(mockACS)
+	decides(mockACS, false)
+
+	badge, appErr := h.th.App.getUserBadgeCount(user.Id, false)
+	require.Nil(t, appErr)
+	require.Equal(t, 1, badge)
+	mockACS.AssertNotCalled(t, "AccessEvaluation", mock.Anything, mock.Anything)
+}
+
+// Background jobs such as recaps run with a stand-in session that carries only the user
+// ID. It has no roles, so it must not be taken for the user's own session: the user is
+// evaluated on their stored roles, or a guest would be evaluated as system_user.
+func TestChannelAccessSubjectForStandInSessionUsesStoredRoles(t *testing.T) {
+	h := setupChannelReadAccessTest(t)
+	guest := h.th.CreateGuest(t)
+	h.th.LinkUserToTeam(t, guest, h.th.BasicTeam)
+	h.th.AddUserToChannel(t, guest, h.th.BasicChannel)
+
+	mockACS := h.mockACS(t)
+	governed(mockACS)
+	var gotRole string
+	mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+		return req.Action == model.AccessControlPolicyActionChannelReadAccess
+	})).
+		Run(func(args mock.Arguments) {
+			req := args.Get(1).(model.AccessRequest)
+			gotRole = req.Subject.RoleForScope(model.AccessControlSubjectScopeSystem)
+		}).
+		Return(model.AccessDecision{Decision: true}, nil)
+
+	rctx := h.th.Context.WithSession(&model.Session{UserId: guest.Id})
+	require.True(t, h.th.App.HasChannelReadAccess(rctx, guest.Id, h.th.BasicChannel))
+	require.Equal(t, model.SystemGuestRoleId, gotRole)
 }

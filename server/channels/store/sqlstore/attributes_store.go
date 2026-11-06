@@ -41,7 +41,7 @@ var attributeViewsByObjectType = map[string]string{
 }
 
 // attributeLiveViewsByObjectType maps each object type to the plain view its
-// materialized view is built from (migration 000236). A plain view stores
+// materialized view is built from (migration 000243). A plain view stores
 // nothing, so reading one subject through it computes that subject's
 // attributes from the source tables on the spot.
 var attributeLiveViewsByObjectType = map[string]string{
@@ -120,8 +120,8 @@ func (s *SqlAttributesStore) RefreshAttributes() error {
 }
 
 // refreshAttributeView refreshes one view CONCURRENTLY, so readers of the old
-// contents are never blocked; that needs the unique index migrations 000237 and
-// 000238 create. A plain refresh, which takes an exclusive lock for its whole
+// contents are never blocked; that needs the unique index migrations 000244 and
+// 000245 create. A plain refresh, which takes an exclusive lock for its whole
 // duration, is the fallback when Postgres refuses the concurrent one because
 // the index is missing (a failed CONCURRENTLY build leaves none, and recreating
 // the view drops it) or the view was never populated: a refresh that always

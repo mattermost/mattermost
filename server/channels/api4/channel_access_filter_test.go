@@ -54,6 +54,7 @@ func setupRecapChannelAccess(t *testing.T) *recapAccessFixture {
 
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.PermissionPolicies = true
+		cfg.FeatureFlags.ChannelPermissionActions = true
 		cfg.FeatureFlags.EnableAIRecaps = true
 	}).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
@@ -157,6 +158,7 @@ func setupSidebarChannelAccess(t *testing.T) *sidebarAccessFixture {
 
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.PermissionPolicies = true
+		cfg.FeatureFlags.ChannelPermissionActions = true
 	}).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -365,4 +367,58 @@ func TestRecapChannelReadAccessRegenerateDeniesWhenEveryChannelIsDenied(t *testi
 	stored, appErr := f.th.App.GetRecap(f.th.Context, recap.Id)
 	require.Nil(t, appErr)
 	require.Len(t, stored.Channels, 1, "a refused regenerate must not delete the stored summaries")
+}
+
+// A read denial can be temporary, and every scheduled run checks each channel again,
+// so an update gates only the channels it adds. Editing just the schedule while one of
+// the recap's channels is denied must not drop that channel for good.
+func TestScheduledRecapUpdateKeepsExistingDeniedChannels(t *testing.T) {
+	f := setupRecapChannelAccess(t)
+
+	kept := f.th.CreatePublicChannel(t)
+	temporarilyDenied := f.th.CreatePublicChannel(t)
+	saved, appErr := f.th.App.CreateScheduledRecap(f.th.Context.WithSession(&model.Session{UserId: f.th.BasicUser.Id}), &model.ScheduledRecap{
+		Title:       "policy filter",
+		DaysOfWeek:  model.ScheduledRecapMaxDaysOfWeek,
+		TimeOfDay:   "09:00",
+		Timezone:    "UTC",
+		TimePeriod:  model.TimePeriodLast24h,
+		ChannelMode: model.ChannelModeSpecific,
+		ChannelIds:  []string{kept.Id, temporarilyDenied.Id},
+		AgentId:     "test-agent-id",
+	})
+	require.Nil(t, appErr)
+	f.deny(temporarilyDenied.Id)
+
+	update := func(t *testing.T, channelIDs []string) *model.ScheduledRecap {
+		t.Helper()
+		recap := *saved
+		recap.TimeOfDay = "10:30"
+		recap.ChannelIds = channelIDs
+		body, err := json.Marshal(recap)
+		require.NoError(t, err)
+
+		res, err := f.th.Client.DoAPIPut(context.Background(), "/scheduled_recaps/"+saved.Id, string(body))
+		require.NoError(t, err)
+		defer res.Body.Close()
+		require.Equal(t, http.StatusOK, res.StatusCode)
+
+		var updated model.ScheduledRecap
+		require.NoError(t, json.NewDecoder(res.Body).Decode(&updated))
+		return &updated
+	}
+
+	t.Run("editing only the schedule keeps the denied channel", func(t *testing.T) {
+		updated := update(t, []string{kept.Id, temporarilyDenied.Id})
+		require.Equal(t, "10:30", updated.TimeOfDay)
+		require.ElementsMatch(t, []string{kept.Id, temporarilyDenied.Id}, []string(updated.ChannelIds))
+	})
+
+	t.Run("a denied channel being added is left out", func(t *testing.T) {
+		added := f.th.CreatePublicChannel(t)
+		f.deny(added.Id)
+
+		updated := update(t, []string{kept.Id, temporarilyDenied.Id, added.Id})
+		require.ElementsMatch(t, []string{kept.Id, temporarilyDenied.Id}, []string(updated.ChannelIds))
+	})
 }

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {shallowEqual, useDispatch, useSelector} from 'react-redux';
 
@@ -47,7 +47,6 @@ import type {ValueType} from 'components/dropdown_input';
 import type {TextboxElement} from 'components/textbox';
 import AdvancedTextbox from 'components/widgets/advanced_textbox/advanced_textbox';
 import Input from 'components/widgets/inputs/input/input';
-import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import PublicPrivateSelector from 'components/widgets/public-private-selector/public-private-selector';
 import type {PluginOptionButtonProps} from 'components/widgets/public-private-selector/public-private-selector';
 
@@ -83,7 +82,24 @@ const enum ServerErrorId {
     CHANNEL_PURPOSE_SIZE = 'model.channel.is_valid.purpose.app_error',
 }
 
-const NewChannelModal = () => {
+export type Props = {
+
+    /**
+     * Offers only the channel types this plugin registered, without Public and Private Channel,
+     * so a plugin can open the modal for its own kind of channel (Boards' "Create new board").
+     */
+    channelTypePluginId?: string;
+
+    /** Wording for that kind of channel, in place of the channel wording. */
+    modalHeaderText?: string;
+    nameLabel?: string;
+    namePlaceholder?: string;
+    purposeLabel?: string;
+    purposeHelpText?: string;
+    categoryHelpText?: string;
+};
+
+const NewChannelModal = ({channelTypePluginId, modalHeaderText, nameLabel, namePlaceholder, purposeLabel, purposeHelpText, categoryHelpText}: Props = {}) => {
     const intl = useIntl();
     const {formatMessage} = intl;
 
@@ -97,7 +113,24 @@ const NewChannelModal = () => {
     const showManagedCategorySelector = useSelector(areManagedCategoriesEnabled);
     const dispatch = useDispatch();
 
-    const [type, setType] = useState<string>(getChannelTypeFromPermissions(canCreatePublicChannel, canCreatePrivateChannel));
+    const availableOptions = useSelector(
+        (state: GlobalState) => (state.plugins.components.ChannelTypeOption || []).filter((o) => {
+            const offered = channelTypePluginId ? o.pluginId === channelTypePluginId : o.showInNewChannelModal !== false;
+            if (!offered) {
+                return false;
+            }
+            try {
+                return o.isAvailable(state);
+            } catch (e) {
+                // eslint-disable-next-line no-console
+                console.error(`ChannelTypeOption ${o.pluginId}:${o.id} isAvailable threw`, e);
+                return false;
+            }
+        }),
+        shallowEqual,
+    );
+
+    const [type, setType] = useState<string>(() => (channelTypePluginId ? availableOptions[0]?.id ?? '' : getChannelTypeFromPermissions(canCreatePublicChannel, canCreatePrivateChannel)));
 
     // Discoverable Private Channels — only available when the FF is on AND the
     // creator has the team-scope discoverability permission (the server
@@ -255,20 +288,18 @@ const NewChannelModal = () => {
     const [pluginCanCreate, setPluginCanCreate] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const availableOptions = useSelector(
-        (state: GlobalState) => (state.plugins.components.ChannelTypeOption || []).filter((o) => {
-            try {
-                return o.isAvailable(state);
-            } catch (e) {
-                // eslint-disable-next-line no-console
-                console.error(`ChannelTypeOption ${o.pluginId}:${o.id} isAvailable threw`, e);
-                return false;
-            }
-        }),
-        shallowEqual,
-    );
-
     const activePluginOption = availableOptions.find((o) => o.id === type);
+
+    // The plugin's options can become available after the modal opens (its status loads late).
+    const firstOptionId = availableOptions[0]?.id;
+    useEffect(() => {
+        if (channelTypePluginId && !activePluginOption && firstOptionId) {
+            setType(firstOptionId);
+
+            // As on a type change: the gate belonged to the option that went away.
+            setPluginCanCreate(true);
+        }
+    }, [channelTypePluginId, activePluginOption, firstOptionId]);
 
     const handleURLChange = useCallback((newURL: string) => {
         setURL(newURL);
@@ -548,19 +579,16 @@ const NewChannelModal = () => {
 
     let confirmButtonText: React.ReactNode = activePluginOption?.createButtonText ?? formatMessage({id: 'channel_modal.createNew', defaultMessage: 'Create channel'});
     if (isSubmitting) {
-        confirmButtonText = (
-            <LoadingSpinner
-                text={formatMessage({id: 'channel_modal.creating', defaultMessage: 'Creating...'})}
-            />
-        );
+        confirmButtonText = formatMessage({id: 'channel_modal.creating', defaultMessage: 'Creating...'});
     }
 
     return (
         <GenericModal
             id='new-channel-modal'
             className='new-channel-modal'
-            modalHeaderText={formatMessage({id: 'channel_modal.modalTitle', defaultMessage: 'Create a new channel'})}
+            modalHeaderText={modalHeaderText ?? formatMessage({id: 'channel_modal.modalTitle', defaultMessage: 'Create a new channel'})}
             confirmButtonText={confirmButtonText}
+            isConfirmLoading={isSubmitting}
             cancelButtonText={formatMessage({id: 'channel_modal.cancel', defaultMessage: 'Cancel'})}
             errorText={serverError}
             isConfirmDisabled={!canCreate}
@@ -575,7 +603,8 @@ const NewChannelModal = () => {
                 <ChannelNameFormField
                     value={displayName}
                     name='new-channel-modal-name'
-                    placeholder={formatMessage({id: 'channel_modal.name.placeholder', defaultMessage: 'Enter a name for your new channel'})}
+                    label={nameLabel}
+                    placeholder={namePlaceholder ?? formatMessage({id: 'channel_modal.name.placeholder', defaultMessage: 'Enter a name for your new channel'})}
                     onDisplayNameChange={setDisplayName}
                     onURLChange={handleURLChange}
                     onErrorStateChange={setChannelInputError}
@@ -595,6 +624,7 @@ const NewChannelModal = () => {
                         disabled: !canCreatePrivateChannel,
                     }}
                     pluginOptions={pluginOptions}
+                    hideBuiltInOptions={Boolean(channelTypePluginId)}
                     onChange={handleOnTypeChange}
                 />
                 {showDiscoverableOption && (
@@ -623,7 +653,7 @@ const NewChannelModal = () => {
                             onChange={setDefaultCategoryName}
                             getOptions={getSidebarCategoryNamesForTeam.current}
                             menuPortalTargetId='new-channel-modal'
-                            helpText={formatMessage({id: 'default_category.help_text', defaultMessage: 'Sets the default sidebar category for users when they join the channel.'})}
+                            helpText={categoryHelpText ?? formatMessage({id: 'default_category.help_text', defaultMessage: 'Sets the default sidebar category for users when they join the channel.'})}
                         />
                     </div>
                 )}
@@ -646,7 +676,7 @@ const NewChannelModal = () => {
                         value={purpose}
                         onChange={handleOnPurposeChange}
                         onKeyDown={handleOnPurposeKeyDown}
-                        label={formatMessage({id: 'channel_modal.purpose.label', defaultMessage: 'Channel Purpose'})}
+                        label={purposeLabel ?? formatMessage({id: 'channel_modal.purpose.label', defaultMessage: 'Channel Purpose'})}
                         placeholder={formatMessage({id: 'channel_modal.purpose.placeholder', defaultMessage: 'Enter a purpose for this channel (optional)'})}
                         maxLength={Constants.MAX_CHANNELPURPOSE_LENGTH}
                         autoComplete='off'
@@ -661,7 +691,7 @@ const NewChannelModal = () => {
                     ) : (
                         <div className='new-channel-modal-purpose-info'>
                             <span>
-                                {formatMessage({id: 'channel_modal.purpose.info', defaultMessage: 'This will be displayed when browsing for channels.'})}
+                                {purposeHelpText ?? formatMessage({id: 'channel_modal.purpose.info', defaultMessage: 'This will be displayed when browsing for channels.'})}
                             </span>
                         </div>
                     )}

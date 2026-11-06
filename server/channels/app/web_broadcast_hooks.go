@@ -182,7 +182,11 @@ func (h *permalinkBroadcastHook) Process(msg *platform.HookedWebSocketEvent, web
 		return errors.Wrap(err, "Invalid preview_channel value passed to permalinkBroadcastHook")
 	}
 
-	rctx := request.EmptyContext(webConn.Platform.Log())
+	rctx, hasSession := webConnSessionContext(webConn)
+	if !hasSession {
+		// The sanitized post is already attached to the ws event.
+		return nil
+	}
 	ok, isMember := webConn.Suite.HasPermissionToReadChannel(rctx, webConn.UserId, previewChannel)
 	if !ok {
 		// Do nothing.
@@ -209,17 +213,11 @@ func (h *permalinkBroadcastHook) Process(msg *platform.HookedWebSocketEvent, web
 
 	// Strip files from the referenced post for recipients denied download access.
 	// Clone to avoid mutating the shared hook arg across concurrent recipients.
-	// Fail-secure: if the session is nil we cannot evaluate permissions, so strip files.
 	embedData := permalinkPreviewedPost
 	if permalinkPreviewedPost.Post != nil &&
 		(len(permalinkPreviewedPost.Post.FileIds) > 0 ||
 			(permalinkPreviewedPost.Post.Metadata != nil && len(permalinkPreviewedPost.Post.Metadata.Files) > 0)) {
-		session := webConn.GetSession()
-		stripFiles := true
-		if session != nil {
-			rctxWithSession := rctx.WithSession(session)
-			stripFiles = !webConn.Suite.HasPermissionToChannelAction(rctxWithSession, webConn.UserId, session.Roles, permalinkPreviewedPost.Post.ChannelId, model.AccessControlPolicyActionDownloadFileAttachment)
-		}
+		stripFiles := !webConn.Suite.HasPermissionToChannelAction(rctx, webConn.UserId, rctx.Session().Roles, permalinkPreviewedPost.Post.ChannelId, model.AccessControlPolicyActionDownloadFileAttachment)
 		if stripFiles {
 			postCopy := permalinkPreviewedPost.Post.Clone()
 			if postCopy.Metadata == nil {
@@ -275,6 +273,19 @@ func (h *permalinkBroadcastHook) Process(msg *platform.HookedWebSocketEvent, web
 	}
 
 	return nil
+}
+
+// webConnSessionContext returns a context carrying the connection's session, so a channel
+// access rule over user.session.* is evaluated against this connection. Evaluated without
+// it, the subject has no session attributes: a rule that requires one denies everyone,
+// and a rule that tolerates a missing one admits a denied session. Callers fail closed
+// when the connection has no session.
+func webConnSessionContext(webConn *platform.WebConn) (request.CTX, bool) {
+	session := webConn.GetSession()
+	if session == nil {
+		return nil, false
+	}
+	return request.EmptyContext(webConn.Platform.Log()).WithSession(session), true
 }
 
 // filterChannelMentionsForWebConn keeps only the channel mentions whose channel the recipient
@@ -334,9 +345,12 @@ func (h *channelMentionsBroadcastHook) Process(msg *platform.HookedWebSocketEven
 		return errors.Wrap(err, "channelMentionsBroadcastHook failed to get post from message")
 	}
 
-	// Filter channel mentions based on recipient's permissions
-	rctx := request.EmptyContext(webConn.Platform.Log())
-	filteredMentions := filterChannelMentionsForWebConn(rctx, webConn, channelMentions)
+	// Filter channel mentions based on recipient's permissions. Without a session no
+	// mention can be checked, so none is resolved.
+	filteredMentions := map[string]any{}
+	if rctx, hasSession := webConnSessionContext(webConn); hasSession {
+		filteredMentions = filterChannelMentionsForWebConn(rctx, webConn, channelMentions)
+	}
 
 	// Update the post with filtered channel mentions
 	if len(filteredMentions) > 0 {

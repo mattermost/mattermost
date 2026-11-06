@@ -8,7 +8,7 @@ import {
     ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS,
     ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS,
     ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS,
-    ACCESS_CONTROL_CHANNEL_ACCESS_ACTIONS,
+    ACCESS_CONTROL_CHANNEL_PERMISSION_ACTIONS,
     ACCESS_CONTROL_PERMISSION_ACTIONS,
     buildRulesWithMembership,
     buildRulesWithPermissionRules,
@@ -242,7 +242,7 @@ describe('channel_write_access as a permission action', () => {
 
     test('shares the channel-access group with channel_read_access and channel_management_access', () => {
         // All three hide behind the one feature flag, so pickers filter them together.
-        expect(ACCESS_CONTROL_CHANNEL_ACCESS_ACTIONS).toEqual([
+        expect(ACCESS_CONTROL_CHANNEL_PERMISSION_ACTIONS).toEqual([
             ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS,
             ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS,
             ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS,

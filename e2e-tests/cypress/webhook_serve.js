@@ -1018,8 +1018,10 @@ function getMissionCargoDialog(triggerId) {
 }
 
 // refresh_on_return calls source_url when a stacked schedule dialog closes, so the
-// rows pick up task progress saved in the schedule.
+// rows pick up task progress saved in the schedule. A sortie whose tasks are all
+// done drops out of the readiness matrix, removing a row the user may have ticked.
 function buildMissionCargoForm() {
+    const pendingSorties = mission.sorties.filter((s) => s.schedule.some((t) => !t.done));
     return {
         callback_id: 'mission_cargo',
         title: `Cargo by Sortie — ${mission.id}`,
@@ -1036,6 +1038,24 @@ function buildMissionCargoForm() {
                 placeholder: 'Typed values are kept when the schedule closes',
                 optional: true,
             },
+
+            // A matrix needs at least one row, so it is left out once every sortie is done.
+            ...(pendingSorties.length ? [{
+                display_name: 'Readiness checks',
+                name: 'readiness_checks',
+                type: 'checkbox_matrix',
+                help_text: 'Pending sorties only. Completing every task in a schedule removes that sortie.',
+                optional: true,
+                matrix_config: {
+                    row_selection: 'multiple',
+                    rows: pendingSorties.map((s) => ({text: s.id, value: s.id})),
+                    columns: [
+                        {text: 'Fuel', value: 'fuel'},
+                        {text: 'Customs', value: 'customs'},
+                        {text: 'Hazmat', value: 'hazmat'},
+                    ],
+                },
+            }] : []),
 
             // Each sortie is an action button whose help_text renders as the row
             // summary to the left of a short "Schedule" button.

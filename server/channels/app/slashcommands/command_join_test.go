@@ -147,6 +147,7 @@ func TestJoinCommandPermissions(t *testing.T) {
 // Joining is a read-tier action: /join is refused for a channel the user's read rules
 // deny, as the REST self-join is, although the RBAC check alone would allow it.
 func TestJoinCommandChecksChannelReadAccess(t *testing.T) {
+	t.Setenv("MM_FEATUREFLAGS_CHANNELPERMISSIONACTIONS", "true")
 	th := setup(t).initBasic(t)
 
 	if testing.Short() {

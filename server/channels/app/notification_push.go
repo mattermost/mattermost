@@ -802,20 +802,25 @@ func (a *App) BuildPushNotificationMessage(rctx request.CTX, contentsConfig stri
 ) (*model.PushNotification, *model.AppError) {
 	var msg *model.PushNotification
 
-	// A push delivers the post's content without the recipient asking for it, so a
-	// denied recipient — including one with no cached session attributes — gets the
-	// notification downgraded rather than suppressed: the device fetches by id, and
-	// that fetch re-runs the gate live.
-	denied := !a.HasChannelReadAccess(rctx, user.Id, channel)
-	if denied {
+	// A push delivers the post's content without the recipient asking for it, and it
+	// goes to every device the recipient is signed in on. A read rule can depend on the
+	// session (device, network), and this runs without any of those sessions, so it
+	// cannot tell which devices the rule admits: evaluated here, a rule that tolerates a
+	// missing session attribute would hand the content to a denied device. So while
+	// read access is governed in the channel, every recipient gets the notification
+	// downgraded rather than suppressed: the device fetches by id, and that fetch
+	// evaluates its own session.
+	readGoverned := a.channelAccessGateApplies(user.Id, channel) &&
+		a.channelActionGoverned(rctx, channel, model.AccessControlPolicyActionChannelReadAccess)
+	if readGoverned {
 		contentsConfig = model.IdLoadedNotification
 	}
 
 	notificationInterface := a.ch.Notification
 	if (notificationInterface == nil || notificationInterface.CheckLicense() != nil) && contentsConfig == model.IdLoadedNotification {
-		// Without the id-loaded path the message is built in full, so a denied
-		// recipient needs the generic form that also withholds the channel name.
-		if denied {
+		// Without the id-loaded path the message is built in full, so a governed channel
+		// needs the generic form that also withholds the channel name.
+		if readGoverned {
 			contentsConfig = model.GenericNoChannelNotification
 		} else {
 			contentsConfig = model.GenericNotification

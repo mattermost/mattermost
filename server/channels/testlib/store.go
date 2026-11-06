@@ -40,6 +40,7 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	systemStore.On("GetByName", "SystemConsoleRolesCreationMigrationComplete").Return(&model.System{Name: "SystemConsoleRolesCreationMigrationComplete", Value: "true"}, nil)
 	systemStore.On("GetByName", "PlaybookRolesCreationMigrationComplete").Return(&model.System{Name: "PlaybookRolesCreationMigrationComplete", Value: "true"}, nil)
 	systemStore.On("GetByName", "PostPriorityConfigDefaultTrueMigrationComplete").Return(&model.System{Name: "PostPriorityConfigDefaultTrueMigrationComplete", Value: "true"}, nil)
+	systemStore.On("GetByName", "RestrictUnauthenticatedWebappPluginsMigrationComplete").Return(&model.System{Name: "RestrictUnauthenticatedWebappPluginsMigrationComplete", Value: "true"}, nil)
 	systemStore.On("GetByName", "content_flagging_setup_done").Return(&model.System{Name: "content_flagging_setup_done", Value: "true"}, nil)
 	systemStore.On("GetByName", "boards_property_setup_done").Return(&model.System{Name: "boards_property_setup_done", Value: "v1"}, nil)
 	systemStore.On("GetByName", "managed_category_setup_done").Return(&model.System{Name: "managed_category_setup_done", Value: "v2"}, nil)
@@ -196,7 +197,30 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	propertyGroupStore.On("Get", model.BoardsPropertyGroupName).Return(boardsGroup, nil)
 	propertyGroupStore.On("Get", model.SessionAttributesPropertyGroupName).Return(sessionAttributesGroup, nil)
 
+	// The access control hook resolves a field's group by ID to read its
+	// version, which decides whether the field is under enforcement at all, so
+	// every group reachable by name has to be reachable by ID too.
+	propertyGroupStore.On("GetByID", mock.AnythingOfType("string")).Return(
+		func(id string) *model.PropertyGroup {
+			for _, group := range groupsByName {
+				if group.ID == id {
+					return group
+				}
+			}
+			return nil
+		},
+		func(id string) error {
+			for _, group := range groupsByName {
+				if group.ID == id {
+					return nil
+				}
+			}
+			return store.NewErrNotFound("PropertyGroup", id)
+		},
+	)
+
 	propertyFieldStore.On("SearchPropertyFields", mock.Anything, mock.Anything).Return([]*model.PropertyField{}, nil)
+	propertyFieldStore.On("GetFieldsMissingPermissions", mock.Anything, mock.Anything, mock.Anything).Return([]*model.PropertyField{}, nil)
 	propertyFieldStore.On("CreatePropertyField", mock.Anything).Return(&model.PropertyField{}, nil)
 	propertyFieldStore.On("Create", mock.AnythingOfType("*model.PropertyField")).Return(&model.PropertyField{}, nil)
 	propertyFieldStore.On("CheckPropertyNameConflict", mock.AnythingOfType("*model.PropertyField"), mock.Anything).Return(model.PropertyFieldTargetLevel(""), nil)

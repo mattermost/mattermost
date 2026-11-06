@@ -47,9 +47,14 @@ exports[`components/channel_view Should match snapshot if channel is archived 1`
         </b>
         . New messages cannot be posted.
         <button
-          class="btn btn-primary channel-archived__close-btn"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 channel-archived__close-btn"
+          type="button"
         >
-          Close Channel
+          <span
+            class="_button__label_we8pe_31"
+          >
+            Close Channel
+          </span>
         </button>
       </div>
     </div>
@@ -103,9 +108,14 @@ exports[`components/channel_view Should match snapshot if channel is deactivated
         </b>
         . New messages cannot be posted.
         <button
-          class="btn btn-primary channel-archived__close-btn"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 channel-archived__close-btn"
+          type="button"
         >
-          Close Channel
+          <span
+            class="_button__label_we8pe_31"
+          >
+            Close Channel
+          </span>
         </button>
       </div>
     </div>

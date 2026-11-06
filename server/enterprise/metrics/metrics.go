@@ -156,6 +156,7 @@ type MetricsInterfaceImpl struct {
 	WebSocketBroadcastBufferUsersRegisteredGauge *prometheus.GaugeVec
 	WebSocketReconnectCounter                    *prometheus.CounterVec
 	WebSocketSlowConnectionCloseCounter          prometheus.Counter
+	WebSocketReconnectFailureCounter             *prometheus.CounterVec
 
 	SearchEngineStatusGauge    prometheus.GaugeFunc
 	SearchPostSearchesCounter  prometheus.Counter
@@ -777,7 +778,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Help:        "Total number of websocket reconnect attempts",
 			ConstLabels: additionalLabels,
 		},
-		[]string{"type", "disconnect_err_code"},
+		[]string{"type", "disconnect_err_code", "origin_client"},
 	)
 	m.Registry.MustRegister(m.WebSocketReconnectCounter)
 
@@ -791,6 +792,18 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		},
 	)
 	m.Registry.MustRegister(m.WebSocketSlowConnectionCloseCounter)
+
+	m.WebSocketReconnectFailureCounter = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemWebsocket,
+			Name:        "reconnect_failures_total",
+			Help:        "Total number of websocket reconnects that could not resume the previous connection",
+			ConstLabels: additionalLabels,
+		},
+		[]string{"reason", "is_remote", "disconnect_err_code", "origin_client"},
+	)
+	m.Registry.MustRegister(m.WebSocketReconnectFailureCounter)
 
 	// Search Subsystem
 
@@ -2012,13 +2025,26 @@ func (mi *MetricsInterfaceImpl) IncrementWebSocketSlowConnectionClose() {
 	mi.WebSocketSlowConnectionCloseCounter.Inc()
 }
 
-func (mi *MetricsInterfaceImpl) IncrementWebsocketReconnectEventWithDisconnectErrCode(eventType string, disconnectErrCode string) {
+func (mi *MetricsInterfaceImpl) IncrementWebsocketReconnectEvent(eventType, disconnectErrCode, originClient string) {
 	if disconnectErrCode == "" {
 		disconnectErrCode = "unknown"
 	}
 	mi.WebSocketReconnectCounter.With(prometheus.Labels{
 		"type":                eventType,
 		"disconnect_err_code": disconnectErrCode,
+		"origin_client":       originClient,
+	}).Inc()
+}
+
+func (mi *MetricsInterfaceImpl) IncrementWebsocketReconnectFailure(reason string, isRemote bool, disconnectErrCode, originClient string) {
+	if disconnectErrCode == "" {
+		disconnectErrCode = "unknown"
+	}
+	mi.WebSocketReconnectFailureCounter.With(prometheus.Labels{
+		"reason":              reason,
+		"is_remote":           strconv.FormatBool(isRemote),
+		"disconnect_err_code": disconnectErrCode,
+		"origin_client":       originClient,
 	}).Inc()
 }
 

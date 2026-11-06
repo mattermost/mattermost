@@ -63,6 +63,13 @@ type FeatureFlags struct {
 	// PermissionPolicies dependency is enforced at every call site.
 	PolicySimulation bool
 
+	// FEATURE_FLAG_REMOVAL: ChannelPermissionActions - Remove this when the feature is GA.
+	// Gates the channel permission actions (channel_read_access,
+	// channel_write_access, channel_management_access) on permission
+	// and channel policies. When off, saving a policy that uses one is rejected,
+	// the webapp doesn't offer them, and rules already stored aren't enforced.
+	ChannelPermissionActions bool
+
 	ContentFlagging bool
 
 	EnableMattermostEntry bool
@@ -99,6 +106,10 @@ type FeatureFlags struct {
 	// Enable the Docs (spaces and pages) feature within Mattermost channels
 	EnableDocs bool
 
+	// FEATURE_FLAG_REMOVAL: ProductRail - Remove this when GA is released
+	// Show a navigation rail beside the team sidebar for switching between Channels, Threads and products
+	ProductRail bool
+
 	// Enable LIKE-based CJK (Chinese, Japanese, Korean) search for PostgreSQL
 	CJKSearch bool
 
@@ -134,6 +145,13 @@ type FeatureFlags struct {
 	// refused whatever this flag says — see App.graphPropertyFieldGate for what
 	// the flag does and does not restrict.
 	PropertyFieldGraph bool
+
+	// FEATURE_FLAG_REMOVAL: PropertyFieldPermissionsV3 - Remove this when the feature is GA.
+	// Gates whether the server serves the v3 property field payload: the typed
+	// `permissions` object, stripped per caller, and the write rules that go with
+	// it. A v3 group with this off keeps serving the v2 columns-and-attrs shape.
+	// It does not gate the conversion of stored settings, which runs regardless.
+	PropertyFieldPermissionsV3 bool
 
 	TeamMembershipAccessControl bool
 
@@ -218,6 +236,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.ResourceAttributesInPolicies = true
 	f.ChannelPermissionPolicies = true
 	f.PolicySimulation = true
+	f.ChannelPermissionActions = false
 	f.ContentFlagging = true
 	f.EnableMattermostEntry = true
 
@@ -240,6 +259,8 @@ func (f *FeatureFlags) SetDefaults() {
 
 	f.EnableDocs = false
 
+	f.ProductRail = false
+
 	f.CJKSearch = true
 
 	f.AggregatePluginMetrics = false
@@ -257,6 +278,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.PropertyFieldRank = true
 
 	f.PropertyFieldGraph = true
+
+	f.PropertyFieldPermissionsV3 = false
 
 	f.ChannelAttributes = true
 

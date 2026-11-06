@@ -7,7 +7,6 @@ import (
 	"context"
 	"net/http"
 	"slices"
-	"strings"
 	"sync"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -298,7 +297,8 @@ func (a *App) noteChannelAccessEnforcementDenial(rctx request.CTX, userID, chann
 }
 
 func (a *App) ChannelAccessEnforcementActive() bool {
-	return a.attributeBasedAccessControlEnabled() &&
+	return a.Config().FeatureFlags.ChannelPermissionActions &&
+		a.attributeBasedAccessControlEnabled() &&
 		model.MinimumEnterpriseAdvancedLicense(a.License()) &&
 		a.Srv().Channels().AccessControl != nil
 }
@@ -342,7 +342,9 @@ func (a *App) attachChannelReadAccessHook(message *model.WebSocketEvent) {
 	}
 
 	eventType := message.EventType()
-	if _, exempt := channelReadAccessExemptEvents[eventType]; exempt || strings.HasPrefix(string(eventType), "custom_") {
+	// Plugin events (custom_*) are filtered too: a plugin that sends to the whole channel
+	// can carry post content, as Agents does while streaming a bot reply.
+	if _, exempt := channelReadAccessExemptEvents[eventType]; exempt {
 		return
 	}
 
@@ -396,27 +398,16 @@ func (a *App) HasChannelReadAccess(rctx request.CTX, userID string, channel *mod
 // channelWriteAccessDecision evaluates channel_write_access alone: a channel_read_access
 // denial does not refuse a write.
 func (a *App) channelWriteAccessDecision(rctx request.CTX, userID string, channel *model.Channel) bool {
-	if !a.channelAccessGateApplies(userID, channel) {
-		return true
-	}
-
-	// Integrations are out of scope. A bot has no interactive session, so a rule
-	// over user.session.* has nothing to evaluate and would deny every bot post.
-	// Webhook and plugin writes never reach a permission check at all, so they are
-	// already exempt; this covers the one integration that does carry a session.
-	if userID == rctx.Session().UserId && rctx.Session().IsBotUser() {
-		return true
-	}
-
-	if !a.channelActionGoverned(rctx, channel, model.AccessControlPolicyActionChannelWriteAccess) {
+	if !a.channelAccessGateApplies(userID, channel) ||
+		!a.channelActionGoverned(rctx, channel, model.AccessControlPolicyActionChannelWriteAccess) {
 		return true
 	}
 
 	return a.hasChannelAccess(rctx, userID, channel, model.AccessControlPolicyActionChannelWriteAccess)
 }
 
-// channelManagementAccessDecision evaluates channel_management_access alone. Unlike
-// writes, bot sessions are evaluated too; system admins are never bound.
+// channelManagementAccessDecision evaluates channel_management_access alone. Bots are
+// evaluated like any user; system admins are never bound.
 func (a *App) channelManagementAccessDecision(rctx request.CTX, userID string, channel *model.Channel) bool {
 	if !a.channelAccessGateApplies(userID, channel) ||
 		!a.channelActionGoverned(rctx, channel, model.AccessControlPolicyActionChannelManagementAccess) {
@@ -468,7 +459,7 @@ func (a *App) evaluateChannelAccessGoverned(rctx request.CTX, channel *model.Cha
 	if appErr != nil {
 		// A failed governance check says nothing about whether a policy applies, so
 		// fall through to the evaluation rather than skipping a gate that would deny.
-		rctx.Logger().Debug("Failed to check whether permission policies govern the channel action; evaluating anyway",
+		rctx.Logger().Error("Failed to check whether permission policies govern the channel action; evaluating anyway",
 			mlog.String("action", action),
 			mlog.String("channel_id", channel.Id),
 			mlog.Err(appErr),
@@ -643,7 +634,11 @@ func (a *App) channelAccessBaseSubject(rctx request.CTX, userID string) (*model.
 
 	var subject *model.Subject
 	var appErr *model.AppError
-	if rctx.Session().UserId == userID {
+	// Only a real session (one with an ID) speaks for the user's roles and session
+	// attributes. A stand-in that carries only the user ID, as background jobs such as
+	// recaps build, has no roles, and would evaluate a guest or an admin as system_user;
+	// such a request is evaluated on the user's stored roles instead.
+	if s := rctx.Session(); s.UserId == userID && s.Id != "" {
 		subject, appErr = a.BuildAccessControlSubjectForSession(rctx, "")
 	} else {
 		var user *model.User
@@ -784,6 +779,56 @@ func (a *App) FilterChannelMembersByReadAccess(rctx request.CTX, userID string, 
 		}
 	}
 	return filtered
+}
+
+// channelReadAccessDeniedChannelIDs returns the channels userID is a member of that the
+// channel_read_access policy denies them. Unread counts are summed in the store over every
+// membership, and a denied channel left in them is a badge the user can never clear, since
+// clearing it means opening the channel. Nil while enforcement is off.
+func (a *App) channelReadAccessDeniedChannelIDs(rctx request.CTX, userID string) ([]string, *model.AppError) {
+	if userID == "" || !a.ChannelAccessEnforcementActive() {
+		return nil, nil
+	}
+
+	memberships, err := a.Srv().Store().Channel().GetAllChannelMembersForUser(rctx, userID, true, false)
+	if err != nil {
+		return nil, model.NewAppError("channelReadAccessDeniedChannelIDs", "app.channel.get_channels.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	channelIDs := make([]string, 0, len(memberships))
+	for channelID := range memberships {
+		channelIDs = append(channelIDs, channelID)
+	}
+
+	allowed := a.FilterChannelIDsByReadAccess(WithChannelAccessMemo(rctx), userID, channelIDs)
+	if len(allowed) == len(channelIDs) {
+		return nil, nil
+	}
+
+	allowedSet := make(map[string]struct{}, len(allowed))
+	for _, channelID := range allowed {
+		allowedSet[channelID] = struct{}{}
+	}
+	var denied []string
+	for _, channelID := range channelIDs {
+		if _, ok := allowedSet[channelID]; !ok {
+			denied = append(denied, channelID)
+		}
+	}
+	return denied, nil
+}
+
+// channelReadAccessDeniedChannelSet is channelReadAccessDeniedChannelIDs as a set, for
+// callers that sum per-channel unread rows themselves.
+func (a *App) channelReadAccessDeniedChannelSet(rctx request.CTX, userID string) (map[string]struct{}, *model.AppError) {
+	denied, appErr := a.channelReadAccessDeniedChannelIDs(rctx, userID)
+	if appErr != nil {
+		return nil, appErr
+	}
+	set := make(map[string]struct{}, len(denied))
+	for _, channelID := range denied {
+		set[channelID] = struct{}{}
+	}
+	return set, nil
 }
 
 func (a *App) FilterChannelsByReadAccess(rctx request.CTX, userID string, channels []*model.Channel) []*model.Channel {

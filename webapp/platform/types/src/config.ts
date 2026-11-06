@@ -130,6 +130,7 @@ export type ClientConfig = {
     FeatureFlagPermissionPolicies: string;
     FeatureFlagChannelPermissionPolicies: string;
     FeatureFlagPolicySimulation: string;
+    FeatureFlagChannelPermissionActions: string;
     FeatureFlagContentFlagging: string;
     FeatureFlagPostDeliveryTracking: string;
     FeatureFlagClassificationMarkings: string;
@@ -143,6 +144,7 @@ export type ClientConfig = {
     FeatureFlagPostAttributes: string;
     FeatureFlagDiscoverableChannels: string;
     FeatureFlagRecurringScheduledPosts: string;
+    FeatureFlagProductRail: string;
 
     ForgotPasswordLink: string;
     GiphySdkKey: string;
@@ -1012,6 +1014,7 @@ export type PluginSettings = {
     MarketplaceURL: string;
     SignaturePublicKeyFiles: string[];
     ChimeraOAuthProxyURL: string;
+    RestrictUnauthenticatedWebappPlugins: boolean;
 };
 
 export type DisplaySettings = {
