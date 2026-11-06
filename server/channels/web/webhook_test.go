@@ -278,3 +278,22 @@ func TestCommandWebhooks(t *testing.T) {
 	resp, _ = http.Post(apiClient.URL+"/hooks/commands/"+hook.Id, "application/json", bytes.NewBufferString(`{"text":"this is a test"}`))
 	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 }
+
+func TestInnermostErrorID(t *testing.T) {
+	t.Run("returns own ID when nothing is wrapped", func(t *testing.T) {
+		appErr := model.NewAppError("where", "outer.id", nil, "", http.StatusBadRequest)
+		assert.Equal(t, "outer.id", innermostErrorID(appErr))
+	})
+
+	t.Run("returns own ID when wrapping a non-AppError", func(t *testing.T) {
+		appErr := model.NewAppError("where", "outer.id", nil, "", http.StatusBadRequest).Wrap(fmt.Errorf("boom"))
+		assert.Equal(t, "outer.id", innermostErrorID(appErr))
+	})
+
+	t.Run("returns the innermost wrapped AppError ID", func(t *testing.T) {
+		innermost := model.NewAppError("where", "inner.id", nil, "", http.StatusBadRequest).Wrap(fmt.Errorf("boom"))
+		middle := model.NewAppError("where", "middle.id", nil, "", http.StatusBadRequest).Wrap(innermost)
+		outer := model.NewAppError("where", "outer.id", nil, "", http.StatusBadRequest).Wrap(middle)
+		assert.Equal(t, "inner.id", innermostErrorID(outer))
+	})
+}

@@ -4,7 +4,7 @@
 package web
 
 import (
-	"encoding/json"
+	"errors"
 	"io"
 	"mime"
 	"net/http"
@@ -26,6 +26,19 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["id"]
 	errCtx := map[string]any{"hook_id": id}
+	contentType := r.Header.Get("Content-Type")
+
+	defer func() {
+		if *c.App.Config().LogSettings.EnableWebhookDebugging && c.Err != nil {
+			c.Logger.Debug("Incoming webhook received",
+				mlog.String("webhook_id", id),
+				mlog.String("content_type", contentType),
+				mlog.Int("payload_size", r.ContentLength),
+				mlog.String("error_id", innermostErrorID(c.Err)),
+				mlog.Int("status_code", c.Err.StatusCode),
+			)
+		}
+	}()
 
 	err := r.ParseForm()
 	if err != nil {
@@ -36,7 +49,6 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 	var appErr *model.AppError
 	var mediaType string
 	incomingWebhookPayload := &model.IncomingWebhookRequest{}
-	contentType := r.Header.Get("Content-Type")
 	// Content-Type header is optional so could be empty
 	if contentType != "" {
 		var mimeErr error
@@ -46,22 +58,6 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-
-	defer func() {
-		if *c.App.Config().LogSettings.EnableWebhookDebugging {
-			if c.Err != nil {
-				fields := []mlog.Field{mlog.String("webhook_id", id), mlog.String("request_id", c.AppContext.RequestId())}
-				payload, err := json.Marshal(incomingWebhookPayload)
-				if err != nil {
-					fields = append(fields, mlog.NamedErr("encoding_err", err))
-				} else {
-					fields = append(fields, mlog.String("payload", payload))
-				}
-
-				mlog.Debug("Incoming webhook received", fields...)
-			}
-		}
-	}()
 
 	errCtx["media_type"] = mediaType
 	if mediaType == "application/x-www-form-urlencoded" {
@@ -104,6 +100,15 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 		return
 	}
+}
+
+func innermostErrorID(appErr *model.AppError) string {
+	id := appErr.Id
+	var inner *model.AppError
+	for err := appErr.Unwrap(); errors.As(err, &inner); err = inner.Unwrap() {
+		id = inner.Id
+	}
+	return id
 }
 
 func commandWebhook(c *Context, w http.ResponseWriter, r *http.Request) {

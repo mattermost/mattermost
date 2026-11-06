@@ -9567,8 +9567,8 @@
     "defaultMessage": "Enable Webhook Debugging:",
     "description": "Setting label (toggle) on the Logging admin page; sends webhook request debug output to server logs. Ends with a colon."
   },
-  "admin.log.enableWebhookDebuggingDescription": {
-    "defaultMessage": "When true, sends webhook debug messages to the server logs. To also output the request body of incoming webhooks, set {boldedLogLevel} to \"DEBUG\".",
+  "admin.log.enableWebhookDebuggingFailedRequestsDescription": {
+    "defaultMessage": "When true, sends webhook debug messages to the server logs. Set {boldedLogLevel} to \"DEBUG\" to also log failed incoming webhook requests, such as the webhook ID and error ID. This setting does not log the request payload.",
     "description": "Help text for the Enable Webhook Debugging setting; {boldedLogLevel} is the bolded name of the log level setting, and \"DEBUG\" is a literal log level value."
   },
   "admin.log.fileDescription": {
