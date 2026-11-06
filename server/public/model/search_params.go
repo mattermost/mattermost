@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-var searchTermPuncStart = regexp.MustCompile(`^[^\pL\d\s#"]+`)
+var searchTermPuncStart = regexp.MustCompile(`^[^\pL\d\s#"@]+`)
 var searchTermPuncEnd = regexp.MustCompile(`[^\pL\p{M}\d\s*"]+$`)
 
 type SearchParams struct {

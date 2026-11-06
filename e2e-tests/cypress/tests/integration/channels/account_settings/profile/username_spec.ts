@@ -118,7 +118,7 @@ describe('Settings > Sidebar > General > Edit', () => {
             cy.get('body').type('{esc}');
 
             // # Step 4
-            const text = `${newTempUserName} test message!`;
+            const text = `@${newTempUserName} test message!`;
 
             // # Post the user name mention declared earlier
             cy.postMessage(text);
@@ -128,8 +128,8 @@ describe('Settings > Sidebar > General > Edit', () => {
 
             cy.get('#search-items-container').should('be.visible').within(() => {
                 // * Ensure that the mentions are visible in the RHS
-                cy.findByText(newTempUserName);
-                cy.findByText(`${newTempUserName} test message!`);
+                cy.findByText(`@${newTempUserName}`);
+                cy.findByText('test message!');
             });
 
             // # Click on the @ button to toggle off

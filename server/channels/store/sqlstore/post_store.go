@@ -2257,6 +2257,58 @@ func splitCJKSearchTerms(input string) []string {
 	return terms
 }
 
+// splitMentionSearchTerms separates the terms that search for an @mention, quoted or not, from the
+// rest of the search terms. A quoted phrase only counts as a mention term when it is a single word.
+func splitMentionSearchTerms(input string) (string, []string) {
+	isMentionTerm := func(term string) bool {
+		return len(term) > 1 && term[0] == '@' && !strings.ContainsAny(term, " \t\n")
+	}
+
+	var rest, mentionTerms []string
+	keepUnquoted := func(text string) {
+		for word := range strings.FieldsSeq(text) {
+			if isMentionTerm(word) {
+				mentionTerms = append(mentionTerms, word)
+			} else {
+				rest = append(rest, word)
+			}
+		}
+	}
+
+	last := 0
+	for _, loc := range quotedStringsRegex.FindAllStringIndex(input, -1) {
+		keepUnquoted(input[last:loc[0]])
+		quoted := input[loc[0]:loc[1]]
+		if isMentionTerm(quoted[1 : len(quoted)-1]) {
+			mentionTerms = append(mentionTerms, quoted)
+		} else {
+			rest = append(rest, quoted)
+		}
+		last = loc[1]
+	}
+	keepUnquoted(input[last:])
+
+	if len(mentionTerms) == 0 {
+		return input, nil
+	}
+	return strings.Join(rest, " "), mentionTerms
+}
+
+// mentionTermPattern builds a regular expression matching an @mention search term as a whole
+// username, so that "@job" doesn't match "@jobs", or as a prefix when it ends in a wildcard.
+// The @ must not be preceded by a username character, so "@job" doesn't match "foo@job.com".
+// Trailing periods only end the username when no username character follows them, so "@job"
+// doesn't match "@job.smith" but does match "ask @job." and "ask @job...".
+func mentionTermPattern(term string) string {
+	const leadingBoundary = `(^|[^[:alnum:]_])`
+
+	term = strings.Trim(term, `"`)
+	if prefix, isWildcard := strings.CutSuffix(term, "*"); isWildcard {
+		return leadingBoundary + regexp.QuoteMeta(strings.TrimRight(prefix, "*"))
+	}
+	return leadingBoundary + regexp.QuoteMeta(term) + `([^[:alnum:]_.-]|\.+([^[:alnum:]_.-]|$)|$)`
+}
+
 // buildCJKSearchClause builds LIKE WHERE clauses for CJK search terms.
 func (s *SqlPostStore) buildCJKSearchClause(baseQuery sq.SelectBuilder, searchType, terms, excludedTerms string, orTerms bool) sq.SelectBuilder {
 	escapeChar := "\\"
@@ -2351,24 +2403,21 @@ func (s *SqlPostStore) search(logger mlog.LoggerIFace, teamId string, userId str
 		// It also adds complexity as we would only need that index for CJK deployments.
 		baseQuery = s.buildCJKSearchClause(baseQuery, searchType, terms, excludedTerms, params.OrTerms)
 	} else {
-		// Preserve internal hyphens (e.g. "t-shirt") as compound-word searches,
-		// while neutralizing malformed hyphen usage that would otherwise be
-		// passed to to_tsquery.
-		terms = neutralizeNonWordHyphens(terms)
-		excludedTerms = neutralizeNonWordHyphens(excludedTerms)
-
-		// Parse text for wildcards
-		terms = wildCardRegex.ReplaceAllLiteralString(terms, ":* ")
-		excludedTerms = wildCardRegex.ReplaceAllLiteralString(excludedTerms, ":* ")
-
-		terms = expandNumericTerms(terms)
-		excludedTerms = expandNumericTerms(excludedTerms)
-
-		// Replace spaces with to_tsquery symbols
-		replaceSpaces := func(input string, excludedInput bool) string {
+		// Convert search terms into to_tsquery syntax
+		toTsQuery := func(input string, excludedInput bool) string {
 			if input == "" {
 				return input
 			}
+
+			// Preserve internal hyphens (e.g. "t-shirt") as compound-word searches,
+			// while neutralizing malformed hyphen usage that would otherwise be
+			// passed to to_tsquery.
+			input = neutralizeNonWordHyphens(input)
+
+			// Parse text for wildcards
+			input = wildCardRegex.ReplaceAllLiteralString(input, ":* ")
+
+			input = expandNumericTerms(input)
 
 			// Remove extra spaces
 			input = strings.Join(strings.Fields(input), " ")
@@ -2388,15 +2437,51 @@ func (s *SqlPostStore) search(logger mlog.LoggerIFace, teamId string, userId str
 			return input
 		}
 
-		tsQueryClause := replaceSpaces(terms, false)
-		excludedClause := replaceSpaces(excludedTerms, true)
-		if excludedClause != "" {
-			tsQueryClause += " &!(" + excludedClause + ")"
+		excludedClause := toTsQuery(excludedTerms, true)
+		withExcludedClause := func(tsQueryClause string) string {
+			if excludedClause != "" {
+				tsQueryClause += " &!(" + excludedClause + ")"
+			}
+			return tsQueryClause
 		}
 
 		textSearchCfg := s.pgDefaultTextSearchConfig
 		searchClause := fmt.Sprintf("to_tsvector('%[1]s', %[2]s) @@  to_tsquery('%[1]s', ?)", textSearchCfg, searchType)
-		baseQuery = baseQuery.Where(searchClause, tsQueryClause)
+
+		allTerms := terms
+		var mentionTerms []string
+		if !params.IsHashtag {
+			terms, mentionTerms = splitMentionSearchTerms(terms)
+		}
+
+		switch {
+		case len(mentionTerms) == 0:
+			baseQuery = baseQuery.Where(searchClause, withExcludedClause(toTsQuery(terms, false)))
+		case params.OrTerms:
+			// PostgreSQL's parser treats "@" as a blank, so to_tsquery alone would let "@job"
+			// match any post containing the word "job". Each mention term also has to appear
+			// with its "@" in the message itself.
+			clauses := make(sq.Or, 0, len(mentionTerms)+1)
+			for _, term := range mentionTerms {
+				clauses = append(clauses, sq.And{
+					sq.Expr(searchClause, withExcludedClause(toTsQuery(term, false))),
+					sq.Expr(searchType+" ~* ?", mentionTermPattern(term)),
+				})
+			}
+			if terms != "" {
+				clauses = append(clauses, sq.Expr(searchClause, withExcludedClause(toTsQuery(terms, false))))
+			}
+			baseQuery = baseQuery.Where(clauses)
+		default:
+			// Keeping every term in one tsquery means stop words are dropped from it instead of
+			// producing a separate clause that can never match.
+			clauses := make(sq.And, 0, len(mentionTerms)+1)
+			clauses = append(clauses, sq.Expr(searchClause, withExcludedClause(toTsQuery(allTerms, false))))
+			for _, term := range mentionTerms {
+				clauses = append(clauses, sq.Expr(searchType+" ~* ?", mentionTermPattern(term)))
+			}
+			baseQuery = baseQuery.Where(clauses)
+		}
 	}
 
 	inQuery := s.getSubQueryBuilder().Select("Id").
