@@ -137,16 +137,12 @@ func checkEditFileAttachmentPermission(c *Context, newFileIds []string, original
 // this is safe to add to the most-used endpoint in the product.
 func postAttributeValuesForCreate(c *Context, post *model.Post) ([]*model.PropertyValue, *model.AppError) {
 	items := post.Metadata.GetPropertyValues()
-
-	if !c.App.Config().FeatureFlags.PostAttributes {
-		if len(items) > 0 {
-			return nil, model.NewAppError("Api4.createPost", "api.post.create_post.attributes_feature_disabled.app_error", nil, "", http.StatusBadRequest)
-		}
+	if len(items) == 0 {
 		return nil, nil
 	}
 
-	if len(items) == 0 {
-		return nil, nil
+	if !c.App.Config().FeatureFlags.PostAttributes {
+		return nil, model.NewAppError("Api4.createPost", "api.post.create_post.attributes_feature_disabled.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	// Fetched only once there are values to check: the team ID decides which team-scoped
