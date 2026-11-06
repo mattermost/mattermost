@@ -4,6 +4,7 @@
 package sharedchannel
 
 import (
+	"net/http"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -442,6 +443,37 @@ func TestUpsertSyncPost(t *testing.T) {
 		mockApp.AssertNotCalled(t, "UpdatePost", mock.Anything, mock.Anything, mock.Anything)
 		mockAckStore.AssertCalled(t, "BatchDelete", existingAcks)
 		mockApp.AssertCalled(t, "SaveAcknowledgementsForPost", mock.Anything, postID, []string{existingUserID, newUserID})
+	})
+
+	t.Run("failed acknowledgement lookup saves received acknowledgements without deleting", func(t *testing.T) {
+		postID := model.NewId()
+		userID := model.NewId()
+		existing := &model.Post{Id: postID, ChannelId: channelID, Message: "original", UpdateAt: 100, RemoteId: new(remoteID)}
+		savedAcks := []*model.PostAcknowledgement{
+			{PostId: postID, UserId: userID, ChannelId: channelID, AcknowledgedAt: 200},
+		}
+
+		scs, mockApp, mockAckStore := setup(t, existing)
+		mockApp.On("GetAcknowledgementsForPost", postID).Return(nil, model.NewAppError("test", "test.error", nil, "", http.StatusInternalServerError))
+		mockApp.On("SaveAcknowledgementsForPost", mock.Anything, postID, []string{userID}).Return(savedAcks, (*model.AppError)(nil))
+
+		resent := &model.Post{
+			Id:        postID,
+			ChannelId: channelID,
+			Message:   "original",
+			UpdateAt:  100,
+			Metadata: &model.PostMetadata{Acknowledgements: []*model.PostAcknowledgement{
+				{PostId: postID, UserId: userID, ChannelId: channelID, AcknowledgedAt: 50},
+			}},
+		}
+
+		rpost, err := scs.upsertSyncPost(resent, channel, rc, nil)
+
+		require.NoError(t, err)
+		require.NotNil(t, rpost.Metadata)
+		assert.Equal(t, savedAcks, rpost.Metadata.Acknowledgements)
+		mockAckStore.AssertNotCalled(t, "BatchDelete", mock.Anything)
+		mockApp.AssertCalled(t, "SaveAcknowledgementsForPost", mock.Anything, postID, []string{userID})
 	})
 }
 
