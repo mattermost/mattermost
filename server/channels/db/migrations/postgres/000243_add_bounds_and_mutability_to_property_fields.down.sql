@@ -1,0 +1,3 @@
+ALTER TABLE PropertyFields DROP COLUMN IF EXISTS mutability;
+
+ALTER TABLE PropertyFields DROP COLUMN IF EXISTS bounds;

@@ -47,6 +47,7 @@ func TestPropertyFieldStore(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 	t.Run("GetLiveLinkedFieldsByObjectTypes", func(t *testing.T) { testGetLiveLinkedFieldsByObjectTypes(t, ss) })
 	t.Run("GetLiveUserFieldsByNames", func(t *testing.T) { testGetLiveUserFieldsByNames(t, ss) })
 	t.Run("OptionStorage", func(t *testing.T) { testPropertyFieldOptionStorage(t, rctx, ss, s) })
+	t.Run("PropertyFieldBounds", func(t *testing.T) { testPropertyFieldBounds(t, rctx, ss) })
 	t.Run("OptionEdges", func(t *testing.T) { testPropertyFieldOptionEdges(t, rctx, ss, s) })
 	t.Run("OptionHierarchy", func(t *testing.T) { testPropertyFieldOptionHierarchy(t, rctx, ss) })
 }
@@ -6517,5 +6518,96 @@ func testGetLiveUserFieldsByNames(t *testing.T, ss store.Store) {
 		fields, err = ss.PropertyField().GetLiveUserFieldsByNames(f.groupID, []string{"nonexistent"})
 		require.NoError(t, err)
 		require.Empty(t, fields)
+	})
+}
+
+func testPropertyFieldBounds(t *testing.T, rctx request.CTX, ss store.Store) {
+	groupID := model.NewId()
+	newRankField := func(name string) *model.PropertyField {
+		return &model.PropertyField{
+			GroupID:    groupID,
+			Name:       name,
+			Type:       model.PropertyFieldTypeRank,
+			ObjectType: model.PropertyFieldObjectTypeChannel,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"name": "Low", "rank": 1},
+					map[string]any{"name": "High", "rank": 2},
+				},
+			},
+		}
+	}
+	get := func(t *testing.T, id string) *model.PropertyField {
+		t.Helper()
+		got, err := ss.PropertyField().Get(rctx, "", id)
+		require.NoError(t, err)
+		return got
+	}
+
+	rules := model.PropertyBounds{
+		{Operator: model.PropertyBoundsOperatorAtOrAbove, Reference: model.PropertyBoundsReferenceSelf},
+		{Operator: model.PropertyBoundsOperatorAtOrBelow, Reference: model.PropertyBoundsReferenceSelf},
+	}
+
+	bounded := newRankField("Bounded")
+	bounded.Bounds = rules
+	bounded, err := ss.PropertyField().Create(bounded)
+	require.NoError(t, err)
+
+	locked := newRankField("Locked")
+	locked.Mutability = model.PropertyFieldMutabilityWriteOnce
+	locked, err = ss.PropertyField().Create(locked)
+	require.NoError(t, err)
+
+	plain, err := ss.PropertyField().Create(newRankField("Plain"))
+	require.NoError(t, err)
+
+	t.Run("rules and a lock read back as written", func(t *testing.T) {
+		require.Equal(t, rules, get(t, bounded.ID).Bounds)
+		require.Empty(t, get(t, bounded.ID).Mutability)
+		require.Nil(t, get(t, locked.ID).Bounds)
+		require.Equal(t, model.PropertyFieldMutabilityWriteOnce, get(t, locked.ID).Mutability)
+	})
+
+	t.Run("a field with neither reads back with nil bounds and empty mutability", func(t *testing.T) {
+		got := get(t, plain.ID)
+		require.Nil(t, got.Bounds)
+		require.Empty(t, got.Mutability)
+	})
+
+	t.Run("mutable is stored as the empty string", func(t *testing.T) {
+		mutable := newRankField("Mutable on create")
+		mutable.Mutability = model.PropertyFieldMutabilityMutable
+		created, err := ss.PropertyField().Create(mutable)
+		require.NoError(t, err)
+		require.Empty(t, created.Mutability)
+		require.Empty(t, get(t, created.ID).Mutability)
+	})
+
+	t.Run("update clears empty bounds and mutable, in the returned fields too", func(t *testing.T) {
+		bounded.Bounds = model.PropertyBounds{}
+		locked.Mutability = model.PropertyFieldMutabilityMutable
+		updated, err := ss.PropertyField().Update("", []*model.PropertyField{bounded, locked}, nil)
+		require.NoError(t, err)
+		for _, f := range updated {
+			require.Nil(t, f.Bounds)
+			require.Empty(t, f.Mutability)
+		}
+		for _, id := range []string{bounded.ID, locked.ID} {
+			got := get(t, id)
+			require.Nil(t, got.Bounds)
+			require.Empty(t, got.Mutability)
+		}
+	})
+
+	t.Run("update sets bounds and a lock", func(t *testing.T) {
+		plain.Bounds = rules
+		plain.Mutability = model.PropertyFieldMutabilitySetOnCreate
+		_, err := ss.PropertyField().Update("", []*model.PropertyField{plain}, nil)
+		require.NoError(t, err)
+		got := get(t, plain.ID)
+		require.Equal(t, rules, got.Bounds)
+		require.Equal(t, model.PropertyFieldMutabilitySetOnCreate, got.Mutability)
 	})
 }
