@@ -6,30 +6,110 @@ package commands
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"maps"
+	"net/http"
 	"os"
+	"slices"
 	"strings"
+	"time"
+	"unicode/utf8"
 
+	"github.com/Masterminds/semver/v3"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"golang.org/x/term"
 
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer/human"
 )
 
+const (
+	// logsMaxPerPage is the most entries the server returns per node for one query.
+	logsMaxPerPage = 10000
+	// logsMinInterval keeps --follow from polling the server too often.
+	logsMinInterval = 2 * time.Second
+	// logsPollOverlap is how much further back than the previous fetch a poll reaches, to cover
+	// clock skew between mmctl and the servers, and entries flushed late.
+	logsPollOverlap = 30 * time.Second
+	// logsMaxSeenPerNode bounds the keys kept per node to drop entries already printed.
+	logsMaxSeenPerNode = 2 * logsMaxPerPage
+)
+
+// logsMinServerVersion is the first server version that filters the logs of every node, stops
+// reading the log file at date_from, and supports search. Older servers ignore --search, don't
+// filter the logs of other nodes, and read the whole log file on every --follow poll.
+var logsMinServerVersion = semver.MustParse("12.2.0")
+
+// logLevelGroups are the level groups the System Console offers, and the server levels each stands for.
+var logLevelGroups = map[string][]string{
+	"error": {"panic", "fatal", "critical", "error"},
+	"warn":  {"warn"},
+	"info":  {"info", "stdlog"},
+	"debug": {"debug", "trace"},
+}
+
+var logLevelGroupNames = []string{"error", "warn", "info", "debug"}
+
+var errPlainTextLogs = errors.New("the server's log file is not in JSON format, which is needed to filter and follow the logs. Enable LogSettings.FileJson, or run mmctl logs without --follow, --level, --node, --search and --since to print them unfiltered")
+
+var errQueryLogsNotFound = errors.New("the server doesn't support querying the logs over this connection, which is needed to filter and follow them. Upgrade the server, or run mmctl logs without --follow, --level, --node, --search and --since to print them unfiltered")
+
 var LogsCmd = &cobra.Command{
 	Use:   "logs",
 	Short: "Display logs in a human-readable format",
-	Long:  "Display logs in a human-readable format. As the logs format depends on the server, the \"--format\" flag cannot be used with this command.",
-	RunE:  withClient(logsCmdF),
+	Long: `Display logs in a human-readable format. As the logs format depends on the server, the "--format" flag cannot be used with this command.
+
+The logs are read from every node of the cluster, and filtered on each node. This needs the server to write its log file in JSON format (LogSettings.FileJson). Otherwise mmctl prints the logs unfiltered, and --follow, --level, --node, --search and --since aren't available.
+
+--follow, --level, --search and --since need a v12.2 or later server. Older servers ignore --search, don't filter the logs of other nodes, and read their whole log file on every --follow poll, so mmctl refuses these flags with them.
+
+Entries are colored when printed to a terminal. Set NO_COLOR to turn the colors off, or CLICOLOR_FORCE to keep them when the output is piped.`,
+	Example: `  # print the last 200 entries of each node
+  $ mmctl logs
+
+  # keep printing new error and warning entries until interrupted
+  $ mmctl logs --follow --level error,warn
+
+  # follow the entries of a single request, by its request ID
+  $ mmctl logs -f --search 8xyz7gqnfjb1jrkpd5xnqk5mbo
+
+  # print up to 10000 entries a node logged in the last 15 minutes
+  $ mmctl logs --node node-1 --since 15m -n 10000`,
+	Args: cobra.NoArgs,
+	RunE: withClient(logsCmdF),
 }
 
 func init() {
-	LogsCmd.Flags().IntP("number", "n", DefaultPageSize, "Number of log lines to retrieve.")
+	LogsCmd.Flags().IntP("number", "n", DefaultPageSize, fmt.Sprintf("Number of log entries to retrieve initially, per node. At most %d.", logsMaxPerPage))
+	// The logrus format is the only one left, so the flag is only kept for existing scripts
 	LogsCmd.Flags().BoolP("logrus", "l", false, "Use logrus for formatting.")
+	_ = LogsCmd.Flags().MarkDeprecated("logrus", "the logrus format is now the default")
+	LogsCmd.Flags().BoolP("follow", "f", false, "Keep polling the server and print new log entries until interrupted.")
+	LogsCmd.Flags().Duration("interval", 5*time.Second, fmt.Sprintf("How often to poll for new log entries with --follow. At least %s.", logsMinInterval))
+	LogsCmd.Flags().StringSlice("level", nil, "Only show entries of these level groups: "+strings.Join(logLevelGroupNames, ", ")+".")
+	LogsCmd.Flags().StringArray("node", nil, "Only show the logs of this cluster node. Can be repeated.")
+	LogsCmd.Flags().StringP("search", "s", "", "Only show entries with a value, other than the level and timestamp, that contains this text, ignoring case.")
+	LogsCmd.Flags().Duration("since", 0, "Only show entries logged within this duration, e.g. 15m.")
 	RootCmd.AddCommand(LogsCmd)
+}
+
+type logsOptions struct {
+	number   int
+	follow   bool
+	interval time.Duration
+	// levels are the server levels the chosen level groups stand for.
+	levels []string
+	nodes  []string
+	search string
+	since  time.Duration
+	// colors colors the level of each entry
+	colors bool
 }
 
 func logsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
@@ -39,21 +119,668 @@ func logsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("json formatting cannot be applied on this command. Please check the value of %q", "MMCTL_FORMAT")
 	}
 
-	number, _ := cmd.Flags().GetInt("number")
-	logLines, _, err := c.GetLogs(context.TODO(), 0, number)
+	opts, err := logsOptionsFromFlags(cmd)
+	if err != nil {
+		return err
+	}
+
+	opts.colors = logsUseColors(term.IsTerminal(int(os.Stdout.Fd())))
+
+	ctx := cmd.Context()
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
+	if err := checkLogsServerVersion(ctx, c, opts); err != nil {
+		return err
+	}
+
+	return newLogFollower(c, opts, os.Stdout).run(ctx)
+}
+
+func logsOptionsFromFlags(cmd *cobra.Command) (*logsOptions, error) {
+	// A flag that isn't defined, as on a bare command in tests, reads as its zero value
+	opts := &logsOptions{}
+	opts.number, _ = cmd.Flags().GetInt("number")
+	opts.follow, _ = cmd.Flags().GetBool("follow")
+	opts.interval, _ = cmd.Flags().GetDuration("interval")
+	opts.nodes, _ = cmd.Flags().GetStringArray("node")
+	opts.search, _ = cmd.Flags().GetString("search")
+	opts.since, _ = cmd.Flags().GetDuration("since")
+
+	if opts.number < 0 {
+		return nil, errors.New("--number must not be negative")
+	}
+	// The server has always capped the page at this, and earlier versions of mmctl printed what it returned
+	if opts.number > logsMaxPerPage {
+		printer.PrintWarning(fmt.Sprintf("--number is capped at %d entries per node", logsMaxPerPage))
+		opts.number = logsMaxPerPage
+	}
+
+	if utf8.RuneCountInString(opts.search) > model.LogFilterSearchMaxLength {
+		return nil, fmt.Errorf("the search text must be at most %d characters long", model.LogFilterSearchMaxLength)
+	}
+
+	groups, _ := cmd.Flags().GetStringSlice("level")
+	var seenGroups []string
+	for _, group := range groups {
+		group = strings.ToLower(strings.TrimSpace(group))
+		levels, ok := logLevelGroups[group]
+		if !ok {
+			return nil, fmt.Errorf("invalid level %q, must be one of: %s", group, strings.Join(logLevelGroupNames, ", "))
+		}
+		if !slices.Contains(seenGroups, group) {
+			seenGroups = append(seenGroups, group)
+			opts.levels = append(opts.levels, levels...)
+		}
+	}
+
+	if opts.since < 0 {
+		return nil, errors.New("--since must not be negative")
+	}
+
+	if opts.follow && opts.interval < logsMinInterval {
+		return nil, fmt.Errorf("--interval must be at least %s", logsMinInterval)
+	}
+
+	return opts, nil
+}
+
+// needsQuery reports whether the options need POST /api/v4/logs/query, which GET /api/v4/logs can't serve.
+func (o *logsOptions) needsQuery() bool {
+	return o.follow || len(o.levels) > 0 || len(o.nodes) > 0 || o.search != "" || o.since > 0
+}
+
+// serverFilterFlags returns the flags set that need a v12.2 or later server.
+func (o *logsOptions) serverFilterFlags() []string {
+	var flags []string
+	if o.follow {
+		flags = append(flags, "--follow")
+	}
+	if len(o.levels) > 0 {
+		flags = append(flags, "--level")
+	}
+	if o.search != "" {
+		flags = append(flags, "--search")
+	}
+	if o.since > 0 {
+		flags = append(flags, "--since")
+	}
+	return flags
+}
+
+// checkLogsServerVersion refuses the flags that need a v12.2 or later server when the server is
+// older. Without a version it can read, it lets the query run.
+func checkLogsServerVersion(ctx context.Context, c client.Client, opts *logsOptions) error {
+	flags := opts.serverFilterFlags()
+	if len(flags) == 0 {
+		return nil
+	}
+
+	_, resp, err := c.GetPing(ctx)
+	if err != nil || resp == nil {
+		// The query reports why the server can't be reached
+		return nil
+	}
+	version, ok := parseServerVersion(resp.ServerVersion)
+	if !ok || !version.LessThan(logsMinServerVersion) {
+		return nil
+	}
+
+	verb, pronoun := "needs", "it"
+	if len(flags) > 1 {
+		verb, pronoun = "need", "them"
+	}
+	return fmt.Errorf("%s %s a v%s or later server, and the server runs v%s. Upgrade the server, or run mmctl logs without %s",
+		joinFlags(flags), verb, logsMinServerVersion, version, pronoun)
+}
+
+// parseServerVersion reads the major, minor and patch version from the X-Version-Id header,
+// e.g. 12.1.1.12345.abcdef.true.
+func parseServerVersion(header string) (*semver.Version, bool) {
+	parts := strings.Split(header, ".")
+	if len(parts) < 3 {
+		return nil, false
+	}
+	version, err := semver.StrictNewVersion(strings.Join(parts[:3], "."))
+	if err != nil {
+		return nil, false
+	}
+	return version, true
+}
+
+// joinFlags joins flags as "a", "a and b", or "a, b and c".
+func joinFlags(flags []string) string {
+	if len(flags) == 1 {
+		return flags[0]
+	}
+	return strings.Join(flags[:len(flags)-1], ", ") + " and " + flags[len(flags)-1]
+}
+
+func (o *logsOptions) newWriter(out io.Writer) human.LogWriter {
+	return human.NewLogrusWriter(out, o.colors)
+}
+
+// logsUseColors reports whether to color the output, following https://no-color.org and
+// https://bixense.com/clicolors. mmctl decides once, as logrus can't tell the output is a
+// terminal once the node prefix wraps it.
+func logsUseColors(isTerminal bool) bool {
+	if os.Getenv("NO_COLOR") != "" {
+		return false
+	}
+	if force := os.Getenv("CLICOLOR_FORCE"); force != "" && force != "0" {
+		return true
+	}
+	if os.Getenv("CLICOLOR") == "0" {
+		return false
+	}
+	return isTerminal
+}
+
+// printUnfilteredLogs prints the log lines of every node unfiltered, as returned by GET /api/v4/logs.
+func printUnfilteredLogs(ctx context.Context, c client.Client, opts *logsOptions, out io.Writer) error {
+	logLines, _, err := c.GetLogs(ctx, 0, opts.number)
 	if err != nil {
 		return errors.New("Unable to retrieve logs. Error: " + err.Error())
 	}
 
 	reader := bytes.NewReader([]byte(strings.Join(logLines, "")))
-
-	var writer human.LogWriter
-	if logrus, _ := cmd.Flags().GetBool("logrus"); logrus {
-		writer = human.NewLogrusWriter(os.Stdout)
-	} else {
-		writer = human.NewSimpleWriter(os.Stdout)
-	}
-	human.ProcessLogs(reader, writer)
+	human.ProcessLogs(reader, opts.newWriter(out))
 
 	return nil
+}
+
+// logFollower queries the logs with POST /api/v4/logs/query, prints them, and with --follow
+// keeps polling for new entries.
+type logFollower struct {
+	c    client.Client
+	opts *logsOptions
+	out  io.Writer
+	// warn prints a warning on stderr, unless --quiet is set
+	warn func(msg string)
+	now  func() time.Time
+	// newWriter returns the writer that formats the entries printed to out
+	newWriter func(io.Writer) human.LogWriter
+	// logFormat reports whether the server writes its log file as JSON, and whether it could tell
+	logFormat func(ctx context.Context) (isJSON, known bool)
+	// format caches what logFormat returned, as it's only asked once
+	format *logFileFormat
+
+	levels map[string]bool
+	search string
+
+	// nodes holds every node a response listed. Once there are several, lines are prefixed with their node
+	nodes          map[string]bool
+	writer         human.LogWriter
+	prefixedWriter map[string]human.LogWriter
+
+	// seen holds, per node, the entries printed within the window a poll can repeat
+	seen map[string]*seenLogs
+	// newest holds, per node, the newest timestamp among the entries printed, by the node's clock
+	newest map[string]time.Time
+	// failed holds the nodes last reported as unreachable, so they're reported once until they recover
+	failed map[string]bool
+	// floor holds, per node, the oldest entry the first fetch printed when it filled a page. Later
+	// polls reach further back, and the entries before it are older than what --number asked for
+	floor map[string]time.Time
+}
+
+func newLogFollower(c client.Client, opts *logsOptions, out io.Writer) *logFollower {
+	f := &logFollower{
+		c:              c,
+		opts:           opts,
+		out:            out,
+		warn:           printer.PrintWarning,
+		now:            time.Now,
+		newWriter:      opts.newWriter,
+		logFormat:      configLogFormat(c),
+		levels:         make(map[string]bool, len(opts.levels)),
+		search:         strings.ToLower(opts.search),
+		nodes:          make(map[string]bool),
+		prefixedWriter: make(map[string]human.LogWriter),
+		seen:           make(map[string]*seenLogs),
+		newest:         make(map[string]time.Time),
+		failed:         make(map[string]bool),
+		floor:          make(map[string]time.Time),
+	}
+	for _, level := range opts.levels {
+		f.levels[level] = true
+	}
+	return f
+}
+
+func (f *logFollower) run(ctx context.Context) error {
+	start := f.now()
+	var since time.Time
+	if f.opts.since > 0 {
+		since = start.Add(-f.opts.since)
+	}
+
+	// Following plain-text logs would print nothing, and servers before v12.2 log a warning for
+	// every line the query skips, which the next poll reads back
+	if f.opts.follow {
+		if isJSON, known := f.logsAreJSON(ctx); known && !isJSON {
+			return errPlainTextLogs
+		}
+	}
+
+	// With --number 0, one entry per node still shows where the logs end, by the server's clock
+	perPage := max(f.opts.number, 1)
+	logs, resp, err := f.fetch(ctx, since, perPage)
+	if err != nil {
+		if ctx.Err() != nil {
+			return nil
+		}
+		// Servers older than v12.2 don't serve the query over the local socket
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
+			if f.opts.needsQuery() {
+				return errQueryLogsNotFound
+			}
+			f.warn("the server doesn't support querying the logs, printing them unfiltered instead")
+			return printUnfilteredLogs(ctx, f.c, f.opts, f.out)
+		}
+		return errors.New("Unable to retrieve logs. Error: " + err.Error())
+	}
+	f.setFloors(logs, perPage)
+	if !f.print(logs, since, start, f.opts.number > 0) && f.hasPlainTextLogs(ctx) {
+		if f.opts.needsQuery() {
+			return errPlainTextLogs
+		}
+		f.warn("the server's log file is not in JSON format, printing the logs unfiltered instead")
+		return printUnfilteredLogs(ctx, f.c, f.opts, f.out)
+	}
+
+	if !f.opts.follow {
+		return nil
+	}
+
+	// Only a successful fetch moves this, so a failed poll's gap is covered by the next one
+	lastStart := start
+	ticker := time.NewTicker(f.opts.interval)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		case <-ticker.C:
+		}
+		// select picks either when both are ready
+		if ctx.Err() != nil {
+			return nil
+		}
+
+		from := lastStart.Add(-logsPollOverlap)
+		if from.Before(since) {
+			from = since
+		}
+		pollStart := f.now()
+		logs, _, err := f.fetch(ctx, from, logsMaxPerPage)
+		if err != nil {
+			if ctx.Err() != nil {
+				return nil
+			}
+			f.warn(fmt.Sprintf("unable to retrieve new logs, retrying in %s. Error: %s", f.opts.interval, err))
+			continue
+		}
+		lastStart = pollStart
+		f.warnTruncated(logs, from)
+		f.print(logs, from, pollStart, true)
+
+		// The next poll starts no earlier than this, so older entries can't be repeated
+		cutoff := lastStart.Add(-logsPollOverlap)
+		for _, seen := range f.seen {
+			seen.prune(cutoff)
+		}
+	}
+}
+
+func (f *logFollower) fetch(ctx context.Context, from time.Time, perPage int) (map[string][]json.RawMessage, *model.Response, error) {
+	filter := &model.LogFilter{
+		ServerNames: f.opts.nodes,
+		LogLevels:   f.opts.levels,
+		Search:      f.opts.search,
+	}
+	if !from.IsZero() {
+		filter.DateFrom = from.UTC().Format(model.LogFilterDateLayout)
+	}
+
+	return f.c.QueryLogs(ctx, 0, perPage, filter)
+}
+
+type logFileFormat struct {
+	isJSON bool
+	known  bool
+}
+
+// configLogFormat reads LogSettings.FileJson from the server's config, as the System Console does.
+// It can't tell without the permission to read the config.
+func configLogFormat(c client.Client) func(ctx context.Context) (bool, bool) {
+	return func(ctx context.Context) (bool, bool) {
+		cfg, _, err := c.GetConfig(ctx)
+		if err != nil || cfg == nil || cfg.LogSettings.FileJson == nil {
+			return false, false
+		}
+		return *cfg.LogSettings.FileJson, true
+	}
+}
+
+// logsAreJSON reports whether the server writes its log file as JSON, and whether it could tell.
+// It reads the config at most once.
+func (f *logFollower) logsAreJSON(ctx context.Context) (isJSON, known bool) {
+	if f.format == nil {
+		isJSON, known := f.logFormat(ctx)
+		f.format = &logFileFormat{isJSON: isJSON, known: known}
+	}
+	return f.format.isJSON, f.format.known
+}
+
+// hasPlainTextLogs reports whether the server writes its log file as plain text, which the query
+// skips. It's only called when a query returned no entries, as that's the only way plain-text
+// logs show. It goes by the config, and without it, by the last log line.
+func (f *logFollower) hasPlainTextLogs(ctx context.Context) bool {
+	if isJSON, known := f.logsAreJSON(ctx); known {
+		return !isJSON
+	}
+
+	// Each node returns its last line. On a cluster, a separator comes before each node's line:
+	// two rules, the node's name, and two more rules
+	lines, _, err := f.c.GetLogs(ctx, 0, 1)
+	if err != nil {
+		return false
+	}
+	isRule := func(i int) bool {
+		if i < 0 || i >= len(lines) {
+			return false
+		}
+		line := strings.TrimSpace(lines[i])
+		return line != "" && strings.Trim(line, "-") == ""
+	}
+	for i, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" || isRule(i) || (isRule(i-1) && isRule(i+1)) {
+			continue
+		}
+		return !strings.HasPrefix(line, "{")
+	}
+	return false
+}
+
+// warnTruncated warns about the nodes whose poll filled a page with entries no older than from,
+// and newer than every entry printed before. The server fills the page from the newest entry
+// back, so the entries between the last one printed and the oldest one returned are missing.
+func (f *logFollower) warnTruncated(logs map[string][]json.RawMessage, from time.Time) {
+	for _, node := range slices.Sorted(maps.Keys(logs)) {
+		lines := logs[node]
+		if len(lines) < logsMaxPerPage {
+			continue
+		}
+		// Entries come oldest first. Servers older than v12.2 send the last page of remote nodes
+		// unfiltered, which reaches past from unless the node logged that much since
+		for _, raw := range lines {
+			if entry := parseLogQueryEntry(raw); !entry.Time.IsZero() {
+				// Polls overlap, so a full page can reach back to entries printed before, and then
+				// nothing is missing
+				newest, printed := f.newest[node]
+				if !entry.Time.Before(from) && (!printed || entry.Time.After(newest)) {
+					f.warn(fmt.Sprintf("node %q logged more than %d matching entries since the previous poll, so the older ones were skipped. Poll more often with a shorter --interval, or narrow the logs with --level or --search", node, logsMaxPerPage))
+				}
+				break
+			}
+		}
+	}
+}
+
+type pendingLog struct {
+	node  string
+	time  time.Time
+	entry human.LogEntry
+}
+
+// setFloors records the floor of each node whose first response filled a page.
+func (f *logFollower) setFloors(logs map[string][]json.RawMessage, perPage int) {
+	for node, lines := range logs {
+		if len(lines) < perPage {
+			continue
+		}
+		// Entries come oldest first
+		for _, raw := range lines {
+			if entry := parseLogQueryEntry(raw); !entry.failedNode && !entry.Time.IsZero() {
+				f.floor[node] = entry.Time
+				break
+			}
+		}
+	}
+}
+
+// print prints the entries not printed before, in timestamp order, or with emit unset only
+// records them as printed. Entries before from are dropped, as servers older than v12.2 may
+// ignore the filters on remote nodes. It reports whether the response held any entry the
+// nodes logged.
+func (f *logFollower) print(logs map[string][]json.RawMessage, from, fetchedAt time.Time, emit bool) bool {
+	var hasEntries bool
+	var pending []pendingLog
+
+	for _, node := range slices.Sorted(maps.Keys(logs)) {
+		f.nodes[node] = true
+		seen := f.seen[node]
+		if seen == nil {
+			seen = newSeenLogs()
+			f.seen[node] = seen
+		}
+		// Counted rather than collected, so an identical entry logged again in the same millisecond is kept
+		repeats := maps.Clone(seen.counts)
+
+		nodeFailed := false
+		// Entries without a timestamp sort with the entry before them
+		lastTime := fetchedAt
+		for _, raw := range logs[node] {
+			entry := parseLogQueryEntry(raw)
+			if entry.failedNode {
+				nodeFailed = true
+				if !f.failed[node] {
+					f.failed[node] = true
+					f.warn(fmt.Sprintf("unable to retrieve the logs of node %q. Error: %s", node, entry.error))
+				}
+				continue
+			}
+			hasEntries = true
+
+			sortTime := entry.Time
+			if entry.Time.IsZero() {
+				sortTime = lastTime
+			} else {
+				lastTime = entry.Time
+			}
+
+			if !f.keep(entry, from) {
+				continue
+			}
+			if floor, ok := f.floor[node]; ok && !entry.Time.IsZero() && entry.Time.Before(floor) {
+				continue
+			}
+			if repeats[entry.key] > 0 {
+				repeats[entry.key]--
+				continue
+			}
+			seen.add(entry.key, sortTime)
+			if !entry.Time.IsZero() && entry.Time.After(f.newest[node]) {
+				f.newest[node] = entry.Time
+			}
+			if emit {
+				pending = append(pending, pendingLog{node: node, time: sortTime, entry: entry.LogEntry})
+			}
+		}
+		if !nodeFailed {
+			delete(f.failed, node)
+		}
+	}
+
+	slices.SortStableFunc(pending, func(a, b pendingLog) int {
+		return a.time.Compare(b.time)
+	})
+	for _, p := range pending {
+		f.writerFor(p.node).Write(p.entry)
+	}
+
+	return hasEntries
+}
+
+// keep applies the filters on the client, as a backstop for servers that ignore them.
+func (f *logFollower) keep(entry logQueryEntry, from time.Time) bool {
+	if !entry.Time.IsZero() && !from.IsZero() && entry.Time.Before(from) {
+		return false
+	}
+	if len(f.levels) > 0 && !f.levels[entry.Level] {
+		return false
+	}
+	if f.search != "" && !entry.matches(f.search) {
+		return false
+	}
+	return true
+}
+
+func (f *logFollower) writerFor(node string) human.LogWriter {
+	if len(f.nodes) <= 1 {
+		if f.writer == nil {
+			f.writer = f.newWriter(f.out)
+		}
+		return f.writer
+	}
+
+	w, ok := f.prefixedWriter[node]
+	if !ok {
+		w = f.newWriter(&linePrefixWriter{out: f.out, prefix: "[" + printer.SanitizeForTerminal(node) + "] "})
+		f.prefixedWriter[node] = w
+	}
+	return w
+}
+
+// logQueryEntry is a log entry as returned by POST /api/v4/logs/query.
+type logQueryEntry struct {
+	human.LogEntry
+	// key identifies the entry by all of its fields: concurrent requests log the same
+	// message, caller and millisecond
+	key        string
+	failedNode bool
+	error      string
+}
+
+func parseLogQueryEntry(raw json.RawMessage) logQueryEntry {
+	// The server encodes each entry from a decoded map, so its keys are sorted, and identical
+	// entries come as identical bytes
+	entry := logQueryEntry{LogEntry: human.ParseLogMessage(string(raw)), key: string(raw)}
+	for _, field := range entry.Fields {
+		switch field.Key {
+		case "failed_node":
+			entry.failedNode, _ = field.Interface.(bool)
+		case "error":
+			entry.error, _ = field.Interface.(string)
+		}
+	}
+	return entry
+}
+
+// matches reports whether a value other than the level and timestamp contains the lower-cased
+// search, ignoring case, as the server does.
+func (e logQueryEntry) matches(search string) bool {
+	if strings.Contains(strings.ToLower(e.Message), search) || strings.Contains(strings.ToLower(e.Caller), search) {
+		return true
+	}
+	for _, field := range e.Fields {
+		// A timestamp the parser couldn't read stays a field
+		if field.Key == "timestamp" {
+			continue
+		}
+		s, ok := field.Interface.(string)
+		if !ok {
+			b, err := json.Marshal(field.Interface)
+			if err != nil {
+				continue
+			}
+			s = string(b)
+		}
+		if strings.Contains(strings.ToLower(s), search) {
+			return true
+		}
+	}
+	return false
+}
+
+type seenLog struct {
+	key  string
+	time time.Time
+}
+
+// seenLogs counts the entries of a node printed within the window a poll can repeat.
+type seenLogs struct {
+	entries []seenLog
+	counts  map[string]int
+}
+
+func newSeenLogs() *seenLogs {
+	return &seenLogs{counts: make(map[string]int)}
+}
+
+func (s *seenLogs) add(key string, t time.Time) {
+	s.entries = append(s.entries, seenLog{key: key, time: t})
+	s.counts[key]++
+}
+
+// prune forgets the entries logged before cutoff, and the oldest ones beyond logsMaxSeenPerNode,
+// so memory stays flat however long the logs are followed.
+func (s *seenLogs) prune(cutoff time.Time) {
+	kept := s.entries[:0]
+	for _, e := range s.entries {
+		if e.time.Before(cutoff) {
+			s.forget(e.key)
+		} else {
+			kept = append(kept, e)
+		}
+	}
+	if over := len(kept) - logsMaxSeenPerNode; over > 0 {
+		for _, e := range kept[:over] {
+			s.forget(e.key)
+		}
+		kept = append(kept[:0], kept[over:]...)
+	}
+	clear(s.entries[len(kept):])
+	s.entries = kept
+}
+
+func (s *seenLogs) forget(key string) {
+	if s.counts[key] <= 1 {
+		delete(s.counts, key)
+	} else {
+		s.counts[key]--
+	}
+}
+
+// linePrefixWriter writes prefix at the start of every line.
+type linePrefixWriter struct {
+	out     io.Writer
+	prefix  string
+	midLine bool
+}
+
+func (w *linePrefixWriter) Write(p []byte) (int, error) {
+	n := len(p)
+	var buf bytes.Buffer
+	for len(p) > 0 {
+		if !w.midLine {
+			buf.WriteString(w.prefix)
+			w.midLine = true
+		}
+		i := bytes.IndexByte(p, '\n')
+		if i < 0 {
+			buf.Write(p)
+			break
+		}
+		buf.Write(p[:i+1])
+		p = p[i+1:]
+		w.midLine = false
+	}
+	if _, err := w.out.Write(buf.Bytes()); err != nil {
+		return 0, err
+	}
+	return n, nil
 }

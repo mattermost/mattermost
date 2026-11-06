@@ -612,10 +612,79 @@ func TestQueryLogs(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 	})
 
+	t.Run("local mode returns matching entries", func(t *testing.T) {
+		filter := &model.LogFilter{Search: "querylogs_verify_" + testID}
+		require.Eventually(t, func() bool {
+			nodes, _, err := th.LocalClient.QueryLogs(context.Background(), 0, 200, filter)
+			return err == nil && len(nodes["default"]) == len(expectedMessages)
+		}, 5*time.Second, 25*time.Millisecond, "expected the local API to return the logged messages")
+	})
+
 	t.Run("non-admin is forbidden", func(t *testing.T) {
 		_, resp, err := th.Client.QueryLogs(context.Background(), 0, 200, &model.LogFilter{})
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
+	})
+}
+
+func TestLogsAudit(t *testing.T) {
+	logFile, err := os.CreateTemp("", "logs_audit.log")
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		require.NoError(t, logFile.Close())
+		require.NoError(t, os.Remove(logFile.Name()))
+	})
+
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.ExperimentalAuditSettings.FileEnabled = new(true)
+		cfg.ExperimentalAuditSettings.FileName = new(logFile.Name())
+	})
+
+	_, _, err = th.SystemAdminClient.GetLogs(context.Background(), 0, 1)
+	require.NoError(t, err)
+	_, _, err = th.SystemAdminClient.QueryLogs(context.Background(), 0, 1, &model.LogFilter{})
+	require.NoError(t, err)
+
+	require.NoError(t, th.Server.Audit.Flush())
+	require.NoError(t, logFile.Sync())
+	data, err := os.ReadFile(logFile.Name())
+	require.NoError(t, err)
+
+	for _, event := range []string{model.AuditEventGetLogs, model.AuditEventQueryLogs} {
+		var entries []*AuditEntry
+		for line := range strings.SplitSeq(string(data), "\n") {
+			if entry := FindAuditEntry(line, event, th.SystemAdminUser.Id); entry != nil {
+				entries = append(entries, entry)
+			}
+		}
+
+		require.Len(t, entries, 1, event)
+		assert.Equal(t, model.AuditStatusSuccess, entries[0].Status, event)
+	}
+}
+
+func TestDecodeLogLines(t *testing.T) {
+	t.Run("decodes JSON lines and counts the others", func(t *testing.T) {
+		entries, skipped, firstErr := decodeLogLines([]string{
+			`{"level":"info","msg":"first"}`,
+			"2026-11-05T12:00:00.000Z info plain text",
+			`{"level":"warn","msg":"second"}`,
+			"another plain line",
+		})
+		require.Equal(t, []any{
+			map[string]any{"level": "info", "msg": "first"},
+			map[string]any{"level": "warn", "msg": "second"},
+		}, entries)
+		assert.Equal(t, 2, skipped)
+		assert.Error(t, firstErr)
+	})
+
+	t.Run("no lines", func(t *testing.T) {
+		entries, skipped, firstErr := decodeLogLines(nil)
+		require.NotNil(t, entries, "a node without lines is still sent as an empty array")
+		assert.Empty(t, entries)
+		assert.Zero(t, skipped)
+		assert.NoError(t, firstErr)
 	})
 }
 
