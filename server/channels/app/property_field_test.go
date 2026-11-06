@@ -868,6 +868,47 @@ func TestPublishPropertyFieldEvent_OptionsWithheld(t *testing.T) {
 	})
 }
 
+// TestPublishPropertyFieldEvent_BoundsWithheld covers the bounds and mutability
+// a field broadcast carries: neither, because the event reaches every connected
+// client, v2 and v3 alike, and a v3 client reads the field back for them.
+func TestPublishPropertyFieldEvent_BoundsWithheld(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	groupID := registerTestPropertyGroup(t, th)
+
+	field := &model.PropertyField{
+		ID:         model.NewId(),
+		GroupID:    groupID,
+		Name:       "broadcast_" + model.NewId(),
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Bounds:     model.PropertyBounds{{Operator: model.PropertyBoundsOperatorAtOrBelow, Reference: model.PropertyBoundsReferenceParent}},
+		Mutability: model.PropertyFieldMutabilityWriteOnce,
+	}
+
+	messages, closeWS := connectFakeWebSocket(t, th, th.BasicUser2.Id, "", []model.WebsocketEventType{model.WebsocketEventPropertyFieldUpdated})
+	defer closeWS()
+
+	th.App.publishPropertyFieldEvent(th.Context, model.WebsocketEventPropertyFieldUpdated, field, "")
+
+	select {
+	case event := <-messages:
+		raw, ok := event.GetData()["property_field"].(string)
+		require.True(t, ok, "event carries no property_field payload")
+		var payload map[string]any
+		require.NoError(t, json.Unmarshal([]byte(raw), &payload))
+		require.Equal(t, field.ID, payload["id"])
+		assert.NotContains(t, payload, "bounds")
+		assert.NotContains(t, payload, "mutability")
+	case <-time.After(5 * time.Second):
+		require.Fail(t, "the property_field_updated event was not published")
+	}
+
+	assert.NotNil(t, field.Bounds, "publishing must not mutate the field passed in")
+	assert.Equal(t, model.PropertyFieldMutabilityWriteOnce, field.Mutability)
+}
+
 func TestGetPropertyField(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

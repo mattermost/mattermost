@@ -289,6 +289,8 @@ func NewCPAFieldFromPropertyField(pf *PropertyField) (*CPAField, error) {
 		Attrs:         attrs,
 	}
 	cpaField.Permissions = nil
+	cpaField.Bounds = nil
+	cpaField.Mutability = ""
 
 	return cpaField, nil
 }
