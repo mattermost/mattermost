@@ -154,7 +154,7 @@ func (*MFA) authenticate(userMfaSecret string, usedTs []int, token string) (*dgo
 		DisallowReuse: usedTs,
 	}
 
-	ok, err := otpConfig.Authenticate(trimmedToken)
+	ok, err := authenticateOTP(otpConfig, trimmedToken)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to parse the token")
 	}

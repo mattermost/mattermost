@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strings"
 	"testing"
 	"time"
 
@@ -614,6 +615,25 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		require.NotNil(t, err)
 		assert.Equal(t, "api.user.authorize_oauth_user.bad_response.app_error", err.Id)
 		assert.Contains(t, err.DetailedError, "response_body=invalid")
+	})
+
+	t.Run("with an oversized token response", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			_, err := w.Write([]byte(strings.Repeat("a", 2*maxOAuthTokenResponseSize)))
+			require.NoError(t, err)
+		}))
+		defer server.Close()
+
+		th := setup(t, true, true, true, server.URL)
+
+		cookie := model.NewId()
+		request := makeRequest(cookie)
+		state := makeState(makeToken(th, cookie))
+
+		_, _, err := th.App.AuthorizeOAuthUser(th.Context, &httptest.ResponseRecorder{}, request, model.ServiceGitlab, "", state, "")
+		require.NotNil(t, err)
+		assert.Equal(t, "api.user.authorize_oauth_user.bad_response.app_error", err.Id)
+		assert.Less(t, len(err.DetailedError), maxOAuthTokenResponseSize+1024)
 	})
 
 	t.Run("with an invalid token type", func(t *testing.T) {

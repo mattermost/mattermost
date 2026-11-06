@@ -1,5 +1,8 @@
-FROM cgr.dev/mattermost.com/go-msft-fips:1.26.10.1-dev@sha256:3d2491247a015497d76db9bd651f3089068090f169288747ec62921e1cd7f9a8
+FROM cgr.dev/mattermost.com/go-openssl-fips:1.27.3-dev@sha256:1c11d1bc1511a20be883498fc4ae8c6afa2050fa5f7a6c355c9656fb662180e0
 ARG NODE_VERSION=24.11.1
+
+# Select the OpenSSL backend. Also overrides the image's insecurepath GODEBUG defaults.
+ENV GODEBUG=cgr_fips=openssl
 
 RUN apk add curl ca-certificates mailcap unrtf wv poppler-utils tzdata gpg xmlsec
 

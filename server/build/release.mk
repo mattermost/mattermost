@@ -15,10 +15,10 @@ else
 endif
 ifeq ($(FIPS_ENABLED),true)
 	@echo Verifying Build Linux amd64 for FIPS
-	$(GO) version -m $(GOBIN)/$(MM_BIN_NAME) | grep -q "GOEXPERIMENT=systemcrypto" || (echo "ERROR: FIPS mattermost binary missing GOEXPERIMENT=systemcrypto" && exit 1)
+	$(GO) version -m $(GOBIN)/$(MM_BIN_NAME) | grep -q "microsoft_systemcrypto=1" || (echo "ERROR: FIPS mattermost binary missing microsoft_systemcrypto=1" && exit 1)
 	$(GO) version -m $(GOBIN)/$(MM_BIN_NAME) | grep "\-tags" | grep -q "requirefips" || (echo "ERROR: FIPS mattermost binary missing -tags=requirefips" && exit 1)
 	$(GO) tool nm $(GOBIN)/$(MM_BIN_NAME) | grep -qE "func_go_openssl_OpenSSL_version|_mkcgo_OpenSSL_version" || (echo "ERROR: FIPS mattermost binary missing OpenSSL integration" && exit 1)
-	$(GO) version -m $(GOBIN)/$(MMCTL_BIN_NAME) | grep -q "GOEXPERIMENT=systemcrypto" || (echo "ERROR: FIPS mmctl binary missing GOEXPERIMENT=systemcrypto" && exit 1)
+	$(GO) version -m $(GOBIN)/$(MMCTL_BIN_NAME) | grep -q "microsoft_systemcrypto=1" || (echo "ERROR: FIPS mmctl binary missing microsoft_systemcrypto=1" && exit 1)
 	$(GO) version -m $(GOBIN)/$(MMCTL_BIN_NAME) | grep "\-tags" | grep -q "requirefips" || (echo "ERROR: FIPS mmctl binary missing -tags=requirefips" && exit 1)
 	$(GO) tool nm $(GOBIN)/$(MMCTL_BIN_NAME) | grep -qE "func_go_openssl_OpenSSL_version|_mkcgo_OpenSSL_version" || (echo "ERROR: FIPS mmctl binary missing OpenSSL integration" && exit 1)
 endif
@@ -98,10 +98,10 @@ else
 endif
 ifeq ($(FIPS_ENABLED),true)
 	@echo Verifying Build Linux amd64 for FIPS
-	$(GO) version -m $(GOBIN)/mattermost | grep -q "GOEXPERIMENT=systemcrypto" || (echo "ERROR: FIPS mattermost binary missing GOEXPERIMENT=systemcrypto" && exit 1)
+	$(GO) version -m $(GOBIN)/mattermost | grep -q "microsoft_systemcrypto=1" || (echo "ERROR: FIPS mattermost binary missing microsoft_systemcrypto=1" && exit 1)
 	$(GO) version -m $(GOBIN)/mattermost | grep "\-tags" | grep -q "requirefips" || (echo "ERROR: FIPS mattermost binary missing -tags=requirefips" && exit 1)
 	$(GO) tool nm $(GOBIN)/mattermost | grep -qE "func_go_openssl_OpenSSL_version|_mkcgo_OpenSSL_version" || (echo "ERROR: FIPS mattermost binary missing OpenSSL integration" && exit 1)
-	$(GO) version -m $(GOBIN)/mmctl | grep -q "GOEXPERIMENT=systemcrypto" || (echo "ERROR: FIPS mmctl binary missing GOEXPERIMENT=systemcrypto" && exit 1)
+	$(GO) version -m $(GOBIN)/mmctl | grep -q "microsoft_systemcrypto=1" || (echo "ERROR: FIPS mmctl binary missing microsoft_systemcrypto=1" && exit 1)
 	$(GO) version -m $(GOBIN)/mmctl | grep "\-tags" | grep -q "requirefips" || (echo "ERROR: FIPS mmctl binary missing -tags=requirefips" && exit 1)
 	$(GO) tool nm $(GOBIN)/mmctl | grep -qE "func_go_openssl_OpenSSL_version|_mkcgo_OpenSSL_version" || (echo "ERROR: FIPS mmctl binary missing OpenSSL integration" && exit 1)
 endif
@@ -184,7 +184,7 @@ package-prep: setup-go-work
 	@# Resource directories
 	mkdir -p $(DIST_PATH)/config
 	cp -L config/README.md $(DIST_PATH)/config
-	OUTPUT_CONFIG=$(PWD)/$(DIST_PATH)/config/config.json go run ./scripts/config_generator
+	OUTPUT_CONFIG=$(PWD)/$(DIST_PATH)/config/config.json $(GO) run $(if $(filter true,$(FIPS_ENABLED)),-tags requirefips) ./scripts/config_generator
 	cp -RL fonts $(DIST_PATH)
 	cp -RL templates $(DIST_PATH)
 	rm -rf $(DIST_PATH)/templates/*.mjml $(DIST_PATH)/templates/partials/
