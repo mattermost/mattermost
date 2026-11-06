@@ -36,6 +36,7 @@ def services_from_env() -> agent.Services:
     atlassian = (os.environ.get("JIRA_URL") or "https://mattermost.atlassian.net", require("JIRA_EMAIL"), require("JIRA_TOKEN"))
     return agent.Services(
         github=GitHub(require("GH_TOKEN")),
+        healthcheck_github=GitHub(os.environ["HEALTHCHECK_TOKEN"]) if os.environ.get("HEALTHCHECK_TOKEN") else None,
         jira=Jira(*atlassian),
         confluence=Confluence(*atlassian),
         hub=hub,
@@ -62,6 +63,11 @@ def step_summary(body: dict) -> str:
         if release["ticked"] or release["would_tick"]:
             ticked = ", ".join(t["task"] for t in release["ticked"]) or "none"
             lines += ["", f"Ticked: {ticked}" + (f" · would tick: {', '.join(release['would_tick'])}" if release["would_tick"] else "")]
+        if release.get("handoffs"):
+            lines += ["", "| Handoff | State | Asked | Last reminded | Summary |", "| --- | --- | --- | --- | --- |"]
+            lines += [f"| {h['task']} | {h['state']}{' (overdue)' if h['escalated'] else ''} | {h['asked_on'] or '—'} | "
+                      f"{h['reminded_on'] or '—'} | {(h['summary'] or '').replace('|', '/')} |" for h in release["handoffs"]]
+            lines.append("")
         lines += [f"- :triangular_flag_on_post: {flag}" for flag in release["flags"]]
         if release.get("hub_only_flags"):
             lines.append(f"- :triangular_flag_on_post: {release['hub_only_flags']} more flag(s), shown in Hub only")

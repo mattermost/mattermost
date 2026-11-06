@@ -1,10 +1,17 @@
 name: Release Agent
 
-# Phase 1 of self-hosted release automation. Every weekday it works out the active
+# Phases 1 and 4 of self-hosted release automation. Every weekday it works out the active
 # releases from the Release Dates calendar (cross-checked against release branches and
-# tags), runs the checks in .github/release-agent/rules.yml, ticks the matching items in
-# each release's Cloud & Self-Hosted playbook run, keeps one status post per release up
-# to date on Hub, and writes one line to release-agent-log. Nothing is kept between runs.
+# tags), runs the checks in .github/release-agent/rules.yml, sends the release's asks to
+# other teams on their due days and follows them up (rules of type ask, templates in
+# .github/release-agent/templates), ticks the matching items in each release's Cloud &
+# Self-Hosted playbook run, keeps one status post per release up to date on Hub, and writes
+# one line to release-agent-log. Nothing is kept between runs: an ask is found again on Hub
+# by a hidden post prop.
+#
+# The bot must be a member of each release channel, Platform Engineering, Monthly Mugs,
+# Developers: Performance Comparisons and Release: Testing Alerts. Anyone on the release
+# team can run it by hand: Actions → Release Agent → Run workflow, with a release and a mode.
 #
 # This repo is public, so its Actions logs are too: check details, Hub content and
 # anything from mattermost/enterprise go to Hub only. The log, step summary and run.json
@@ -27,7 +34,8 @@ name: Release Agent
 #   RELEASE_AGENT_JIRA_TOKEN    — read-only Atlassian API token for Jira, and for Confluence
 #                                 to read the holidays page
 #   CHANGELOG_READ_PRIVATE_KEY  — the changelog workflow's read app, which can read
-#                                 mattermost/mattermost and mattermost/enterprise
+#                                 mattermost/mattermost and mattermost/enterprise, and, for
+#                                 the CES ask, mattermost/mattermost-healthcheck (read only)
 #   RELEASE_AGENT_CALENDAR_ICS_URL — optional; use instead of the variable when the feed
 #                                    URL embeds a secret token
 # Variables:
@@ -46,7 +54,14 @@ name: Release Agent
 #                                            "username": "<Hub username>", "name": "First Last"}]:
 #                                            the dev lead who gets the unassigned and Matty Code
 #                                            tickets of those Jira Teams (names match in any case).
-#                                            Team names are shown in Hub only.
+#                                            Team names are shown in Hub only. While teams are
+#                                            renamed, list both the old and the new names in
+#                                            the lead's teams.
+#   RELEASE_AGENT_PEOPLE                   — JSON: who the asks to other teams go to, by role,
+#                                            {"sre": ["<Hub username>", …], "loadtest": […], "qa": […],
+#                                            "ces": […], "ces_github": "<GitHub login>", "docs": […],
+#                                            "mugs": […]}. A role not set goes out with no mention
+#                                            and is flagged. Names are shown in Hub only.
 #   RELEASE_AGENT_MM_URL                   — optional; defaults to https://hub.mattermost.com
 #   CHANGELOG_READ_CLIENT_ID               — the read app's client ID
 on:
@@ -110,12 +125,26 @@ jobs:
           owner: mattermost
           repositories: mattermost,enterprise
 
+      # Only to see whether the CES Support Packet issue has been opened. The repo is private
+      # and the agent never writes to it. If the read app isn't installed there yet, this step
+      # fails on its own and the CES ask says it can't check.
+      - name: Get read token (mattermost-healthcheck)
+        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
+        id: healthcheckToken
+        continue-on-error: true
+        with:
+          client-id: ${{ vars.CHANGELOG_READ_CLIENT_ID }}
+          private-key: ${{ secrets.CHANGELOG_READ_PRIVATE_KEY }}
+          owner: mattermost
+          repositories: mattermost-healthcheck
+
       - name: Run checks
         working-directory: .github/scripts
         env:
           INPUT_RELEASE: ${{ inputs.release }}
           INPUT_MODE: ${{ inputs.mode }}
           GH_TOKEN: ${{ steps.readToken.outputs.token }}
+          HEALTHCHECK_TOKEN: ${{ steps.healthcheckToken.outputs.token }}
           MM_TOKEN: ${{ secrets.RELEASE_AGENT_MM_TOKEN }}
           JIRA_EMAIL: ${{ vars.RELEASE_AGENT_JIRA_EMAIL }}
           JIRA_TOKEN: ${{ secrets.RELEASE_AGENT_JIRA_TOKEN }}
@@ -126,6 +155,7 @@ jobs:
           RELEASE_CHANNEL_IDS: ${{ vars.RELEASE_AGENT_RELEASE_CHANNEL_IDS }}
           HOLIDAYS_PAGE_ID: ${{ vars.RELEASE_AGENT_HOLIDAYS_PAGE_ID }}
           DEV_LEADS: ${{ vars.RELEASE_AGENT_DEV_LEADS }}
+          PEOPLE: ${{ vars.RELEASE_AGENT_PEOPLE }}
           OUT_DIR: ${{ runner.temp }}/release-agent
         run: python3 -m release_agent run --out-dir "$OUT_DIR"
 

@@ -14,7 +14,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import changelog_release  # noqa: E402  (.github/scripts, shared with the changelog workflow)
 
-from . import checks, playbook, posting, release_calendar, workdays  # noqa: E402
+from . import asks, checks, playbook, posting, release_calendar, workdays  # noqa: E402
 from .clients import ServiceError  # noqa: E402
 
 MODES = ("test", "live")
@@ -34,6 +34,8 @@ class Settings:
     holidays_page_id: str = ""
     dev_leads: list = field(default_factory=list)  # RELEASE_AGENT_DEV_LEADS, parsed
     dev_leads_problem: str = ""  # what's wrong with it, without repeating it
+    people: dict = field(default_factory=dict)  # RELEASE_AGENT_PEOPLE: role -> Hub usernames
+    people_problem: str = ""
 
 
 @dataclass
@@ -46,6 +48,7 @@ class Services:
     ls_remote: object  # () -> `git ls-remote` output
     confluence: object = None
     fetch_page: object = None  # (url) -> page text, for the live docs page; no token
+    healthcheck_github: object = None  # the read app on mattermost-healthcheck (private), for the CES ask
 
 
 def resolve_mode(requested: str, variable: str) -> str:
@@ -141,6 +144,8 @@ def check_release(release, rules: dict, settings: Settings, services: Services, 
         fetch_page=services.fetch_page,
     )
     for rule in rules["rules"]:
+        if rule["type"] == "ask":
+            continue  # asks.process_all, once the release's channel and run are known
         due = release_calendar.resolve_due(rule["due"], release, holidays)
         if due is None:
             report.flags.append(f"{rule['task']} is due at {rule['due']}, which isn't on the calendar for {release.short_version}.")
@@ -178,12 +183,17 @@ def check_release(release, rules: dict, settings: Settings, services: Services, 
         report.flags.append(f"Couldn't read the playbook runs: {public_error(err)}")
     report.run = run
 
+    report.handoffs = run_asks(ctx, report, rules, settings, services, holidays)
+
     # A report's item asks for the list in the run's channel, so it is ticked only when the
     # status post goes there.
     tickable = {posting.OK, posting.REPORT} if run and live_channel(report, settings) == run.get("channel_id") \
         else {posting.OK}
     passing = [(o.rule, o.result) for o in report.outcomes
                if o.state in tickable and o.rule["playbook_item"] and o.due and today >= o.due]
+    # An ask's item is ticked when it is done or not needed, with the reason as its proof reply.
+    passing += [(h.rule, checks.Result(checks.PASS, h.summary, proof_url=h.proof_url)) for h in report.handoffs
+                if h.state in (asks.DONE, asks.NOT_NEEDED) and h.summary != "done in the playbook"]
     if run and passing:
         # Planned only: the items are closed in post_report, once the status post is up.
         report.ticks = playbook.tick_items(services.playbooks, run, passing, settings.mode == "live", execute=False)
@@ -194,6 +204,28 @@ def check_release(release, rules: dict, settings: Settings, services: Services, 
             elif tick.action == playbook.FAILED:
                 report.flags.append(f"Ticking “{tick.playbook_item}” ({tick.task}) failed.")
     return report
+
+
+def run_asks(ctx: checks.Context, report: posting.ReleaseReport, rules: dict, settings: Settings,
+             services: Services, holidays: frozenset) -> list:
+    """The release's asks to other teams (asks.py). Their flags naming people are Hub only."""
+    if not asks.ask_rules(rules):
+        return []
+    manager = None
+    owner = (report.run or {}).get("owner_user_id")
+    if owner:
+        found = checks.lookup_with_retry(lambda: services.hub.user(owner))
+        manager = found if found and found is not checks.LOOKUP_FAILED and not found.get("delete_at") else None
+    env = asks.AskEnv(ctx=ctx, rules=rules, people=settings.people, mode=settings.mode, holidays=holidays,
+                      release_channel=report.release_channel or (report.run or {}).get("channel_id", ""),
+                      run=report.run, manager=manager, healthcheck_github=services.healthcheck_github)
+    if settings.people_problem and ctx.primary:
+        env.flag(settings.people_problem)
+    report.manager = manager
+    handoffs = asks.process_all(env, lambda due: release_calendar.resolve_due(due, report.release, holidays))
+    report.flags += env.flags + env.private_flags
+    report.private_flags |= set(env.private_flags)
+    return handoffs
 
 
 def live_channel(report: posting.ReleaseReport, settings: Settings) -> str:
@@ -340,6 +372,7 @@ def run(rules: dict, settings: Settings, services: Services, today: date) -> tup
             "would_tick": [t.task for t in report.ticks if t.action == playbook.WOULD_TICK],
             "not_ticked": [{"task": t.task, "reason": t.action} for t in report.ticks
                            if t.action not in (playbook.TICKED, playbook.WOULD_TICK)],
+            "handoffs": [h.public for h in report.handoffs],
             "flags": [flag for flag in report.flags if flag not in report.private_flags],
             "hub_only_flags": len(report.private_flags & set(report.flags)),
             "alarms_raised": len(posting.alarm_ids(report)),
@@ -372,6 +405,7 @@ def env_settings(env=os.environ) -> Settings:
     import json
     channels = env.get("RELEASE_CHANNEL_IDS", "").strip()
     dev_leads, dev_leads_problem = checks.parse_dev_leads(env.get("DEV_LEADS", ""))
+    people, people_problem = asks.parse_people(env.get("PEOPLE", ""))
     return Settings(
         mode=resolve_mode(env.get("INPUT_MODE", ""), env.get("RELEASE_AGENT_MODE", "")),
         release_override=env.get("INPUT_RELEASE", "").strip(),
@@ -382,4 +416,6 @@ def env_settings(env=os.environ) -> Settings:
         holidays_page_id=env.get("HOLIDAYS_PAGE_ID", "").strip(),
         dev_leads=dev_leads,
         dev_leads_problem=dev_leads_problem,
+        people=people,
+        people_problem=people_problem,
     )

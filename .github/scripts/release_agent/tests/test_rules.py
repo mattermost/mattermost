@@ -47,10 +47,20 @@ class RulesFileTest(unittest.TestCase):
             "e2e-results": ("feature_complete+1", "(T-15) RC-1 Cut & QA Qualification Starts"),
             "final-tags": ("final_build", "(T-5) Final Release Cut"),
             "version-go-prs": ("final_build", "(T-5) Final Release Cut"),
+            "loadtest-results": ("T-6", "(T-6) Code Freeze"),
+            # Asks to other teams (asks.py), due in their item's section.
+            "ces-support-packet": ("T-16", "(T-16) Feature Complete"),
+            "docs-ask": ("T-16", "(T-16) Feature Complete"),
+            "loadtest-ask": ("T-15", "(T-15) RC-1 Cut & QA Qualification Starts"),
+            "manual-tests": ("T-15", "(T-15) RC-1 Cut & QA Qualification Starts"),
+            # Monthly, whichever release is active; the item sits in the Code Freeze section.
+            "contributors": ("first_working_day_of_month", "(T-6) Code Freeze"),
+            "sre-freemium-pro": ("T-4", "(T-4) Cloud Freemium & Professional Releases"),
+            "sre-enterprise": ("T-3", "(T-3) Cloud Enterprise Release"),
         })
 
     def test_every_check_has_a_rule(self):
-        self.assertEqual({rule["type"] for rule in self.rules["rules"]}, set(CHECKS))
+        self.assertEqual({rule["type"] for rule in self.rules["rules"]} - {"ask"}, set(CHECKS))
 
     def test_load_rules(self):
         self.assertEqual(len(rules.load_rules()["rules"]), len(self.rules["rules"]))
