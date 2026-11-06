@@ -146,6 +146,11 @@ type FeatureFlags struct {
 	// It does not gate the conversion of stored settings, which runs regardless.
 	PropertyFieldPermissionsV3 bool
 
+	// Gates only adding a bounds rule or a write_once lock to a property field.
+	// Reading bounds, removing them and enforcing stored ones never depend on it,
+	// so turning it off never removes a protection.
+	PropertyFieldBounds bool
+
 	TeamMembershipAccessControl bool
 
 	// Enable channel attributes (Smart Labels, banners) powered by the Properties API.
@@ -272,6 +277,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.PropertyFieldGraph = true
 
 	f.PropertyFieldPermissionsV3 = false
+
+	f.PropertyFieldBounds = false
 
 	f.ChannelAttributes = true
 

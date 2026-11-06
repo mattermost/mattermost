@@ -4205,6 +4205,11 @@
     "description": "API error when the requested custom property group does not exist; 'property group' is part of the custom profile attributes / properties system."
   },
   {
+    "id": "api.property_field.bounds_not_supported.app_error",
+    "translation": "Bounds and mutability can only be set through the version 3 property field format.",
+    "description": "API error (400) when a request to create or patch a property field carries bounds or a mutability for a property group that is not served in the version 3 format, such as custom profile attributes."
+  },
+  {
     "id": "api.property_field.create.creator_cannot_edit.app_error",
     "translation": "You cannot create a property field with permission levels that would prevent you from editing it.",
     "description": "API error when a user or admin creates a custom property field (e.g. a user or channel attribute) whose permission settings would leave the creator unable to edit or delete it afterwards."
@@ -11111,6 +11116,16 @@
     "description": "API error when editing a property field whose values are controlled by an external sync source (e.g. LDAP) and thus read-only."
   },
   {
+    "id": "app.property_field.bounds_disabled.app_error",
+    "translation": "Bounds and a locking mutability can't be added to a field while the PropertyFieldBounds feature flag is off.",
+    "description": "API error (400) when a property field is given a new bounds rule or made write_once while the PropertyFieldBounds feature flag is off."
+  },
+  {
+    "id": "app.property_field.bounds_requires_v3_group.app_error",
+    "translation": "Only fields in a version 3 property group can have bounds or a mutability other than mutable.",
+    "description": "API error when a property field in a property group older than version 3 is saved with bounds or a write_once or set_on_create mutability; only version 3 groups enforce them."
+  },
+  {
     "id": "app.property_field.count_for_group.app_error",
     "translation": "Unable to count property fields for group.",
     "description": "Internal error when counting the property fields defined in a group fails; developer/log-facing."
@@ -11329,6 +11344,11 @@
     "id": "app.property_field.self_writable_holdings.app_error",
     "translation": "This field is the holdings source for its masked template, so its value write level cannot be '{{.ValueWrite}}'. The people the template filters could otherwise edit their own holdings and widen what they can see.",
     "description": "API error when an admin or integration saves a property field that its masked template reads each person's own values ('holdings') from, with a value write level that lets regular members edit it. ValueWrite is a permission level such as 'member' or 'everyone'."
+  },
+  {
+    "id": "app.property_field.set_on_create_unsupported.app_error",
+    "translation": "Set-on-create mutability is not supported yet.",
+    "description": "API error (400) when a property field is saved with the set_on_create mutability, which nothing enforces yet."
   },
   {
     "id": "app.property_field.sync_source_exclusive.app_error",

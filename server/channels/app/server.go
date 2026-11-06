@@ -402,6 +402,9 @@ func NewServer(options ...Option) (*Server, error) {
 			OpenIDAttributeSync: func() bool {
 				return s.Config().FeatureFlags.OpenIdAttributeSync
 			},
+			PropertyFieldBounds: func() bool {
+				return s.Config().FeatureFlags.PropertyFieldBounds
+			},
 		}, cpaGroup.ID)
 	s.propertyService.AddHook(attrValidationHook)
 

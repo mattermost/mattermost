@@ -90,6 +90,19 @@ func TestCreateCPAField(t *testing.T) {
 	}, "a field carrying a permissions object should be rejected")
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		field := &model.PropertyField{
+			Name:   celSafeName(),
+			Type:   model.PropertyFieldTypeText,
+			Bounds: model.PropertyBounds{{Operator: model.PropertyBoundsOperatorAtOrAbove, Reference: model.PropertyBoundsReferenceSelf}},
+		}
+
+		createdField, resp, err := client.CreateCPAField(context.Background(), field)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.property_field.bounds_not_supported.app_error")
+		require.Empty(t, createdField)
+	}, "a field carrying bounds should be rejected")
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		webSocketClient := th.CreateConnectedWebSocketClient(t)
 
 		name := celSafeName()

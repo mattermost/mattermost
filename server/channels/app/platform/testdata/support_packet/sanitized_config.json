@@ -757,6 +757,7 @@
         "PropertyFieldRank": false,
         "PropertyFieldGraph": false,
         "PropertyFieldPermissionsV3": false,
+        "PropertyFieldBounds": false,
         "TeamMembershipAccessControl": false,
         "ChannelAttributes": false,
         "ChannelAttributesRequired": false,

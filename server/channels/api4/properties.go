@@ -218,6 +218,11 @@ func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if (len(field.Bounds) > 0 || field.Mutability != "") && !servesV3(c, group) {
+		c.Err = model.NewAppError("createPropertyField", "api.property_field.bounds_not_supported.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
 	// Pre-canonicalize system objects so the scope check below cannot be
 	// bypassed by submitting ObjectType=system with TargetType=channel. The
 	// App layer re-canonicalizes defensively for plugin/internal callers.
@@ -718,6 +723,32 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		permissionsChanged = !model.PermissionsEqual(existingField.Permissions, applied)
 	}
 
+	// Bounds and mutability are the field's definition, so a change to either
+	// takes field.write, never option.write. Keyed on effect like
+	// permissionsChanged, so a v3 client sending back what it was served
+	// alongside an option change is still options-only. Absent or null keeps
+	// the stored value; [] removes every rule. Held back and assigned only once
+	// the caller has been gated.
+	patchedBounds := existingField.Bounds
+	patchedMutability := existingField.Mutability
+	boundsChanged := false
+	if patch.Bounds != nil || patch.Mutability != nil {
+		if !servesV3(c, group) {
+			c.Err = model.NewAppError("patchPropertyField", "api.property_field.bounds_not_supported.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+		if patch.Bounds != nil {
+			patchedBounds = *patch.Bounds
+			boundsChanged = !model.PropertyBoundsEqual(existingField.Bounds, patchedBounds)
+		}
+		if patch.Mutability != nil {
+			// An empty mutability means mutable, as on a stored field; keeping ""
+			// would read as "not stated" downstream and leave the stored lock.
+			patchedMutability = patch.Mutability.OrMutable()
+			boundsChanged = boundsChanged || patchedMutability != existingField.Mutability.OrMutable()
+		}
+	}
+
 	// Mirrors permissionsChanged above: an options-only patch is gated on
 	// option.write only when the submitted option list actually differs from
 	// what is stored, not merely because it is the only attr present.
@@ -730,7 +761,7 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Permission branching (session-bound): options-only patches use a
 	// narrower permission than full edits.
-	isOptionsOnly := isOptionsOnlyPatch(patch, permissionsChanged, optionsChanged)
+	isOptionsOnly := isOptionsOnlyPatch(patch, permissionsChanged || boundsChanged, optionsChanged)
 	if isOptionsOnly && !existingField.Type.SupportsOptions() {
 		isOptionsOnly = false
 	}
@@ -789,6 +820,8 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	existingField.Permissions = patchedPermissions
+	existingField.Bounds = patchedBounds
+	existingField.Mutability = patchedMutability
 	existingField.Patch(patch, true)
 
 	// Anti-lockout, as on create: field.write was checked against the stored

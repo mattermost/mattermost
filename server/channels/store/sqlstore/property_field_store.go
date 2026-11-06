@@ -26,7 +26,7 @@ func newPropertyFieldStore(sqlStore *SqlStore) store.PropertyFieldStore {
 	s := SqlPropertyFieldStore{SqlStore: sqlStore}
 
 	s.tableSelectQuery = s.getQueryBuilder().
-		Select("ID", "GroupID", "Name", "Type", "Attrs", "TargetID", "TargetType", "ObjectType", "Protected", "PermissionField", "PermissionValues", "PermissionOptions", "LinkedFieldID", "CreateAt", "UpdateAt", "DeleteAt", "COALESCE(CreatedBy, '') as CreatedBy", "COALESCE(UpdatedBy, '') as UpdatedBy", "Permissions").
+		Select("ID", "GroupID", "Name", "Type", "Attrs", "TargetID", "TargetType", "ObjectType", "Protected", "PermissionField", "PermissionValues", "PermissionOptions", "LinkedFieldID", "CreateAt", "UpdateAt", "DeleteAt", "COALESCE(CreatedBy, '') as CreatedBy", "COALESCE(UpdatedBy, '') as UpdatedBy", "Permissions", "Bounds", "COALESCE(Mutability::text, '') AS Mutability").
 		From("PropertyFields")
 
 	return &s
@@ -81,8 +81,8 @@ func (s *SqlPropertyFieldStore) Create(field *model.PropertyField) (*model.Prope
 	// in the paragraph above about the Attrs keys).
 	builder := s.getQueryBuilder().
 		Insert("PropertyFields").
-		Columns("ID", "GroupID", "Name", "Type", "Attrs", "TargetID", "TargetType", "ObjectType", "Protected", "PermissionField", "PermissionValues", "PermissionOptions", "LinkedFieldID", "CreateAt", "UpdateAt", "DeleteAt", "CreatedBy", "UpdatedBy", "Permissions").
-		Values(field.ID, field.GroupID, field.Name, field.Type, storedFieldAttrs(field), field.TargetID, field.TargetType, field.ObjectType, projected.Protected, projected.PermissionField, projected.PermissionValues, projected.PermissionOptions, field.LinkedFieldID, field.CreateAt, field.UpdateAt, field.DeleteAt, field.CreatedBy, field.UpdatedBy, storedFieldPermissions(field))
+		Columns("ID", "GroupID", "Name", "Type", "Attrs", "TargetID", "TargetType", "ObjectType", "Protected", "PermissionField", "PermissionValues", "PermissionOptions", "LinkedFieldID", "CreateAt", "UpdateAt", "DeleteAt", "CreatedBy", "UpdatedBy", "Permissions", "Bounds", "Mutability").
+		Values(field.ID, field.GroupID, field.Name, field.Type, storedFieldAttrs(field), field.TargetID, field.TargetType, field.ObjectType, projected.Protected, projected.PermissionField, projected.PermissionValues, projected.PermissionOptions, field.LinkedFieldID, field.CreateAt, field.UpdateAt, field.DeleteAt, field.CreatedBy, field.UpdatedBy, storedFieldPermissions(field), storedFieldBounds(field), storedFieldMutability(field))
 
 	if _, err = transaction.ExecBuilder(builder); err != nil {
 		return nil, errors.Wrap(err, "property_field_create_insert")
@@ -108,8 +108,40 @@ func (s *SqlPropertyFieldStore) Create(field *model.PropertyField) (*model.Prope
 	// would otherwise send stale columns, which an update reads as a deliberate
 	// legacy edit and applies, widening a stricter permissions object.
 	applyProjectedPermissionColumns([]*model.PropertyField{field})
+	normalizeBoundsAndMutability(field)
 
 	return field, nil
+}
+
+// storedFieldBounds encodes field.Bounds to JSONB for storage. No rules is SQL
+// NULL, never the JSON text "null" or "[]", so every unbounded field reads
+// back the same way. Text rather than []byte for the reason given on
+// storedFieldPermissions.
+func storedFieldBounds(field *model.PropertyField) any {
+	if len(field.Bounds) == 0 {
+		return nil
+	}
+	return string(model.ToJSON(field.Bounds))
+}
+
+// storedFieldMutability stores mutable as SQL NULL, its one stored form: the
+// enum column has no label for it.
+func storedFieldMutability(field *model.PropertyField) any {
+	if field.Mutability == "" || field.Mutability == model.PropertyFieldMutabilityMutable {
+		return nil
+	}
+	return string(field.Mutability)
+}
+
+// normalizeBoundsAndMutability leaves a returned field as a read of its row
+// would: empty bounds nil and mutable as the empty string.
+func normalizeBoundsAndMutability(field *model.PropertyField) {
+	if len(field.Bounds) == 0 {
+		field.Bounds = nil
+	}
+	if field.Mutability == model.PropertyFieldMutabilityMutable {
+		field.Mutability = ""
+	}
 }
 
 func (s *SqlPropertyFieldStore) Get(rctx request.CTX, groupID, id string) (*model.PropertyField, error) {
@@ -524,6 +556,8 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 	deleteAtCase := sq.Case("id")
 	updatedByCase := sq.Case("id")
 	permissionsCase := sq.Case("id")
+	boundsCase := sq.Case("id")
+	mutabilityCase := sq.Case("id")
 	protectedCase := sq.Case("id")
 	permissionFieldCase := sq.Case("id")
 	permissionValuesCase := sq.Case("id")
@@ -561,6 +595,8 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 		deleteAtCase = deleteAtCase.When(whenID, sq.Expr("?::bigint", field.DeleteAt))
 		updatedByCase = updatedByCase.When(whenID, sq.Expr("?::text", field.UpdatedBy))
 		permissionsCase = permissionsCase.When(whenID, sq.Expr("?::jsonb", storedFieldPermissions(field)))
+		boundsCase = boundsCase.When(whenID, sq.Expr("?::jsonb", storedFieldBounds(field)))
+		mutabilityCase = mutabilityCase.When(whenID, sq.Expr("?::property_field_mutability", storedFieldMutability(field)))
 	}
 
 	// Read before the UPDATE overwrites it: a field that stops linking has to take
@@ -587,6 +623,8 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 		Set("DeleteAt", deleteAtCase).
 		Set("UpdatedBy", updatedByCase).
 		Set("Permissions", permissionsCase).
+		Set("Bounds", boundsCase).
+		Set("Mutability", mutabilityCase).
 		Where(sq.Eq{"id": ids})
 
 	if groupID != "" {
@@ -674,6 +712,9 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 	// Returned with the columns as stored, for the reason given in Create. The
 	// dependents were read back, so they already are.
 	applyProjectedPermissionColumns(fields)
+	for _, field := range fields {
+		normalizeBoundsAndMutability(field)
+	}
 
 	return append(fields, dependents...), nil
 }

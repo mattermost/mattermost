@@ -68,6 +68,10 @@ func (a *App) publishPropertyFieldEvent(rctx request.CTX, eventType model.Websoc
 	// caller who triggered this event is about to get back themselves.
 	broadcastField := *field
 	broadcastField.Permissions = nil
+	// Same reasoning for bounds and mutability: v2 clients must not see them,
+	// and a v3 client reads the field back for the full definition.
+	broadcastField.Bounds = nil
+	broadcastField.Mutability = ""
 
 	// It has no recipient to filter options against either, so a field whose
 	// option list not everyone may read must go out with none at all — a

@@ -9299,3 +9299,211 @@ func TestPatchPropertyFieldNullGrantsEcho(t *testing.T) {
 		require.Equal(t, field.Attrs[model.PropertyFieldAttributeOptions], stored.Attrs[model.PropertyFieldAttributeOptions])
 	})
 }
+
+func TestPropertyFieldBoundsEndpoints(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PropertyFieldPermissionsV3 = true
+		cfg.FeatureFlags.PropertyFieldBounds = true
+	}).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	selfRule := model.PropertyBoundsRule{Operator: model.PropertyBoundsOperatorAtOrAbove, Reference: model.PropertyBoundsReferenceSelf}
+
+	newRankField := func(bounds model.PropertyBounds) *model.PropertyField {
+		return &model.PropertyField{
+			Name:       celSafeName(),
+			Type:       model.PropertyFieldTypeRank,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Bounds:     bounds,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []map[string]any{
+					{"id": model.NewId(), "name": "Low", "rank": 1},
+					{"id": model.NewId(), "name": "High", "rank": 2},
+				},
+			},
+		}
+	}
+
+	setFlags := func(permissionsV3, bounds bool) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.PropertyFieldPermissionsV3 = permissionsV3
+			cfg.FeatureFlags.PropertyFieldBounds = bounds
+		})
+	}
+	defer setFlags(true, true)
+
+	create := func(t *testing.T, field *model.PropertyField) *model.PropertyField {
+		t.Helper()
+		created, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, model.PropertyFieldObjectTypeUser, field)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		return created
+	}
+
+	patch := func(fieldID string, p *model.PropertyFieldPatch) (*model.PropertyField, *model.Response, error) {
+		return th.SystemAdminClient.PatchPropertyField(context.Background(), group.Name, model.PropertyFieldObjectTypeUser, fieldID, p)
+	}
+
+	t.Run("a v3 create carries the rule back, and leaves mutable out", func(t *testing.T) {
+		created := create(t, newRankField(model.PropertyBounds{selfRule}))
+		require.Equal(t, model.PropertyBounds{selfRule}, created.Bounds)
+		require.Empty(t, created.Mutability)
+	})
+
+	t.Run("a v3 patch keeps, replaces and clears bounds, and sets mutability", func(t *testing.T) {
+		created := create(t, newRankField(model.PropertyBounds{selfRule}))
+
+		renamed, resp, err := patch(created.ID, &model.PropertyFieldPatch{Name: model.NewPointer(celSafeName())})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, model.PropertyBounds{selfRule}, renamed.Bounds)
+
+		cleared, resp, err := patch(created.ID, &model.PropertyFieldPatch{Bounds: &model.PropertyBounds{}})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Empty(t, cleared.Bounds)
+
+		locked, resp, err := patch(created.ID, &model.PropertyFieldPatch{Mutability: model.NewPointer(model.PropertyFieldMutabilityWriteOnce)})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, model.PropertyFieldMutabilityWriteOnce, locked.Mutability)
+
+		unlocked, resp, err := patch(created.ID, &model.PropertyFieldPatch{Mutability: model.NewPointer(model.PropertyFieldMutability(""))})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Empty(t, unlocked.Mutability)
+
+		stored, appErr := th.App.GetPropertyField(th.Context, group.ID, created.ID)
+		require.Nil(t, appErr)
+		require.Empty(t, stored.Mutability)
+	})
+
+	t.Run("with the flag off a v3 patch adding a rule surfaces the save refusal", func(t *testing.T) {
+		created := create(t, newRankField(nil))
+
+		setFlags(true, false)
+		defer setFlags(true, true)
+
+		_, resp, err := patch(created.ID, &model.PropertyFieldPatch{Bounds: &model.PropertyBounds{selfRule}})
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "app.property_field.bounds_disabled.app_error")
+	})
+
+	t.Run("a group not served as v3 refuses bounds and mutability", func(t *testing.T) {
+		created := create(t, newRankField(nil))
+
+		setFlags(false, true)
+		defer setFlags(true, true)
+
+		_, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, model.PropertyFieldObjectTypeUser, newRankField(model.PropertyBounds{selfRule}))
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.property_field.bounds_not_supported.app_error")
+
+		mutable := newRankField(nil)
+		mutable.Mutability = model.PropertyFieldMutabilityWriteOnce
+		_, resp, err = th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, model.PropertyFieldObjectTypeUser, mutable)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.property_field.bounds_not_supported.app_error")
+
+		_, resp, err = patch(created.ID, &model.PropertyFieldPatch{Mutability: model.NewPointer(model.PropertyFieldMutabilityWriteOnce)})
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.property_field.bounds_not_supported.app_error")
+	})
+}
+
+func TestPatchPropertyFieldBoundsPermission(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.IntegratedBoards = true
+		cfg.FeatureFlags.PropertyFieldPermissionsV3 = true
+		cfg.FeatureFlags.PropertyFieldBounds = true
+	}).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v3_bounds_permission", Version: model.PropertyGroupVersionV3})
+	require.Nil(t, appErr)
+
+	selfRule := model.PropertyBoundsRule{Operator: model.PropertyBoundsOperatorAtOrAbove, Reference: model.PropertyBoundsReferenceSelf}
+
+	// th.BasicUser, a member of th.BasicChannel, holds option.write on the
+	// field but not field.write.
+	newField := func(t *testing.T, bounds model.PropertyBounds) *model.PropertyField {
+		t.Helper()
+		created, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeRank,
+			GroupID:    group.ID,
+			ObjectType: "post",
+			TargetType: "channel",
+			TargetID:   th.BasicChannel.Id,
+			Bounds:     bounds,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []map[string]any{
+					{"id": model.NewId(), "name": "Low", "rank": 1},
+				},
+			},
+			Permissions: &model.Permissions{Restrictions: &model.Restrictions{
+				Value:  model.ReadWrite{Read: model.PermissionLevelMember, Write: model.PermissionLevelMember},
+				Option: model.ReadWrite{Read: model.PermissionLevelMember, Write: model.PermissionLevelMember},
+				Field:  model.WriteOnly{Write: model.PermissionLevelSysadmin},
+			}},
+		}, false, "")
+		require.Nil(t, appErr)
+		return created
+	}
+
+	newOptions := func() *model.StringInterface {
+		return &model.StringInterface{
+			model.PropertyFieldAttributeOptions: []map[string]any{{"id": model.NewId(), "name": "High", "rank": 2}},
+		}
+	}
+
+	th.LoginBasic(t)
+
+	t.Run("sending back the stored bounds and mutability with new options needs only option.write", func(t *testing.T) {
+		field := newField(t, model.PropertyBounds{selfRule})
+
+		patched, resp, err := th.Client.PatchPropertyField(context.Background(), group.Name, "post", field.ID, &model.PropertyFieldPatch{
+			Attrs:      newOptions(),
+			Bounds:     &model.PropertyBounds{selfRule},
+			Mutability: model.NewPointer(model.PropertyFieldMutabilityMutable),
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, model.PropertyBounds{selfRule}, patched.Bounds)
+	})
+
+	t.Run("a changed rule alongside new options needs field.write", func(t *testing.T) {
+		field := newField(t, model.PropertyBounds{selfRule})
+
+		_, resp, err := th.Client.PatchPropertyField(context.Background(), group.Name, "post", field.ID, &model.PropertyFieldPatch{
+			Attrs:  newOptions(),
+			Bounds: &model.PropertyBounds{},
+		})
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, "api.property_field.update.no_field_permission.app_error")
+
+		stored, appErr := th.App.GetPropertyField(th.Context, group.ID, field.ID)
+		require.Nil(t, appErr)
+		require.Equal(t, model.PropertyBounds{selfRule}, stored.Bounds)
+	})
+
+	t.Run("a changed mutability alongside new options needs field.write", func(t *testing.T) {
+		field := newField(t, nil)
+
+		_, resp, err := th.Client.PatchPropertyField(context.Background(), group.Name, "post", field.ID, &model.PropertyFieldPatch{
+			Attrs:      newOptions(),
+			Mutability: model.NewPointer(model.PropertyFieldMutabilityWriteOnce),
+		})
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, "api.property_field.update.no_field_permission.app_error")
+
+		stored, appErr := th.App.GetPropertyField(th.Context, group.ID, field.ID)
+		require.Nil(t, appErr)
+		require.Empty(t, stored.Mutability)
+	})
+}

@@ -210,25 +210,27 @@ func (pf *PropertyField) SupportsCreatorPermissionLevel() bool {
 }
 
 type PropertyField struct {
-	ID                string            `json:"id"`
-	GroupID           string            `json:"group_id"`
-	Name              string            `json:"name"`
-	Type              PropertyFieldType `json:"type"`
-	Attrs             StringInterface   `json:"attrs"`
-	TargetID          string            `json:"target_id"`
-	TargetType        string            `json:"target_type"`
-	ObjectType        string            `json:"object_type"`
-	Protected         bool              `json:"protected"`
-	PermissionField   *PermissionLevel  `json:"permission_field,omitempty"`
-	PermissionValues  *PermissionLevel  `json:"permission_values,omitempty"`
-	PermissionOptions *PermissionLevel  `json:"permission_options,omitempty"`
-	Permissions       *Permissions      `json:"permissions,omitempty"`
-	LinkedFieldID     *string           `json:"linked_field_id,omitempty"`
-	CreateAt          int64             `json:"create_at"`
-	UpdateAt          int64             `json:"update_at"`
-	DeleteAt          int64             `json:"delete_at"`
-	CreatedBy         string            `json:"created_by"`
-	UpdatedBy         string            `json:"updated_by"`
+	ID                string                  `json:"id"`
+	GroupID           string                  `json:"group_id"`
+	Name              string                  `json:"name"`
+	Type              PropertyFieldType       `json:"type"`
+	Attrs             StringInterface         `json:"attrs"`
+	TargetID          string                  `json:"target_id"`
+	TargetType        string                  `json:"target_type"`
+	ObjectType        string                  `json:"object_type"`
+	Protected         bool                    `json:"protected"`
+	PermissionField   *PermissionLevel        `json:"permission_field,omitempty"`
+	PermissionValues  *PermissionLevel        `json:"permission_values,omitempty"`
+	PermissionOptions *PermissionLevel        `json:"permission_options,omitempty"`
+	Permissions       *Permissions            `json:"permissions,omitempty"`
+	Bounds            PropertyBounds          `json:"bounds,omitempty"`
+	Mutability        PropertyFieldMutability `json:"mutability,omitempty"`
+	LinkedFieldID     *string                 `json:"linked_field_id,omitempty"`
+	CreateAt          int64                   `json:"create_at"`
+	UpdateAt          int64                   `json:"update_at"`
+	DeleteAt          int64                   `json:"delete_at"`
+	CreatedBy         string                  `json:"created_by"`
+	UpdatedBy         string                  `json:"updated_by"`
 }
 
 func (pf *PropertyField) Auditable() map[string]any {
@@ -246,6 +248,8 @@ func (pf *PropertyField) Auditable() map[string]any {
 		"permission_values":  pf.PermissionValues,
 		"permission_options": pf.PermissionOptions,
 		"permissions":        pf.Permissions,
+		"bounds":             pf.Bounds,
+		"mutability":         pf.Mutability,
 		"linked_field_id":    pf.LinkedFieldID,
 		"create_at":          pf.CreateAt,
 		"update_at":          pf.UpdateAt,
@@ -659,6 +663,10 @@ func (pf *PropertyField) IsValid() error {
 		}
 	}
 
+	if err := pf.validateBounds(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -672,6 +680,11 @@ type PropertyFieldPatch struct {
 
 	PermissionValues *PermissionLevel  `json:"permission_values,omitempty"`
 	Permissions      *PermissionsPatch `json:"permissions,omitempty"`
+
+	// Bounds and Mutability are applied by the v3 field endpoint, not by
+	// PropertyField.Patch, so the v2-shaped CPA patch endpoint never sets them.
+	Bounds     *PropertyBounds          `json:"bounds,omitempty"`
+	Mutability *PropertyFieldMutability `json:"mutability,omitempty"`
 }
 
 func (pfp *PropertyFieldPatch) Auditable() map[string]any {
@@ -684,6 +697,8 @@ func (pfp *PropertyFieldPatch) Auditable() map[string]any {
 		"linked_field_id":   pfp.LinkedFieldID,
 		"permission_values": pfp.PermissionValues,
 		"permissions":       pfp.Permissions,
+		"bounds":            pfp.Bounds,
+		"mutability":        pfp.Mutability,
 	}
 }
 
@@ -1013,6 +1028,14 @@ func PropertyFieldChangeIsOptionsOnly(existing, updated *PropertyField) bool {
 	// itself, so it is never an option-only change however the rest compares.
 	// Compared as the patch handler compares them, so the two agree on an echo.
 	if !PermissionsEqual(existing.Permissions, updated.Permissions) {
+		return false
+	}
+	// Nil bounds and empty mutability mean "not stated" (an older plugin or a
+	// v2-shaped write that doesn't know these settings), so they count as unchanged.
+	if updated.Bounds != nil && !PropertyBoundsEqual(existing.Bounds, updated.Bounds) {
+		return false
+	}
+	if updated.Mutability != "" && updated.Mutability != existing.Mutability.OrMutable() {
 		return false
 	}
 	if !equalPermissionLevelPointers(existing.PermissionField, updated.PermissionField) ||
