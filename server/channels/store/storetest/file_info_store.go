@@ -1029,7 +1029,7 @@ func testGetByIds(t *testing.T, rctx request.CTX, ss store.Store) {
 			ss.FileInfo().PermanentDelete(rctx, info.Id)
 		}()
 
-		fileInfos, err := ss.FileInfo().GetByIds([]string{info.Id}, false, true)
+		fileInfos, err := ss.FileInfo().GetByIds([]string{info.Id}, false, true, false)
 		require.NoError(t, err)
 		require.Len(t, fileInfos, 1)
 		require.Equal(t, info.Id, fileInfos[0].Id)
@@ -1058,7 +1058,7 @@ func testGetByIds(t *testing.T, rctx request.CTX, ss store.Store) {
 			ss.FileInfo().PermanentDelete(rctx, info2.Id)
 		}()
 
-		fileInfos, err := ss.FileInfo().GetByIds([]string{info1.Id, info2.Id}, false, true)
+		fileInfos, err := ss.FileInfo().GetByIds([]string{info1.Id, info2.Id}, false, true, false)
 		require.NoError(t, err)
 		require.Len(t, fileInfos, 2)
 		require.Equal(t, info1.Id, fileInfos[1].Id)
@@ -1096,7 +1096,7 @@ func testGetByIds(t *testing.T, rctx request.CTX, ss store.Store) {
 		_, err = ss.FileInfo().DeleteForPost(rctx, postId)
 		require.NoError(t, err)
 
-		fileInfosIncludingDeleted, err := ss.FileInfo().GetByIds([]string{info1.Id, info2.Id}, true, true)
+		fileInfosIncludingDeleted, err := ss.FileInfo().GetByIds([]string{info1.Id, info2.Id}, true, true, false)
 		require.NoError(t, err)
 		require.Len(t, fileInfosIncludingDeleted, 2)
 		require.Equal(t, info2.Id, fileInfosIncludingDeleted[0].Id)
@@ -1105,7 +1105,7 @@ func testGetByIds(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.Greater(t, fileInfosIncludingDeleted[1].DeleteAt, int64(0))
 
 		// verifying that the file infos are not returned when IncludeDeleted is false
-		fileInfosExcludingDeleted, err := ss.FileInfo().GetByIds([]string{info1.Id, info2.Id}, false, true)
+		fileInfosExcludingDeleted, err := ss.FileInfo().GetByIds([]string{info1.Id, info2.Id}, false, true, false)
 		require.NoError(t, err)
 		require.Len(t, fileInfosExcludingDeleted, 0)
 	})
