@@ -33,6 +33,7 @@ func TestSharedChannelStore(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 	t.Run("HasRemote", func(t *testing.T) { testHasRemote(t, rctx, ss) })
 	t.Run("GetRemoteForUser", func(t *testing.T) { testGetRemoteForUser(t, rctx, ss) })
 	t.Run("UpdateSharedChannelRemoteNextSyncAt", func(t *testing.T) { testUpdateSharedChannelRemoteCursor(t, rctx, ss) })
+	t.Run("UpdateSharedChannelRemoteCursorIfUnchanged", func(t *testing.T) { testUpdateSharedChannelRemoteCursorIfUnchanged(t, rctx, ss) })
 	t.Run("UpdateGlobalUserSyncCursor", func(t *testing.T) { testUpdateGlobalUserSyncCursor(t, rctx, ss) })
 	t.Run("DeleteSharedChannelRemote", func(t *testing.T) { testDeleteSharedChannelRemote(t, rctx, ss) })
 
@@ -576,6 +577,21 @@ func testGetSharedChannelRemoteByIds(t *testing.T, rctx request.CTX, ss store.St
 	t.Run("Get non-existent shared channel remote by ids", func(t *testing.T) {
 		r, err := ss.SharedChannel().GetRemoteByIds(model.NewId(), model.NewId())
 		require.Error(t, err)
+		require.Nil(t, r)
+	})
+
+	t.Run("Get existing shared channel remote by ids from master", func(t *testing.T) {
+		r, err := ss.SharedChannel().GetRemoteByIdsFromMaster(remoteSaved.ChannelId, remoteSaved.RemoteId)
+		require.NoError(t, err)
+		require.Equal(t, remoteSaved.Id, r.Id)
+		require.Equal(t, remoteSaved.ChannelId, r.ChannelId)
+		require.Equal(t, remoteSaved.RemoteId, r.RemoteId)
+	})
+
+	t.Run("Get non-existent shared channel remote by ids from master", func(t *testing.T) {
+		r, err := ss.SharedChannel().GetRemoteByIdsFromMaster(model.NewId(), model.NewId())
+		var nfErr *store.ErrNotFound
+		require.ErrorAs(t, err, &nfErr)
 		require.Nil(t, r)
 	})
 
@@ -1144,6 +1160,144 @@ func testUpdateSharedChannelRemoteCursor(t *testing.T, rctx request.CTX, ss stor
 		emptyCursor := model.GetPostsSinceForSyncCursor{}
 		err := ss.SharedChannel().UpdateRemoteCursor(remoteSaved.Id, emptyCursor)
 		require.Error(t, err, "update with empty cursor should error", err)
+	})
+}
+
+func testUpdateSharedChannelRemoteCursorIfUnchanged(t *testing.T, rctx request.CTX, ss store.Store) {
+	channel, err := createTestChannel(ss, rctx, "test_remote_update_cursor_if_unchanged")
+	require.NoError(t, err)
+
+	remoteSaved, err := ss.SharedChannel().SaveRemote(&model.SharedChannelRemote{
+		ChannelId: channel.Id,
+		CreatorId: model.NewId(),
+		RemoteId:  model.NewId(),
+	})
+	require.NoError(t, err)
+
+	start := model.GetPostsSinceForSyncCursor{
+		LastPostCreateAt: 1000,
+		LastPostCreateID: model.NewId(),
+		LastPostUpdateAt: 2000,
+		LastPostUpdateID: model.NewId(),
+	}
+
+	getCursor := func(t *testing.T) model.GetPostsSinceForSyncCursor {
+		t.Helper()
+		r, err := ss.SharedChannel().GetRemote(remoteSaved.Id)
+		require.NoError(t, err)
+		return model.GetPostsSinceForSyncCursor{
+			LastPostCreateAt: r.LastPostCreateAt,
+			LastPostCreateID: r.LastPostCreateID,
+			LastPostUpdateAt: r.LastPostUpdateAt,
+			LastPostUpdateID: r.LastPostUpdateID,
+		}
+	}
+
+	reset := func(t *testing.T) {
+		t.Helper()
+		require.NoError(t, ss.SharedChannel().UpdateRemoteCursor(remoteSaved.Id, start))
+		require.Equal(t, start, getCursor(t))
+	}
+
+	t.Run("updates when the stored cursor matches", func(t *testing.T) {
+		reset(t)
+		next := model.GetPostsSinceForSyncCursor{
+			LastPostCreateAt: 3000,
+			LastPostCreateID: model.NewId(),
+			LastPostUpdateAt: 4000,
+			LastPostUpdateID: model.NewId(),
+		}
+
+		updated, err := ss.SharedChannel().UpdateRemoteCursorIfUnchanged(remoteSaved.Id, start, next)
+		require.NoError(t, err)
+		require.True(t, updated)
+		require.Equal(t, next, getCursor(t))
+	})
+
+	t.Run("keeps a cursor changed since it was read", func(t *testing.T) {
+		reset(t)
+		rewind := model.GetPostsSinceForSyncCursor{
+			LastPostCreateAt: 1,
+			LastPostUpdateAt: 1,
+		}
+		require.NoError(t, ss.SharedChannel().UpdateRemoteCursor(remoteSaved.Id, rewind))
+
+		next := model.GetPostsSinceForSyncCursor{
+			LastPostCreateAt: 3000,
+			LastPostCreateID: model.NewId(),
+			LastPostUpdateAt: 4000,
+			LastPostUpdateID: model.NewId(),
+		}
+		updated, err := ss.SharedChannel().UpdateRemoteCursorIfUnchanged(remoteSaved.Id, start, next)
+		require.NoError(t, err)
+		require.False(t, updated)
+		require.Equal(t, rewind, getCursor(t))
+	})
+
+	t.Run("each cursor field is compared", func(t *testing.T) {
+		mismatches := map[string]func(c *model.GetPostsSinceForSyncCursor){
+			"LastPostCreateAt": func(c *model.GetPostsSinceForSyncCursor) { c.LastPostCreateAt++ },
+			"LastPostCreateID": func(c *model.GetPostsSinceForSyncCursor) { c.LastPostCreateID = model.NewId() },
+			"LastPostUpdateAt": func(c *model.GetPostsSinceForSyncCursor) { c.LastPostUpdateAt++ },
+			"LastPostUpdateID": func(c *model.GetPostsSinceForSyncCursor) { c.LastPostUpdateID = model.NewId() },
+		}
+		for name, mutate := range mismatches {
+			t.Run(name, func(t *testing.T) {
+				reset(t)
+				expected := start
+				mutate(&expected)
+				next := model.GetPostsSinceForSyncCursor{LastPostCreateAt: 3000, LastPostUpdateAt: 4000}
+
+				updated, err := ss.SharedChannel().UpdateRemoteCursorIfUnchanged(remoteSaved.Id, expected, next)
+				require.NoError(t, err)
+				require.False(t, updated)
+				require.Equal(t, start, getCursor(t))
+			})
+		}
+	})
+
+	t.Run("matches empty ids", func(t *testing.T) {
+		reset(t)
+		noIDs := model.GetPostsSinceForSyncCursor{LastPostCreateAt: 1500, LastPostUpdateAt: 2500}
+		require.NoError(t, ss.SharedChannel().UpdateRemoteCursor(remoteSaved.Id, noIDs))
+
+		next := model.GetPostsSinceForSyncCursor{LastPostCreateAt: 3000, LastPostUpdateAt: 4000}
+		updated, err := ss.SharedChannel().UpdateRemoteCursorIfUnchanged(remoteSaved.Id, noIDs, next)
+		require.NoError(t, err)
+		require.True(t, updated)
+		require.Equal(t, next, getCursor(t))
+	})
+
+	t.Run("only the provided half of the cursor is written", func(t *testing.T) {
+		reset(t)
+		next := model.GetPostsSinceForSyncCursor{
+			LastPostUpdateAt: 4000,
+			LastPostUpdateID: model.NewId(),
+		}
+
+		updated, err := ss.SharedChannel().UpdateRemoteCursorIfUnchanged(remoteSaved.Id, start, next)
+		require.NoError(t, err)
+		require.True(t, updated)
+
+		got := getCursor(t)
+		require.Equal(t, start.LastPostCreateAt, got.LastPostCreateAt)
+		require.Equal(t, start.LastPostCreateID, got.LastPostCreateID)
+		require.Equal(t, next.LastPostUpdateAt, got.LastPostUpdateAt)
+		require.Equal(t, next.LastPostUpdateID, got.LastPostUpdateID)
+	})
+
+	t.Run("non-existent shared channel remote", func(t *testing.T) {
+		updated, err := ss.SharedChannel().UpdateRemoteCursorIfUnchanged(model.NewId(), start, start)
+		require.NoError(t, err)
+		require.False(t, updated)
+	})
+
+	t.Run("empty next cursor", func(t *testing.T) {
+		reset(t)
+		updated, err := ss.SharedChannel().UpdateRemoteCursorIfUnchanged(remoteSaved.Id, start, model.GetPostsSinceForSyncCursor{})
+		require.Error(t, err)
+		require.False(t, updated)
+		require.Equal(t, start, getCursor(t))
 	})
 }
 
