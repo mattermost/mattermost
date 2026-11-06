@@ -9371,6 +9371,15 @@ func TestPropertyFieldBoundsEndpoints(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.Equal(t, model.PropertyFieldMutabilityWriteOnce, locked.Mutability)
+
+		unlocked, resp, err := patch(created.ID, &model.PropertyFieldPatch{Mutability: model.NewPointer(model.PropertyFieldMutability(""))})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Empty(t, unlocked.Mutability)
+
+		stored, appErr := th.App.GetPropertyField(th.Context, group.ID, created.ID)
+		require.Nil(t, appErr)
+		require.Empty(t, stored.Mutability)
 	})
 
 	t.Run("with the flag off a v3 patch adding a rule surfaces the save refusal", func(t *testing.T) {

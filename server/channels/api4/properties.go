@@ -4,7 +4,6 @@
 package api4
 
 import (
-	"cmp"
 	"encoding/json"
 	"errors"
 	"maps"
@@ -743,10 +742,10 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 			boundsChanged = !model.PropertyBoundsEqual(existingField.Bounds, patchedBounds)
 		}
 		if patch.Mutability != nil {
-			patchedMutability = *patch.Mutability
-			// An unset mutability reads as mutable, so "mutable" over unset is no change.
-			stored := cmp.Or(existingField.Mutability, model.PropertyFieldMutabilityMutable)
-			boundsChanged = boundsChanged || cmp.Or(patchedMutability, model.PropertyFieldMutabilityMutable) != stored
+			// An empty mutability means mutable, as on a stored field; keeping ""
+			// would read as "not stated" downstream and leave the stored lock.
+			patchedMutability = patch.Mutability.OrMutable()
+			boundsChanged = boundsChanged || patchedMutability != existingField.Mutability.OrMutable()
 		}
 	}
 
