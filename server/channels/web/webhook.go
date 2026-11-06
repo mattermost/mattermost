@@ -52,7 +52,8 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 				mlog.String("webhook_id", id),
 				mlog.String("content_type", contentType),
 				mlog.Int("payload_size", r.ContentLength),
-				mlog.Err(c.Err),
+				mlog.String("error_id", c.Err.Id),
+				mlog.Int("status_code", c.Err.StatusCode),
 			)
 		}
 	}()

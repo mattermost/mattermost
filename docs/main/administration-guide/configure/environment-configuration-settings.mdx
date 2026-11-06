@@ -2940,7 +2940,7 @@ Typically set to **true** in a production environment.
 </colgroup>
 <tbody>
 <tr>
-<td><p>Configure Mattermost to capture the contents of general incoming webhooks to console and/or file logs for debugging.</p><ul><li><strong>true</strong>: <strong>(Default)</strong> The contents of incoming webhooks are printed to log files for debugging.</li><li><strong>false</strong>: The contents of incoming webhooks aren’t printed to log files.</li></ul></td>
+<td><p>Configure Mattermost to log failed incoming webhook requests to console and/or file logs for debugging. Only request metadata, such as the webhook ID and error, is logged. Message content isn’t logged.</p><ul><li><strong>true</strong>: <strong>(Default)</strong> Failed incoming webhook requests are logged for debugging.</li><li><strong>false</strong>: Failed incoming webhook requests aren’t logged.</li></ul></td>
 <td><ul><li>System Config path: <strong>Environment &gt; Logging</strong></li><li><code>config.json</code> setting: <code>LogSettings</code> &gt; <code>EnableWebhookDebugging</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_LOGSETTINGS_ENABLEWEBHOOKDEBUGGING</code></li></ul></td>
 </tr>
 </tbody>
