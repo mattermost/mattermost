@@ -4,13 +4,24 @@
 package model
 
 import (
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
+	"crypto/x509"
 	"encoding/json"
+	"encoding/pem"
 	"fmt"
 	"maps"
+	"math/big"
+	"net"
 	"net/url"
+	"os"
+	"path/filepath"
 	"reflect"
+	"runtime"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -4836,6 +4847,192 @@ func TestExperimentalAuditSettingsIsValid(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestAdvancedLoggingJSONCertAndFileTargets(t *testing.T) {
+	syslogUnavailable := runtime.GOOS == "windows" || runtime.GOOS == "plan9"
+
+	tests := []struct {
+		name  string
+		audit bool
+		kind  string
+	}{
+		{name: "log settings results match", kind: "match"},
+		{name: "audit settings results match", audit: true, kind: "match"},
+		{name: "log settings connection is not accepted", kind: "connection"},
+		{name: "audit settings connection is not accepted", audit: true, kind: "connection"},
+		{name: "log settings file target", kind: "file"},
+		{name: "audit settings file target", audit: true, kind: "file"},
+		{name: "log settings console target", kind: "console"},
+		{name: "audit settings console target", audit: true, kind: "console"},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			if tc.kind != "file" && tc.kind != "console" && syslogUnavailable {
+				t.Skip("syslog target is unavailable on this platform")
+			}
+
+			switch tc.kind {
+			case "match":
+				port := closedTCPPort(t)
+				certPEM, _ := newTestCertPEM(t)
+				dir := t.TempDir()
+				missing := filepath.Join(dir, "missing.pem")
+				nonPEM := filepath.Join(dir, "note.pem")
+				require.NoError(t, os.WriteFile(nonPEM, []byte("not a certificate\n"), 0600))
+				pemPath := filepath.Join(dir, "cert.pem")
+				require.NoError(t, os.WriteFile(pemPath, certPEM, 0600))
+
+				outcomes := make([]advancedLoggingOutcome, 0, 3)
+				for _, cert := range []string{missing, nonPEM, pemPath} {
+					raw := advancedLoggingTargetJSON(t, "syslog", tc.audit, map[string]any{
+						"host":     "127.0.0.1",
+						"port":     port,
+						"tls":      true,
+						"cert":     cert,
+						"insecure": true,
+					})
+					outcomes = append(outcomes, advancedLoggingOutcomeOf(validateAdvancedLoggingJSON(tc.audit, raw)))
+				}
+				require.Equal(t, []advancedLoggingOutcome{outcomes[0], outcomes[0], outcomes[0]}, outcomes, "the three results match")
+			case "connection":
+				certPEM, _ := newTestCertPEM(t)
+				pemPath := filepath.Join(t.TempDir(), "cert.pem")
+				require.NoError(t, os.WriteFile(pemPath, certPEM, 0600))
+
+				listener, err := net.Listen("tcp", "127.0.0.1:0")
+				require.NoError(t, err)
+				t.Cleanup(func() { _ = listener.Close() })
+
+				accepted := make(chan struct{}, 1)
+				go func() {
+					conn, accErr := listener.Accept()
+					if accErr != nil {
+						return
+					}
+					accepted <- struct{}{}
+					_ = conn.Close()
+				}()
+
+				raw := advancedLoggingTargetJSON(t, "syslog", tc.audit, map[string]any{
+					"host":     "127.0.0.1",
+					"port":     listener.Addr().(*net.TCPAddr).Port,
+					"tls":      true,
+					"cert":     pemPath,
+					"insecure": true,
+				})
+				_ = validateAdvancedLoggingJSON(tc.audit, raw)
+
+				select {
+				case <-accepted:
+					require.FailNow(t, "a connection is not accepted")
+				case <-time.After(200 * time.Millisecond):
+				}
+			case "file":
+				filename := filepath.Join(t.TempDir(), "app.log")
+				raw := advancedLoggingTargetJSON(t, "file", tc.audit, map[string]any{
+					"filename": filename,
+				})
+				require.Nil(t, validateAdvancedLoggingJSON(tc.audit, raw), "a file target is accepted")
+			case "console":
+				raw := advancedLoggingTargetJSON(t, "console", tc.audit, map[string]any{
+					"out": "stdout",
+				})
+				require.Nil(t, validateAdvancedLoggingJSON(tc.audit, raw), "a console target is accepted")
+			default:
+				require.FailNow(t, "unknown case "+tc.kind)
+			}
+		})
+	}
+}
+
+type advancedLoggingLevel struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
+}
+
+type advancedLoggingOutcome struct {
+	id   string
+	text string
+}
+
+func advancedLoggingLevels(audit bool) []advancedLoggingLevel {
+	if audit {
+		return []advancedLoggingLevel{{ID: 100, Name: "audit-api"}}
+	}
+	return []advancedLoggingLevel{{ID: 2, Name: "error"}}
+}
+
+func advancedLoggingTargetJSON(t *testing.T, targetType string, audit bool, options map[string]any) json.RawMessage {
+	t.Helper()
+
+	raw, err := json.Marshal(map[string]any{
+		"t": map[string]any{
+			"type":    targetType,
+			"format":  "json",
+			"levels":  advancedLoggingLevels(audit),
+			"options": options,
+		},
+	})
+	require.NoError(t, err)
+	return raw
+}
+
+func validateAdvancedLoggingJSON(audit bool, raw json.RawMessage) *AppError {
+	if audit {
+		settings := ExperimentalAuditSettings{AdvancedLoggingJSON: raw}
+		settings.SetDefaults()
+		return settings.isValid()
+	}
+	settings := LogSettings{AdvancedLoggingJSON: raw}
+	settings.SetDefaults()
+	return settings.isValid()
+}
+
+func advancedLoggingOutcomeOf(appErr *AppError) advancedLoggingOutcome {
+	if appErr == nil {
+		return advancedLoggingOutcome{}
+	}
+	text := ""
+	if wrapped := appErr.Unwrap(); wrapped != nil {
+		text = wrapped.Error()
+	}
+	return advancedLoggingOutcome{id: appErr.Id, text: text}
+}
+
+func closedTCPPort(t *testing.T) int {
+	t.Helper()
+
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+	port := listener.Addr().(*net.TCPAddr).Port
+	require.NoError(t, listener.Close())
+	return port
+}
+
+func newTestCertPEM(t *testing.T) (certPEM, keyPEM []byte) {
+	t.Helper()
+
+	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	require.NoError(t, err)
+
+	template := &x509.Certificate{
+		SerialNumber: big.NewInt(1),
+		NotBefore:    time.Now().Add(-time.Hour),
+		NotAfter:     time.Now().Add(time.Hour),
+		IPAddresses:  []net.IP{net.ParseIP("127.0.0.1")},
+		KeyUsage:     x509.KeyUsageDigitalSignature,
+		ExtKeyUsage:  []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+	}
+	der, err := x509.CreateCertificate(rand.Reader, template, template, &key.PublicKey, key)
+	require.NoError(t, err)
+
+	certPEM = pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: der})
+	keyBytes, err := x509.MarshalECPrivateKey(key)
+	require.NoError(t, err)
+	keyPEM = pem.EncodeToMemory(&pem.Block{Type: "EC PRIVATE KEY", Bytes: keyBytes})
+	return certPEM, keyPEM
 }
 
 func TestFilterConfig(t *testing.T) {
