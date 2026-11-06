@@ -20,6 +20,8 @@ import (
 
 const (
 	CancelWatcherPollingInterval = 5000
+
+	maxCreateJobAttempts = 3
 )
 
 // JobLoggerFields returns the logger annotations reflecting the given job metadata.
@@ -41,11 +43,28 @@ func (srv *JobServer) CreateJob(rctx request.CTX, jobType string, jobData map[st
 		return nil, appErr
 	}
 
-	if _, err := srv.Store.Job().Save(job); err != nil {
-		return nil, model.NewAppError("CreateJob", "app.job.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
+	for attempt := 1; ; attempt++ {
+		_, err := srv.Store.Job().Save(job)
+		if err == nil {
+			return job, nil
+		}
 
-	return job, nil
+		var conflictErr *store.ErrConflict
+		if !errors.As(err, &conflictErr) || attempt == maxCreateJobAttempts {
+			return nil, model.NewAppError("CreateJob", "app.job.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+
+		existing, err := srv.Store.Job().GetPendingByConcurrencyKey(job.ConcurrencyKey)
+		if err == nil {
+			rctx.Logger().Debug("Job not created as another job with the same concurrency key is already pending", append(JobLoggerFields(existing), mlog.String("concurrency_key", job.ConcurrencyKey))...)
+			return existing, nil
+		}
+
+		var nfErr *store.ErrNotFound
+		if !errors.As(err, &nfErr) {
+			return nil, model.NewAppError("CreateJob", "app.job.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
 }
 
 func (srv *JobServer) CreateJobOnce(rctx request.CTX, jobType string, jobData map[string]string) (*model.Job, *model.AppError) {
@@ -77,11 +96,12 @@ func (srv *JobServer) CreateJobOnceByTypeAndData(rctx request.CTX, jobType strin
 
 func (srv *JobServer) _createJob(rctx request.CTX, jobType string, jobData map[string]string) (*model.Job, *model.AppError) {
 	job := model.Job{
-		Id:       model.NewId(),
-		Type:     jobType,
-		CreateAt: model.GetMillis(),
-		Status:   model.JobStatusPending,
-		Data:     jobData,
+		Id:             model.NewId(),
+		Type:           jobType,
+		CreateAt:       model.GetMillis(),
+		Status:         model.JobStatusPending,
+		Data:           jobData,
+		ConcurrencyKey: ConcurrencyKeyForType(jobType),
 	}
 
 	if err := job.IsValid(); err != nil {
@@ -110,7 +130,14 @@ func (srv *JobServer) GetJob(rctx request.CTX, id string) (*model.Job, *model.Ap
 	return job, nil
 }
 
+// ClaimJob moves the given pending job to in_progress. It returns nil without an error if the job
+// was not claimed, either because it is no longer pending or because another job with the same
+// concurrency key is running.
 func (srv *JobServer) ClaimJob(job *model.Job) (*model.Job, *model.AppError) {
+	if job.ConcurrencyKey != "" {
+		return srv.claimJobWithConcurrencyKey(job)
+	}
+
 	newJob, err := srv.Store.Job().UpdateStatusOptimistically(job.Id, model.JobStatusPending, model.JobStatusInProgress)
 	if err != nil {
 		return nil, model.NewAppError("ClaimJob", "app.job.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -122,6 +149,38 @@ func (srv *JobServer) ClaimJob(job *model.Job) (*model.Job, *model.AppError) {
 		}
 		srv.publishJobStatus(newJob, model.JobStatusInProgress)
 	}
+
+	return newJob, nil
+}
+
+func (srv *JobServer) claimJobWithConcurrencyKey(job *model.Job) (*model.Job, *model.AppError) {
+	staleBefore := model.GetMillis() - StaleJobThreshold.Milliseconds()
+	newJob, reaped, err := srv.Store.Job().ClaimWithConcurrencyKey(job.Id, job.ConcurrencyKey, staleBefore)
+	if err != nil {
+		return nil, model.NewAppError("ClaimJob", "app.job.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	for _, staleJob := range reaped {
+		srv.logger.Warn("Marked a running job as failed since it stopped reporting activity",
+			append(JobLoggerFields(staleJob),
+				mlog.String("concurrency_key", staleJob.ConcurrencyKey),
+				mlog.Millis("last_activity_at", staleJob.LastActivityAt),
+				mlog.String("claiming_job_id", job.Id),
+			)...)
+		srv.publishJobStatus(staleJob, model.JobStatusError)
+	}
+
+	if newJob == nil {
+		srv.logger.Debug("Job not claimed as it is no longer pending or another job with the same concurrency key is running",
+			append(JobLoggerFields(job), mlog.String("concurrency_key", job.ConcurrencyKey))...)
+		return nil, nil
+	}
+
+	srv.claimed.track(newJob.Id)
+	if srv.metrics != nil {
+		srv.metrics.IncrementJobActive(newJob.Type)
+	}
+	srv.publishJobStatus(newJob, model.JobStatusInProgress)
 
 	return newJob, nil
 }
@@ -200,6 +259,8 @@ func (srv *JobServer) SetJobProgress(job *model.Job, progress int64) *model.AppE
 }
 
 func (srv *JobServer) SetJobWarning(job *model.Job) *model.AppError {
+	srv.claimed.untrack(job.Id)
+
 	ret, err := srv.Store.Job().UpdateStatus(job.Id, model.JobStatusWarning)
 	if err != nil {
 		return model.NewAppError("SetJobWarning", "app.job.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -213,6 +274,8 @@ func (srv *JobServer) SetJobWarning(job *model.Job) *model.AppError {
 }
 
 func (srv *JobServer) SetJobSuccess(job *model.Job) *model.AppError {
+	srv.claimed.untrack(job.Id)
+
 	ret, err := srv.Store.Job().UpdateStatus(job.Id, model.JobStatusSuccess)
 	if err != nil {
 		return model.NewAppError("SetJobSuccess", "app.job.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -227,6 +290,8 @@ func (srv *JobServer) SetJobSuccess(job *model.Job) *model.AppError {
 }
 
 func (srv *JobServer) SetJobError(job *model.Job, jobError *model.AppError) *model.AppError {
+	srv.claimed.untrack(job.Id)
+
 	if jobError == nil {
 		ret, err := srv.Store.Job().UpdateStatus(job.Id, model.JobStatusError)
 		if err != nil {
@@ -276,6 +341,8 @@ func (srv *JobServer) SetJobError(job *model.Job, jobError *model.AppError) *mod
 }
 
 func (srv *JobServer) SetJobCanceled(job *model.Job) *model.AppError {
+	srv.claimed.untrack(job.Id)
+
 	ret, err := srv.Store.Job().UpdateStatus(job.Id, model.JobStatusCanceled)
 	if err != nil {
 		return model.NewAppError("SetJobCanceled", "app.job.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -289,9 +356,19 @@ func (srv *JobServer) SetJobCanceled(job *model.Job) *model.AppError {
 	return nil
 }
 
+// SetJobPending returns the job to the queue. If another job with the same concurrency key is
+// already pending, that job supersedes this one, which is canceled instead.
 func (srv *JobServer) SetJobPending(job *model.Job) *model.AppError {
+	srv.claimed.untrack(job.Id)
+
 	ret, err := srv.Store.Job().UpdateStatus(job.Id, model.JobStatusPending)
 	if err != nil {
+		var conflictErr *store.ErrConflict
+		if errors.As(err, &conflictErr) {
+			srv.logger.Info("Canceling job instead of returning it to pending as another job with the same concurrency key is already pending",
+				append(JobLoggerFields(job), mlog.String("concurrency_key", job.ConcurrencyKey))...)
+			return srv.SetJobCanceled(job)
+		}
 		return model.NewAppError("SetJobPending", "app.job.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
