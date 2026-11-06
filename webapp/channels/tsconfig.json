@@ -21,6 +21,7 @@
     "experimentalDecorators": true,
     "jsx": "react",
     "useUnknownInCatchVariables": false,
+    "noUncheckedSideEffectImports": false,
     "composite": true,
     "types": ["@testing-library/jest-dom"],
     "paths": {
