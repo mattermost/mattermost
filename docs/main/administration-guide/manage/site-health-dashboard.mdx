@@ -34,7 +34,7 @@ The dashboard runs built-in checks against your configuration and the live state
 
 | Category | Examples of what is checked |
 | --- | --- |
-| Platform | Site URL is set and uses HTTPS, file storage is reachable, plugin health checks and plugins that fail to run, whether file logging is enabled, rate limiting memory store size, file descriptor usage, and the host operating system. |
+| Platform | Site URL is set and uses HTTPS, file storage is reachable, local file storage disk space per node, plugin health checks and plugins that fail to run, whether file logging is enabled, rate limiting memory store size, file descriptor usage, and the host operating system. |
 | Database | Connection pool sizing and saturation, read and search replicas, query timeout, SQL tracing, and the PostgreSQL version. |
 | Search | Search availability, Elasticsearch or OpenSearch version and plugins, connection security, indexing batch size, and whether your post volume calls for Elasticsearch. |
 | Cluster | High availability nodes that can't reach each other, a cluster running with a single node, mixed Mattermost versions across nodes, unencrypted cluster traffic, and the cache backend at scale. |
@@ -115,6 +115,33 @@ Each muted finding row shows:
 ### Unmute a finding
 
 Select **Unmute** on any row in the muted list. The finding leaves the muted list and appears again in the tab for its current state, for example **Recently resolved** if the check has passed since you muted it.
+
+## Local file storage disk space checks
+
+From Mattermost v12.2, the dashboard includes two per-node checks that monitor available disk space on the volume hosting `FileSettings.Directory`. These checks apply only when the local file driver is in use; deployments using S3 or other remote drivers are not affected.
+
+Each check is evaluated independently per node, so in a high availability cluster a finding identifies the specific node where space is low.
+
+| Finding | Severity | Fires when |
+| --- | --- | --- |
+| `FILESTORE_DISK_LOW` | Warning | Available space is below 1 GiB, or below both 10% and 10 GiB of the volume. |
+| `FILESTORE_DISK_FULL` | Critical | Available space is below both 5% and 5 GiB of the volume. |
+
+The two checks are mutually exclusive: when `FILESTORE_DISK_FULL` fires, `FILESTORE_DISK_LOW` does not. The 1 GiB floor on the low check ensures that small volumes warn before they turn critical.
+
+The following table shows example thresholds. A finding fires when available space is strictly below the value shown.
+
+| Volume size | `FILESTORE_DISK_LOW` fires below | `FILESTORE_DISK_FULL` fires below |
+| --- | --- | --- |
+| 2 GiB | 1 GiB (50%) | 102 MiB (5%) |
+| 8 GiB | 1 GiB (12.5%) | 410 MiB (5%) |
+| 16 GiB | 1.6 GiB (10%) | 819 MiB (5%) |
+| 50 GiB | 5 GiB (10%) | 2.5 GiB (5%) |
+| 100 GiB | 10 GiB (10%) | 5 GiB (5%) |
+| 500 GiB | 10 GiB (2%) | 5 GiB (1%) |
+| 1 TiB | 10 GiB (0.98%) | 5 GiB (0.49%) |
+
+When disk diagnostics are missing or invalid, the check result is **Unknown**. Expand the volume or remove unrelated data from the filesystem to resolve a firing finding. Do not manually delete files managed by Mattermost from `FileSettings.Directory`.
 
 ## Check health from the command line
 
