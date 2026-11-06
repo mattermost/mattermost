@@ -4205,6 +4205,11 @@
     "description": "API error when the requested custom property group does not exist; 'property group' is part of the custom profile attributes / properties system."
   },
   {
+    "id": "api.property_field.bounds_not_supported.app_error",
+    "translation": "Bounds and mutability can only be set through the version 3 property field format.",
+    "description": "API error (400) when a request to create or patch a property field carries bounds or a mutability for a property group that is not served in the version 3 format, such as custom profile attributes."
+  },
+  {
     "id": "api.property_field.create.creator_cannot_edit.app_error",
     "translation": "You cannot create a property field with permission levels that would prevent you from editing it.",
     "description": "API error when a user or admin creates a custom property field (e.g. a user or channel attribute) whose permission settings would leave the creator unable to edit or delete it afterwards."
