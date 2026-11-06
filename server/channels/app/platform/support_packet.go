@@ -266,12 +266,9 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 	d.Database.ReplicaConnections = ps.Store.TotalReadDbConnections()
 	d.Database.SearchConnections = ps.Store.TotalSearchDbConnections()
 
-	poolErr, statsErr := ps.applyStoreDiagnostics(rctx, &d)
-	if poolErr != nil {
-		fail(model.SectionDatabasePool, poolErr)
-	}
-	if statsErr != nil {
-		fail(model.SectionDatabaseStats, statsErr)
+	err = ps.applyStoreDiagnostics(rctx, &d)
+	if err != nil {
+		fail(model.SectionDatabaseStats, err)
 	}
 
 	/* File store */
@@ -438,14 +435,13 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 	return &model.NodeDiagnostics{Diagnostics: &d, Errors: sectionErrors}, rErr.ErrorOrNil()
 }
 
-func (ps *PlatformService) applyStoreDiagnostics(rctx request.CTX, diagnostics *model.SupportPacketDiagnostics) (error, error) {
+func (ps *PlatformService) applyStoreDiagnostics(rctx request.CTX, diagnostics *model.SupportPacketDiagnostics) error {
 	storeDiagnostics, err := ps.Store.GetDiagnostics(rctx)
 	if storeDiagnostics == nil {
 		if err != nil {
-			wrapped := errors.Wrap(err, "error while collecting support packet database diagnostics")
-			return wrapped, wrapped
+			return errors.Wrap(err, "error while collecting support packet database diagnostics")
 		}
-		return nil, nil
+		return nil
 	}
 
 	diagnostics.Database.MasterConnectionsInUse = new(storeDiagnostics.MasterConnectionsInUse)
@@ -474,10 +470,10 @@ func (ps *PlatformService) applyStoreDiagnostics(rctx request.CTX, diagnostics *
 	diagnostics.Database.PostsLastAutovacuum = storeDiagnostics.PostsLastAutovacuum
 
 	if err != nil {
-		return nil, errors.Wrap(err, "error while collecting support packet database diagnostics")
+		return errors.Wrap(err, "error while collecting support packet database diagnostics")
 	}
 
-	return nil, nil
+	return nil
 }
 
 // probeOAuthProvider checks connectivity for an OAuth2/OpenID Connect provider.

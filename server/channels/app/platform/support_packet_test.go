@@ -1358,7 +1358,6 @@ func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {
 		setStore(t, &failingDiagnosticsStore{diagnosticsErr: errors.New("stats down")})
 
 		d := requireSectionErrors(t, map[model.NodeSection][]string{
-			model.SectionDatabasePool:  {"error while collecting support packet database diagnostics"},
 			model.SectionDatabaseStats: {"error while collecting support packet database diagnostics"},
 		})
 		assert.Nil(t, d.Database.MasterConnectionsInUse)
