@@ -478,10 +478,11 @@ const ADMIN_MANAGE_GROUPS = {
   // "Access control" rather than "Users and access": every page here is about
   // what a user is allowed to do, not about the user records themselves.
   //
-  // User attributes nests under ABAC as its first child. Custom profile
-  // attributes are usable on their own, and the page stays directly linkable,
-  // but they are a prerequisite of the access rules that follow — you define
-  // the attributes before you can write a policy against them.
+  // Attribute-based access control reads in task order: define the user,
+  // channel and session attributes first, then write policies against them
+  // (system-wide, then team, then channel), then the expression reference that
+  // all the policy editors share. The page for the User Attributes screen of
+  // releases before v12.0 comes last; its title already marks it as legacy.
   //
   // Advanced permissions is a two-page topic, so the main page is the group's
   // landing and the backend-infrastructure page is its child.
@@ -496,13 +497,14 @@ const ADMIN_MANAGE_GROUPS = {
       {doc: 'administration-guide/onboard/delegated-granular-administration'},
       {label: 'Attribute-based access control', landing: 'admin/attribute-based-access-control', items: [
         'admin/attribute-management',
-        'admin/user-attributes',
         'admin/channel-attributes',
+        'admin/session-attributes',
         'admin/abac-system-wide-policies',
         'admin/abac-team-membership',
         'admin/abac-team-channel-policies',
         'admin/abac-channel-access-rules',
-        'admin/session-attributes',
+        'admin/abac-policy-expressions',
+        'admin/user-attributes',
       ]},
     ],
   },

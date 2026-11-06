@@ -355,6 +355,9 @@ elastic:
   status: disabled
 file_store:
   file_status: OK
+  file_driver: local
+  total_mb: 102400
+  available_mb: 51200
 notifications:
   email:
     status: OK
@@ -414,6 +417,16 @@ func healthPacketTestCommand(path string, includeResolved, includeMuted bool) *c
 func (s *MmctlUnitTestSuite) TestHealthCheckPacket() {
 	packetPath := s.writeHealthTestPacket(healthTestPacketFiles())
 	evaluatedAt := time.UnixMilli(healthTestPacketGeneratedAt).Format("2006-01-02 15:04")
+	packetWithFilestoreDisk := func(totalMB, availableMB uint64) string {
+		files := healthTestPacketFiles()
+		files[model.SupportPacketDiagnosticsFileName] = strings.Replace(
+			files[model.SupportPacketDiagnosticsFileName],
+			"  total_mb: 102400\n  available_mb: 51200\n",
+			"  total_mb: "+strconv.FormatUint(totalMB, 10)+"\n  available_mb: "+strconv.FormatUint(availableMB, 10)+"\n",
+			1,
+		)
+		return s.writeHealthTestPacket(files)
+	}
 
 	s.Run("runs with no server configured", func() {
 		printer.Clean()
@@ -465,6 +478,32 @@ Could not evaluate
             Server diagnostics unavailable.
 
 2 critical, 4 could not be evaluated`, s.printedHealthFindings())
+	})
+
+	s.Run("plain output localizes a full filestore disk finding", func() {
+		printer.Clean()
+		printer.SetFormat(printer.FormatPlain)
+
+		err := healthCheckPacketCmdF(healthPacketTestCommand(packetWithFilestoreDisk(102400, 4096), false, false), []string{})
+		s.Require().NoError(err)
+
+		output := s.printedHealthFindings()
+		s.Contains(output, "CRITICAL  File storage disk is nearly full on mm.example.com")
+		s.Contains(output, "The volume containing FileSettings.Directory has 4.0 GiB (4.00%) available of 100.0 GiB. File uploads and other file operations can fail when the volume fills.")
+		s.Contains(output, "Immediately expand the volume or remove unrelated data from its filesystem; do not manually delete files managed by Mattermost from FileSettings.Directory. Keep at least 10% or 10 GiB available, and never less than 1 GiB.")
+	})
+
+	s.Run("plain output localizes a low filestore disk finding", func() {
+		printer.Clean()
+		printer.SetFormat(printer.FormatPlain)
+
+		err := healthCheckPacketCmdF(healthPacketTestCommand(packetWithFilestoreDisk(102400, 9216), false, false), []string{})
+		s.Require().NoError(err)
+
+		output := s.printedHealthFindings()
+		s.Contains(output, "WARNING   File storage disk space is low on mm.example.com")
+		s.Contains(output, "The volume containing FileSettings.Directory has 9.0 GiB (9.00%) available of 100.0 GiB.")
+		s.Contains(output, "Expand the volume or remove unrelated data from its filesystem; do not manually delete files managed by Mattermost from FileSettings.Directory. Keep at least 10% or 10 GiB available, and never less than 1 GiB.")
 	})
 
 	s.Run("an old packet is not reported as stopped evaluation", func() {
