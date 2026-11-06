@@ -36,7 +36,6 @@ type matcher struct {
 	boundary     string
 	scope        []string
 	skipBots     bool
-	validate     bool
 	pluginID     string
 	displayName  string
 }
@@ -75,19 +74,9 @@ type hit struct {
 // inline code, markdown links, bare URLs, mentions, channel links and emoji
 // shortcodes. Spans that contain a markdown metacharacter are dropped.
 func Detect(message string) (entities []*model.PostEntity, protected [][2]int) {
-	entities, protected, _ = DetectAccepted(message, nil)
-	return entities, protected
-}
-
-// DetectAccepted finds pattern entities. accept is called for matchers that ask
-// to validate a value. A nil accept rejects those matchers. An accept error
-// rejects the candidate and reports the scan incomplete, so the caller does
-// not store it.
-func DetectAccepted(message string, accept func(pluginID, typeID, value string) (bool, error)) (entities []*model.PostEntity, protected [][2]int, incomplete bool) {
 	scanned := scanPrefix(message)
 	mask := protectedMask(scanned)
 	var hits []hit
-	validateCalls := 0
 	for _, m := range activeMatchers() {
 		locs := m.pattern.FindAllStringSubmatchIndex(scanned, -1)
 		for _, loc := range locs {
@@ -112,24 +101,6 @@ func DetectAccepted(message string, accept func(pluginID, typeID, value string) 
 					continue
 				}
 			}
-			if m.validate {
-				if accept == nil {
-					continue
-				}
-				validateCalls++
-				if validateCalls > maxEntities {
-					incomplete = true
-					continue
-				}
-				ok, err := accept(m.pluginID, m.typeID, value)
-				if err != nil {
-					incomplete = true
-					continue
-				}
-				if !ok {
-					continue
-				}
-			}
 			h := hit{
 				matcherID:   m.id,
 				typeIDs:     []string{m.typeID},
@@ -150,7 +121,7 @@ func DetectAccepted(message string, accept func(pluginID, typeID, value string) 
 		hits = hits[:maxEntities]
 	}
 	protected = protectedUTF16(scanned, mask)
-	return hitsToEntities(scanned, hits), protected, incomplete
+	return hitsToEntities(scanned, hits), protected
 }
 
 // ApplyTerms adds the current dictionary to pattern entities. It does not

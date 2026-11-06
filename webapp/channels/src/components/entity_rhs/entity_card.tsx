@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useMemo, useState} from 'react';
-import {useIntl} from 'react-intl';
+import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import type {EntityCard} from '@mattermost/types/posts';
@@ -16,6 +16,29 @@ import {translateMMBlocks} from 'components/block_renderer/translation/mm_block'
 import ExternalLink from 'components/external_link';
 
 import type {GlobalState} from 'types/store';
+
+const severityMessages = defineMessages({
+    critical: {
+        id: 'entity_card.severity.critical',
+        defaultMessage: 'Critical',
+    },
+    high: {
+        id: 'entity_card.severity.high',
+        defaultMessage: 'High',
+    },
+    medium: {
+        id: 'entity_card.severity.medium',
+        defaultMessage: 'Medium',
+    },
+    low: {
+        id: 'entity_card.severity.low',
+        defaultMessage: 'Low',
+    },
+    none: {
+        id: 'entity_card.severity.none',
+        defaultMessage: 'None',
+    },
+});
 
 const rule = '1px solid rgba(var(--center-channel-color-rgb), 0.08)';
 
@@ -153,7 +176,17 @@ const Summary = ({text}: {text: string}) => {
                     onClick={() => setExpanded(!expanded)}
                     style={{border: 'none', background: 'none', padding: 0, color: 'var(--link-color)', cursor: 'pointer', fontSize: 13}}
                 >
-                    {expanded ? 'Show less' : 'Show more'}
+                    {expanded ? (
+                        <FormattedMessage
+                            id='entity_card.show_less'
+                            defaultMessage='Show less'
+                        />
+                    ) : (
+                        <FormattedMessage
+                            id='entity_card.show_more'
+                            defaultMessage='Show more'
+                        />
+                    )}
                 </button>
             )}
         </div>
@@ -189,7 +222,7 @@ export default function EntityCardView({card, onOpen, reload}: {card: EntityCard
     const mapParts = parts.filter((part) => part.part === 'map');
     const clockParts = parts.filter((part) => part.part === 'clocks');
     const extraParts = parts.filter((part) => part.part !== 'map' && part.part !== 'clocks');
-    const severity = card.severity && severityStyle[card.severity] ? card.severity : '';
+    const severity = card.severity && Object.hasOwn(severityStyle, card.severity) ? card.severity : '';
     const cardHref = card.url ? externalHref(card.url) : '';
     const bodyBlocks = useMemo(
         () => (Array.isArray(card.blocks) && card.blocks.length > 0 ? translateMMBlocks(card.blocks) : []),
@@ -212,7 +245,7 @@ export default function EntityCardView({card, onOpen, reload}: {card: EntityCard
                             style={{...badge, ...severityStyle[severity]}}
                         >
                             {card.score && <span style={{fontWeight: 700}}>{card.score}</span>}
-                            {severity.charAt(0).toUpperCase() + severity.slice(1)}
+                            <FormattedMessage {...severityMessages[severity as keyof typeof severityMessages]}/>
                         </span>
                     )}
                     {card.exploited && (
@@ -220,7 +253,10 @@ export default function EntityCardView({card, onOpen, reload}: {card: EntityCard
                             data-testid='entity-exploited'
                             style={{...badge, background: 'rgba(210, 75, 78, 0.12)', color: 'var(--error-text, #d24b4e)', boxShadow: 'inset 0 0 0 1px var(--error-text, #d24b4e)'}}
                         >
-                            {'Known exploited'}
+                            <FormattedMessage
+                                id='entity_card.known_exploited'
+                                defaultMessage='Known exploited'
+                            />
                         </span>
                     )}
                 </div>
@@ -294,7 +330,12 @@ export default function EntityCardView({card, onOpen, reload}: {card: EntityCard
             )}
             {!hasBlockBody && card.vector && card.vector.length > 0 && (
                 <>
-                    <p style={{...labelCell, display: 'block', width: 'auto', borderTop: 'none', margin: '24px 0 8px', padding: 0}}>{'Vector, decoded'}</p>
+                    <p style={{...labelCell, display: 'block', width: 'auto', borderTop: 'none', margin: '24px 0 8px', padding: 0}}>
+                        <FormattedMessage
+                            id='entity_card.vector_decoded'
+                            defaultMessage='Vector, decoded'
+                        />
+                    </p>
                     <dl style={{display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: '4px 12px', margin: 0, fontSize: 13}}>
                         {card.vector.map((metric) => (
                             <React.Fragment key={metric.metric}>
@@ -307,7 +348,12 @@ export default function EntityCardView({card, onOpen, reload}: {card: EntityCard
             )}
             {card.related && card.related.length > 0 && (
                 <>
-                    <p style={{...labelCell, display: 'block', width: 'auto', borderTop: 'none', margin: '24px 0 8px', padding: 0}}>{'Related'}</p>
+                    <p style={{...labelCell, display: 'block', width: 'auto', borderTop: 'none', margin: '24px 0 8px', padding: 0}}>
+                        <FormattedMessage
+                            id='entity_card.related'
+                            defaultMessage='Related'
+                        />
+                    </p>
                     <ul style={{listStyle: 'none', padding: 0, margin: 0}}>
                         {card.related.map((link) => (
                             <li
@@ -351,7 +397,12 @@ export default function EntityCardView({card, onOpen, reload}: {card: EntityCard
                             <ExternalLink
                                 href={section.url}
                                 location='entity_card'
-                            >{'Open the full list'}</ExternalLink>
+                            >
+                                <FormattedMessage
+                                    id='entity_card.open_full_list'
+                                    defaultMessage='Open the full list'
+                                />
+                            </ExternalLink>
                         )}
                     </div>
                 </details>

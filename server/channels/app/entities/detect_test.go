@@ -248,37 +248,6 @@ func TestStrictBoundaryRejectsADottedTail(t *testing.T) {
 	require.Len(t, plain, 1)
 }
 
-func TestValidateErrorLeavesTheScanIncomplete(t *testing.T) {
-	const pluginID = "com.example.validate"
-	t.Cleanup(func() { RemovePlugin(pluginID) })
-	require.NoError(t, AddType(pluginID, &model.EntityType{ID: pluginID + ".time", DisplayName: "Time"}))
-	require.NoError(t, AddMatcher(pluginID, &model.EntityMatcher{
-		ID:       pluginID + ".time.short",
-		TypeID:   pluginID + ".time",
-		Pattern:  `\d{6}Z`,
-		Validate: true,
-	}))
-	require.NoError(t, AddType(pluginID, &model.EntityType{ID: pluginID + ".vuln", DisplayName: "Vulnerability"}))
-	require.NoError(t, AddMatcher(pluginID, &model.EntityMatcher{
-		ID:      pluginID + ".vuln.cve",
-		TypeID:  pluginID + ".vuln",
-		Pattern: `CVE-[0-9]{4}-[0-9]{4,7}`,
-	}))
-
-	found, _, incomplete := DetectAccepted("see 311200Z and CVE-2024-1234", func(string, string, string) (bool, error) {
-		return false, fmt.Errorf("plugin is down")
-	})
-	require.True(t, incomplete)
-	require.Len(t, found, 1)
-	require.Equal(t, "CVE-2024-1234", found[0].Value)
-
-	rejected, _, done := DetectAccepted("see 311200Z today", func(string, string, string) (bool, error) {
-		return false, nil
-	})
-	require.False(t, done)
-	require.Empty(t, rejected)
-}
-
 func TestValueGroupLooksUpTheCapturedText(t *testing.T) {
 	const pluginID = "com.example.freq"
 	t.Cleanup(func() { RemovePlugin(pluginID) })
@@ -320,28 +289,22 @@ func TestImpossibleRFC3339IsNotPublished(t *testing.T) {
 	require.Empty(t, found)
 }
 
-func TestValidateStopsAfterTheEntityCap(t *testing.T) {
+func TestDetectCapsAtMaxEntities(t *testing.T) {
 	const pluginID = "com.example.budget"
 	t.Cleanup(func() { RemovePlugin(pluginID) })
-	require.NoError(t, AddType(pluginID, &model.EntityType{ID: pluginID + ".time", DisplayName: "Time"}))
+	require.NoError(t, AddType(pluginID, &model.EntityType{ID: pluginID + ".mark", DisplayName: "Mark"}))
 	require.NoError(t, AddMatcher(pluginID, &model.EntityMatcher{
-		ID:       pluginID + ".time.short",
-		TypeID:   pluginID + ".time",
-		Pattern:  `\d{6}Z`,
-		Validate: true,
+		ID:      pluginID + ".mark.scan",
+		TypeID:  pluginID + ".mark",
+		Pattern: `MARK-[0-9]{4}`,
 	}))
 
-	var calls int
 	var body strings.Builder
 	for i := range maxEntities + 20 {
-		fmt.Fprintf(&body, " %06dZ", i)
+		fmt.Fprintf(&body, " MARK-%04d", i)
 	}
-	_, _, incomplete := DetectAccepted(body.String(), func(string, string, string) (bool, error) {
-		calls++
-		return true, nil
-	})
-	require.True(t, incomplete)
-	require.Equal(t, maxEntities, calls)
+	found, _ := Detect(body.String())
+	require.Len(t, found, maxEntities)
 }
 
 func TestScopedMatcherDoesNotHideAGlobalOne(t *testing.T) {
@@ -404,7 +367,7 @@ func TestRenamedTypeUpdatesTheTermDisplayName(t *testing.T) {
 	require.Empty(t, shown[0].MatcherID)
 }
 
-func TestValidateChangesThePatternGeneration(t *testing.T) {
+func TestMatcherChangesThePatternGeneration(t *testing.T) {
 	const pluginID = "com.example.generation"
 	t.Cleanup(func() { RemovePlugin(pluginID) })
 	require.NoError(t, AddType(pluginID, &model.EntityType{ID: pluginID + ".mark", DisplayName: "Mark"}))
@@ -415,10 +378,9 @@ func TestValidateChangesThePatternGeneration(t *testing.T) {
 	}))
 	before := PatternGeneration()
 	require.NoError(t, AddMatcher(pluginID, &model.EntityMatcher{
-		ID:       pluginID + ".mark.scan",
-		TypeID:   pluginID + ".mark",
-		Pattern:  `MARK-[0-9]{4}`,
-		Validate: true,
+		ID:      pluginID + ".mark.scan",
+		TypeID:  pluginID + ".mark",
+		Pattern: `MARK-[0-9]{5}`,
 	}))
 	require.NotEqual(t, before, PatternGeneration())
 	renamed := PatternGeneration()

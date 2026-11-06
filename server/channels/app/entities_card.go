@@ -4,6 +4,7 @@
 package app
 
 import (
+	"encoding/json"
 	"net/http"
 	"slices"
 	"time"
@@ -36,9 +37,10 @@ func (a *App) GetEntityCard(rctx request.CTX, typeID, value string) (*model.Enti
 		}
 		card, err = entities.CoreLookup(rctx.Context(), typeID, value)
 		if err != nil || card == nil {
-			return &model.EntityCard{TypeID: typeID, Value: value, Title: value, Summary: "No additional information"}, nil
+			return entityCardFallback(typeID, value), nil
 		}
 	}
+	localizeEntityCard(rctx, card)
 	return card, nil
 }
 
@@ -50,7 +52,7 @@ func (a *App) GetEntityCardFromPost(rctx request.CTX, postID, typeID, value stri
 	if appErr != nil {
 		return nil, appErr
 	}
-	a.hydratePostEntities(withEntityAcceptAll(rctx), post)
+	a.hydratePostEntities(rctx, post)
 	if !postContainsEntity(post, typeID, value) {
 		return nil, model.NewAppError("GetEntityCardFromPost", "api.context.404.app_error", nil, "", http.StatusNotFound)
 	}
@@ -67,9 +69,10 @@ func (a *App) GetEntityCardFromPost(rctx request.CTX, postID, typeID, value stri
 		return term, nil
 	}
 	if card != nil {
+		localizeEntityCard(rctx, card)
 		return card, nil
 	}
-	return &model.EntityCard{TypeID: typeID, Value: value, Title: value, Summary: "No additional information"}, nil
+	return entityCardFallback(typeID, value), nil
 }
 
 func (a *App) readableEntityPost(rctx request.CTX, postID string) (*model.Post, *model.AppError) {
@@ -107,7 +110,7 @@ func (a *App) GetEntityCardForPost(rctx request.CTX, postID, occurrence, preferr
 	if appErr != nil {
 		return nil, appErr
 	}
-	a.hydratePostEntities(withEntityAcceptAll(rctx), post)
+	a.hydratePostEntities(rctx, post)
 	if post.Metadata == nil {
 		return nil, model.NewAppError("GetEntityCardForPost", "api.context.404.app_error", nil, "", http.StatusNotFound)
 	}
@@ -154,6 +157,7 @@ func (a *App) GetEntityCardForPost(rctx request.CTX, postID, occurrence, preferr
 		}
 		if card != nil {
 			model.NormalizeEntityCard(card)
+			localizeEntityCard(rctx, card)
 			if model.EntityCardHasBody(card) || card.Instant != 0 {
 				return card, nil
 			}
@@ -165,7 +169,37 @@ func (a *App) GetEntityCardForPost(rctx request.CTX, postID, occurrence, preferr
 	if thin != nil {
 		return thin, nil
 	}
-	return &model.EntityCard{TypeID: entity.TypeIDs[0], Value: entity.Value, Title: entity.Value}, nil
+	return entityCardFallback(entity.TypeIDs[0], entity.Value), nil
+}
+
+func entityCardFallback(typeID, value string) *model.EntityCard {
+	return &model.EntityCard{TypeID: typeID, Value: value, Title: value}
+}
+
+func localizeEntityCard(rctx request.CTX, card *model.EntityCard) {
+	if card == nil || rctx.GetT() == nil || card.TypeID != "mm.time" {
+		return
+	}
+	card.Title = rctx.T("app.entities.core.timestamp_title")
+	if card.Instant == 0 {
+		return
+	}
+	utc := time.UnixMilli(card.Instant).UTC()
+	blocks, err := json.Marshal([]map[string]any{
+		{
+			"type": "text",
+			"text": rctx.T("app.entities.core.timestamp_utc", map[string]any{"Time": utc.Format("15:04 MST")}),
+		},
+		{
+			"type":      "text",
+			"text":      rctx.T("app.entities.core.timestamp_as_written", map[string]any{"Value": card.Value}),
+			"is_subtle": true,
+		},
+	})
+	if err != nil {
+		return
+	}
+	card.Blocks = blocks
 }
 
 func (a *App) lookupEntityProvider(rctx request.CTX, remote *entities.Remote, typeID, value, postID string, createAt int64) *model.EntityCard {

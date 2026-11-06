@@ -183,10 +183,7 @@ func TestValueGroupIgnoresParenthesesInsideClasses(t *testing.T) {
 		Pattern:    `FREQ:[(]([0-9]+)[)]`,
 		ValueGroup: 1,
 	}))
-	found, _, incomplete := DetectAccepted("tune FREQ:(1234) now", func(string, string, string) (bool, error) {
-		return true, nil
-	})
-	require.False(t, incomplete)
+	found, _ := Detect("tune FREQ:(1234) now")
 	require.Len(t, found, 1)
 	require.Equal(t, "1234", found[0].Value)
 }

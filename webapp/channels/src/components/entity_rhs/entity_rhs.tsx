@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect, useState} from 'react';
+import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {EntityCard} from '@mattermost/types/posts';
@@ -16,6 +17,8 @@ import ExternalLink from 'components/external_link';
 
 import EntityCardView, {type EntityOpenTarget} from './entity_card';
 
+const ENTITY_CARD_FALLBACK_SUMMARY = 'No additional information';
+
 function isAllowedEntityURL(url: string) {
     return url.startsWith('https://') ||
         url.startsWith('http://') ||
@@ -29,7 +32,7 @@ type EntityFrame = EntityOpenTarget & {
 
 function isRich(card: EntityCard) {
     return Boolean(
-        card.summary ||
+        (card.summary && card.summary !== ENTITY_CARD_FALLBACK_SUMMARY) ||
         card.score ||
         card.severity ||
         card.exploited ||
@@ -46,6 +49,7 @@ function isRich(card: EntityCard) {
 
 export default function EntityRhs() {
     const dispatch = useDispatch();
+    const {formatMessage} = useIntl();
     const entity = useSelector(getSelectedEntity);
     const [card, setCard] = useState<EntityCard | null | undefined>();
     const [deeper, setDeeper] = useState<EntityFrame[]>([]);
@@ -125,18 +129,18 @@ export default function EntityRhs() {
                     {trail.length > 0 && (
                         <button
                             type='button'
-                            aria-label='Back'
+                            aria-label={formatMessage({id: 'entity_rhs.back', defaultMessage: 'Back'})}
                             onClick={() => setDeeper((stack) => stack.slice(0, -1))}
                             style={{background: 'none', border: 'none', padding: '0 8px 0 0', font: 'inherit', color: 'inherit', cursor: 'pointer'}}
                         >{'‹'}</button>
                     )}
-                    <h2 id='rhsPanelTitle'>{frame?.label || entityLabel(frame?.typeId || entity.typeId)}</h2>
+                    <h2 id='rhsPanelTitle'>{frame?.label || entityLabel(frame?.typeId || entity.typeId, formatMessage)}</h2>
                 </span>
                 <button
                     id='rhsCloseButton'
                     type='button'
                     className='sidebar--right__close btn btn-icon btn-sm'
-                    aria-label='Close'
+                    aria-label={formatMessage({id: 'entity_rhs.close', defaultMessage: 'Close'})}
                     onClick={() => dispatch(closeRightHandSide())}
                 >
                     <i className='icon icon-close'/>
@@ -152,7 +156,14 @@ export default function EntityRhs() {
                 ) : (
                     <>
                         <div style={{fontSize: 20, fontWeight: 600}}>{frame?.value || entity.value}</div>
-                        {card === null && <p style={{marginTop: 12, opacity: 0.72}}>{'No additional information'}</p>}
+                        {card !== undefined && (
+                            <p style={{marginTop: 12, opacity: 0.72}}>
+                                <FormattedMessage
+                                    id='entity_rhs.no_additional_information'
+                                    defaultMessage='No additional information'
+                                />
+                            </p>
+                        )}
                         {url && card !== undefined && (
                             <ExternalLink
                                 href={url}

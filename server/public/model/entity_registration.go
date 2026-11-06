@@ -22,7 +22,6 @@ type EntityType struct {
 // Boundary is a preset: empty and "token" are the original neighbor rule.
 // Scope lists "team" or "team/channel" names. Empty means the whole server.
 // SkipBots leaves the match off a bot post. The zero value scans bots.
-// Validate asks the owning plugin to accept the value before the span is kept.
 type EntityMatcher struct {
 	ID         string   `json:"id"`
 	TypeID     string   `json:"type_id"`
@@ -33,7 +32,6 @@ type EntityMatcher struct {
 	Scope      []string `json:"scope,omitempty"`
 	Boundary   string   `json:"boundary,omitempty"`
 	SkipBots   bool     `json:"skip_bots,omitempty"`
-	Validate   bool     `json:"validate,omitempty"`
 }
 
 const (
@@ -68,13 +66,6 @@ type EntityLookupRequest struct {
 	// PostID and CreateAt identify the post the value was read from.
 	// CreateAt is the reference for a token that omits its month or year.
 	PostID   string `json:"post_id,omitempty"`
-	CreateAt int64  `json:"create_at,omitempty"`
-}
-
-// EntityValidateRequest is a candidate span. The plugin accepts it before it is stored.
-type EntityValidateRequest struct {
-	TypeID   string `json:"type_id"`
-	Value    string `json:"value"`
 	CreateAt int64  `json:"create_at,omitempty"`
 }
 

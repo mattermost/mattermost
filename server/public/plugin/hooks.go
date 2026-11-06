@@ -77,7 +77,6 @@ const (
 	OnLicenseChangedID                        = 57
 	PropertyValuesHaveBeenUpdatedID           = 58
 	EntityLookupID                            = 59
-	EntityValidateID                          = iota
 	TotalHooksID                              = iota
 )
 
@@ -571,12 +570,6 @@ type Hooks interface {
 	// EntityLookup asks the plugin for the card of a value it provides.
 	// Return a nil card and a nil error when this plugin does not provide the type.
 	//
-	// Minimum server version: 12.1
+	// Minimum server version: 12.2
 	EntityLookup(c *Context, req *model.EntityLookupRequest) (*model.EntityCard, error)
-
-	// EntityValidate asks the plugin whether a matched value is real before the
-	// span is stored. False leaves the text plain. A missing hook fails closed.
-	//
-	// Minimum server version: 12.1
-	EntityValidate(c *Context, req *model.EntityValidateRequest) (bool, error)
 }

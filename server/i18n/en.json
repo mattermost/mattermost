@@ -8611,6 +8611,21 @@
     "description": "API error returned when listing custom emojis fails."
   },
   {
+    "id": "app.entities.core.timestamp_as_written",
+    "translation": "As written: {{.Value}}",
+    "description": "Subtle line on the core mm.time entity card repeating the timestamp token as the author wrote it."
+  },
+  {
+    "id": "app.entities.core.timestamp_title",
+    "translation": "Timestamp",
+    "description": "Title shown on the core mm.time entity card when a reader opens a recognized timestamp."
+  },
+  {
+    "id": "app.entities.core.timestamp_utc",
+    "translation": "**UTC:** {{.Time}}",
+    "description": "Primary line on the core mm.time entity card showing the value converted to UTC."
+  },
+  {
     "id": "app.export.channel_requires_team.error",
     "translation": "A channel name requires a team name to be specified.",
     "description": "Bulk export error (mmctl or export job) when a channel filter is given without a team filter; channel names are only unique within a team."

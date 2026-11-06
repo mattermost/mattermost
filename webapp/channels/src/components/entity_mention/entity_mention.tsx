@@ -3,7 +3,7 @@
 
 import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {createPortal} from 'react-dom';
-import {useIntl} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {EntityCard} from '@mattermost/types/posts';
@@ -157,7 +157,7 @@ export default function EntityMention({typeId, value, url, label: labelProp, tit
     const [position, setPosition] = useState({top: 0, left: 0});
     const [hoverCardState, setHoverCardState] = useState<{key: string; card: EntityCard} | null>(null);
     const safeURL = entityHref(url);
-    const label = labelProp || entityLabel(typeId);
+    const label = labelProp || entityLabel(typeId, intl.formatMessage);
     const cacheKey = `${currentUserId}\0${typeId}\0${value}\0${postId || ''}\0${occurrence || ''}`;
     const hoverCard = hoverCardState?.key === cacheKey ? hoverCardState.card : null;
 
@@ -270,7 +270,12 @@ export default function EntityMention({typeId, value, url, label: labelProp, tit
                     href={safeURL}
                     style={{display: 'inline-block', marginTop: 6}}
                     onClick={(event) => event.stopPropagation()}
-                >{'Open'}</a>
+                >
+                    <FormattedMessage
+                        id='entity_mention.open'
+                        defaultMessage='Open'
+                    />
+                </a>
             )}
         </div>,
         document.getElementById('root-portal') ?? document.body,

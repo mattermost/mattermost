@@ -33,7 +33,8 @@ type EntityCard struct {
 	Instant int64           `json:"instant,omitempty"`
 }
 
-// EntityCardFallbackSummary is placeholder text. It does not open a side panel by itself.
+// EntityCardFallbackSummary is the legacy English placeholder some clients may
+// still receive. It does not count as card body.
 const EntityCardFallbackSummary = "No additional information"
 
 // EntityCardHasBody reports whether a card has something to show besides its title and URL.
