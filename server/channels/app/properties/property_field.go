@@ -1084,10 +1084,10 @@ func (ps *PropertyService) updatePropertyFieldsIfUnchanged(rctx request.CTX, gro
 				)
 			}
 
-			// A parent-side field is unlinked like it is deleted: refused when
-			// it is the only one a child field's parent rule reads from. Checked
-			// on the stored field, so a call that also removes the child's rule
-			// is still refused; remove the rule first.
+			// Unlinking is refused for the same reason deleting is: the field is
+			// the only one a child field's parent rule reads from. Checked on the
+			// stored field, so a call that also removes the child's rule is still
+			// refused; remove the rule first.
 			onlyDepended, dErr := ps.isOnlyDependedParentField(rctx, existing)
 			if dErr != nil {
 				return nil, nil, nil, fmt.Errorf("UpdatePropertyFields: failed to look up child fields: %w", dErr)
