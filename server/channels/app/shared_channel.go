@@ -194,7 +194,7 @@ func (a *App) NotifySharedChannelUserUpdate(user *model.User) {
 // (username, email, profile image, ...)
 func (a *App) onUserProfileChange(userID string) {
 	syncService := a.Srv().GetSharedChannelSyncService()
-	if syncService == nil || !syncService.Active() {
+	if syncService == nil {
 		return
 	}
 	syncService.NotifyUserProfileChanged(userID)
@@ -218,7 +218,7 @@ func (a *App) UpdateSharedChannelCursor(channelID, remoteID string, cursor model
 // SyncSharedChannel forces a shared channel to send any changed content to all remote clusters.
 func (a *App) SyncSharedChannel(channelID string) error {
 	syncService := a.Srv().GetSharedChannelSyncService()
-	if syncService == nil || !syncService.Active() {
+	if syncService == nil {
 		return model.NewAppError("InviteRemoteToChannel", "api.command_share.service_disabled",
 			nil, "", http.StatusBadRequest)
 	}
@@ -231,10 +231,8 @@ func (a *App) SyncSharedChannel(channelID string) error {
 //
 // Plugins run on every cluster node, so these APIs do not require the shared
 // channel service to be active (which is only the case on the cluster leader).
-// Received content is written to the database on the receiving node. Posts,
-// reactions and acknowledgements reach other remotes through cluster websocket
-// events handled by the leader; sync tasks queued as a side effect on a
-// follower (membership changes, statuses) wait in that node's inactive queue.
+// Received content is written to the database on the receiving node. Sync
+// tasks queued as a side effect on a follower are sent to the leader.
 
 // ReceiveSharedChannelSyncMsg processes an inbound sync message from a plugin remote.
 // The pluginID is server-injected (from api.id) for ownership validation; remoteID
