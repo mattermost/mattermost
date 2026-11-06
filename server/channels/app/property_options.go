@@ -157,4 +157,7 @@ func (a *App) invalidatePolicyCachesForOptionChange(rctx request.CTX, fieldID st
 	if acs := a.Srv().ch.AccessControl; acs != nil {
 		acs.OnPropertyFieldOptionsChanged(rctx, fieldID)
 	}
+	// What a rule compiled against an option, or a subject resolved an option ID to, may have
+	// changed for any user or channel.
+	a.invalidateChannelAccessDecisions()
 }
