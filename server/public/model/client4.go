@@ -8546,6 +8546,17 @@ func (c *Client4) SearchAccessControlDecisionActions(ctx context.Context, req Ac
 	return DecodeJSONFromResponse[*ActionSearchResponse](r)
 }
 
+// GetDelegatedAdminActions returns the registered system actions the current
+// user is allowed, each with the permissions they are allowed.
+func (c *Client4) GetDelegatedAdminActions(ctx context.Context) (*DelegatedActionsResponse, *Response, error) {
+	r, err := c.doAPIGet(ctx, c.accessControlDecisionsRoute().Join("actions", "admin"), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*DelegatedActionsResponse](r)
+}
+
 func (c *Client4) AssignAccessControlPolicies(ctx context.Context, policyID string, resourceIDs []string) (*Response, error) {
 	var assignments struct {
 		ChannelIds []string `json:"channel_ids"`

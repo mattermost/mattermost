@@ -92,6 +92,20 @@ type ActionSearchResponse struct {
 	Page      *ActionSearchPage                   `json:"page,omitempty"`
 }
 
+// DelegatedAction is a registered system action the current user is allowed,
+// with the permissions of the action they are allowed.
+type DelegatedAction struct {
+	Name        string   `json:"name"`
+	Permissions []string `json:"permissions"`
+}
+
+// DelegatedActionsResponse lists the registered system actions the current
+// user is allowed. Results is always present; [] means none.
+type DelegatedActionsResponse struct {
+	Resource Resource          `json:"resource"`
+	Results  []DelegatedAction `json:"results"`
+}
+
 // IsValid validates the shape of an Action Search request. It does not validate
 // that the actions/resource type are supported for rendering; that allowlist
 // check happens in the App layer against the renderable-action registry.

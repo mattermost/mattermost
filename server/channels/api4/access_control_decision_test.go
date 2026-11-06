@@ -5,10 +5,12 @@ package api4
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	"github.com/stretchr/testify/require"
 )
@@ -171,5 +173,88 @@ func TestSearchAccessControlDecisionActions(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.Nil(t, out.Page)
+	})
+}
+
+func TestGetDelegatedAdminActions(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	const delegable = "run_test_delegable"
+	const restricted = "run_test_restricted"
+	delegablePermissions := []string{model.PermissionSysconsoleReadExperimentalBleve.Id, model.PermissionSysconsoleWriteExperimentalBleve.Id}
+	model.RegisterActionsForTesting(t,
+		model.ActionEntry{Name: delegable, ResourceType: model.AccessControlPolicyTypeSystem, Grantable: true, Permissions: delegablePermissions},
+		model.ActionEntry{Name: restricted, ResourceType: model.AccessControlPolicyTypeSystem, Grantable: true, Permissions: []string{model.PermissionSysconsoleReadExperimentalFeatureFlags.Id}},
+	)
+	for _, permission := range delegablePermissions {
+		th.AddPermissionToRole(t, permission, model.SystemAdminRoleId)
+		t.Cleanup(func() { th.RemovePermissionFromRole(t, permission, model.SystemAdminRoleId) })
+	}
+
+	names := func(resp *model.DelegatedActionsResponse) []string {
+		out := []string{}
+		for _, a := range resp.Results {
+			out = append(out, a.Name)
+		}
+		return out
+	}
+
+	t.Run("requires a session", func(t *testing.T) {
+		_, resp, err := th.CreateClient().GetDelegatedAdminActions(context.Background())
+		require.Error(t, err)
+		CheckUnauthorizedStatus(t, resp)
+	})
+
+	t.Run("with ABAC inactive, role grants decide", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(false)
+		})
+
+		resp, _, err := th.Client.GetDelegatedAdminActions(context.Background())
+		require.NoError(t, err)
+		require.Equal(t, model.Resource{Type: model.AccessControlPolicyTypeSystem}, resp.Resource)
+		require.NotNil(t, resp.Results)
+		require.Empty(t, resp.Results, "nothing is allowed by default")
+
+		resp, _, err = th.SystemAdminClient.GetDelegatedAdminActions(context.Background())
+		require.NoError(t, err)
+		require.ElementsMatch(t, []string{delegable, restricted}, names(resp))
+	})
+
+	t.Run("with ABAC active, policies grant and restrict", func(t *testing.T) {
+		mockACS := &mocks.AccessControlServiceInterface{}
+		original := th.App.Srv().Channels().AccessControl
+		th.App.Srv().Channels().AccessControl = mockACS
+		t.Cleanup(func() { th.App.Srv().Channels().AccessControl = original })
+		th.ConfigStore.SetReadOnlyFF(false)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			cfg.FeatureFlags.PermissionPolicies = true
+		})
+		require.True(t, th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced)))
+
+		// A policy on the delegable action matches only the basic user; the
+		// restricted action has a policy that matches nobody.
+		mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).Return(func(_ request.CTX, req model.AccessRequest) model.AccessDecision {
+			return model.AccessDecision{Decision: req.Action == delegable && req.Subject.ID == th.BasicUser.Id}
+		}, nil)
+
+		resp, _, err := th.Client.GetDelegatedAdminActions(context.Background())
+		require.NoError(t, err)
+		require.Equal(t, []model.DelegatedAction{{Name: delegable, Permissions: delegablePermissions}}, resp.Results)
+
+		resp, _, err = th.SystemAdminClient.GetDelegatedAdminActions(context.Background())
+		require.NoError(t, err)
+		require.Empty(t, resp.Results, "policies restrict a system admin who doesn't match them")
+	})
+
+	t.Run("the response carries no decisions map", func(t *testing.T) {
+		r, err := th.Client.DoAPIGet(context.Background(), "/access_control/decisions/actions/admin", "")
+		require.NoError(t, err)
+		defer r.Body.Close()
+		var raw map[string]json.RawMessage
+		require.NoError(t, json.NewDecoder(r.Body).Decode(&raw))
+		require.Contains(t, raw, "results")
+		require.NotContains(t, raw, "decisions")
 	})
 }

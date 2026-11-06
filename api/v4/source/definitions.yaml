@@ -5656,6 +5656,35 @@ components:
             $ref: "#/components/schemas/RenderPermissionDecision"
         page:
           $ref: "#/components/schemas/ActionSearchPage"
+    DelegatedAction:
+      type: object
+      description: A registered system action the current user is allowed.
+      required:
+        - name
+        - permissions
+      properties:
+        name:
+          type: string
+          description: The registered action name, for example `run_compliance_export`.
+        permissions:
+          type: array
+          description: The permissions of the action the user is allowed. Never empty.
+          items:
+            type: string
+    DelegatedActionsResponse:
+      type: object
+      description: The registered system actions the current user is allowed.
+      required:
+        - resource
+        - results
+      properties:
+        resource:
+          $ref: "#/components/schemas/AccessControlResource"
+        results:
+          type: array
+          description: Only allowed actions appear. Always present; [] means none.
+          items:
+            $ref: "#/components/schemas/DelegatedAction"
     RecapLimitStatus:
       type: object
       description: The current user's recap limit status including usage and cooldown information

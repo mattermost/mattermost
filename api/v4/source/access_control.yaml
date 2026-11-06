@@ -675,6 +675,33 @@
           $ref: "#/components/responses/InternalServerError"
         "501":
           $ref: "#/components/responses/NotImplemented"
+  /api/v4/access_control/decisions/actions/admin:
+    get:
+      tags:
+        - access control
+      summary: Get the delegated admin actions of the current user
+      description: |
+        Returns the registered system actions the current session user is
+        allowed, each with the permissions of the action they are allowed.
+        Each permission is decided the same way the protected endpoints decide
+        it: by role, and by permission policies when attribute-based access
+        control is active. Use the result to decide which System Console
+        sections to show; the protected endpoints re-evaluate on each request.
+
+        ##### Permissions
+        Must be authenticated (any logged-in user).
+      operationId: GetDelegatedAdminActions
+      responses:
+        "200":
+          description: Delegated admin actions returned successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DelegatedActionsResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
   /api/v4/access_control/decisions/actions/search:
     post:
       tags:

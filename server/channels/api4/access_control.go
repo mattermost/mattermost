@@ -65,6 +65,33 @@ func (api *API) InitAccessControlPolicy() {
 	api.BaseRoutes.AccessControlPolicy.Handle("/resources/channels/search", api.APISessionRequired(searchChannelsForAccessControlPolicy)).Methods(http.MethodPost)
 
 	api.BaseRoutes.AccessControlDecisions.Handle("/actions/search", api.APISessionRequired(searchAccessControlDecisionActions)).Methods(http.MethodPost)
+	api.BaseRoutes.AccessControlDecisions.Handle("/actions/admin", api.APISessionRequired(getDelegatedAdminActions)).Methods(http.MethodGet)
+}
+
+// getDelegatedAdminActions returns the registered system actions the current
+// session user is allowed, each with the permissions they are allowed. The
+// caller only learns about their own access, so there is no permission gate.
+// Results are for rendering; protected endpoints re-evaluate on each request.
+func getDelegatedAdminActions(c *Context, w http.ResponseWriter, r *http.Request) {
+	search, appErr := c.App.SearchAllowedActionsForCurrentUser(c.AppContext, model.ActionSearchRequest{
+		Resource: model.Resource{Type: model.AccessControlPolicyTypeSystem},
+	})
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	resp := model.DelegatedActionsResponse{
+		Resource: search.Resource,
+		Results:  make([]model.DelegatedAction, 0, len(search.Results)),
+	}
+	for _, result := range search.Results {
+		resp.Results = append(resp.Results, model.DelegatedAction{Name: result.Action.Name, Permissions: result.Permissions})
+	}
+
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 // searchAccessControlDecisionActions returns non-authoritative, render-time ABAC
