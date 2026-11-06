@@ -18,6 +18,7 @@ import {getPropertyFieldById} from 'mattermost-redux/selectors/entities/properti
 import {handlePropertyFieldCreatedOrUpdated, handlePropertyFieldDeleted} from 'actions/websocket_actions';
 import realConfigureStore from 'store';
 
+import {subscribeToAttributeFieldChanges} from 'components/admin_console/global_attributes/listing_events';
 import {clearGraphOptionNameCache, commitGraphOptionNames, getGraphOptionNames} from 'components/property_fields/graph/use_graph_option_names';
 
 import mockStore from 'tests/test_store';
@@ -102,7 +103,7 @@ describe('property_field_updated withheld option lists', () => {
 
         expect(receivedField(actions).attrs.options).toEqual(CACHED_OPTIONS);
         expect(receivedField(actions).attrs.options_count).toBe(1);
-        expect(fetchPropertyFields).toHaveBeenCalledWith(GROUP_NAME, 'channel', 'channel', CHANNEL_ID);
+        expect(fetchPropertyFields).toHaveBeenCalledWith(GROUP_NAME, 'channel', {targetType: 'channel', targetId: CHANNEL_ID});
     });
 
     test('an unmarked field is stored as received and triggers no refetch', () => {
@@ -121,7 +122,7 @@ describe('property_field_updated withheld option lists', () => {
         const actions = dispatchEvent(eventField);
 
         expect(receivedField(actions).attrs.options).toBeUndefined();
-        expect(fetchPropertyFields).toHaveBeenCalledWith(GROUP_NAME, 'channel', 'channel', CHANNEL_ID);
+        expect(fetchPropertyFields).toHaveBeenCalledWith(GROUP_NAME, 'channel', {targetType: 'channel', targetId: CHANNEL_ID});
     });
 
     test('a withheld field whose group is unknown triggers no refetch', () => {
@@ -473,5 +474,85 @@ describe('property_field events for user attributes', () => {
         store.dispatch(handlePropertyFieldCreatedOrUpdated(updatedEvent(withheld)));
 
         expect(getCustomProfileAttributeFields).toHaveBeenCalledTimes(1);
+    });
+});
+
+// The Attribute Management listing is composed server-side, so a field event
+// only tells it that its rows may be stale.
+describe('property_field events notify the Attribute Management listing', () => {
+    const listener = jest.fn();
+    let unsubscribe: () => void;
+
+    function makeStore(cachedFields: PropertyField[] = []) {
+        return realConfigureStore({
+            entities: {
+                general: {license: {}},
+                properties: {
+                    fields: {
+                        byId: Object.fromEntries(cachedFields.map((field) => [field.id, field])),
+                        byObjectType: {},
+                    },
+                    groups: {byId: {}, byName: {}},
+                },
+            },
+        });
+    }
+
+    beforeEach(() => {
+        listener.mockReset();
+        unsubscribe = subscribeToAttributeFieldChanges(listener);
+    });
+
+    afterEach(() => {
+        unsubscribe();
+    });
+
+    test.each([
+        [WebSocketEvents.PropertyFieldCreated],
+        [WebSocketEvents.PropertyFieldUpdated],
+    ])('%s reports the changed field\'s group', (event) => {
+        const store = makeStore();
+
+        store.dispatch(handlePropertyFieldCreatedOrUpdated({
+            event,
+            data: {property_field: JSON.stringify(storedField({object_type: 'template'})), object_type: 'template'},
+        } as unknown as WebSocketMessages.PropertyFieldCreated));
+
+        expect(listener).toHaveBeenCalledTimes(1);
+        expect(listener).toHaveBeenCalledWith(GROUP_ID);
+    });
+
+    test('a delete reports the group of the cached field, read before it is removed', () => {
+        const store = makeStore([storedField()]);
+
+        store.dispatch(handlePropertyFieldDeleted({
+            event: WebSocketEvents.PropertyFieldDeleted,
+            data: {field_id: FIELD_ID, object_type: 'channel'},
+        } as unknown as WebSocketMessages.PropertyFieldDeleted));
+
+        expect(getPropertyFieldById(store.getState(), FIELD_ID)).toBeUndefined();
+        expect(listener).toHaveBeenCalledWith(GROUP_ID);
+    });
+
+    test('a delete of a field that was never cached still notifies, with no group', () => {
+        const store = makeStore();
+
+        store.dispatch(handlePropertyFieldDeleted({
+            event: WebSocketEvents.PropertyFieldDeleted,
+            data: {field_id: 'unknown_field_id', object_type: 'user'},
+        } as unknown as WebSocketMessages.PropertyFieldDeleted));
+
+        expect(listener).toHaveBeenCalledWith(undefined);
+    });
+
+    test('an event that does not parse notifies nothing', () => {
+        const store = makeStore();
+
+        store.dispatch(handlePropertyFieldCreatedOrUpdated({
+            event: WebSocketEvents.PropertyFieldUpdated,
+            data: {property_field: '{not json', object_type: 'user'},
+        } as unknown as WebSocketMessages.PropertyFieldUpdated));
+
+        expect(listener).not.toHaveBeenCalled();
     });
 });

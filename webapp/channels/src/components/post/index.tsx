@@ -12,7 +12,7 @@ import type {Post} from '@mattermost/types/posts';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {General, Preferences as ReduxPreferences} from 'mattermost-redux/constants';
 import {getDirectTeammate, isMyChannelAutotranslated} from 'mattermost-redux/selectors/entities/channels';
-import {getConfig, isPermissionPoliciesEnabled} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, isPermissionPoliciesEnabled, isPostAttributesEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUserLocale} from 'mattermost-redux/selectors/entities/i18n';
 import {getPost, makeGetCommentCountForPost, makeIsPostCommentMention, isPostAcknowledgementsEnabled, isPostPriorityEnabled, isPostFlagged} from 'mattermost-redux/selectors/entities/posts';
 import type {UserActivityPost} from 'mattermost-redux/selectors/entities/posts';
@@ -239,6 +239,7 @@ function makeMapStateToProps() {
             parentPostUser,
             isPostAcknowledgementsEnabled: isPostAcknowledgementsEnabled(state),
             isPostPriorityEnabled: isPostPriorityEnabled(state),
+            isPostAttributesEnabled: isPostAttributesEnabled(state),
             isCardOpen: selectedCard && selectedCard.id === post.id,
             shouldShowDotMenu: shouldShowDotMenu(state, post, channel),
             canDelete: canDeletePost(state, post, channel),

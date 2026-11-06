@@ -1197,6 +1197,16 @@ Compass design system UI components for Mattermost products
 
 ---
 
+## @mattermost/compass-ui
+
+This product contains '@mattermost/compass-ui'.
+
+Compass design system UI components for Mattermost products
+
+
+
+---
+
 ## @mattermost/desktop-api
 
 This product contains '@mattermost/desktop-api'.

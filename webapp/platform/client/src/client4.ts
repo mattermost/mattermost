@@ -4,7 +4,7 @@
 /* eslint-disable max-lines */
 
 import type {AccessControlPolicy, CELExpressionError, AccessControlTestResult, AccessControlPoliciesResult, AccessControlPolicyChannelsResult, AccessControlVisualAST, AccessControlAttributes, AccessControlPolicyActiveUpdate, PolicySimulationResponse, PolicySimulationByUsersParams} from '@mattermost/types/access_control';
-import type {ClusterInfo, AnalyticsRow, SchemaMigration, LogFilterQuery} from '@mattermost/types/admin';
+import type {ClusterInfo, AnalyticsRow, SchemaMigration, LogFilterQuery, LogsByNode} from '@mattermost/types/admin';
 import type {Agent, LLMService} from '@mattermost/types/agents';
 import type {AppBinding, AppCallRequest, AppCallResponse} from '@mattermost/types/apps';
 import type {Audit} from '@mattermost/types/audits';
@@ -70,6 +70,7 @@ import type {CustomEmoji} from '@mattermost/types/emojis';
 import type {ServerError} from '@mattermost/types/errors';
 import type {FileInfo, FileUploadResponse, FileSearchResults} from '@mattermost/types/files';
 import type {SystemSetting} from '@mattermost/types/general';
+import type {GlobalAttributeListing, GlobalAttributeListingSearch} from '@mattermost/types/global_attributes';
 import type {
     Group,
     GroupPatch,
@@ -116,7 +117,7 @@ import type {
 import type {Post, PostList, PostSearchResults, PostsUsageResponse, TeamsUsageResponse, PaginatedPostList, FilesUsageResponse, PostAcknowledgement, PostAnalytics, PostInfo} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {ProductNotices} from '@mattermost/types/product_notices';
-import type {NameMappedPropertyFields, PropertyField, PropertyFieldOptionPage, PropertyValue} from '@mattermost/types/properties';
+import type {NameMappedPropertyFields, PropertyField, PropertyFieldOptionPage, PropertyFieldsQuery, PropertyValue} from '@mattermost/types/properties';
 import type {UserPropertyField, UserPropertyFieldPatch} from '@mattermost/types/properties_user';
 import type {Reaction} from '@mattermost/types/reactions';
 import type {Recap, CreateRecapRequest, ScheduledRecap, ScheduledRecapInput, RecapLimitStatus} from '@mattermost/types/recaps';
@@ -2528,20 +2529,33 @@ export default class Client4 {
 
     // Generic Property Field Routes
 
-    getPropertyFields = async (groupName: string, objectType: string, targetType: string, targetId?: string, options?: {perPage?: number; cursorId?: string; cursorCreateAt?: number}) => {
-        const params = new URLSearchParams({target_type: targetType});
-        if (targetId) {
-            params.set('target_id', targetId);
+    getPropertyFields = async (groupName: string, objectType: string, query: PropertyFieldsQuery) => {
+        const params = new URLSearchParams();
+
+        if (query.channelId) {
+            params.set('channel_id', query.channelId);
         }
-        if (options?.perPage) {
-            params.set('per_page', String(options.perPage));
+        if (query.teamId) {
+            params.set('team_id', query.teamId);
         }
-        if (options?.cursorId) {
-            params.set('cursor_id', options.cursorId);
+
+        if (query.targetType) {
+            params.set('target_type', query.targetType);
         }
-        if (options?.cursorCreateAt !== undefined) {
-            params.set('cursor_create_at', String(options.cursorCreateAt));
+        if (query.targetId) {
+            params.set('target_id', query.targetId);
         }
+
+        if (query.perPage) {
+            params.set('per_page', String(query.perPage));
+        }
+        if (query.cursorId) {
+            params.set('cursor_id', query.cursorId);
+        }
+        if (query.cursorCreateAt !== undefined) {
+            params.set('cursor_create_at', String(query.cursorCreateAt));
+        }
+
         return this.doFetch<PropertyField[]>(
             `${this.getPropertyFieldsRoute(groupName, objectType)}?${params.toString()}`,
             {method: 'GET'},
@@ -2571,6 +2585,13 @@ export default class Client4 {
         return this.doFetch<PropertyFieldOptionPage>(
             `${this.getPropertyFieldOptionsRoute(groupName, objectType, fieldId)}?${params.toString()}`,
             {method: 'GET'},
+        );
+    };
+
+    searchGlobalAttributes = async (search: GlobalAttributeListingSearch) => {
+        return this.doFetch<GlobalAttributeListing>(
+            `${this.getBaseRoute()}/properties/groups/access_control/attributes/search`,
+            {method: 'POST', body: JSON.stringify(search)},
         );
     };
 
@@ -3778,9 +3799,9 @@ export default class Client4 {
 
     // Admin Routes
 
-    getLogs = (logFilter: LogFilterQuery) => {
-        return this.doFetch<string[]>(
-            `${this.getBaseRoute()}/logs/query`,
+    getLogs = (logFilter: LogFilterQuery, page = 0, perPage = LOGS_PER_PAGE_DEFAULT) => {
+        return this.doFetch<LogsByNode>(
+            `${this.getBaseRoute()}/logs/query${buildQueryString({page, logs_per_page: perPage})}`,
             {method: 'post', body: JSON.stringify(logFilter)},
         );
     };
@@ -5257,13 +5278,17 @@ export default class Client4 {
         );
     };
 
-    checkAccessControlExpression = (expression: string, channelId?: string, teamId?: string) => {
-        const requestBody: {expression: string; channelId?: string; teamId?: string} = {expression};
+    // membership also rejects what the membership sync can't evaluate.
+    checkAccessControlExpression = (expression: string, channelId?: string, teamId?: string, membership?: boolean) => {
+        const requestBody: {expression: string; channelId?: string; teamId?: string; membership?: boolean} = {expression};
         if (channelId) {
             requestBody.channelId = channelId;
         }
         if (teamId) {
             requestBody.teamId = teamId;
+        }
+        if (membership) {
+            requestBody.membership = true;
         }
 
         return this.doFetch<CELExpressionError[]>(
