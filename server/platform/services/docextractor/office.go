@@ -15,8 +15,8 @@ import (
 )
 
 // officeContentTypesReadLimit caps [Content_Types].xml size.
-// Real files are 1-10 KB; even a pathological 1000-part document is only 128 KB.
-const officeContentTypesReadLimit int64 = 1 << 20
+// Matches the previous converter's 20 MB limit to maintain backward compatibility.
+const officeContentTypesReadLimit int64 = 20 << 20
 
 // officePartReadLimit caps text-bearing part XML (word/document.xml, ppt/slides/*.xml, etc.).
 // Pathological XML with many short tags can require reading 16 MB to extract 1 MB of text.
