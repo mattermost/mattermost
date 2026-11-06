@@ -2,6 +2,9 @@
 title: "Enable rate limiting"
 unlisted: true
 ---
+
+import useBaseUrl from '@docusaurus/useBaseUrl';
+
 {/* Snippet include: imported by environment-configuration-settings. */}
 
 With self-hosted deployments, rate limiting prevents your Mattermost server from being overloaded with too many requests, and decreases the risk and impact of third-party applications or malicious attacks on your server.
@@ -111,7 +114,7 @@ Mattermost rate limiting configuration settings are intended for small deploymen
 </colgroup>
 <tbody>
 <tr>
-<td><p>Configure Mattermost to vary rate limiting API access by the HTTP header field specified. Recommended when you’re using a proxy.</p><ul><li>When configuring NGINX, set this to <strong>X-Real-IP</strong>.</li><li>When configuring AmazonELB, set this to <strong>X-Forwarded-For</strong>.</li></ul></td>
+<td><p>Configure Mattermost to vary rate limiting API access by the HTTP header field specified. Recommended when you’re using a proxy.</p><ul><li>When configuring NGINX, set this to <strong>X-Real-IP</strong>.</li><li>Never set this to <strong>X-Forwarded-For</strong>. Mattermost Server adds the raw header value to the rate limit key, so a client can reset its limit by changing the header. Behind a load balancer such as AmazonELB, set <code>ServiceSettings.TrustedProxyIPHeader</code> to the header that your NGINX proxy overwrites, or use the NGINX <code>real_ip</code> module with <code>set_real_ip_from</code> limited to the load balancer's addresses. See <a href={useBaseUrl('/deployment-guide/server/setup-nginx-proxy#mattermost-settings-behind-nginx')}>Set up an NGINX proxy</a>.</li></ul></td>
 <td><ul><li>System Config path: <strong>Environment &gt; Rate Limiting</strong></li><li><code>config.json</code> setting: <code>RateLimitSettings</code> &gt; <code>VaryByHeader</code> &gt; <code>""</code></li><li>Environment variable: <code>MM_RATELIMITSETTINGS_VARYBYHEADER</code></li></ul></td>
 </tr>
 </tbody>

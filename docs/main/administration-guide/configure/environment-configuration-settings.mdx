@@ -461,7 +461,7 @@ This setting only takes effect if you are using the built-in server binary direc
 </colgroup>
 <tbody>
 <tr>
-<td><p>Specified headers that will be checked, one by one, for IP addresses (order is important). All other headers are ignored.</p><p>String array input consisting of header names, such as <code>["X-Forwarded-For", "X-Real-Ip"]</code>.</p></td>
+<td><p>Specified headers that will be checked, one by one, for IP addresses (order is important). All other headers are ignored.</p><p>String array input consisting of header names, such as <code>["X-Real-IP"]</code> behind NGINX.</p></td>
 <td><ul><li>System Config path: N/A</li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>TrustedProxyIPHeader</code> &gt; <code>[]</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_TRUSTEDPROXYIPHEADER</code></li></ul></td>
 </tr>
 </tbody>
@@ -472,8 +472,17 @@ This setting only takes effect if you are using the built-in server binary direc
 - The default value of `[]` means that no header will be trusted.
 - We recommend keeping the default setting when Mattermost is running without a proxy to avoid the client sending the headers and bypassing rate limiting and/or the audit log.
 - For environments that use a reverse proxy, this issue does not exist, provided that the headers are set by the reverse proxy. In those environments, only explicitly whitelist the header set by the reverse proxy and no additional values.
+- Behind NGINX, set this to `["X-Real-IP"]`. NGINX overwrites `X-Real-IP` with the address of the connecting client. See [Set up an NGINX proxy](/deployment-guide/server/setup-nginx-proxy#mattermost-settings-behind-nginx) for the matching NGINX configuration.
+- Keep Mattermost Server reachable only through the proxy, because a client that connects directly can send any value in the trusted header.
+- If another load balancer sits in front of NGINX, use the NGINX `real_ip` module with `set_real_ip_from` limited to that load balancer's addresses. See [Set up an NGINX proxy](/deployment-guide/server/setup-nginx-proxy#mattermost-settings-behind-nginx).
 
 </Note>
+
+<Warning>
+
+Never add `X-Forwarded-For` to this setting. Mattermost Server uses the first comma-separated value of the header, and the client controls that value when NGINX appends to it with `$proxy_add_x_forwarded_for`. Clients could then choose the IP address that rate limiting and audit logs record.
+
+</Warning>
 
 ### Enable Strict Transport Security (HSTS)
 
