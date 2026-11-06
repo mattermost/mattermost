@@ -103,6 +103,8 @@ const SettingItemMax = ({
                 (/button--emphasis-(tertiary|quaternary|link)/).test(closestButton.className),
             );
 
+            const isChip = Boolean(target.closest('[data-chip]'));
+
             if (disableEnterSubmit !== true &&
                 isKeyPressed(e, Constants.KeyCodes.ENTER) &&
                 submitFromProps &&
@@ -111,6 +113,7 @@ const SettingItemMax = ({
                 target.parentElement.className !== 'react-select__input' &&
                 !isFooterNonSaveButton &&
                 !isNonPrimaryContentButton &&
+                !isChip &&
                 target.id !== 'cancelSetting' &&
                 settingList.current &&
                 settingList.current.contains(target)) {
@@ -122,8 +125,9 @@ const SettingItemMax = ({
             // Prefer form controls over footer Save/Cancel (Compass Buttons no longer use .btn).
             // Include [tabindex]:not([tabindex="-1"]) so react-select (and similar) receive
             // Edit→expand focus; .setting-list itself uses tabindex="-1" and is excluded.
+            // Compass Combobox inputs have no tabindex, and its chips must never take initial focus.
             const formControls = Array.from(settingList.current.querySelectorAll<HTMLElement>(
-                'input.form-control, input[type="radio"][checked], input[type="checkbox"], select, textarea, [tabindex]:not([tabindex="-1"])',
+                'input.form-control, input[role="combobox"], input[type="radio"][checked], input[type="checkbox"], select, textarea, [tabindex]:not([tabindex="-1"]):not([data-chip])',
             )).filter((el) => !el.closest('.setting-list-item__buttons'));
             if (formControls.length > 0) {
                 a11yFocus(formControls[0]);

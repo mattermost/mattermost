@@ -3,34 +3,38 @@
 
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
+import {useHistory} from 'react-router-dom';
 
-import {LogLevelEnum} from '@mattermost/types/admin';
 import type {
     LogFilter,
-    LogLevels,
     LogServerNames,
 } from '@mattermost/types/admin';
 
 import {Client4} from 'mattermost-redux/client';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import AdminHeader from 'components/widgets/admin_console/admin_header';
+import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
 import LogFormatMenu from './log_format_menu';
 import LogList, {loadPrefs} from './log_list';
 import PlainLogList from './plain_log_list';
-import type {LogObjectWithAdditionalInfo} from './types';
+import type {CustomTimeRange, LogObjectWithAdditionalInfo, TimeRange} from './types';
+import {parseUrlFilters, withUrlFilters} from './url_filters';
 import useLogPolling from './use_log_polling';
-import {presetStartMs} from './utils';
+import {LEVEL_GROUPS, groupLevels, presetStartMs} from './utils';
 
 import './logs.scss';
 
 type Props = {
     logs: LogObjectWithAdditionalInfo[];
     logNodes: string[];
+    truncatedLogNodes: string[];
     plainLogs: string[];
     isPlainLogs: boolean;
     actions: {
-        getLogs: (logFilter: LogFilter) => Promise<unknown>;
+        getLogs: (logFilter: LogFilter) => Promise<ActionResult | undefined>;
+        getNewLogs: (logFilter: LogFilter) => Promise<ActionResult | undefined>;
         getPlainLogs: (
             page?: number | undefined,
             perPage?: number | undefined,
@@ -71,23 +75,27 @@ const LOG_FORMAT_PREF_KEY = 'mm_admin_logs_format';
 
 // The logs API expects filter dates as UTC in "YYYY-MM-DD HH:mm:ss.SSS +00:00"
 function formatFilterDate(date: Date): string {
-    const pad = (n: number) => String(n).padStart(2, '0');
-    return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())} ${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}:${pad(date.getUTCSeconds())}.000 +00:00`;
+    const pad = (n: number, width = 2) => String(n).padStart(width, '0');
+    return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())} ${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}:${pad(date.getUTCSeconds())}.${pad(date.getUTCMilliseconds(), 3)} +00:00`;
 }
 
-// No end date, so the server ends the range at its own clock rather than the browser's
-function presetStart(minutes: number): string {
-    return formatFilterDate(new Date(presetStartMs(minutes)));
-}
+// A poll asks for everything logged since the previous fetch started, reaching back this much further
+// for a browser clock ahead of the servers' and for entries flushed late. The repeats are dropped when merged
+const POLL_OVERLAP_MS = 30000;
 
 const ALL_SERVER_NAMES: LogServerNames = [];
-const LOG_LEVELS: LogLevels = [LogLevelEnum.ERROR, LogLevelEnum.WARN, LogLevelEnum.INFO, LogLevelEnum.DEBUG];
 
 const PLAIN_LOGS_PER_PAGE = 1000;
 
-function getInitialFormat(configIsPlainLogs: boolean): boolean {
+const PRESET_MINUTES = TIME_PRESETS.map((preset) => preset.minutes);
+
+// A shared link's filters only apply to the structured viewer, so it opens there over a saved plain format
+function getInitialFormat(configIsPlainLogs: boolean, hasUrlFilters: boolean): boolean {
     if (configIsPlainLogs) {
         return true;
+    }
+    if (hasUrlFilters) {
+        return false;
     }
     try {
         const saved = localStorage.getItem(LOG_FORMAT_PREF_KEY);
@@ -103,17 +111,65 @@ function getInitialFormat(configIsPlainLogs: boolean): boolean {
     return false;
 }
 
-export default function Logs({logs, logNodes, plainLogs, isPlainLogs: configIsPlainLogs, actions}: Props) {
-    const [isPlainLogs, setIsPlainLogs] = useState(() => getInitialFormat(configIsPlainLogs));
+export default function Logs({logs, logNodes, truncatedLogNodes, plainLogs, isPlainLogs: configIsPlainLogs, actions}: Props) {
+    const history = useHistory();
+    const [urlFilters] = useState(() => parseUrlFilters(history.location.search, PRESET_MINUTES));
+    const [isPlainLogs, setIsPlainLogs] = useState(() => getInitialFormat(configIsPlainLogs, Object.keys(urlFilters).length > 0));
     const [loading, setLoading] = useState(true);
-    const [search, setSearch] = useState('');
+    const [search, setSearch] = useState(urlFilters.search ?? '');
     const [initialPrefs] = useState(loadPrefs);
-    const [enabledLevels, setEnabledLevels] = useState(() => new Set(initialPrefs.enabledLevels));
-    const [selectedNode, setSelectedNode] = useState(initialPrefs.node);
-    const [activeTimePreset, setActiveTimePreset] = useState<number | null>(null);
-    const [plainPage, setPlainPage] = useState(0);
+    const [enabledLevels, setEnabledLevels] = useState(() => urlFilters.enabledLevels ?? new Set(initialPrefs.enabledLevels));
+    const [selectedNode, setSelectedNode] = useState(urlFilters.node ?? initialPrefs.node);
+    const [timeRange, setTimeRange] = useState<TimeRange>(urlFilters.timeRange ?? null);
     const [liveTailEnabled, setLiveTailEnabled] = useState(false);
     const [pollInterval, setPollInterval] = useState(30000);
+
+    // The query this viewer last wrote, so a different one arriving is a navigation to a new view
+    const writtenSearchRef = useRef(history.location.search);
+
+    // Replaced rather than pushed, so changing filters doesn't fill the back button's history.
+    // The search is mirrored once debounced, and the plain viewer has no filters to share
+    useEffect(() => {
+        const {location} = history;
+        const query = withUrlFilters(location.search, isPlainLogs ? null : {search, enabledLevels, node: selectedNode, timeRange});
+        writtenSearchRef.current = query;
+        if (query !== location.search) {
+            history.replace({...location, search: query});
+        }
+    }, [history, isPlainLogs, search, enabledLevels, selectedNode, timeRange]);
+
+    // The search box keeps its own text, so it's remounted to show a search that arrived from the URL
+    const [viewKey, setViewKey] = useState(0);
+
+    // A link followed while this viewer is open replaces its filters, and what it leaves out falls back to the saved prefs
+    useEffect(() => {
+        const {pathname} = history.location;
+        return history.listen((location) => {
+            if (location.pathname !== pathname || location.search === writtenSearchRef.current) {
+                return;
+            }
+            const filters = parseUrlFilters(location.search, PRESET_MINUTES);
+            const prefs = loadPrefs();
+            setSearch(filters.search ?? '');
+            setEnabledLevels(filters.enabledLevels ?? new Set(prefs.enabledLevels));
+            setSelectedNode(filters.node ?? prefs.node);
+            setTimeRange(filters.timeRange ?? null);
+
+            // A range that ends in the past has nothing new to tail
+            if (filters.timeRange && typeof filters.timeRange !== 'number') {
+                setLiveTailEnabled(false);
+            }
+            if (!configIsPlainLogs && Object.keys(filters).length > 0) {
+                setIsPlainLogs(false);
+            }
+            setViewKey((key) => key + 1);
+        });
+    }, [history, configIsPlainLogs]);
+
+    const [plainPage, setPlainPage] = useState(0);
+
+    // Moved on by every fetch, so entries age out of the range even when a poll brings nothing new
+    const [timeRangeStart, setTimeRangeStart] = useState<number | null>(null);
 
     // Node-filtered responses only hold the selected node, so the list only ever grows
     const [knownNodes, setKnownNodes] = useState<string[]>([]);
@@ -128,6 +184,10 @@ export default function Logs({logs, logNodes, plainLogs, isPlainLogs: configIsPl
     const nodes = useMemo(() => (
         selectedNode && !knownNodes.includes(selectedNode) ? [...knownNodes, selectedNode].sort() : knownNodes
     ), [knownNodes, selectedNode]);
+
+    // When the last successful fetch started, so a poll only asks for what's been logged since.
+    // Only a success moves it, so a failed poll's gap is covered by the next one
+    const lastFetchStartRef = useRef<number | null>(null);
 
     // One fetch at a time, so a slow response can't overwrite a newer one
     const fetchQueueRef = useRef<Promise<unknown>>(Promise.resolve());
@@ -146,6 +206,17 @@ export default function Logs({logs, logNodes, plainLogs, isPlainLogs: configIsPl
             setLoading(true);
         }
 
+        // A preset has no end, so the server ends the range at its own clock rather than the browser's
+        let rangeStart: number | null = null;
+        let rangeEnd: number | null = null;
+        if (typeof timeRange === 'number') {
+            rangeStart = presetStartMs(timeRange);
+        } else if (timeRange) {
+            rangeStart = timeRange.from;
+            rangeEnd = timeRange.to;
+        }
+        setTimeRangeStart(rangeStart);
+
         const fetchLogs = async () => {
             // A newer fetch is queued behind this one and would overwrite its result
             if (id !== latestFetchRef.current) {
@@ -155,13 +226,27 @@ export default function Logs({logs, logNodes, plainLogs, isPlainLogs: configIsPl
                 await actions.getPlainLogs(plainPage, PLAIN_LOGS_PER_PAGE);
                 return;
             }
-            const allLevels = LOG_LEVELS.every((level) => enabledLevels.has(level));
-            await actions.getLogs({
+            const allLevels = LEVEL_GROUPS.every((group) => enabledLevels.has(group));
+            const logLevels = allLevels ? [] : LEVEL_GROUPS.filter((group) => enabledLevels.has(group)).flatMap(groupLevels);
+
+            // A full reload covers the whole range, a poll only what's been logged since the last fetch
+            if (!silent) {
+                lastFetchStartRef.current = null;
+            }
+            const since = lastFetchStartRef.current === null ? rangeStart : Math.max(lastFetchStartRef.current - POLL_OVERLAP_MS, rangeStart ?? 0);
+            const startedAt = Date.now();
+
+            const query = {
                 serverNames: selectedNode ? [selectedNode] : ALL_SERVER_NAMES,
-                logLevels: allLevels ? [] : LOG_LEVELS.filter((level) => enabledLevels.has(level)),
-                dateFrom: activeTimePreset === null ? '' : presetStart(activeTimePreset),
-                dateTo: '',
-            });
+                logLevels,
+                dateFrom: since === null ? '' : formatFilterDate(new Date(since)),
+                dateTo: rangeEnd === null ? '' : formatFilterDate(new Date(rangeEnd)),
+                search,
+            };
+            const result = await (silent ? actions.getNewLogs(query) : actions.getLogs(query));
+            if (!result?.error) {
+                lastFetchStartRef.current = startedAt;
+            }
         };
 
         pendingFetchesRef.current++;
@@ -173,7 +258,7 @@ export default function Logs({logs, logNodes, plainLogs, isPlainLogs: configIsPl
         });
         fetchQueueRef.current = fetched.catch(() => undefined);
         return fetched;
-    }, [isPlainLogs, plainPage, activeTimePreset, enabledLevels, selectedNode, actions]);
+    }, [isPlainLogs, plainPage, timeRange, enabledLevels, selectedNode, search, actions]);
 
     // reload's deps are the query's inputs, so this also covers every filter and page change
     useEffect(() => {
@@ -203,7 +288,13 @@ export default function Logs({logs, logNodes, plainLogs, isPlainLogs: configIsPl
         }
     }, []);
 
-    const clearTimePreset = useCallback(() => setActiveTimePreset(null), []);
+    const clearTimeRange = useCallback(() => setTimeRange(null), []);
+
+    // A range that ends in the past has nothing new to tail
+    const applyCustomRange = useCallback((range: CustomTimeRange) => {
+        setTimeRange(range);
+        setLiveTailEnabled(false);
+    }, []);
 
     const logFormatMenu = configIsPlainLogs ? null : (
         <LogFormatMenu
@@ -227,8 +318,10 @@ export default function Logs({logs, logNodes, plainLogs, isPlainLogs: configIsPl
         />
     ) : (
         <LogList
+            key={viewKey}
             loading={loading}
             logs={logs}
+            truncatedNodes={truncatedLogNodes}
             onSearchChange={setSearch}
             search={search}
             enabledLevels={enabledLevels}
@@ -245,9 +338,11 @@ export default function Logs({logs, logNodes, plainLogs, isPlainLogs: configIsPl
             pollIntervals={POLL_INTERVALS}
             pollIntervalLabels={POLL_INTERVAL_LABELS}
             timePresets={TIME_PRESETS}
-            activeTimePreset={activeTimePreset}
-            onTimePreset={setActiveTimePreset}
-            onClearTimePreset={clearTimePreset}
+            timeRange={timeRange}
+            timeRangeStart={timeRangeStart}
+            onTimePreset={setTimeRange}
+            onCustomRange={applyCustomRange}
+            onClearTimeRange={clearTimeRange}
             logFormatMenu={logFormatMenu}
         />
     );
@@ -259,7 +354,12 @@ export default function Logs({logs, logNodes, plainLogs, isPlainLogs: configIsPl
             </AdminHeader>
             <div className='admin-console__wrapper'>
                 <div className='admin-console__container ServerLogs'>
-                    {list}
+                    <AdminPanel
+                        id='server_logs'
+                        className='ServerLogs__panel'
+                    >
+                        {list}
+                    </AdminPanel>
                 </div>
             </div>
         </div>

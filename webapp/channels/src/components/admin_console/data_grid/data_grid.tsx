@@ -8,8 +8,7 @@ import {FormattedMessage, injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 
 import type {FilterOptions} from 'components/admin_console/filter/filter';
-import NextIcon from 'components/widgets/icons/fa_next_icon';
-import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
+import PaginationButtons from 'components/common/pagination_buttons';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import DataGridHeader from './data_grid_header';
@@ -269,24 +268,14 @@ class DataGrid extends React.PureComponent<Props, State> {
                                 }}
                             />
                         </span>
-                        <button
-                            aria-label={this.props.intl.formatMessage({id: 'admin.accessibility.previous_page', defaultMessage: 'Previous page'})}
-                            type='button'
-                            className={'btn btn-quaternary btn-icon btn-sm ml-2 prev ' + (firstPage ? 'disabled' : '')}
-                            onClick={prevPageFn}
-                            disabled={firstPage}
-                        >
-                            <PreviousIcon/>
-                        </button>
-                        <button
-                            aria-label={this.props.intl.formatMessage({id: 'admin.accessibility.next_page', defaultMessage: 'Next page'})}
-                            type='button'
-                            className={'btn btn-quaternary btn-icon btn-sm next ' + (lastPage ? 'disabled' : '')}
-                            onClick={nextPageFn}
-                            disabled={lastPage}
-                        >
-                            <NextIcon/>
-                        </button>
+                        <PaginationButtons
+                            onPrevious={prevPageFn}
+                            onNext={nextPageFn}
+                            disablePrevious={firstPage}
+                            disableNext={lastPage}
+                            previousButtonClassName='ml-2 prev'
+                            nextButtonClassName='next'
+                        />
                     </div>
                 </div>
             );

@@ -83,6 +83,7 @@ const (
 	WebsocketEventAcknowledgementAdded                WebsocketEventType = "post_acknowledgement_added"
 	WebsocketEventAcknowledgementRemoved              WebsocketEventType = "post_acknowledgement_removed"
 	WebsocketEventPersistentNotificationTriggered     WebsocketEventType = "persistent_notification_triggered"
+	// Deprecated: Self-hosted signup has been removed and this event is no longer sent.
 	WebsocketEventHostedCustomerSignupProgressUpdated WebsocketEventType = "hosted_customer_signup_progress_updated"
 	WebsocketEventChannelBookmarkCreated              WebsocketEventType = "channel_bookmark_created"
 	WebsocketEventChannelBookmarkUpdated              WebsocketEventType = "channel_bookmark_updated"
@@ -134,10 +135,19 @@ type ActiveQueueItem struct {
 	Buf  json.RawMessage `json:"buf"`
 }
 
+// WSQueuesStatus explains why a node that holds a connection could not hand over its queues.
+type WSQueuesStatus string
+
+const (
+	WSQueuesStatusOldConnStillOpen    WSQueuesStatus = "old_conn_still_open"
+	WSQueuesStatusMissedEventsEvicted WSQueuesStatus = "missed_events_evicted"
+)
+
 type WSQueues struct {
 	ActiveQ    []ActiveQueueItem `json:"active_queue"` // websocketEvent|websocketResponse
 	DeadQ      []json.RawMessage `json:"dead_queue"`   // websocketEvent
 	ReuseCount int               `json:"reuse_count"`
+	Status     WSQueuesStatus    `json:"status,omitempty"`
 }
 
 type WebSocketMessage interface {

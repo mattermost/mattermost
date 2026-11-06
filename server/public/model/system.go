@@ -7,6 +7,7 @@ import (
 	"math/big"
 	"net/http"
 	"time"
+	"unicode/utf8"
 )
 
 const (
@@ -39,12 +40,14 @@ const (
 	SystemFirstAdminSetupComplete          = "FirstAdminSetupComplete"
 	SystemLastAccessiblePostTime           = "LastAccessiblePostTime"
 	SystemLastAccessibleFileTime           = "LastAccessibleFileTime"
-	SystemHostedPurchaseNeedsScreening     = "HostedPurchaseNeedsScreening"
 	SystemPostChannelTypeBackfillComplete  = "PostChannelTypeBackfillComplete"
 	AwsMeteringReportInterval              = 1
 	AwsMeteringDimensionUsageHrs           = "UsageHrs"
 	CloudRenewalEmail                      = "CloudRenewalEmail"
 )
+
+// Deprecated: The hosted purchase screening job has been removed.
+const SystemHostedPurchaseNeedsScreening = "HostedPurchaseNeedsScreening"
 
 const (
 	WarnMetricStatusLimitReached    = "true"
@@ -96,11 +99,17 @@ type AppliedMigration struct {
 // DateTo bounds of a LogFilter.
 const LogFilterDateLayout = "2006-01-02 15:04:05.999 -07:00"
 
+// LogFilterSearchMaxLength is the maximum length, in characters, of a LogFilter's Search term.
+const LogFilterSearchMaxLength = 256
+
 type LogFilter struct {
 	ServerNames []string `json:"server_names"`
 	LogLevels   []string `json:"log_levels"`
 	DateFrom    string   `json:"date_from"`
 	DateTo      string   `json:"date_to"`
+	// Search keeps entries with a value other than level and timestamp that contains it,
+	// ignoring case.
+	Search string `json:"search"`
 }
 
 // IsValid validates the log filter. Empty date bounds mean "unbounded", so only
@@ -120,6 +129,10 @@ func (f *LogFilter) IsValid() *AppError {
 		if _, err := time.Parse(LogFilterDateLayout, f.DateTo); err != nil {
 			return NewAppError("LogFilter.IsValid", "model.log_filter.is_valid.date_to.app_error", map[string]any{"Layout": LogFilterDateLayout}, "", http.StatusBadRequest).Wrap(err)
 		}
+	}
+
+	if utf8.RuneCountInString(f.Search) > LogFilterSearchMaxLength {
+		return NewAppError("LogFilter.IsValid", "model.log_filter.is_valid.search.app_error", map[string]any{"MaxLength": LogFilterSearchMaxLength}, "", http.StatusBadRequest)
 	}
 
 	return nil
