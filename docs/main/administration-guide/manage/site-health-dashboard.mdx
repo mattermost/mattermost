@@ -37,7 +37,7 @@ The dashboard runs built-in checks against your configuration and the live state
 | Platform | Site URL is set and uses HTTPS, file storage is reachable, plugin health checks and plugins that fail to run, whether file logging is enabled, rate limiting memory store size, file descriptor usage, and the host operating system. |
 | Database | Connection pool sizing and saturation, read and search replicas, query timeout, SQL tracing, and the PostgreSQL version. |
 | Search | Search availability, Elasticsearch or OpenSearch version and plugins, connection security, indexing batch size, and whether your post volume calls for Elasticsearch. |
-| Cluster | High availability nodes that can't reach each other, a cluster running with a single node, mixed Mattermost versions across nodes, unencrypted cluster traffic, and the cache backend at scale. |
+| Cluster | High availability nodes that can't reach each other, a cluster running with a single node, mixed Mattermost versions across nodes, unencrypted cluster traffic, the cache backend at scale, and cluster nodes that are not responding. |
 | Authentication | LDAP and SAML connectivity and security settings, LDAP sync configuration, session length settings, and whether single sign-on is set up at scale. |
 | Notifications | Push notification server address and security, push notification contents, SMTP connectivity, and channel-wide mentions in large channels. |
 | Compliance | Audit logging, the compliance export directory, and data retention and Global Relay export settings. |
@@ -67,11 +67,15 @@ Each finding row shows its severity, title, category area, and how long the cond
 
 ### How checks run
 
-Checks run automatically about once an hour. In a high availability cluster, one node runs the checks on behalf of the whole cluster.
+Checks run automatically about once an hour. In a high availability cluster, most checks run on every node independently.
+
+Connectivity probes — LDAP, SAML, SMTP, Elasticsearch or OpenSearch, and file storage — run on every node and produce a single cluster-wide finding. When every node that ran the probe fails, the finding reports the shared error. When only some nodes fail, the finding names the affected nodes and notes that the other nodes reach the service, so you can focus on the network, firewall, proxy, or DNS configuration on those specific nodes. Nodes that did not run the probe (for example, because the feature is disabled on them) are excluded from the count. The database connection pool saturation check also runs per node, so a saturated pool on one node fires a finding scoped to that node only.
 
 - After the feature is enabled, the first check runs within an hour. Until then, the dashboard has no findings to show.
 - After you fix the cause of a finding, it moves to **Recently resolved** after the next check run, which can take up to an hour.
 - A finding becomes **Unknown** when the information needed to evaluate it isn't available, for example because a service the check depends on can't be reached, or because the check hasn't reported for longer than expected.
+
+When a cluster node does not return its diagnostics within the collection window, a **NODE_NOT_RESPONDING** warning fires for that node. Its other findings keep their last known state until the node responds again. This warning can also fire transiently when a node's request or reply is lost or its probes exceed the collection deadline. The `CLUSTER_SINGLE_NODE` critical finding covers the separate case where cluster redundancy is gone entirely.
 
 ### Filter by tab
 
