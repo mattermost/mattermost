@@ -25,6 +25,7 @@ type Context struct {
 	connectionId   string
 	logger         mlog.LoggerIFace
 	context        context.Context
+	subject        *model.Subject
 }
 
 func NewContext(ctx context.Context, requestId, ipAddress, xForwardedFor, path, userAgent, acceptLanguage string, t i18n.TranslateFunc) *Context {
@@ -126,6 +127,8 @@ func (c *Context) WithT(t i18n.TranslateFunc) CTX {
 	return rctx
 }
 
+// WithSession returns a context carrying s. The access-control subject is kept
+// only while it belongs to the new session's user.
 func (c *Context) WithSession(s *model.Session) CTX {
 	rctx := c.clone()
 	if s == nil {
@@ -133,6 +136,23 @@ func (c *Context) WithSession(s *model.Session) CTX {
 	} else {
 		rctx.session = *s
 	}
+	if rctx.subject != nil && rctx.subject.ID != rctx.session.UserId {
+		rctx.subject = nil
+	}
+	return rctx
+}
+
+// Subject returns the access-control subject built for the session user, or
+// nil when none was attached.
+func (c *Context) Subject() *model.Subject {
+	return c.subject
+}
+
+// WithSubject returns a context carrying the access-control subject of the
+// session user.
+func (c *Context) WithSubject(s *model.Subject) CTX {
+	rctx := c.clone()
+	rctx.subject = s
 	return rctx
 }
 
@@ -204,6 +224,7 @@ type CTX interface {
 	T(string, ...any) string
 	GetT() i18n.TranslateFunc
 	Session() *model.Session
+	Subject() *model.Subject
 	RequestId() string
 	IPAddress() string
 	XForwardedFor() string
@@ -215,6 +236,7 @@ type CTX interface {
 	Context() context.Context
 	WithT(i18n.TranslateFunc) CTX
 	WithSession(s *model.Session) CTX
+	WithSubject(s *model.Subject) CTX
 	WithRequestId(string) CTX
 	WithIPAddress(string) CTX
 	WithXForwardedFor(string) CTX

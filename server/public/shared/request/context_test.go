@@ -44,6 +44,36 @@ func TestContext_WithConnectionId(t *testing.T) {
 	})
 }
 
+func TestContext_WithSubject(t *testing.T) {
+	t.Run("returns new context carrying the subject", func(t *testing.T) {
+		originalCtx := TestContext(t).WithSession(&model.Session{UserId: "user-id"})
+		subject := &model.Subject{ID: "user-id"}
+
+		newCtx := originalCtx.WithSubject(subject)
+
+		assert.NotSame(t, originalCtx, newCtx, "should return a new context instance")
+		assert.Same(t, subject, newCtx.Subject())
+		assert.Nil(t, originalCtx.Subject(), "original context should remain unchanged")
+	})
+
+	t.Run("keeps the subject when the session user is unchanged", func(t *testing.T) {
+		rctx := TestContext(t).WithSession(&model.Session{Id: "a", UserId: "user-id"}).WithSubject(&model.Subject{ID: "user-id"})
+
+		newCtx := rctx.WithSession(&model.Session{Id: "b", UserId: "user-id"})
+
+		require.NotNil(t, newCtx.Subject())
+		assert.Equal(t, "user-id", newCtx.Subject().ID)
+	})
+
+	t.Run("drops the subject when the session user changes", func(t *testing.T) {
+		rctx := TestContext(t).WithSession(&model.Session{UserId: "user-id"}).WithSubject(&model.Subject{ID: "user-id"})
+
+		assert.Nil(t, rctx.WithSession(&model.Session{UserId: "other-user"}).Subject())
+		assert.Nil(t, rctx.WithSession(nil).Subject())
+		assert.NotNil(t, rctx.Subject(), "original context should remain unchanged")
+	})
+}
+
 func TestContext_WithSession(t *testing.T) {
 	t.Run("returns new context with empty session when session is nil", func(t *testing.T) {
 		originalCtx := TestContext(t)
