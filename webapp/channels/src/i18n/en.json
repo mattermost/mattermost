@@ -23471,21 +23471,9 @@
     "defaultMessage": "Vector, decoded",
     "description": "Heading above decoded CVSS vector metrics on an entity card."
   },
-  "entity_label.mm.attack": {
-    "defaultMessage": "ATT&CK",
-    "description": "Display name for the built-in ATT&CK entity type."
-  },
-  "entity_label.mm.ip": {
-    "defaultMessage": "IP address",
-    "description": "Display name for the built-in IP address entity type."
-  },
   "entity_label.mm.time": {
     "defaultMessage": "Time",
     "description": "Display name for the built-in timestamp entity type."
-  },
-  "entity_label.mm.vuln": {
-    "defaultMessage": "Vulnerability",
-    "description": "Display name for the built-in vulnerability entity type."
   },
   "entity_mention.open": {
     "defaultMessage": "Open",

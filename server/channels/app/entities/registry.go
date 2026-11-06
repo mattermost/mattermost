@@ -329,13 +329,6 @@ func Prepare(ctx context.Context, typeID, value string) (*model.EntityCard, *Rem
 	return &model.EntityCard{TypeID: typeID, Value: value, Title: value}, nil, nil
 }
 
-func ProviderFor(typeID string) *Remote {
-	reg.mu.RLock()
-	defer reg.mu.RUnlock()
-	remote, _ := reg.lookupPlan(typeID)
-	return remote
-}
-
 func (r *registry) lookupPlan(typeID string) (*Remote, bool) {
 	var remote *Remote
 	for _, provider := range r.providers {
