@@ -6,9 +6,11 @@ package platform
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"sync"
 	"testing"
 	"time"
 
@@ -19,6 +21,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	platform_mocks "github.com/mattermost/mattermost/server/v8/channels/app/platform/mocks"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
@@ -273,6 +276,400 @@ func TestWebConnDrainDeadQueue(t *testing.T) {
 		t.Run("End", func(t *testing.T) { run(int64(127), deadQueueSize+10) })
 		t.Run("Cycled End", func(t *testing.T) { run(int64(137), deadQueueSize+10) })
 		t.Run("Overwritten First", func(t *testing.T) { run(int64(128), deadQueueSize+10) })
+	})
+}
+
+type visibilitySuite struct {
+	mockSuite
+	canSee bool
+	// restrictions, when set, is returned as is instead of the canSee-derived one.
+	restrictions            *model.ViewUsersRestrictions
+	restrictionsCalls       int
+	userCanSeeOtherUserCall int
+}
+
+// GetViewUsersRestrictions returns no restrictions (sees everyone) when canSee is
+// set, and empty restrictions (sees no one) otherwise.
+func (vs *visibilitySuite) GetViewUsersRestrictions(rctx request.CTX, userID string) (*model.ViewUsersRestrictions, *model.AppError) {
+	vs.restrictionsCalls++
+	if vs.restrictions != nil {
+		return vs.restrictions, nil
+	}
+	if vs.canSee {
+		return nil, nil
+	}
+	return &model.ViewUsersRestrictions{}, nil
+}
+
+func (vs *visibilitySuite) UserCanSeeOtherUser(rctx request.CTX, userID string, otherUserID string) (bool, *model.AppError) {
+	vs.userCanSeeOtherUserCall++
+	return vs.canSee, nil
+}
+
+func TestWebConnShouldSendEventToGuest(t *testing.T) {
+	th := Setup(t)
+
+	targetUserID := model.NewId()
+
+	newGuestConn := func(canSee bool) *WebConn {
+		return &WebConn{
+			Platform: th.Service,
+			Suite:    &visibilitySuite{canSee: canSee},
+			UserId:   model.NewId(),
+		}
+	}
+
+	cpaEvent := func(userID any) *model.WebSocketEvent {
+		msg := model.NewWebSocketEvent(model.WebsocketEventCPAValuesUpdated, "", "", "", nil, "")
+		if userID != nil {
+			msg.Add("user_id", userID)
+		}
+		msg.Add("values", map[string]string{"fieldID": "secret"})
+		return msg
+	}
+
+	propertyEvent := func(objectType any, targetID any) *model.WebSocketEvent {
+		msg := model.NewWebSocketEvent(model.WebsocketEventPropertyValuesUpdated, "", "", "", nil, "")
+		if objectType != nil {
+			msg.Add("object_type", objectType)
+		}
+		if targetID != nil {
+			msg.Add("target_id", targetID)
+		}
+		msg.Add("values", `[{"value":"secret"}]`)
+		return msg
+	}
+
+	t.Run("CPA values updated is not sent to a guest who cannot see the target user", func(t *testing.T) {
+		assert.False(t, newGuestConn(false).ShouldSendEventToGuest(cpaEvent(targetUserID)))
+	})
+
+	t.Run("CPA values updated is sent to a guest who can see the target user", func(t *testing.T) {
+		assert.True(t, newGuestConn(true).ShouldSendEventToGuest(cpaEvent(targetUserID)))
+	})
+
+	t.Run("CPA values updated is not sent when the target user is missing or malformed", func(t *testing.T) {
+		assert.False(t, newGuestConn(true).ShouldSendEventToGuest(cpaEvent(nil)))
+		assert.False(t, newGuestConn(true).ShouldSendEventToGuest(cpaEvent("")))
+		assert.False(t, newGuestConn(true).ShouldSendEventToGuest(cpaEvent(42)))
+	})
+
+	t.Run("user property values updated is not sent to a guest who cannot see the target user", func(t *testing.T) {
+		assert.False(t, newGuestConn(false).ShouldSendEventToGuest(propertyEvent(model.PropertyFieldObjectTypeUser, targetUserID)))
+	})
+
+	t.Run("user property values updated is sent to a guest who can see the target user", func(t *testing.T) {
+		assert.True(t, newGuestConn(true).ShouldSendEventToGuest(propertyEvent(model.PropertyFieldObjectTypeUser, targetUserID)))
+	})
+
+	t.Run("user property values updated is not sent when the target user is missing or malformed", func(t *testing.T) {
+		assert.False(t, newGuestConn(true).ShouldSendEventToGuest(propertyEvent(model.PropertyFieldObjectTypeUser, nil)))
+		assert.False(t, newGuestConn(true).ShouldSendEventToGuest(propertyEvent(model.PropertyFieldObjectTypeUser, "")))
+		assert.False(t, newGuestConn(true).ShouldSendEventToGuest(propertyEvent(model.PropertyFieldObjectTypeUser, 42)))
+	})
+
+	t.Run("non-user property values updated is unaffected", func(t *testing.T) {
+		for _, objectType := range []string{
+			model.PropertyFieldObjectTypePost,
+			model.PropertyFieldObjectTypeChannel,
+			model.PropertyFieldObjectTypeSystem,
+		} {
+			assert.True(t, newGuestConn(false).ShouldSendEventToGuest(propertyEvent(objectType, model.NewId())), objectType)
+		}
+	})
+
+	t.Run("property values updated is not sent when object_type is missing or malformed", func(t *testing.T) {
+		assert.False(t, newGuestConn(true).ShouldSendEventToGuest(propertyEvent(nil, targetUserID)))
+		assert.False(t, newGuestConn(true).ShouldSendEventToGuest(propertyEvent("", targetUserID)))
+		assert.False(t, newGuestConn(true).ShouldSendEventToGuest(propertyEvent(42, targetUserID)))
+	})
+
+	fieldClearedEvent := func() *model.WebSocketEvent {
+		msg := model.NewWebSocketEvent(model.WebsocketEventPropertyValuesUpdated, "", "", "", nil, "")
+		msg.Add("field_id", model.NewId())
+		msg.Add("values", "[]")
+		return msg
+	}
+
+	t.Run("field-wide property values cleared is sent to a guest", func(t *testing.T) {
+		assert.True(t, newGuestConn(false).ShouldSendEventToGuest(fieldClearedEvent()))
+	})
+
+	t.Run("field-wide property values event is not sent when it carries a target or values", func(t *testing.T) {
+		withValues := fieldClearedEvent()
+		withValues.Add("values", `[{"value":"secret"}]`)
+		assert.False(t, newGuestConn(false).ShouldSendEventToGuest(withValues))
+
+		withTarget := fieldClearedEvent()
+		withTarget.Add("target_id", targetUserID)
+		assert.False(t, newGuestConn(false).ShouldSendEventToGuest(withTarget))
+
+		withoutField := fieldClearedEvent()
+		withoutField.Add("field_id", "")
+		assert.False(t, newGuestConn(false).ShouldSendEventToGuest(withoutField))
+	})
+
+	t.Run("unrelated events are unaffected", func(t *testing.T) {
+		msg := model.NewWebSocketEvent(model.WebsocketEventTyping, "", "", "", nil, "")
+		assert.True(t, newGuestConn(false).ShouldSendEventToGuest(msg))
+	})
+}
+
+func TestWebConnCanSeeUserCached(t *testing.T) {
+	th := Setup(t)
+
+	team := th.CreateTeam(t)
+	guest := th.CreateUserOrGuest(t, true)
+	sharing := th.CreateUserOrGuest(t, false)
+	notSharing := th.CreateUserOrGuest(t, false)
+
+	addToChannel := func(user *model.User, channel *model.Channel) {
+		_, err := th.Service.Store.Channel().SaveMember(th.Context, &model.ChannelMember{
+			ChannelId:   channel.Id,
+			UserId:      user.Id,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+			SchemeUser:  true,
+		})
+		require.NoError(t, err)
+	}
+
+	shared := th.CreateChannel(t, team)
+	addToChannel(guest, shared)
+	addToChannel(sharing, shared)
+	addToChannel(notSharing, th.CreateChannel(t, team))
+
+	restrictionsFor := func(userID string) *model.ViewUsersRestrictions {
+		members, err := th.Service.Store.Channel().GetAllChannelMembersForUser(th.Context, userID, false, true)
+		require.NoError(t, err)
+		restrictions := &model.ViewUsersRestrictions{Teams: []string{}, Channels: []string{}}
+		for id := range members {
+			restrictions.Channels = append(restrictions.Channels, id)
+		}
+		return restrictions
+	}
+
+	newConn := func(suite *visibilitySuite) *WebConn {
+		return &WebConn{Platform: th.Service, Suite: suite, UserId: guest.Id}
+	}
+
+	t.Run("sees only users it shares a channel with", func(t *testing.T) {
+		wc := newConn(&visibilitySuite{restrictions: restrictionsFor(guest.Id)})
+
+		canSee, appErr := wc.canSeeUserCached(th.Context, sharing.Id)
+		require.Nil(t, appErr)
+		assert.True(t, canSee)
+
+		canSee, appErr = wc.canSeeUserCached(th.Context, notSharing.Id)
+		require.Nil(t, appErr)
+		assert.False(t, canSee)
+	})
+
+	t.Run("always sees itself, even without restrictions loaded", func(t *testing.T) {
+		suite := &visibilitySuite{restrictions: restrictionsFor(guest.Id)}
+		canSee, appErr := newConn(suite).canSeeUserCached(th.Context, guest.Id)
+		require.Nil(t, appErr)
+		assert.True(t, canSee)
+		assert.Zero(t, suite.restrictionsCalls)
+	})
+
+	t.Run("sees everyone when it has no restrictions", func(t *testing.T) {
+		canSee, appErr := newConn(&visibilitySuite{canSee: true}).canSeeUserCached(th.Context, notSharing.Id)
+		require.Nil(t, appErr)
+		assert.True(t, canSee)
+	})
+
+	t.Run("sees no one when it has no channels", func(t *testing.T) {
+		canSee, appErr := newConn(&visibilitySuite{canSee: false}).canSeeUserCached(th.Context, sharing.Id)
+		require.Nil(t, appErr)
+		assert.False(t, canSee)
+	})
+
+	t.Run("falls back to UserCanSeeOtherUser when team-wide visibility applies", func(t *testing.T) {
+		suite := &visibilitySuite{canSee: true, restrictions: &model.ViewUsersRestrictions{Teams: []string{team.Id}}}
+		wc := newConn(suite)
+		canSee, appErr := wc.canSeeUserCached(th.Context, notSharing.Id)
+		require.Nil(t, appErr)
+		assert.True(t, canSee)
+		assert.Equal(t, 1, suite.userCanSeeOtherUserCall)
+	})
+
+	t.Run("loads restrictions once across many events", func(t *testing.T) {
+		suite := &visibilitySuite{restrictions: restrictionsFor(guest.Id)}
+		wc := newConn(suite)
+		for range 100 {
+			_, appErr := wc.canSeeUserCached(th.Context, sharing.Id)
+			require.Nil(t, appErr)
+			_, appErr = wc.canSeeUserCached(th.Context, notSharing.Id)
+			require.Nil(t, appErr)
+		}
+		assert.Equal(t, 1, suite.restrictionsCalls)
+		assert.Zero(t, suite.userCanSeeOtherUserCall)
+	})
+
+	t.Run("InvalidateCache picks up new memberships", func(t *testing.T) {
+		later := th.CreateUserOrGuest(t, false)
+		suite := &visibilitySuite{}
+		wc := newConn(suite)
+
+		suite.restrictions = restrictionsFor(guest.Id)
+		canSee, appErr := wc.canSeeUserCached(th.Context, later.Id)
+		require.Nil(t, appErr)
+		assert.False(t, canSee)
+
+		// The guest joins a channel that `later` is in.
+		other := th.CreateChannel(t, team)
+		addToChannel(later, other)
+		addToChannel(guest, other)
+		// The app layer invalidates the per-user caches on membership changes.
+		th.Service.InvalidateChannelCacheForUser(later.Id)
+		th.Service.InvalidateChannelCacheForUser(guest.Id)
+		suite.restrictions = restrictionsFor(guest.Id)
+
+		wc.InvalidateCache()
+		canSee, appErr = wc.canSeeUserCached(th.Context, later.Id)
+		require.Nil(t, appErr)
+		assert.True(t, canSee)
+	})
+
+	t.Run("membership changes without invalidation are picked up within the cache TTL", func(t *testing.T) {
+		th.Service.targetChannels.ttl = 50
+		defer func() { th.Service.targetChannels.ttl = 0 }()
+
+		target := th.CreateUserOrGuest(t, false)
+		joined := th.CreateChannel(t, team)
+		addToChannel(guest, joined)
+		addToChannel(target, joined)
+
+		wc := newConn(&visibilitySuite{restrictions: restrictionsFor(guest.Id)})
+		canSee, appErr := wc.canSeeUserCached(th.Context, target.Id)
+		require.Nil(t, appErr)
+		require.True(t, canSee)
+
+		// The target leaves behind the back of the app layer: no cache is invalidated.
+		require.NoError(t, th.Service.Store.Channel().RemoveMember(th.Context, joined.Id, target.Id))
+
+		require.EventuallyWithT(t, func(c *assert.CollectT) {
+			canSee, appErr := wc.canSeeUserCached(th.Context, target.Id)
+			require.Nil(c, appErr)
+			assert.False(c, canSee)
+		}, 2*time.Second, 20*time.Millisecond)
+	})
+
+	t.Run("invalidating a user drops the cached channels immediately", func(t *testing.T) {
+		target := th.CreateUserOrGuest(t, false)
+		joined := th.CreateChannel(t, team)
+		addToChannel(guest, joined)
+		addToChannel(target, joined)
+
+		wc := newConn(&visibilitySuite{restrictions: restrictionsFor(guest.Id)})
+		canSee, appErr := wc.canSeeUserCached(th.Context, target.Id)
+		require.Nil(t, appErr)
+		require.True(t, canSee)
+
+		require.NoError(t, th.Service.Store.Channel().RemoveMember(th.Context, joined.Id, target.Id))
+		th.Service.InvalidateChannelCacheForUser(target.Id)
+
+		canSee, appErr = wc.canSeeUserCached(th.Context, target.Id)
+		require.Nil(t, appErr)
+		assert.False(t, canSee)
+	})
+
+	t.Run("ShouldSendEventToGuest does not query the suite per event", func(t *testing.T) {
+		suite := &visibilitySuite{restrictions: restrictionsFor(guest.Id)}
+		wc := newConn(suite)
+		event := model.NewWebSocketEvent(model.WebsocketEventCPAValuesUpdated, "", "", "", nil, "")
+		event.Add("user_id", sharing.Id)
+		for range 50 {
+			assert.True(t, wc.ShouldSendEventToGuest(event))
+		}
+		assert.Equal(t, 1, suite.restrictionsCalls)
+	})
+}
+
+func TestTargetChannelsCache(t *testing.T) {
+	loaded := func(calls *int, channels map[string]string) func() (map[string]string, error) {
+		return func() (map[string]string, error) {
+			*calls++
+			return channels, nil
+		}
+	}
+
+	t.Run("loads once while the entry is fresh", func(t *testing.T) {
+		var c targetChannelsCache
+		calls := 0
+		for range 5 {
+			got, err := c.get("u", loaded(&calls, map[string]string{"c": "x"}))
+			require.NoError(t, err)
+			assert.Contains(t, got, "c")
+		}
+		assert.Equal(t, 1, calls)
+	})
+
+	t.Run("reloads after the entry expires", func(t *testing.T) {
+		c := targetChannelsCache{ttl: 20}
+		calls := 0
+		_, err := c.get("u", loaded(&calls, nil))
+		require.NoError(t, err)
+		time.Sleep(40 * time.Millisecond)
+		_, err = c.get("u", loaded(&calls, nil))
+		require.NoError(t, err)
+		assert.Equal(t, 2, calls)
+	})
+
+	t.Run("remove and clearAll drop entries", func(t *testing.T) {
+		var c targetChannelsCache
+		calls := 0
+		_, _ = c.get("a", loaded(&calls, nil))
+		_, _ = c.get("b", loaded(&calls, nil))
+		c.remove("a")
+		_, _ = c.get("a", loaded(&calls, nil))
+		_, _ = c.get("b", loaded(&calls, nil))
+		assert.Equal(t, 3, calls)
+		c.clearAll()
+		_, _ = c.get("b", loaded(&calls, nil))
+		assert.Equal(t, 4, calls)
+	})
+
+	t.Run("does not cache errors", func(t *testing.T) {
+		var c targetChannelsCache
+		_, err := c.get("u", func() (map[string]string, error) { return nil, assert.AnError })
+		require.Error(t, err)
+		calls := 0
+		_, err = c.get("u", loaded(&calls, nil))
+		require.NoError(t, err)
+		assert.Equal(t, 1, calls)
+	})
+
+	t.Run("is safe for concurrent use", func(t *testing.T) {
+		c := targetChannelsCache{ttl: 5}
+		var wg sync.WaitGroup
+		for g := range 8 {
+			wg.Go(func() {
+				for i := range 500 {
+					id := fmt.Sprint(i % 20)
+					_, err := c.get(id, func() (map[string]string, error) { return map[string]string{"c": "x"}, nil })
+					assert.NoError(t, err)
+					switch {
+					case i%50 == 0 && g == 0:
+						c.clearAll()
+					case i%7 == 0:
+						c.remove(id)
+					}
+				}
+			})
+		}
+		wg.Wait()
+	})
+
+	t.Run("stays bounded", func(t *testing.T) {
+		var c targetChannelsCache
+		for i := range 3 * targetChannelsCacheMaxEntries {
+			_, err := c.get(fmt.Sprint(i), func() (map[string]string, error) { return nil, nil })
+			require.NoError(t, err)
+		}
+		c.mut.RLock()
+		defer c.mut.RUnlock()
+		assert.LessOrEqual(t, len(c.entries), targetChannelsCacheMaxEntries)
 	})
 }
 

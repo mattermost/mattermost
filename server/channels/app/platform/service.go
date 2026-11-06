@@ -61,6 +61,9 @@ type PlatformService struct {
 	statusCache   cache.Cache
 	sessionCache  cache.Cache
 
+	// targetChannels caches the channels of users whose events guest connections check.
+	targetChannels targetChannelsCache
+
 	asymmetricSigningKey atomic.Pointer[ecdsa.PrivateKey]
 	clientConfig         atomic.Value
 	clientConfigHash     atomic.Value

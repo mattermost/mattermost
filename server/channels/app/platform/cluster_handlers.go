@@ -117,6 +117,7 @@ func (ps *PlatformService) clusterBusyStateChgHandler(msg *model.ClusterMessage)
 }
 
 func (ps *PlatformService) invalidateWebConnSessionCacheForUserSkipClusterSend(userID string) {
+	ps.targetChannels.remove(userID)
 	hub := ps.GetHubForUserId(userID)
 	if hub != nil {
 		hub.InvalidateUser(userID)
@@ -127,6 +128,7 @@ func (ps *PlatformService) invalidateWebConnSessionCacheForUserSkipClusterSend(u
 // every hub on this node to invalidate the cached session state of
 // all of its WebConns. Companion to ClearAllUsersSessionCacheLocal.
 func (ps *PlatformService) invalidateWebConnSessionCacheForAllUsersSkipClusterSend() {
+	ps.targetChannels.clearAll()
 	for _, hub := range ps.hubs {
 		if hub != nil {
 			hub.InvalidateAll()
