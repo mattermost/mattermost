@@ -5,9 +5,12 @@ import React from 'react';
 
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {getHistory} from 'utils/browser_history';
+import {boardChannelsState} from 'utils/channel_kind_test_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import RenameChannelModal from './rename_channel_modal';
+
+import ConnectedRenameChannelModal from './index';
 
 jest.mock('utils/browser_history', () => ({
     getHistory: jest.fn().mockReturnValue({push: jest.fn()}),
@@ -54,6 +57,21 @@ const makeProps = (channel = ordinaryChannel, patched = channel) => ({
 });
 
 describe('RenameChannelModal', () => {
+    test('should say Rename Board for a board', () => {
+        const {channel, teamName, onExited} = makeProps();
+        renderWithContext(
+            <ConnectedRenameChannelModal
+                channel={channel}
+                teamName={teamName}
+                onExited={onExited}
+            />,
+            {...state, ...boardChannelsState('channel-id')},
+        );
+
+        expect(screen.getByText('Rename Board')).toBeInTheDocument();
+        expect(screen.queryByText('Rename Channel')).not.toBeInTheDocument();
+    });
+
     test('should not offer the URL Edit button for the default channel', () => {
         renderWithContext(<RenameChannelModal {...makeProps(defaultChannel)}/>, state);
 

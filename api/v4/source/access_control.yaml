@@ -49,6 +49,9 @@
                 expression:
                   type: string
                   description: The expression to check.
+                membership:
+                  type: boolean
+                  description: Check the expression as a membership rule. Also reports session attribute references and anything membership sync cannot evaluate, such as the ternary operator.
       responses:
         "200":
           description: Expression check result.

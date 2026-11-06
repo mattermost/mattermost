@@ -281,6 +281,88 @@ exports[`components/PluginManagement should match snapshot 1`] = `
               </fieldset>
               <fieldset
                 class="form-group"
+                data-testid="restrictUnauthenticatedWebappPlugins"
+                id="restrictUnauthenticatedWebappPlugins"
+              >
+                <legend
+                  class="control-label form-legend col-sm-4"
+                >
+                  Restrict Plugins Available Before Login:
+                </legend>
+                <div
+                  class="col-sm-8"
+                >
+                  <div
+                    class="BooleanRadioGroup-caqMkq klbaOn"
+                  >
+                    <label
+                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                      for="restrictUnauthenticatedWebappPluginstrue"
+                    >
+                      <input
+                        class="_radio__input_h0rbb_17"
+                        data-testid="restrictUnauthenticatedWebappPluginstrue"
+                        id="restrictUnauthenticatedWebappPluginstrue"
+                        name="restrictUnauthenticatedWebappPlugins"
+                        type="radio"
+                        value="true"
+                      />
+                      <span
+                        class="_radio__circle_h0rbb_36"
+                      >
+                        <span
+                          aria-hidden="true"
+                          class="_radio__dot_h0rbb_62"
+                        />
+                      </span>
+                      <span
+                        class="_radio__label_h0rbb_119"
+                      >
+                        True
+                      </span>
+                    </label>
+                    <label
+                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                      for="restrictUnauthenticatedWebappPluginsfalse"
+                    >
+                      <input
+                        checked=""
+                        class="_radio__input_h0rbb_17"
+                        data-testid="restrictUnauthenticatedWebappPluginsfalse"
+                        id="restrictUnauthenticatedWebappPluginsfalse"
+                        name="restrictUnauthenticatedWebappPlugins"
+                        type="radio"
+                        value="false"
+                      />
+                      <span
+                        class="_radio__circle_h0rbb_36"
+                      >
+                        <span
+                          aria-hidden="true"
+                          class="_radio__dot_h0rbb_62"
+                        />
+                      </span>
+                      <span
+                        class="_radio__label_h0rbb_119"
+                      >
+                        False
+                      </span>
+                    </label>
+                  </div>
+                  <div
+                    class="help-text"
+                    data-testid="restrictUnauthenticatedWebappPluginshelp-text"
+                  >
+                    When true, only plugins that declare 
+                    <code>
+                      webapp.pre_auth
+                    </code>
+                     in their manifest are listed and loaded for visitors who are not logged in, such as on the login page. All other plugins load after the user logs in. When false, all enabled plugins are listed to visitors who are not logged in.
+                  </div>
+                </div>
+              </fieldset>
+              <fieldset
+                class="form-group"
               >
                 <legend
                   class="control-label form-legend col-sm-4"
@@ -851,6 +933,88 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
                     data-testid="automaticPrepackagedPluginshelp-text"
                   >
                     When true, automatically installs any prepackaged plugin found to be enabled in the server configuration.
+                  </div>
+                </div>
+              </fieldset>
+              <fieldset
+                class="form-group"
+                data-testid="restrictUnauthenticatedWebappPlugins"
+                id="restrictUnauthenticatedWebappPlugins"
+              >
+                <legend
+                  class="control-label form-legend col-sm-4"
+                >
+                  Restrict Plugins Available Before Login:
+                </legend>
+                <div
+                  class="col-sm-8"
+                >
+                  <div
+                    class="BooleanRadioGroup-caqMkq klbaOn"
+                  >
+                    <label
+                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                      for="restrictUnauthenticatedWebappPluginstrue"
+                    >
+                      <input
+                        class="_radio__input_h0rbb_17"
+                        data-testid="restrictUnauthenticatedWebappPluginstrue"
+                        id="restrictUnauthenticatedWebappPluginstrue"
+                        name="restrictUnauthenticatedWebappPlugins"
+                        type="radio"
+                        value="true"
+                      />
+                      <span
+                        class="_radio__circle_h0rbb_36"
+                      >
+                        <span
+                          aria-hidden="true"
+                          class="_radio__dot_h0rbb_62"
+                        />
+                      </span>
+                      <span
+                        class="_radio__label_h0rbb_119"
+                      >
+                        True
+                      </span>
+                    </label>
+                    <label
+                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                      for="restrictUnauthenticatedWebappPluginsfalse"
+                    >
+                      <input
+                        checked=""
+                        class="_radio__input_h0rbb_17"
+                        data-testid="restrictUnauthenticatedWebappPluginsfalse"
+                        id="restrictUnauthenticatedWebappPluginsfalse"
+                        name="restrictUnauthenticatedWebappPlugins"
+                        type="radio"
+                        value="false"
+                      />
+                      <span
+                        class="_radio__circle_h0rbb_36"
+                      >
+                        <span
+                          aria-hidden="true"
+                          class="_radio__dot_h0rbb_62"
+                        />
+                      </span>
+                      <span
+                        class="_radio__label_h0rbb_119"
+                      >
+                        False
+                      </span>
+                    </label>
+                  </div>
+                  <div
+                    class="help-text"
+                    data-testid="restrictUnauthenticatedWebappPluginshelp-text"
+                  >
+                    When true, only plugins that declare 
+                    <code>
+                      webapp.pre_auth
+                    </code>
+                     in their manifest are listed and loaded for visitors who are not logged in, such as on the login page. All other plugins load after the user logs in. When false, all enabled plugins are listed to visitors who are not logged in.
                   </div>
                 </div>
               </fieldset>
@@ -1509,6 +1673,88 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
               </fieldset>
               <fieldset
                 class="form-group"
+                data-testid="restrictUnauthenticatedWebappPlugins"
+                id="restrictUnauthenticatedWebappPlugins"
+              >
+                <legend
+                  class="control-label form-legend col-sm-4"
+                >
+                  Restrict Plugins Available Before Login:
+                </legend>
+                <div
+                  class="col-sm-8"
+                >
+                  <div
+                    class="BooleanRadioGroup-caqMkq klbaOn"
+                  >
+                    <label
+                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                      for="restrictUnauthenticatedWebappPluginstrue"
+                    >
+                      <input
+                        class="_radio__input_h0rbb_17"
+                        data-testid="restrictUnauthenticatedWebappPluginstrue"
+                        id="restrictUnauthenticatedWebappPluginstrue"
+                        name="restrictUnauthenticatedWebappPlugins"
+                        type="radio"
+                        value="true"
+                      />
+                      <span
+                        class="_radio__circle_h0rbb_36"
+                      >
+                        <span
+                          aria-hidden="true"
+                          class="_radio__dot_h0rbb_62"
+                        />
+                      </span>
+                      <span
+                        class="_radio__label_h0rbb_119"
+                      >
+                        True
+                      </span>
+                    </label>
+                    <label
+                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                      for="restrictUnauthenticatedWebappPluginsfalse"
+                    >
+                      <input
+                        checked=""
+                        class="_radio__input_h0rbb_17"
+                        data-testid="restrictUnauthenticatedWebappPluginsfalse"
+                        id="restrictUnauthenticatedWebappPluginsfalse"
+                        name="restrictUnauthenticatedWebappPlugins"
+                        type="radio"
+                        value="false"
+                      />
+                      <span
+                        class="_radio__circle_h0rbb_36"
+                      >
+                        <span
+                          aria-hidden="true"
+                          class="_radio__dot_h0rbb_62"
+                        />
+                      </span>
+                      <span
+                        class="_radio__label_h0rbb_119"
+                      >
+                        False
+                      </span>
+                    </label>
+                  </div>
+                  <div
+                    class="help-text"
+                    data-testid="restrictUnauthenticatedWebappPluginshelp-text"
+                  >
+                    When true, only plugins that declare 
+                    <code>
+                      webapp.pre_auth
+                    </code>
+                     in their manifest are listed and loaded for visitors who are not logged in, such as on the login page. All other plugins load after the user logs in. When false, all enabled plugins are listed to visitors who are not logged in.
+                  </div>
+                </div>
+              </fieldset>
+              <fieldset
+                class="form-group"
               >
                 <legend
                   class="control-label form-legend col-sm-4"
@@ -2080,6 +2326,88 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
                     data-testid="automaticPrepackagedPluginshelp-text"
                   >
                     When true, automatically installs any prepackaged plugin found to be enabled in the server configuration.
+                  </div>
+                </div>
+              </fieldset>
+              <fieldset
+                class="form-group"
+                data-testid="restrictUnauthenticatedWebappPlugins"
+                id="restrictUnauthenticatedWebappPlugins"
+              >
+                <legend
+                  class="control-label form-legend col-sm-4"
+                >
+                  Restrict Plugins Available Before Login:
+                </legend>
+                <div
+                  class="col-sm-8"
+                >
+                  <div
+                    class="BooleanRadioGroup-caqMkq klbaOn"
+                  >
+                    <label
+                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                      for="restrictUnauthenticatedWebappPluginstrue"
+                    >
+                      <input
+                        class="_radio__input_h0rbb_17"
+                        data-testid="restrictUnauthenticatedWebappPluginstrue"
+                        id="restrictUnauthenticatedWebappPluginstrue"
+                        name="restrictUnauthenticatedWebappPlugins"
+                        type="radio"
+                        value="true"
+                      />
+                      <span
+                        class="_radio__circle_h0rbb_36"
+                      >
+                        <span
+                          aria-hidden="true"
+                          class="_radio__dot_h0rbb_62"
+                        />
+                      </span>
+                      <span
+                        class="_radio__label_h0rbb_119"
+                      >
+                        True
+                      </span>
+                    </label>
+                    <label
+                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                      for="restrictUnauthenticatedWebappPluginsfalse"
+                    >
+                      <input
+                        checked=""
+                        class="_radio__input_h0rbb_17"
+                        data-testid="restrictUnauthenticatedWebappPluginsfalse"
+                        id="restrictUnauthenticatedWebappPluginsfalse"
+                        name="restrictUnauthenticatedWebappPlugins"
+                        type="radio"
+                        value="false"
+                      />
+                      <span
+                        class="_radio__circle_h0rbb_36"
+                      >
+                        <span
+                          aria-hidden="true"
+                          class="_radio__dot_h0rbb_62"
+                        />
+                      </span>
+                      <span
+                        class="_radio__label_h0rbb_119"
+                      >
+                        False
+                      </span>
+                    </label>
+                  </div>
+                  <div
+                    class="help-text"
+                    data-testid="restrictUnauthenticatedWebappPluginshelp-text"
+                  >
+                    When true, only plugins that declare 
+                    <code>
+                      webapp.pre_auth
+                    </code>
+                     in their manifest are listed and loaded for visitors who are not logged in, such as on the login page. All other plugins load after the user logs in. When false, all enabled plugins are listed to visitors who are not logged in.
                   </div>
                 </div>
               </fieldset>
@@ -2669,6 +2997,88 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
               </fieldset>
               <fieldset
                 class="form-group"
+                data-testid="restrictUnauthenticatedWebappPlugins"
+                id="restrictUnauthenticatedWebappPlugins"
+              >
+                <legend
+                  class="control-label form-legend col-sm-4"
+                >
+                  Restrict Plugins Available Before Login:
+                </legend>
+                <div
+                  class="col-sm-8"
+                >
+                  <div
+                    class="BooleanRadioGroup-caqMkq klbaOn"
+                  >
+                    <label
+                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                      for="restrictUnauthenticatedWebappPluginstrue"
+                    >
+                      <input
+                        class="_radio__input_h0rbb_17"
+                        data-testid="restrictUnauthenticatedWebappPluginstrue"
+                        id="restrictUnauthenticatedWebappPluginstrue"
+                        name="restrictUnauthenticatedWebappPlugins"
+                        type="radio"
+                        value="true"
+                      />
+                      <span
+                        class="_radio__circle_h0rbb_36"
+                      >
+                        <span
+                          aria-hidden="true"
+                          class="_radio__dot_h0rbb_62"
+                        />
+                      </span>
+                      <span
+                        class="_radio__label_h0rbb_119"
+                      >
+                        True
+                      </span>
+                    </label>
+                    <label
+                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                      for="restrictUnauthenticatedWebappPluginsfalse"
+                    >
+                      <input
+                        checked=""
+                        class="_radio__input_h0rbb_17"
+                        data-testid="restrictUnauthenticatedWebappPluginsfalse"
+                        id="restrictUnauthenticatedWebappPluginsfalse"
+                        name="restrictUnauthenticatedWebappPlugins"
+                        type="radio"
+                        value="false"
+                      />
+                      <span
+                        class="_radio__circle_h0rbb_36"
+                      >
+                        <span
+                          aria-hidden="true"
+                          class="_radio__dot_h0rbb_62"
+                        />
+                      </span>
+                      <span
+                        class="_radio__label_h0rbb_119"
+                      >
+                        False
+                      </span>
+                    </label>
+                  </div>
+                  <div
+                    class="help-text"
+                    data-testid="restrictUnauthenticatedWebappPluginshelp-text"
+                  >
+                    When true, only plugins that declare 
+                    <code>
+                      webapp.pre_auth
+                    </code>
+                     in their manifest are listed and loaded for visitors who are not logged in, such as on the login page. All other plugins load after the user logs in. When false, all enabled plugins are listed to visitors who are not logged in.
+                  </div>
+                </div>
+              </fieldset>
+              <fieldset
+                class="form-group"
               >
                 <legend
                   class="control-label form-legend col-sm-4"
@@ -3240,6 +3650,88 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
                     data-testid="automaticPrepackagedPluginshelp-text"
                   >
                     When true, automatically installs any prepackaged plugin found to be enabled in the server configuration.
+                  </div>
+                </div>
+              </fieldset>
+              <fieldset
+                class="form-group"
+                data-testid="restrictUnauthenticatedWebappPlugins"
+                id="restrictUnauthenticatedWebappPlugins"
+              >
+                <legend
+                  class="control-label form-legend col-sm-4"
+                >
+                  Restrict Plugins Available Before Login:
+                </legend>
+                <div
+                  class="col-sm-8"
+                >
+                  <div
+                    class="BooleanRadioGroup-caqMkq klbaOn"
+                  >
+                    <label
+                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                      for="restrictUnauthenticatedWebappPluginstrue"
+                    >
+                      <input
+                        class="_radio__input_h0rbb_17"
+                        data-testid="restrictUnauthenticatedWebappPluginstrue"
+                        id="restrictUnauthenticatedWebappPluginstrue"
+                        name="restrictUnauthenticatedWebappPlugins"
+                        type="radio"
+                        value="true"
+                      />
+                      <span
+                        class="_radio__circle_h0rbb_36"
+                      >
+                        <span
+                          aria-hidden="true"
+                          class="_radio__dot_h0rbb_62"
+                        />
+                      </span>
+                      <span
+                        class="_radio__label_h0rbb_119"
+                      >
+                        True
+                      </span>
+                    </label>
+                    <label
+                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                      for="restrictUnauthenticatedWebappPluginsfalse"
+                    >
+                      <input
+                        checked=""
+                        class="_radio__input_h0rbb_17"
+                        data-testid="restrictUnauthenticatedWebappPluginsfalse"
+                        id="restrictUnauthenticatedWebappPluginsfalse"
+                        name="restrictUnauthenticatedWebappPlugins"
+                        type="radio"
+                        value="false"
+                      />
+                      <span
+                        class="_radio__circle_h0rbb_36"
+                      >
+                        <span
+                          aria-hidden="true"
+                          class="_radio__dot_h0rbb_62"
+                        />
+                      </span>
+                      <span
+                        class="_radio__label_h0rbb_119"
+                      >
+                        False
+                      </span>
+                    </label>
+                  </div>
+                  <div
+                    class="help-text"
+                    data-testid="restrictUnauthenticatedWebappPluginshelp-text"
+                  >
+                    When true, only plugins that declare 
+                    <code>
+                      webapp.pre_auth
+                    </code>
+                     in their manifest are listed and loaded for visitors who are not logged in, such as on the login page. All other plugins load after the user logs in. When false, all enabled plugins are listed to visitors who are not logged in.
                   </div>
                 </div>
               </fieldset>
@@ -3824,6 +4316,90 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
               </fieldset>
               <fieldset
                 class="form-group"
+                data-testid="restrictUnauthenticatedWebappPlugins"
+                id="restrictUnauthenticatedWebappPlugins"
+              >
+                <legend
+                  class="control-label form-legend col-sm-4"
+                >
+                  Restrict Plugins Available Before Login:
+                </legend>
+                <div
+                  class="col-sm-8"
+                >
+                  <div
+                    class="BooleanRadioGroup-caqMkq klbaOn"
+                  >
+                    <label
+                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                      for="restrictUnauthenticatedWebappPluginstrue"
+                    >
+                      <input
+                        class="_radio__input_h0rbb_17"
+                        data-testid="restrictUnauthenticatedWebappPluginstrue"
+                        disabled=""
+                        id="restrictUnauthenticatedWebappPluginstrue"
+                        name="restrictUnauthenticatedWebappPlugins"
+                        type="radio"
+                        value="true"
+                      />
+                      <span
+                        class="_radio__circle_h0rbb_36"
+                      >
+                        <span
+                          aria-hidden="true"
+                          class="_radio__dot_h0rbb_62"
+                        />
+                      </span>
+                      <span
+                        class="_radio__label_h0rbb_119"
+                      >
+                        True
+                      </span>
+                    </label>
+                    <label
+                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                      for="restrictUnauthenticatedWebappPluginsfalse"
+                    >
+                      <input
+                        checked=""
+                        class="_radio__input_h0rbb_17"
+                        data-testid="restrictUnauthenticatedWebappPluginsfalse"
+                        disabled=""
+                        id="restrictUnauthenticatedWebappPluginsfalse"
+                        name="restrictUnauthenticatedWebappPlugins"
+                        type="radio"
+                        value="false"
+                      />
+                      <span
+                        class="_radio__circle_h0rbb_36"
+                      >
+                        <span
+                          aria-hidden="true"
+                          class="_radio__dot_h0rbb_62"
+                        />
+                      </span>
+                      <span
+                        class="_radio__label_h0rbb_119"
+                      >
+                        False
+                      </span>
+                    </label>
+                  </div>
+                  <div
+                    class="help-text"
+                    data-testid="restrictUnauthenticatedWebappPluginshelp-text"
+                  >
+                    When true, only plugins that declare 
+                    <code>
+                      webapp.pre_auth
+                    </code>
+                     in their manifest are listed and loaded for visitors who are not logged in, such as on the login page. All other plugins load after the user logs in. When false, all enabled plugins are listed to visitors who are not logged in.
+                  </div>
+                </div>
+              </fieldset>
+              <fieldset
+                class="form-group"
               >
                 <legend
                   class="control-label form-legend col-sm-4"
@@ -4393,6 +4969,88 @@ exports[`components/PluginManagement should match snapshot, text entered into th
                     data-testid="automaticPrepackagedPluginshelp-text"
                   >
                     When true, automatically installs any prepackaged plugin found to be enabled in the server configuration.
+                  </div>
+                </div>
+              </fieldset>
+              <fieldset
+                class="form-group"
+                data-testid="restrictUnauthenticatedWebappPlugins"
+                id="restrictUnauthenticatedWebappPlugins"
+              >
+                <legend
+                  class="control-label form-legend col-sm-4"
+                >
+                  Restrict Plugins Available Before Login:
+                </legend>
+                <div
+                  class="col-sm-8"
+                >
+                  <div
+                    class="BooleanRadioGroup-caqMkq klbaOn"
+                  >
+                    <label
+                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                      for="restrictUnauthenticatedWebappPluginstrue"
+                    >
+                      <input
+                        class="_radio__input_h0rbb_17"
+                        data-testid="restrictUnauthenticatedWebappPluginstrue"
+                        id="restrictUnauthenticatedWebappPluginstrue"
+                        name="restrictUnauthenticatedWebappPlugins"
+                        type="radio"
+                        value="true"
+                      />
+                      <span
+                        class="_radio__circle_h0rbb_36"
+                      >
+                        <span
+                          aria-hidden="true"
+                          class="_radio__dot_h0rbb_62"
+                        />
+                      </span>
+                      <span
+                        class="_radio__label_h0rbb_119"
+                      >
+                        True
+                      </span>
+                    </label>
+                    <label
+                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                      for="restrictUnauthenticatedWebappPluginsfalse"
+                    >
+                      <input
+                        checked=""
+                        class="_radio__input_h0rbb_17"
+                        data-testid="restrictUnauthenticatedWebappPluginsfalse"
+                        id="restrictUnauthenticatedWebappPluginsfalse"
+                        name="restrictUnauthenticatedWebappPlugins"
+                        type="radio"
+                        value="false"
+                      />
+                      <span
+                        class="_radio__circle_h0rbb_36"
+                      >
+                        <span
+                          aria-hidden="true"
+                          class="_radio__dot_h0rbb_62"
+                        />
+                      </span>
+                      <span
+                        class="_radio__label_h0rbb_119"
+                      >
+                        False
+                      </span>
+                    </label>
+                  </div>
+                  <div
+                    class="help-text"
+                    data-testid="restrictUnauthenticatedWebappPluginshelp-text"
+                  >
+                    When true, only plugins that declare 
+                    <code>
+                      webapp.pre_auth
+                    </code>
+                     in their manifest are listed and loaded for visitors who are not logged in, such as on the login page. All other plugins load after the user logs in. When false, all enabled plugins are listed to visitors who are not logged in.
                   </div>
                 </div>
               </fieldset>
@@ -4968,6 +5626,88 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
                     data-testid="automaticPrepackagedPluginshelp-text"
                   >
                     When true, automatically installs any prepackaged plugin found to be enabled in the server configuration.
+                  </div>
+                </div>
+              </fieldset>
+              <fieldset
+                class="form-group"
+                data-testid="restrictUnauthenticatedWebappPlugins"
+                id="restrictUnauthenticatedWebappPlugins"
+              >
+                <legend
+                  class="control-label form-legend col-sm-4"
+                >
+                  Restrict Plugins Available Before Login:
+                </legend>
+                <div
+                  class="col-sm-8"
+                >
+                  <div
+                    class="BooleanRadioGroup-caqMkq klbaOn"
+                  >
+                    <label
+                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                      for="restrictUnauthenticatedWebappPluginstrue"
+                    >
+                      <input
+                        class="_radio__input_h0rbb_17"
+                        data-testid="restrictUnauthenticatedWebappPluginstrue"
+                        id="restrictUnauthenticatedWebappPluginstrue"
+                        name="restrictUnauthenticatedWebappPlugins"
+                        type="radio"
+                        value="true"
+                      />
+                      <span
+                        class="_radio__circle_h0rbb_36"
+                      >
+                        <span
+                          aria-hidden="true"
+                          class="_radio__dot_h0rbb_62"
+                        />
+                      </span>
+                      <span
+                        class="_radio__label_h0rbb_119"
+                      >
+                        True
+                      </span>
+                    </label>
+                    <label
+                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                      for="restrictUnauthenticatedWebappPluginsfalse"
+                    >
+                      <input
+                        checked=""
+                        class="_radio__input_h0rbb_17"
+                        data-testid="restrictUnauthenticatedWebappPluginsfalse"
+                        id="restrictUnauthenticatedWebappPluginsfalse"
+                        name="restrictUnauthenticatedWebappPlugins"
+                        type="radio"
+                        value="false"
+                      />
+                      <span
+                        class="_radio__circle_h0rbb_36"
+                      >
+                        <span
+                          aria-hidden="true"
+                          class="_radio__dot_h0rbb_62"
+                        />
+                      </span>
+                      <span
+                        class="_radio__label_h0rbb_119"
+                      >
+                        False
+                      </span>
+                    </label>
+                  </div>
+                  <div
+                    class="help-text"
+                    data-testid="restrictUnauthenticatedWebappPluginshelp-text"
+                  >
+                    When true, only plugins that declare 
+                    <code>
+                      webapp.pre_auth
+                    </code>
+                     in their manifest are listed and loaded for visitors who are not logged in, such as on the login page. All other plugins load after the user logs in. When false, all enabled plugins are listed to visitors who are not logged in.
                   </div>
                 </div>
               </fieldset>
@@ -5564,6 +6304,88 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                     data-testid="automaticPrepackagedPluginshelp-text"
                   >
                     When true, automatically installs any prepackaged plugin found to be enabled in the server configuration.
+                  </div>
+                </div>
+              </fieldset>
+              <fieldset
+                class="form-group"
+                data-testid="restrictUnauthenticatedWebappPlugins"
+                id="restrictUnauthenticatedWebappPlugins"
+              >
+                <legend
+                  class="control-label form-legend col-sm-4"
+                >
+                  Restrict Plugins Available Before Login:
+                </legend>
+                <div
+                  class="col-sm-8"
+                >
+                  <div
+                    class="BooleanRadioGroup-caqMkq klbaOn"
+                  >
+                    <label
+                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                      for="restrictUnauthenticatedWebappPluginstrue"
+                    >
+                      <input
+                        class="_radio__input_h0rbb_17"
+                        data-testid="restrictUnauthenticatedWebappPluginstrue"
+                        id="restrictUnauthenticatedWebappPluginstrue"
+                        name="restrictUnauthenticatedWebappPlugins"
+                        type="radio"
+                        value="true"
+                      />
+                      <span
+                        class="_radio__circle_h0rbb_36"
+                      >
+                        <span
+                          aria-hidden="true"
+                          class="_radio__dot_h0rbb_62"
+                        />
+                      </span>
+                      <span
+                        class="_radio__label_h0rbb_119"
+                      >
+                        True
+                      </span>
+                    </label>
+                    <label
+                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                      for="restrictUnauthenticatedWebappPluginsfalse"
+                    >
+                      <input
+                        checked=""
+                        class="_radio__input_h0rbb_17"
+                        data-testid="restrictUnauthenticatedWebappPluginsfalse"
+                        id="restrictUnauthenticatedWebappPluginsfalse"
+                        name="restrictUnauthenticatedWebappPlugins"
+                        type="radio"
+                        value="false"
+                      />
+                      <span
+                        class="_radio__circle_h0rbb_36"
+                      >
+                        <span
+                          aria-hidden="true"
+                          class="_radio__dot_h0rbb_62"
+                        />
+                      </span>
+                      <span
+                        class="_radio__label_h0rbb_119"
+                      >
+                        False
+                      </span>
+                    </label>
+                  </div>
+                  <div
+                    class="help-text"
+                    data-testid="restrictUnauthenticatedWebappPluginshelp-text"
+                  >
+                    When true, only plugins that declare 
+                    <code>
+                      webapp.pre_auth
+                    </code>
+                     in their manifest are listed and loaded for visitors who are not logged in, such as on the login page. All other plugins load after the user logs in. When false, all enabled plugins are listed to visitors who are not logged in.
                   </div>
                 </div>
               </fieldset>
@@ -6427,6 +7249,88 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
               </fieldset>
               <fieldset
                 class="form-group"
+                data-testid="restrictUnauthenticatedWebappPlugins"
+                id="restrictUnauthenticatedWebappPlugins"
+              >
+                <legend
+                  class="control-label form-legend col-sm-4"
+                >
+                  Restrict Plugins Available Before Login:
+                </legend>
+                <div
+                  class="col-sm-8"
+                >
+                  <div
+                    class="BooleanRadioGroup-caqMkq klbaOn"
+                  >
+                    <label
+                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                      for="restrictUnauthenticatedWebappPluginstrue"
+                    >
+                      <input
+                        class="_radio__input_h0rbb_17"
+                        data-testid="restrictUnauthenticatedWebappPluginstrue"
+                        id="restrictUnauthenticatedWebappPluginstrue"
+                        name="restrictUnauthenticatedWebappPlugins"
+                        type="radio"
+                        value="true"
+                      />
+                      <span
+                        class="_radio__circle_h0rbb_36"
+                      >
+                        <span
+                          aria-hidden="true"
+                          class="_radio__dot_h0rbb_62"
+                        />
+                      </span>
+                      <span
+                        class="_radio__label_h0rbb_119"
+                      >
+                        True
+                      </span>
+                    </label>
+                    <label
+                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                      for="restrictUnauthenticatedWebappPluginsfalse"
+                    >
+                      <input
+                        checked=""
+                        class="_radio__input_h0rbb_17"
+                        data-testid="restrictUnauthenticatedWebappPluginsfalse"
+                        id="restrictUnauthenticatedWebappPluginsfalse"
+                        name="restrictUnauthenticatedWebappPlugins"
+                        type="radio"
+                        value="false"
+                      />
+                      <span
+                        class="_radio__circle_h0rbb_36"
+                      >
+                        <span
+                          aria-hidden="true"
+                          class="_radio__dot_h0rbb_62"
+                        />
+                      </span>
+                      <span
+                        class="_radio__label_h0rbb_119"
+                      >
+                        False
+                      </span>
+                    </label>
+                  </div>
+                  <div
+                    class="help-text"
+                    data-testid="restrictUnauthenticatedWebappPluginshelp-text"
+                  >
+                    When true, only plugins that declare 
+                    <code>
+                      webapp.pre_auth
+                    </code>
+                     in their manifest are listed and loaded for visitors who are not logged in, such as on the login page. All other plugins load after the user logs in. When false, all enabled plugins are listed to visitors who are not logged in.
+                  </div>
+                </div>
+              </fieldset>
+              <fieldset
+                class="form-group"
               >
                 <legend
                   class="control-label form-legend col-sm-4"
@@ -7078,6 +7982,88 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                     data-testid="automaticPrepackagedPluginshelp-text"
                   >
                     When true, automatically installs any prepackaged plugin found to be enabled in the server configuration.
+                  </div>
+                </div>
+              </fieldset>
+              <fieldset
+                class="form-group"
+                data-testid="restrictUnauthenticatedWebappPlugins"
+                id="restrictUnauthenticatedWebappPlugins"
+              >
+                <legend
+                  class="control-label form-legend col-sm-4"
+                >
+                  Restrict Plugins Available Before Login:
+                </legend>
+                <div
+                  class="col-sm-8"
+                >
+                  <div
+                    class="BooleanRadioGroup-caqMkq klbaOn"
+                  >
+                    <label
+                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                      for="restrictUnauthenticatedWebappPluginstrue"
+                    >
+                      <input
+                        class="_radio__input_h0rbb_17"
+                        data-testid="restrictUnauthenticatedWebappPluginstrue"
+                        id="restrictUnauthenticatedWebappPluginstrue"
+                        name="restrictUnauthenticatedWebappPlugins"
+                        type="radio"
+                        value="true"
+                      />
+                      <span
+                        class="_radio__circle_h0rbb_36"
+                      >
+                        <span
+                          aria-hidden="true"
+                          class="_radio__dot_h0rbb_62"
+                        />
+                      </span>
+                      <span
+                        class="_radio__label_h0rbb_119"
+                      >
+                        True
+                      </span>
+                    </label>
+                    <label
+                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                      for="restrictUnauthenticatedWebappPluginsfalse"
+                    >
+                      <input
+                        checked=""
+                        class="_radio__input_h0rbb_17"
+                        data-testid="restrictUnauthenticatedWebappPluginsfalse"
+                        id="restrictUnauthenticatedWebappPluginsfalse"
+                        name="restrictUnauthenticatedWebappPlugins"
+                        type="radio"
+                        value="false"
+                      />
+                      <span
+                        class="_radio__circle_h0rbb_36"
+                      >
+                        <span
+                          aria-hidden="true"
+                          class="_radio__dot_h0rbb_62"
+                        />
+                      </span>
+                      <span
+                        class="_radio__label_h0rbb_119"
+                      >
+                        False
+                      </span>
+                    </label>
+                  </div>
+                  <div
+                    class="help-text"
+                    data-testid="restrictUnauthenticatedWebappPluginshelp-text"
+                  >
+                    When true, only plugins that declare 
+                    <code>
+                      webapp.pre_auth
+                    </code>
+                     in their manifest are listed and loaded for visitors who are not logged in, such as on the login page. All other plugins load after the user logs in. When false, all enabled plugins are listed to visitors who are not logged in.
                   </div>
                 </div>
               </fieldset>
@@ -7739,6 +8725,88 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
               </fieldset>
               <fieldset
                 class="form-group"
+                data-testid="restrictUnauthenticatedWebappPlugins"
+                id="restrictUnauthenticatedWebappPlugins"
+              >
+                <legend
+                  class="control-label form-legend col-sm-4"
+                >
+                  Restrict Plugins Available Before Login:
+                </legend>
+                <div
+                  class="col-sm-8"
+                >
+                  <div
+                    class="BooleanRadioGroup-caqMkq klbaOn"
+                  >
+                    <label
+                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                      for="restrictUnauthenticatedWebappPluginstrue"
+                    >
+                      <input
+                        class="_radio__input_h0rbb_17"
+                        data-testid="restrictUnauthenticatedWebappPluginstrue"
+                        id="restrictUnauthenticatedWebappPluginstrue"
+                        name="restrictUnauthenticatedWebappPlugins"
+                        type="radio"
+                        value="true"
+                      />
+                      <span
+                        class="_radio__circle_h0rbb_36"
+                      >
+                        <span
+                          aria-hidden="true"
+                          class="_radio__dot_h0rbb_62"
+                        />
+                      </span>
+                      <span
+                        class="_radio__label_h0rbb_119"
+                      >
+                        True
+                      </span>
+                    </label>
+                    <label
+                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                      for="restrictUnauthenticatedWebappPluginsfalse"
+                    >
+                      <input
+                        checked=""
+                        class="_radio__input_h0rbb_17"
+                        data-testid="restrictUnauthenticatedWebappPluginsfalse"
+                        id="restrictUnauthenticatedWebappPluginsfalse"
+                        name="restrictUnauthenticatedWebappPlugins"
+                        type="radio"
+                        value="false"
+                      />
+                      <span
+                        class="_radio__circle_h0rbb_36"
+                      >
+                        <span
+                          aria-hidden="true"
+                          class="_radio__dot_h0rbb_62"
+                        />
+                      </span>
+                      <span
+                        class="_radio__label_h0rbb_119"
+                      >
+                        False
+                      </span>
+                    </label>
+                  </div>
+                  <div
+                    class="help-text"
+                    data-testid="restrictUnauthenticatedWebappPluginshelp-text"
+                  >
+                    When true, only plugins that declare 
+                    <code>
+                      webapp.pre_auth
+                    </code>
+                     in their manifest are listed and loaded for visitors who are not logged in, such as on the login page. All other plugins load after the user logs in. When false, all enabled plugins are listed to visitors who are not logged in.
+                  </div>
+                </div>
+              </fieldset>
+              <fieldset
+                class="form-group"
               >
                 <legend
                   class="control-label form-legend col-sm-4"
@@ -8390,6 +9458,88 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                     data-testid="automaticPrepackagedPluginshelp-text"
                   >
                     When true, automatically installs any prepackaged plugin found to be enabled in the server configuration.
+                  </div>
+                </div>
+              </fieldset>
+              <fieldset
+                class="form-group"
+                data-testid="restrictUnauthenticatedWebappPlugins"
+                id="restrictUnauthenticatedWebappPlugins"
+              >
+                <legend
+                  class="control-label form-legend col-sm-4"
+                >
+                  Restrict Plugins Available Before Login:
+                </legend>
+                <div
+                  class="col-sm-8"
+                >
+                  <div
+                    class="BooleanRadioGroup-caqMkq klbaOn"
+                  >
+                    <label
+                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                      for="restrictUnauthenticatedWebappPluginstrue"
+                    >
+                      <input
+                        class="_radio__input_h0rbb_17"
+                        data-testid="restrictUnauthenticatedWebappPluginstrue"
+                        id="restrictUnauthenticatedWebappPluginstrue"
+                        name="restrictUnauthenticatedWebappPlugins"
+                        type="radio"
+                        value="true"
+                      />
+                      <span
+                        class="_radio__circle_h0rbb_36"
+                      >
+                        <span
+                          aria-hidden="true"
+                          class="_radio__dot_h0rbb_62"
+                        />
+                      </span>
+                      <span
+                        class="_radio__label_h0rbb_119"
+                      >
+                        True
+                      </span>
+                    </label>
+                    <label
+                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                      for="restrictUnauthenticatedWebappPluginsfalse"
+                    >
+                      <input
+                        checked=""
+                        class="_radio__input_h0rbb_17"
+                        data-testid="restrictUnauthenticatedWebappPluginsfalse"
+                        id="restrictUnauthenticatedWebappPluginsfalse"
+                        name="restrictUnauthenticatedWebappPlugins"
+                        type="radio"
+                        value="false"
+                      />
+                      <span
+                        class="_radio__circle_h0rbb_36"
+                      >
+                        <span
+                          aria-hidden="true"
+                          class="_radio__dot_h0rbb_62"
+                        />
+                      </span>
+                      <span
+                        class="_radio__label_h0rbb_119"
+                      >
+                        False
+                      </span>
+                    </label>
+                  </div>
+                  <div
+                    class="help-text"
+                    data-testid="restrictUnauthenticatedWebappPluginshelp-text"
+                  >
+                    When true, only plugins that declare 
+                    <code>
+                      webapp.pre_auth
+                    </code>
+                     in their manifest are listed and loaded for visitors who are not logged in, such as on the login page. All other plugins load after the user logs in. When false, all enabled plugins are listed to visitors who are not logged in.
                   </div>
                 </div>
               </fieldset>

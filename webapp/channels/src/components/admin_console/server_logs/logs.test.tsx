@@ -1,14 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {createMemoryHistory} from 'history';
 import React from 'react';
 
 import {LogLevelEnum, LogNodeKey} from '@mattermost/types/admin';
 
-import {renderWithContext, userEvent, screen, waitFor, within} from 'tests/react_testing_utils';
+import {fakeNow} from 'tests/helpers/date';
+import {act, renderWithContext, userEvent, screen, waitFor, within} from 'tests/react_testing_utils';
 
 import Logs from './logs';
 import type {LogObjectWithAdditionalInfo} from './types';
+
+// The real router history, in place of the global mock, so the URL the viewer writes can be read back
+jest.mock('react-router-dom', () => jest.requireActual('react-router-dom'));
+
+// The viewer mirrors its filters into the URL, which jsdom keeps from one test to the next
+beforeEach(() => {
+    window.history.replaceState(null, '', '/');
+});
 
 function nodeLog(node: string, msg: string): LogObjectWithAdditionalInfo {
     return {
@@ -50,17 +60,28 @@ describe('components/admin_console/server_logs/Logs', () => {
         whatever: 'filtered',
     }];
 
-    beforeEach(async () => {
-        // Mount server log screen
-        renderWithContext(
+    let getLogs: jest.Mock;
+    let rerenderWithLogs: (next: LogObjectWithAdditionalInfo[]) => void;
+
+    function logsScreen(shown: LogObjectWithAdditionalInfo[]) {
+        return (
             <Logs
-                logs={logs}
+                logs={shown}
                 logNodes={[]}
+                truncatedLogNodes={[]}
                 plainLogs={[]}
                 isPlainLogs={false}
-                actions={{getLogs: jest.fn(), getNewLogs: jest.fn(), getPlainLogs: jest.fn()}}
-            />,
+                actions={{getLogs, getNewLogs: jest.fn(), getPlainLogs: jest.fn()}}
+            />
         );
+    }
+
+    beforeEach(async () => {
+        getLogs = jest.fn();
+
+        // Mount server log screen
+        const {rerender} = renderWithContext(logsScreen(logs));
+        rerenderWithLogs = (next) => rerender(logsScreen(next));
 
         // Wait for the logs to be displayed
         await waitFor(() => {
@@ -87,32 +108,6 @@ describe('components/admin_console/server_logs/Logs', () => {
         expect(screen.getByRole('menuitemcheckbox', {name: /^Debug/})).toBeInTheDocument();
     });
 
-    test.each(['caller', 'msg', 'worker', 'job_id', 'whatever'])('should search input be performed on %s attribute',
-        async (searchString: string) => {
-            const searchInput = screen.getByLabelText('Search logs');
-            await userEvent.type(searchInput, searchString);
-
-            // Use container text check since search highlights split text across <mark> elements
-            await waitFor(() => {
-                const logRows = document.querySelectorAll('.LogRow');
-                const rowTexts = Array.from(logRows).map((r) => r.textContent || '');
-                expect(rowTexts.some((t) => t.includes('msg 1'))).toBe(true);
-                expect(rowTexts.some((t) => t.includes('msg 2'))).toBe(true);
-                expect(rowTexts.some((t) => t.includes('filtered message'))).toBe(false);
-            });
-        });
-
-    test.each(['level', 'timestamp'])('should search input not be performed on %s attribute',
-        async (searchString: string) => {
-            const searchInput = screen.getByLabelText('Search logs');
-            await userEvent.type(searchInput, searchString);
-
-            await waitFor(() => {
-                const logRows = document.querySelectorAll('.LogRow');
-                expect(logRows.length).toBe(0);
-            });
-        });
-
     test('should expose the log rows as a list that only owns list items', () => {
         const list = screen.getByRole('list', {name: 'Server log entries'});
 
@@ -126,6 +121,7 @@ describe('components/admin_console/server_logs/Logs', () => {
     test('should keep the empty state outside the list', async () => {
         const searchInput = screen.getByLabelText('Search logs');
         await userEvent.type(searchInput, 'nothing matches this');
+        rerenderWithLogs([]);
 
         await waitFor(() => {
             expect(screen.getByText(/No logs match your filters/)).toBeInTheDocument();
@@ -135,32 +131,23 @@ describe('components/admin_console/server_logs/Logs', () => {
         expect(list).toBeEmptyDOMElement();
     });
 
-    test('should update the search input without waiting for the filtering', async () => {
+    test('should update the search input without waiting for the query', async () => {
         const searchInput = screen.getByLabelText('Search logs');
         await userEvent.type(searchInput, 'msg 1');
 
-        // Typing is not gated on the debounced filter pass
+        // Typing is not gated on the debounced query
         expect(searchInput).toHaveValue('msg 1');
-
-        await waitFor(() => {
-            expect(document.querySelectorAll('.LogRow')).toHaveLength(1);
-        });
     });
 
     test('should apply a cleared search immediately', async () => {
         const searchInput = screen.getByLabelText('Search logs');
         await userEvent.type(searchInput, 'msg 1');
-
-        await waitFor(() => {
-            expect(document.querySelectorAll('.LogRow')).toHaveLength(1);
-        });
+        await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({search: 'msg 1'})));
 
         await userEvent.click(screen.getByLabelText('Clear search'));
 
         expect(searchInput).toHaveValue('');
-        await waitFor(() => {
-            expect(document.querySelectorAll('.LogRow')).toHaveLength(3);
-        });
+        await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({search: ''})));
     });
 
     test('should default the live tail selector to off', () => {
@@ -208,6 +195,7 @@ describe('components/admin_console/server_logs/Logs refetching', () => {
         <Logs
             logs={logsProp}
             logNodes={[]}
+            truncatedLogNodes={[]}
             plainLogs={[]}
             isPlainLogs={false}
             actions={{getLogs: jest.fn(), getNewLogs: jest.fn(), getPlainLogs: jest.fn()}}
@@ -282,14 +270,15 @@ describe('components/admin_console/server_logs/Logs fetching', () => {
         return {promise, resolve};
     }
 
-    function renderLogs(getLogs: jest.Mock) {
+    function renderLogs(getLogs: jest.Mock, getNewLogs: jest.Mock = jest.fn().mockResolvedValue({})) {
         return renderWithContext(
             <Logs
                 logs={[]}
                 logNodes={[]}
+                truncatedLogNodes={[]}
                 plainLogs={[]}
                 isPlainLogs={false}
-                actions={{getLogs, getNewLogs: jest.fn().mockResolvedValue({}), getPlainLogs: jest.fn().mockResolvedValue({})}}
+                actions={{getLogs, getNewLogs, getPlainLogs: jest.fn().mockResolvedValue({})}}
             />,
         );
     }
@@ -307,11 +296,6 @@ describe('components/admin_console/server_logs/Logs fetching', () => {
         jest.useRealTimers();
     });
 
-    // Fakes only the clock, so the promises and timers the tests wait on keep running
-    function fakeNow(now: string) {
-        jest.useFakeTimers({now: new Date(now), doNotFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'setImmediate', 'clearImmediate', 'queueMicrotask', 'nextTick', 'requestAnimationFrame', 'cancelAnimationFrame', 'requestIdleCallback', 'cancelIdleCallback', 'performance', 'hrtime']});
-    }
-
     test('should send the enabled levels with the query', async () => {
         const getLogs = jest.fn().mockResolvedValue({});
         renderLogs(getLogs);
@@ -322,7 +306,7 @@ describe('components/admin_console/server_logs/Logs fetching', () => {
         await pickMenuItem('Open menu to select which log levels to show', 'Debug', 'menuitemcheckbox');
 
         await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(2));
-        expect(getLogs.mock.calls[1][0].logLevels).toEqual(['error', 'warn', 'info']);
+        expect(getLogs.mock.calls[1][0].logLevels).toEqual(['panic', 'fatal', 'critical', 'error', 'warn', 'info', 'stdlog']);
     });
 
     test('should recompute the time preset when switching back to structured logs', async () => {
@@ -355,6 +339,141 @@ describe('components/admin_console/server_logs/Logs fetching', () => {
         expect(await screen.findByText(/No logs found/)).toBeInTheDocument();
     });
 
+    function rangeTimeInput(bound: 'From' | 'To') {
+        return within(screen.getByRole('group', {name: bound})).getByLabelText('Time');
+    }
+
+    async function typeRangeTime(bound: 'From' | 'To', time: string) {
+        await userEvent.clear(rangeTimeInput(bound));
+        await userEvent.type(rangeTimeInput(bound), time);
+        await userEvent.tab();
+    }
+
+    test('should send both bounds of a custom range and show it in the duration field', async () => {
+        fakeNow('2026-10-20T12:00:30Z');
+        const getLogs = jest.fn().mockResolvedValue({});
+        renderLogs(getLogs);
+
+        await pickMenuItem('Open menu to select a time range', 'Custom range');
+
+        // Defaults to the last hour, ending at the current minute
+        expect(rangeTimeInput('From')).toHaveValue('11:00 AM');
+        expect(rangeTimeInput('To')).toHaveValue('12:00 PM');
+        expect(screen.getByText(/Times are in your timezone/)).toBeInTheDocument();
+
+        await typeRangeTime('From', '11:12');
+        await userEvent.click(screen.getByRole('button', {name: 'Apply'}));
+
+        // The end covers its whole minute
+        await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({
+            dateFrom: '2026-10-20 11:12:00.000 +00:00',
+            dateTo: '2026-10-20 12:00:59.999 +00:00',
+        })));
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+        expect((screen.getByLabelText('Duration') as HTMLInputElement).value.replace(/\s/g, ' ')).toBe('Oct 20, 11:12 AM – 12:00 PM');
+
+        await pickMenuItem('Open menu to select a time range', 'All time');
+
+        await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({dateFrom: '', dateTo: ''})));
+    });
+
+    test('should not apply a custom range that ends before it starts', async () => {
+        fakeNow('2026-10-20T12:00:30Z');
+        const getLogs = jest.fn().mockResolvedValue({});
+        renderLogs(getLogs);
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
+
+        await pickMenuItem('Open menu to select a time range', 'Custom range');
+        await typeRangeTime('To', '10:00');
+
+        expect(screen.getByText('The start must be before the end.')).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Apply'})).toBeDisabled();
+        expect(getLogs).toHaveBeenCalledTimes(1);
+    });
+
+    test('should not let a custom range end in the future', async () => {
+        fakeNow('2026-10-20T12:00:30Z');
+        renderLogs(jest.fn().mockResolvedValue({}));
+
+        await pickMenuItem('Open menu to select a time range', 'Custom range');
+        await typeRangeTime('To', '13:00');
+
+        expect(rangeTimeInput('To')).toHaveValue('12:00 PM');
+    });
+
+    test('should let a custom range end in a minute that started after the dialog opened', async () => {
+        // Moments before the next minute, so the dialog's clock ticks over soon
+        fakeNow('2026-10-20T12:00:59.950Z');
+        renderLogs(jest.fn().mockResolvedValue({}));
+
+        await pickMenuItem('Open menu to select a time range', 'Custom range');
+        expect(rangeTimeInput('To')).toHaveValue('12:00 PM');
+
+        jest.setSystemTime(new Date('2026-10-20T12:01:10Z'));
+        await act(() => new Promise((resolve) => setTimeout(resolve, 100)));
+        await typeRangeTime('To', '12:01');
+
+        expect(rangeTimeInput('To')).toHaveValue('12:01 PM');
+    });
+
+    test('should not apply a custom range while a time entry is invalid', async () => {
+        fakeNow('2026-10-20T12:00:30Z');
+        renderLogs(jest.fn().mockResolvedValue({}));
+
+        await pickMenuItem('Open menu to select a time range', 'Custom range');
+        await typeRangeTime('From', 'soon');
+        expect(screen.getByRole('button', {name: 'Apply'})).toBeDisabled();
+
+        await typeRangeTime('From', '11:30');
+        expect(screen.getByRole('button', {name: 'Apply'})).toBeEnabled();
+
+        await userEvent.clear(rangeTimeInput('To'));
+        await userEvent.tab();
+        expect(screen.getByRole('button', {name: 'Apply'})).toBeDisabled();
+    });
+
+    test('should not apply a custom range when Apply is clicked straight after typing an invalid time', async () => {
+        fakeNow('2026-10-20T12:00:30Z');
+        const getLogs = jest.fn().mockResolvedValue({});
+        renderLogs(getLogs);
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
+
+        await pickMenuItem('Open menu to select a time range', 'Custom range');
+        await userEvent.clear(rangeTimeInput('To'));
+        await userEvent.type(rangeTimeInput('To'), 'abc');
+
+        // A browser blurs the time on mousedown and clicks on mouseup, with only microtasks in between.
+        // Outside act, so React schedules work as it would there instead of flushing everything per event
+        const actEnvironment = (globalThis as {IS_REACT_ACT_ENVIRONMENT?: boolean}).IS_REACT_ACT_ENVIRONMENT;
+        (globalThis as {IS_REACT_ACT_ENVIRONMENT?: boolean}).IS_REACT_ACT_ENVIRONMENT = false;
+        try {
+            rangeTimeInput('To').blur();
+            await Promise.resolve();
+            screen.getByRole('button', {name: 'Apply'}).click();
+            await new Promise((resolve) => setTimeout(resolve, 50));
+        } finally {
+            (globalThis as {IS_REACT_ACT_ENVIRONMENT?: boolean}).IS_REACT_ACT_ENVIRONMENT = actEnvironment;
+        }
+
+        expect(screen.getByRole('dialog', {name: 'Custom time range'})).toBeInTheDocument();
+        expect(rangeTimeInput('To')).toHaveClass('error');
+        expect(screen.getByRole('button', {name: 'Apply'})).toBeDisabled();
+        expect(getLogs).toHaveBeenCalledTimes(1);
+    });
+
+    test('should turn off live tail when a custom range is applied', async () => {
+        fakeNow('2026-10-20T12:00:30Z');
+        renderLogs(jest.fn().mockResolvedValue({}));
+
+        await pickMenuItem('Open menu to turn live tail on or off', 'Every 10 seconds');
+        expect(screen.getByLabelText('Live tail')).toHaveValue('Every 10 seconds');
+
+        await pickMenuItem('Open menu to select a time range', 'Custom range');
+        await userEvent.click(screen.getByRole('button', {name: 'Apply'}));
+
+        expect(screen.getByLabelText('Live tail')).toHaveValue('Off');
+    });
+
     test('should not start a fetch until the previous one has finished', async () => {
         const first = deferred();
         const getLogs = jest.fn().mockReturnValueOnce(first.promise).mockResolvedValue({});
@@ -367,6 +486,52 @@ describe('components/admin_console/server_logs/Logs fetching', () => {
         first.resolve();
         await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(2));
         expect(getLogs.mock.calls[1][0].dateFrom).not.toBe('');
+    });
+
+    test('should send the search with the query', async () => {
+        const getLogs = jest.fn().mockResolvedValue({});
+        renderLogs(getLogs);
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
+        expect(getLogs.mock.calls[0][0].search).toBe('');
+
+        await userEvent.type(screen.getByLabelText('Search logs'), 'WebSocket');
+
+        // Debounced, so the whole term goes out in one query
+        await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({search: 'WebSocket'})));
+        expect(getLogs).toHaveBeenCalledTimes(2);
+    });
+
+    test('should send the search with a live-tail poll', async () => {
+        const getLogs = jest.fn().mockResolvedValue({});
+        const getNewLogs = jest.fn().mockResolvedValue({});
+        renderLogs(getLogs, getNewLogs);
+        await userEvent.type(screen.getByLabelText('Search logs'), 'websocket');
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(2));
+
+        await pickMenuItem('Open menu to turn live tail on or off', 'Every 10 seconds');
+
+        // Turning live tail on polls straight away
+        await waitFor(() => expect(getNewLogs).toHaveBeenCalledTimes(1));
+        expect(getNewLogs.mock.calls[0][0].search).toBe('websocket');
+        expect(getLogs).toHaveBeenCalledTimes(2);
+    });
+
+    test('should not queue a live-tail poll behind a pending search', async () => {
+        const search = deferred();
+        const getLogs = jest.fn().mockResolvedValueOnce({}).mockReturnValueOnce(search.promise).mockResolvedValue({});
+        const getNewLogs = jest.fn().mockResolvedValue({});
+        renderLogs(getLogs, getNewLogs);
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
+
+        await userEvent.type(screen.getByLabelText('Search logs'), 'websocket');
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(2));
+
+        await pickMenuItem('Open menu to turn live tail on or off', 'Every 10 seconds');
+        search.resolve();
+        await new Promise((r) => setTimeout(r, 0));
+
+        expect(getLogs).toHaveBeenCalledTimes(2);
+        expect(getNewLogs).not.toHaveBeenCalled();
     });
 
     test('should skip a queued fetch that a newer one replaces', async () => {
@@ -397,6 +562,7 @@ describe('components/admin_console/server_logs/Logs nodes', () => {
             <Logs
                 logs={logs}
                 logNodes={logNodes}
+                truncatedLogNodes={[]}
                 plainLogs={[]}
                 isPlainLogs={false}
                 actions={{getLogs, getNewLogs: jest.fn().mockResolvedValue({}), getPlainLogs: jest.fn().mockResolvedValue({})}}
@@ -420,9 +586,21 @@ describe('components/admin_console/server_logs/Logs nodes', () => {
         expect(await screen.findByText('a')).toBeInTheDocument();
         expect(screen.queryByLabelText('Node')).not.toBeInTheDocument();
         expect(document.querySelector('.LogRow__node')).toBeNull();
+    });
 
-        await userEvent.type(screen.getByLabelText('Search logs'), 'default');
-        await waitFor(() => expect(document.querySelectorAll('.LogRow')).toHaveLength(0));
+    test('should show the truncation notice for a node that returned a full page', async () => {
+        renderWithContext(
+            <Logs
+                logs={[nodeLog('node-a', 'a'), nodeLog('node-b', 'b')]}
+                logNodes={['node-a', 'node-b']}
+                truncatedLogNodes={['node-b']}
+                plainLogs={[]}
+                isPlainLogs={false}
+                actions={{getLogs: jest.fn().mockResolvedValue({}), getNewLogs: jest.fn().mockResolvedValue({}), getPlainLogs: jest.fn().mockResolvedValue({})}}
+            />,
+        );
+
+        expect(await screen.findByText('Only the latest 10,000 entries from each node are shown')).toBeInTheDocument();
     });
 
     test('should send the picked node with the query', async () => {
@@ -503,7 +681,7 @@ describe('components/admin_console/server_logs/Logs nodes', () => {
 
         await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
         expect(getLogs.mock.calls[0][0].serverNames).toEqual([]);
-        expect(getLogs.mock.calls[0][0].logLevels).toEqual(['error']);
+        expect(getLogs.mock.calls[0][0].logLevels).toEqual(['panic', 'fatal', 'critical', 'error']);
     });
 
     test('should let a restored node that never returns be switched back to all nodes', async () => {
@@ -547,6 +725,7 @@ describe('components/admin_console/server_logs/Logs live tail', () => {
             <Logs
                 logs={logs}
                 logNodes={[...new Set(logs.map((log) => log[LogNodeKey]!))]}
+                truncatedLogNodes={[]}
                 plainLogs={[]}
                 isPlainLogs={false}
                 actions={{getLogs, getNewLogs, getPlainLogs: jest.fn().mockResolvedValue({})}}
@@ -575,7 +754,7 @@ describe('components/admin_console/server_logs/Logs live tail', () => {
         await poll();
 
         await waitFor(() => expect(getNewLogs).toHaveBeenCalledTimes(1));
-        expect(getNewLogs).toHaveBeenCalledWith({serverNames: [], logLevels: [], dateFrom: '2026-10-20 09:44:30.000 +00:00', dateTo: ''});
+        expect(getNewLogs).toHaveBeenCalledWith({serverNames: [], logLevels: [], dateFrom: '2026-10-20 09:44:30.000 +00:00', dateTo: '', search: ''});
         expect(getLogs).toHaveBeenCalledTimes(1);
     });
 
@@ -621,7 +800,7 @@ describe('components/admin_console/server_logs/Logs live tail', () => {
 
         await poll();
 
-        await waitFor(() => expect(getNewLogs).toHaveBeenCalledWith({serverNames: [], logLevels: [], dateFrom: '', dateTo: ''}));
+        await waitFor(() => expect(getNewLogs).toHaveBeenCalledWith({serverNames: [], logLevels: [], dateFrom: '', dateTo: '', search: ''}));
     });
 
     test('should not reach back past the start of the time range', async () => {
@@ -644,7 +823,7 @@ describe('components/admin_console/server_logs/Logs live tail', () => {
 
         await poll();
 
-        await waitFor(() => expect(getNewLogs).toHaveBeenCalledWith(expect.objectContaining({serverNames: ['node-b'], logLevels: ['error', 'warn']})));
+        await waitFor(() => expect(getNewLogs).toHaveBeenCalledWith(expect.objectContaining({serverNames: ['node-b'], logLevels: ['panic', 'fatal', 'critical', 'error', 'warn']})));
     });
 
     test('should drop entries that age out of the time range on a poll that brings nothing new', async () => {
@@ -675,7 +854,7 @@ describe('components/admin_console/server_logs/Logs live tail', () => {
         await pickMenuItem('Open menu to select which log levels to show', 'Debug', 'menuitemcheckbox');
 
         await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(2));
-        expect(getLogs).toHaveBeenLastCalledWith({serverNames: [], logLevels: ['error', 'warn', 'info'], dateFrom: '', dateTo: ''});
+        expect(getLogs).toHaveBeenLastCalledWith({serverNames: [], logLevels: ['panic', 'fatal', 'critical', 'error', 'warn', 'info', 'stdlog'], dateFrom: '', dateTo: '', search: ''});
     });
 
     test('should reload everything on a manual reload while live tail is on', async () => {
@@ -688,5 +867,246 @@ describe('components/admin_console/server_logs/Logs live tail', () => {
 
         await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(2));
         expect(getNewLogs).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe('components/admin_console/server_logs/Logs URL filters', () => {
+    const PAGE = '/admin_console/reporting/server_logs';
+    const ERROR_AND_WARN = ['panic', 'fatal', 'critical', 'error', 'warn'];
+
+    beforeEach(() => {
+        localStorage.clear();
+    });
+
+    afterEach(() => {
+        jest.useRealTimers();
+    });
+
+    function renderLogs(url: string, {getLogs = jest.fn().mockResolvedValue({}), isPlainLogs = false} = {}) {
+        const history = createMemoryHistory({initialEntries: [url]});
+        const getPlainLogs = jest.fn().mockResolvedValue({});
+        renderWithContext(
+            <Logs
+                logs={[nodeLog('node-a', 'a'), nodeLog('node-b', 'b')]}
+                logNodes={['node-a', 'node-b']}
+                truncatedLogNodes={[]}
+                plainLogs={[]}
+                isPlainLogs={isPlainLogs}
+                actions={{getLogs, getNewLogs: jest.fn().mockResolvedValue({}), getPlainLogs}}
+            />,
+            {},
+            {history},
+        );
+        return {history, getLogs, getPlainLogs};
+    }
+
+    async function pickMenuItem(menuLabel: string, item: string, role: 'menuitemradio' | 'menuitemcheckbox' = 'menuitemradio') {
+        await userEvent.click(screen.getByLabelText(menuLabel));
+        await userEvent.click(screen.getByRole(role, {name: new RegExp(`^${item}`)}));
+    }
+
+    function urlParams(history: ReturnType<typeof createMemoryHistory>) {
+        return Object.fromEntries(new URLSearchParams(history.location.search));
+    }
+
+    test('should load the filters from the URL and send them with the first query', async () => {
+        fakeNow('2026-10-20T12:00:00Z');
+        const {getLogs} = renderLogs(`${PAGE}?search=timeout&levels=error,warn&node=node-b&range=60`);
+
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
+        expect(getLogs).toHaveBeenCalledWith({
+            search: 'timeout',
+            logLevels: ERROR_AND_WARN,
+            serverNames: ['node-b'],
+            dateFrom: '2026-10-20 11:00:00.000 +00:00',
+            dateTo: '',
+        });
+        expect(screen.getByLabelText('Search logs')).toHaveValue('timeout');
+        expect(screen.getByLabelText('Levels')).toHaveValue('2 selected');
+        expect(screen.getByLabelText('Node')).toHaveValue('node-b');
+        expect(screen.getByLabelText('Duration')).toHaveValue('Last hour');
+    });
+
+    test('should load a custom range from the URL', async () => {
+        const {getLogs} = renderLogs(`${PAGE}?from=2026-10-20T11:12:00.000Z&to=2026-10-20T12:00:59.999Z`);
+
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
+        expect(getLogs).toHaveBeenCalledWith(expect.objectContaining({
+            dateFrom: '2026-10-20 11:12:00.000 +00:00',
+            dateTo: '2026-10-20 12:00:59.999 +00:00',
+        }));
+        expect((screen.getByLabelText('Duration') as HTMLInputElement).value.replace(/\s/g, ' ')).toBe('Oct 20, 11:12 AM – 12:00 PM');
+    });
+
+    test('should prefer the URL over saved prefs, and use the saved prefs the URL leaves out', async () => {
+        localStorage.setItem('mm_admin_logs_prefs', JSON.stringify({node: 'node-a', enabledLevels: ['debug']}));
+        const {getLogs} = renderLogs(`${PAGE}?levels=error,warn`);
+
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
+        expect(getLogs).toHaveBeenCalledWith(expect.objectContaining({logLevels: ERROR_AND_WARN, serverNames: ['node-a']}));
+    });
+
+    test('should remember the levels and node of an opened link as the last used ones', async () => {
+        localStorage.setItem('mm_admin_logs_prefs', JSON.stringify({node: 'node-a', enabledLevels: ['debug']}));
+        renderLogs(`${PAGE}?levels=error&node=node-b`);
+
+        await waitFor(() => expect(JSON.parse(localStorage.getItem('mm_admin_logs_prefs')!)).toMatchObject({node: 'node-b', enabledLevels: ['error']}));
+    });
+
+    test('should open a link with filters in the structured viewer over a saved plain format', async () => {
+        localStorage.setItem('mm_admin_logs_format', 'plain');
+        const {getLogs, getPlainLogs} = renderLogs(`${PAGE}?search=timeout`);
+
+        await waitFor(() => expect(getLogs).toHaveBeenCalledWith(expect.objectContaining({search: 'timeout'})));
+        expect(getPlainLogs).not.toHaveBeenCalled();
+    });
+
+    test('should ignore invalid values and drop them from the URL', async () => {
+        localStorage.setItem('mm_admin_logs_prefs', JSON.stringify({enabledLevels: ['debug']}));
+        const {getLogs, history} = renderLogs(`${PAGE}?search=${'a'.repeat(257)}&levels=bogus,warn&range=7&from=2026-10-20T11:00:00Z&to=yesterday&tab=1`);
+
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
+        expect(getLogs).toHaveBeenCalledWith({search: '', logLevels: ['warn'], serverNames: [], dateFrom: '', dateTo: ''});
+        expect(screen.getByLabelText('Duration')).toHaveValue('All time');
+
+        // Parameters that aren't filters are left alone
+        await waitFor(() => expect(urlParams(history)).toEqual({levels: 'warn', tab: '1'}));
+    });
+
+    test.each([
+        ['levels with no known level fall back to the saved ones', 'levels=bogus', {logLevels: ['panic', 'fatal', 'critical', 'error']}],
+        ['a range that ends before it starts', 'from=2026-10-20T12:00:00Z&to=2026-10-20T11:00:00Z', {dateFrom: '', dateTo: ''}],
+        ['a range that ends when it starts', 'from=2026-10-20T12:00:00Z&to=2026-10-20T12:00:00Z', {dateFrom: '', dateTo: ''}],
+        ['dates without a timezone offset', 'from=2026-10-20T11:00:00&to=2026-10-20T12:00:00', {dateFrom: '', dateTo: ''}],
+        ['dates that are not on the calendar', 'from=2026-02-30T11:00:00Z&to=2026-03-02T12:00:00Z', {dateFrom: '', dateTo: ''}],
+        ['an invalid custom range in favor of a valid preset', 'range=60&from=bad&to=2026-10-20T12:00:00Z', {dateFrom: '2026-10-20 11:00:00.000 +00:00', dateTo: ''}],
+    ])('should ignore %s', async (_, query, expected) => {
+        fakeNow('2026-10-20T12:00:00Z');
+        localStorage.setItem('mm_admin_logs_prefs', JSON.stringify({enabledLevels: ['error']}));
+        const {getLogs} = renderLogs(`${PAGE}?${query}`);
+
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
+        expect(getLogs).toHaveBeenCalledWith(expect.objectContaining(expected));
+    });
+
+    test('should keep a search of 256 characters that take two UTF-16 code units each', async () => {
+        const search = '😀'.repeat(256);
+        const {getLogs} = renderLogs(`${PAGE}?search=${encodeURIComponent(search)}`);
+
+        await waitFor(() => expect(getLogs).toHaveBeenCalledWith(expect.objectContaining({search})));
+    });
+
+    test('should mirror the filters in the URL as they change, without adding history entries', async () => {
+        const {history} = renderLogs(PAGE);
+        await screen.findByText('a');
+        expect(history.location.search).toBe('');
+
+        await pickMenuItem('Open menu to select which log levels to show', 'Debug', 'menuitemcheckbox');
+        await pickMenuItem('Open menu to select which log levels to show', 'Info', 'menuitemcheckbox');
+        await pickMenuItem('Open menu to select a node', 'node-b');
+        await pickMenuItem('Open menu to select a time range', 'Last 15 minutes');
+
+        await waitFor(() => expect(history.location.search).toBe('?levels=error,warn&node=node-b&range=15'));
+        expect(history.length).toBe(1);
+
+        await pickMenuItem('Open menu to select a time range', 'Custom range');
+        await userEvent.click(screen.getByRole('button', {name: 'Apply'}));
+        await waitFor(() => expect(urlParams(history)).toEqual({
+            levels: 'error,warn',
+            node: 'node-b',
+            from: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:00\.000Z$/),
+            to: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:59\.999Z$/),
+        }));
+
+        await pickMenuItem('Open menu to select a time range', 'All time');
+        await pickMenuItem('Open menu to select a node', 'All nodes');
+        await userEvent.click(screen.getByLabelText('Open menu to select which log levels to show'));
+        await userEvent.click(screen.getByRole('menuitem', {name: 'Select all levels'}));
+
+        await waitFor(() => expect(history.location.search).toBe(''));
+        expect(history.length).toBe(1);
+    });
+
+    test('should put the search in the URL once it is debounced, not on every keystroke', async () => {
+        const {history, getLogs} = renderLogs(PAGE);
+        const searches: string[] = [];
+        history.listen((location) => searches.push(new URLSearchParams(location.search).get('search') ?? ''));
+
+        await userEvent.type(screen.getByLabelText('Search logs'), 'WebSocket');
+
+        await waitFor(() => expect(urlParams(history)).toEqual({search: 'WebSocket'}));
+        expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({search: 'WebSocket'}));
+        expect(searches).toEqual(['WebSocket']);
+    });
+
+    test('should take the filters out of the URL in the plain viewer and restore them in the structured one', async () => {
+        const {history} = renderLogs(`${PAGE}?search=timeout`);
+        await waitFor(() => expect(urlParams(history)).toEqual({search: 'timeout'}));
+
+        await pickMenuItem('Open menu to select the log format', 'Plain text');
+        await waitFor(() => expect(history.location.search).toBe(''));
+
+        await pickMenuItem('Open menu to select the log format', 'Structured');
+        await waitFor(() => expect(urlParams(history)).toEqual({search: 'timeout'}));
+    });
+
+    test('should apply the filters of a link followed while the viewer is open', async () => {
+        fakeNow('2026-10-20T12:00:00Z');
+        const {history, getLogs} = renderLogs(`${PAGE}?search=first&levels=warn&node=node-a&range=15`);
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
+
+        act(() => history.push(`${PAGE}?search=second&node=node-b&range=60`));
+
+        await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith({
+            search: 'second',
+            logLevels: ['warn'],
+            serverNames: ['node-b'],
+            dateFrom: '2026-10-20 11:00:00.000 +00:00',
+            dateTo: '',
+        }));
+        expect(screen.getByLabelText('Search logs')).toHaveValue('second');
+        expect(screen.getByLabelText('Duration')).toHaveValue('Last hour');
+
+        // The levels the link leaves out are the last used ones, which were those of the previous link
+        await waitFor(() => expect(urlParams(history)).toEqual({search: 'second', levels: 'warn', node: 'node-b', range: '60'}));
+    });
+
+    test('should turn off live tail when a link followed while the viewer is open has a custom range', async () => {
+        const {history} = renderLogs(PAGE);
+        await pickMenuItem('Open menu to turn live tail on or off', 'Every 10 seconds');
+
+        act(() => history.push(`${PAGE}?range=60`));
+        await waitFor(() => expect(screen.getByLabelText('Duration')).toHaveValue('Last hour'));
+        expect(screen.getByLabelText('Live tail')).toHaveValue('Every 10 seconds');
+
+        act(() => history.push(`${PAGE}?from=2026-10-20T11:00:00.000Z&to=2026-10-20T12:00:59.999Z`));
+        await waitFor(() => expect(screen.getByLabelText('Live tail')).toHaveValue('Off'));
+    });
+
+    test('should apply the saved prefs when a link followed while the viewer is open has no filters', async () => {
+        const {history, getLogs} = renderLogs(`${PAGE}?search=first&range=15`);
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
+
+        act(() => history.push(PAGE));
+
+        await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith({search: '', logLevels: [], serverNames: [], dateFrom: '', dateTo: ''}));
+        expect(screen.getByLabelText('Search logs')).toHaveValue('');
+        expect(history.location.search).toBe('');
+    });
+
+    test('should not query again when the viewer is left', async () => {
+        const {history, getLogs} = renderLogs(`${PAGE}?search=first`);
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
+
+        act(() => history.push('/admin_console/reporting/site_statistics'));
+
+        expect(getLogs).toHaveBeenCalledTimes(1);
+    });
+
+    test('should keep the URL free of filters when the server only writes plain logs', async () => {
+        const {history, getPlainLogs} = renderLogs(`${PAGE}?search=timeout`, {isPlainLogs: true});
+
+        await waitFor(() => expect(getPlainLogs).toHaveBeenCalled());
+        expect(history.location.search).toBe('');
     });
 });
