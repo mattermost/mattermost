@@ -18,8 +18,32 @@ import (
 
 const entityPageSize = 60
 
+type staticConfigService struct {
+	cfg *model.Config
+}
+
+func (s *staticConfigService) Config() *model.Config { return s.cfg }
+func (s *staticConfigService) AddConfigListener(func(*model.Config, *model.Config)) string {
+	return ""
+}
+func (s *staticConfigService) RemoveConfigListener(string) {}
+func (s *staticConfigService) UpdateConfig(func(*model.Config)) {}
+func (s *staticConfigService) SaveConfig(*model.Config, bool) (*model.Config, *model.Config, *model.AppError) {
+	return s.cfg, s.cfg, nil
+}
+
+func entityEnabledApp(pattern cache.Cache) *App {
+	cfg := &model.Config{}
+	cfg.SetDefaults()
+	cfg.FeatureFlags.Entities = true
+	return &App{ch: &Channels{
+		cfgSvc: &staticConfigService{cfg: cfg},
+		srv:    &Server{entityPatternCache: pattern},
+	}}
+}
+
 func entityBenchApp(pattern cache.Cache) *App {
-	return &App{ch: &Channels{srv: &Server{entityPatternCache: pattern}}}
+	return entityEnabledApp(pattern)
 }
 
 func installEntityBenchMatchers(tb testing.TB) {
@@ -73,7 +97,6 @@ func entityBenchLRU(tb testing.TB) cache.Cache {
 }
 
 func BenchmarkEntityPageCold(b *testing.B) {
-	b.Setenv("MM_ENTITIES", "1")
 	installEntityBenchMatchers(b)
 	posts := entityBenchPosts()
 	app := entityBenchApp(nil)
@@ -92,7 +115,6 @@ func BenchmarkEntityPageCold(b *testing.B) {
 }
 
 func BenchmarkEntityPageLRU(b *testing.B) {
-	b.Setenv("MM_ENTITIES", "1")
 	installEntityBenchMatchers(b)
 	posts := entityBenchPosts()
 	app := entityBenchApp(entityBenchLRU(b))
@@ -135,7 +157,6 @@ func entityBenchRedis(tb testing.TB) cache.Cache {
 }
 
 func BenchmarkEntityPageRedis(b *testing.B) {
-	b.Setenv("MM_ENTITIES", "1")
 	installEntityBenchMatchers(b)
 	posts := entityBenchPosts()
 	app := entityBenchApp(entityBenchRedis(b))
@@ -168,7 +189,6 @@ func waitForPatternWrites(extra int64) {
 }
 
 func TestEntityPageUsesThePatternCache(t *testing.T) {
-	t.Setenv("MM_ENTITIES", "1")
 	installEntityBenchMatchers(t)
 	posts := entityBenchPosts()
 	application := entityBenchApp(entityBenchLRU(t))
@@ -199,7 +219,6 @@ func TestEntityPageUsesThePatternCache(t *testing.T) {
 }
 
 func TestEntityPageRescansAStaleGeneration(t *testing.T) {
-	t.Setenv("MM_ENTITIES", "1")
 	installEntityBenchMatchers(t)
 	post := entityBenchPosts()[0]
 	post.Message = "see CVE-2024-1234 today"
