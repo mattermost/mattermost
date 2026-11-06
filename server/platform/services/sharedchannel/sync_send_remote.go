@@ -541,7 +541,7 @@ func containsPost(posts []*model.Post, post *model.Post) bool {
 	return false
 }
 
-// fetchReactionsForSync populates the sync data with any new reactions since the last sync.
+// fetchReactionsForSync populates the sync data with all reactions of each post, removed ones included.
 func (scs *Service) fetchReactionsForSync(sd *syncData) error {
 	start := time.Now()
 	defer func() {
@@ -553,7 +553,7 @@ func (scs *Service) fetchReactionsForSync(sd *syncData) error {
 	merr := merror.New()
 	for _, post := range sd.posts {
 		// any reactions originating from the remote cluster are filtered out
-		reactions, err := scs.server.GetStore().Reaction().GetForPostSince(post.Id, sd.scr.LastPostUpdateAt, sd.rc.RemoteId, true)
+		reactions, err := scs.server.GetStore().Reaction().GetForPostSince(post.Id, 0, sd.rc.RemoteId, true)
 		if err != nil {
 			merr.Append(fmt.Errorf("could not get reactions for post %s: %w", post.Id, err))
 			continue
@@ -563,7 +563,7 @@ func (scs *Service) fetchReactionsForSync(sd *syncData) error {
 	return merr.ErrorOrNil()
 }
 
-// fetchAcknowledgementsForSync populates the sync data with any new acknowledgements since the last sync.
+// fetchAcknowledgementsForSync populates the sync data with all acknowledgements of each post, removed ones included.
 func (scs *Service) fetchAcknowledgementsForSync(sd *syncData) error {
 	start := time.Now()
 	defer func() {
@@ -575,7 +575,7 @@ func (scs *Service) fetchAcknowledgementsForSync(sd *syncData) error {
 	merr := merror.New()
 	for _, post := range sd.posts {
 		// any acknowledgements originating from the remote cluster are filtered out
-		acknowledgements, err := scs.server.GetStore().PostAcknowledgement().GetForPostSince(post.Id, sd.scr.LastPostUpdateAt, sd.rc.RemoteId, true)
+		acknowledgements, err := scs.server.GetStore().PostAcknowledgement().GetForPostSince(post.Id, 0, sd.rc.RemoteId, true)
 		if err != nil {
 			merr.Append(fmt.Errorf("could not get acknowledgements for post %s: %w", post.Id, err))
 			continue
@@ -727,17 +727,6 @@ func (scs *Service) filterPostsForSync(sd *syncData) {
 	filtered := make([]*model.Post, 0, len(sd.posts))
 
 	for _, p := range sd.posts {
-		// Don't resend an existing post where only the reactions changed.
-		// Posts we must send:
-		//   - new posts (EditAt == 0)
-		//   - edited posts (EditAt >= LastPostUpdateAt)
-		//   - deleted posts (DeleteAt > 0)
-		//   - posts with metadata changes (acknowledgements/priority)
-		hasMetadataChanges := p.Metadata != nil && (p.Metadata.Acknowledgements != nil || p.Metadata.Priority != nil)
-		if p.EditAt > 0 && p.EditAt < sd.scr.LastPostUpdateAt && p.DeleteAt == 0 && !hasMetadataChanges {
-			continue
-		}
-
 		// Don't send a deleted post if it is just the original copy from an edit.
 		if p.DeleteAt > 0 && p.OriginalId != "" {
 			continue

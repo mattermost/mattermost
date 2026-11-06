@@ -6350,11 +6350,6 @@
     "description": "Login error; {{.Service}} is the OAuth provider name whose returned user object could not be parsed."
   },
   {
-    "id": "api.user.login_cws.license.error",
-    "translation": "CWS login is forbidden.",
-    "description": "Login error when a Customer Web Server (CWS) portal login is attempted where it is not permitted; 'CWS' is the Mattermost customer portal."
-  },
-  {
     "id": "api.user.login_ldap.not_available.app_error",
     "translation": "AD/LDAP not available on this server.",
     "description": "Login error when AD/LDAP sign-in is attempted but LDAP is not configured or licensed on the server."
@@ -14937,6 +14932,36 @@
     "description": "Health dashboard finding title when the Global Relay message export SMTP timeout is under 30 seconds; 'Global Relay' is a product name and 'SMTPServerTimeout' is a config setting name, neither should be translated."
   },
   {
+    "id": "health.rule.filestore_disk_full.message",
+    "translation": "The volume containing FileSettings.Directory has {{.available_gib}} GiB ({{.percent}}%) available of {{.total_gib}} GiB. File uploads and other file operations can fail when the volume fills.",
+    "description": "Health dashboard finding detail when the local file storage volume has less than 5% and less than 5 GiB available; {{.available_gib}} and {{.total_gib}} are disk sizes in GiB, and {{.percent}} is the available percentage. 'FileSettings.Directory' is a config setting path and 'GiB' is a unit; neither should be translated."
+  },
+  {
+    "id": "health.rule.filestore_disk_full.remediation",
+    "translation": "Immediately expand the volume or remove unrelated data from its filesystem; do not manually delete files managed by Mattermost from FileSettings.Directory. Keep at least 10% or 10 GiB available, and never less than 1 GiB.",
+    "description": "Health dashboard fix-it step for a critically low local file storage volume. It warns against deleting Mattermost-managed files and gives the free-space target. 'Mattermost' is a product name, 'FileSettings.Directory' is a config setting path and 'GiB' is a unit; none should be translated."
+  },
+  {
+    "id": "health.rule.filestore_disk_full.title",
+    "translation": "File storage disk is nearly full",
+    "description": "Health dashboard finding title when a server node's local file storage volume has critically little space available."
+  },
+  {
+    "id": "health.rule.filestore_disk_low.message",
+    "translation": "The volume containing FileSettings.Directory has {{.available_gib}} GiB ({{.percent}}%) available of {{.total_gib}} GiB.",
+    "description": "Health dashboard finding detail when the local file storage volume has less than 1 GiB available, or less than 10% and less than 10 GiB available, unless the critical disk-space rule applies; {{.available_gib}} and {{.total_gib}} are disk sizes in GiB, and {{.percent}} is the available percentage. 'FileSettings.Directory' is a config setting path and 'GiB' is a unit; neither should be translated."
+  },
+  {
+    "id": "health.rule.filestore_disk_low.remediation",
+    "translation": "Expand the volume or remove unrelated data from its filesystem; do not manually delete files managed by Mattermost from FileSettings.Directory. Keep at least 10% or 10 GiB available, and never less than 1 GiB.",
+    "description": "Health dashboard fix-it step for a local file storage volume with low available space. It warns against deleting Mattermost-managed files and gives the free-space target. 'Mattermost' is a product name, 'FileSettings.Directory' is a config setting path and 'GiB' is a unit; none should be translated."
+  },
+  {
+    "id": "health.rule.filestore_disk_low.title",
+    "translation": "File storage disk space is low",
+    "description": "Health dashboard finding title when a server node's local file storage volume has low available space."
+  },
+  {
     "id": "health.rule.filestore_local_in_cluster.message",
     "translation": "FileSettings.DriverName is local with ClusterSettings.Enable on, and FileSettings.Directory is {{.directory}}. In a cluster this directory must be a shared mount (NFS, EFS, GlusterFS, CephFS) mounted identically on every node, or files uploaded to one node are not visible on the others. The configuration cannot show whether the directory is shared, and a node can pass the file storage connection test while writing to its own local disk.",
     "description": "Health dashboard finding detail when a high availability cluster stores files in a local directory that may or may not be a shared mount; {{.directory}} is the configured directory. 'FileSettings.DriverName', 'ClusterSettings.Enable' and 'FileSettings.Directory' are config setting paths, 'local' is a setting value, and NFS, EFS, GlusterFS and CephFS are shared file system names; do not translate them."
@@ -15327,6 +15352,26 @@
     "description": "Health dashboard finding title when a node of a high availability cluster did not return its diagnostics for the health check."
   },
   {
+    "id": "health.rule.oauth_probe_failed.message",
+    "translation": "The OAuth/OIDC provider connectivity probe failed from every reporting Mattermost node, so sign-in through this provider is likely unavailable.",
+    "description": "Health dashboard finding detail when every reporting Mattermost node fails to reach an enabled OAuth or OpenID Connect provider."
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.message.partial",
+    "translation": "The OAuth/OIDC provider connectivity probe failed on {{.nodes}}, while the other reporting nodes can reach the provider. Sign-in through this provider may fail on those nodes.",
+    "description": "Health dashboard finding detail when some cluster nodes cannot reach an enabled OAuth or OpenID Connect provider; {{.nodes}} is a comma-separated list of node hostnames."
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.remediation",
+    "translation": "Check the error details, the provider's discovery or token endpoint, and outbound network, firewall, proxy and DNS settings. Then confirm sign-in through the provider.",
+    "description": "Health dashboard fix-it step when an enabled OAuth or OpenID Connect provider connectivity probe fails."
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.title",
+    "translation": "OAuth/OIDC provider connectivity probe failed",
+    "description": "Health dashboard finding title when an enabled OAuth or OpenID Connect provider connectivity probe fails."
+  },
+  {
     "id": "health.rule.plugin_health_off.message",
     "translation": "PluginSettings.EnableHealthCheck is false, so a plugin that crashes is not restarted automatically.",
     "description": "Health dashboard finding detail when the plugin health check is turned off; 'PluginSettings.EnableHealthCheck' is a config setting path and should not be translated."
@@ -15420,6 +15465,26 @@
     "id": "health.rule.push_id_only.title",
     "translation": "Push notifications include the full message text",
     "description": "Health dashboard finding title when push notification payloads contain the message text and sender."
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.message",
+    "translation": "The connection test to the push notification server failed: {{.error}}. Mobile users may not receive push notifications.",
+    "description": "Health dashboard finding detail when no app node could connect to the configured push notification server; {{.error}} is the error the failing nodes reported, with URL credentials masked."
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.message.partial",
+    "translation": "The connection test to the push notification server failed on {{.nodes}}, while the other nodes reach it. Push notifications sent by those nodes may fail. Check the network, firewall, proxy and DNS settings on those nodes. Error: {{.error}}",
+    "description": "Health dashboard finding detail when the push notification server connection test fails on some cluster nodes but not others; {{.nodes}} is a comma-separated list of node hostnames and {{.error}} is the error the failing nodes reported, with URL credentials masked."
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.remediation",
+    "translation": "Check PushNotificationServer, TLS certificates and push proxy health. Confirm every Mattermost app node can reach the configured host over HTTPS, then verify its /version endpoint.",
+    "description": "Health dashboard fix-it step for a failed push notification server connection test; 'PushNotificationServer' is a config setting path, '/version' is a literal endpoint, and neither should be translated."
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.title",
+    "translation": "Push notification server connection test failed",
+    "description": "Health dashboard finding title when one or more app nodes could not connect to the configured push notification server."
   },
   {
     "id": "health.rule.push_test_proxy.message",

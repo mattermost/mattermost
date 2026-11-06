@@ -506,3 +506,71 @@ func TestStripSharedChannelStatePostsForSync(t *testing.T) {
 	assert.Equal(t, "user-1", sd.posts[0].Id)
 	assert.Equal(t, model.PostTypeDefault, sd.posts[0].Type)
 }
+
+func TestFilterPostsForSync(t *testing.T) {
+	mockServer := &MockServerIface{}
+	mockServer.On("Log").Return(mlog.CreateConsoleTestLogger(t))
+	scs := &Service{server: mockServer}
+
+	rc := &model.RemoteCluster{RemoteId: model.NewId()}
+	scr := &model.SharedChannelRemote{LastPostUpdateAt: 1000}
+	sd := newSyncData(syncTask{channelID: model.NewId()}, rc, scr)
+
+	editedID := model.NewId()
+	newID := model.NewId()
+	sd.posts = []*model.Post{
+		{Id: editedID, Message: "edited", CreateAt: 100, EditAt: 500, UpdateAt: 2000},
+		{Id: model.NewId(), Message: "original", CreateAt: 100, UpdateAt: 500, DeleteAt: 500, OriginalId: editedID},
+		{Id: newID, Message: "new", CreateAt: 1500, UpdateAt: 1500},
+		{Id: model.NewId(), Message: "from remote", CreateAt: 1500, UpdateAt: 1500, RemoteId: model.NewPointer(rc.RemoteId)},
+	}
+
+	scs.filterPostsForSync(sd)
+
+	ids := make([]string, 0, len(sd.posts))
+	for _, p := range sd.posts {
+		ids = append(ids, p.Id)
+	}
+	assert.Equal(t, []string{editedID, newID}, ids)
+}
+
+func TestFetchReactionsAndAcknowledgementsForSync(t *testing.T) {
+	remoteID := model.NewId()
+	postID := model.NewId()
+
+	reactions := []*model.Reaction{
+		{UserId: model.NewId(), PostId: postID, EmojiName: "smile", CreateAt: 100, UpdateAt: 100},
+		{UserId: model.NewId(), PostId: postID, EmojiName: "sad", CreateAt: 200, UpdateAt: 300, DeleteAt: 300},
+	}
+	acks := []*model.PostAcknowledgement{
+		{UserId: model.NewId(), PostId: postID, AcknowledgedAt: 100},
+		{UserId: model.NewId(), PostId: postID, AcknowledgedAt: 0},
+	}
+
+	mockReactionStore := &mocks.ReactionStore{}
+	mockReactionStore.On("GetForPostSince", postID, int64(0), remoteID, true).Return(reactions, nil)
+	mockAckStore := &mocks.PostAcknowledgementStore{}
+	mockAckStore.On("GetForPostSince", postID, int64(0), remoteID, true).Return(acks, nil)
+
+	mockStore := &mocks.Store{}
+	mockStore.On("Reaction").Return(mockReactionStore)
+	mockStore.On("PostAcknowledgement").Return(mockAckStore)
+
+	mockServer := &MockServerIface{}
+	mockServer.On("GetStore").Return(mockStore)
+	mockServer.On("GetMetrics").Return(nil)
+	scs := &Service{server: mockServer}
+
+	rc := &model.RemoteCluster{RemoteId: remoteID}
+	scr := &model.SharedChannelRemote{LastPostUpdateAt: 5000}
+	sd := newSyncData(syncTask{channelID: model.NewId()}, rc, scr)
+	sd.posts = []*model.Post{{Id: postID, CreateAt: 50, UpdateAt: 6000}}
+
+	require.NoError(t, scs.fetchReactionsForSync(sd))
+	require.NoError(t, scs.fetchAcknowledgementsForSync(sd))
+
+	assert.Equal(t, reactions, sd.reactions)
+	assert.Equal(t, acks, sd.acknowledgements)
+	mockReactionStore.AssertExpectations(t)
+	mockAckStore.AssertExpectations(t)
+}
