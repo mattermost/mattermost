@@ -1,5 +1,8 @@
 .channel-attributes-form {
     padding-top: 24px;
+
+    // Keeps the last combobox's focus ring from being clipped by the modal body's overflow.
+    padding-bottom: 2px;
     border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
     margin-top: 24px;
 
