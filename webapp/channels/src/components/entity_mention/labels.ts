@@ -8,25 +8,10 @@ const messages = defineMessages({
         id: 'entity_label.mm.time',
         defaultMessage: 'Time',
     },
-    vuln: {
-        id: 'entity_label.mm.vuln',
-        defaultMessage: 'Vulnerability',
-    },
-    ip: {
-        id: 'entity_label.mm.ip',
-        defaultMessage: 'IP address',
-    },
-    attack: {
-        id: 'entity_label.mm.attack',
-        defaultMessage: 'ATT&CK',
-    },
 });
 
 const labels: Record<string, typeof messages[keyof typeof messages]> = {
     'mm.time': messages.time,
-    'mm.vuln': messages.vuln,
-    'mm.ip': messages.ip,
-    'mm.attack': messages.attack,
 };
 
 export function entityLabel(typeId: string, formatMessage: IntlShape['formatMessage']) {
