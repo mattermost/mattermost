@@ -525,3 +525,77 @@ func TestSendChannelInvite_ExistingSharedConnection(t *testing.T) {
 		mockSharedChannelStore.AssertExpectations(t)
 	})
 }
+
+func TestSendChannelInvite_SyncCursorStartOnExistingRemote(t *testing.T) {
+	channelID := model.NewId()
+	userID := model.NewId()
+	remoteID := model.NewId()
+	channel := &model.Channel{Id: channelID, Type: model.ChannelTypeDirect}
+	rc := &model.RemoteCluster{RemoteId: remoteID, Name: "test-remote", DisplayName: "Test Remote", PluginID: "com.example.plugin", LastPingAt: model.GetMillis()}
+
+	testCases := []struct {
+		name         string
+		existing     *model.SharedChannelRemote
+		options      []InviteOption
+		expectCursor func(before, after int64) func(int64) bool
+	}{
+		{
+			name:     "pending remote starts at the requested cursor",
+			existing: &model.SharedChannelRemote{ChannelId: channelID, RemoteId: remoteID},
+			options:  []InviteOption{WithSyncCursorStart(1000)},
+			expectCursor: func(_, _ int64) func(int64) bool {
+				return func(cursor int64) bool { return cursor == 1000 }
+			},
+		},
+		{
+			name:     "pending remote starts now without the option",
+			existing: &model.SharedChannelRemote{ChannelId: channelID, RemoteId: remoteID},
+			expectCursor: func(before, after int64) func(int64) bool {
+				return func(cursor int64) bool { return cursor >= before && cursor <= after }
+			},
+		},
+		{
+			name:     "soft deleted remote starts now even with the option",
+			existing: &model.SharedChannelRemote{ChannelId: channelID, RemoteId: remoteID, DeleteAt: 12345},
+			options:  []InviteOption{WithSyncCursorStart(1000)},
+			expectCursor: func(before, after int64) func(int64) bool {
+				return func(cursor int64) bool { return cursor >= before && cursor <= after }
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mockServer := &MockServerIface{}
+			mockServer.On("Log").Return(mlog.CreateConsoleTestLogger(t))
+			mockServer.On("GetRemoteClusterService").Return(&stubRemoteClusterService{})
+			mockApp := &MockAppIface{}
+			mockApp.On("Publish", mock.Anything).Return()
+			mockApp.On("GetSystemBot", mockTypeContext).Return(nil, model.NewAppError("GetSystemBot", "test", nil, "", http.StatusInternalServerError))
+			scs := &Service{server: mockServer, app: mockApp, tasks: make(map[string]syncTask)}
+
+			var saved *model.SharedChannelRemote
+			mockSharedChannelStore := mocks.SharedChannelStore{}
+			mockSharedChannelStore.On("Get", channelID).Return(&model.SharedChannel{ChannelId: channelID}, nil)
+			mockSharedChannelStore.On("GetRemoteByIds", channelID, remoteID).Return(tc.existing, nil)
+			mockSharedChannelStore.On("UpdateRemote", mock.MatchedBy(func(scr *model.SharedChannelRemote) bool {
+				saved = scr
+				return true
+			})).Return(nil, nil).Once()
+			mockStore := &mocks.Store{}
+			mockStore.On("SharedChannel").Return(&mockSharedChannelStore)
+			mockServer.On("GetStore").Return(mockStore)
+
+			before := model.GetMillis()
+			require.NoError(t, scs.SendChannelInvite(channel, userID, rc, tc.options...))
+			after := model.GetMillis()
+
+			require.NotNil(t, saved)
+			check := tc.expectCursor(before, after)
+			assert.True(t, check(saved.LastPostCreateAt), "LastPostCreateAt=%d", saved.LastPostCreateAt)
+			assert.True(t, check(saved.LastPostUpdateAt), "LastPostUpdateAt=%d", saved.LastPostUpdateAt)
+			assert.True(t, saved.IsInviteConfirmed)
+			assert.Zero(t, saved.DeleteAt)
+		})
+	}
+}

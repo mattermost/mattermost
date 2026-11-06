@@ -2275,6 +2275,90 @@ func TestPluginAPIReceiveSharedChannelOnInactiveService(t *testing.T) {
 	})
 }
 
+func TestSharedChannelDMCreatedOnFollowerSyncsFirstPost(t *testing.T) {
+	th := setupSharedChannels(t).InitBasic(t)
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableSharedChannelsDMs = true })
+
+	tearDown, pluginIDs, activationErrors := SetAppEnvironmentWithPlugins(t, []string{`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost/server/public/model"
+			"github.com/mattermost/mattermost/server/public/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) OnSharedChannelsPing(rc *model.RemoteCluster) bool {
+			return true
+		}
+
+		func (p *MyPlugin) OnSharedChannelsSyncMsg(msg *model.SyncMsg, rc *model.RemoteCluster) (model.SyncResponse, error) {
+			var resp model.SyncResponse
+			for _, post := range msg.Posts {
+				if appErr := p.API.KVSet(post.Id, []byte(post.Message)); appErr != nil {
+					return resp, appErr
+				}
+				resp.PostsLastUpdateAt = max(resp.PostsLastUpdateAt, post.UpdateAt)
+			}
+			return resp, nil
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`}, th.App, th.NewPluginAPI)
+	defer tearDown()
+	require.NoError(t, activationErrors[0])
+	pluginID := pluginIDs[0]
+
+	remoteID, err := th.App.RegisterPluginForSharedChannels(th.Context, model.RegisterPluginOpts{
+		Displayname: "dm-plugin-remote",
+		PluginID:    pluginID,
+		CreatorID:   th.BasicUser.Id,
+		SiteURL:     "plugin://" + pluginID,
+	})
+	require.NoError(t, err)
+	require.NoError(t, th.App.Srv().Store().RemoteCluster().SetLastPingAt(remoteID))
+
+	remoteUser, appErr := th.App.CreateUser(th.Context, &model.User{
+		Email:    model.NewId() + "@remote.test",
+		Username: "remote-dm-" + model.NewId()[:8],
+		Password: model.NewTestPassword(),
+		RemoteId: new(remoteID),
+	})
+	require.Nil(t, appErr)
+
+	// The DM and its first post are created on a follower, where the shared channel service is inactive.
+	scService := th.Server.GetSharedChannelSyncService()
+	th.Server.SetSharedChannelSyncService(inactiveSharedChannelService{SharedChannelServiceIFace: scService})
+	dm, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, remoteUser.Id)
+	require.Nil(t, appErr)
+	require.True(t, dm.IsShared())
+	post, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+		ChannelId: dm.Id,
+		UserId:    th.BasicUser.Id,
+		Message:   "first post of the DM",
+	}, dm, model.CreatePostFlags{})
+	require.Nil(t, appErr)
+	th.Server.SetSharedChannelSyncService(scService)
+
+	// The leader handles the forwarded direct_added event after the post was created.
+	require.Eventually(t, func() bool { return model.GetMillis() > post.CreateAt }, time.Second, time.Millisecond)
+	event := model.NewWebSocketEvent(model.WebsocketEventDirectAdded, "", dm.Id, "", nil, "")
+	event.Add("creator_id", th.BasicUser.Id)
+	event.Add("teammate_id", remoteUser.Id)
+	th.Server.Platform().SharedChannelSyncHandler(event)
+
+	require.EventuallyWithT(t, func(c *assert.CollectT) {
+		value, appErr := th.App.GetPluginKey(pluginID, post.Id)
+		assert.Nil(c, appErr)
+		assert.Equal(c, post.Message, string(value))
+	}, 10*time.Second, 100*time.Millisecond, "the first post of the DM was not synced to the plugin remote")
+}
+
 // activatePluginFromTemplate compiles a Go plugin from a .go.tmpl template file located
 // in the tests/ directory, executes the template with the provided data, activates it in
 // a real plugin environment with full RPC, and returns the environment. The plugin's
