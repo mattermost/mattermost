@@ -24,6 +24,11 @@ class FakeGitHub:
         self.reviews_of = {}    # (repo, number) -> [review]
         self.files = {}         # (repo, ref, path) -> text
         self.trees = {}         # (repo, ref, path) -> {file name}
+        self.milestone_list = {}  # repo -> [milestone]
+        self.branches = set()   # (repo, branch)
+        self.repos = []         # the org's repos, as GitHub lists them
+        self.month_commits = {}  # repo -> [commit] in the month asked for
+        self.rate_limited = 0   # calls to fail with HTTP 403 (a rate limit) before answering
 
     def pulls_by_head(self, repo, head):
         self.queries.append(f"head:{head}")
@@ -51,8 +56,33 @@ class FakeGitHub:
     def commits(self, repo, sha, since=None, path=None, limit=1000):
         commits = self.branch_commits.get((repo, sha), [])
         if path:
-            commits = [c for c in commits if path in c.get("files", [path])]
+            commits = [c for c in commits
+                       if any(f == path or f.startswith(path.rstrip("/") + "/") for f in c.get("files", [path]))]
         return commits[:limit]
+
+    def milestones(self, repo):
+        return list(self.milestone_list.get(repo, []))
+
+    def branch_exists(self, repo, branch):
+        return (repo, branch) in self.branches
+
+    def commit_files(self, repo, sha):
+        return next(c.get("files", []) for commits in self.branch_commits.values() for c in commits if c["sha"] == sha)
+
+    def org_repos(self, org):
+        self._maybe_limited()
+        return list(self.repos)
+
+    def commits_in_range(self, repo, since, until):
+        self._maybe_limited()
+        self.queries.append(f"commits {repo} {since} {until}")
+        return list(self.month_commits.get(repo, []))
+
+    def _maybe_limited(self):
+        if self.rate_limited:
+            self.rate_limited -= 1
+            from release_agent.clients import ServiceError
+            raise ServiceError("GitHub", 403, "API rate limit exceeded")
 
     def commit_date(self, repo, ref):
         return self.dates[(repo, ref)]
@@ -116,6 +146,17 @@ class FakeHub:
         self.users = []  # {"username", "first_name", "last_name", "email", optional "delete_at"}
         self.user_searches = []
         self._next = 0
+        self.clock_ms = None  # create_at of the bot's next posts; a fixed far-future time when None
+
+    def user(self, user_id):
+        return next((u for u in self.users if u.get("id", u["username"]) == user_id), None)
+
+    def thread(self, post_id):
+        posts = [p for ps in self.posts.values() for p in ps if p["id"] == post_id or p.get("root_id") == post_id]
+        return sorted(posts, key=lambda p: p["create_at"])
+
+    def post_link(self, post_id):
+        return f"{self.base_url}/_redirect/pl/{post_id}"
 
     def user_by_username(self, username):
         return next((u for u in self.users if u["username"] == username), None)
@@ -145,9 +186,9 @@ class FakeHub:
     def server_version(self):
         return self.version
 
-    def add_post(self, channel, message, user_id="someone", props=None, create_at=0, post_id=None):
+    def add_post(self, channel, message, user_id="someone", props=None, create_at=0, post_id=None, root_id=""):
         self._next += 1
-        post = {"id": post_id or f"p{self._next}", "channel_id": channel, "message": message,
+        post = {"id": post_id or f"p{self._next}", "channel_id": channel, "message": message, "root_id": root_id,
                 "user_id": user_id, "props": props or {}, "create_at": create_at or self._next, "delete_at": 0}
         self.posts.setdefault(channel, []).append(post)
         return post
@@ -160,8 +201,8 @@ class FakeHub:
         return [p for p in self.posts.get(channel_id, []) if p["create_at"] >= since_ms]
 
     def create_post(self, channel_id, message, props=None, root_id=""):
-        post = self.add_post(channel_id, message, self.bot_id, props, create_at=10**13 + self._next)
-        post["root_id"] = root_id
+        when = self.clock_ms + self._next if self.clock_ms else 10**13 + self._next
+        post = self.add_post(channel_id, message, self.bot_id, props, create_at=when, root_id=root_id)
         self.created.append(post)
         return post
 
