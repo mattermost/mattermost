@@ -14932,6 +14932,36 @@
     "description": "Health dashboard finding title when the Global Relay message export SMTP timeout is under 30 seconds; 'Global Relay' is a product name and 'SMTPServerTimeout' is a config setting name, neither should be translated."
   },
   {
+    "id": "health.rule.filestore_disk_full.message",
+    "translation": "The volume containing FileSettings.Directory has {{.available_gib}} GiB ({{.percent}}%) available of {{.total_gib}} GiB. File uploads and other file operations can fail when the volume fills.",
+    "description": "Health dashboard finding detail when the local file storage volume has less than 5% and less than 5 GiB available; {{.available_gib}} and {{.total_gib}} are disk sizes in GiB, and {{.percent}} is the available percentage. 'FileSettings.Directory' is a config setting path and 'GiB' is a unit; neither should be translated."
+  },
+  {
+    "id": "health.rule.filestore_disk_full.remediation",
+    "translation": "Immediately expand the volume or remove unrelated data from its filesystem; do not manually delete files managed by Mattermost from FileSettings.Directory. Keep at least 10% or 10 GiB available, and never less than 1 GiB.",
+    "description": "Health dashboard fix-it step for a critically low local file storage volume. It warns against deleting Mattermost-managed files and gives the free-space target. 'Mattermost' is a product name, 'FileSettings.Directory' is a config setting path and 'GiB' is a unit; none should be translated."
+  },
+  {
+    "id": "health.rule.filestore_disk_full.title",
+    "translation": "File storage disk is nearly full",
+    "description": "Health dashboard finding title when a server node's local file storage volume has critically little space available."
+  },
+  {
+    "id": "health.rule.filestore_disk_low.message",
+    "translation": "The volume containing FileSettings.Directory has {{.available_gib}} GiB ({{.percent}}%) available of {{.total_gib}} GiB.",
+    "description": "Health dashboard finding detail when the local file storage volume has less than 1 GiB available, or less than 10% and less than 10 GiB available, unless the critical disk-space rule applies; {{.available_gib}} and {{.total_gib}} are disk sizes in GiB, and {{.percent}} is the available percentage. 'FileSettings.Directory' is a config setting path and 'GiB' is a unit; neither should be translated."
+  },
+  {
+    "id": "health.rule.filestore_disk_low.remediation",
+    "translation": "Expand the volume or remove unrelated data from its filesystem; do not manually delete files managed by Mattermost from FileSettings.Directory. Keep at least 10% or 10 GiB available, and never less than 1 GiB.",
+    "description": "Health dashboard fix-it step for a local file storage volume with low available space. It warns against deleting Mattermost-managed files and gives the free-space target. 'Mattermost' is a product name, 'FileSettings.Directory' is a config setting path and 'GiB' is a unit; none should be translated."
+  },
+  {
+    "id": "health.rule.filestore_disk_low.title",
+    "translation": "File storage disk space is low",
+    "description": "Health dashboard finding title when a server node's local file storage volume has low available space."
+  },
+  {
     "id": "health.rule.filestore_local_in_cluster.message",
     "translation": "FileSettings.DriverName is local with ClusterSettings.Enable on, and FileSettings.Directory is {{.directory}}. In a cluster this directory must be a shared mount (NFS, EFS, GlusterFS, CephFS) mounted identically on every node, or files uploaded to one node are not visible on the others. The configuration cannot show whether the directory is shared, and a node can pass the file storage connection test while writing to its own local disk.",
     "description": "Health dashboard finding detail when a high availability cluster stores files in a local directory that may or may not be a shared mount; {{.directory}} is the configured directory. 'FileSettings.DriverName', 'ClusterSettings.Enable' and 'FileSettings.Directory' are config setting paths, 'local' is a setting value, and NFS, EFS, GlusterFS and CephFS are shared file system names; do not translate them."
