@@ -14,26 +14,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/app/entities"
 )
 
-func TestEntityValidateCacheKeepsThePostTime(t *testing.T) {
-	t.Cleanup(func() {
-		validateMu.Lock()
-		validateCache = map[string]validateHit{}
-		validateMu.Unlock()
-	})
-
-	generation := entities.PatternGeneration()
-	rememberAccept("com.example", "com.example.dtg", "311200Z", 1_700_000_000_000, generation, true)
-	ok, hit := cachedAccept("com.example", "com.example.dtg", "311200Z", 1_700_000_000_000, generation)
-	require.True(t, hit)
-	require.True(t, ok)
-
-	_, otherMonth := cachedAccept("com.example", "com.example.dtg", "311200Z", 1_697_000_000_000, generation)
-	require.False(t, otherMonth)
-
-	_, otherGeneration := cachedAccept("com.example", "com.example.dtg", "311200Z", 1_700_000_000_000, generation+"x")
-	require.False(t, otherGeneration)
-}
-
 func TestEphemeralPostsAreNotScanned(t *testing.T) {
 	require.False(t, shouldDetectEntities(&model.Post{
 		Id:      "postid00000000000000000000",
@@ -44,6 +24,11 @@ func TestEphemeralPostsAreNotScanned(t *testing.T) {
 		Id:       "postid00000000000000000000",
 		Message:  "FREQ: 243.0",
 		DeleteAt: 1,
+	}))
+	require.False(t, shouldDetectEntities(&model.Post{
+		Id:      "postid00000000000000000000",
+		Type:    "custom_tf_location",
+		Message: "at 38.8977,-77.0365",
 	}))
 }
 

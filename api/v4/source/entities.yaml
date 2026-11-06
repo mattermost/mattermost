@@ -18,7 +18,7 @@
         Must be authenticated. Post-scoped lookups also require permission to
         read the post's channel.
 
-        __Minimum server version__: 11.3
+        __Minimum server version__: 12.2
       operationId: GetEntityCard
       parameters:
         - name: type_id

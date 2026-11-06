@@ -105,30 +105,6 @@ func (api *PluginAPI) RegisterEntityTerms(typeID string, terms []model.EntityTer
 	return api.app.RegisterPluginEntityTerms(api.id, typeID, terms)
 }
 
-func (api *PluginAPI) RegisterAutomationGroup(model.AutomationGroupDescriptor) error {
-	return errors.New("automation contributions are not available")
-}
-
-func (api *PluginAPI) RegisterAutomationSignal(model.AutomationSignalDescriptor) error {
-	return errors.New("automation contributions are not available")
-}
-
-func (api *PluginAPI) RegisterAutomationAction(model.AutomationActionDescriptor) error {
-	return errors.New("automation contributions are not available")
-}
-
-func (api *PluginAPI) EmitAutomationSignal(string, map[string]model.AutomationValue, string) error {
-	return errors.New("automation contributions are not available")
-}
-
-func (api *PluginAPI) ExecuteAutomationAction(*model.AutomationActionRequest) (*model.AutomationActionResponse, error) {
-	return nil, errors.New("automation contributions are not available")
-}
-
-func (api *PluginAPI) ListAutomationContributions() ([]model.AutomationGroupDescriptor, []model.AutomationSignalDescriptor, []model.AutomationActionDescriptor, error) {
-	return nil, nil, nil, errors.New("automation contributions are not available")
-}
-
 func (api *PluginAPI) UnregisterCommand(teamID, trigger string) error {
 	api.app.UnregisterPluginCommand(api.id, teamID, trigger)
 	return nil

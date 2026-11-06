@@ -289,7 +289,7 @@ func (r *registry) generation() string {
 		if t, ok := r.types[stored.typeID]; ok {
 			name = t.displayName
 		}
-		fmt.Fprintf(h, "%s\n%s\n%s\n%d\n%d\n%s\n%t\n%t\n%s\n%s\n", stored.id, stored.typeID, stored.pattern.String(), stored.valueGroup, stored.spanGroup, stored.boundary, stored.skipBots, stored.validate, stored.urlTemplate, name)
+		fmt.Fprintf(h, "%s\n%s\n%s\n%d\n%d\n%s\n%t\n%s\n%s\n", stored.id, stored.typeID, stored.pattern.String(), stored.valueGroup, stored.spanGroup, stored.boundary, stored.skipBots, stored.urlTemplate, name)
 	}
 	return hex.EncodeToString(h.Sum(nil))[:16]
 }
@@ -596,7 +596,6 @@ func AddMatcher(pluginID string, spec *model.EntityMatcher) error {
 		boundary:     spec.Boundary,
 		scope:        append([]string(nil), spec.Scope...),
 		skipBots:     spec.SkipBots,
-		validate:     spec.Validate,
 		pluginID:     pluginID,
 		displayName:  t.displayName,
 	}}
