@@ -125,6 +125,7 @@ describe('LoggedIn mapStateToProps', () => {
                 mfaRequired: false,
                 showTermsOfService: false,
                 customProfileAttributesEnabled: true,
+                permissionPoliciesEnabled: false,
             });
         });
     });

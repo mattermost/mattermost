@@ -46,11 +46,13 @@ describe('components/logged_in/LoggedIn', () => {
         currentUser: {} as UserProfile,
         mfaRequired: false,
         customProfileAttributesEnabled: false,
+        permissionPoliciesEnabled: false,
         actions: {
             autoUpdateTimezone: jest.fn(),
             getChannelURLAction: jest.fn(),
             updateApproximateViewTime: jest.fn(),
             getCustomProfileAttributeFields: jest.fn(),
+            fetchDelegatedPermissions: jest.fn(),
         },
         isCurrentChannelManuallyUnread: false,
         showTermsOfService: false,
@@ -221,6 +223,32 @@ describe('components/logged_in/LoggedIn', () => {
             renderWithContext(<LoggedIn {...props}>{children}</LoggedIn>);
 
             expect(props.actions.getCustomProfileAttributeFields).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('delegated permissions', () => {
+        it('should fetch the delegated permission set on mount when permission policies are enabled', () => {
+            const props = {
+                ...baseProps,
+                permissionPoliciesEnabled: true,
+                actions: {...baseProps.actions, fetchDelegatedPermissions: jest.fn()},
+            };
+
+            renderWithContext(<LoggedIn {...props}>{children}</LoggedIn>);
+
+            expect(props.actions.fetchDelegatedPermissions).toHaveBeenCalled();
+        });
+
+        it('should not fetch the delegated permission set when permission policies are disabled', () => {
+            const props = {
+                ...baseProps,
+                permissionPoliciesEnabled: false,
+                actions: {...baseProps.actions, fetchDelegatedPermissions: jest.fn()},
+            };
+
+            renderWithContext(<LoggedIn {...props}>{children}</LoggedIn>);
+
+            expect(props.actions.fetchDelegatedPermissions).not.toHaveBeenCalled();
         });
     });
 });

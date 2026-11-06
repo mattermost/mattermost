@@ -39,6 +39,35 @@ export function fetchRenderActionsForResource(resourceType: string, resourceId: 
     };
 }
 
+// Not cleared before a refetch: an emptied set would hide the console section in view and its
+// route would redirect away, only for the refetch to restore it. Superseded completions are
+// dropped by generation instead. Fails closed: an error empties the set.
+export function fetchDelegatedPermissions(): ActionFuncAsync<string[]> {
+    return async (dispatch, getState) => {
+        const generation = ++generationCounter;
+
+        let permissions: string[] = [];
+        let error;
+        try {
+            const data = await Client4.getDelegatedAdminActions();
+            permissions = Array.from(new Set(data.results.flatMap((result) => result.permissions)));
+        } catch (err) {
+            forceLogoutIfNecessary(err, dispatch, getState);
+            error = err;
+        }
+
+        dispatch({
+            type: RenderPermissionTypes.RECEIVED_DELEGATED_PERMISSIONS,
+            data: {permissions, generation},
+        });
+
+        if (error) {
+            return {error};
+        }
+        return {data: permissions};
+    };
+}
+
 // Matches the server's per-request action cap. Safe for the grouping below, since a group can
 // never hold more identifiers than the batch itself.
 const maxRenderDecisionsPerBatch = 16;
@@ -93,4 +122,10 @@ export function invalidateRenderDecisionsForChannel(channelId: string) {
 
 export function clearRenderDecisions() {
     return {type: RenderPermissionTypes.CLEAR_RENDER_DECISIONS, data: {generation: generationCounter}};
+}
+
+// Marks the delegated permission set stale without refetching it; the next reader that needs it
+// refetches. Stamped so a fetch already in flight can't mark it fresh again.
+export function invalidateDelegatedPermissions() {
+    return {type: RenderPermissionTypes.INVALIDATE_DELEGATED_PERMISSIONS, data: {generation: generationCounter}};
 }

@@ -8,6 +8,7 @@ import type {CloudState} from '@mattermost/types/cloud';
 import type {AdminConfig, ClientConfig, ClientLicense} from '@mattermost/types/config';
 
 import {getConfig as getClientConfig} from 'mattermost-redux/selectors/entities/general';
+import {hasDelegatedPermission} from 'mattermost-redux/selectors/entities/render_permissions';
 
 import store from 'stores/redux_store';
 
@@ -72,6 +73,7 @@ export const it = {
     userHasReadPermissionOnResource: (key: string) => (config: Partial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess) => (consoleAccess?.read as any)?.[key],
     userHasReadPermissionOnSomeResources: (key: {[key: string]: string}) => (config: Partial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess) => Object.values(key).some((resource) => (consoleAccess?.read as any)?.[resource]),
     userHasWritePermissionOnResource: (key: string) => (config: Partial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess) => (consoleAccess?.write as any)?.[key],
+    hasDelegatedPermission: (permission: string) => () => hasDelegatedPermission(store.getState(), permission),
     isSystemAdmin: (config: Partial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess, cloud?: CloudState, isSystemAdmin?: boolean) => Boolean(isSystemAdmin),
 };
 

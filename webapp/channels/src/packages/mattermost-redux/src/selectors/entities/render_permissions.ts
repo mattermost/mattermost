@@ -10,3 +10,19 @@ export function getRenderDecision(state: GlobalState, identifier: RenderDecision
     const {resourceType, resourceId, action} = identifier;
     return state.entities.renderPermissions.byResource[resourceType]?.[resourceId]?.[action];
 }
+
+export function getDelegatedPermissions(state: GlobalState): string[] {
+    return state.entities.renderPermissions.delegatedPermissions.permissions;
+}
+
+export function isDelegatedPermissionsLoaded(state: GlobalState): boolean {
+    return state.entities.renderPermissions.delegatedPermissions.loaded;
+}
+
+export function hasDelegatedPermission(state: GlobalState, permission: string): boolean {
+    return getDelegatedPermissions(state).includes(permission);
+}
+
+export function hasAnyDelegatedPermission(state: GlobalState): boolean {
+    return getDelegatedPermissions(state).length > 0;
+}

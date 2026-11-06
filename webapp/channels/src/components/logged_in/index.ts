@@ -7,9 +7,10 @@ import type {Dispatch} from 'redux';
 
 import {updateApproximateViewTime} from 'mattermost-redux/actions/channels';
 import {getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
+import {fetchDelegatedPermissions} from 'mattermost-redux/actions/render_permissions';
 import {autoUpdateTimezone} from 'mattermost-redux/actions/timezone';
 import {getChannel, getCurrentChannelId, isManuallyUnread} from 'mattermost-redux/selectors/entities/channels';
-import {getLicense, getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getLicense, getConfig, isPermissionPoliciesEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUser, shouldShowTermsOfService} from 'mattermost-redux/selectors/entities/users';
 
 import {getChannelURL} from 'selectors/urls';
@@ -42,6 +43,7 @@ export function mapStateToProps(state: GlobalState, ownProps: Props) {
         mfaRequired: checkIfMFARequired(getCurrentUser(state), license, config, ownProps.match.url),
         showTermsOfService,
         customProfileAttributesEnabled: isEnterpriseLicense(license),
+        permissionPoliciesEnabled: isPermissionPoliciesEnabled(state),
     };
 }
 
@@ -67,6 +69,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             getChannelURLAction,
             updateApproximateViewTime,
             getCustomProfileAttributeFields,
+            fetchDelegatedPermissions,
         }, dispatch),
     };
 }

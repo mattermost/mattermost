@@ -59,6 +59,17 @@ describe('ProductSwitcherSystemConsoleMenuItem', () => {
         expect(screen.getByText('System Console')).toBeInTheDocument();
     });
 
+    test('should show to a delegate without any system console read permission', () => {
+        const state = getState([]);
+        state.entities!.renderPermissions = {
+            delegatedPermissions: {permissions: [Permissions.DOWNLOAD_COMPLIANCE_EXPORT_RESULT], loaded: true, generation: 1},
+        };
+
+        renderWithContext(<ProductSwitcherSystemConsoleMenuItem/>, state);
+
+        expect(screen.getByText('System Console')).toBeInTheDocument();
+    });
+
     test('should show the visit system console tour when that onboarding task has started', () => {
         const startedStep = TaskNameMapToSteps[OnboardingTasksName.VISIT_SYSTEM_CONSOLE].STARTED;
 

@@ -72,7 +72,14 @@ import {
     handleCustomAttributesUpdated,
     handleCustomAttributesDeleted,
     handleJobUpdated,
+    refreshDelegatedPermissions,
+    refreshDelegatedPermissionsAfterRoleUpdate,
 } from './websocket_actions';
+
+jest.mock('mattermost-redux/actions/render_permissions', () => ({
+    ...jest.requireActual('mattermost-redux/actions/render_permissions'),
+    fetchDelegatedPermissions: jest.fn(() => ({type: 'MOCK_FETCH_DELEGATED_PERMISSIONS'})),
+}));
 
 jest.mock('mattermost-redux/actions/posts', () => ({
     ...jest.requireActual('mattermost-redux/actions/posts'),
@@ -1705,6 +1712,7 @@ describe('render permission invalidation via existing events', () => {
                 channels: {currentChannelId},
                 general: {config: {FeatureFlagPermissionPolicies: 'true'}},
                 posts: {postsInChannel: {}},
+                renderPermissions: {delegatedPermissions: {permissions: [], loaded: true, generation: 1}},
             },
         };
     }
@@ -1720,6 +1728,9 @@ describe('render permission invalidation via existing events', () => {
         // One bulk reset (no channel id) rather than one dispatch per loaded channel.
         expect(actions).toContainEqual({type: PostTypes.RESET_POSTS_IN_CHANNEL, channelId: undefined});
         expect(actions).toContainEqual({type: 'MOCK_LOAD_UNREADS', channelId: 'visible-channel'});
+
+        // Not a holder and not in the console, so the delegated set is only marked stale.
+        expect(actions.map((a) => a.type)).toContain(RenderPermissionTypes.INVALIDATE_DELEGATED_PERMISSIONS);
     });
 
     test('CPA value update with no channel in view resets without refetching', () => {
@@ -1740,6 +1751,83 @@ describe('render permission invalidation via existing events', () => {
         const types = testStore.getActions().map((a) => a.type);
         expect(types).not.toContain(RenderPermissionTypes.CLEAR_RENDER_DECISIONS);
         expect(types).not.toContain(PostTypes.RESET_POSTS_IN_CHANNEL);
+        expect(types).not.toContain(RenderPermissionTypes.INVALIDATE_DELEGATED_PERMISSIONS);
+    });
+});
+
+describe('delegated permission refresh', () => {
+    function stateWithDelegatedPermissions(permissions: string[]) {
+        return {
+            entities: {
+                renderPermissions: {delegatedPermissions: {permissions, loaded: true, generation: 1}},
+            },
+        };
+    }
+
+    let redirectUserToDefaultTeam: jest.Mock;
+    beforeEach(() => {
+        redirectUserToDefaultTeam = require('actions/global_actions').redirectUserToDefaultTeam;
+        redirectUserToDefaultTeam.mockReset();
+    });
+
+    afterEach(() => {
+        window.history.pushState({}, '', '/');
+    });
+
+    test('a holder refetches the set', async () => {
+        const testStore = configureStore(stateWithDelegatedPermissions(['create_compliance_export_job']));
+
+        await testStore.dispatch(refreshDelegatedPermissions());
+
+        const types = testStore.getActions().map((a) => a.type);
+        expect(types).toContain('MOCK_FETCH_DELEGATED_PERMISSIONS');
+        expect(types).not.toContain(RenderPermissionTypes.INVALIDATE_DELEGATED_PERMISSIONS);
+    });
+
+    test('a user in the System Console refetches the set', async () => {
+        window.history.pushState({}, '', '/admin_console/compliance/export');
+        const testStore = configureStore(stateWithDelegatedPermissions([]));
+
+        await testStore.dispatch(refreshDelegatedPermissions());
+
+        expect(testStore.getActions().map((a) => a.type)).toContain('MOCK_FETCH_DELEGATED_PERMISSIONS');
+    });
+
+    test('anyone else only has the set marked stale', async () => {
+        const testStore = configureStore(stateWithDelegatedPermissions([]));
+
+        await testStore.dispatch(refreshDelegatedPermissions());
+
+        const types = testStore.getActions().map((a) => a.type);
+        expect(types).toContain(RenderPermissionTypes.INVALIDATE_DELEGATED_PERMISSIONS);
+        expect(types).not.toContain('MOCK_FETCH_DELEGATED_PERMISSIONS');
+    });
+
+    test('a demoted admin holding a delegated permission stays in the System Console', async () => {
+        window.history.pushState({}, '', '/admin_console/compliance/export');
+        const testStore = configureStore(stateWithDelegatedPermissions(['create_compliance_export_job']));
+
+        await testStore.dispatch(refreshDelegatedPermissionsAfterRoleUpdate(true));
+
+        expect(redirectUserToDefaultTeam).not.toHaveBeenCalled();
+    });
+
+    test('a demoted admin without a delegated permission is redirected out of the System Console', async () => {
+        window.history.pushState({}, '', '/admin_console/compliance/export');
+        const testStore = configureStore(stateWithDelegatedPermissions([]));
+
+        await testStore.dispatch(refreshDelegatedPermissionsAfterRoleUpdate(true));
+
+        expect(redirectUserToDefaultTeam).toHaveBeenCalled();
+    });
+
+    test('a role update that is not a demotion does not redirect', async () => {
+        window.history.pushState({}, '', '/admin_console/compliance/export');
+        const testStore = configureStore(stateWithDelegatedPermissions([]));
+
+        await testStore.dispatch(refreshDelegatedPermissionsAfterRoleUpdate(false));
+
+        expect(redirectUserToDefaultTeam).not.toHaveBeenCalled();
     });
 });
 
@@ -1750,6 +1838,7 @@ describe('handlePermissionPolicyUpdatedEvent', () => {
                 channels: {currentChannelId},
                 general: {config: {FeatureFlagPermissionPolicies: permissionPoliciesEnabled ? 'true' : 'false'}},
                 posts: {postsInChannel: channelIds.reduce((acc, id) => ({...acc, [id]: []}), {})},
+                renderPermissions: {delegatedPermissions: {permissions: [], loaded: true, generation: 1}},
             },
         };
     }
@@ -1761,6 +1850,7 @@ describe('handlePermissionPolicyUpdatedEvent', () => {
 
         const actions = testStore.getActions();
         expect(actions.map((a) => a.type)).toContain(RenderPermissionTypes.CLEAR_RENDER_DECISIONS);
+        expect(actions.map((a) => a.type)).toContain(RenderPermissionTypes.INVALIDATE_DELEGATED_PERMISSIONS);
 
         const resets = actions.filter((a) => a.type === PostTypes.RESET_POSTS_IN_CHANNEL);
         expect(resets).toEqual([{type: PostTypes.RESET_POSTS_IN_CHANNEL, channelId: undefined}]);

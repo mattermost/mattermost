@@ -94,6 +94,7 @@ describe('components/AdminSidebar', () => {
             errors: {},
         },
         showTaskList: false,
+        delegatedPermissions: [],
     };
 
     Object.keys(RESOURCE_KEYS).forEach((key) => {
@@ -222,6 +223,7 @@ describe('components/AdminSidebar', () => {
             consoleAccess: {...defaultProps.consoleAccess},
             cloud: {...defaultProps.cloud},
             showTaskList: false,
+            delegatedPermissions: [],
         };
 
         const {container} = renderWithContext(<AdminSidebar {...props}/>);
@@ -268,6 +270,7 @@ describe('components/AdminSidebar', () => {
             consoleAccess: {...defaultProps.consoleAccess},
             cloud: {...defaultProps.cloud},
             showTaskList: false,
+            delegatedPermissions: [],
         };
 
         const {container} = renderWithContext(<AdminSidebar {...props}/>);
@@ -316,6 +319,7 @@ describe('components/AdminSidebar', () => {
             consoleAccess: {...defaultProps.consoleAccess},
             cloud: {...defaultProps.cloud},
             showTaskList: false,
+            delegatedPermissions: [],
         };
 
         const {container} = renderWithContext(<AdminSidebar {...props}/>);
@@ -392,6 +396,7 @@ describe('components/AdminSidebar', () => {
             consoleAccess: {...defaultProps.consoleAccess},
             cloud: {...defaultProps.cloud},
             showTaskList: false,
+            delegatedPermissions: [],
         };
 
         const {container} = renderWithContext(<AdminSidebar {...props}/>);
@@ -458,6 +463,7 @@ describe('components/AdminSidebar', () => {
             consoleAccess: {...defaultProps.consoleAccess},
             cloud: {...defaultProps.cloud},
             showTaskList: false,
+            delegatedPermissions: [],
         };
 
         const {container} = renderWithContext(<AdminSidebar {...props}/>);
@@ -522,6 +528,7 @@ describe('components/AdminSidebar', () => {
             consoleAccess: {...defaultProps.consoleAccess},
             cloud: {...defaultProps.cloud},
             showTaskList: false,
+            delegatedPermissions: [],
         };
 
         const {container} = renderWithContext(<AdminSidebar {...props}/>);
@@ -588,6 +595,7 @@ describe('components/AdminSidebar', () => {
             consoleAccess: {...defaultProps.consoleAccess},
             cloud: {...defaultProps.cloud},
             showTaskList: false,
+            delegatedPermissions: [],
         };
 
         const {container} = renderWithContext(<AdminSidebar {...props}/>);
@@ -649,6 +657,7 @@ describe('components/AdminSidebar', () => {
             consoleAccess: {...defaultProps.consoleAccess},
             cloud: {...defaultProps.cloud},
             showTaskList: false,
+            delegatedPermissions: [],
         };
 
         beforeEach(() => {
@@ -794,6 +803,7 @@ describe('components/AdminSidebar', () => {
             },
             cloud: {...defaultProps.cloud},
             showTaskList: false,
+            delegatedPermissions: [],
         };
 
         test('should match snapshot', () => {

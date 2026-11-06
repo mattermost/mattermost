@@ -244,6 +244,7 @@ const state: GlobalState = {
             groups: {byId: {}, byName: {}},
         },
         renderPermissions: {
+            delegatedPermissions: {permissions: [], loaded: false, generation: 0},
             byResource: {},
             invalidatedAt: 0,
             invalidatedAtByResource: {},

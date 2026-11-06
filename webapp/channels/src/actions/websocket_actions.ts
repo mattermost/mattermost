@@ -86,7 +86,7 @@ import {
     fetchSystemPropertyValues,
 } from 'mattermost-redux/actions/properties';
 import {getRecap} from 'mattermost-redux/actions/recaps';
-import {invalidateRenderDecisionsForChannel, clearRenderDecisions} from 'mattermost-redux/actions/render_permissions';
+import {invalidateRenderDecisionsForChannel, clearRenderDecisions, fetchDelegatedPermissions, invalidateDelegatedPermissions} from 'mattermost-redux/actions/render_permissions';
 import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
 import {fetchTeamScheduledPosts} from 'mattermost-redux/actions/scheduled_posts';
 import {fetchChannelRemotes} from 'mattermost-redux/actions/shared_channels';
@@ -128,6 +128,7 @@ import {getGroup} from 'mattermost-redux/selectors/entities/groups';
 import {getPost, getMostRecentPostIdInChannel, getTeamIdFromPost} from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getPropertyFieldById, getPropertyGroupById, getPropertyGroupByName} from 'mattermost-redux/selectors/entities/properties';
+import {hasAnyDelegatedPermission} from 'mattermost-redux/selectors/entities/render_permissions';
 import {haveISystemPermission, haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getScheduledPostTeamId, isScheduledPostsEnabled} from 'mattermost-redux/selectors/entities/scheduled_posts';
 import {
@@ -943,6 +944,20 @@ function refreshPostsAfterPolicyChange(channelId?: string): ThunkActionFunc<void
     };
 }
 
+// Holders and users in the System Console refetch now, as what they see depends on the set.
+// Anyone else only has it marked stale: most of these events reach every client, and a refetch
+// from each would be a request per connected user for a set nobody is looking at.
+export function refreshDelegatedPermissions(): ThunkActionFunc<Promise<unknown>> {
+    return (doDispatch, doGetState) => {
+        if (hasAnyDelegatedPermission(doGetState()) || global.location.pathname.startsWith('/admin_console')) {
+            return doDispatch(fetchDelegatedPermissions());
+        }
+
+        doDispatch(invalidateDelegatedPermissions());
+        return Promise.resolve();
+    };
+}
+
 // Permission policies are system-scoped, hence no resource ID on the event and no narrower reset.
 export function handlePermissionPolicyUpdatedEvent(): ThunkActionFunc<void> {
     return (doDispatch, doGetState) => {
@@ -950,6 +965,7 @@ export function handlePermissionPolicyUpdatedEvent(): ThunkActionFunc<void> {
             return;
         }
 
+        doDispatch(refreshDelegatedPermissions());
         doDispatch(clearRenderDecisions());
         doDispatch(refreshPostsAfterPolicyChange());
     };
@@ -1855,6 +1871,9 @@ export async function handleUserUpdatedEvent(msg: WebSocketMessages.UserUpdated)
     }
 
     if (currentUser.id === user.id) {
+        // Native user fields can appear in a delegation policy's expression.
+        dispatch(refreshDelegatedPermissions());
+
         if (user.update_at > currentUser.update_at) {
             // update user to unsanitized user data received from websocket message
             dispatch({
@@ -1886,6 +1905,9 @@ function handleRoleUpdatedEvent(msg: WebSocketMessages.RoleUpdated) {
         type: RoleTypes.RECEIVED_ROLE,
         data: role,
     });
+
+    // A role definition change can add or remove a permission of a registered action.
+    dispatch(refreshDelegatedPermissions());
 }
 
 function handleChannelCreatedEvent(msg: WebSocketMessages.ChannelCreated): ThunkActionFunc<void> {
@@ -2046,16 +2068,31 @@ function handleUserRoleUpdated(msg: WebSocketMessages.UserRoleUpdated) {
         store.dispatch({type: UserTypes.RECEIVED_PROFILE, data: {...user, roles}});
         dispatch(loadRolesIfNeeded(newRoles));
 
-        if (msg.data.user_id === getCurrentUserId(store.getState()) &&
-                isPermissionPoliciesEnabled(store.getState())) {
-            store.dispatch(clearRenderDecisions());
-            store.dispatch(refreshPostsAfterPolicyChange());
-        }
+        const demotedInConsole = demoted && global.location.pathname.startsWith('/admin_console');
 
-        if (demoted && global.location.pathname.startsWith('/admin_console')) {
+        if (msg.data.user_id === getCurrentUserId(store.getState())) {
+            store.dispatch(refreshDelegatedPermissionsAfterRoleUpdate(demotedInConsole));
+
+            if (isPermissionPoliciesEnabled(store.getState())) {
+                store.dispatch(clearRenderDecisions());
+                store.dispatch(refreshPostsAfterPolicyChange());
+            }
+        } else if (demotedInConsole) {
             redirectUserToDefaultTeam();
         }
     }
+}
+
+// A delegated permission keeps a demoted admin in the console, so the set is refreshed before
+// deciding to redirect.
+export function refreshDelegatedPermissionsAfterRoleUpdate(demotedInConsole: boolean): ThunkActionFunc<Promise<void>> {
+    return async (doDispatch, doGetState) => {
+        await doDispatch(refreshDelegatedPermissions());
+
+        if (demotedInConsole && !hasAnyDelegatedPermission(doGetState())) {
+            redirectUserToDefaultTeam();
+        }
+    };
 }
 
 function handleConfigChanged(msg: WebSocketMessages.ConfigChanged) {
@@ -2077,7 +2114,14 @@ function handleConfigChanged(msg: WebSocketMessages.ConfigChanged) {
         store.dispatch(clearRenderDecisions());
     }
 
+    const delegationInputChanged = (['EnableAttributeBasedAccessControl', 'FeatureFlagPermissionPolicies', 'FeatureFlagSessionAttributes'] as const).
+        some((setting) => currentConfig?.[setting] !== newConfig?.[setting]);
+
     store.dispatch({type: GeneralTypes.CLIENT_CONFIG_RECEIVED, data: newConfig});
+
+    if (delegationInputChanged) {
+        store.dispatch(refreshDelegatedPermissions());
+    }
 }
 
 function handleLicenseChanged(msg: WebSocketMessages.LicenseChanged) {
@@ -2086,6 +2130,7 @@ function handleLicenseChanged(msg: WebSocketMessages.LicenseChanged) {
     // A license change can flip ABAC availability, so clear cached render
     // decisions; they will be recomputed on demand.
     store.dispatch(clearRenderDecisions());
+    store.dispatch(refreshDelegatedPermissions());
 
     // Refresh server limits when license changes since limits may have changed
     dispatch(getServerLimits());
@@ -2625,10 +2670,13 @@ export function handleCustomAttributeValuesUpdated(msg: WebSocketMessages.CPAVal
         // The current user's attribute values are an input to ABAC evaluation, so
         // their render decisions are now stale. Other users' updates do not affect
         // the current user's own decisions.
-        if (msg.data.user_id === getCurrentUserId(doGetState()) &&
-                isPermissionPoliciesEnabled(doGetState())) {
-            doDispatch(clearRenderDecisions());
-            doDispatch(refreshPostsAfterPolicyChange());
+        if (msg.data.user_id === getCurrentUserId(doGetState())) {
+            doDispatch(refreshDelegatedPermissions());
+
+            if (isPermissionPoliciesEnabled(doGetState())) {
+                doDispatch(clearRenderDecisions());
+                doDispatch(refreshPostsAfterPolicyChange());
+            }
         }
     };
 }

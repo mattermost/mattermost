@@ -49,6 +49,7 @@ describe('reducers.entities.renderPermissions', () => {
 
     test('CLEAR_RENDER_DECISIONS and LOGOUT_SUCCESS reset to initial', () => {
         const seeded: RenderPermissionsState = {
+            delegatedPermissions: {permissions: [], loaded: false, generation: 0},
             byResource: {channel: {chan1: {upload_file_attachment: {allowed: true, evaluated: true, generation: 1}}}},
             invalidatedAt: 0,
             invalidatedAtByResource: {},
@@ -98,6 +99,62 @@ describe('reducers.entities.renderPermissions', () => {
 
             const invalidated = reducer(rehydrated, {type: RenderPermissionTypes.INVALIDATE_RENDER_DECISIONS_FOR_CHANNEL, data: {channelId: 'chan1', generation: 1}});
             expect(invalidated.invalidatedAtByResource.channel.chan1).toBe(1);
+        });
+    });
+
+    describe('delegatedPermissions', () => {
+        const receivedDelegated = (permissions: string[], generation: number) => ({
+            type: RenderPermissionTypes.RECEIVED_DELEGATED_PERMISSIONS,
+            data: {permissions, generation},
+        });
+
+        test('starts empty and not loaded', () => {
+            expect(reducer(undefined, {type: 'unknown'}).delegatedPermissions).toEqual({permissions: [], loaded: false, generation: 0});
+        });
+
+        test('a newer fetch replaces the set and an older one is dropped', () => {
+            let state = reducer(undefined, receivedDelegated(['create_compliance_export_job'], 2));
+            expect(state.delegatedPermissions).toEqual({permissions: ['create_compliance_export_job'], loaded: true, generation: 2});
+
+            state = reducer(state, receivedDelegated([], 3));
+            expect(state.delegatedPermissions.permissions).toEqual([]);
+
+            const before = state;
+            state = reducer(state, receivedDelegated(['create_compliance_export_job'], 1));
+            expect(state).toBe(before);
+        });
+
+        test('an unchanged set keeps its reference', () => {
+            const first = reducer(undefined, receivedDelegated(['read_compliance_export_job'], 1));
+            const second = reducer(first, receivedDelegated(['read_compliance_export_job'], 2));
+
+            expect(second.delegatedPermissions.generation).toBe(2);
+            expect(second.delegatedPermissions.permissions).toBe(first.delegatedPermissions.permissions);
+        });
+
+        test('invalidation marks the set stale and drops a fetch already in flight', () => {
+            let state = reducer(undefined, receivedDelegated(['read_compliance_export_job'], 1));
+
+            state = reducer(state, {type: RenderPermissionTypes.INVALIDATE_DELEGATED_PERMISSIONS, data: {generation: 2}});
+            expect(state.delegatedPermissions.loaded).toBe(false);
+
+            state = reducer(state, receivedDelegated([], 2));
+            expect(state.delegatedPermissions.loaded).toBe(false);
+
+            state = reducer(state, receivedDelegated([], 3));
+            expect(state.delegatedPermissions).toEqual({permissions: [], loaded: true, generation: 3});
+        });
+
+        test('render-decision clears leave the set alone', () => {
+            const state = reducer(undefined, receivedDelegated(['read_compliance_export_job'], 1));
+
+            expect(reducer(state, {type: RenderPermissionTypes.CLEAR_RENDER_DECISIONS, data: {generation: 5}}).delegatedPermissions).toBe(state.delegatedPermissions);
+        });
+
+        test('LOGOUT_SUCCESS resets the set', () => {
+            const state = reducer(undefined, receivedDelegated(['read_compliance_export_job'], 1));
+
+            expect(reducer(state, {type: UserTypes.LOGOUT_SUCCESS, data: {}}).delegatedPermissions).toEqual({permissions: [], loaded: false, generation: 0});
         });
     });
 });

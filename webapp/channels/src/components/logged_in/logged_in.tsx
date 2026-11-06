@@ -36,11 +36,13 @@ export type Props = {
     children?: React.ReactNode;
     mfaRequired: boolean;
     customProfileAttributesEnabled: boolean;
+    permissionPoliciesEnabled: boolean;
     actions: {
         autoUpdateTimezone: (deviceTimezone: string) => void;
         getChannelURLAction: (channelId: string, teamId: string, url: string) => void;
         updateApproximateViewTime: (channelId: string) => void;
         getCustomProfileAttributeFields: () => void;
+        fetchDelegatedPermissions: () => void;
     };
     showTermsOfService: boolean;
     location: {
@@ -76,6 +78,11 @@ export default class LoggedIn extends React.PureComponent<Props> {
         // Fetch custom profile attributes for authenticated user
         if (this.props.customProfileAttributesEnabled) {
             this.props.actions.getCustomProfileAttributeFields();
+        }
+
+        // Decides whether a delegate without an admin role sees the System Console at all.
+        if (this.props.permissionPoliciesEnabled) {
+            this.props.actions.fetchDelegatedPermissions();
         }
 
         // Make sure the websockets close and reset version

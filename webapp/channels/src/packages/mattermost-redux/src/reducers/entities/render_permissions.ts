@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {RenderPermissionsState, RenderPermissionEntry} from '@mattermost/types/render_permissions';
+import type {DelegatedPermissionsState, RenderPermissionsState, RenderPermissionEntry} from '@mattermost/types/render_permissions';
 
 import {RenderPermissionTypes, UserTypes} from 'mattermost-redux/action_types';
 import type {MMReduxAction} from 'mattermost-redux/action_types';
@@ -11,6 +11,43 @@ const CHANNEL_RESOURCE_TYPE = 'channel';
 
 type ByResource = RenderPermissionsState['byResource'];
 type InvalidatedAtByResource = RenderPermissionsState['invalidatedAtByResource'];
+
+const initialDelegatedPermissions: DelegatedPermissionsState = {permissions: [], loaded: false, generation: 0};
+
+// Independent of the render-decision stamps: a refetch replaces the set rather than following a
+// clear, so only completions older than the last fetch or invalidation need dropping.
+export function delegatedPermissions(state: DelegatedPermissionsState = initialDelegatedPermissions, action: MMReduxAction): DelegatedPermissionsState {
+    switch (action.type) {
+    case RenderPermissionTypes.RECEIVED_DELEGATED_PERMISSIONS: {
+        const {permissions, generation} = action.data as {permissions: string[]; generation: number};
+        if (generation <= state.generation) {
+            return state;
+        }
+
+        // Kept by reference when unchanged, so a refresh that changes nothing re-renders nothing.
+        const unchanged = state.permissions.length === permissions.length &&
+            state.permissions.every((permission, i) => permission === permissions[i]);
+
+        return {
+            permissions: unchanged ? state.permissions : permissions,
+            loaded: true,
+            generation,
+        };
+    }
+    case RenderPermissionTypes.INVALIDATE_DELEGATED_PERMISSIONS: {
+        const generation = Math.max(state.generation, action.data.generation as number);
+        if (!state.loaded && generation === state.generation) {
+            return state;
+        }
+
+        return {...state, loaded: false, generation};
+    }
+    case UserTypes.LOGOUT_SUCCESS:
+        return initialDelegatedPermissions;
+    default:
+        return state;
+    }
+}
 
 export function invalidatedAt(state = 0, action: MMReduxAction): number {
     switch (action.type) {
@@ -128,12 +165,14 @@ export default function renderPermissions(state: Partial<RenderPermissionsState>
     const nextInvalidatedAtByResource = invalidatedAtByResource(state.invalidatedAtByResource, action);
 
     const nextState = {
+        delegatedPermissions: delegatedPermissions(state.delegatedPermissions, action),
         byResource: byResource(state.byResource, action, nextInvalidatedAt, nextInvalidatedAtByResource),
         invalidatedAt: nextInvalidatedAt,
         invalidatedAtByResource: nextInvalidatedAtByResource,
     };
 
-    if (state.byResource === nextState.byResource &&
+    if (state.delegatedPermissions === nextState.delegatedPermissions &&
+        state.byResource === nextState.byResource &&
         state.invalidatedAt === nextState.invalidatedAt &&
         state.invalidatedAtByResource === nextState.invalidatedAtByResource) {
         // None of the children changed, so don't let the parent object change either.

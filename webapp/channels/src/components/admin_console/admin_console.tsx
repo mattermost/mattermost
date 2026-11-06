@@ -95,6 +95,7 @@ const AdminConsole = (props: Props) => {
     useEffect(() => {
         props.actions.getConfig();
         props.actions.getEnvironmentConfig();
+        props.actions.fetchDelegatedPermissions();
         props.actions.loadRolesIfNeeded(['channel_user', 'team_user', 'system_user', 'channel_admin', 'team_admin', 'system_admin', 'system_user_manager', 'system_custom_group_admin', 'system_read_only_admin', 'system_manager', 'system_shared_channel_manager']);
         props.actions.selectLhsItem(LhsItemType.None);
         props.actions.selectTeam('');
@@ -209,10 +210,18 @@ const AdminConsole = (props: Props) => {
     } = props;
     const {setNavigationBlocked, cancelNavigation, confirmNavigation, editRole, patchConfig} = props.actions;
 
+    // An OR on the admit side: a delegated permission admits a user without an admin role, and
+    // never replaces a role's access.
     if (!props.currentUserHasAnAdminRole) {
-        return (
-            <Redirect to={props.unauthorizedRoute}/>
-        );
+        if (!props.delegatedPermissionsLoaded) {
+            return null;
+        }
+
+        if (!props.hasAnyDelegatedPermission) {
+            return (
+                <Redirect to={props.unauthorizedRoute}/>
+            );
+        }
     }
 
     if (!mainRolesLoaded(props.roles)) {

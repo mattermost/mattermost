@@ -7,11 +7,13 @@ import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
 import {getConfig, getEnvironmentConfig, patchConfig} from 'mattermost-redux/actions/admin';
+import {fetchDelegatedPermissions} from 'mattermost-redux/actions/render_permissions';
 import {loadRolesIfNeeded, editRole} from 'mattermost-redux/actions/roles';
 import {selectTeam} from 'mattermost-redux/actions/teams';
 import {General} from 'mattermost-redux/constants';
 import * as Selectors from 'mattermost-redux/selectors/entities/admin';
 import {getConfig as getGeneralConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getDelegatedPermissions, hasAnyDelegatedPermission, isDelegatedPermissionsLoaded} from 'mattermost-redux/selectors/entities/render_permissions';
 import {getRoles} from 'mattermost-redux/selectors/entities/roles';
 import {getTeam} from 'mattermost-redux/selectors/entities/teams';
 import {isCurrentUserSystemAdmin, currentUserHasAnAdminRole, getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
@@ -45,6 +47,11 @@ function mapStateToProps(state: GlobalState) {
         showNavigationPrompt: showNavigationPrompt(state),
         isCurrentUserSystemAdmin: isCurrentUserSystemAdmin(state),
         currentUserHasAnAdminRole: currentUserHasAnAdminRole(state),
+        delegatedPermissionsLoaded: isDelegatedPermissionsLoaded(state),
+        hasAnyDelegatedPermission: hasAnyDelegatedPermission(state),
+
+        // Read by it.hasDelegatedPermission from the store; a prop so a change re-renders the routes.
+        delegatedPermissions: getDelegatedPermissions(state),
         roles: getRoles(state),
         adminDefinition,
         consoleAccess,
@@ -58,6 +65,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
         actions: bindActionCreators({
             getConfig,
             getEnvironmentConfig,
+            fetchDelegatedPermissions,
             patchConfig,
             setNavigationBlocked,
             deferNavigation,
