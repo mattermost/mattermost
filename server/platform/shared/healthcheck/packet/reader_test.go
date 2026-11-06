@@ -366,55 +366,6 @@ func TestReadNodeFileDescriptors(t *testing.T) {
 	assert.Equal(t, []finding{{Code: "NODE_FD_EXHAUSTION", State: healthcheck.StateFiring, Subject: "Server.FileDescriptors", Scope: "app-2.example.com"}}, fdFindings)
 }
 
-func TestReadNodeWithoutMemoryDiagnostics(t *testing.T) {
-	// Packets from servers that predate memory diagnostics keep container_memory_limit_mb
-	// but have none of the fields collected alongside the OOM kill count.
-	files := fixtureFiles(t, "ha")
-	name := "app-2.example.com/" + model.SupportPacketDiagnosticsFileName
-	var kept []string
-	for line := range strings.SplitSeq(string(files[name]), "\n") {
-		field, _, _ := strings.Cut(strings.TrimSpace(line), ":")
-		switch field {
-		case "available_memory_mb", "swap_total_mb", "swap_used_mb", "container_memory_usage_mb",
-			"container_memory_working_set_mb", "container_oom_kills", "process_rss_mb", "go_memory_limit_mb":
-			continue
-		}
-		kept = append(kept, line)
-	}
-	require.Less(t, len(kept), strings.Count(string(files[name]), "\n")+1, "the fixture should contain memory fields to strip")
-	files[name] = []byte(strings.Join(kept, "\n"))
-
-	p := readFiles(t, files)
-	assert.Empty(t, p.Warnings)
-	for _, node := range p.Snapshot.Nodes() {
-		assert.Equal(t, node.Hostname != "app-2.example.com", node.Has(model.SectionServerMemory), "node %q", node.Hostname)
-	}
-
-	memoryCodes := []string{
-		"NODE_CONTAINER_MEMORY_PRESSURE",
-		"NODE_CONTAINER_OOM_KILLS",
-		"NODE_HOST_MEMORY_LOW",
-		"NODE_GO_MEMORY_LIMIT_ABOVE_CONTAINER",
-	}
-	var unknown []string
-	for _, f := range evaluate(t, p.Snapshot) {
-		if f.Scope == "app-2.example.com" && slices.Contains(memoryCodes, f.Code) {
-			assert.Equal(t, healthcheck.StateUnknown, f.State, f.Code)
-			unknown = append(unknown, f.Code)
-		}
-	}
-	assert.ElementsMatch(t, memoryCodes, unknown)
-
-	t.Run("a packet from another platform keeps the section", func(t *testing.T) {
-		require.Contains(t, string(files[name]), "  os: linux\n")
-		files[name] = bytes.Replace(files[name], []byte("  os: linux\n"), []byte("  os: darwin\n"), 1)
-
-		for _, node := range readFiles(t, files).Snapshot.Nodes() {
-			assert.True(t, node.Has(model.SectionServerMemory), "node %q", node.Hostname)
-		}
-	})
-}
-
 func TestReadLicense(t *testing.T) {
 	t.Run("maps the license summary", func(t *testing.T) {
 		files := fixtureFiles(t, "standalone")

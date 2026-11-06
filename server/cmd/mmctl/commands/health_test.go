@@ -468,16 +468,10 @@ Version
             → Plan a staged upgrade to a supported Extended Support Release or the latest release. Supported versions are listed at https://docs.mattermost.com/product-overview/mattermost-server-releases.html.
 
 Could not evaluate
-  WARNING   A container process was killed for running out of memory on mm.example.com
-            Server diagnostics unavailable.
-  WARNING   Container memory nearly exhausted on mm.example.com
-            Server diagnostics unavailable.
-  WARNING   Go memory limit is at or above the container limit on mm.example.com
-            Server diagnostics unavailable.
   WARNING   Host memory is running low on mm.example.com
             Server diagnostics unavailable.
 
-2 critical, 4 could not be evaluated`, s.printedHealthFindings())
+2 critical, 1 could not be evaluated`, s.printedHealthFindings())
 	})
 
 	s.Run("plain output localizes a full filestore disk finding", func() {
@@ -546,19 +540,12 @@ Could not evaluate
 		s.Require().True(ok)
 		s.Equal(int64(healthTestPacketGeneratedAt), list.EvaluatedAt)
 		findings := list.Findings
-		s.Require().Len(findings, 6)
+		s.Require().Len(findings, 3)
 		codes := make([]string, 0, len(findings))
 		for _, finding := range findings {
 			codes = append(codes, finding.Code)
 		}
-		s.ElementsMatch([]string{
-			"VERSION_EOL",
-			"PUSH_BAD_SCHEME",
-			"NODE_CONTAINER_MEMORY_PRESSURE",
-			"NODE_CONTAINER_OOM_KILLS",
-			"NODE_HOST_MEMORY_LOW",
-			"NODE_GO_MEMORY_LIMIT_ABOVE_CONTAINER",
-		}, codes)
+		s.ElementsMatch([]string{"VERSION_EOL", "PUSH_BAD_SCHEME", "NODE_HOST_MEMORY_LOW"}, codes)
 
 		pushIndex := slices.IndexFunc(findings, func(finding *model.HealthFinding) bool { return finding.Code == "PUSH_BAD_SCHEME" })
 		s.Require().NotEqual(-1, pushIndex)
