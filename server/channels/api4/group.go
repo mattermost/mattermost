@@ -1402,6 +1402,10 @@ func restoreGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// addGroupMembers adds one or more users to a custom group. It validates the
+// request body for well-formed, non-duplicate user IDs and returns HTTP 400 if
+// any ID is invalid or repeated. Only custom groups may be modified through
+// this endpoint; LDAP-synced groups are rejected with a permission error.
 func addGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	permissionErr := requireLicense(c)
 	if permissionErr != nil {
@@ -1442,11 +1446,17 @@ func addGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	seen := make(map[string]bool, len(newMembers.UserIds))
 	for _, userID := range newMembers.UserIds {
 		if !model.IsValidId(userID) {
 			c.SetInvalidParamWithDetails("user_id", fmt.Sprintf("UserID %s is invalid", userID))
 			return
 		}
+		if seen[userID] {
+			c.SetInvalidParamWithDetails("user_id", fmt.Sprintf("UserID %s is duplicated", userID))
+			return
+		}
+		seen[userID] = true
 	}
 
 	auditRec := c.MakeAuditRecord(model.AuditEventAddGroupMembers, model.AuditStatusFail)
