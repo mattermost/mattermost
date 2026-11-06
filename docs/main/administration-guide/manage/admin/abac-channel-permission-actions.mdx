@@ -39,18 +39,20 @@ A user who doesn't match a rule is denied the action that rule governs. An actio
 - **Channel lists** omit the channel. This includes the sidebar and its categories, **Browse Channels**, channel autocomplete, and channel switcher results.
 - **Search results** omit posts from the channel, including message search, saved posts, and recent mentions.
 - **Threads and unread counts** leave the channel out: its threads don't appear in **Threads**, and it isn't counted in team or thread unread totals.
-- **Permalinks and direct URLs** to posts in the channel are rejected.
+- **Permalinks and direct URLs** to posts in the channel are rejected. Permalink previews of its posts, and links to the channel in messages elsewhere, aren't shown to the user.
 - **Files** in the channel can't be fetched. This covers file info, download, thumbnail, and preview requests.
 - **Channel member lists and member counts** aren't returned.
 - **Real-time updates** stop: events for the channel are dropped from the user's WebSocket connection before they reach the client. This includes plugin events sent to the whole channel, such as an AI reply streamed by the Agents plugin.
-- **Push notifications** for the channel are downgraded rather than suppressed. The device receives an ID-only or generic notification without the message content or channel name, and the follow-up fetch from the device re-runs the check.
 - **Recaps** leave the channel out when a recap is created, scheduled, or viewed.
 - **Content review**: a content reviewer needs read access to the channel to view a flagged post from it or generate a report about it.
 - **Marking the channel as read** is rejected.
 
-Joining a channel also requires read access: self-joining a public channel, using `/join`, and requesting to join a discoverable channel are all denied without it.
+Joining a channel also requires read access: self-joining a public channel, using `/join`, and requesting to join a discoverable channel are all denied without it. Read rules keep applying after a channel is archived, so they also restrict who can read its history.
 
-**Email notifications** for a channel are sent with generic content to every recipient while a read rule governs that channel, whether or not the recipient satisfies it. An email isn't tied to a session the rule could be evaluated against, so Mattermost doesn't include the message content.
+**Notifications never carry the content of a channel with read rules.** A notification is sent to all of a user's devices and to their email, outside any single session, so Mattermost can't tell which of them the rule allows. While a read rule governs a channel, every recipient gets notifications without the message content, whether or not they satisfy the rule:
+
+- **Push notifications** are sent ID-only, so each device fetches the message with its own session and the check runs for that device. If ID-only push notifications aren't available, the notification is generic and omits the channel name.
+- **Email notifications** use generic content.
 
 ## What Channel Write Access covers
 
@@ -60,8 +62,8 @@ Joining a channel also requires read access: self-joining a public channel, usin
 - **Drafts and typing indicators** for the channel are rejected.
 - **Reactions, pins, and acknowledgements** can't be added or removed, including removing others' reactions.
 - **File uploads** and file attachment edits are blocked.
-- **Channel-wide mentions** (`@channel`, `@here`, `@all`), **group mentions**, and **slash commands** can't be used in the channel.
-- **Incoming webhooks** for the channel can't be created or updated. A webhook posts without a session that could be evaluated later, so the check is made when it's set up.
+- **Channel-wide mentions** (`@channel`, `@here`, `@all`), **group mentions**, and **slash commands** can't be used in the channel. A slash command whose response posts into a different channel also needs write access to that channel.
+- **Interactive messages and dialogs**: clicking a message button or menu option and submitting an interactive dialog are blocked, because the integration acts in the channel on the user's behalf.
 - **Content review**: a content reviewer needs write access to the channel to keep or remove a flagged post from it.
 
 In the web and desktop apps, the message box is disabled with **You do not have permission to post in this channel.** This is a convenience only; the server evaluates the policy on every request.
@@ -76,10 +78,10 @@ In the web and desktop apps, the message box is disabled with **You do not have 
 - **Membership management** is blocked: adding or removing other members, changing channel roles, and managing join requests. Team invitations that include the channel still invite the user to the team, but not to that channel.
 - **Shared channel connections** to other workspaces can't be added or removed.
 - **Channel-scoped property fields** can't be created, edited, or deleted.
-- **Access rules for the channel**, including its membership policy and the rules in its **Permissions Policy** tab, can't be changed by Channel Admins or Team Admins.
+- **Access rules for the channel**, including its membership policy and the rules in its **Permissions Policy** tab, can't be viewed or changed by Channel Admins or Team Admins, and they can't assign a membership policy to the channel or remove one from it.
 - **Slash commands** that do any of the above, such as `/header`, `/purpose`, `/rename`, `/invite`, `/kick`, and `/share-channel`, are rejected.
 
-In the web and desktop apps, **Channel Settings** opens read-only with **Editing is restricted — An access policy prevents you from making changes in this channel. These settings are shown for reference only.**
+In the web and desktop apps, **Channel Settings** opens read-only with **Editing is restricted — An access policy prevents you from making changes in this channel.**
 
 **System Admins are never bound by Manage Channel.** Any user with the `manage_system` permission can manage every channel regardless of these rules, so a System Admin can always repair a channel's settings or its access rules.
 
@@ -97,7 +99,7 @@ For every request that touches a channel:
 
 ### Rules for different roles
 
-In the System Console, a policy applies to one system role: **Guest users**, **Members**, or **System administrators**. System administrators fall back to the **Members** policy when there's no admin-specific policy with the same permissions.
+In the System Console, a policy applies to one system role: **Guest users**, **Members**, or **System administrators**. A policy that uses these actions can't target a custom role. System administrators fall back to the **Members** policy when there's no admin-specific policy with the same permissions.
 
 In Channel Settings, rules apply to a channel role: **Channel guest**, **Channel member**, or **Channel admin**. Once a channel has a rule for an action, that action is governed for the whole channel:
 
@@ -106,17 +108,16 @@ In Channel Settings, rules apply to a channel role: **Channel guest**, **Channel
 
 ## Bots and integrations
 
-- **Bots aren't evaluated for Channel Write Access.** Posting is how bots and integrations do their job, and write rules commonly check session attributes such as network or device, which a bot's access token never reports. Evaluating them would deny every bot post in a governed channel. Webhooks and plugins already post without a permission check, so bots are exempt for consistency with them. This applies whatever attribute a write rule checks, including `user.isbot`. To stop a bot posting in a channel, remove it from the channel. Denying it read access hides the channel from the bot but doesn't stop it posting.
-- **Bots are evaluated for Channel Read Access and Manage Channel.** Bots authenticate with access tokens, which [don't report session attributes](/administration-guide/manage/admin/session-attributes#are-session-attributes-collected-for-bots-personal-access-tokens-or-integrations), so a read rule that references a session attribute hides the channel from every bot. A bot is also denied when it's missing a user attribute the rule checks.
-- **Plugins, incoming webhooks, and custom slash command responses** aren't evaluated, as with other [permission policies](/administration-guide/manage/admin/abac-system-wide-policies#permission-policies). Setting up an incoming webhook does require write access to its channel.
+- **Bots are evaluated like any user** for all three actions. Bots authenticate with access tokens, which [don't report session attributes](/administration-guide/manage/admin/session-attributes#are-session-attributes-collected-for-bots-personal-access-tokens-or-integrations), so a rule that requires a session attribute denies every bot. A bot is also denied when it's missing a user attribute the rule checks. To let bots through a rule built on session attributes, say so in the rule, for example by allowing `user.isbot` as an alternative to the session condition.
+- **Plugins and incoming and outgoing webhooks** aren't governed by these actions. Creating and managing webhooks needs only the usual role-based permissions.
 - **Direct messages and group messages** are out of scope. These actions never apply to DM or GM channels, regardless of policy.
 
 ## Work done without a session
 
-Some work happens on the server without the user's session: building recaps, push notifications, and email notifications. Where Mattermost needs a decision for this work, it evaluates the user's attributes alone. Session attributes aren't available, so a rule that references them denies:
+Some work happens on the server without the user's session:
 
-- **Recaps** are built by a background job, so they leave out a channel whose read rules reference session attributes, even if the user could read it from their current session.
-- **Push notification content** for such a channel is downgraded, as described above.
+- **Recaps** are built by a background job that evaluates the user's roles and attributes alone. Session attributes aren't available to it, so a recap leaves out a channel whose read rules require one, even if the user could read the channel from their current session.
+- **Push and email notifications** aren't evaluated per recipient. They leave out the content of any channel with read rules, as described in [What Channel Read Access covers](#what-channel-read-access-covers).
 - **The push notification badge** counts every channel the user belongs to, including channels they're denied read access to. The in-app unread counts leave those channels out.
 
 ## Configure the actions
@@ -150,7 +151,7 @@ The tab is available on public and private channels when ABAC is enabled. Defaul
 Because these actions take effect immediately and can apply to the admin who configures them, Mattermost blocks the most common self-lockout mistakes:
 
 - **On save, every rule that carries a condition must still match its author**, unless the author has the `manage_system` permission. A policy that would exclude its own author is rejected with **You do not satisfy one or more conditions in this policy.**
-- **In Channel Settings**, rules that include **Channel read access** or **Manage channel** are simulated against the current user before they're saved. If the simulation denies read access, the save is blocked with **Cannot save permission rules — You cannot save these rules because they would remove your own access to this channel. Update the Channel read access rules so that you still satisfy them, then try again.** If it denies Manage channel, the save is blocked with **You cannot save these rules because they would remove your own ability to manage this channel. Update the Manage channel rules so that you still satisfy them, then try again.** System Admins skip the Manage channel check, since that action never binds them. The save is also blocked if the check can't be completed.
+- **In Channel Settings**, rules that include **Channel read access** or **Manage channel** are simulated against the current user before they're saved. If the simulation denies read access, the save is blocked with **Cannot save permission rules — You cannot save these rules because they would remove your own access to this channel. Update the Channel read access rules so that you still satisfy them, then try again.** If it denies Manage channel, the save is blocked with **You cannot save these rules because they would remove your own ability to manage this channel. Update the Manage channel rules so that you still satisfy them, then try again.** System Admins skip the Manage channel check, since that action never binds them. If the check can't be completed, the save is blocked with **Could not confirm that you would keep access to this channel. Please try again.**
 
 <Tip>
 
@@ -172,7 +173,7 @@ Use **Simulate rules** to preview which users a draft policy allows and denies b
 
 Requests that fetch a specific resource return an explicit error, while requests that return a list silently omit what the policy denies. This keeps the existence of a restricted channel from leaking through a list endpoint.
 
-The web and desktop apps re-check access when a policy changes or the connection is re-established, so a channel the user can no longer read doesn't linger in the sidebar.
+The web and desktop apps re-check access when a policy changes, when the user's system or channel role changes, or when the connection is re-established, so a channel the user can no longer read doesn't linger in the sidebar.
 
 <Note>
 
@@ -202,21 +203,21 @@ The rule most likely references a session attribute such as IP address or user a
 
 The channel has its own **Channel read access** rules in its **Permissions Policy** tab. Non-members have no channel role for those rules to match, so they're denied read access, which also prevents them from joining. See [Rules for different roles](#rules-for-different-roles).
 
-### Why can't a bot see a channel?
+### Why can't a bot see or post in a channel?
 
-Bots are evaluated for **Channel Read Access**, and they don't report session attributes. A read rule that references a session attribute therefore denies every bot.
+Bots are evaluated for all three actions, and they don't report session attributes. A rule that requires a session attribute therefore denies every bot. Allow bots explicitly in the rule, for example with `user.isbot`, if they should keep access.
 
 ### Does losing read access remove the user from the channel?
 
 No. Check the channel's member list — the membership is unchanged. Only a membership policy removes members.
 
+### Why don't notifications for a channel show the message, even for users who can read it?
+
+A **Channel Read Access** rule governs the channel. Push and email notifications go out without the user's session, so Mattermost withholds the message content from every recipient. Push notifications are sent ID-only, and the mobile app fetches the message with the device's own session, so a user the rule allows still sees it when they open the notification.
+
 ### Why did a user receive a push notification for a channel they can't read?
 
-That's by design. The notification is downgraded to an ID-only or generic form, and the device's follow-up fetch for the content re-runs the check.
-
-### Why are email notifications for a channel always generic?
-
-A **Channel Read Access** rule governs the channel. Email notifications aren't tied to a session, so Mattermost withholds message content from every recipient's email for that channel.
+That's by design. The notification doesn't contain the message, and the device's fetch for the content is checked against the rule.
 
 ### Why is a channel missing from a user's recap?
 
