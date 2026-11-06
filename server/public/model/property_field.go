@@ -1035,7 +1035,7 @@ func PropertyFieldChangeIsOptionsOnly(existing, updated *PropertyField) bool {
 	if updated.Bounds != nil && !PropertyBoundsEqual(existing.Bounds, updated.Bounds) {
 		return false
 	}
-	if updated.Mutability != "" && updated.Mutability != existing.Mutability.orMutable() {
+	if updated.Mutability != "" && updated.Mutability != existing.Mutability.OrMutable() {
 		return false
 	}
 	if !equalPermissionLevelPointers(existing.PermissionField, updated.PermissionField) ||

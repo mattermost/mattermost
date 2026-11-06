@@ -1464,9 +1464,7 @@ func (h *AccessControlAttributeValidationHook) validateBoundsChange(field, exist
 	prevMutability := model.PropertyFieldMutabilityMutable
 	if existing != nil {
 		prevBounds = existing.Bounds
-		if existing.Mutability != "" {
-			prevMutability = existing.Mutability
-		}
+		prevMutability = existing.Mutability.OrMutable()
 	}
 
 	for _, rule := range field.Bounds {

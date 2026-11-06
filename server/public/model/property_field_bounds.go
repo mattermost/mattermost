@@ -46,8 +46,8 @@ const (
 
 const PropertyFieldMaxBoundsRules = 8
 
-// orMutable reads an unset mutability as mutable.
-func (m PropertyFieldMutability) orMutable() PropertyFieldMutability {
+// OrMutable reads an unset mutability as mutable.
+func (m PropertyFieldMutability) OrMutable() PropertyFieldMutability {
 	if m == "" {
 		return PropertyFieldMutabilityMutable
 	}
@@ -126,7 +126,7 @@ func (pf *PropertyField) validateBounds() *AppError {
 		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": fieldName, "Reason": reason}, "id="+pf.ID, http.StatusBadRequest)
 	}
 
-	mutability := pf.Mutability.orMutable()
+	mutability := pf.Mutability.OrMutable()
 	switch mutability {
 	case PropertyFieldMutabilityMutable, PropertyFieldMutabilityWriteOnce, PropertyFieldMutabilitySetOnCreate:
 	default:
