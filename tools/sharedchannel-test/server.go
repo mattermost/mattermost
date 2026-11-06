@@ -20,6 +20,9 @@ type ServerManager struct {
 	procA  *exec.Cmd
 	procB  *exec.Cmd
 	binary string
+	// pluginDir holds a separate plugin and client plugin directory for each
+	// server, so test plugins stay out of ServerDir and the servers don't share one.
+	pluginDir string
 }
 
 func NewServerManager(cfg Config, logger *mlog.Logger) *ServerManager {
@@ -34,6 +37,9 @@ func (sm *ServerManager) Setup(ctx context.Context) error {
 	if err := sm.resetDatabases(ctx); err != nil {
 		return fmt.Errorf("reset databases: %w", err)
 	}
+	if err := sm.makePluginDirs(); err != nil {
+		return fmt.Errorf("plugin directories: %w", err)
+	}
 	if err := sm.startServers(ctx); err != nil {
 		return fmt.Errorf("start servers: %w", err)
 	}
@@ -45,6 +51,33 @@ func (sm *ServerManager) Teardown() {
 	sm.logger.Info("Stopping servers...")
 	stopProc(sm.procA)
 	stopProc(sm.procB)
+	if sm.pluginDir != "" {
+		_ = os.RemoveAll(sm.pluginDir)
+	}
+}
+
+func (sm *ServerManager) makePluginDirs() error {
+	dir, err := os.MkdirTemp("", "sharedchannel-test-plugins-")
+	if err != nil {
+		return err
+	}
+	sm.pluginDir = dir
+	for _, server := range []string{"a", "b"} {
+		for _, sub := range []string{"plugins", "client"} {
+			if err := os.MkdirAll(filepath.Join(dir, server, sub), 0o755); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// pluginEnv points one server ("a" or "b") at its own plugin directories.
+func (sm *ServerManager) pluginEnv(server string) []string {
+	return []string{
+		"MM_PLUGINSETTINGS_DIRECTORY=" + filepath.Join(sm.pluginDir, server, "plugins"),
+		"MM_PLUGINSETTINGS_CLIENTDIRECTORY=" + filepath.Join(sm.pluginDir, server, "client"),
+	}
 }
 
 // stopProc sends SIGINT and waits up to 10 seconds for graceful shutdown,
@@ -126,6 +159,9 @@ func (sm *ServerManager) commonEnv() []string {
 		// so they don't collide on the metrics port (:8067) when the loaded config.json
 		// happens to have metrics enabled.
 		"MM_METRICSSETTINGS_ENABLE=false",
+		// The cursor rewind test uploads a small plugin.
+		"MM_PLUGINSETTINGS_ENABLE=true",
+		"MM_PLUGINSETTINGS_ENABLEUPLOADS=true",
 	}
 }
 
@@ -146,6 +182,7 @@ func (sm *ServerManager) launchServerB(logsDir string, truncate bool) error {
 		"MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest_password@localhost/mattermost_node_test?sslmode=disable&connect_timeout=10&binary_parameters=yes",
 		"MM_LOGSETTINGS_FILELOCATION="+filepath.Join(logsDir, "server_b.log"),
 	)
+	sm.procB.Env = append(sm.procB.Env, sm.pluginEnv("b")...)
 	flags := os.O_CREATE | os.O_WRONLY | os.O_APPEND
 	if truncate {
 		flags = os.O_CREATE | os.O_WRONLY | os.O_TRUNC
@@ -179,6 +216,7 @@ func (sm *ServerManager) startServers(ctx context.Context) error {
 		"MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest_password@localhost/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes",
 		"MM_LOGSETTINGS_FILELOCATION="+filepath.Join(logsDir, "server_a.log"),
 	)
+	sm.procA.Env = append(sm.procA.Env, sm.pluginEnv("a")...)
 	outA, err := os.Create(filepath.Join(logsDir, "server_a_stdout.log"))
 	if err != nil {
 		return fmt.Errorf("create server A log file: %w", err)
