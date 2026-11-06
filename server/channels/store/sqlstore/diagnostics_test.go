@@ -46,12 +46,27 @@ func TestGetDiagnostics(t *testing.T) {
 		require.NotNil(t, diagnostics.WaitingForLockCount)
 		require.NotNil(t, diagnostics.PostsDeadTuples)
 
+		const lastVacuumQuery = `
+SELECT last_vacuum
+FROM pg_stat_user_tables
+WHERE lower(relname) = 'posts'
+  AND schemaname = current_schema()
+LIMIT 1`
+		var lastVacuumBefore sql.NullTime
+		require.NoError(t, sqlStore.GetMaster().Get(&lastVacuumBefore, lastVacuumQuery))
+
 		_, err = sqlStore.GetMaster().Exec("VACUUM posts")
 		require.NoError(t, err)
+		var lastVacuumAfter sql.NullTime
+		require.NoError(t, sqlStore.GetMaster().Get(&lastVacuumAfter, lastVacuumQuery))
+		require.True(t, lastVacuumAfter.Valid)
+		assert.True(t, lastVacuumAfter.Time.After(lastVacuumBefore.Time))
+
 		diagnostics, err = sqlStore.GetDiagnostics(rctx)
 		require.NoError(t, err)
 		require.NotNil(t, diagnostics.PostsLastVacuum)
 		assert.Equal(t, time.UTC, diagnostics.PostsLastVacuum.Location())
+		assert.Equal(t, lastVacuumAfter.Time.UTC(), *diagnostics.PostsLastVacuum)
 	})
 }
 
