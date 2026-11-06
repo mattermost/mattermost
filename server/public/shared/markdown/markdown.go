@@ -165,7 +165,7 @@ func trimBytesFromRanges(ranges []Range, bytes int) []Range {
 	return ranges[len(ranges):]
 }
 
-func Parse(markdown string) (*Document, []*ReferenceDefinition) {
+func Parse(markdown string) (*Document, *ReferenceDefinitions) {
 	if len(markdown) > MaxLen() {
 		return &Document{}, nil
 	}

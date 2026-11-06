@@ -124,9 +124,7 @@ type delimiter struct {
 type inlineParser struct {
 	markdown             string
 	ranges               []Range
-	referenceDefinitions []*ReferenceDefinition
-
-	referenceIndex *referenceIndex
+	referenceDefinitions *ReferenceDefinitions
 
 	raw            string
 	position       int
@@ -134,7 +132,7 @@ type inlineParser struct {
 	delimiterStack *list.List
 }
 
-func newInlineParser(markdown string, ranges []Range, referenceDefinitions []*ReferenceDefinition) *inlineParser {
+func newInlineParser(markdown string, ranges []Range, referenceDefinitions *ReferenceDefinitions) *inlineParser {
 	return &inlineParser{
 		markdown:             markdown,
 		ranges:               ranges,
@@ -336,22 +334,7 @@ func (p *inlineParser) peekAtInlineLinkDestinationAndTitle(position int, isImage
 }
 
 func (p *inlineParser) referenceDefinition(label string) *ReferenceDefinition {
-	if len(p.referenceDefinitions) == 0 {
-		return nil
-	}
-
-	if p.referenceIndex == nil {
-		// Definitions a document was parsed into arrive with an index built for the whole
-		// document. Anything a caller assembled itself is indexed here instead, once for the
-		// parser rather than once for each label it resolves.
-		if index := p.referenceDefinitions[0].index; index != nil && index.covers(p.referenceDefinitions) {
-			p.referenceIndex = index
-		} else {
-			p.referenceIndex = newReferenceIndex(p.referenceDefinitions)
-		}
-	}
-
-	return p.referenceIndex.lookup(label)
+	return p.referenceDefinitions.lookup(label)
 }
 
 func (p *inlineParser) lookForLinkOrImage() {
@@ -618,7 +601,7 @@ func (p *inlineParser) Parse() []Inline {
 	return p.inlines
 }
 
-func ParseInlines(markdown string, ranges []Range, referenceDefinitions []*ReferenceDefinition) (inlines []Inline) {
+func ParseInlines(markdown string, ranges []Range, referenceDefinitions *ReferenceDefinitions) (inlines []Inline) {
 	return newInlineParser(markdown, ranges, referenceDefinitions).Parse()
 }
 

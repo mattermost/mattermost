@@ -16,7 +16,7 @@ type Paragraph struct {
 	ReferenceDefinitions []*ReferenceDefinition
 }
 
-func (b *Paragraph) ParseInlines(referenceDefinitions []*ReferenceDefinition) []Inline {
+func (b *Paragraph) ParseInlines(referenceDefinitions *ReferenceDefinitions) []Inline {
 	return ParseInlines(b.markdown, b.Text, referenceDefinitions)
 }
 

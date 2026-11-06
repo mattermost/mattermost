@@ -219,28 +219,36 @@ func TestParse(t *testing.T) {
 		} {
 			t.Run(tc.name, func(t *testing.T) {
 				_, definitions := Parse(tc.markdown)
-				require.Len(t, definitions, 3)
+				require.Len(t, definitions.byLabel, 3)
 
-				assert.Equal(t, "foo", definitions[0].Label())
-				assert.Equal(t, "/url", definitions[0].Destination())
-				assert.Equal(t, "title", definitions[0].Title())
+				foo := definitions.lookup("foo")
+				require.NotNil(t, foo)
+				assert.Equal(t, "foo", foo.Label())
+				assert.Equal(t, "/url", foo.Destination())
+				assert.Equal(t, "title", foo.Title())
 
-				assert.Equal(t, "bar", definitions[1].Label())
-				assert.Equal(t, "/dest", definitions[1].Destination())
-				assert.Equal(t, "other", definitions[1].Title())
+				bar := definitions.lookup("bar")
+				require.NotNil(t, bar)
+				assert.Equal(t, "bar", bar.Label())
+				assert.Equal(t, "/dest", bar.Destination())
+				assert.Equal(t, "other", bar.Title())
 
-				assert.Equal(t, "baz", definitions[2].Label())
-				assert.Equal(t, "/path", definitions[2].Destination())
-				assert.Empty(t, definitions[2].Title())
+				baz := definitions.lookup("baz")
+				require.NotNil(t, baz)
+				assert.Equal(t, "baz", baz.Label())
+				assert.Equal(t, "/path", baz.Destination())
+				assert.Empty(t, baz.Title())
 			})
 		}
 	})
 
 	t.Run("text after a run of reference definitions keeps its ranges", func(t *testing.T) {
 		document, definitions := Parse("[foo]: /foo\n[bar]: /bar\nremaining text")
-		require.Len(t, definitions, 2)
-		assert.Equal(t, "/foo", definitions[0].Destination())
-		assert.Equal(t, "/bar", definitions[1].Destination())
+		require.Len(t, definitions.byLabel, 2)
+		require.NotNil(t, definitions.lookup("foo"))
+		assert.Equal(t, "/foo", definitions.lookup("foo").Destination())
+		require.NotNil(t, definitions.lookup("bar"))
+		assert.Equal(t, "/bar", definitions.lookup("bar").Destination())
 
 		require.Len(t, document.Children, 1)
 		paragraph, ok := document.Children[0].(*Paragraph)
@@ -316,21 +324,5 @@ func TestParse(t *testing.T) {
 				assert.Equal(t, tc.expectedHTML, RenderHTML(tc.markdown))
 			})
 		}
-	})
-
-	t.Run("reference links resolve against exactly the definitions they are given", func(t *testing.T) {
-		_, first := Parse("x\n\n[one]: http://a/1\n[two]: http://a/2")
-		_, second := Parse("x\n\n[three]: http://b/3\n[four]: http://b/4")
-		require.Len(t, first, 2)
-		require.Len(t, second, 2)
-
-		// A slice a caller assembles this way shares both its length and its first element with
-		// the definitions of the first document, and holds neither of that document's others.
-		assembled := []*ReferenceDefinition{first[0], second[1]}
-
-		document, _ := Parse("[text][one] [text][two] [text][four]")
-		assert.Equal(t,
-			`<p><a href="http://a/1">text</a> [text][two] <a href="http://b/4">text</a></p>`,
-			RenderBlockHTML(document, assembled))
 	})
 }

@@ -40,19 +40,20 @@ type Range struct {
 	End      int
 }
 
-func closeBlocks(blocks []Block, referenceDefinitions []*ReferenceDefinition) []*ReferenceDefinition {
+func closeBlocks(blocks []Block, referenceDefinitions *ReferenceDefinitions) {
 	for _, block := range blocks {
 		block.Close()
-		if p, ok := block.(*Paragraph); ok && len(p.ReferenceDefinitions) > 0 {
-			referenceDefinitions = append(referenceDefinitions, p.ReferenceDefinitions...)
+		if p, ok := block.(*Paragraph); ok {
+			for _, definition := range p.ReferenceDefinitions {
+				referenceDefinitions.add(definition)
+			}
 		}
 	}
-	return referenceDefinitions
 }
 
-func ParseBlocks(markdown string, lines []Line) (*Document, []*ReferenceDefinition) {
+func ParseBlocks(markdown string, lines []Line) (*Document, *ReferenceDefinitions) {
 	document := &Document{}
-	var referenceDefinitions []*ReferenceDefinition
+	referenceDefinitions := &ReferenceDefinitions{}
 
 	openBlocks := []Block{document}
 
@@ -82,7 +83,7 @@ func ParseBlocks(markdown string, lines []Line) (*Document, []*ReferenceDefiniti
 				for i := lastMatchIndex; i >= 0; i-- {
 					if container, ok := openBlocks[i].(ContainerBlock); ok {
 						if addedBlocks := container.AddChild(newBlocks); addedBlocks != nil {
-							referenceDefinitions = closeBlocks(openBlocks[i+1:], referenceDefinitions)
+							closeBlocks(openBlocks[i+1:], referenceDefinitions)
 							openBlocks = openBlocks[:i+1]
 							openBlocks = append(openBlocks, addedBlocks...)
 							didAdd = true
@@ -102,7 +103,7 @@ func ParseBlocks(markdown string, lines []Line) (*Document, []*ReferenceDefiniti
 			continue
 		}
 
-		referenceDefinitions = closeBlocks(openBlocks[lastMatchIndex+1:], referenceDefinitions)
+		closeBlocks(openBlocks[lastMatchIndex+1:], referenceDefinitions)
 		openBlocks = openBlocks[:lastMatchIndex+1]
 
 		if openBlocks[lastMatchIndex].AddLine(indentation, r) {
@@ -113,7 +114,7 @@ func ParseBlocks(markdown string, lines []Line) (*Document, []*ReferenceDefiniti
 			for i := lastMatchIndex; i >= 0; i-- {
 				if container, ok := openBlocks[i].(ContainerBlock); ok {
 					if newBlocks := container.AddChild([]Block{paragraph}); newBlocks != nil {
-						referenceDefinitions = closeBlocks(openBlocks[i+1:], referenceDefinitions)
+						closeBlocks(openBlocks[i+1:], referenceDefinitions)
 						openBlocks = openBlocks[:i+1]
 						openBlocks = append(openBlocks, newBlocks...)
 						break
@@ -123,17 +124,7 @@ func ParseBlocks(markdown string, lines []Line) (*Document, []*ReferenceDefiniti
 		}
 	}
 
-	referenceDefinitions = closeBlocks(openBlocks, referenceDefinitions)
-
-	// The definitions are complete once every block is closed, so the index is built here, once
-	// for the document. Building it per paragraph instead would make the work a document costs
-	// grow with its paragraphs times its definitions.
-	if len(referenceDefinitions) > 0 {
-		index := newReferenceIndex(referenceDefinitions)
-		for _, definition := range referenceDefinitions {
-			definition.index = index
-		}
-	}
+	closeBlocks(openBlocks, referenceDefinitions)
 
 	return document, referenceDefinitions
 }
