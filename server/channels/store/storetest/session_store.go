@@ -27,6 +27,7 @@ func TestSessionStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("SessionGet", func(t *testing.T) { testSessionGet(t, rctx, ss) })
 	t.Run("SessionGetWithDeviceId", func(t *testing.T) { testSessionGetWithDeviceId(t, rctx, ss) })
 	t.Run("SessionRemove", func(t *testing.T) { testSessionRemove(t, rctx, ss) })
+	t.Run("SessionGetErrorText", func(t *testing.T) { testSessionGetErrorText(t, rctx, ss) })
 	t.Run("SessionRemoveAll", func(t *testing.T) { testSessionRemoveAll(t, rctx, ss) })
 	t.Run("SessionRemoveByUser", func(t *testing.T) { testSessionRemoveByUser(t, rctx, ss) })
 	t.Run("SessionRemoveToken", func(t *testing.T) { testSessionRemoveToken(t, rctx, ss) })
@@ -149,6 +150,15 @@ func testSessionRemove(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	_, err = ss.Session().Get(rctx, s1.Id)
 	require.Error(t, err, "should have been removed")
+}
+
+func testSessionGetErrorText(t *testing.T, rctx request.CTX, ss store.Store) {
+	missing := model.NewId()
+	_, err := ss.Session().Get(rctx, missing)
+	require.Error(t, err)
+	var nfErr *store.ErrNotFound
+	require.ErrorAs(t, err, &nfErr)
+	require.NotContains(t, err.Error(), missing, "returned error text does not include the submitted value")
 }
 
 func testSessionRemoveAll(t *testing.T, rctx request.CTX, ss store.Store) {

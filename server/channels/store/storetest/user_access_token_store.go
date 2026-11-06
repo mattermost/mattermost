@@ -50,8 +50,10 @@ func testUserAccessTokenSaveGetDelete(t *testing.T, rctx request.CTX, ss store.S
 	require.NoError(t, err2)
 	require.Equal(t, received.Token, uat.Token, "received incorrect token after save")
 
-	_, nErr = ss.UserAccessToken().GetByToken("notarealtoken")
+	missingToken := model.NewId()
+	_, nErr = ss.UserAccessToken().GetByToken(missingToken)
 	require.Error(t, nErr, "should have failed on bad token")
+	require.NotContains(t, nErr.Error(), missingToken, "returned error text does not include the submitted value")
 
 	received2, err2 := ss.UserAccessToken().GetByUser(uat.UserId, 0, 100)
 	require.NoError(t, err2)
