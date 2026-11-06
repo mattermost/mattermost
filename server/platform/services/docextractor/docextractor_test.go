@@ -1501,4 +1501,18 @@ func TestOfficeXMLToTextReadCap(t *testing.T) {
 		_, err := parse(`<d><t>one</t>`, ooxmlSkipElements, 1<<20)
 		require.Error(t, err)
 	})
+
+	t.Run("cap splitting a multibyte UTF-8 character keeps collected text", func(t *testing.T) {
+		// "🎉" is a 4-byte UTF-8 character: F0 9F 8E 89
+		// Structure: first element with ASCII, second element starts with emoji
+		// This ensures "hello" is already in the buffer when we hit the cap
+		const doc = `<d><t>hello</t><t>🎉world</t></d>`
+		// Find where the emoji starts in the byte stream
+		emojiStart := strings.Index(doc, "🎉")
+		// Set cap to split the emoji in the middle (after 2 bytes of the 4-byte sequence)
+		text, err := parse(doc, ooxmlSkipElements, int64(emojiStart+2))
+		require.NoError(t, err)
+		// Should get "hello" - the text before the truncated character
+		require.Equal(t, "hello", text)
+	})
 }

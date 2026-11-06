@@ -231,6 +231,7 @@ var errOfficePartCap = errors.New("office part read cap reached")
 type capReader struct {
 	r         io.Reader
 	remaining int64
+	nearCap   bool
 }
 
 func (c *capReader) Read(p []byte) (int, error) {
@@ -242,6 +243,11 @@ func (c *capReader) Read(p []byte) (int, error) {
 	}
 	n, err := c.r.Read(p)
 	c.remaining -= int64(n)
+	// Mark that we're near the cap if we have less than 8 bytes left
+	// (maximum UTF-8 character size is 4 bytes, but XML might buffer)
+	if c.remaining < 8 {
+		c.nearCap = true
+	}
 	return n, err
 }
 
@@ -250,7 +256,8 @@ func (c *capReader) Read(p []byte) (int, error) {
 // are collected or readCap bytes are read, keeping the text gathered so far,
 // and returns ctx's error if ctx ends first.
 func officeXMLToText(ctx context.Context, r io.Reader, breaks, skip []string, limit int, readCap int64) (string, error) {
-	dec := xml.NewDecoder(&capReader{r: r, remaining: readCap})
+	cr := &capReader{r: r, remaining: readCap}
+	dec := xml.NewDecoder(cr)
 	var b strings.Builder
 	for b.Len() < limit {
 		if err := contextErr(ctx); err != nil {
@@ -262,6 +269,11 @@ func officeXMLToText(ctx context.Context, r io.Reader, breaks, skip []string, li
 				break
 			}
 			if errors.Is(err, errOfficePartCap) {
+				return truncateUTF8(b.String()), nil
+			}
+			// If we get an invalid UTF-8 error near the cap, it's likely from
+			// the cap splitting a multibyte character. Treat as partial extraction.
+			if cr.nearCap && strings.Contains(err.Error(), "invalid UTF-8") {
 				return truncateUTF8(b.String()), nil
 			}
 			return "", err
@@ -284,6 +296,10 @@ func officeXMLToText(ctx context.Context, r io.Reader, breaks, skip []string, li
 				t, err := dec.Token()
 				if err != nil {
 					if errors.Is(err, errOfficePartCap) {
+						return truncateUTF8(b.String()), nil
+					}
+					// If we get an invalid UTF-8 error near the cap, treat as partial extraction.
+					if cr.nearCap && strings.Contains(err.Error(), "invalid UTF-8") {
 						return truncateUTF8(b.String()), nil
 					}
 					return "", err
