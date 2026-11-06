@@ -79,6 +79,11 @@ type RequiredAttributeEnforcementProvider func() bool
 // like RequiredAttributeEnforcementProvider.
 type OpenIDAttributeSyncProvider func() bool
 
+// PropertyFieldBoundsProvider reports whether the PropertyFieldBounds flag is
+// on, which lets a field gain a bounds rule or a write_once lock. Backed by a
+// closure over live config, like RequiredAttributeEnforcementProvider.
+type PropertyFieldBoundsProvider func() bool
+
 type AccessControlAttributeValidationHook struct {
 	BasePropertyHook
 	propertyService              *PropertyService
@@ -88,6 +93,7 @@ type AccessControlAttributeValidationHook struct {
 	directChannelChecker         DirectChannelChecker
 	requiredAttributeEnforcement RequiredAttributeEnforcementProvider
 	openIDAttributeSync          OpenIDAttributeSyncProvider
+	propertyFieldBounds          PropertyFieldBoundsProvider
 }
 
 var _ PropertyHook = (*AccessControlAttributeValidationHook)(nil)
@@ -120,6 +126,9 @@ type AccessControlAttributeValidationHookConfig struct {
 	// false, a new or changed openid link is refused; an existing one rides
 	// along untouched.
 	OpenIDAttributeSync OpenIDAttributeSyncProvider
+	// PropertyFieldBounds reports whether a field may gain a bounds rule or a
+	// write_once lock. A nil provider defaults to off.
+	PropertyFieldBounds PropertyFieldBoundsProvider
 }
 
 // NewAccessControlAttributeValidationHook creates a hook that validates field attributes and
@@ -137,6 +146,7 @@ func NewAccessControlAttributeValidationHook(ps *PropertyService, cfg AccessCont
 		directChannelChecker:         cfg.DirectChannelChecker,
 		requiredAttributeEnforcement: cfg.RequiredAttributeEnforcement,
 		openIDAttributeSync:          cfg.OpenIDAttributeSync,
+		propertyFieldBounds:          cfg.PropertyFieldBounds,
 	}
 }
 
@@ -156,6 +166,14 @@ func (h *AccessControlAttributeValidationHook) requiredEnforced() bool {
 // OpenID Connect claims. A nil provider defaults to enabled.
 func (h *AccessControlAttributeValidationHook) openIDAttributeSyncEnabled() bool {
 	return h.openIDAttributeSync == nil || h.openIDAttributeSync()
+}
+
+// propertyFieldBoundsEnabled reports whether the PropertyFieldBounds flag is on.
+// A nil provider means off, unlike openIDAttributeSyncEnabled: this flag defaults
+// off and gates new protections, so a hook built without a provider must not
+// quietly let rules in.
+func (h *AccessControlAttributeValidationHook) propertyFieldBoundsEnabled() bool {
+	return h.propertyFieldBounds != nil && h.propertyFieldBounds()
 }
 
 // sanitizeAndValidateFieldAttrs trims string attrs, applies the visibility
@@ -220,6 +238,12 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(fie
 		}
 	}
 	if err := h.validateSyncSources(field, existing); err != nil {
+		return err
+	}
+	if err := refuseSetOnCreate(field); err != nil {
+		return err
+	}
+	if err := h.validateBoundsChange(field, existing); err != nil {
 		return err
 	}
 
@@ -1409,6 +1433,51 @@ func (h *AccessControlAttributeValidationHook) validateSyncSources(field, existi
 	if claim != "" && claim != prevClaim && !h.openIDAttributeSyncEnabled() {
 		details := fmt.Sprintf("field %s: cannot link to an OpenID Connect claim while OpenID Connect attribute sync is disabled", field.ID)
 		return model.NewAppError("UpsertPropertyField", "app.property_field.openid_sync_disabled.app_error", nil, details, http.StatusBadRequest)
+	}
+	return nil
+}
+
+// refuseSetOnCreate refuses a field whose mutability is set_on_create, flag on or
+// off: that lock allows a write only from the request that creates the object, and
+// nothing enforces that yet, so a field must not carry a lock that isn't enforced.
+// Delete this with the change that enforces it.
+func refuseSetOnCreate(field *model.PropertyField) error {
+	if field.Mutability != model.PropertyFieldMutabilitySetOnCreate {
+		return nil
+	}
+	details := fmt.Sprintf("field %s: set_on_create mutability is not supported yet", field.ID)
+	return model.NewAppError("UpsertPropertyField", "app.property_field.set_on_create_unsupported.app_error", nil, details, http.StatusBadRequest)
+}
+
+// validateBoundsChange refuses a new bounds rule, or a mutability that newly
+// becomes write_once, while the PropertyFieldBounds flag is off. Rules and locks
+// already on the field ride along, and removing them is always allowed. Unstated
+// bounds (nil) and mutability ("") add nothing; they are resolved from the stored
+// field later. This hook manages only the access_control group, the one v3 group
+// that can carry bounds, so every field that can gain them passes through here.
+func (h *AccessControlAttributeValidationHook) validateBoundsChange(field, existing *model.PropertyField) error {
+	if h.propertyFieldBoundsEnabled() {
+		return nil
+	}
+
+	var prevBounds model.PropertyBounds
+	prevMutability := model.PropertyFieldMutabilityMutable
+	if existing != nil {
+		prevBounds = existing.Bounds
+		if existing.Mutability != "" {
+			prevMutability = existing.Mutability
+		}
+	}
+
+	for _, rule := range field.Bounds {
+		if !slices.Contains(prevBounds, rule) {
+			details := fmt.Sprintf("field %s: cannot add the bounds rule %s %s while the PropertyFieldBounds feature flag is off", field.ID, rule.Operator, rule.Reference)
+			return model.NewAppError("UpsertPropertyField", "app.property_field.bounds_disabled.app_error", nil, details, http.StatusBadRequest)
+		}
+	}
+	if field.Mutability == model.PropertyFieldMutabilityWriteOnce && prevMutability != field.Mutability {
+		details := fmt.Sprintf("field %s: cannot make the field %s while the PropertyFieldBounds feature flag is off", field.ID, field.Mutability)
+		return model.NewAppError("UpsertPropertyField", "app.property_field.bounds_disabled.app_error", nil, details, http.StatusBadRequest)
 	}
 	return nil
 }
