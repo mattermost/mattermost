@@ -56,8 +56,8 @@ file_store:
   file_status: OK
   file_driver: local
   filesystem_type: ext4 # local driver only (e.g. ext4, xfs); omitted for s3 and other remote drivers
-  total_mb: 102400 # local driver only; capacity of the volume hosting FileSettings.Directory
-  available_mb: 51200 # local driver only; free space remaining on that volume
+  total_mb: 2048 # local driver only; capacity of the volume hosting FileSettings.Directory
+  available_mb: 100 # 4.88% and 0.1 GiB free exercises FULL on a small volume
 websocket:
   connections: 23
 cluster:
