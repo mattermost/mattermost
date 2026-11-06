@@ -26,26 +26,7 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["id"]
 	errCtx := map[string]any{"hook_id": id}
-
-	err := r.ParseForm()
-	if err != nil {
-		c.Err = model.NewAppError("incomingWebhook", "web.incoming_webhook.parse_form.app_error", errCtx, "", http.StatusBadRequest).Wrap(err)
-		return
-	}
-
-	var appErr *model.AppError
-	var mediaType string
-	incomingWebhookPayload := &model.IncomingWebhookRequest{}
 	contentType := r.Header.Get("Content-Type")
-	// Content-Type header is optional so could be empty
-	if contentType != "" {
-		var mimeErr error
-		mediaType, _, mimeErr = mime.ParseMediaType(contentType)
-		if mimeErr != nil && mimeErr != mime.ErrInvalidMediaParameter {
-			c.Err = model.NewAppError("incomingWebhook", "web.incoming_webhook.media_type.app_error", errCtx, "", http.StatusBadRequest).Wrap(mimeErr)
-			return
-		}
-	}
 
 	defer func() {
 		if *c.App.Config().LogSettings.EnableWebhookDebugging && c.Err != nil {
@@ -58,6 +39,25 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 			)
 		}
 	}()
+
+	err := r.ParseForm()
+	if err != nil {
+		c.Err = model.NewAppError("incomingWebhook", "web.incoming_webhook.parse_form.app_error", errCtx, "", http.StatusBadRequest).Wrap(err)
+		return
+	}
+
+	var appErr *model.AppError
+	var mediaType string
+	incomingWebhookPayload := &model.IncomingWebhookRequest{}
+	// Content-Type header is optional so could be empty
+	if contentType != "" {
+		var mimeErr error
+		mediaType, _, mimeErr = mime.ParseMediaType(contentType)
+		if mimeErr != nil && mimeErr != mime.ErrInvalidMediaParameter {
+			c.Err = model.NewAppError("incomingWebhook", "web.incoming_webhook.media_type.app_error", errCtx, "", http.StatusBadRequest).Wrap(mimeErr)
+			return
+		}
+	}
 
 	errCtx["media_type"] = mediaType
 	if mediaType == "application/x-www-form-urlencoded" {
