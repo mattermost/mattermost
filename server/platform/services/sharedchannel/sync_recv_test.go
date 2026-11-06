@@ -377,6 +377,88 @@ func TestUpsertSyncPost(t *testing.T) {
 		mockApp.AssertCalled(t, "UpdatePost", mock.Anything, mock.Anything, allowsMmBlocks)
 	})
 
+	t.Run("create", func(t *testing.T) {
+		userID := model.NewId()
+
+		// setupCreate wires the store so the received post doesn't exist locally and its
+		// author belongs to the sending remote, and captures the post handed to CreatePost.
+		setupCreate := func(t *testing.T, postID string) (*Service, *MockAppIface, **model.Post) {
+			mockPostStore := &mocks.PostStore{}
+			mockPostStore.On("GetSingle", mock.Anything, postID, true).Return(nil, store.NewErrNotFound("Post", postID))
+
+			mockUserStore := &mocks.UserStore{}
+			mockUserStore.On("Get", mock.Anything, userID).Return(&model.User{Id: userID, RemoteId: new(remoteID)}, nil)
+
+			mockStore := &mocks.Store{}
+			mockStore.On("Post").Return(mockPostStore)
+			mockStore.On("User").Return(mockUserStore)
+
+			logger := mlog.CreateConsoleTestLogger(t)
+			mockServer := &MockServerIface{}
+			mockServer.On("GetStore").Return(mockStore)
+			mockServer.On("Log").Return(logger)
+
+			var created *model.Post
+			mockApp := &MockAppIface{}
+			mockApp.On("CreatePost", mock.Anything, mock.AnythingOfType("*model.Post"), channel, mock.AnythingOfType("model.CreatePostFlags")).
+				Run(func(args mock.Arguments) {
+					created = args.Get(1).(*model.Post)
+				}).
+				Return(&model.Post{Id: postID}, false, (*model.AppError)(nil)).Once()
+
+			return &Service{server: mockServer, app: mockApp}, mockApp, &created
+		}
+
+		newMetadata := func(postID string) *model.PostMetadata {
+			return &model.PostMetadata{
+				Priority: &model.PostPriority{
+					Priority:     new(model.PostPriorityUrgent),
+					RequestedAck: new(true),
+				},
+				Acknowledgements: []*model.PostAcknowledgement{
+					{UserId: userID, PostId: postID, ChannelId: channelID, AcknowledgedAt: 1234},
+				},
+			}
+		}
+
+		t.Run("drops property values from a new post", func(t *testing.T) {
+			postID := model.NewId()
+			scs, mockApp, created := setupCreate(t, postID)
+
+			metadata := newMetadata(postID)
+			metadata.PropertyValues = []*model.PropertyValue{
+				{GroupID: model.NewId(), FieldID: model.NewId(), Value: []byte(`"value"`)},
+			}
+			post := &model.Post{Id: postID, ChannelId: channelID, UserId: userID, Message: "hello", Metadata: metadata}
+
+			_, err := scs.upsertSyncPost(post, channel, rc, nil)
+
+			require.NoError(t, err)
+			mockApp.AssertExpectations(t)
+			require.NotNil(t, *created)
+			require.NotNil(t, (*created).Metadata)
+			assert.Nil(t, (*created).Metadata.PropertyValues)
+			expected := newMetadata(postID)
+			assert.Equal(t, expected.Priority, (*created).Metadata.Priority)
+			assert.Equal(t, expected.Acknowledgements, (*created).Metadata.Acknowledgements)
+		})
+
+		t.Run("leaves a new post without property values unchanged", func(t *testing.T) {
+			postID := model.NewId()
+			scs, mockApp, created := setupCreate(t, postID)
+
+			post := &model.Post{Id: postID, ChannelId: channelID, UserId: userID, Message: "hello", Metadata: newMetadata(postID)}
+
+			_, err := scs.upsertSyncPost(post, channel, rc, nil)
+
+			require.NoError(t, err)
+			mockApp.AssertExpectations(t)
+			require.NotNil(t, *created)
+			assert.Equal(t, "hello", (*created).Message)
+			assert.Equal(t, newMetadata(postID), (*created).Metadata)
+		})
+	})
+
 	t.Run("ignores a re-sent unchanged post with a rewritten mention", func(t *testing.T) {
 		postID := model.NewId()
 		existing := &model.Post{Id: postID, ChannelId: channelID, Message: "hello @admin:test-remote", RemoteId: new(remoteID)}

@@ -159,6 +159,20 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		SilentNotification: silentBool,
 	}
 
+	propertyValues, appErr := postAttributeValuesForCreate(c, &post)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	// Only touched when there is something to write, so a post without values reaches
+	// CreatePost exactly as the client sent it. Values only come from post.Metadata, so it is
+	// non-nil here. This replaces the client's submission with the validated values, which is
+	// what CreatePost reads back off the saved post.
+	if len(propertyValues) > 0 {
+		post.Metadata.PropertyValues = propertyValues
+	}
+
 	rp, isMemberForPreviews, err := c.App.CreatePostAsUserWithFlags(c.AppContext, c.App.PostWithProxyRemovedFromImageURLs(&post), c.AppContext.Session().Id, createFlags)
 	if err != nil {
 		c.Err = err

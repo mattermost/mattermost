@@ -215,6 +215,12 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		}
 	}()
 
+	// Every caller reaches CreatePost, not only the API, so the flag is enforced here as well
+	// as where each caller validates the values.
+	if len(post.Metadata.GetPropertyValues()) > 0 && !a.Config().FeatureFlags.PostAttributes {
+		return nil, false, model.NewAppError("CreatePost", "api.post.create_post.attributes_feature_disabled.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	if flags.SilentNotification {
 		if persistentNotification := post.GetPersistentNotification(); persistentNotification != nil && *persistentNotification {
 			rctx.Logger().Warn("Rejected silent notification post with persistent notifications",
@@ -440,6 +446,15 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 			return nil, false, model.NewAppError("CreatePost", "app.post.save.existing.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
 		default:
 			return nil, false, model.NewAppError("CreatePost", "app.post.save.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		}
+	}
+
+	// Runs before the MessageHasBeenPosted hook, PreparePostForClient and handlePostEvents,
+	// so on success all three see the values. On failure the post is removed before any
+	// `posted` event or notification goes out.
+	if propertyValues := rpost.Metadata.GetPropertyValues(); len(propertyValues) > 0 {
+		if appErr := a.setPostPropertyValuesOnCreate(rctx, rpost, propertyValues); appErr != nil {
+			return nil, false, appErr
 		}
 	}
 

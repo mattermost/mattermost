@@ -6046,3 +6046,154 @@ func TestPluginThreadFollowing(t *testing.T) {
 		assert.NotContains(t, followers, user.Id)
 	})
 }
+
+func TestPluginAPICreatePostWithPropertyValues(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	const pluginID = "com.example.p"
+
+	setup := func(t *testing.T, flagEnabled bool) (*propertyValuesTestHelper, *PluginAPI) {
+		t.Helper()
+		th := setupPropertyValuesCreateTest(t, flagEnabled)
+		// The property hook treats the caller as a plugin only when the plugin is installed.
+		registerTestPlugin(t, th.TestHelper, pluginID)
+		return th, NewPluginAPI(th.App, th.Context, &model.Manifest{Id: pluginID})
+	}
+
+	// grantedField creates a post field in channelID whose only way to a value write is a plugin
+	// grant naming grantee: no human tier allows one.
+	grantedField := func(t *testing.T, th *propertyValuesTestHelper, channelID, grantee string) *model.PropertyField {
+		t.Helper()
+		field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    th.groupID,
+			Name:       "f_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypePost,
+			TargetType: string(model.PropertyFieldTargetLevelChannel),
+			TargetID:   channelID,
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Value: model.ReadWrite{Write: model.PermissionLevelNone},
+				},
+				Grants: []model.Grant{
+					{
+						Identity: model.Identity{Type: model.PropertyOwnerTypePlugin, ID: grantee},
+						Allow:    []string{model.PropertyActionValueWrite},
+					},
+				},
+			},
+		}, false, "")
+		require.Nil(t, appErr)
+		return field
+	}
+
+	postWithValue := func(th *propertyValuesTestHelper, field *model.PropertyField) *model.Post {
+		return &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "from a plugin " + model.NewId(),
+			Metadata: &model.PostMetadata{
+				PropertyValues: []*model.PropertyValue{{FieldID: field.ID, Value: json.RawMessage(`"set by plugin"`)}},
+			},
+		}
+	}
+
+	storedValues := func(t *testing.T, th *propertyValuesTestHelper, postID string) []*model.PropertyValue {
+		t.Helper()
+		values, appErr := th.App.SearchPropertyValues(th.Context, th.groupID, model.PropertyValueSearchOpts{
+			TargetType: model.PropertyValueTargetTypePost,
+			TargetIDs:  []string{postID},
+			PerPage:    model.PostAttributesMaxApplicableFields + 1,
+		})
+		require.Nil(t, appErr)
+		return values
+	}
+
+	t.Run("flag on", func(t *testing.T) {
+		th, api := setup(t, true)
+
+		t.Run("a field granting the plugin a value write takes the value", func(t *testing.T) {
+			field := grantedField(t, th, th.BasicChannel.Id, pluginID)
+			posts := th.watchPostStore(t, nil)
+
+			created, appErr := api.CreatePost(postWithValue(th, field))
+			require.Nil(t, appErr)
+			require.NotNil(t, created)
+
+			stored := storedValues(t, th, created.Id)
+			require.Len(t, stored, 1)
+			assert.Equal(t, field.ID, stored[0].FieldID)
+			assert.JSONEq(t, `"set by plugin"`, string(stored[0].Value))
+			// The plugin acts, but the value is the post author's.
+			assert.Equal(t, th.BasicUser.Id, stored[0].CreatedBy)
+			assert.Equal(t, th.BasicUser.Id, stored[0].UpdatedBy)
+
+			// CreatePost ran with the plugin's caller tag, which is what the hook judged.
+			assert.Equal(t, []string{pluginID}, posts.saveCallerIDs)
+			assert.Empty(t, posts.deletedIDs)
+		})
+
+		t.Run("a field granting another plugin refuses the value and the post is removed", func(t *testing.T) {
+			field := grantedField(t, th, th.BasicChannel.Id, "com.example.other")
+			posts := th.watchPostStore(t, nil)
+
+			created, appErr := api.CreatePost(postWithValue(th, field))
+			require.NotNil(t, appErr)
+			assert.Equal(t, "app.property.access_denied.app_error", appErr.Id)
+			assert.Nil(t, created)
+
+			// Validation passed, so the post was saved, and the hook's denial removed it again.
+			require.Len(t, posts.savedIDs, 1)
+			assert.Equal(t, posts.savedIDs, posts.deletedIDs)
+			_, getErr := th.App.GetSinglePost(th.Context, posts.savedIDs[0], true)
+			require.NotNil(t, getErr)
+			assert.Equal(t, http.StatusNotFound, getErr.StatusCode)
+			assert.Empty(t, storedValues(t, th, posts.savedIDs[0]))
+		})
+
+		t.Run("a field scoped to another channel is refused before the post is saved", func(t *testing.T) {
+			field := grantedField(t, th, th.CreateChannel(t, th.BasicTeam).Id, pluginID)
+			posts := th.watchPostStore(t, nil)
+
+			created, appErr := api.CreatePost(postWithValue(th, field))
+			require.NotNil(t, appErr)
+			assert.Equal(t, "api.post.create_post.invalid_attribute.app_error", appErr.Id)
+			assert.Nil(t, created)
+			assert.Empty(t, posts.savedIDs)
+		})
+
+		t.Run("a post without values runs with the plugin API's own context", func(t *testing.T) {
+			grantedField(t, th, th.BasicChannel.Id, pluginID)
+			posts := th.watchPostStore(t, nil)
+
+			created, appErr := api.CreatePost(&model.Post{
+				ChannelId: th.BasicChannel.Id,
+				UserId:    th.BasicUser.Id,
+				Message:   "no values " + model.NewId(),
+			})
+			require.Nil(t, appErr)
+			require.NotNil(t, created)
+			assert.Empty(t, storedValues(t, th, created.Id))
+
+			// th.Context, which the API was built with, already carries a caller ID of its own.
+			// The save seeing exactly that one, and not the plugin's, shows CreatePost ran with
+			// the API's context untouched.
+			apiCallerID, _ := CallerIDFromRequestContext(th.Context)
+			require.Len(t, posts.saveCallerIDs, 1)
+			assert.Equal(t, apiCallerID, posts.saveCallerIDs[0])
+			assert.NotEqual(t, pluginID, posts.saveCallerIDs[0])
+		})
+	})
+
+	t.Run("flag off refuses values before the post is saved", func(t *testing.T) {
+		th, api := setup(t, false)
+		field := grantedField(t, th, th.BasicChannel.Id, pluginID)
+		posts := th.watchPostStore(t, nil)
+
+		created, appErr := api.CreatePost(postWithValue(th, field))
+		require.NotNil(t, appErr)
+		assert.Equal(t, "api.post.create_post.attributes_feature_disabled.app_error", appErr.Id)
+		assert.Nil(t, created)
+		assert.Empty(t, posts.savedIDs)
+	})
+}

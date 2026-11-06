@@ -67,6 +67,14 @@ type PostTranslation struct {
 	SourceLang string          `json:"source_lang,omitempty"` // Original language of the post
 }
 
+// GetPropertyValues returns the post's property values, or nil if there are none.
+func (p *PostMetadata) GetPropertyValues() []*PropertyValue {
+	if p == nil {
+		return nil
+	}
+	return p.PropertyValues
+}
+
 func (p *PostMetadata) Auditable() map[string]any {
 	embeds := make([]map[string]any, 0, len(p.Embeds))
 	for _, pe := range p.Embeds {

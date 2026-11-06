@@ -72,6 +72,24 @@
                         requested_ack:
                           type: boolean
                           description: Set to true to request for acknowledgements
+                    property_values:
+                      type: array
+                      description: >
+                        Values for the post's attributes, defined as post attribute
+                        fields in the `post_attributes` property group. Each entry is validated
+                        against the applicable fields for the post's channel; an
+                        error does not name which attribute failed validation.
+                      items:
+                        type: object
+                        required:
+                          - field_id
+                          - value
+                        properties:
+                          field_id:
+                            type: string
+                            description: The ID of the attribute field this value is for
+                          value:
+                            description: The value to set for the attribute, whose shape depends on the field's type
         description: Post object to create
         required: true
       responses:
@@ -216,6 +234,9 @@
             metadata. Only **PSAv2** groups are accepted; passing a legacy v1 group, or an
             unrecognized name, returns 404. There is no support for requesting more than one group
             per request.
+
+            When this parameter is set, the response carries no `ETag` header and `If-None-Match`
+            is ignored, so the full response is always returned.
           required: false
           schema:
             type: string
@@ -515,6 +536,9 @@
             metadata. Only **PSAv2** groups are accepted; passing a legacy v1 group, or an
             unrecognized name, returns 404. There is no support for requesting more than one group
             per request.
+
+            When this parameter is set, the response carries no `ETag` header and `If-None-Match`
+            is ignored, so the full response is always returned.
           required: false
           schema:
             type: string
@@ -789,6 +813,9 @@
             metadata. Only **PSAv2** groups are accepted; passing a legacy v1 group, or an
             unrecognized name, returns 404. There is no support for requesting more than one group
             per request.
+
+            When this parameter is set, the response carries no `ETag` header and `If-None-Match`
+            is ignored, so the full response is always returned.
           required: false
           schema:
             type: string
@@ -879,6 +906,9 @@
             metadata. Only **PSAv2** groups are accepted; passing a legacy v1 group, or an
             unrecognized name, returns 404. There is no support for requesting more than one group
             per request.
+
+            When this parameter is set, the response carries no `ETag` header and `If-None-Match`
+            is ignored, so the full response is always returned.
           required: false
           schema:
             type: string
