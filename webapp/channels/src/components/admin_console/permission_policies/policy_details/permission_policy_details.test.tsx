@@ -177,6 +177,22 @@ describe('components/admin_console/permission_policies/policy_details/Permission
         expect(screen.queryByTestId('cel-editor')).not.toBeInTheDocument();
     });
 
+    test('shows a policy on run_compliance_export by its label', async () => {
+        mockFetchPolicy.mockResolvedValue({
+            data: {
+                id: 'policy1',
+                name: 'Policy 1',
+                roles: ['system_user'],
+                rules: [{actions: ['run_compliance_export'], expression: 'user.attributes.department == "Compliance"'}],
+                type: 'permission',
+            },
+        });
+
+        renderWithContext(<PermissionPolicyDetails {...baseProps}/>);
+
+        expect(await screen.findByText('Run Compliance Export')).toBeInTheDocument();
+    });
+
     test('merges the fetched enabled session attributes into the table-mode picker', async () => {
         renderWithContext(<PermissionPolicyDetails {...baseProps}/>);
 

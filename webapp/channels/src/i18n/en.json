@@ -10819,6 +10819,14 @@
     "defaultMessage": "Download Files",
     "description": "Name of the file-download permission toggle in the permission policy editor; also used as a column value in the policies table."
   },
+  "admin.permission_policies.permission.run_compliance_export.description": {
+    "defaultMessage": "Allow users to run compliance export jobs and view and download their results",
+    "description": "Description of the Run Compliance Export permission toggle in the permission policy editor."
+  },
+  "admin.permission_policies.permission.run_compliance_export.label": {
+    "defaultMessage": "Run Compliance Export",
+    "description": "Name of the permission toggle in the permission policy editor that delegates running compliance exports; also used as a column value in the policies table. Title case, as a permission name."
+  },
   "admin.permission_policies.permission.upload_file.description": {
     "defaultMessage": "Allow users to upload files while sending a message",
     "description": "Description of the Upload Files permission toggle in the permission policy editor."

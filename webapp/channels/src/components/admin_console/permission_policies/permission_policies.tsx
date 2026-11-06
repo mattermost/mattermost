@@ -56,6 +56,7 @@ const ACTION_LABELS: Record<string, string> = {
     download_file_attachment: 'Download Files',
     upload_file_attachment: 'Upload Files',
     create_burn_on_read_post: 'Create Burn on Read Message',
+    run_compliance_export: 'Run Compliance Export',
 };
 
 function getActionsLabel(policy: AccessControlPolicy): string {

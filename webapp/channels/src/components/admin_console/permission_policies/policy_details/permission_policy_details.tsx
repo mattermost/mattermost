@@ -12,7 +12,7 @@ import {Icon} from '@mattermost/compass-ui/components/icon';
 import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
 import {GenericModal} from '@mattermost/components';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
-import {ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ, type AccessControlPolicy, type AccessControlPolicyRule} from '@mattermost/types/access_control';
+import {ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ, ACCESS_CONTROL_ACTION_RUN_COMPLIANCE_EXPORT, type AccessControlPolicy, type AccessControlPolicyRule} from '@mattermost/types/access_control';
 import type {AccessControlSettings} from '@mattermost/types/config';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import {CHANNEL_ATTRIBUTES_OBJECT_TYPE} from '@mattermost/types/properties_user';
@@ -79,6 +79,8 @@ const permissionMessages = defineMessages({
     uploadDescription: {id: 'admin.permission_policies.permission.upload_file.description', defaultMessage: 'Allow users to upload files while sending a message'},
     createBorLabel: {id: 'admin.permission_policies.permission.create_bor.label', defaultMessage: 'Create Burn-on-Read Message'},
     createBorDescription: {id: 'admin.permission_policies.permission.create_bor.description', defaultMessage: 'Allow users to send burn-on-read messages'},
+    runComplianceExportLabel: {id: 'admin.permission_policies.permission.run_compliance_export.label', defaultMessage: 'Run Compliance Export'},
+    runComplianceExportDescription: {id: 'admin.permission_policies.permission.run_compliance_export.description', defaultMessage: 'Allow users to run compliance export jobs and view and download their results'},
 });
 
 const panelMessages = defineMessages({
@@ -110,6 +112,11 @@ const AVAILABLE_PERMISSIONS: PermissionDefinition[] = [
         value: ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ,
         label: permissionMessages.createBorLabel,
         description: permissionMessages.createBorDescription,
+    },
+    {
+        value: ACCESS_CONTROL_ACTION_RUN_COMPLIANCE_EXPORT,
+        label: permissionMessages.runComplianceExportLabel,
+        description: permissionMessages.runComplianceExportDescription,
     },
 ];
 
@@ -815,6 +822,7 @@ function PermissionPolicyDetails({
                                 upload_file_attachment: formatMessage(permissionMessages.uploadLabel),
                                 download_file_attachment: formatMessage(permissionMessages.downloadLabel),
                                 [ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ]: formatMessage(permissionMessages.createBorLabel),
+                                [ACCESS_CONTROL_ACTION_RUN_COMPLIANCE_EXPORT]: formatMessage(permissionMessages.runComplianceExportLabel),
                             }}
                             targetRole={selectedRole}
                             targetScope='system'

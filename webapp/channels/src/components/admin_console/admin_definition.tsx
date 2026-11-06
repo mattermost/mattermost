@@ -10,7 +10,7 @@ import semver from 'semver';
 
 import {AccountMultipleOutlineIcon, ChartBarIcon, CogOutlineIcon, CreditCardOutlineIcon, FlaskOutlineIcon, FormatListBulletedIcon, InformationOutlineIcon, PowerPlugOutlineIcon, ServerVariantIcon, ShieldOutlineIcon, SitemapIcon, TableLargeIcon} from '@mattermost/compass-icons/components';
 
-import {Posts} from 'mattermost-redux/constants';
+import {Permissions, Posts} from 'mattermost-redux/constants';
 import {RESOURCE_KEYS} from 'mattermost-redux/constants/permissions_sysconsole';
 
 import {
@@ -6448,7 +6448,10 @@ const AdminDefinition: AdminDefinitionType = {
             />
         ),
         sectionTitle: defineMessage({id: 'admin.sidebar.compliance', defaultMessage: 'Compliance'}),
-        isHidden: it.not(it.userHasReadPermissionOnSomeResources(RESOURCE_KEYS.COMPLIANCE)),
+        isHidden: it.all(
+            it.not(it.userHasReadPermissionOnSomeResources(RESOURCE_KEYS.COMPLIANCE)),
+            it.not(it.hasDelegatedPermission(Permissions.CREATE_COMPLIANCE_EXPORT_JOB)),
+        ),
         subsections: {
             custom_policy_form_edit: {
                 url: `compliance/data_retention_settings/custom_policy/:policy_id(${ID_PATH_PATTERN})`,
@@ -6533,7 +6536,10 @@ const AdminDefinition: AdminDefinitionType = {
                 searchableStrings: messageExportSearchableStrings,
                 isHidden: it.any(
                     it.not(it.licensedForFeature('MessageExport')),
-                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.COMPLIANCE.COMPLIANCE_EXPORT)),
+                    it.all(
+                        it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.COMPLIANCE.COMPLIANCE_EXPORT)),
+                        it.not(it.hasDelegatedPermission(Permissions.CREATE_COMPLIANCE_EXPORT_JOB)),
+                    ),
                 ),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.COMPLIANCE.COMPLIANCE_EXPORT)),
                 schema: {

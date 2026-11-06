@@ -992,6 +992,7 @@ func TestJobPermissionsOfRegisteredActions(t *testing.T) {
 		})).Return(func(_ request.CTX, req model.AccessRequest) model.AccessDecision {
 			return model.AccessDecision{Decision: appErr == nil && req.Subject.ID == th.BasicUser.Id}
 		}, appErr)
+		mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).Return(model.NewNoPolicyAccessDecision(), nil)
 	}
 
 	t.Run("a policy grants reading the jobs to a user without the role", func(t *testing.T) {

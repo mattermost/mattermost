@@ -99,7 +99,7 @@ func TestNewActionRegistry(t *testing.T) {
 	}
 
 	t.Run("the built-in registry is valid", func(t *testing.T) {
-		_, err := newActionRegistry(registeredActions)
+		_, err := newActionRegistry(registeredActions())
 		require.NoError(t, err)
 	})
 }

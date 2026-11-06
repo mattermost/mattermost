@@ -32,8 +32,7 @@ func createComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) 
 	model.AddEventParameterAuditableToAuditRec(auditRec, "compliance", &job)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionCreateComplianceExportJob) {
-		c.SetPermissionError(model.PermissionCreateComplianceExportJob)
+	if !hasCompliancePermission(c, model.PermissionCreateComplianceExportJob) {
 		return
 	}
 
@@ -59,8 +58,7 @@ func createComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) 
 }
 
 func getComplianceReports(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionReadComplianceExportJob) {
-		c.SetPermissionError(model.PermissionReadComplianceExportJob)
+	if !hasCompliancePermission(c, model.PermissionReadComplianceExportJob) {
 		return
 	}
 
@@ -88,8 +86,7 @@ func getComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord(model.AuditEventGetComplianceReport, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionReadComplianceExportJob) {
-		c.SetPermissionError(model.PermissionReadComplianceExportJob)
+	if !hasCompliancePermission(c, model.PermissionReadComplianceExportJob) {
 		return
 	}
 
@@ -119,8 +116,7 @@ func downloadComplianceReport(c *Context, w http.ResponseWriter, r *http.Request
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "compliance_id", c.Params.ReportId)
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionDownloadComplianceExportResult) {
-		c.SetPermissionError(model.PermissionDownloadComplianceExportResult)
+	if !hasCompliancePermission(c, model.PermissionDownloadComplianceExportResult) {
 		return
 	}
 
@@ -160,4 +156,20 @@ func downloadComplianceReport(c *Context, w http.ResponseWriter, r *http.Request
 	if _, err := w.Write(reportBytes); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
+}
+
+// hasCompliancePermission reports whether the session may use permission,
+// setting c.Err when it may not. The permissions belong to the
+// run_compliance_export action, so a policy on it can grant or restrict them.
+func hasCompliancePermission(c *Context, permission *model.Permission) bool {
+	decision, appErr := c.App.AccessEvaluation(c.AppContext, model.AccessRequest{Action: permission.Id})
+	if appErr != nil {
+		c.Err = appErr
+		return false
+	}
+	if !decision.Decision {
+		c.SetPermissionError(permission)
+		return false
+	}
+	return true
 }

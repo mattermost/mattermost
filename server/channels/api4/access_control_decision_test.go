@@ -218,7 +218,7 @@ func TestGetDelegatedAdminActions(t *testing.T) {
 
 		resp, _, err = th.SystemAdminClient.GetDelegatedAdminActions(context.Background())
 		require.NoError(t, err)
-		require.ElementsMatch(t, []string{delegable, restricted}, names(resp))
+		require.Subset(t, names(resp), []string{delegable, restricted})
 	})
 
 	t.Run("with ABAC active, policies grant and restrict", func(t *testing.T) {

@@ -108,6 +108,9 @@ export const ACCESS_CONTROL_ACTION_UPLOAD_FILE = 'upload_file_attachment';
 export const ACCESS_CONTROL_ACTION_DOWNLOAD_FILE = 'download_file_attachment';
 export const ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ = 'create_burn_on_read_post';
 
+// A registered system action; only system permission policies carry it.
+export const ACCESS_CONTROL_ACTION_RUN_COMPLIANCE_EXPORT = 'run_compliance_export';
+
 export const ACCESS_CONTROL_PERMISSION_ACTIONS: string[] = [
     ACCESS_CONTROL_ACTION_UPLOAD_FILE,
     ACCESS_CONTROL_ACTION_DOWNLOAD_FILE,

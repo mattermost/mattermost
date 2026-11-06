@@ -36,8 +36,23 @@ type ActionEntry struct {
 
 // registeredActions lists every action access evaluation routes through ABAC.
 // Registering an action here is all that is needed to make it a valid action
-// on system permission policies.
-var registeredActions = []ActionEntry{}
+// on system permission policies. A function rather than a variable, since the
+// Permission variables are only set by this package's init.
+func registeredActions() []ActionEntry {
+	return []ActionEntry{
+		{
+			Name:         "run_compliance_export",
+			ResourceType: AccessControlPolicyTypeSystem,
+			Grantable:    true,
+			Permissions: []string{
+				PermissionCreateComplianceExportJob.Id,
+				PermissionReadComplianceExportJob.Id,
+				PermissionManageComplianceExportJob.Id,
+				PermissionDownloadComplianceExportResult.Id,
+			},
+		},
+	}
+}
 
 // unregistrablePermissions are permissions too broad to hand to a policy:
 // granting any of them is equivalent to full system admin, or lets the holder
@@ -127,7 +142,7 @@ func currentActionRegistry() *actionRegistry {
 		return override
 	}
 	defaultActionRegistryOnce.Do(func() {
-		r, err := newActionRegistry(registeredActions)
+		r, err := newActionRegistry(registeredActions())
 		if err != nil {
 			panic(err)
 		}
@@ -174,7 +189,7 @@ func cloneActionEntry(entry ActionEntry) ActionEntry {
 // other test checks.
 func RegisterActionsForTesting(tb testing.TB, entries ...ActionEntry) {
 	tb.Helper()
-	r, err := newActionRegistry(append(slices.Clone(registeredActions), entries...))
+	r, err := newActionRegistry(append(registeredActions(), entries...))
 	if err != nil {
 		tb.Fatalf("invalid action registry: %v", err)
 	}

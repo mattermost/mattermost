@@ -396,6 +396,7 @@ func TestSearchAllowedActionsForCurrentUserSystem(t *testing.T) {
 		acs.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
 			return req.Action == action && req.Subject.ID == th.BasicUser.Id
 		})).Return(model.AccessDecision{Decision: true}, (*model.AppError)(nil))
+		acs.On("AccessEvaluation", mock.Anything, mock.Anything).Return(model.NewNoPolicyAccessDecision(), (*model.AppError)(nil))
 		result := resultFor(discover(t))
 		require.NotNil(t, result)
 		require.ElementsMatch(t, []string{read, write}, result.Permissions, "a policy grants every permission of the action")
