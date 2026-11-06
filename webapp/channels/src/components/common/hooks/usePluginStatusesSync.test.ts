@@ -109,6 +109,27 @@ describe('usePluginStatusesSync', () => {
         expect(getPluginStatuses).toHaveBeenCalledTimes(1);
     });
 
+    test('does not fetch on mount by default', () => {
+        renderHookWithContext(usePluginStatusesSync);
+
+        act(() => {
+            jest.advanceTimersByTime(DEBOUNCE_DELAY_MS);
+        });
+
+        expect(getPluginStatuses).not.toHaveBeenCalled();
+    });
+
+    test('fetches once on mount with fetchOnMount, without waiting for the debounce', () => {
+        const {rerender} = renderHookWithContext(() => usePluginStatusesSync({fetchOnMount: true}));
+
+        expect(getPluginStatuses).toHaveBeenCalledTimes(1);
+        expect(dispatchMock).toHaveBeenCalledWith({type: 'MOCK_GET_PLUGIN_STATUSES'});
+
+        rerender();
+
+        expect(getPluginStatuses).toHaveBeenCalledTimes(1);
+    });
+
     test('ignores other websocket events', () => {
         renderHookWithContext(usePluginStatusesSync);
 
