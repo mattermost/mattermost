@@ -47,7 +47,7 @@ func TestPropertyFieldStore(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 	t.Run("GetLiveLinkedFieldsByObjectTypes", func(t *testing.T) { testGetLiveLinkedFieldsByObjectTypes(t, ss) })
 	t.Run("GetLiveUserFieldsByNames", func(t *testing.T) { testGetLiveUserFieldsByNames(t, ss) })
 	t.Run("OptionStorage", func(t *testing.T) { testPropertyFieldOptionStorage(t, rctx, ss, s) })
-	t.Run("PropertyFieldBounds", func(t *testing.T) { testPropertyFieldBounds(t, rctx, ss) })
+	t.Run("PropertyFieldBounds", func(t *testing.T) { testPropertyFieldBounds(t, rctx, ss, s) })
 	t.Run("OptionEdges", func(t *testing.T) { testPropertyFieldOptionEdges(t, rctx, ss, s) })
 	t.Run("OptionHierarchy", func(t *testing.T) { testPropertyFieldOptionHierarchy(t, rctx, ss) })
 }
@@ -6521,7 +6521,7 @@ func testGetLiveUserFieldsByNames(t *testing.T, ss store.Store) {
 	})
 }
 
-func testPropertyFieldBounds(t *testing.T, rctx request.CTX, ss store.Store) {
+func testPropertyFieldBounds(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	groupID := model.NewId()
 	newRankField := func(name string) *model.PropertyField {
 		return &model.PropertyField{
@@ -6568,6 +6568,12 @@ func testPropertyFieldBounds(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.Empty(t, get(t, bounded.ID).Mutability)
 		require.Nil(t, get(t, locked.ID).Bounds)
 		require.Equal(t, model.PropertyFieldMutabilityWriteOnce, get(t, locked.ID).Mutability)
+
+		var stored sql.NullString
+		require.NoError(t, s.GetMaster().Get(&stored,
+			"SELECT Mutability FROM PropertyFields WHERE ID = $1", locked.ID))
+		require.True(t, stored.Valid)
+		require.Equal(t, "write_once", stored.String)
 	})
 
 	t.Run("a field with neither reads back with nil bounds and empty mutability", func(t *testing.T) {
@@ -6576,13 +6582,18 @@ func testPropertyFieldBounds(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.Empty(t, got.Mutability)
 	})
 
-	t.Run("mutable is stored as the empty string", func(t *testing.T) {
+	t.Run("mutable reads back empty and is stored as NULL", func(t *testing.T) {
 		mutable := newRankField("Mutable on create")
 		mutable.Mutability = model.PropertyFieldMutabilityMutable
 		created, err := ss.PropertyField().Create(mutable)
 		require.NoError(t, err)
 		require.Empty(t, created.Mutability)
 		require.Empty(t, get(t, created.ID).Mutability)
+
+		var stored sql.NullString
+		require.NoError(t, s.GetMaster().Get(&stored,
+			"SELECT Mutability FROM PropertyFields WHERE ID = $1", created.ID))
+		require.False(t, stored.Valid)
 	})
 
 	t.Run("update clears empty bounds and mutable, in the returned fields too", func(t *testing.T) {
@@ -6599,6 +6610,11 @@ func testPropertyFieldBounds(t *testing.T, rctx request.CTX, ss store.Store) {
 			require.Nil(t, got.Bounds)
 			require.Empty(t, got.Mutability)
 		}
+
+		var stored sql.NullString
+		require.NoError(t, s.GetMaster().Get(&stored,
+			"SELECT Mutability FROM PropertyFields WHERE ID = $1", locked.ID))
+		require.False(t, stored.Valid)
 	})
 
 	t.Run("update sets bounds and a lock", func(t *testing.T) {
