@@ -13,7 +13,6 @@ import (
 
 func (api *API) InitEntity() {
 	api.BaseRoutes.APIRoot.Handle("/entities/card", api.APISessionRequired(getEntityCard)).Methods(http.MethodGet)
-	api.BaseRoutes.APIRoot.Handle("/entities/posts", api.APISessionRequired(getEntityPosts)).Methods(http.MethodPost)
 }
 
 func getEntityCard(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -38,24 +37,5 @@ func getEntityCard(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(card); err != nil {
 		c.Logger.Warn("Error writing entity card", mlog.Err(err))
-	}
-}
-
-func getEntityPosts(c *Context, w http.ResponseWriter, r *http.Request) {
-	var body struct {
-		PostIDs []string `json:"post_ids"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		c.SetInvalidParamWithErr("post_ids", err)
-		return
-	}
-	posts, appErr := c.App.GetEntityPosts(c.AppContext, body.PostIDs)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(map[string]any{"posts": posts}); err != nil {
-		c.Logger.Warn("Error writing entity posts", mlog.Err(err))
 	}
 }

@@ -1,5 +1,8 @@
 # Entities: implementation notes for architecture and security review
 
+> **Superseded for shipping:** realtime `entities_dictionary_changed` and `POST /api/v4/entities/posts` were removed; pattern hydrate uses the platform cache only (no process memo). See [entities-parse-on-read.md](entities-parse-on-read.md).
+
+
 Status: prototype on branch `plan/entities`. Not a product spec. The intended
 end state remains [entities-framework.md](entities-framework.md). This note
 describes what the branch actually does, where it differs, and what a reviewer

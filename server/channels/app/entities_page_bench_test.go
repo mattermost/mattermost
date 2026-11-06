@@ -81,7 +81,6 @@ func BenchmarkEntityPageCold(b *testing.B) {
 
 	b.ResetTimer()
 	for b.Loop() {
-		resetEntityMemos()
 		for _, post := range posts {
 			post.Id = model.NewId()
 			post.Metadata = nil
@@ -92,40 +91,22 @@ func BenchmarkEntityPageCold(b *testing.B) {
 	b.ReportMetric(float64(entityScanCount.Load())/float64(b.N), "scans/page")
 }
 
-func BenchmarkEntityPageWarm(b *testing.B) {
-	b.Setenv("MM_ENTITIES", "1")
-	installEntityBenchMatchers(b)
-	posts := entityBenchPosts()
-	app := entityBenchApp(nil)
-	rctx := request.TestContext(b)
-	resetEntityMemos()
-	app.hydratePostList(rctx, posts)
-	before := entityScanCount.Load()
-
-	b.ResetTimer()
-	for b.Loop() {
-		app.hydratePostList(rctx, posts)
-	}
-	b.StopTimer()
-	b.ReportMetric(float64(entityScanCount.Load()-before)/float64(b.N), "scans/page")
-}
-
 func BenchmarkEntityPageLRU(b *testing.B) {
 	b.Setenv("MM_ENTITIES", "1")
 	installEntityBenchMatchers(b)
 	posts := entityBenchPosts()
 	app := entityBenchApp(entityBenchLRU(b))
 	rctx := request.TestContext(b)
-	resetEntityMemos()
 	beforeWrites := patternWriteCount.Load()
 	app.hydratePostList(rctx, posts)
 	waitForPatternWrites(beforeWrites + int64(len(posts)) - patternWriteCount.Load())
-	resetEntityMemos()
 	before := entityScanCount.Load()
 
 	b.ResetTimer()
 	for b.Loop() {
-		resetEntityMemos()
+		for _, post := range posts {
+			post.Metadata = nil
+		}
 		app.hydratePostList(rctx, posts)
 	}
 	b.StopTimer()
@@ -159,16 +140,16 @@ func BenchmarkEntityPageRedis(b *testing.B) {
 	posts := entityBenchPosts()
 	app := entityBenchApp(entityBenchRedis(b))
 	rctx := request.TestContext(b)
-	resetEntityMemos()
 	beforeWrites := patternWriteCount.Load()
 	app.hydratePostList(rctx, posts)
 	waitForPatternWrites(beforeWrites + int64(len(posts)) - patternWriteCount.Load())
-	resetEntityMemos()
 	before := entityScanCount.Load()
 
 	b.ResetTimer()
 	for b.Loop() {
-		resetEntityMemos()
+		for _, post := range posts {
+			post.Metadata = nil
+		}
 		app.hydratePostList(rctx, posts)
 	}
 	b.StopTimer()
@@ -186,14 +167,12 @@ func waitForPatternWrites(extra int64) {
 	}
 }
 
-func TestEntityPageUsesTheMemoThenThePatternCache(t *testing.T) {
+func TestEntityPageUsesThePatternCache(t *testing.T) {
 	t.Setenv("MM_ENTITIES", "1")
 	installEntityBenchMatchers(t)
 	posts := entityBenchPosts()
 	application := entityBenchApp(entityBenchLRU(t))
 	rctx := request.TestContext(t)
-	resetEntityMemos()
-	t.Cleanup(resetEntityMemos)
 	entityScanCount.Store(0)
 
 	beforeWrites := patternWriteCount.Load()
@@ -209,10 +188,6 @@ func TestEntityPageUsesTheMemoThenThePatternCache(t *testing.T) {
 	require.NotZero(t, marked)
 	waitForPatternWrites(beforeWrites + int64(len(posts)) - patternWriteCount.Load())
 
-	application.hydratePostList(rctx, posts)
-	require.Equal(t, int64(len(posts)), entityScanCount.Load())
-
-	resetEntityMemos()
 	for _, post := range posts {
 		post.Metadata = nil
 	}
@@ -223,22 +198,23 @@ func TestEntityPageUsesTheMemoThenThePatternCache(t *testing.T) {
 	}
 }
 
-func TestEntityPageServesAStaleGeneration(t *testing.T) {
+func TestEntityPageRescansAStaleGeneration(t *testing.T) {
 	t.Setenv("MM_ENTITIES", "1")
 	installEntityBenchMatchers(t)
 	post := entityBenchPosts()[0]
 	post.Message = "see CVE-2024-1234 today"
-	application := entityBenchApp(nil)
-	rctx, serve := application.BeginEntityServe(request.TestContext(t))
-	resetEntityMemos()
-	t.Cleanup(resetEntityMemos)
-	patternMemo.put(patternKey(post.Id, entities.MessageHash(post.Message)), patternHit{
-		generation: "stale",
-		patterns:   []*model.PostEntity{{ID: "0:4", Start: 0, End: 4, Value: "kept", TypeIDs: []string{"com.example.bench.vuln"}}},
-	}, 32)
+	store := entityBenchLRU(t)
+	application := entityBenchApp(store)
+	rctx := request.TestContext(t)
+	hash := entities.MessageHash(post.Message)
+	require.NoError(t, store.SetWithExpiry(patternCacheKey(post.Id, hash), model.EntityPatternCache{
+		Generation: "stale",
+		Patterns:   []*model.PostEntity{{ID: "0:4", Start: 0, End: 4, Value: "kept", TypeIDs: []string{"com.example.bench.vuln"}}},
+	}, entityPatternTTL))
+	entityScanCount.Store(0)
 
 	application.hydratePostList(rctx, []*model.Post{post})
-	require.True(t, serve.Stale())
+	require.Equal(t, int64(1), entityScanCount.Load())
 	require.NotEmpty(t, post.Metadata.Entities)
-	require.Equal(t, "kept", post.Metadata.Entities[0].Value)
+	require.NotEqual(t, "kept", post.Metadata.Entities[0].Value)
 }

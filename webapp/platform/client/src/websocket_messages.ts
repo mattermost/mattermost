@@ -86,11 +86,6 @@ export type PostUnread = BaseWebSocketMessage<WebSocketEvents.PostUnread, {
     post_id: string;
 }>;
 
-export type EntitiesDictionaryChanged = BaseWebSocketMessage<WebSocketEvents.EntitiesDictionaryChanged, {
-    type_id?: string;
-    generation?: string;
-}>;
-
 export type BurnOnReadPostRevealed = BaseWebSocketMessage<WebSocketEvents.BurnOnReadPostRevealed, {
     post?: string | Post;
     recipients?: string[];
