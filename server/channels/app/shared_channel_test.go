@@ -1370,35 +1370,10 @@ func TestPluginAPIGetSharedChannelCursor(t *testing.T) {
 		assert.Contains(t, err.Error(), "cannot fetch shared channel remote")
 	})
 
-	t.Run("permanently deleted channel with stale cache returns error", func(t *testing.T) {
-		deletedChannel := th.CreateChannel(t, th.BasicTeam)
-		registerPluginRemoteForTest(t, th, pluginID, deletedChannel)
-
-		// Populate cache by reading the channel
-		_, err := th.App.Srv().Store().Channel().Get(deletedChannel.Id, true)
-		require.NoError(t, err)
-
-		// Permanently delete the channel - this leaves SharedChannelRemotes rows behind
-		require.Nil(t, th.App.PermanentDeleteChannel(th.Context, deletedChannel))
-
-		// Verify the SharedChannelRemotes row still exists (from replica read, which doesn't check channel existence)
-		src, err := th.App.Srv().Store().SharedChannel().GetRemoteByIds(deletedChannel.Id, rc.RemoteId)
-		require.NoError(t, err)
-		require.NotNil(t, src)
-		assert.Equal(t, deletedChannel.Id, src.ChannelId)
-
-		// GetSharedChannelCursor should detect the deleted channel even if cache/replica lags,
-		// because it uses GetRemoteByIdsFromMaster which joins with the Channels table
-		_, err = api.GetSharedChannelCursor(deletedChannel.Id, rc.RemoteId)
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "cannot fetch shared channel remote")
-	})
-
 	t.Run("archived channel returns cursor", func(t *testing.T) {
 		archivedChannel := th.CreateChannel(t, th.BasicTeam)
 		registerPluginRemoteForTest(t, th, pluginID, archivedChannel)
 
-		// Set initial cursor
 		cursor := model.GetPostsSinceForSyncCursor{
 			LastPostUpdateAt: 3000,
 			LastPostUpdateID: model.NewId(),
@@ -1407,10 +1382,8 @@ func TestPluginAPIGetSharedChannelCursor(t *testing.T) {
 		}
 		require.NoError(t, api.UpdateSharedChannelCursor(archivedChannel.Id, rc.RemoteId, cursor))
 
-		// Archive the channel (soft delete)
 		require.Nil(t, th.App.DeleteChannel(th.Context, archivedChannel, ""))
 
-		// Archived channels should still return their cursor
 		got, err := api.GetSharedChannelCursor(archivedChannel.Id, rc.RemoteId)
 		require.NoError(t, err)
 		assert.Equal(t, cursor, got)
