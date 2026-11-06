@@ -26,7 +26,7 @@ func newPropertyFieldStore(sqlStore *SqlStore) store.PropertyFieldStore {
 	s := SqlPropertyFieldStore{SqlStore: sqlStore}
 
 	s.tableSelectQuery = s.getQueryBuilder().
-		Select("ID", "GroupID", "Name", "Type", "Attrs", "TargetID", "TargetType", "ObjectType", "Protected", "PermissionField", "PermissionValues", "PermissionOptions", "LinkedFieldID", "CreateAt", "UpdateAt", "DeleteAt", "COALESCE(CreatedBy, '') as CreatedBy", "COALESCE(UpdatedBy, '') as UpdatedBy", "Permissions", "Bounds", "Mutability").
+		Select("ID", "GroupID", "Name", "Type", "Attrs", "TargetID", "TargetType", "ObjectType", "Protected", "PermissionField", "PermissionValues", "PermissionOptions", "LinkedFieldID", "CreateAt", "UpdateAt", "DeleteAt", "COALESCE(CreatedBy, '') as CreatedBy", "COALESCE(UpdatedBy, '') as UpdatedBy", "Permissions", "Bounds", "COALESCE(Mutability::text, '') AS Mutability").
 		From("PropertyFields")
 
 	return &s
@@ -124,10 +124,11 @@ func storedFieldBounds(field *model.PropertyField) any {
 	return string(model.ToJSON(field.Bounds))
 }
 
-// storedFieldMutability stores mutable as the empty string, its one stored form.
-func storedFieldMutability(field *model.PropertyField) string {
-	if field.Mutability == model.PropertyFieldMutabilityMutable {
-		return ""
+// storedFieldMutability stores mutable as SQL NULL, its one stored form: the
+// enum column has no label for it.
+func storedFieldMutability(field *model.PropertyField) any {
+	if field.Mutability == "" || field.Mutability == model.PropertyFieldMutabilityMutable {
+		return nil
 	}
 	return string(field.Mutability)
 }
@@ -595,7 +596,7 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 		updatedByCase = updatedByCase.When(whenID, sq.Expr("?::text", field.UpdatedBy))
 		permissionsCase = permissionsCase.When(whenID, sq.Expr("?::jsonb", storedFieldPermissions(field)))
 		boundsCase = boundsCase.When(whenID, sq.Expr("?::jsonb", storedFieldBounds(field)))
-		mutabilityCase = mutabilityCase.When(whenID, sq.Expr("?::text", storedFieldMutability(field)))
+		mutabilityCase = mutabilityCase.When(whenID, sq.Expr("?::property_field_mutability", storedFieldMutability(field)))
 	}
 
 	// Read before the UPDATE overwrites it: a field that stops linking has to take
