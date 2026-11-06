@@ -12,9 +12,12 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
 func TestCreateJob(t *testing.T) {
@@ -953,5 +956,76 @@ func TestUpdateJobStatus(t *testing.T) {
 			_, err := client.UpdateJobStatus(context.Background(), jobs[0].Id, model.JobStatusCanceled, true)
 			require.NoError(t, err)
 		})
+	})
+}
+
+func TestJobPermissionsOfRegisteredActions(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	model.RegisterActionsForTesting(t, model.ActionEntry{
+		Name:         "run_test_data_retention",
+		ResourceType: model.AccessControlPolicyTypeSystem,
+		Grantable:    true,
+		Permissions: []string{
+			model.PermissionCreateDataRetentionJob.Id,
+			model.PermissionReadDataRetentionJob.Id,
+			model.PermissionManageDataRetentionJob.Id,
+		},
+	})
+
+	mockACS := &mocks.AccessControlServiceInterface{}
+	original := th.App.Srv().Channels().AccessControl
+	th.App.Srv().Channels().AccessControl = mockACS
+	t.Cleanup(func() { th.App.Srv().Channels().AccessControl = original })
+	th.ConfigStore.SetReadOnlyFF(false)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+		cfg.FeatureFlags.PermissionPolicies = true
+	})
+	require.True(t, th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced)))
+
+	// The policy grants the action to the basic user and restricts the admin.
+	expectPDP := func(t *testing.T, appErr *model.AppError) {
+		t.Helper()
+		mockACS.ExpectedCalls = nil
+		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Action == "run_test_data_retention"
+		})).Return(func(_ request.CTX, req model.AccessRequest) model.AccessDecision {
+			return model.AccessDecision{Decision: appErr == nil && req.Subject.ID == th.BasicUser.Id}
+		}, appErr)
+	}
+
+	t.Run("a policy grants reading the jobs to a user without the role", func(t *testing.T) {
+		expectPDP(t, nil)
+		_, resp, err := th.Client.GetJobsByType(context.Background(), model.JobTypeDataRetention, 0, 10)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		_, resp, err = th.Client.GetJobs(context.Background(), model.JobTypeDataRetention, "", 0, 10)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
+
+	t.Run("a policy restricts a system admin", func(t *testing.T) {
+		expectPDP(t, nil)
+		_, resp, err := th.SystemAdminClient.GetJobsByType(context.Background(), model.JobTypeDataRetention, 0, 10)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("an evaluation error is reported, not a permission error", func(t *testing.T) {
+		expectPDP(t, model.NewAppError("test", "pdp.failed", nil, "", http.StatusInternalServerError))
+		_, resp, err := th.Client.GetJobsByType(context.Background(), model.JobTypeDataRetention, 0, 10)
+		require.Error(t, err)
+		CheckInternalErrorStatus(t, resp)
+	})
+
+	t.Run("listing all job types leaves out a type whose check errors", func(t *testing.T) {
+		expectPDP(t, model.NewAppError("test", "pdp.failed", nil, "", http.StatusInternalServerError))
+		jobs, resp, err := th.SystemAdminClient.GetJobs(context.Background(), "", "", 0, 100)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		for _, job := range jobs {
+			require.NotEqual(t, model.JobTypeDataRetention, job.Type)
+		}
 	})
 }

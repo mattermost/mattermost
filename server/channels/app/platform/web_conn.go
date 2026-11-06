@@ -1040,6 +1040,14 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent, channelKey [16]byt
 	}
 
 	for _, permissionId := range msg.GetBroadcast().RequiredPermissions {
+		// A registered action's permission can be granted or restricted by a
+		// policy, so it needs the same decision as the API endpoint.
+		if _, registered := model.ActionForPermission(permissionId); registered {
+			if !wc.Suite.SessionAccessEvaluation(wc.getRCtx(), permissionId) {
+				return false
+			}
+			continue
+		}
 		if !sessionHasPermission(permissionId) {
 			return false
 		}

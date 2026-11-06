@@ -454,6 +454,44 @@ func TestWebConnShouldSendEventDecisions(t *testing.T) {
 	}
 }
 
+// TestWebConnShouldSendEventRegisteredPermission checks that a required permission of a
+// registered action gets the AccessEvaluation decision rather than a role check, so policy
+// delegates receive the event and role holders a policy restricts don't.
+func TestWebConnShouldSendEventRegisteredPermission(t *testing.T) {
+	th := Setup(t)
+	th.Service.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableWebHubChannelIteration = false
+	})
+
+	delegated := model.PermissionReadDataRetentionJob.Id
+	restricted := model.PermissionManageDataRetentionJob.Id
+	model.RegisterActionsForTesting(t, model.ActionEntry{
+		Name:         "run_test_data_retention",
+		ResourceType: model.AccessControlPolicyTypeSystem,
+		Grantable:    true,
+		Permissions:  []string{delegated, restricted},
+	})
+
+	// The suite has no RolesGrantPermission expectation for either permission,
+	// so a role check would fail the test.
+	mockSuite := platform_mocks.NewSuiteIFace(t)
+	mockSuite.On("MFARequired", mock.Anything, http.MethodGet).Return(nil)
+	mockSuite.On("SessionAccessEvaluation", mock.Anything, delegated).Return(true)
+	mockSuite.On("SessionAccessEvaluation", mock.Anything, restricted).Return(false)
+	th.Suite = mockSuite
+
+	wc, _ := newShouldSendEventBenchConn(t, th, 1)
+	event := func(permission string) *model.WebSocketEvent {
+		return model.NewWebSocketEvent(model.WebsocketEventJobUpdated, "", "", "", nil, "").SetBroadcast(&model.WebsocketBroadcast{
+			ContainsSensitiveData: true,
+			RequiredPermissions:   []string{permission},
+		})
+	}
+
+	assert.True(t, wc.ShouldSendEvent(event(delegated), decodeChannelID("")))
+	assert.False(t, wc.ShouldSendEvent(event(restricted), decodeChannelID("")))
+}
+
 // TestWebConnShouldSendEventAllocs asserts that the per-connection filtering the hub does
 // for every broadcast event does not allocate once the membership cache is warm.
 func TestWebConnShouldSendEventAllocs(t *testing.T) {

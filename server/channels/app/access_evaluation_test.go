@@ -489,3 +489,76 @@ func TestEvaluateRBAC(t *testing.T) {
 		assert.True(t, ok)
 	})
 }
+
+func TestWithAccessControlSubject(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	session := th.Context.WithSession(&model.Session{Id: model.NewId(), UserId: th.BasicUser.Id, Roles: th.BasicUser.Roles})
+
+	t.Run("attaches the session's subject while ABAC is active", func(t *testing.T) {
+		setABACActive(t, th, &mocks.AccessControlServiceInterface{})
+		rctx, appErr := th.App.WithAccessControlSubject(session)
+		require.Nil(t, appErr)
+		require.NotNil(t, rctx.Subject())
+		assert.Equal(t, th.BasicUser.Id, rctx.Subject().ID)
+	})
+
+	t.Run("attaches nothing for anonymous or local-mode sessions", func(t *testing.T) {
+		setABACActive(t, th, &mocks.AccessControlServiceInterface{})
+		for _, s := range []*model.Session{{}, {Local: true}} {
+			rctx, appErr := th.App.WithAccessControlSubject(th.Context.WithSession(s))
+			require.Nil(t, appErr)
+			assert.Nil(t, rctx.Subject())
+		}
+	})
+
+	t.Run("attaches nothing while ABAC is inactive", func(t *testing.T) {
+		setABACInactive(t, th)
+		rctx, appErr := th.App.WithAccessControlSubject(session)
+		require.Nil(t, appErr)
+		assert.Nil(t, rctx.Subject())
+	})
+
+	t.Run("a failed build attaches nothing and reports the error", func(t *testing.T) {
+		setABACActive(t, th, &mocks.AccessControlServiceInterface{})
+		orphan := th.Context.WithSession(&model.Session{Id: model.NewId(), UserId: model.NewId(), Roles: model.SystemUserRoleId})
+		rctx, appErr := th.App.WithAccessControlSubject(orphan)
+		require.NotNil(t, appErr)
+		assert.Nil(t, rctx.Subject())
+	})
+}
+
+func TestSessionAccessEvaluation(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	registerTestActions(t)
+
+	acs := &mocks.AccessControlServiceInterface{}
+	setABACActive(t, th, acs)
+	session := th.Context.WithSession(&model.Session{Id: model.NewId(), UserId: th.BasicUser.Id, Roles: th.BasicUser.Roles})
+
+	t.Run("builds the subject and makes the AccessEvaluation decision", func(t *testing.T) {
+		acs.ExpectedCalls = nil
+		acs.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Action == testDelegableAction && req.Subject.ID == th.BasicUser.Id
+		})).Return(model.AccessDecision{Decision: true}, (*model.AppError)(nil)).Once()
+
+		assert.True(t, th.App.SessionAccessEvaluation(session, testDelegablePermission.Id))
+		acs.AssertExpectations(t)
+	})
+
+	t.Run("an evaluation error denies", func(t *testing.T) {
+		acs.ExpectedCalls = nil
+		acs.On("AccessEvaluation", mock.Anything, mock.Anything).
+			Return(model.AccessDecision{}, model.NewAppError("test", "pdp.failed", nil, "", http.StatusInternalServerError)).Once()
+
+		assert.False(t, th.App.SessionAccessEvaluation(session, testDelegablePermission.Id))
+	})
+
+	t.Run("a failed subject build denies a registered action", func(t *testing.T) {
+		acs.ExpectedCalls = nil
+		acs.Calls = nil
+		orphan := th.Context.WithSession(&model.Session{Id: model.NewId(), UserId: model.NewId(), Roles: model.SystemUserRoleId})
+
+		assert.False(t, th.App.SessionAccessEvaluation(orphan, testDelegablePermission.Id))
+		acs.AssertNotCalled(t, "AccessEvaluation", mock.Anything, mock.Anything)
+	})
+}

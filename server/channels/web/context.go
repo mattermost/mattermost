@@ -153,19 +153,14 @@ func (c *Context) SessionRequired() {
 // and attaches it to AppContext, where App.AccessEvaluation reads it. A build
 // failure attaches nothing, so checks that need the subject deny.
 func (c *Context) attachAccessControlSubject() {
-	session := c.AppContext.Session()
-	if session.UserId == "" || session.IsUnrestricted() || !c.App.AttributeBasedAccessControlActive() {
-		return
-	}
-
-	subject, appErr := c.App.BuildAccessControlSubjectForSession(c.AppContext, "")
+	rctx, appErr := c.App.WithAccessControlSubject(c.AppContext)
 	if appErr != nil {
 		// Debug, not Warn: an attribute-store outage would otherwise log once
 		// per request, and the subject build logs the underlying failure.
 		c.Logger.Debug("Failed to build the access control subject for the request", mlog.Err(appErr))
 		return
 	}
-	c.AppContext = c.AppContext.WithSubject(subject)
+	c.AppContext = rctx
 }
 
 func (c *Context) CloudKeyRequired() {

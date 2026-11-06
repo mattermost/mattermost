@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
@@ -20,6 +21,43 @@ func (a *App) AttributeBasedAccessControlActive() bool {
 	return a.Srv().Channels().AccessControl != nil &&
 		a.attributeBasedAccessControlEnabled() &&
 		model.MinimumEnterpriseAdvancedLicense(a.License())
+}
+
+// WithAccessControlSubject returns rctx with the subject of its session
+// attached, for AccessEvaluation to read. It attaches nothing for an
+// anonymous or local-mode session or while ABAC is inactive. On a build
+// failure it returns rctx unchanged with the error, and checks that need the
+// subject deny.
+func (a *App) WithAccessControlSubject(rctx request.CTX) (request.CTX, *model.AppError) {
+	session := rctx.Session()
+	if session.UserId == "" || session.IsUnrestricted() || !a.AttributeBasedAccessControlActive() {
+		return rctx, nil
+	}
+
+	subject, appErr := a.BuildAccessControlSubjectForSession(rctx, "")
+	if appErr != nil {
+		return rctx, appErr
+	}
+	return rctx.WithSubject(subject), nil
+}
+
+// SessionAccessEvaluation makes the AccessEvaluation decision for permissionID
+// on rctx's session outside an HTTP request, such as when filtering websocket
+// events, building the session's subject as the web handler does.
+func (a *App) SessionAccessEvaluation(rctx request.CTX, permissionID string) bool {
+	if rctx.Subject() == nil {
+		var appErr *model.AppError
+		if rctx, appErr = a.WithAccessControlSubject(rctx); appErr != nil {
+			rctx.Logger().Debug("Failed to build the access control subject for the session", mlog.Err(appErr))
+		}
+	}
+
+	decision, appErr := a.AccessEvaluation(rctx, model.AccessRequest{Action: permissionID})
+	if appErr != nil {
+		rctx.Logger().Debug("Access evaluation failed; denying", mlog.String("permission", permissionID), mlog.Err(appErr))
+		return false
+	}
+	return decision.Decision
 }
 
 // AccessEvaluation is the single access decision for a permission check.

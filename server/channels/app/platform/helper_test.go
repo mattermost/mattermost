@@ -52,6 +52,9 @@ func (ms *mockSuite) GetSession(token string) (*model.Session, *model.AppError) 
 	return &model.Session{}, nil
 }
 func (ms *mockSuite) RolesGrantPermission(roleNames []string, permissionId string) bool { return true }
+func (ms *mockSuite) SessionAccessEvaluation(rctx request.CTX, permissionID string) bool {
+	return true
+}
 func (ms *mockSuite) UserCanSeeOtherUser(rctx request.CTX, userID string, otherUserId string) (bool, *model.AppError) {
 	return true, nil
 }

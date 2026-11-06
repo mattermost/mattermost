@@ -232,18 +232,35 @@ func (a *App) UpdateJobStatus(rctx request.CTX, job *model.Job, newStatus string
 	}
 }
 
-func (a *App) SessionHasPermissionToCreateJob(session model.Session, job *model.Job) (bool, *model.Permission) {
+// SessionHasJobPermission is the permission check shared by the job helpers
+// and job endpoints. Permissions of registered actions go through
+// AccessEvaluation, so a policy can grant or restrict them; every other
+// permission is a plain RBAC check.
+func (a *App) SessionHasJobPermission(rctx request.CTX, session model.Session, permission *model.Permission) (bool, *model.AppError) {
+	if _, registered := model.ActionForPermission(permission.Id); !registered {
+		return a.SessionHasPermissionTo(session, permission), nil
+	}
+	decision, appErr := a.AccessEvaluation(rctx.WithSession(&session), model.AccessRequest{Action: permission.Id})
+	if appErr != nil {
+		return false, appErr
+	}
+	return decision.Decision, nil
+}
+
+func (a *App) SessionHasPermissionToCreateJob(rctx request.CTX, session model.Session, job *model.Job) (bool, *model.Permission, *model.AppError) {
+	var permission *model.Permission
+
 	switch job.Type {
 	case model.JobTypeDataRetention:
-		return a.SessionHasPermissionTo(session, model.PermissionCreateDataRetentionJob), model.PermissionCreateDataRetentionJob
+		permission = model.PermissionCreateDataRetentionJob
 	case model.JobTypeMessageExport:
-		return a.SessionHasPermissionTo(session, model.PermissionCreateComplianceExportJob), model.PermissionCreateComplianceExportJob
+		permission = model.PermissionCreateComplianceExportJob
 	case model.JobTypeElasticsearchPostIndexing:
-		return a.SessionHasPermissionTo(session, model.PermissionCreateElasticsearchPostIndexingJob), model.PermissionCreateElasticsearchPostIndexingJob
+		permission = model.PermissionCreateElasticsearchPostIndexingJob
 	case model.JobTypeElasticsearchPostAggregation:
-		return a.SessionHasPermissionTo(session, model.PermissionCreateElasticsearchPostAggregationJob), model.PermissionCreateElasticsearchPostAggregationJob
+		permission = model.PermissionCreateElasticsearchPostAggregationJob
 	case model.JobTypeLdapSync:
-		return a.SessionHasPermissionTo(session, model.PermissionCreateLdapSyncJob), model.PermissionCreateLdapSyncJob
+		permission = model.PermissionCreateLdapSyncJob
 	case
 		model.JobTypeMigrations,
 		model.JobTypePlugins,
@@ -258,24 +275,24 @@ func (a *App) SessionHasPermissionToCreateJob(session model.Session, job *model.
 		model.JobTypeExtractContent,
 		model.JobTypeCleanupExpiredAccessTokens,
 		model.JobTypeNotifyExpiringAccessTokens:
-		return a.SessionHasPermissionTo(session, model.PermissionManageJobs), model.PermissionManageJobs
+		permission = model.PermissionManageJobs
 	case model.JobTypeAccessControlTeamSync:
 		if a.SessionHasPermissionTo(session, model.PermissionManageSystem) {
-			return true, model.PermissionManageSystem
+			return true, model.PermissionManageSystem, nil
 		}
 		// Team-type policies use the team ID as the policy ID.
 		// Allow a team admin to trigger a sync job for their own team's policy.
 		if policyID, ok := job.Data["policy_id"]; ok && policyID != "" && model.IsValidId(policyID) {
 			if a.SessionHasPermissionToTeam(session, policyID, model.PermissionManageTeamAccessRules) {
-				return true, model.PermissionManageTeamAccessRules
+				return true, model.PermissionManageTeamAccessRules, nil
 			}
 		}
-		return false, model.PermissionManageSystem
+		return false, model.PermissionManageSystem, nil
 	case model.JobTypeAccessControlSync:
 		// Allow system admins to create access control sync jobs
 		hasSystemPermission := a.SessionHasPermissionTo(session, model.PermissionManageSystem)
 		if hasSystemPermission {
-			return true, model.PermissionManageSystem
+			return true, model.PermissionManageSystem, nil
 		}
 
 		// For channel admins, check if they have permission for the specific channel/policy
@@ -285,7 +302,7 @@ func (a *App) SessionHasPermissionToCreateJob(session model.Session, job *model.
 			ctx := request.EmptyContext(a.Srv().Log())
 			hasChannelPermission, _ := a.HasPermissionToChannel(ctx, session.UserId, channelID, model.PermissionManageChannelAccessRules)
 			if hasChannelPermission {
-				return true, model.PermissionManageChannelAccessRules
+				return true, model.PermissionManageChannelAccessRules, nil
 			}
 		}
 
@@ -293,7 +310,7 @@ func (a *App) SessionHasPermissionToCreateJob(session model.Session, job *model.
 		teamID, hasTeamID := job.Data["team_id"]
 		if hasTeamID && teamID != "" && model.IsValidId(teamID) && job.Data["policy_id"] == "" {
 			if a.SessionHasPermissionToTeam(session, teamID, model.PermissionManageTeamAccessRules) {
-				return true, model.PermissionManageTeamAccessRules
+				return true, model.PermissionManageTeamAccessRules, nil
 			}
 		}
 
@@ -304,18 +321,23 @@ func (a *App) SessionHasPermissionToCreateJob(session model.Session, job *model.
 			if a.SessionHasPermissionToTeam(session, teamID, model.PermissionManageTeamAccessRules) {
 				ctx := request.EmptyContext(a.Srv().Log())
 				if owned, appErr := a.ValidateTeamAdminPolicyOwnership(ctx, teamID, policyID); appErr == nil && owned {
-					return true, model.PermissionManageTeamAccessRules
+					return true, model.PermissionManageTeamAccessRules, nil
 				}
 			}
 		}
 
-		return false, model.PermissionManageSystem
+		return false, model.PermissionManageSystem, nil
 	}
 
-	return false, nil
+	if permission == nil {
+		return false, nil, nil
+	}
+
+	hasPermission, appErr := a.SessionHasJobPermission(rctx, session, permission)
+	return hasPermission, permission, appErr
 }
 
-func (a *App) SessionHasPermissionToManageJob(session model.Session, job *model.Job) (bool, *model.Permission) {
+func (a *App) SessionHasPermissionToManageJob(rctx request.CTX, session model.Session, job *model.Job) (bool, *model.Permission, *model.AppError) {
 	var permission *model.Permission
 
 	switch job.Type {
@@ -347,24 +369,25 @@ func (a *App) SessionHasPermissionToManageJob(session model.Session, job *model.
 		permission = model.PermissionManageSystem
 	case model.JobTypeAccessControlTeamSync:
 		if a.SessionHasPermissionTo(session, model.PermissionManageSystem) {
-			return true, model.PermissionManageSystem
+			return true, model.PermissionManageSystem, nil
 		}
 		if policyID, ok := job.Data["policy_id"]; ok && policyID != "" && model.IsValidId(policyID) {
 			if a.SessionHasPermissionToTeam(session, policyID, model.PermissionManageTeamAccessRules) {
-				return true, model.PermissionManageTeamAccessRules
+				return true, model.PermissionManageTeamAccessRules, nil
 			}
 		}
-		return false, model.PermissionManageSystem
+		return false, model.PermissionManageSystem, nil
 	}
 
 	if permission == nil {
-		return false, nil
+		return false, nil, nil
 	}
 
-	return a.SessionHasPermissionTo(session, permission), permission
+	hasPermission, appErr := a.SessionHasJobPermission(rctx, session, permission)
+	return hasPermission, permission, appErr
 }
 
-func (a *App) SessionHasPermissionToReadJob(session model.Session, jobType string) (bool, *model.Permission) {
+func (a *App) SessionHasPermissionToReadJob(rctx request.CTX, session model.Session, jobType string) (bool, *model.Permission, *model.AppError) {
 	var permission *model.Permission
 
 	switch jobType {
@@ -399,14 +422,15 @@ func (a *App) SessionHasPermissionToReadJob(session model.Session, jobType strin
 		permission = model.PermissionManageSystem
 	case model.JobTypeAccessControlTeamSync:
 		if a.SessionHasPermissionTo(session, model.PermissionManageSystem) {
-			return true, model.PermissionManageSystem
+			return true, model.PermissionManageSystem, nil
 		}
 		permission = model.PermissionManageTeamAccessRules
 	}
 
 	if permission == nil {
-		return false, nil
+		return false, nil, nil
 	}
 
-	return a.SessionHasPermissionTo(session, permission), permission
+	hasPermission, appErr := a.SessionHasJobPermission(rctx, session, permission)
+	return hasPermission, permission, appErr
 }

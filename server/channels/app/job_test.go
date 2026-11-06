@@ -4,14 +4,18 @@
 package app
 
 import (
+	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
+	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
 func TestGetJob(t *testing.T) {
@@ -72,7 +76,8 @@ func TestSessionHasPermissionToCreateJob(t *testing.T) {
 
 	// Check to see if admin has permission to all the jobs
 	for _, testCase := range testCases {
-		hasPermission, permissionRequired := th.App.SessionHasPermissionToCreateJob(session, &testCase.Job)
+		hasPermission, permissionRequired, appErr := th.App.SessionHasPermissionToCreateJob(th.Context, session, &testCase.Job)
+		require.Nil(t, appErr)
 		assert.Equal(t, true, hasPermission)
 		require.NotNil(t, permissionRequired)
 		assert.Equal(t, testCase.PermissionRequired.Id, permissionRequired.Id)
@@ -84,7 +89,8 @@ func TestSessionHasPermissionToCreateJob(t *testing.T) {
 
 	// Initially the system read only admin should not have access to create these jobs
 	for _, testCase := range testCases {
-		hasPermission, permissionRequired := th.App.SessionHasPermissionToCreateJob(session, &testCase.Job)
+		hasPermission, permissionRequired, appErr := th.App.SessionHasPermissionToCreateJob(th.Context, session, &testCase.Job)
+		require.Nil(t, appErr)
 		assert.Equal(t, false, hasPermission)
 		require.NotNil(t, permissionRequired)
 		assert.Equal(t, testCase.PermissionRequired.Id, permissionRequired.Id)
@@ -100,7 +106,8 @@ func TestSessionHasPermissionToCreateJob(t *testing.T) {
 
 	// Now system read only admin should have ability to create all jobs
 	for _, testCase := range testCases {
-		hasPermission, permissionRequired := th.App.SessionHasPermissionToCreateJob(session, &testCase.Job)
+		hasPermission, permissionRequired, appErr := th.App.SessionHasPermissionToCreateJob(th.Context, session, &testCase.Job)
+		require.Nil(t, appErr)
 		assert.Equal(t, true, hasPermission)
 		require.NotNil(t, permissionRequired)
 		assert.Equal(t, testCase.PermissionRequired.Id, permissionRequired.Id)
@@ -132,7 +139,8 @@ func TestSessionHasPermissionToCreateAccessControlSyncJob(t *testing.T) {
 			Roles:  model.SystemUserRoleId + " " + model.SystemAdminRoleId,
 		}
 
-		hasPermission, permissionRequired := th.App.SessionHasPermissionToCreateJob(adminSession, &job)
+		hasPermission, permissionRequired, appErr := th.App.SessionHasPermissionToCreateJob(th.Context, adminSession, &job)
+		require.Nil(t, appErr)
 		assert.True(t, hasPermission)
 		require.NotNil(t, permissionRequired)
 		assert.Equal(t, model.PermissionManageSystem.Id, permissionRequired.Id)
@@ -153,7 +161,8 @@ func TestSessionHasPermissionToCreateAccessControlSyncJob(t *testing.T) {
 			},
 		}
 
-		hasPermission, permissionRequired := th.App.SessionHasPermissionToCreateJob(channelAdminSession, &jobWithChannelData)
+		hasPermission, permissionRequired, appErr := th.App.SessionHasPermissionToCreateJob(th.Context, channelAdminSession, &jobWithChannelData)
+		require.Nil(t, appErr)
 		assert.True(t, hasPermission)
 		require.NotNil(t, permissionRequired)
 		assert.Equal(t, model.PermissionManageChannelAccessRules.Id, permissionRequired.Id)
@@ -189,7 +198,8 @@ func TestSessionHasPermissionToCreateAccessControlSyncJob(t *testing.T) {
 			},
 		}
 
-		hasPermission, permissionRequired := th.App.SessionHasPermissionToCreateJob(channelAdminSession, &jobWithOtherChannelData)
+		hasPermission, permissionRequired, appErr := th.App.SessionHasPermissionToCreateJob(th.Context, channelAdminSession, &jobWithOtherChannelData)
+		require.Nil(t, appErr)
 		assert.False(t, hasPermission)
 		require.NotNil(t, permissionRequired)
 		assert.Equal(t, model.PermissionManageSystem.Id, permissionRequired.Id)
@@ -217,7 +227,8 @@ func TestSessionHasPermissionToCreateAccessControlSyncJob(t *testing.T) {
 			},
 		}
 
-		hasPermission, permissionRequired := th.App.SessionHasPermissionToCreateJob(teamAdminSession, &jobWithTeamOnly)
+		hasPermission, permissionRequired, appErr := th.App.SessionHasPermissionToCreateJob(th.Context, teamAdminSession, &jobWithTeamOnly)
+		require.Nil(t, appErr)
 		assert.True(t, hasPermission)
 		require.NotNil(t, permissionRequired)
 		assert.Equal(t, model.PermissionManageTeamAccessRules.Id, permissionRequired.Id)
@@ -270,7 +281,8 @@ func TestSessionHasPermissionToCreateAccessControlSyncJob(t *testing.T) {
 			},
 		}
 
-		hasPermission, permissionRequired := th.App.SessionHasPermissionToCreateJob(teamAdminSession, &jobWithOwnedPolicy)
+		hasPermission, permissionRequired, appErr := th.App.SessionHasPermissionToCreateJob(th.Context, teamAdminSession, &jobWithOwnedPolicy)
+		require.Nil(t, appErr)
 		assert.True(t, hasPermission)
 		require.NotNil(t, permissionRequired)
 		assert.Equal(t, model.PermissionManageTeamAccessRules.Id, permissionRequired.Id)
@@ -299,7 +311,8 @@ func TestSessionHasPermissionToCreateAccessControlSyncJob(t *testing.T) {
 			},
 		}
 
-		hasPermission, permissionRequired := th.App.SessionHasPermissionToCreateJob(teamAdminSession, &jobWithPolicyAndTeam)
+		hasPermission, permissionRequired, appErr := th.App.SessionHasPermissionToCreateJob(th.Context, teamAdminSession, &jobWithPolicyAndTeam)
+		require.Nil(t, appErr)
 		assert.False(t, hasPermission)
 		require.NotNil(t, permissionRequired)
 		assert.Equal(t, model.PermissionManageSystem.Id, permissionRequired.Id)
@@ -321,7 +334,8 @@ func TestSessionHasPermissionToCreateAccessControlSyncJob(t *testing.T) {
 			},
 		}
 
-		hasPermission, permissionRequired := th.App.SessionHasPermissionToCreateJob(regularUserSession, &jobWithChannelData)
+		hasPermission, permissionRequired, appErr := th.App.SessionHasPermissionToCreateJob(th.Context, regularUserSession, &jobWithChannelData)
+		require.Nil(t, appErr)
 		assert.False(t, hasPermission)
 		require.NotNil(t, permissionRequired)
 		assert.Equal(t, model.PermissionManageSystem.Id, permissionRequired.Id)
@@ -343,7 +357,8 @@ func TestSessionHasPermissionToTeamSyncJob(t *testing.T) {
 			Roles:  model.SystemUserRoleId + " " + model.SystemAdminRoleId,
 		}
 
-		hasPermission, permissionRequired := th.App.SessionHasPermissionToCreateJob(adminSession, &teamSyncJob)
+		hasPermission, permissionRequired, appErr := th.App.SessionHasPermissionToCreateJob(th.Context, adminSession, &teamSyncJob)
+		require.Nil(t, appErr)
 		assert.True(t, hasPermission)
 		require.NotNil(t, permissionRequired)
 		assert.Equal(t, model.PermissionManageSystem.Id, permissionRequired.Id)
@@ -363,7 +378,8 @@ func TestSessionHasPermissionToTeamSyncJob(t *testing.T) {
 			},
 		}
 
-		hasPermission, permissionRequired := th.App.SessionHasPermissionToCreateJob(teamAdminSession, &teamSyncJob)
+		hasPermission, permissionRequired, appErr := th.App.SessionHasPermissionToCreateJob(th.Context, teamAdminSession, &teamSyncJob)
+		require.Nil(t, appErr)
 		assert.False(t, hasPermission)
 		require.NotNil(t, permissionRequired)
 		assert.Equal(t, model.PermissionManageSystem.Id, permissionRequired.Id)
@@ -376,7 +392,8 @@ func TestSessionHasPermissionToTeamSyncJob(t *testing.T) {
 			Roles:  model.SystemUserRoleId,
 		}
 
-		hasPermission, permissionRequired := th.App.SessionHasPermissionToCreateJob(regularSession, &teamSyncJob)
+		hasPermission, permissionRequired, appErr := th.App.SessionHasPermissionToCreateJob(th.Context, regularSession, &teamSyncJob)
+		require.Nil(t, appErr)
 		assert.False(t, hasPermission)
 		require.NotNil(t, permissionRequired)
 		assert.Equal(t, model.PermissionManageSystem.Id, permissionRequired.Id)
@@ -392,12 +409,14 @@ func TestSessionHasPermissionToTeamSyncJob(t *testing.T) {
 			Roles:  model.SystemUserRoleId,
 		}
 
-		hasPermission, permissionRequired := th.App.SessionHasPermissionToReadJob(adminSession, model.JobTypeAccessControlTeamSync)
+		hasPermission, permissionRequired, appErr := th.App.SessionHasPermissionToReadJob(th.Context, adminSession, model.JobTypeAccessControlTeamSync)
+		require.Nil(t, appErr)
 		assert.True(t, hasPermission)
 		require.NotNil(t, permissionRequired)
 		assert.Equal(t, model.PermissionManageSystem.Id, permissionRequired.Id)
 
-		hasPermission, permissionRequired = th.App.SessionHasPermissionToReadJob(regularSession, model.JobTypeAccessControlTeamSync)
+		hasPermission, permissionRequired, appErr = th.App.SessionHasPermissionToReadJob(th.Context, regularSession, model.JobTypeAccessControlTeamSync)
+		require.Nil(t, appErr)
 		assert.False(t, hasPermission)
 		require.NotNil(t, permissionRequired)
 		assert.Equal(t, model.PermissionManageTeamAccessRules.Id, permissionRequired.Id)
@@ -413,12 +432,14 @@ func TestSessionHasPermissionToTeamSyncJob(t *testing.T) {
 			Roles:  model.SystemUserRoleId,
 		}
 
-		hasPermission, permissionRequired := th.App.SessionHasPermissionToManageJob(adminSession, &teamSyncJob)
+		hasPermission, permissionRequired, appErr := th.App.SessionHasPermissionToManageJob(th.Context, adminSession, &teamSyncJob)
+		require.Nil(t, appErr)
 		assert.True(t, hasPermission)
 		require.NotNil(t, permissionRequired)
 		assert.Equal(t, model.PermissionManageSystem.Id, permissionRequired.Id)
 
-		hasPermission, permissionRequired = th.App.SessionHasPermissionToManageJob(regularSession, &teamSyncJob)
+		hasPermission, permissionRequired, appErr = th.App.SessionHasPermissionToManageJob(th.Context, regularSession, &teamSyncJob)
+		require.Nil(t, appErr)
 		assert.False(t, hasPermission)
 		require.NotNil(t, permissionRequired)
 		assert.Equal(t, model.PermissionManageSystem.Id, permissionRequired.Id)
@@ -725,7 +746,8 @@ func TestSessionHasPermissionToReadJob(t *testing.T) {
 
 	// Check to see if admin has permission to all the jobs
 	for _, testCase := range testCases {
-		hasPermission, permissionRequired := th.App.SessionHasPermissionToReadJob(session, testCase.JobType)
+		hasPermission, permissionRequired, appErr := th.App.SessionHasPermissionToReadJob(th.Context, session, testCase.JobType)
+		require.Nil(t, appErr)
 		assert.Equal(t, true, hasPermission)
 		require.NotNil(t, permissionRequired)
 		assert.Equal(t, testCase.PermissionRequired.Id, permissionRequired.Id)
@@ -737,7 +759,8 @@ func TestSessionHasPermissionToReadJob(t *testing.T) {
 
 	// Initially the system manager should not have access to read these jobs
 	for _, testCase := range testCases {
-		hasPermission, permissionRequired := th.App.SessionHasPermissionToReadJob(session, testCase.JobType)
+		hasPermission, permissionRequired, appErr := th.App.SessionHasPermissionToReadJob(th.Context, session, testCase.JobType)
+		require.Nil(t, appErr)
 		assert.Equal(t, false, hasPermission)
 		require.NotNil(t, permissionRequired)
 		assert.Equal(t, testCase.PermissionRequired.Id, permissionRequired.Id)
@@ -752,7 +775,8 @@ func TestSessionHasPermissionToReadJob(t *testing.T) {
 
 	// Now system manager should have ability to read data retention jobs
 	for _, testCase := range testCases {
-		hasPermission, permissionRequired := th.App.SessionHasPermissionToReadJob(session, testCase.JobType)
+		hasPermission, permissionRequired, appErr := th.App.SessionHasPermissionToReadJob(th.Context, session, testCase.JobType)
+		require.Nil(t, appErr)
 		expectedHasPermission := testCase.JobType == model.JobTypeDataRetention
 		assert.Equal(t, expectedHasPermission, hasPermission)
 		require.NotNil(t, permissionRequired)
@@ -766,7 +790,8 @@ func TestSessionHasPermissionToReadJob(t *testing.T) {
 
 	// Now system read only admin should have ability to read all jobs
 	for _, testCase := range testCases {
-		hasPermission, permissionRequired := th.App.SessionHasPermissionToReadJob(session, testCase.JobType)
+		hasPermission, permissionRequired, appErr := th.App.SessionHasPermissionToReadJob(th.Context, session, testCase.JobType)
+		require.Nil(t, appErr)
 		assert.Equal(t, true, hasPermission)
 		require.NotNil(t, permissionRequired)
 		assert.Equal(t, testCase.PermissionRequired.Id, permissionRequired.Id)
@@ -1005,4 +1030,112 @@ func TestGetJobsByTypes(t *testing.T) {
 	require.Len(t, received, 2, "received wrong number of jobs")
 	require.Equal(t, statuses[2], received[0], "received wrong job type")
 	require.Equal(t, statuses[1], received[1], "received wrong job type")
+}
+
+func TestJobPermissionsOfRegisteredActions(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	model.RegisterActionsForTesting(t, model.ActionEntry{
+		Name:         "run_test_data_retention",
+		ResourceType: model.AccessControlPolicyTypeSystem,
+		Grantable:    true,
+		Permissions: []string{
+			model.PermissionCreateDataRetentionJob.Id,
+			model.PermissionReadDataRetentionJob.Id,
+			model.PermissionManageDataRetentionJob.Id,
+		},
+	})
+
+	admin := sessionContext(th, th.SystemAdminUser)
+	user := sessionContext(th, th.BasicUser)
+	job := &model.Job{Type: model.JobTypeDataRetention}
+
+	type check func(rctx request.CTX) (bool, *model.Permission, *model.AppError)
+	checks := map[string]check{
+		"create": func(rctx request.CTX) (bool, *model.Permission, *model.AppError) {
+			return th.App.SessionHasPermissionToCreateJob(rctx, *rctx.Session(), job)
+		},
+		"read": func(rctx request.CTX) (bool, *model.Permission, *model.AppError) {
+			return th.App.SessionHasPermissionToReadJob(rctx, *rctx.Session(), model.JobTypeDataRetention)
+		},
+		"manage": func(rctx request.CTX) (bool, *model.Permission, *model.AppError) {
+			return th.App.SessionHasPermissionToManageJob(rctx, *rctx.Session(), job)
+		},
+	}
+	wantPermission := map[string]*model.Permission{
+		"create": model.PermissionCreateDataRetentionJob,
+		"read":   model.PermissionReadDataRetentionJob,
+		"manage": model.PermissionManageDataRetentionJob,
+	}
+
+	t.Run("with ABAC active", func(t *testing.T) {
+		acs := &mocks.AccessControlServiceInterface{}
+		setABACActive(t, th, acs)
+		expectPDP := func(decision model.AccessDecision, appErr *model.AppError) {
+			acs.ExpectedCalls = nil
+			acs.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+				return req.Action == "run_test_data_retention"
+			})).Return(decision, appErr)
+		}
+
+		for name, check := range checks {
+			t.Run(name, func(t *testing.T) {
+				expectPDP(model.AccessDecision{Decision: true}, nil)
+				allowed, permission, appErr := check(user)
+				require.Nil(t, appErr)
+				assert.True(t, allowed, "a policy grants the job permission to a user without the role")
+				assert.Equal(t, wantPermission[name], permission)
+
+				expectPDP(model.AccessDecision{Decision: false}, nil)
+				allowed, _, appErr = check(admin)
+				require.Nil(t, appErr)
+				assert.False(t, allowed, "a policy restricts a system admin")
+
+				expectPDP(model.NewNoPolicyAccessDecision(), nil)
+				allowed, _, appErr = check(user)
+				require.Nil(t, appErr)
+				assert.False(t, allowed)
+
+				expectPDP(model.AccessDecision{}, model.NewAppError("test", "pdp.failed", nil, "", http.StatusInternalServerError))
+				allowed, permission, appErr = check(admin)
+				require.NotNil(t, appErr)
+				assert.False(t, allowed)
+				assert.Equal(t, wantPermission[name], permission)
+			})
+		}
+
+		t.Run("other job types are decided by RBAC alone", func(t *testing.T) {
+			acs.ExpectedCalls = nil
+			acs.Calls = nil
+			allowed, permission, appErr := th.App.SessionHasPermissionToCreateJob(user, *user.Session(), &model.Job{Type: model.JobTypeLdapSync})
+			require.Nil(t, appErr)
+			assert.False(t, allowed)
+			assert.Equal(t, model.PermissionCreateLdapSyncJob, permission)
+
+			allowed, _, appErr = th.App.SessionHasPermissionToCreateJob(admin, *admin.Session(), &model.Job{Type: model.JobTypeLdapSync})
+			require.Nil(t, appErr)
+			assert.True(t, allowed)
+			acs.AssertNotCalled(t, "AccessEvaluation", mock.Anything, mock.Anything)
+		})
+	})
+
+	t.Run("with ABAC inactive", func(t *testing.T) {
+		setABACInactive(t, th)
+
+		for name, check := range checks {
+			allowed, _, appErr := check(admin)
+			require.Nil(t, appErr)
+			assert.True(t, allowed, name)
+
+			allowed, _, appErr = check(user)
+			require.Nil(t, appErr)
+			assert.False(t, allowed, name)
+		}
+
+		savePermissionPolicy(t, th, "run_test_data_retention")
+		for name, check := range checks {
+			allowed, _, appErr := check(admin)
+			require.Nil(t, appErr)
+			assert.False(t, allowed, "a stored policy denies while ABAC can't evaluate: %s", name)
+		}
+	})
 }

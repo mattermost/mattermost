@@ -175,6 +175,24 @@ func (_m *SuiteIFace) RolesGrantPermission(roleNames []string, permissionId stri
 	return r0
 }
 
+// SessionAccessEvaluation provides a mock function with given fields: rctx, permissionID
+func (_m *SuiteIFace) SessionAccessEvaluation(rctx request.CTX, permissionID string) bool {
+	ret := _m.Called(rctx, permissionID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SessionAccessEvaluation")
+	}
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(request.CTX, string) bool); ok {
+		r0 = rf(rctx, permissionID)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
 // UserCanSeeOtherUser provides a mock function with given fields: rctx, userID, otherUserId
 func (_m *SuiteIFace) UserCanSeeOtherUser(rctx request.CTX, userID string, otherUserId string) (bool, *model.AppError) {
 	ret := _m.Called(rctx, userID, otherUserId)
