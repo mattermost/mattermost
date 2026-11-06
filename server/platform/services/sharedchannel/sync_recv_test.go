@@ -309,8 +309,12 @@ func TestUpsertSyncPost(t *testing.T) {
 		mockPostStore := &mocks.PostStore{}
 		mockPostStore.On("GetSingle", mock.Anything, existing.Id, true).Return(existing, nil)
 
+		mockUserStore := &mocks.UserStore{}
+		mockUserStore.On("Get", mock.Anything, mock.Anything).Return(nil, store.NewErrNotFound("User", "unknown"))
+
 		mockStore := &mocks.Store{}
 		mockStore.On("Post").Return(mockPostStore)
+		mockStore.On("User").Return(mockUserStore)
 
 		logger := mlog.CreateConsoleTestLogger(t)
 		mockServer := &MockServerIface{}
@@ -367,5 +371,36 @@ func TestUpsertSyncPost(t *testing.T) {
 
 		require.NoError(t, err)
 		mockApp.AssertCalled(t, "UpdatePost", mock.Anything, mock.Anything, allowsMmBlocks)
+	})
+
+	t.Run("ignores a re-sent unchanged post with a rewritten mention", func(t *testing.T) {
+		postID := model.NewId()
+		existing := &model.Post{Id: postID, ChannelId: channelID, Message: "hello @admin:test-remote", RemoteId: new(remoteID)}
+
+		scs, mockApp := setup(t, existing)
+		mockApp.On("UpdatePost", mock.Anything, mock.Anything, mock.Anything).Return(existing, false, (*model.AppError)(nil))
+
+		resent := &model.Post{Id: postID, ChannelId: channelID, Message: "hello @admin"}
+		_, err := scs.upsertSyncPost(resent, channel, rc, map[string]string{"admin": model.NewId()})
+
+		require.NoError(t, err)
+		mockApp.AssertNotCalled(t, "UpdatePost", mock.Anything, mock.Anything, mock.Anything)
+	})
+
+	t.Run("rewrites mentions exactly once on edit", func(t *testing.T) {
+		postID := model.NewId()
+		existing := &model.Post{Id: postID, ChannelId: channelID, Message: "hello @admin:test-remote", RemoteId: new(remoteID)}
+
+		scs, mockApp := setup(t, existing)
+		rewritten := mock.MatchedBy(func(p *model.Post) bool {
+			return p.Message == "bye @admin:test-remote"
+		})
+		mockApp.On("UpdatePost", mock.Anything, rewritten, mock.Anything).Return(existing, false, (*model.AppError)(nil))
+
+		edited := &model.Post{Id: postID, ChannelId: channelID, Message: "bye @admin"}
+		_, err := scs.upsertSyncPost(edited, channel, rc, map[string]string{"admin": model.NewId()})
+
+		require.NoError(t, err)
+		mockApp.AssertCalled(t, "UpdatePost", mock.Anything, rewritten, mock.Anything)
 	})
 }

@@ -498,6 +498,11 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 		return nil, fmt.Errorf("post sync failed: %w", ErrChannelIDMismatch)
 	}
 
+	// Rewrite once, before the edit check: the stored message was rewritten on create, and rewriting is not idempotent.
+	if rpost == nil || post.DeleteAt == 0 {
+		scs.transformMentionsOnReceive(rctx, post, targetChannel, rc, mentionTransforms)
+	}
+
 	if rpost == nil {
 		// post doesn't exist; check that user belongs to remote and create post.
 		// user is not checked for edit/delete because admins can perform those actions
@@ -508,8 +513,6 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 		if user.GetRemoteID() != rc.RemoteId {
 			return nil, fmt.Errorf("post sync failed: %w", ErrRemoteIDMismatch)
 		}
-
-		scs.transformMentionsOnReceive(rctx, post, targetChannel, rc, mentionTransforms)
 
 		// The post is federated (RemoteId set) and its author is verified above
 		// to belong to the remote, which already enforced mm_blocks_actions
@@ -545,7 +548,6 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 		if rpost.GetRemoteID() != rc.RemoteId {
 			return nil, fmt.Errorf("post sync failed: %w", ErrRemoteIDMismatch)
 		}
-		scs.transformMentionsOnReceive(rctx, post, targetChannel, rc, mentionTransforms)
 		var priority *model.PostPriority
 		var acknowledgements []*model.PostAcknowledgement
 
