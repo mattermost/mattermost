@@ -11121,6 +11121,11 @@
     "description": "API error (400) when a property field is given a new bounds rule or made write_once while the PropertyFieldBounds feature flag is off."
   },
   {
+    "id": "app.property_field.bounds_parent_field.app_error",
+    "translation": "A parent rule needs exactly one {{.ObjectType}} field linked to the same template.",
+    "description": "API error (400) when a property field with a parent bounds rule is saved but the parent's side doesn't have exactly one field linked to the same template."
+  },
+  {
     "id": "app.property_field.bounds_requires_v3_group.app_error",
     "translation": "Only fields in a version 3 property group can have bounds or a mutability other than mutable.",
     "description": "API error when a property field in a property group older than version 3 is saved with bounds or a write_once or set_on_create mutability; only version 3 groups enforce them."

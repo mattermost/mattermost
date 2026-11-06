@@ -259,6 +259,10 @@ func (ps *PropertyService) createPropertyField(rctx request.CTX, field *model.Pr
 		}
 	}
 
+	if err := ps.enforceParentField(rctx, "CreatePropertyField", field); err != nil {
+		return nil, err
+	}
+
 	if err := ps.defaultPropertyFieldPermissions(field, source); err != nil {
 		return nil, err
 	}
@@ -641,6 +645,53 @@ func (ps *PropertyService) linkedTemplate(rctx request.CTX, field *model.Propert
 		templates[id] = template
 	}
 	return template, nil
+}
+
+// parentMatchingFields returns up to two fields on field's parent object type
+// that link to the same template as field, so a caller can tell none, one and
+// more than one apart. It returns nil when field isn't linked or has no parent type.
+func (ps *PropertyService) parentMatchingFields(rctx request.CTX, field *model.PropertyField) ([]*model.PropertyField, error) {
+	parentType := model.PropertyFieldParentObjectType(field.ObjectType)
+	if parentType == "" || field.LinkSourceID() == "" {
+		return nil, nil
+	}
+	// Master: a field created a moment ago must count, or two saves in a row could each miss the other.
+	return ps.searchPropertyFields(store.RequestContextWithMaster(rctx), field.GroupID, model.PropertyFieldSearchOpts{
+		ObjectTypes:   []string{parentType},
+		LinkedFieldID: field.LinkSourceID(),
+		PerPage:       2,
+	})
+}
+
+// enforceParentField refuses a field carrying a parent rule unless its parent's
+// side has exactly one field linked to the same template, since that field is
+// where the rule finds the parent's value. A field that isn't linked or has no
+// parent type is left to PropertyField.IsValid.
+func (ps *PropertyService) enforceParentField(rctx request.CTX, caller string, field *model.PropertyField) error {
+	i := slices.IndexFunc(field.Bounds, func(r model.PropertyBoundsRule) bool {
+		return r.Reference == model.PropertyBoundsReferenceParent
+	})
+	parentType := model.PropertyFieldParentObjectType(field.ObjectType)
+	if i < 0 || parentType == "" || field.LinkSourceID() == "" {
+		return nil
+	}
+
+	matches, err := ps.parentMatchingFields(rctx, field)
+	if err != nil {
+		return fmt.Errorf("%s: failed to look up the parent's field: %w", caller, err)
+	}
+	if len(matches) == 1 {
+		return nil
+	}
+
+	found := "none"
+	if len(matches) > 1 {
+		found = "more than one"
+	}
+	return model.NewAppError(caller, "app.property_field.bounds_parent_field.app_error", map[string]any{"ObjectType": parentType},
+		fmt.Sprintf("field %s: bounds[%d] (%s %s) needs exactly one %s field linked to template %s, found %s",
+			field.ID, i, field.Bounds[i].Operator, field.Bounds[i].Reference, parentType, field.LinkSourceID(), found),
+		http.StatusBadRequest)
 }
 
 // legacyViewTemplate is linkedTemplate for projecting field's legacy view. A
@@ -1072,6 +1123,15 @@ func (ps *PropertyService) updatePropertyFieldsIfUnchanged(rctx request.CTX, gro
 		}
 		if field.Mutability == "" {
 			field.Mutability = existing.Mutability
+		}
+	}
+
+	// Judged on the rules about to be stored, and on every save: a parent's side
+	// that has since lost its one matching field refuses an otherwise unrelated edit
+	// until the rule is removed.
+	for _, field := range fields {
+		if err := ps.enforceParentField(rctx, "UpdatePropertyFields", field); err != nil {
+			return nil, nil, nil, err
 		}
 	}
 

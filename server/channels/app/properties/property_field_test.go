@@ -4477,3 +4477,135 @@ func TestPropertyFieldBoundsGroupVersionAndUnstated(t *testing.T) {
 		assert.Equal(t, "model.property_field.is_valid.app_error", appErr.Id)
 	})
 }
+
+func TestPropertyFieldBoundsParentField(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	rctx := RequestContextWithCallerID(th.Context, model.NewId())
+
+	belowParent := model.PropertyBounds{{Operator: model.PropertyBoundsOperatorAtOrBelow, Reference: model.PropertyBoundsReferenceParent}}
+	aboveParent := model.PropertyBounds{{Operator: model.PropertyBoundsOperatorAtOrAbove, Reference: model.PropertyBoundsReferenceParent}}
+	selfOnly := model.PropertyBounds{{Operator: model.PropertyBoundsOperatorAtOrAbove, Reference: model.PropertyBoundsReferenceSelf}}
+
+	// Each case gets its own group and template so matching fields never leak between them.
+	setup := func(t *testing.T) (groupID string, template *model.PropertyField, create func(objectType string, bounds model.PropertyBounds) (*model.PropertyField, error)) {
+		t.Helper()
+		groupID = th.RegisterPropertyGroup(t, model.PropertyGroupVersionV3).ID
+		template = th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    groupID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeRank,
+			Name:       "Classification " + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "LOW", "rank": 1},
+					map[string]any{"id": model.NewId(), "name": "HIGH", "rank": 2},
+				},
+			},
+			Permissions: openPermissions(),
+		})
+		create = func(objectType string, bounds model.PropertyBounds) (*model.PropertyField, error) {
+			return th.service.CreatePropertyField(rctx, &model.PropertyField{
+				GroupID:       groupID,
+				ObjectType:    objectType,
+				TargetType:    string(model.PropertyFieldTargetLevelSystem),
+				Name:          objectType + " " + model.NewId(),
+				LinkedFieldID: &template.ID,
+				Bounds:        bounds,
+			})
+		}
+		return
+	}
+
+	requireParentRefused := func(t *testing.T, err error, found string) {
+		t.Helper()
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		assert.Equal(t, "app.property_field.bounds_parent_field.app_error", appErr.Id)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Contains(t, appErr.DetailedError, "found "+found)
+	}
+
+	t.Run("a channel field needs exactly one system field on its template", func(t *testing.T) {
+		_, _, create := setup(t)
+
+		_, err := create(model.PropertyFieldObjectTypeChannel, belowParent)
+		requireParentRefused(t, err, "none")
+
+		_, err = create(model.PropertyFieldObjectTypeSystem, nil)
+		require.NoError(t, err)
+		_, err = create(model.PropertyFieldObjectTypeChannel, belowParent)
+		require.NoError(t, err)
+
+		_, err = create(model.PropertyFieldObjectTypeSystem, nil)
+		require.NoError(t, err)
+		_, err = create(model.PropertyFieldObjectTypeChannel, belowParent)
+		requireParentRefused(t, err, "more than one")
+	})
+
+	t.Run("at_or_above parent is checked the same way", func(t *testing.T) {
+		_, _, create := setup(t)
+
+		_, err := create(model.PropertyFieldObjectTypeChannel, aboveParent)
+		requireParentRefused(t, err, "none")
+
+		_, err = create(model.PropertyFieldObjectTypeSystem, nil)
+		require.NoError(t, err)
+		_, err = create(model.PropertyFieldObjectTypeChannel, aboveParent)
+		require.NoError(t, err)
+	})
+
+	t.Run("a post field needs a channel field, not a system field", func(t *testing.T) {
+		_, _, create := setup(t)
+
+		_, err := create(model.PropertyFieldObjectTypeSystem, nil)
+		require.NoError(t, err)
+		_, err = create(model.PropertyFieldObjectTypePost, belowParent)
+		requireParentRefused(t, err, "none")
+
+		_, err = create(model.PropertyFieldObjectTypeChannel, nil)
+		require.NoError(t, err)
+		_, err = create(model.PropertyFieldObjectTypePost, belowParent)
+		require.NoError(t, err)
+	})
+
+	t.Run("two parent rules on one field are checked once", func(t *testing.T) {
+		_, _, create := setup(t)
+		_, err := create(model.PropertyFieldObjectTypeSystem, nil)
+		require.NoError(t, err)
+
+		_, err = create(model.PropertyFieldObjectTypeChannel, append(slices.Clone(belowParent), aboveParent...))
+		require.NoError(t, err)
+	})
+
+	t.Run("a field with no parent rule is never checked", func(t *testing.T) {
+		_, _, create := setup(t)
+
+		_, err := create(model.PropertyFieldObjectTypeChannel, nil)
+		require.NoError(t, err)
+		_, err = create(model.PropertyFieldObjectTypeChannel, selfOnly)
+		require.NoError(t, err)
+	})
+
+	t.Run("an update re-checks a field that keeps its parent rule", func(t *testing.T) {
+		groupID, _, create := setup(t)
+		system, err := create(model.PropertyFieldObjectTypeSystem, nil)
+		require.NoError(t, err)
+		channel, err := create(model.PropertyFieldObjectTypeChannel, belowParent)
+		require.NoError(t, err)
+
+		require.NoError(t, th.service.DeletePropertyField(rctx, groupID, system.ID))
+
+		// A deleted matching field no longer counts, so a rename that keeps the rule is refused.
+		stored, err := th.service.fieldStore.Get(th.Context, groupID, channel.ID)
+		require.NoError(t, err)
+		stored.Name = "renamed " + model.NewId()
+		_, _, err = th.service.UpdatePropertyField(rctx, groupID, stored)
+		requireParentRefused(t, err, "none")
+
+		// The same rename passes once it also drops the rule.
+		stored.Bounds = model.PropertyBounds{}
+		_, _, err = th.service.UpdatePropertyField(rctx, groupID, stored)
+		require.NoError(t, err)
+	})
+}

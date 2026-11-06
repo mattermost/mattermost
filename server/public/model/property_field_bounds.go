@@ -108,9 +108,19 @@ var boundsOperators = map[PropertyBoundsOperator]struct {
 
 var knownBoundsReferences = []PropertyBoundsReference{PropertyBoundsReferenceParent, PropertyBoundsReferenceSelf}
 
-// objectTypesWithParent are the object types whose objects sit inside another
-// one (a post in its channel, a channel or user in the system).
-var objectTypesWithParent = []string{PropertyFieldObjectTypePost, PropertyFieldObjectTypeChannel, PropertyFieldObjectTypeUser}
+// parentObjectTypes maps each object type whose objects sit inside another one to
+// that parent's type: a post in its channel, a channel or user in the system.
+var parentObjectTypes = map[string]string{
+	PropertyFieldObjectTypePost:    PropertyFieldObjectTypeChannel,
+	PropertyFieldObjectTypeChannel: PropertyFieldObjectTypeSystem,
+	PropertyFieldObjectTypeUser:    PropertyFieldObjectTypeSystem,
+}
+
+// PropertyFieldParentObjectType returns the object type that contains objects of
+// objectType, or "" when they sit in nothing.
+func PropertyFieldParentObjectType(objectType string) string {
+	return parentObjectTypes[objectType]
+}
 
 var writeOnceObjectTypes = []string{PropertyFieldObjectTypeChannel, PropertyFieldObjectTypePost, PropertyFieldObjectTypeUser, PropertyFieldObjectTypeSystem}
 
@@ -169,7 +179,7 @@ func (pf *PropertyField) validateBounds() *AppError {
 			return refuse(name, desc+": the operator doesn't accept that reference")
 		}
 		if rule.Reference == PropertyBoundsReferenceParent {
-			if !slices.Contains(objectTypesWithParent, pf.ObjectType) {
+			if PropertyFieldParentObjectType(pf.ObjectType) == "" {
 				return refuse(name, desc+": a parent rule needs an object type that has a parent")
 			}
 			if pf.LinkSourceID() == "" {
