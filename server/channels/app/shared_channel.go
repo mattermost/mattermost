@@ -234,6 +234,10 @@ func (a *App) GetSharedChannelCursor(pluginID, channelID, remoteID string) (mode
 	if src.DeleteAt != 0 {
 		return model.GetPostsSinceForSyncCursor{}, fmt.Errorf("cursor fetch failed - channel %s is no longer shared with remote %s", channelID, remoteID)
 	}
+	// PermanentDeleteChannel leaves SharedChannelRemotes rows behind.
+	if _, err := a.Srv().Store().Channel().Get(channelID, true); err != nil {
+		return model.GetPostsSinceForSyncCursor{}, fmt.Errorf("cursor fetch failed - cannot fetch channel %s: %w", channelID, err)
+	}
 	return model.GetPostsSinceForSyncCursor{
 		LastPostUpdateAt: src.LastPostUpdateAt,
 		LastPostUpdateID: src.LastPostUpdateID,

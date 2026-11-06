@@ -1360,6 +1360,16 @@ func TestPluginAPIGetSharedChannelCursor(t *testing.T) {
 		assert.Contains(t, err.Error(), "no longer shared")
 	})
 
+	t.Run("permanently deleted channel returns error", func(t *testing.T) {
+		deletedChannel := th.CreateChannel(t, th.BasicTeam)
+		registerPluginRemoteForTest(t, th, pluginID, deletedChannel)
+		require.Nil(t, th.App.PermanentDeleteChannel(th.Context, deletedChannel))
+
+		_, err := api.GetSharedChannelCursor(deletedChannel.Id, rc.RemoteId)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "cannot fetch channel")
+	})
+
 	t.Run("deleted remote returns error", func(t *testing.T) {
 		deletedPluginID := "com.test.deleted-cursor-plugin"
 		deletedChannel := th.CreateChannel(t, th.BasicTeam)
