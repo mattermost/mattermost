@@ -320,10 +320,10 @@ NGINX can't start with the HTTPS server before the certificate files exist, and 
     sudo certbot renew --dry-run
     ```
 
-If step 6 or the dry run fails, use the standalone method and let Certbot stop NGINX briefly while it renews. Open connections drop for those seconds, and clients reconnect automatically. This command saves the settings for all future renewals. Its test run also stops NGINX briefly:
+If step 6 or the dry run fails, use the standalone method and let Certbot stop NGINX briefly while it renews. Open connections drop for those seconds, and clients reconnect automatically. This command saves the settings for all future renewals. It also removes the NGINX reload from step 6, because NGINX loads the new certificate when it starts. Its test run also stops NGINX briefly:
 
 ```sh
-sudo certbot reconfigure --cert-name mattermost.example.com --authenticator standalone --pre-hook "systemctl stop nginx" --post-hook "systemctl start nginx"
+sudo certbot reconfigure --cert-name mattermost.example.com --authenticator standalone --pre-hook "systemctl stop nginx" --post-hook "systemctl start nginx" --deploy-hook ""
 ```
 
 ## High-performance scaling configuration
