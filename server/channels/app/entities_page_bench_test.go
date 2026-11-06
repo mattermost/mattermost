@@ -26,7 +26,7 @@ func (s *staticConfigService) Config() *model.Config { return s.cfg }
 func (s *staticConfigService) AddConfigListener(func(*model.Config, *model.Config)) string {
 	return ""
 }
-func (s *staticConfigService) RemoveConfigListener(string) {}
+func (s *staticConfigService) RemoveConfigListener(string)      {}
 func (s *staticConfigService) UpdateConfig(func(*model.Config)) {}
 func (s *staticConfigService) SaveConfig(*model.Config, bool) (*model.Config, *model.Config, *model.AppError) {
 	return s.cfg, s.cfg, nil
