@@ -1148,7 +1148,8 @@ func TestDeleteAccessControlPolicy(t *testing.T) {
 			Revision: 1,
 			Rules:    []model.AccessControlPolicyRule{{Expression: "user.attributes.team == 'engineering'", Actions: []string{"membership"}}},
 		}
-		mockAccessControlService.On("GetPolicy", mock.AnythingOfType("*request.Context"), samplePolicyID).Return(channelPolicy, nil).Times(1)
+		// The handler loads the stored policy, then DeleteAccessControlPolicy loads it again.
+		mockAccessControlService.On("GetPolicy", mock.AnythingOfType("*request.Context"), samplePolicyID).Return(channelPolicy, nil).Times(2)
 		mockAccessControlService.On("DeletePolicy", mock.AnythingOfType("*request.Context"), samplePolicyID).Return(nil).Times(1)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -1174,8 +1175,8 @@ func TestDeleteAccessControlPolicy(t *testing.T) {
 		mockAccessControlService := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
 
-		// DeleteAccessControlPolicy resolves the policy first to decide whether
-		// to broadcast a channel access-control update after deletion.
+		// The handler loads the stored policy, then DeleteAccessControlPolicy loads it
+		// again to decide whether to broadcast a channel access-control update.
 		channelPolicy := &model.AccessControlPolicy{
 			ID:       samplePolicyID,
 			Type:     model.AccessControlPolicyTypeChannel,
@@ -1188,7 +1189,7 @@ func TestDeleteAccessControlPolicy(t *testing.T) {
 				},
 			},
 		}
-		mockAccessControlService.On("GetPolicy", mock.AnythingOfType("*request.Context"), samplePolicyID).Return(channelPolicy, nil).Times(1)
+		mockAccessControlService.On("GetPolicy", mock.AnythingOfType("*request.Context"), samplePolicyID).Return(channelPolicy, nil).Times(2)
 		mockAccessControlService.On("DeletePolicy", mock.AnythingOfType("*request.Context"), samplePolicyID).Return(nil).Times(1)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -1199,6 +1200,214 @@ func TestDeleteAccessControlPolicy(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 	})
+}
+
+// TestDeleteAccessControlPolicyChannelImports checks the delete response status and
+// whether the policy delete service is invoked for a private channel policy.
+func TestDeleteAccessControlPolicyChannelImports(t *testing.T) {
+	th := SetupConfig(t, maskingOffTestConfig).InitBasic(t)
+
+	ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	require.True(t, ok, "SetLicense should return true")
+
+	th.AddPermissionToRole(t, model.PermissionManageChannelAccessRules.Id, model.ChannelAdminRoleId)
+	// team_admin carries manage_channel_access_rules in production defaults. This
+	// package's role does not always include it, so grant it the same way as channel_admin.
+	th.AddPermissionToRole(t, model.PermissionManageChannelAccessRules.Id, model.TeamAdminRoleId)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
+	})
+
+	parentID := model.NewId()
+	ownRules := []model.AccessControlPolicyRule{{
+		Expression: "user.attributes.department == 'engineering'",
+		Actions:    []string{"membership"},
+	}}
+
+	type actorKind int
+	const (
+		actorChannelAdmin actorKind = iota
+		actorTeamAdmin
+		actorSystemAdmin
+		actorRegular
+	)
+
+	// policyLookup selects what GetPolicy returns for this delete.
+	// policyLookupError returns the stored policy once, so the first read
+	// succeeds, then the handler's own read fails.
+	type policyLookup int
+	const (
+		policyFound policyLookup = iota
+		policyMissing
+		policyLookupError
+	)
+
+	cases := []struct {
+		name         string
+		actor        actorKind
+		imports      []string
+		rules        []model.AccessControlPolicyRule
+		lookup       policyLookup
+		expectStatus int
+		expectDelete bool
+	}{
+		{
+			name:         "channel admin, imports and rules",
+			actor:        actorChannelAdmin,
+			imports:      []string{parentID},
+			rules:        ownRules,
+			expectDelete: false,
+		},
+		{
+			name:         "channel admin, imports and no rules",
+			actor:        actorChannelAdmin,
+			imports:      []string{parentID},
+			rules:        nil,
+			expectDelete: false,
+		},
+		{
+			name:         "team admin, imports and rules",
+			actor:        actorTeamAdmin,
+			imports:      []string{parentID},
+			rules:        ownRules,
+			expectDelete: false,
+		},
+		{
+			name:         "team admin, imports and no rules",
+			actor:        actorTeamAdmin,
+			imports:      []string{parentID},
+			rules:        nil,
+			expectDelete: false,
+		},
+		{
+			name:         "system admin, imports",
+			actor:        actorSystemAdmin,
+			imports:      []string{parentID},
+			rules:        ownRules,
+			expectDelete: true,
+		},
+		{
+			name:         "channel admin, rules and empty imports",
+			actor:        actorChannelAdmin,
+			imports:      []string{},
+			rules:        ownRules,
+			expectDelete: true,
+		},
+		{
+			// A nil Imports slice has length 0, same as an empty slice.
+			name:         "channel admin, rules and unset imports",
+			actor:        actorChannelAdmin,
+			rules:        ownRules,
+			expectDelete: true,
+		},
+		{
+			name:         "channel admin, policy missing",
+			actor:        actorChannelAdmin,
+			lookup:       policyMissing,
+			expectStatus: http.StatusNotFound,
+		},
+		{
+			name:         "channel admin, policy lookup error",
+			actor:        actorChannelAdmin,
+			imports:      []string{parentID},
+			rules:        ownRules,
+			lookup:       policyLookupError,
+			expectStatus: http.StatusInternalServerError,
+		},
+		{
+			name:         "regular user, imports",
+			actor:        actorRegular,
+			imports:      []string{parentID},
+			rules:        ownRules,
+			expectStatus: http.StatusForbidden,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			privateChannel := th.CreatePrivateChannel(t)
+
+			mockACS := &mocks.AccessControlServiceInterface{}
+			th.App.Srv().Channels().AccessControl = mockACS
+
+			policy := &model.AccessControlPolicy{
+				ID:       privateChannel.Id,
+				Type:     model.AccessControlPolicyTypeChannel,
+				Version:  model.AccessControlPolicyVersionV0_3,
+				Revision: 1,
+				Imports:  slices.Clone(tc.imports),
+				Rules:    slices.Clone(tc.rules),
+			}
+			// The permission lookup and the handler each load the policy through GetPolicy.
+			// A delete that proceeds loads it once more inside DeleteAccessControlPolicy.
+			switch tc.lookup {
+			case policyMissing:
+				notFound := model.NewAppError("GetPolicy", "app.access_control.not_found.app_error", nil, "", http.StatusNotFound)
+				mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), privateChannel.Id).Return(nil, notFound)
+			case policyLookupError:
+				lookupErr := model.NewAppError("GetPolicy", "app.pap.get_policy.app_error", nil, "", http.StatusInternalServerError)
+				mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), privateChannel.Id).Return(policy, nil).Once()
+				mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), privateChannel.Id).Return(nil, lookupErr).Once()
+			default:
+				mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), privateChannel.Id).Return(policy, nil)
+			}
+			mockACS.On("DeletePolicy", mock.AnythingOfType("*request.Context"), privateChannel.Id).Return(nil).Maybe()
+
+			var client *model.Client4
+			var userID string
+			switch tc.actor {
+			case actorChannelAdmin:
+				channelAdmin := th.CreateUser(t)
+				th.LinkUserToTeam(t, channelAdmin, th.BasicTeam)
+				th.AddUserToChannel(t, channelAdmin, privateChannel)
+				th.MakeUserChannelAdmin(t, channelAdmin, privateChannel)
+				client = th.CreateClient()
+				_, _, err := client.Login(context.Background(), channelAdmin.Email, channelAdmin.Password)
+				require.NoError(t, err)
+				userID = channelAdmin.Id
+			case actorTeamAdmin:
+				teamAdmin := th.CreateUser(t)
+				makeTeamAdminAndLogin(t, th, teamAdmin, th.BasicTeam)
+				defer th.LoginBasic(t)
+				client = th.Client
+				userID = teamAdmin.Id
+			case actorSystemAdmin:
+				client = th.SystemAdminClient
+			case actorRegular:
+				client = th.Client
+			default:
+				require.FailNow(t, "unknown actor")
+			}
+
+			if userID != "" {
+				allowed, _ := th.App.HasPermissionToChannel(th.Context, userID, privateChannel.Id, model.PermissionManageChannelAccessRules)
+				require.True(t, allowed, "caller holds manage_channel_access_rules on the channel")
+			}
+
+			resp, err := client.DeleteAccessControlPolicy(context.Background(), privateChannel.Id)
+			if tc.expectDelete {
+				// 200, and the policy delete service is invoked.
+				require.NoError(t, err)
+				CheckOKStatus(t, resp)
+				mockACS.AssertCalled(t, "DeletePolicy", mock.AnythingOfType("*request.Context"), privateChannel.Id)
+				return
+			}
+
+			// The policy delete service is not invoked. Check the call first so a
+			// completed delete still reports both this and the status.
+			mockACS.AssertNotCalled(t, "DeletePolicy", mock.Anything, mock.Anything)
+			require.Error(t, err)
+			switch tc.expectStatus {
+			case http.StatusNotFound:
+				CheckNotFoundStatus(t, resp)
+			case http.StatusInternalServerError:
+				CheckInternalErrorStatus(t, resp)
+			default:
+				CheckForbiddenStatus(t, resp)
+			}
+		})
+	}
 }
 
 func TestCheckExpression(t *testing.T) {
