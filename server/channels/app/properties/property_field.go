@@ -1769,8 +1769,8 @@ func (ps *PropertyService) deletePropertyField(rctx request.CTX, groupID, id str
 	}
 
 	// Nor the only parent-side field a child field's parent rule compares
-	// against: every write to the child would then refuse as broken data. One of
-	// several may go, which repairs the child.
+	// against: every write to the child would then refuse as broken data.
+	// Deleting one of several is allowed, since it leaves exactly one.
 	depended, err := ps.childFieldHasParentRule(rctx, field)
 	if err != nil {
 		return fmt.Errorf("DeletePropertyField: failed to look up child fields: %w", err)
