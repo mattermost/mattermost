@@ -482,7 +482,7 @@
   {
     "id": "api.channel.channel_management_access.abac_denied.app_error",
     "translation": "You do not currently have permission to manage this channel.",
-    "description": ""
+    "description": "Error shown when an attribute-based channel policy currently denies the user permission to manage the channel (change its settings, members or policies). Also returned as the response text of slash commands such as /header, /purpose, /rename, /kick and /share. 'currently' signals the denial may lift when the user's attributes or session change."
   },
   {
     "id": "api.channel.channel_member_counts_by_group.license.error",
@@ -492,12 +492,12 @@
   {
     "id": "api.channel.channel_read_access.abac_denied.app_error",
     "translation": "You do not currently have access to this channel.",
-    "description": ""
+    "description": "Error shown when an attribute-based channel policy currently denies the user access to read the channel, for example when opening, joining or loading posts from it. 'currently' signals the denial may lift when the user's attributes or session (such as network or device) change."
   },
   {
     "id": "api.channel.channel_write_access.abac_denied.app_error",
     "translation": "You do not currently have permission to write in this channel.",
-    "description": ""
+    "description": "Error shown when an attribute-based channel policy currently denies the user permission to post, react, edit, upload files or run commands in the channel. 'currently' signals the denial may lift when the user's attributes or session change."
   },
   {
     "id": "api.channel.create_channel.attribute_no_permission.app_error",
@@ -1038,16 +1038,6 @@
     "id": "api.cloud.request_error",
     "translation": "Error processing request to CWS.",
     "description": "Error when a request to CWS (the Mattermost customer web server / customer portal) fails; admin audience."
-  },
-  {
-    "id": "api.cloud.teams_limit_reached.create",
-    "translation": "Unable to create team because teams limit has been reached",
-    "description": "API error on Mattermost Cloud when creating a team would exceed the Cloud plan's team limit."
-  },
-  {
-    "id": "api.cloud.teams_limit_reached.restore",
-    "translation": "Unable to restore team because teams limit has been reached",
-    "description": "API error on Mattermost Cloud when restoring an archived team would exceed the Cloud plan's team limit."
   },
   {
     "id": "api.command.admin_only.app_error",
@@ -2389,11 +2379,6 @@
     "id": "api.command_share.service_disabled",
     "translation": "Shared Channels Service is disabled.",
     "description": "Error shown (also as /share-channel slash command output) when Shared Channels is turned off in the server config; 'Shared Channels' is the cross-server channel feature name."
-  },
-  {
-    "id": "api.command_share.service_inactive",
-    "translation": "Shared Channels Service is enabled but not active.",
-    "description": "Error shown when the Shared Channels service is enabled in config but has not started/activated; audience is admins."
   },
   {
     "id": "api.command_share.share_channel.error",
@@ -3769,6 +3754,21 @@
     "description": "API error shown to a system admin when downloading a plugin from a URL or the Marketplace fails."
   },
   {
+    "id": "api.plugin.public_key.no_file.app_error",
+    "translation": "Exactly one plugin public key file must be uploaded in the public_key field.",
+    "description": "Error returned by the local-mode API when a plugin-signing public key upload is missing its file; 'public_key' is the literal form field name and must not be translated."
+  },
+  {
+    "id": "api.plugin.public_key.not_found.app_error",
+    "translation": "Plugin public key {{.Name}} is not configured.",
+    "description": "Error returned by the local-mode API when the requested plugin-signing public key is not in PluginSettings.SignaturePublicKeyFiles."
+  },
+  {
+    "id": "api.plugin.public_key.parse.app_error",
+    "translation": "Unable to parse the uploaded plugin public key.",
+    "description": "Error returned by the local-mode API when the multipart request uploading a plugin-signing public key cannot be parsed or is too large."
+  },
+  {
     "id": "api.plugin.upload.array.app_error",
     "translation": "File array is empty in multipart/form request.",
     "description": "API error when a plugin upload request's multipart form contains an empty file array; technical message aimed at admins/integrators."
@@ -4240,6 +4240,11 @@
     "description": "API error when a user who does not administer the channel, team or system a new custom property field belongs to (e.g. a channel attribute) submits a permissions configuration with it. Such users can still create the field, but it gets the default permissions."
   },
   {
+    "id": "api.property_field.create.permissions_require_system_admin.app_error",
+    "translation": "Only a system administrator can set permissions when creating an attribute field.",
+    "description": "API error when a non-system-administrator submits a permissions configuration while creating a field in the attribute-based access control group (user and channel attributes used by access policies). Such users can still create the field, but it gets the default permissions."
+  },
+  {
     "id": "api.property_field.create.protected_via_api.app_error",
     "translation": "Cannot create a protected property field via API.",
     "description": "API error when a client tries to create a system-protected property field through the public API, which is not allowed."
@@ -4698,11 +4703,6 @@
     "id": "api.server.cws.needs_enterprise_edition",
     "translation": "Service only available in Mattermost Enterprise edition",
     "description": "API error when a customer-portal-related endpoint is called on a server that is not Mattermost Enterprise edition; 'Mattermost Enterprise' is a product name."
-  },
-  {
-    "id": "api.server.hosted_signup_unavailable.error",
-    "translation": "Portal unavailable for self-hosted signup.",
-    "description": "API error when the Mattermost customer portal cannot be reached during self-hosted license signup; 'Portal' is the customer portal; admin audience."
   },
   {
     "id": "api.server.license_up_for_renewal.error_sending_email",
@@ -8731,11 +8731,6 @@
     "description": "Error during a bulk data export when adding a file to the export zip archive fails."
   },
   {
-    "id": "app.file.cloud.get.app_error",
-    "translation": "Cannot fetch the file as it is past the cloud plan's limit.",
-    "description": "Error when a file cannot be fetched because it exceeds the Mattermost Cloud plan's storage limit; end-user audience."
-  },
-  {
     "id": "app.file_info.delete_for_post_ids.app_error",
     "translation": "Failed to remove the requested files from database",
     "description": "Internal error when deleting file attachment records for a set of posts fails; log/admin-facing."
@@ -9136,6 +9131,11 @@
     "description": "Bulk import error shown to admins when saving preferences (e.g. flagged-post state) tied to an imported post fails."
   },
   {
+    "id": "app.import.import_post.save_priority.error",
+    "translation": "Error importing post. Failed to save priority.",
+    "description": "Bulk import error shown to admins when saving the priority (important, urgent, acknowledgement request) of an imported post fails."
+  },
+  {
     "id": "app.import.import_post.user_not_found.error",
     "translation": "Error importing post. User with username \"{{.Username}}\" could not be found.",
     "description": "Bulk import error shown to admins; {{.Username}} is the username referenced by the post being imported."
@@ -9429,6 +9429,31 @@
     "id": "app.import.validate_post_import_data.user_missing.error",
     "translation": "Missing required Post property: User.",
     "description": "Bulk-import validation error when a post entry lacks the author field; 'Post' and 'User' are literal field names and should stay untranslated."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.acknowledged_at_invalid.error",
+    "translation": "Acknowledgement AcknowledgedAt property must be set and not before the post CreateAt.",
+    "description": "Bulk-import validation error when a post acknowledgement has no timestamp or one earlier than the post; 'AcknowledgedAt' and 'CreateAt' are literal field names."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.acknowledgement_user_missing.error",
+    "translation": "Missing required Acknowledgement property: User.",
+    "description": "Bulk-import validation error when a post acknowledgement lacks the acknowledging username; 'Acknowledgement' and 'User' are literal field names."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.acknowledgements_not_requested.error",
+    "translation": "Post acknowledgements require a Priority with RequestedAck set to true.",
+    "description": "Bulk-import validation error when a post has acknowledgements but its priority does not request them; 'Priority' and 'RequestedAck' are literal field names."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.persistent_notifications_not_urgent.error",
+    "translation": "Post PersistentNotifications require the urgent Priority.",
+    "description": "Bulk-import validation error when persistent notifications are set on a post whose priority is not urgent; 'PersistentNotifications' and 'Priority' are literal field names."
+  },
+  {
+    "id": "app.import.validate_post_priority_import_data.priority_missing.error",
+    "translation": "Missing required Priority property: Priority.",
+    "description": "Bulk-import validation error when a post priority object has no priority value (use an empty string for standard priority); 'Priority' is a literal field name."
   },
   {
     "id": "app.import.validate_reaction_import_data.create_at_before_parent.error",
@@ -9854,11 +9879,6 @@
     "id": "app.job.update_status.app_error",
     "translation": "Unable to update job status. Invalid status set",
     "description": "API error shown to admins when a background job's status cannot be changed because the requested status transition is invalid."
-  },
-  {
-    "id": "app.last_accessible_file.app_error",
-    "translation": "Error fetching last accessible file",
-    "description": "Internal API error when reading the cloud plan's file-access cutoff (the oldest file accessible under message/file limits) fails."
   },
   {
     "id": "app.last_accessible_post.app_error",
@@ -10483,12 +10503,27 @@
   {
     "id": "app.pdp.action_has_permission_policy.app_error",
     "translation": "Failed to determine if action has a permission policy",
-    "description": ""
+    "description": "Internal server error when the server cannot look up whether any permission policy governs a given action. Shown to administrators and in logs."
   },
   {
     "id": "app.pdp.resource_policy_governs_action.app_error",
     "translation": "Failed to determine if the resource's access policy governs the action.",
     "description": "Internal error when the server cannot tell whether a channel's attribute-based access policy, or a policy it imports, declares a given action; the server then evaluates the policy anyway. Logged for admins, not shown to end users."
+  },
+  {
+    "id": "app.plugin.add_public_key.file_exists.app_error",
+    "translation": "A configuration file named {{.Name}} already exists.",
+    "description": "Error when adding a plugin-signing public key would overwrite an existing configuration file of the same name."
+  },
+  {
+    "id": "app.plugin.add_public_key.invalid_key.app_error",
+    "translation": "The file is not a valid OpenPGP public key.",
+    "description": "Error when the uploaded plugin-signing public key cannot be parsed as an OpenPGP public key, or contains a private key."
+  },
+  {
+    "id": "app.plugin.add_public_key.invalid_name.app_error",
+    "translation": "Invalid plugin public key name {{.Name}}. Names may contain only letters, numbers, '.', '_' and '-'.",
+    "description": "Error when adding a plugin-signing public key whose file name contains disallowed characters or is reserved."
   },
   {
     "id": "app.plugin.addon_not_licensed.app_error",
@@ -11351,6 +11386,11 @@
     "description": "API error when an admin tries to change an existing property field's type to or from 'graph' (hierarchical options). 'graph' is the internal field type name."
   },
   {
+    "id": "app.property_field.update.legacy_attrs_lossy.app_error",
+    "translation": "Cannot change this field's owners, access mode, protected or sync settings this way because its permissions cannot be expressed in that form. Update its permissions directly instead.",
+    "description": "API error (400) when a client using the older property field format changes a field's owners, access mode, protected or sync attributes, but the field's permissions hold settings that older format cannot represent, so applying the change would lose them."
+  },
+  {
     "id": "app.property_field.update.linked_options_change.app_error",
     "translation": "Cannot modify options of a linked field. Options are inherited from the source.",
     "description": "API error when an update tries to change the selectable options of a linked property field; options come from the source field."
@@ -11359,6 +11399,11 @@
     "id": "app.property_field.update.linked_type_change.app_error",
     "translation": "Cannot modify type of a linked field. Type is inherited from the source.",
     "description": "API error when an update tries to change the data type of a linked property field; the type comes from the source field."
+  },
+  {
+    "id": "app.property_field.update.masking_discarded.app_error",
+    "translation": "Cannot change this field's access mode because it contains data the caller may not read.",
+    "description": "API error (400) when a client using the older property field format changes a field's access mode, but the field's masking settings (which field each person's own values are read from, and who is exempt) are not visible in that format and would be lost by the change."
   },
   {
     "id": "app.property_field.update.name_conflict.app_error",
@@ -11374,6 +11419,11 @@
     "id": "app.property_field.update.options_withheld.app_error",
     "translation": "This property has more than {{.Max}} options, so its option list was not loaded and cannot be replaced. Edit its options individually instead.",
     "description": "API error when a request tries to replace the whole option list of a property field that has too many options to be loaded at once. {{.Max}} is that option count limit."
+  },
+  {
+    "id": "app.property_field.update.permissions_with_legacy_keys.app_error",
+    "translation": "Cannot change this field's permissions and its permission levels, owners, access mode, protected or sync settings in the same update. Send the change in one form or the other.",
+    "description": "API error when one update to a property field both changes its permissions object and changes one of the older permission settings (permission levels, owners, access mode, protected, or AD/LDAP, SAML or OpenID Connect sync attributes). The caller must send the change using only one of the two forms."
   },
   {
     "id": "app.property_field.update.protected.app_error",
@@ -12517,11 +12567,6 @@
     "description": "API error when checking whether a user is a member of any of a given list of teams fails."
   },
   {
-    "id": "app.teams.analytics_teams_count.app_error",
-    "translation": "Unable to get team count",
-    "description": "Internal API error when the statistics query counting teams fails; used by the admin usage endpoint."
-  },
-  {
     "id": "app.terms_of_service.create.app_error",
     "translation": "Unable to save terms of service.",
     "description": "API error shown to an admin when saving new custom terms of service text fails; 'terms of service' is the legal-agreement feature."
@@ -12680,11 +12725,6 @@
     "id": "app.upload.upload_data.update.app_error",
     "translation": "Failed to update the upload session.",
     "description": "API error when updating the upload session's progress in the database fails."
-  },
-  {
-    "id": "app.usage.get_storage_usage.app_error",
-    "translation": "Failed to get storage usage.",
-    "description": "Internal API error when computing total file storage usage fails; used by the admin usage endpoint."
   },
   {
     "id": "app.user.analytics_daily_active_users.app_error",
@@ -15977,19 +16017,29 @@
     "description": "Validation error for an access control policy rule whose action list is invalid; 'action' is what the rule allows (e.g. join, view)."
   },
   {
+    "id": "model.access_policy.is_valid.actions.channel_access_policy_role.app_error",
+    "translation": "Channel access actions on a permission policy can only apply to the System User, System Guest or System Admin role.",
+    "description": "Validation error when saving a system permission policy whose rules use the Channel Read Access, Channel Write Access or Manage Channel action, but whose role is a custom role. Such a policy would never apply, because channel access is evaluated against the user's built-in system role."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_access_rule_role.app_error",
+    "translation": "A channel access rule on a permission policy can't specify its own role. The policy's role applies.",
+    "description": "Validation error when saving a system permission policy with a Channel Read Access, Channel Write Access or Manage Channel rule that sets its own role, as channel policy rules do. The role of a permission policy is set on the policy, not on each rule."
+  },
+  {
     "id": "model.access_policy.is_valid.actions.channel_management_access_type.app_error",
     "translation": "The Manage Channel action is only allowed on permission and channel policies.",
-    "description": ""
+    "description": "Validation error when saving an access policy that uses the Manage Channel action on a policy type other than a permission policy or a channel policy. 'Manage Channel' is the name of the action in the System Console."
   },
   {
     "id": "model.access_policy.is_valid.actions.channel_read_access_type.app_error",
     "translation": "The Channel Read Access action is only allowed on permission and channel policies.",
-    "description": ""
+    "description": "Validation error when saving an access policy that uses the Channel Read Access action on a policy type other than a permission policy or a channel policy. 'Channel Read Access' is the name of the action in the System Console."
   },
   {
     "id": "model.access_policy.is_valid.actions.channel_write_access_type.app_error",
     "translation": "The Channel Write Access action is only allowed on permission and channel policies.",
-    "description": ""
+    "description": "Validation error when saving an access policy that uses the Channel Write Access action on a policy type other than a permission policy or a channel policy. 'Channel Write Access' is the name of the action in the System Console."
   },
   {
     "id": "model.access_policy.is_valid.actions.membership_combined.app_error",
@@ -17333,8 +17383,8 @@
   },
   {
     "id": "model.config.is_valid.max_channels.app_error",
-    "translation": "Invalid maximum channels per team for team settings. Must be a positive number.",
-    "description": "Config validation error shown to system admins for the maximum channels per team setting; must be a positive number."
+    "translation": "Invalid maximum channels per team for team settings. Must be 0 (unlimited) or a positive number.",
+    "description": "Config validation error shown to system admins for the maximum channels per team setting; must be 0, meaning no limit, or a positive number."
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
@@ -17363,8 +17413,8 @@
   },
   {
     "id": "model.config.is_valid.max_users.app_error",
-    "translation": "Invalid maximum users per team for team settings. Must be a positive number.",
-    "description": "Config validation error shown to system admins for the maximum users per team setting; must be a positive number."
+    "translation": "Invalid maximum users per team for team settings. Must be 0 (unlimited) or a positive number.",
+    "description": "Config validation error shown to system admins for the maximum users per team setting; must be 0, meaning no limit, or a positive number."
   },
   {
     "id": "model.config.is_valid.message_export.batch_size.app_error",
@@ -18200,6 +18250,11 @@
     "id": "model.log_filter.is_valid.date_to.app_error",
     "translation": "Invalid date_to filter. Expected the format \"{{.Layout}}\".",
     "description": "API error (400) returned to a system admin filtering server logs in the System Console when the end-date filter is unparseable. {{.Layout}} is the expected date format pattern (a Go time layout string) and must not be translated."
+  },
+  {
+    "id": "model.log_filter.is_valid.search.app_error",
+    "translation": "Invalid search filter. It must be at most {{.MaxLength}} characters.",
+    "description": "API error (400) returned to a system admin searching server logs in the System Console when the search term is too long. {{.MaxLength}} is the maximum number of characters."
   },
   {
     "id": "model.member.is_valid.channel.app_error",
@@ -19382,6 +19437,16 @@
     "description": "Error returned to plugins when listing channel users is called with an unsupported sort option; developer-facing."
   },
   {
+    "id": "plugin.api.kv_list_with_options.not_implemented",
+    "translation": "The server does not support listing plugin keys with options.",
+    "description": "Error a plugin receives when it lists its key-value store keys with filter options on a server version that does not support that API. The plugin library then falls back to listing all keys."
+  },
+  {
+    "id": "plugin.api.kv_list_with_options.rpc_error",
+    "translation": "Unable to list plugin keys with options.",
+    "description": "Error a plugin receives when the call from the plugin process to the server fails while it lists its key-value store keys with filter options."
+  },
+  {
     "id": "plugin.api.thread.invalid_thread_id.app_error",
     "translation": "Invalid thread id.",
     "description": "Error returned to plugins when GetThreadFollowers or SetThreadFollowing is called with a thread id that is not a valid Mattermost id; developer-facing."
@@ -19648,12 +19713,12 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 150+",
+    "translation": "Version 156+",
     "description": "Compact version requirement label on the Chrome card of the 'unsupported browser' page; the number is the minimum Chrome version."
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 150+",
+    "translation": "Version 156+",
     "description": "Compact version requirement label on the Edge card of the 'unsupported browser' page; the number is the minimum Edge version."
   },
   {

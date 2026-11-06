@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useState, useEffect, useCallback, useMemo, useRef} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {FormattedMessage, defineMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
@@ -27,7 +27,9 @@ import SystemPolicyIndicator from 'components/system_policy_indicator';
 import SaveChangesPanel, {type SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
 
 import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
+import {useChannelKind} from 'hooks/useChannelKind';
 import {useChannelSystemPolicies} from 'hooks/useChannelSystemPolicies';
+import type {KindMessages} from 'utils/channel_kind';
 import Constants from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
@@ -62,6 +64,7 @@ function ChannelSettingsAccessRulesTab({
     isReadOnly = false,
 }: ChannelSettingsAccessRulesTabProps) {
     const {formatMessage} = useIntl();
+    const channelKind = useChannelKind(channel);
 
     // Get access control settings and current user from Redux state
     const accessControlSettings = useSelector((state: GlobalState) => getAccessControlSettings(state));
@@ -703,6 +706,9 @@ function ChannelSettingsAccessRulesTab({
         return unsavedChanges || saveChangesPanelState === SAVE_RESULT_SAVED;
     }, [expression, originalExpression, autoSyncMembers, originalAutoSyncMembers, saveChangesPanelState, isReadOnly]);
 
+    const subtitleMessages = channel.type === Constants.OPEN_CHANNEL ? messages.subtitlePublic : messages.subtitlePrivate;
+    const accessRulesSubtitle = formatMessage(subtitleMessages[channelKind]);
+
     return (
         <div className='ChannelSettingsModal__accessRulesTab'>
             {isReadOnly && <ChannelSettingsReadOnlyNotice/>}
@@ -729,13 +735,7 @@ function ChannelSettingsAccessRulesTab({
                     })}
                 </h3>
                 <p className='ChannelSettingsModal__accessRulesSubtitle'>
-                    {channel.type === Constants.OPEN_CHANNEL ? formatMessage({
-                        id: 'channel_settings.access_rules.subtitle_public',
-                        defaultMessage: 'Define who this channel is recommended for. The channel stays open to everyone.',
-                    }) : formatMessage({
-                        id: 'channel_settings.access_rules.subtitle',
-                        defaultMessage: 'Select user attributes and values as rules to restrict channel membership',
-                    })}
+                    {accessRulesSubtitle}
                 </p>
             </div>
 
@@ -807,10 +807,7 @@ function ChannelSettingsAccessRulesTab({
                         const isPublic = channel.type === Constants.OPEN_CHANNEL;
                         if (autoSyncMembers) {
                             if (isPublic) {
-                                return formatMessage({
-                                    id: 'channel_settings.access_rules.auto_sync_enabled_public_description',
-                                    defaultMessage: 'Users who match these rules will be added to this channel. They can leave anytime and won\'t be re-added.',
-                                });
+                                return formatMessage(messages.autoSyncEnabledPublic[channelKind]);
                             }
                             return formatMessage({
                                 id: 'channel_settings.access_rules.auto_sync_enabled_description',
@@ -819,10 +816,7 @@ function ChannelSettingsAccessRulesTab({
                         }
 
                         if (isPublic) {
-                            return formatMessage({
-                                id: 'channel_settings.access_rules.auto_sync_disabled_public_description',
-                                defaultMessage: 'This channel will appear under "Recommended channels" for users who match the rules. Anyone can still join freely.',
-                            });
+                            return formatMessage(messages.autoSyncDisabledPublic[channelKind]);
                         }
 
                         return formatMessage({
@@ -861,12 +855,7 @@ function ChannelSettingsAccessRulesTab({
                         defaultMessage='Cannot save access rules'
                     />
                 }
-                message={
-                    <FormattedMessage
-                        id='channel_settings.access_rules.error.self_exclusion_message'
-                        defaultMessage="You cannot set this rule because it would remove you from the channel. Please update the access rules to make sure you satisfy them and they don't cause any unintended issues."
-                    />
-                }
+                message={<FormattedMessage {...messages.selfExclusion[channelKind]}/>}
                 confirmButtonText={
                     <FormattedMessage
                         id='channel_settings.access_rules.error.back_to_editing'
@@ -900,6 +889,7 @@ function ChannelSettingsAccessRulesTab({
                 autoSyncEnabled={autoSyncMembers}
                 isStacked={true}
                 willShowActivityWarning={shouldShowActivityWarning}
+                channelKind={channelKind}
             />
 
             {/* Activity warning modal */}
@@ -908,9 +898,63 @@ function ChannelSettingsAccessRulesTab({
                 isOpen={showActivityWarningModal}
                 onClose={handleActivityWarningClose}
                 onConfirm={handleActivityWarningContinue}
+                channelKind={channelKind}
             />
         </div>
     );
 }
+
+const messages = {
+    subtitlePublic: {
+        channel: defineMessage({
+            id: 'channel_settings.access_rules.subtitle_public',
+            defaultMessage: 'Define who this channel is recommended for. The channel stays open to everyone.',
+        }),
+        board: defineMessage({
+            id: 'channel_settings.access_rules.subtitle_public.board',
+            defaultMessage: 'Define who this board is recommended for. The board stays open to everyone.',
+        }),
+    },
+    subtitlePrivate: {
+        channel: defineMessage({
+            id: 'channel_settings.access_rules.subtitle',
+            defaultMessage: 'Select user attributes and values as rules to restrict channel membership',
+        }),
+        board: defineMessage({
+            id: 'channel_settings.access_rules.subtitle.board',
+            defaultMessage: 'Select user attributes and values as rules to restrict board membership',
+        }),
+    },
+    autoSyncEnabledPublic: {
+        channel: defineMessage({
+            id: 'channel_settings.access_rules.auto_sync_enabled_public_description',
+            defaultMessage: 'Users who match these rules will be added to this channel. They can leave anytime and won\'t be re-added.',
+        }),
+        board: defineMessage({
+            id: 'channel_settings.access_rules.auto_sync_enabled_public_description.board',
+            defaultMessage: 'Users who match these rules will be added to this board. They can leave anytime and won\'t be re-added.',
+        }),
+    },
+    autoSyncDisabledPublic: {
+        channel: defineMessage({
+            id: 'channel_settings.access_rules.auto_sync_disabled_public_description',
+            defaultMessage: 'This channel will appear under "Recommended channels" for users who match the rules. Anyone can still join freely.',
+        }),
+        board: defineMessage({
+            id: 'channel_settings.access_rules.auto_sync_disabled_public_description.board',
+            defaultMessage: 'This board will appear under "Recommended channels" for users who match the rules. Anyone can still join freely.',
+        }),
+    },
+    selfExclusion: {
+        channel: defineMessage({
+            id: 'channel_settings.access_rules.error.self_exclusion_message',
+            defaultMessage: "You cannot set this rule because it would remove you from the channel. Please update the access rules to make sure you satisfy them and they don't cause any unintended issues.",
+        }),
+        board: defineMessage({
+            id: 'channel_settings.access_rules.error.self_exclusion_message.board',
+            defaultMessage: "You cannot set this rule because it would remove you from the board. Please update the access rules to make sure you satisfy them and they don't cause any unintended issues.",
+        }),
+    },
+} satisfies Record<string, KindMessages>;
 
 export default ChannelSettingsAccessRulesTab;

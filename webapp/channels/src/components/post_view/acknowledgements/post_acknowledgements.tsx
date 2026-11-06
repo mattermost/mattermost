@@ -141,6 +141,7 @@ function PostAcknowledgements({
                     'AcknowledgementButton--disabled': buttonDisabled,
                     'AcknowledgementButton--default': !list || list.length === 0,
                 })}
+                aria-disabled={buttonDisabled}
                 {...getReferenceProps()}
             >
                 <CheckCircleOutlineIcon size={16}/>

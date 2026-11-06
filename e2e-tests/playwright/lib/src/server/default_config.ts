@@ -87,6 +87,9 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
             EnableForgotLink: true,
         },
         PrivacySettings: {
+            // Server defaults, listed so specs that hide them don't leak that to later specs.
+            ShowEmailAddress: true,
+            ShowFullName: true,
             UseAnonymousURLs: false,
         },
         ServiceSettings: {

@@ -391,27 +391,16 @@ func (a *App) HasChannelReadAccess(rctx request.CTX, userID string, channel *mod
 // channelWriteAccessDecision evaluates channel_write_access alone: a channel_read_access
 // denial does not refuse a write.
 func (a *App) channelWriteAccessDecision(rctx request.CTX, userID string, channel *model.Channel) bool {
-	if !a.channelAccessGateApplies(userID, channel) {
-		return true
-	}
-
-	// Integrations are out of scope. A bot has no interactive session, so a rule
-	// over user.session.* has nothing to evaluate and would deny every bot post.
-	// Webhook and plugin writes never reach a permission check at all, so they are
-	// already exempt; this covers the one integration that does carry a session.
-	if userID == rctx.Session().UserId && rctx.Session().IsBotUser() {
-		return true
-	}
-
-	if !a.channelActionGoverned(rctx, channel, model.AccessControlPolicyActionChannelWriteAccess) {
+	if !a.channelAccessGateApplies(userID, channel) ||
+		!a.channelActionGoverned(rctx, channel, model.AccessControlPolicyActionChannelWriteAccess) {
 		return true
 	}
 
 	return a.hasChannelAccess(rctx, userID, channel, model.AccessControlPolicyActionChannelWriteAccess)
 }
 
-// channelManagementAccessDecision evaluates channel_management_access alone. Unlike
-// writes, bot sessions are evaluated too; system admins are never bound.
+// channelManagementAccessDecision evaluates channel_management_access alone. Bots are
+// evaluated like any user; system admins are never bound.
 func (a *App) channelManagementAccessDecision(rctx request.CTX, userID string, channel *model.Channel) bool {
 	if !a.channelAccessGateApplies(userID, channel) ||
 		!a.channelActionGoverned(rctx, channel, model.AccessControlPolicyActionChannelManagementAccess) {
@@ -463,7 +452,7 @@ func (a *App) evaluateChannelAccessGoverned(rctx request.CTX, channel *model.Cha
 	if appErr != nil {
 		// A failed governance check says nothing about whether a policy applies, so
 		// fall through to the evaluation rather than skipping a gate that would deny.
-		rctx.Logger().Debug("Failed to check whether permission policies govern the channel action; evaluating anyway",
+		rctx.Logger().Error("Failed to check whether permission policies govern the channel action; evaluating anyway",
 			mlog.String("action", action),
 			mlog.String("channel_id", channel.Id),
 			mlog.Err(appErr),
@@ -609,7 +598,11 @@ func (a *App) channelAccessBaseSubject(rctx request.CTX, userID string) (*model.
 
 	var subject *model.Subject
 	var appErr *model.AppError
-	if rctx.Session().UserId == userID {
+	// Only a real session (one with an ID) speaks for the user's roles and session
+	// attributes. A stand-in that carries only the user ID, as background jobs such as
+	// recaps build, has no roles, and would evaluate a guest or an admin as system_user;
+	// such a request is evaluated on the user's stored roles instead.
+	if s := rctx.Session(); s.UserId == userID && s.Id != "" {
 		subject, appErr = a.BuildAccessControlSubjectForSession(rctx, "")
 	} else {
 		var user *model.User

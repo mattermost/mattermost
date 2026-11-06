@@ -14,9 +14,6 @@ import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/user
 
 import {openModal, closeModal} from 'actions/views/modals';
 
-import useGetHighestThresholdCloudLimit from 'components/common/hooks/useGetHighestThresholdCloudLimit';
-import useGetLimits from 'components/common/hooks/useGetLimits';
-import useGetUsage from 'components/common/hooks/useGetUsage';
 import ThreeDaysLeftTrialModal from 'components/three_days_left_trial_modal/three_days_left_trial_modal';
 
 import {
@@ -46,9 +43,6 @@ const ShowThreeDaysLeftTrialModal = () => {
     // the trial will end in three days or left
     const trialEndInThreeDaysOrLess = diffDays <= 3;
 
-    // validate the logic for the limits and pass that to the modal as a property
-    const someLimitNeedsAttention = Boolean(useGetHighestThresholdCloudLimit(useGetUsage(), useGetLimits()[0]));
-
     const currentUserId = useSelector(getCurrentUserId);
 
     const handleOnClose = async () => {
@@ -71,7 +65,6 @@ const ShowThreeDaysLeftTrialModal = () => {
                 modalId: ModalIdentifiers.THREE_DAYS_LEFT_TRIAL_MODAL,
                 dialogType: ThreeDaysLeftTrialModal,
                 dialogProps: {
-                    limitsOverpassed: someLimitNeedsAttention,
                     onExited: handleOnClose,
                 },
             }));

@@ -52,10 +52,8 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/export_process"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/export_users_to_csv"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/extract_content"
-	"github.com/mattermost/mattermost/server/v8/channels/jobs/hosted_purchase_screening"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/import_delete"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/import_process"
-	"github.com/mattermost/mattermost/server/v8/channels/jobs/last_accessible_file"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/last_accessible_post"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/migrations"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/mobile_session_metadata"
@@ -138,6 +136,8 @@ type Server struct {
 	userService      *users.UserService
 	teamService      *teams.TeamService
 	propertyService  *properties.PropertyService
+	// propertyAccessControlHook is kept so tests can observe it.
+	propertyAccessControlHook *properties.AccessControlHook
 
 	sessionAttributeSchema atomic.Pointer[sessionAttributeSchema]
 
@@ -189,6 +189,13 @@ func (s *Server) Store() store.Store {
 
 func (s *Server) PropertyService() *properties.PropertyService {
 	return s.propertyService
+}
+
+// SetPropertyNoCallerObserverForTests installs observer on the property
+// access control hook, so a test can check that the calls it makes reach the
+// hook with a caller ID. See AccessControlHook.SetNoCallerObserverForTests.
+func (s *Server) SetPropertyNoCallerObserverForTests(observer properties.NoCallerObserver) {
+	s.propertyAccessControlHook.SetNoCallerObserverForTests(observer)
 }
 
 func (s *Server) SetStore(st store.Store) {
@@ -283,7 +290,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	// Register builtin property groups before creating hooks that reference them
 	if err = s.propertyService.RegisterBuiltinGroups([]*model.PropertyGroup{
-		{Name: model.AccessControlPropertyGroupName, Version: model.PropertyGroupVersionV2, SchemaVersion: model.AccessControlPropertyGroupSchemaVersion},
+		{Name: model.AccessControlPropertyGroupName, Version: model.PropertyGroupVersionV3, SchemaVersion: model.AccessControlPropertyGroupSchemaVersion},
 		{Name: model.SessionAttributesPropertyGroupName, Version: model.PropertyGroupVersionV2},
 		{Name: model.ContentFlaggingGroupName, Version: model.PropertyGroupVersionV1},
 		{Name: model.BoardsPropertyGroupName, Version: model.PropertyGroupVersionV2},
@@ -355,8 +362,9 @@ func NewServer(options ...Option) (*Server, error) {
 			}
 		}
 		return app.decidePropertyFieldPermission(rctx, userID, field, action, valueTargetID).Allowed
-	}, app.propertyCallerRoles, cpaGroup.ID)
+	}, app.propertyCallerRoles)
 	s.propertyService.AddHook(accessControlHook)
+	s.propertyAccessControlHook = accessControlHook
 
 	// Attribute validation hook — validates visibility, sort_order on fields,
 	// field-type constraints on values (options, user IDs, value_type), and
@@ -1817,12 +1825,6 @@ func (s *Server) initJobs() {
 	)
 
 	s.Jobs.RegisterJobType(
-		model.JobTypeLastAccessibleFile,
-		last_accessible_file.MakeWorker(s.Jobs, s.License(), New(ServerConnector(s.Channels()))),
-		last_accessible_file.MakeScheduler(s.Jobs, s.License()),
-	)
-
-	s.Jobs.RegisterJobType(
 		model.JobTypeUpgradeNotifyAdmin,
 		notify_admin.MakeUpgradeNotifyWorker(s.Jobs, s.License(), New(ServerConnector(s.Channels()))),
 		notify_admin.MakeScheduler(s.Jobs, s.License(), model.JobTypeUpgradeNotifyAdmin),
@@ -1844,12 +1846,6 @@ func (s *Server) initJobs() {
 		model.JobTypeInstallPluginNotifyAdmin,
 		notify_admin.MakeInstallPluginNotifyWorker(s.Jobs, New(ServerConnector(s.Channels()))),
 		notify_admin.MakeInstallPluginScheduler(s.Jobs, s.License(), model.JobTypeInstallPluginNotifyAdmin),
-	)
-
-	s.Jobs.RegisterJobType(
-		model.JobTypeHostedPurchaseScreening,
-		hosted_purchase_screening.MakeWorker(s.Jobs, s.License(), s.Store().System()),
-		hosted_purchase_screening.MakeScheduler(s.Jobs, s.License()),
 	)
 
 	s.Jobs.RegisterJobType(

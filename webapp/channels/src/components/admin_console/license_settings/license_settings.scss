@@ -5,15 +5,24 @@
 .top-wrapper {
     display: flex;
 
+    // Match Compass AdminPanel chrome (surface, border, radius, elevation).
+    // Applied to .panel-card instead of wrapping in AdminPanel so the
+    // two-column left/right layout (568px + 332px) is preserved.
+    .left-panel,
+    .right-panel {
+        .panel-card {
+            border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+            border-radius: var(--radius-m);
+            background: var(--center-channel-bg);
+            box-shadow: var(--elevation-1);
+        }
+    }
+
     .left-panel {
         width: 568px;
 
         .panel-card {
             padding: 28px 32px;
-            border: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.08);
-            border-radius: 4px;
-            background: var(--sys-center-channel-bg);
-            box-shadow: 0 2px 3px rgba(0, 0, 0, 0.08);
         }
     }
 
@@ -28,10 +37,6 @@
                 padding: 24px;
                 padding-top: 40px;
             }
-            border: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.08);
-            border-radius: 4px;
-            background: var(--sys-center-channel-bg);
-            box-shadow: 0 2px 3px rgba(0, 0, 0, 0.08);
         }
     }
 
@@ -50,11 +55,16 @@
     }
 }
 
+// Spacing to .top-wrapper comes from shared
+// .admin-console__content { gap: var(--spacing-xl) }. Drop the legacy
+// margin-bottom so banner + gap do not stack to 40px. Hide :empty so a
+// zero-height banner (common when seat/trial/renew cards return null)
+// is not a flex item that still consumes that gap above the cards.
 .admin-console__banner_section {
-    margin-bottom: 20px;
+    margin-bottom: 0;
 
     &:empty {
-        margin-bottom: 0px;
+        display: none;
     }
 
     .AlertBanner {

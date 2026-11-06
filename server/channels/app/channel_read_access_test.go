@@ -226,6 +226,20 @@ func TestHasChannelReadAccess(t *testing.T) {
 		}
 	})
 
+	t.Run("evaluates a bot session", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		mockACS := h.mockACS(t)
+		governed(mockACS)
+		decides(mockACS, false)
+
+		session := h.rctx.Session().DeepCopy()
+		session.Props[model.SessionPropIsBot] = model.SessionPropIsBotValue
+		rctx := WithChannelAccessMemo(h.th.Context.WithSession(session))
+
+		require.False(t, h.th.App.HasChannelReadAccess(rctx, session.UserId, h.th.BasicChannel),
+			"a bot is bound by channel_read_access like any user")
+	})
+
 	t.Run("fails closed when evaluation errors", func(t *testing.T) {
 		h := setupChannelReadAccessTest(t)
 		mockACS := h.mockACS(t)
@@ -436,55 +450,53 @@ func TestHasChannelReadAccessByID(t *testing.T) {
 	})
 }
 
-// A push carries the post body without the recipient asking for it, so a denied
-// channel downgrades to an id-only payload rather than being suppressed. The device
-// then fetches by id, and that fetch re-runs the gate live.
+// A push carries the post body to every device the recipient is signed in on, and is
+// built without any of their sessions. A read rule can depend on the session, so while
+// read access is governed in the channel no recipient gets the body, whatever the PDP
+// would say about them: the device fetches by id, and that fetch evaluates its own
+// session. The PDP is not consulted at all, since its answer could not be trusted here.
 func TestBuildPushNotificationMessageChannelReadAccess(t *testing.T) {
-	cases := []struct {
-		name  string
-		allow bool
-	}{
-		{name: "an allowed recipient gets the full content", allow: true},
-		{name: "a denied recipient gets no post content", allow: false},
+	build := func(t *testing.T, h *channelReadAccessHarness) *model.PushNotification {
+		t.Helper()
+		recipient := h.th.BasicUser2
+		h.th.AddUserToChannel(t, recipient, h.th.BasicChannel)
+
+		msg, appErr := h.th.App.BuildPushNotificationMessage(
+			h.th.Context,
+			model.FullNotification,
+			h.th.BasicPost,
+			recipient,
+			h.th.BasicChannel,
+			h.th.BasicChannel.Name,
+			h.th.BasicUser.Username,
+			true, false, "",
+		)
+		require.Nil(t, appErr)
+		return msg
 	}
 
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			h := setupChannelReadAccessTest(t)
-			recipient := h.th.BasicUser2
-			h.th.AddUserToChannel(t, recipient, h.th.BasicChannel)
+	t.Run("governed: no recipient gets the body, even one the PDP allows", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		mockACS := h.mockACS(t)
+		governed(mockACS)
+		decides(mockACS, true)
 
-			mockACS := h.mockACS(t)
-			mockACS.Test(t)
-			governed(mockACS)
-			// No fallback: a subject built for anyone but the recipient fails the test.
-			mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
-				return req.Subject.ID == recipient.Id
-			})).Return(model.AccessDecision{Decision: tc.allow}, nil)
+		msg := build(t, h)
+		require.NotEmpty(t, msg.PostId, "the notification still goes out, just without the body")
+		require.NotContains(t, msg.Message, h.th.BasicPost.Message)
+		mockACS.AssertNotCalled(t, "AccessEvaluation", mock.Anything, mock.Anything)
+	})
 
-			// The push worker runs without a session and builds the message for a
-			// recipient other than the poster.
-			msg, appErr := h.th.App.BuildPushNotificationMessage(
-				h.th.Context,
-				model.FullNotification,
-				h.th.BasicPost,
-				recipient,
-				h.th.BasicChannel,
-				h.th.BasicChannel.Name,
-				h.th.BasicUser.Username,
-				true, false, "",
-			)
-			require.Nil(t, appErr)
-			mockACS.AssertNumberOfCalls(t, "AccessEvaluation", 1)
+	t.Run("ungoverned: the recipient gets the full content", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		mockACS := h.mockACS(t)
+		mockACS.On("ActionHasPermissionPolicy", mock.Anything, model.AccessControlPolicyActionChannelReadAccess).
+			Return(false, nil)
 
-			if tc.allow {
-				require.Contains(t, msg.Message, h.th.BasicPost.Message)
-			} else {
-				require.NotEmpty(t, msg.PostId, "the notification still goes out, just without the body")
-				require.NotContains(t, msg.Message, h.th.BasicPost.Message)
-			}
-		})
-	}
+		msg := build(t, h)
+		require.Contains(t, msg.Message, h.th.BasicPost.Message)
+		mockACS.AssertNotCalled(t, "AccessEvaluation", mock.Anything, mock.Anything)
+	})
 }
 
 // A render "allowed" can never disagree with what enforcement would decide: the
@@ -2013,4 +2025,30 @@ func TestUserBadgeCountIncludesDeniedChannels(t *testing.T) {
 	require.Nil(t, appErr)
 	require.Equal(t, 1, badge)
 	mockACS.AssertNotCalled(t, "AccessEvaluation", mock.Anything, mock.Anything)
+}
+
+// Background jobs such as recaps run with a stand-in session that carries only the user
+// ID. It has no roles, so it must not be taken for the user's own session: the user is
+// evaluated on their stored roles, or a guest would be evaluated as system_user.
+func TestChannelAccessSubjectForStandInSessionUsesStoredRoles(t *testing.T) {
+	h := setupChannelReadAccessTest(t)
+	guest := h.th.CreateGuest(t)
+	h.th.LinkUserToTeam(t, guest, h.th.BasicTeam)
+	h.th.AddUserToChannel(t, guest, h.th.BasicChannel)
+
+	mockACS := h.mockACS(t)
+	governed(mockACS)
+	var gotRole string
+	mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+		return req.Action == model.AccessControlPolicyActionChannelReadAccess
+	})).
+		Run(func(args mock.Arguments) {
+			req := args.Get(1).(model.AccessRequest)
+			gotRole = req.Subject.RoleForScope(model.AccessControlSubjectScopeSystem)
+		}).
+		Return(model.AccessDecision{Decision: true}, nil)
+
+	rctx := h.th.Context.WithSession(&model.Session{UserId: guest.Id})
+	require.True(t, h.th.App.HasChannelReadAccess(rctx, guest.Id, h.th.BasicChannel))
+	require.Equal(t, model.SystemGuestRoleId, gotRole)
 }

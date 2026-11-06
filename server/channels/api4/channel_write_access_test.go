@@ -196,6 +196,20 @@ func channelWriteAccessSurfaces() []channelWriteAccessSurface {
 				ChannelId: f.th.BasicChannel.Id,
 			})
 		}),
+		// Interactive messages act in the channel on the user's behalf, like a reaction.
+		write("post action", func(t *testing.T, f *channelWriteAccessFixture) (*model.Response, error) {
+			return f.th.Client.DoPostAction(context.Background(), f.post.Id, model.NewId())
+		}),
+		write("dialog submit", func(t *testing.T, f *channelWriteAccessFixture) (*model.Response, error) {
+			_, resp, err := f.th.Client.SubmitInteractiveDialog(context.Background(), model.SubmitDialogRequest{
+				URL:        "http://localhost:1/dialog",
+				CallbackId: model.NewId(),
+				State:      "state",
+				ChannelId:  f.th.BasicChannel.Id,
+				Submission: map[string]any{},
+			})
+			return resp, err
+		}),
 		// Last: it destroys the post the surfaces above act on, so anything after it
 		// would fail for the wrong reason on the allowed run.
 		write("post delete", func(t *testing.T, f *channelWriteAccessFixture) (*model.Response, error) {
@@ -382,6 +396,20 @@ func TestChannelReadAccessBlocksPublicChannelSelfAdd(t *testing.T) {
 		"expected the read denial, got %v", err)
 }
 
+// Adding someone else is member management, gated on management alone like /invite,
+// team invites and removal, so a read denial doesn't stop a member who may manage.
+func TestChannelReadAccessDoesNotGateAddingOthers(t *testing.T) {
+	f, _ := setupChannelReadAccessAPI(t, false)
+
+	// Created by the acting user, who is then a member and may manage its members.
+	channel := f.th.CreateChannelWithClientAndTeam(t, f.th.Client, model.ChannelTypeOpen, f.th.BasicTeam.Id)
+
+	member, resp, err := f.th.Client.AddChannelMember(context.Background(), channel.Id, f.th.BasicUser2.Id)
+	require.NoError(t, err, "a read denial must not block adding another user")
+	require.Equal(t, http.StatusCreated, resp.StatusCode)
+	require.Equal(t, f.th.BasicUser2.Id, member.UserId)
+}
+
 // Assigning a reviewer is gated by none of the channel-access policies. It writes to
 // the review record rather than the channel, and content review is a team-level
 // duty performed on channels the reviewer is deliberately not a member of — so
@@ -441,54 +469,37 @@ func TestChannelWriteAccessChecksScheduledPostStoredChannel(t *testing.T) {
 	require.Equal(t, th.BasicChannel.Id, stored.ChannelId)
 }
 
-// An incoming webhook posts into its channel with no session to evaluate later, so
-// setting one up there -- creating it, or moving an existing hook in -- is the write.
-func TestChannelWriteAccessGatesIncomingWebhooks(t *testing.T) {
-	setup := func(t *testing.T, allow bool) *channelWriteAccessFixture {
-		t.Helper()
-		f, _ := setupChannelWriteAccessAPI(t, allow)
-		f.th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.EnableIncomingWebhooks = true
-		})
-		defaultRolePermissions := f.th.SaveDefaultRolePermissions(t)
-		t.Cleanup(func() { f.th.RestoreDefaultRolePermissions(t, defaultRolePermissions) })
-		addIncomingWebhookPermissions(t, f.th, model.TeamUserRoleId)
-		return f
-	}
-
-	create := func(f *channelWriteAccessFixture) error {
-		_, _, err := f.th.Client.CreateIncomingWebhook(context.Background(), &model.IncomingWebhook{ChannelId: f.th.BasicChannel.Id})
-		return err
-	}
-
-	// The hook starts in BasicChannel2, set up through the app so the gate under test
-	// is only the move into BasicChannel.
-	move := func(t *testing.T, f *channelWriteAccessFixture) error {
-		hook, appErr := f.th.App.CreateIncomingWebhookForChannel(f.th.BasicUser.Id, f.th.BasicChannel2, &model.IncomingWebhook{
-			ChannelId: f.th.BasicChannel2.Id,
-		})
-		require.Nil(t, appErr)
-		hook.ChannelId = f.th.BasicChannel.Id
-		_, _, err := f.th.Client.UpdateIncomingWebhook(context.Background(), hook)
-		return err
-	}
-
-	t.Run("denied", func(t *testing.T) {
-		f := setup(t, false)
-
-		err := create(f)
-		require.True(t, isChannelReadAccessDenial(err, abacWriteDeniedErrorID), "creating a hook: expected the write denial, got %v", err)
-
-		err = move(t, f)
-		require.True(t, isChannelReadAccessDenial(err, abacWriteDeniedErrorID), "moving a hook in: expected the write denial, got %v", err)
+// Channel access policies do not apply to incoming webhooks. With every action denied,
+// a user who passes RBAC still creates, moves, reads and deletes a hook, and the hook
+// still posts. The hook moves into a private channel because get and delete only
+// check channel permissions there.
+func TestChannelAccessDoesNotGateIncomingWebhooks(t *testing.T) {
+	f, _ := setupChannelActionAccessAPI(t, mock.Anything, false)
+	th := f.th
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableIncomingWebhooks = true
 	})
+	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
+	t.Cleanup(func() { th.RestoreDefaultRolePermissions(t, defaultRolePermissions) })
+	addIncomingWebhookPermissions(t, th, model.TeamUserRoleId)
 
-	t.Run("allowed", func(t *testing.T) {
-		f := setup(t, true)
+	hook, resp, err := th.Client.CreateIncomingWebhook(context.Background(), &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
+	require.NoError(t, err, "create")
+	require.Equal(t, http.StatusCreated, resp.StatusCode)
 
-		require.NoError(t, create(f))
-		require.NoError(t, move(t, f))
-	})
+	hook.ChannelId = th.BasicPrivateChannel.Id
+	hook, _, err = th.Client.UpdateIncomingWebhook(context.Background(), hook)
+	require.NoError(t, err, "move")
+	require.Equal(t, th.BasicPrivateChannel.Id, hook.ChannelId)
+
+	_, _, err = th.Client.GetIncomingWebhook(context.Background(), hook.Id, "")
+	require.NoError(t, err, "get")
+
+	appErr := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{Text: "delivered"})
+	require.Nil(t, appErr, "delivery")
+
+	_, err = th.Client.DeleteIncomingWebhook(context.Background(), hook.Id)
+	require.NoError(t, err, "delete")
 }
 
 // The gate is inert until a channel_write_access policy governs the channel: a
@@ -578,6 +589,38 @@ func TestChannelManagementAccessGatesUnarchive(t *testing.T) {
 			th.LoginTeamAdminWithClient(t, teamAdminClient)
 
 			_, resp, err := teamAdminClient.RestoreChannel(context.Background(), th.BasicDeletedChannel.Id)
+			if allow {
+				require.NoError(t, err)
+				return
+			}
+
+			require.Error(t, err)
+			require.Equal(t, http.StatusForbidden, resp.StatusCode)
+			require.True(t, isChannelReadAccessDenial(err, abacManagementDeniedErrorID), "expected the management denial, got %v", err)
+		})
+	}
+}
+
+// Moderations are authorised on the same sysconsole permission as unarchiving, so no
+// channel permission check brings the management gate along; the handler asks it directly.
+func TestChannelManagementAccessGatesChannelModerations(t *testing.T) {
+	for _, allow := range []bool{false, true} {
+		t.Run(fmt.Sprintf("allow=%t", allow), func(t *testing.T) {
+			f, _ := setupChannelManagementAccessAPI(t, allow)
+			th := f.th
+			// Moderations are scheme-backed and refused until this migration has run.
+			require.NoError(t, th.App.SetPhase2PermissionsMigrationStatus(true))
+
+			// A user manager holds sysconsole_write_user_management_channels without
+			// manage_system, which channel_management_access would exempt.
+			_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserManagerRoleId, false)
+			require.Nil(t, appErr)
+			th.LoginBasic(t)
+
+			_, resp, err := th.Client.PatchChannelModerations(context.Background(), th.BasicChannel.Id, []*model.ChannelModerationPatch{{
+				Name:  model.NewPointer(model.PermissionCreatePost.Id),
+				Roles: &model.ChannelModeratedRolesPatch{Members: model.NewPointer(false)},
+			}})
 			if allow {
 				require.NoError(t, err)
 				return
@@ -753,6 +796,22 @@ func channelPolicyManagementSurfaces() []channelPolicyManagementSurface {
 			_, resp, err := client.GetAccessControlPolicy(context.Background(), th.BasicChannel.Id)
 			return resp, err
 		}),
+		// The channelId query parameter must not stand in for the policy's own channel,
+		// whether it names another channel or one that doesn't exist.
+		surface("policy fetch naming another channel", func(t *testing.T, th *TestHelper, client *model.Client4) (*model.Response, error) {
+			r, err := client.DoAPIGet(context.Background(), "/access_control_policies/"+th.BasicChannel.Id+"?channelId="+th.BasicChannel2.Id, "")
+			if r != nil {
+				defer r.Body.Close()
+			}
+			return model.BuildResponse(r), err
+		}),
+		surface("policy fetch naming a made-up channel", func(t *testing.T, th *TestHelper, client *model.Client4) (*model.Response, error) {
+			r, err := client.DoAPIGet(context.Background(), "/access_control_policies/"+th.BasicChannel.Id+"?channelId="+model.NewId(), "")
+			if r != nil {
+				defer r.Body.Close()
+			}
+			return model.BuildResponse(r), err
+		}),
 		surface("expression check", func(t *testing.T, th *TestHelper, client *model.Client4) (*model.Response, error) {
 			_, resp, err := client.CheckExpression(context.Background(), "user.attributes.team == 'engineering'", th.BasicChannel.Id)
 			return resp, err
@@ -811,6 +870,72 @@ func TestChannelManagementAccessDoesNotGateSystemAdminPolicyAdministration(t *te
 		t.Run(surface.name, func(t *testing.T) {
 			_, err := surface.call(t, th, th.SystemAdminClient)
 			require.NoError(t, err)
+		})
+	}
+}
+
+// Assigning a team's parent policy to a channel, or unassigning it, changes who may stay
+// in the channel, so a team admin who may not manage the channel can do neither.
+func TestChannelManagementAccessGatesTeamPolicyAssignment(t *testing.T) {
+	for _, allow := range []bool{false, true} {
+		t.Run(fmt.Sprintf("management allowed=%v", allow), func(t *testing.T) {
+			th := SetupConfig(t, func(cfg *model.Config) {
+				cfg.FeatureFlags.PermissionPolicies = true
+				cfg.FeatureFlags.ChannelPermissionActions = true
+				cfg.FeatureFlags.AttributeValueMasking = false
+			}).InitBasic(t)
+			th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+			})
+			th.AddPermissionToRole(t, model.PermissionManageTeamAccessRules.Id, model.TeamAdminRoleId)
+
+			policy, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, newParentPolicy(th.BasicTeam.Id))
+			require.NoError(t, err)
+			t.Cleanup(func() { _ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, policy.ID) })
+
+			mockACS := installMockACS(t, th)
+			mockACS.On("ActionHasPermissionPolicy", mock.Anything, mock.Anything).Return(true, nil)
+			mockACS.On("ResourcePolicyGovernsAction", mock.Anything, mock.Anything, mock.Anything).Return(false, nil).Maybe()
+			mockACS.On("AccessEvaluation", mock.Anything, channelManagementAccessEvaluation).
+				Return(model.AccessDecision{Decision: allow}, nil)
+			mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+				Return(model.AccessDecision{Decision: true}, nil)
+			// Reached only once the gate lets the request through.
+			mockACS.On("GetPolicy", mock.Anything, policy.ID).Return(policy, nil).Maybe()
+			mockACS.On("GetPolicy", mock.Anything, mock.Anything).
+				Return(nil, model.NewAppError("GetPolicy", "app.access_control.not_found.app_error", nil, "", http.StatusNotFound)).
+				Maybe()
+			mockACS.On("SavePolicy", mock.Anything, mock.AnythingOfType("*model.AccessControlPolicy")).
+				Return(&model.AccessControlPolicy{ID: th.BasicChannel.Id, Type: model.AccessControlPolicyTypeChannel}, nil).Maybe()
+			mockACS.On("DeletePolicy", mock.Anything, mock.Anything).Return(nil).Maybe()
+
+			makeTeamAdminAndLogin(t, th, th.TeamAdminUser, th.BasicTeam)
+
+			body := map[string]any{
+				"channel_ids": []string{th.BasicChannel.Id},
+				"team_id":     th.BasicTeam.Id,
+			}
+			for name, call := range map[string]func() (*http.Response, error){
+				"assign": func() (*http.Response, error) {
+					return th.Client.DoAPIPostJSON(context.Background(), "/access_control_policies/"+policy.ID+"/assign", body)
+				},
+				"unassign": func() (*http.Response, error) {
+					return th.Client.DoAPIDeleteJSON(context.Background(), "/access_control_policies/"+policy.ID+"/unassign", body)
+				},
+			} {
+				r, err := call()
+				if r != nil {
+					r.Body.Close()
+				}
+				if allow {
+					require.False(t, isChannelReadAccessDenial(err, abacManagementDeniedErrorID), "%s: %v", name, err)
+					continue
+				}
+				require.Error(t, err, name)
+				require.Equal(t, http.StatusForbidden, r.StatusCode, name)
+				require.True(t, isChannelReadAccessDenial(err, abacManagementDeniedErrorID), "%s: expected the management denial, got %v", name, err)
+			}
 		})
 	}
 }

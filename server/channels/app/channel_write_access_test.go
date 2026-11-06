@@ -165,19 +165,18 @@ func TestChannelWriteAccessDecision(t *testing.T) {
 		mockACS.AssertNotCalled(t, "AccessEvaluation", mock.Anything, mock.Anything)
 	})
 
-	t.Run("allows a bot session without evaluating", func(t *testing.T) {
+	t.Run("evaluates a bot session", func(t *testing.T) {
 		h := setupChannelReadAccessTest(t)
 		mockACS := h.mockACS(t)
 		writeGoverned(mockACS, true)
-		decidesPerAction(mockACS, false, false, false)
+		decidesPerAction(mockACS, true, false, true)
 
 		session := h.rctx.Session().DeepCopy()
 		session.Props[model.SessionPropIsBot] = model.SessionPropIsBotValue
 		rctx := WithChannelAccessMemo(h.th.Context.WithSession(session))
 
-		require.True(t, h.th.App.EnforceChannelWriteAccess(rctx, session.UserId, h.th.BasicChannel),
-			"a bot has no interactive session, so a rule over user.session.* has nothing to evaluate")
-		mockACS.AssertNotCalled(t, "AccessEvaluation", mock.Anything, mock.Anything)
+		require.False(t, h.th.App.EnforceChannelWriteAccess(rctx, session.UserId, h.th.BasicChannel),
+			"a bot is bound by channel_write_access like any user")
 	})
 
 	t.Run("memoises the decision for the request", func(t *testing.T) {
@@ -328,7 +327,7 @@ func TestChannelManagementAccessDecision(t *testing.T) {
 		rctx := WithChannelAccessMemo(h.th.Context.WithSession(session))
 
 		require.False(t, h.th.App.EnforceChannelManagementAccess(rctx, session.UserId, h.th.BasicChannel),
-			"unlike writes, managing a channel from a bot session is policy-gated")
+			"a bot is bound by channel_management_access like any user")
 	})
 
 	t.Run("allows a system admin without evaluating", func(t *testing.T) {
@@ -476,5 +475,46 @@ func TestChannelWriteAccessGateIsInertUntilEnabled(t *testing.T) {
 
 		require.True(t, th.App.EnforceChannelWriteAccess(th.Context, th.BasicUser.Id, th.BasicChannel))
 		require.True(t, th.App.EnforceChannelManagementAccess(th.Context, th.BasicUser.Id, th.BasicChannel))
+	})
+}
+
+// A command is gated on write access to the channel it is typed in. Its response can
+// name another channel, where the post lands under the user's name, so that channel's
+// write policy decides too.
+func TestHandleCommandResponsePostChecksTargetChannelWriteAccess(t *testing.T) {
+	h := setupChannelReadAccessTest(t)
+	// Created before the mock is installed, by the user, who is then a member.
+	target := h.th.CreateChannel(t, h.th.BasicTeam)
+	mockACS := h.mockACS(t)
+	writeGoverned(mockACS, true)
+	mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+		return req.Action == model.AccessControlPolicyActionChannelWriteAccess && req.Resource.ID == target.Id
+	})).Return(model.AccessDecision{Decision: false}, nil)
+	mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).Return(model.AccessDecision{Decision: true}, nil)
+
+	args := &model.CommandArgs{
+		UserId:    h.th.BasicUser.Id,
+		ChannelId: h.th.BasicChannel.Id,
+		TeamId:    h.th.BasicTeam.Id,
+	}
+	command := &model.Command{}
+
+	t.Run("a response redirected to a write-denied channel is refused", func(t *testing.T) {
+		_, appErr := h.th.App.HandleCommandResponsePost(h.rctx, command, args, &model.CommandResponse{
+			ChannelId: target.Id,
+			Text:      "redirected " + model.NewId(),
+		}, false)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		require.Equal(t, "api.channel.channel_write_access.abac_denied.app_error", appErr.Id)
+	})
+
+	t.Run("a response to the command's own channel is not re-evaluated against another", func(t *testing.T) {
+		post, appErr := h.th.App.HandleCommandResponsePost(h.rctx, command, args, &model.CommandResponse{
+			ChannelId: h.th.BasicChannel.Id,
+			Text:      "same channel " + model.NewId(),
+		}, false)
+		require.Nil(t, appErr)
+		require.Equal(t, h.th.BasicChannel.Id, post.ChannelId)
 	})
 }

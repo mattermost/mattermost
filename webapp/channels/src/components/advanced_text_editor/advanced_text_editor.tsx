@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {lazy, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -12,7 +12,7 @@ import type {SchedulingInfo} from '@mattermost/types/schedule_post';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {Permissions} from 'mattermost-redux/constants';
 import {getChannel, makeGetChannel, getDirectChannel} from 'mattermost-redux/selectors/entities/channels';
-import {getConfig, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getFeatureFlagValue, isPostAttributesEnabled} from 'mattermost-redux/selectors/entities/general';
 import {get, getBool, getInt, getWysiwygEditorPreference} from 'mattermost-redux/selectors/entities/preferences';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentUserId, isCurrentUserGuestUser, getStatusForUserId, getUser, makeGetDisplayName} from 'mattermost-redux/selectors/entities/users';
@@ -27,11 +27,11 @@ import {getSelectedPostFocussedAt} from 'selectors/rhs';
 import {connectionErrorCount} from 'selectors/views/system';
 import LocalStorageStore from 'stores/local_storage_store';
 
+import PostAttributesButton from 'components/advanced_text_editor/post_attributes_button';
 import PostBoxIndicator from 'components/advanced_text_editor/post_box_indicator/post_box_indicator';
 import {applyWysiwygFormatting} from 'components/advanced_text_editor/wysiwyg_editor/apply_wysiwyg_formatting';
 import WysiwygEditor from 'components/advanced_text_editor/wysiwyg_editor/wysiwyg_editor';
 import type {WysiwygEditorHandle} from 'components/advanced_text_editor/wysiwyg_editor/wysiwyg_editor';
-import {makeAsyncComponent} from 'components/async_load';
 import AutoHeightSwitcher from 'components/common/auto_height_switcher';
 import {useChannelManagementAccess} from 'components/common/hooks/useChannelManagementAccess';
 import {useChannelWriteAccess} from 'components/common/hooks/useChannelWriteAccess';
@@ -51,6 +51,7 @@ import type TextboxClass from 'components/textbox/textbox';
 import {OnboardingTourSteps, OnboardingTourStepsForGuestUsers, TutorialTourName} from 'components/tours/constant';
 import {SendMessageTour} from 'components/tours/onboarding_tour';
 
+import {useLatest} from 'hooks/useLatest';
 import Constants, {
     Locations,
     StoragePrefixes,
@@ -90,6 +91,7 @@ import useBurnOnRead from './use_burn_on_read';
 import {useComposerPlaceholder} from './use_composer_placeholder';
 import useEditorEmojiPicker from './use_editor_emoji_picker';
 import useKeyHandler from './use_key_handler';
+import usePendingQuote from './use_pending_quote';
 import usePluginItems from './use_plugin_items';
 import usePriority from './use_priority';
 import useRewrite from './use_rewrite';
@@ -98,8 +100,6 @@ import useTextboxFocus from './use_textbox_focus';
 import useUploadFiles from './use_upload_files';
 
 import './advanced_text_editor.scss';
-
-const FileLimitStickyBanner = makeAsyncComponent('FileLimitStickyBanner', lazy(() => import('components/file_limit_sticky_banner')));
 
 export type Props = {
 
@@ -251,8 +251,9 @@ const AdvancedTextEditor = ({
     const wysiwygRef = useRef<WysiwygEditorHandle>(null);
     const formattingBarRef = useRef<FormattingBarHandle>(null);
     const loggedInAriaLabelTimeout = useRef<NodeJS.Timeout>(undefined);
-    const saveDraftFrame = useRef<NodeJS.Timeout>(undefined);
+    const pendingDraftSave = useRef<{key: string; save: () => void; timeout: NodeJS.Timeout}>(undefined);
     const draftRef = useRef(draftFromStore);
+    const locationRef = useLatest({channelId, rootId});
     const storedDrafts = useRef<Record<string, PostDraft | undefined>>({});
     const lastBlurAt = useRef(0);
     const messageStatusRef = useRef<HTMLDivElement | null>(null);
@@ -269,6 +270,7 @@ const AdvancedTextEditor = ({
     const hasDraftMessage = Boolean(draft.message);
     const showFormattingBar = !isFormattingBarHidden && !readOnlyChannel;
     const enableSharedChannelsDMs = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'EnableSharedChannelsDMs') === 'true');
+    const postAttributesEnabled = useSelector(isPostAttributesEnabled);
     const wysiwygEnabled = useSelector(getWysiwygEditorPreference);
     const ctrlSend = useSelector((state: GlobalState) => getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'));
     const codeBlockOnCtrlEnter = useSelector((state: GlobalState) => getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'code_block_ctrl_enter', true));
@@ -287,9 +289,30 @@ const AdvancedTextEditor = ({
     }, [channelId, rootId]);
 
     const handleDraftChange = useCallback((draftToChange: PostDraft, options: {instant?: boolean; show?: boolean} = {instant: false, show: false}) => {
-        if (saveDraftFrame.current) {
-            clearTimeout(saveDraftFrame.current);
+        let prefix = StoragePrefixes.DRAFT;
+        let suffix = draftToChange.channelId;
+        if (draftToChange.rootId) {
+            prefix = StoragePrefixes.COMMENT_DRAFT;
+            suffix = draftToChange.rootId;
         }
+        const key = storageKey || `${prefix}${suffix}`;
+
+        const pendingSave = pendingDraftSave.current;
+        if (pendingSave) {
+            clearTimeout(pendingSave.timeout);
+            pendingDraftSave.current = undefined;
+
+            // A save still pending for another channel or thread is the only copy of that draft.
+            if (pendingSave.key !== key) {
+                pendingSave.save();
+            }
+        }
+
+        // A draft for a channel or thread the user has left is saved right away, as leaving it does.
+        const location = locationRef.current;
+        const leftLocation = draftToChange.channelId !== location.channelId || draftToChange.rootId !== location.rootId;
+        const instant = options.instant || leftLocation;
+        const show = options.show || leftLocation;
 
         // A late async callback (slow submit, finished file upload) may call handleDraftChange
         // with the channelId/rootId captured when it started. If the user has since moved to
@@ -304,14 +327,6 @@ const AdvancedTextEditor = ({
         });
 
         const saveDraft = () => {
-            let prefix = StoragePrefixes.DRAFT;
-            let suffix = draftToChange.channelId;
-            if (draftToChange.rootId) {
-                prefix = StoragePrefixes.COMMENT_DRAFT;
-                suffix = draftToChange.rootId;
-            }
-            const key = storageKey || `${prefix}${suffix}`;
-
             if (isPostDraftEmpty(draftToChange)) {
                 dispatch(removeDraft(key, draftToChange.channelId, draftToChange.rootId));
                 return;
@@ -325,7 +340,7 @@ const AdvancedTextEditor = ({
                 return;
             }
 
-            if (options.show) {
+            if (show) {
                 dispatch(updateDraft(key, {...draftToChange, show: true}, draftToChange.rootId, true));
                 return;
             }
@@ -333,16 +348,18 @@ const AdvancedTextEditor = ({
             dispatch(updateDraft(key, draftToChange, draftToChange.rootId));
         };
 
-        if (options.instant) {
+        if (instant) {
             saveDraft();
         } else {
-            saveDraftFrame.current = setTimeout(() => {
+            const timeout = setTimeout(() => {
+                pendingDraftSave.current = undefined;
                 saveDraft();
             }, Constants.SAVE_DRAFT_TIMEOUT);
+            pendingDraftSave.current = {key, save: saveDraft, timeout};
         }
 
         storedDrafts.current[draftToChange.rootId || draftToChange.channelId] = draftToChange;
-    }, [dispatch, isInEditMode, storageKey]);
+    }, [dispatch, isInEditMode, locationRef, storageKey]);
 
     const applyFormatting = useCallback((mode: MarkdownMode) => {
         if (showPreview) {
@@ -405,6 +422,8 @@ const AdvancedTextEditor = ({
     } = useRewrite(draft, handleDraftChange, textboxRef, focusTextbox, setServerError);
     const hasAIActionsMenu = (aiActionMenuItems?.length ?? 0) > 0 || (aiRewriteEnabled && Boolean(rewriteMenuProps));
     const isDisabled = Boolean(readOnlyChannel || (!enableSharedChannelsDMs && isDMOrGMRemote) || rewriteIsProcessing);
+
+    usePendingQuote(draft, handleDraftChange, channelId, rootId, isInEditMode, isDisabled, rewriteIsProcessing, textboxRef, wysiwygRef);
 
     const [attachmentPreview, fileUploadJSX] = useUploadFiles(
         draft,
@@ -878,9 +897,6 @@ const AdvancedTextEditor = ({
             className={(!rootId && !fullWidthTextBox) ? 'center' : undefined}
             onSubmit={handleSubmitWithEvent}
         >
-            {canPost && (draft.fileInfos.length > 0 || draft.uploadsInProgress.length > 0) && (
-                <FileLimitStickyBanner/>
-            )}
             {showDndWarning && <DoNotDisturbWarning displayName={teammateDisplayName}/>}
             {showOooWarning && <OutOfOfficeWarning displayName={teammateDisplayName}/>}
             {!isInEditMode && (
@@ -997,6 +1013,7 @@ const AdvancedTextEditor = ({
                                 ref={editorActionsRef}
                                 placement='bottom'
                             >
+                                {postAttributesEnabled && !isInEditMode && <PostAttributesButton/>}
                                 <ToggleFormattingBar
                                     onClick={toggleAdvanceTextEditor}
                                     active={showFormattingBar}

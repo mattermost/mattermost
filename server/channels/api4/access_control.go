@@ -46,8 +46,8 @@ func preserveSystemManagedFields(c *Context, policy *model.AccessControlPolicy) 
 
 // requirePolicyChannelManagementAccess gates channel-scoped policy administration on the
 // channel's own channel_management_access policy, so a channel or team admin who may not
-// manage the channel can no longer add, edit or delete its membership and permission
-// policies.
+// manage the channel can no longer add, edit, read or delete its membership and permission
+// policies, or assign a parent policy to it or unassign one from it.
 func requirePolicyChannelManagementAccess(c *Context, channelID string, hasManageSystem bool) bool {
 	// Permitting for `hasManageSystem` so allow creating policies from System Console
 	if hasManageSystem || channelID == "" {
@@ -275,7 +275,7 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 	auditRec.AddEventResultState(np)
 
 	if shouldRedactExpressions(c) {
-		c.App.MaskPolicyExpressions(c.AppContext, np, c.AppContext.Session().UserId)
+		c.App.MaskPolicyExpressions(c.AppContext, np, sessionCallerID(c))
 	}
 
 	js, err := json.Marshal(np)
@@ -324,11 +324,15 @@ func getAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) 
 		}
 
 		if channelPermErr == nil {
-			gatedChannelID := channelID
-			if gatedChannelID == "" {
-				gatedChannelID = policyID
+			// A channel policy's ID is its channel's ID, so the policy's own channel is always
+			// gated: a channelId naming another (or a made-up) channel must not stand in for it.
+			// A parent policy's ID resolves to no channel and passes this check. The channel
+			// named by channelId, when different, is gated as well.
+			if !requirePolicyChannelManagementAccess(c, policyID, hasSystemPermission) {
+				return
 			}
-			if !requirePolicyChannelManagementAccess(c, gatedChannelID, hasSystemPermission) {
+			if channelID != "" && channelID != policyID &&
+				!requirePolicyChannelManagementAccess(c, channelID, hasSystemPermission) {
 				return
 			}
 		}
@@ -346,7 +350,7 @@ func getAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) 
 	c.App.PopulateAccessControlPolicyChildCounts(c.AppContext, policy)
 
 	if shouldRedactExpressions(c) {
-		c.App.MaskPolicyExpressions(c.AppContext, policy, c.AppContext.Session().UserId)
+		c.App.MaskPolicyExpressions(c.AppContext, policy, sessionCallerID(c))
 	}
 
 	js, err := json.Marshal(policy)
@@ -916,7 +920,7 @@ func searchAccessControlPolicies(c *Context, w http.ResponseWriter, r *http.Requ
 
 	if shouldRedactExpressions(c) {
 		for _, p := range policies {
-			c.App.MaskPolicyExpressions(c.AppContext, p, c.AppContext.Session().UserId)
+			c.App.MaskPolicyExpressions(c.AppContext, p, sessionCallerID(c))
 		}
 	}
 
@@ -1093,7 +1097,7 @@ func setActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if shouldRedactExpressions(c) {
 		for _, p := range policies {
-			c.App.MaskPolicyExpressions(c.AppContext, p, c.AppContext.Session().UserId)
+			c.App.MaskPolicyExpressions(c.AppContext, p, sessionCallerID(c))
 		}
 	}
 
@@ -1162,6 +1166,14 @@ func assignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		if appErr := c.App.ValidateTeamScopePolicyChannelAssignment(c.AppContext, assignments.TeamID, assignments.ChannelIds); appErr != nil {
 			c.Err = appErr
 			return
+		}
+		// Attaching or detaching a parent policy changes who may stay in the channel, so it
+		// needs management access on every target channel. One denial rejects the whole
+		// request rather than applying it to the rest.
+		for _, channelID := range assignments.ChannelIds {
+			if !requirePolicyChannelManagementAccess(c, channelID, hasSystemPermission) {
+				return
+			}
 		}
 	}
 
@@ -1260,6 +1272,14 @@ func unassignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		if appErr := c.App.ValidateTeamScopePolicyChannelAssignment(c.AppContext, assignments.TeamID, assignments.ChannelIds); appErr != nil {
 			c.Err = appErr
 			return
+		}
+		// Attaching or detaching a parent policy changes who may stay in the channel, so it
+		// needs management access on every target channel. One denial rejects the whole
+		// request rather than applying it to the rest.
+		for _, channelID := range assignments.ChannelIds {
+			if !requirePolicyChannelManagementAccess(c, channelID, hasSystemPermission) {
+				return
+			}
 		}
 	}
 
@@ -1499,7 +1519,7 @@ func getFieldsAutocomplete(c *Context, w http.ResponseWriter, r *http.Request) {
 	var ac []*model.PropertyField
 	var appErr *model.AppError
 
-	ac, appErr = c.App.GetAccessControlFieldsAutocomplete(c.AppContext, channelId, includeResourceFields, after, limit, c.AppContext.Session().UserId)
+	ac, appErr = c.App.GetAccessControlFieldsAutocomplete(c.AppContext, channelId, includeResourceFields, after, limit, sessionCallerID(c))
 
 	if appErr != nil {
 		c.Err = appErr
@@ -1559,7 +1579,7 @@ func convertToVisualAST(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Masking is attribute-based, not permission-based: all admins receive a
 	// filtered AST based on what they themselves hold, regardless of role.
 	if shouldRedactExpressions(c) {
-		visualAST, appErr = c.App.GetMaskedVisualAST(c.AppContext, cel.Expression, c.AppContext.Session().UserId)
+		visualAST, appErr = c.App.GetMaskedVisualAST(c.AppContext, cel.Expression, sessionCallerID(c))
 	} else {
 		visualAST, appErr = c.App.ExpressionToVisualAST(c.AppContext, cel.Expression)
 	}

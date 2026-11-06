@@ -959,9 +959,14 @@ components:
         property_values_unavailable:
           type: boolean
           description: >
-            Present and `true` when the lookup of this post's property values failed; omitted
-            otherwise. It does **not** mean the post has no property values, it means they could
-            not be retrieved, and `property_values` is therefore absent or incomplete.
+            Present on every post the `propertyGroup` query parameter asked to hydrate, and
+            omitted otherwise. Deleted posts and burn-on-read posts the caller has not revealed
+            are never hydrated, so they omit it even when `propertyGroup` is set. `false` means
+            the lookup succeeded, so an absent `property_values` means the post has no values
+            in that group. `true` means the lookup failed: it does **not** mean the post has no
+            property values, it means they could not be retrieved, and `property_values` is
+            therefore absent or incomplete. When the field is omitted, the response says nothing
+            about the post's property values.
     TeamMap:
       type: object
       description: A mapping of teamIds to teams.
@@ -3413,6 +3418,9 @@ components:
             bundle_path:
               type: string
               description: Path to the webapp JavaScript bundle.
+            pre_auth:
+              type: boolean
+              description: Whether the plugin should be loaded for unauthenticated users before login. Available as server version 12.2.
     Role:
       type: object
       properties:
@@ -3676,56 +3684,6 @@ components:
           type: integer
         is_paid_tier:
           type: string
-    Invoice:
-      type: object
-      properties:
-        id:
-          type: string
-        number:
-          type: string
-        create_at:
-          type: integer
-          format: int64
-        total:
-          type: integer
-          format: int64
-        tax:
-          type: integer
-          format: int64
-        status:
-          type: string
-        period_start:
-          type: integer
-          format: int64
-        period_end:
-          type: integer
-          format: int64
-        subscription_id:
-          type: string
-        item:
-          type: array
-          items:
-            $ref: "#/components/schemas/InvoiceLineItem"
-    InvoiceLineItem:
-      type: object
-      properties:
-        price_id:
-          type: string
-        total:
-          type: integer
-          format: int64
-        quantity:
-          type: integer
-          format: int64
-        price_per_unit:
-          type: integer
-          format: int64
-        description:
-          type: string
-        metadata:
-          type: array
-          items:
-            type: string
     Group:
       type: object
       properties:
@@ -4342,18 +4300,6 @@ components:
         value:
           description: System property value
           type: string
-    PostsUsage:
-      type: object
-      properties:
-        count:
-          type: number
-          description: Total no. of posts
-    StorageUsage:
-      type: object
-      properties:
-        bytes:
-          type: number
-          description: Total file storage usage for the instance in bytes rounded down to the most significant digit
     BridgeAgentInfo:
       type: object
       properties:
@@ -5674,8 +5620,10 @@ components:
           description: >
             Actions to evaluate (max 16). Omit or leave empty for discovery mode:
             the server evaluates all registered actions for the resource type and
-            returns the permitted set. Actions behind a disabled feature flag are
-            rejected with 400 when named explicitly, and are omitted from
+            returns the permitted set. Actions whose enforcement is inactive
+            (a disabled feature flag, attribute-based access control turned off,
+            or an insufficient license) are still accepted and are answered with
+            their inactive default, which is allowed, in both targeted and
             discovery mode.
           maxItems: 16
           items:

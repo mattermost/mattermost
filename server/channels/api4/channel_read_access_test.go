@@ -366,6 +366,87 @@ func TestChannelReadAccessRedactsWriteResponses(t *testing.T) {
 					require.Empty(t, patched.UserId)
 				}
 			})
+
+			t.Run("post update", func(t *testing.T) {
+				post := f.post.Clone()
+				updated, resp, err := f.th.Client.UpdatePost(context.Background(), post.Id, post)
+				require.NoError(t, err)
+				CheckOKStatus(t, resp)
+				require.Equal(t, f.post.Id, updated.Id)
+				if allow {
+					require.Equal(t, f.post.Message, updated.Message)
+				} else {
+					require.Empty(t, updated.Message)
+					require.Empty(t, updated.UserId)
+				}
+			})
+
+			t.Run("channel update", func(t *testing.T) {
+				channel := f.th.BasicChannel.DeepCopy()
+				channel.Purpose = "updated purpose " + model.NewId()
+				updated, resp, err := f.th.Client.UpdateChannel(context.Background(), channel)
+				require.NoError(t, err)
+				CheckOKStatus(t, resp)
+				require.Equal(t, f.th.BasicChannel.Id, updated.Id)
+				if allow {
+					require.Equal(t, f.th.BasicChannel.DisplayName, updated.DisplayName)
+				} else {
+					require.Empty(t, updated.Name)
+					require.Empty(t, updated.DisplayName)
+					require.Empty(t, updated.Purpose)
+				}
+			})
+
+			// Read access binds system admins too, and these two need permissions a basic
+			// user doesn't hold.
+			t.Run("channel privacy set to what it already is", func(t *testing.T) {
+				updated, resp, err := f.th.SystemAdminClient.UpdateChannelPrivacy(context.Background(), f.th.BasicChannel.Id, f.th.BasicChannel.Type)
+				require.NoError(t, err)
+				CheckOKStatus(t, resp)
+				require.Equal(t, f.th.BasicChannel.Id, updated.Id)
+				if allow {
+					require.Equal(t, f.th.BasicChannel.DisplayName, updated.DisplayName)
+				} else {
+					require.Empty(t, updated.DisplayName)
+					require.Empty(t, updated.Header)
+					require.Empty(t, updated.Purpose)
+				}
+			})
+
+			t.Run("channel restore", func(t *testing.T) {
+				channel := f.th.CreatePublicChannel(t)
+				_, err := f.th.SystemAdminClient.DeleteChannel(context.Background(), channel.Id)
+				require.NoError(t, err)
+
+				restored, resp, err := f.th.SystemAdminClient.RestoreChannel(context.Background(), channel.Id)
+				require.NoError(t, err)
+				CheckOKStatus(t, resp)
+				require.Equal(t, channel.Id, restored.Id)
+				if allow {
+					require.Equal(t, channel.DisplayName, restored.DisplayName)
+				} else {
+					require.Empty(t, restored.DisplayName)
+					require.Empty(t, restored.Name)
+				}
+			})
+
+			// Last: it rewrites the post the surfaces above act on.
+			t.Run("post version restore", func(t *testing.T) {
+				history, appErr := f.th.App.GetEditHistoryForPost(f.th.Context, f.post.Id)
+				require.Nil(t, appErr)
+				require.NotEmpty(t, history)
+
+				restored, resp, err := f.th.Client.RestorePostVersion(context.Background(), f.post.Id, history[0].Id)
+				require.NoError(t, err)
+				CheckOKStatus(t, resp)
+				require.Equal(t, f.post.Id, restored.Id)
+				if allow {
+					require.Equal(t, history[0].Message, restored.Message)
+				} else {
+					require.Empty(t, restored.Message)
+					require.Empty(t, restored.UserId)
+				}
+			})
 		})
 	}
 }
@@ -686,6 +767,54 @@ func TestChannelReadAccessChannelsForUserFilterFollowsTheSession(t *testing.T) {
 	CheckOKStatus(t, resp)
 	require.Empty(t, channels,
 		"the queried user's channels must not expose ones the requester is denied")
+}
+
+// The team-scoped sibling of TestChannelReadAccessMembersForUserFilterFollowsTheSession,
+// and the sidebar categories built from the same memberships: the requester receives the
+// response, so both filters follow the session rather than the queried user.
+func TestChannelReadAccessTeamListsForUserFollowTheSession(t *testing.T) {
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PermissionPolicies = true
+		cfg.FeatureFlags.ChannelPermissionActions = true
+	}).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+	})
+
+	// Denied for the admin doing the asking, allowed for the user being asked about.
+	mockACS := installMockACS(t, th)
+	mockACS.On("ActionHasPermissionPolicy", mock.Anything, mock.Anything).Return(true, nil)
+	mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+		return req.Subject.ID == th.SystemAdminUser.Id
+	})).Return(model.AccessDecision{Decision: false}, nil)
+	mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+		Return(model.AccessDecision{Decision: true}, nil)
+
+	t.Run("team channel members", func(t *testing.T) {
+		members, resp, err := th.SystemAdminClient.GetChannelMembersForUser(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Empty(t, members,
+			"the queried user's memberships must not expose channels the requester is denied")
+	})
+
+	t.Run("sidebar categories", func(t *testing.T) {
+		categories, resp, err := th.SystemAdminClient.GetSidebarCategoriesForTeamForUser(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotEmpty(t, categories.Categories)
+		for _, category := range categories.Categories {
+			require.Empty(t, category.Channels,
+				"category %q must not expose channels the requester is denied", category.DisplayName)
+
+			single, resp, err := th.SystemAdminClient.GetSidebarCategoryForTeamForUser(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, category.Id, "")
+			require.NoError(t, err)
+			CheckOKStatus(t, resp)
+			require.Empty(t, single.Channels,
+				"category %q fetched alone must not expose channels the requester is denied", category.DisplayName)
+		}
+	})
 }
 
 // The lookups check membership before the policy. A policy denial is a distinct 403, so

@@ -69,7 +69,6 @@ describe('components/three_days_left_trial_modal/three_days_left_trial_modal', (
 
     const defaultProps = {
         onExited: jest.fn(),
-        limitsOverpassed: false,
     };
 
     test('should render the modal with header, subtitle, feature cards, and view plans button', () => {
@@ -89,24 +88,6 @@ describe('components/three_days_left_trial_modal/three_days_left_trial_modal', (
 
         // View plans button
         expect(screen.getByRole('button', {name: 'View plan options'})).toBeInTheDocument();
-    });
-
-    test('should show limits overpassed content when limitsOverpassed is true', () => {
-        renderWithContext(
-            <ThreeDaysLeftTrialModal
-                {...defaultProps}
-                limitsOverpassed={true}
-            />,
-            state,
-        );
-
-        // Different header and subtitle
-        expect(screen.getByText('Upgrade before the trial ends')).toBeInTheDocument();
-        expect(screen.getByText('There are 3 days left on your trial. Upgrade to our Professional or Enterprise plan to avoid exceeding your data limits on the Free plan.')).toBeInTheDocument();
-
-        // Shows limits panel instead of feature cards
-        expect(screen.getByText('Limits')).toBeInTheDocument();
-        expect(screen.queryByText('Use SSO (with OpenID, SAML, Google, O365)')).not.toBeInTheDocument();
     });
 
     test('should call onExited when modal is closed', async () => {
