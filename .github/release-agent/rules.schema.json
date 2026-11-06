@@ -69,7 +69,7 @@
         "task": {"type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"},
         "title": {"description": "What the status post calls the check.", "type": "string", "minLength": 1},
         "playbook_item": {
-          "description": "The checklist item title in the Cloud & Self-Hosted playbook as it reads on screen, or null to tick nothing.",
+          "description": "The checklist item title in the Cloud & Self-Hosted playbook as it reads on screen, or null to tick nothing. A title ending in … matches items that start with it; a … inside the title matches any text, so a person named in the title can be left out.",
           "type": ["string", "null"],
           "minLength": 1
         },
@@ -112,28 +112,12 @@
           "properties": {
             "migrations_path": {"description": "Folder of PostgreSQL migrations, e.g. server/channels/db/migrations/postgres.", "type": "string", "minLength": 1},
             "dev_leads": {
-              "description": "Who unassigned and bot tickets go to: the first route naming the ticket's Jira Team, else the first naming one of its components.",
+              "description": "How unassigned and bot tickets find their dev lead: which Jira field names the team. The routes themselves are the repository variable RELEASE_AGENT_DEV_LEADS, not part of this file.",
               "type": "object",
-              "required": ["routes"],
               "additionalProperties": false,
               "properties": {
                 "match_field": {"enum": ["team", "components"]},
-                "team_field": {"description": "The Jira Team field, e.g. customfield_10800.", "type": "string", "pattern": "^customfield_\\d+$"},
-                "routes": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "required": ["username"],
-                    "anyOf": [{"required": ["teams"]}, {"required": ["components"]}],
-                    "additionalProperties": false,
-                    "properties": {
-                      "teams": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1},
-                      "components": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1},
-                      "username": {"description": "Hub username, without @.", "type": "string", "pattern": "^[a-z0-9._-]+$"},
-                      "name": {"type": "string"}
-                    }
-                  }
-                }
+                "team_field": {"description": "The Jira Team field, e.g. customfield_10800.", "type": "string", "pattern": "^customfield_\\d+$"}
               },
               "if": {"properties": {"match_field": {"const": "team"}}, "required": ["match_field"]},
               "then": {"required": ["team_field"]}

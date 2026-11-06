@@ -197,3 +197,12 @@ def checklist_run(run_id, name, channel_id, items):
             {"title": title, "state": state, "state_modified": modified} for title, state, modified in items
         ]}],
     }
+
+
+# RELEASE_AGENT_DEV_LEADS as the tests set it: a repository variable, not part of rules.yml.
+DEV_LEADS_ROUTES = [
+    {"teams": ["Reliability", "Calls", "Sustained Engineering"], "username": "jesse.hallam", "name": "Jesse Hallam"},
+    {"teams": ["Information Control"], "username": "maria.nunez", "name": "Maria Nunez"},
+    {"teams": ["Agents"], "username": "christopher", "name": "Christopher Speller"},
+    {"teams": ["Platform Integration", "Integrations"], "username": "doug.lauder", "name": "Doug Lauder"},
+]

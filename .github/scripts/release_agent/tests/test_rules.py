@@ -3,6 +3,7 @@ import json
 import unittest
 
 from release_agent import rules
+from release_agent.playbook import title_matches
 from release_agent.checks import CHECKS
 
 
@@ -19,7 +20,7 @@ class RulesFileTest(unittest.TestCase):
     def test_every_playbook_item_is_in_the_template(self):
         for rule in self.rules["rules"]:
             if rule["playbook_item"] is not None:
-                self.assertIn(rule["playbook_item"], self.titles, rule["task"])
+                self.assertTrue(any(title_matches(title, rule["playbook_item"]) for title in self.titles), rule["task"])
 
     def test_template_matches_the_playbook(self):
         template = rules.load_yaml(rules.TEMPLATE_PATH)
@@ -27,9 +28,9 @@ class RulesFileTest(unittest.TestCase):
         self.assertEqual(len(self.titles), 46)
 
     def test_due_days_and_playbook_sections(self):
-        sections = {item["title"]: checklist["title"] for checklist in rules.load_yaml(rules.TEMPLATE_PATH)["checklists"]
-                    for item in checklist["items"]}
-        due = {rule["task"]: (rule["due"], sections[rule["playbook_item"]])
+        sections = [(item["title"], checklist["title"]) for checklist in rules.load_yaml(rules.TEMPLATE_PATH)["checklists"]
+                    for item in checklist["items"]]
+        due = {rule["task"]: (rule["due"], next(section for title, section in sections if title_matches(title, rule["playbook_item"])))
                for rule in self.rules["rules"] if rule["playbook_item"]}
         self.assertEqual(due, {
             "open-release-items": ("feature_complete", "(T-16) Feature Complete"),
@@ -92,12 +93,11 @@ class RulesFileTest(unittest.TestCase):
             broken = copy.deepcopy(self.rules)
             broken["rules"][0]["query"]["dev_leads"] = leads
             return rules.problems(broken, self.schema, self.titles)
-        good = {"teams": ["Calls"], "username": "jesse.hallam"}
-        self.assertEqual(problems(match_field="team", team_field="customfield_10800", routes=[good]), [])
-        self.assertTrue(problems(match_field="team", routes=[good]))  # no team_field
-        self.assertTrue(problems(routes=[{"username": "jesse.hallam"}]))  # neither teams nor components
-        self.assertTrue(problems(routes=[{"teams": ["Calls"], "username": "@jesse.hallam"}]))
-        self.assertTrue(problems(routes=[{"team": ["Calls"], "username": "jesse.hallam"}]))  # misspelt key
+        self.assertEqual(problems(match_field="team", team_field="customfield_10800"), [])
+        self.assertTrue(problems(match_field="team"))  # no team_field
+        # The routes are the variable RELEASE_AGENT_DEV_LEADS: team names don't belong in this public file.
+        self.assertTrue(problems(match_field="team", team_field="customfield_10800",
+                                 routes=[{"teams": ["Calls"], "username": "jesse.hallam"}]))
 
     def test_changelog_rules_need_their_query(self):
         def problems(task, **changes):

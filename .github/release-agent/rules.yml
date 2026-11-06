@@ -69,7 +69,7 @@ rules:
   # The status post is that list, so the item is ticked when the post first carries it in
   # the run's channel at Feature Complete; the post keeps it up to date every run after.
   # Each person is @-mentioned once with their tickets. Unassigned tickets and the bot's are
-  # routed to the dev lead of the ticket's Jira Team in dev_leads, else listed under
+  # routed to the dev lead of the ticket's Jira Team (RELEASE_AGENT_DEV_LEADS), else listed under
   # Unassigned. Submitted tickets show their linked PRs. The item's cherry-pick half is done by
   # release-cherry-pick-labels.yml, which labels mattermost/mattermost PRs as their tickets
   # reach Submitted, and by the release manager for enterprise PRs (cherry-picks-to-label).
@@ -89,17 +89,13 @@ rules:
       exclude_authors: [app/changelog-automation-docs]
       linked_prs_status: Submitted
       bot_assignees: [Matty Code]
-      # Unassigned and bot tickets go to the first route naming the ticket's Jira Team, else
-      # the first naming one of its components, else Unassigned. Usernames are Hub
-      # usernames; every run flags any that isn't an active Hub user. Changes go through a PR.
+      # Unassigned and bot tickets go to the dev lead of the ticket's Jira Team, else of one of
+      # its components, else they are listed under Unassigned. The routes are not here: they
+      # are the repository variable RELEASE_AGENT_DEV_LEADS (JSON, see release-agent.yml), so a
+      # team change needs no PR and team names stay out of this public file.
       dev_leads:
         match_field: team
         team_field: customfield_10800  # Jira "Team" (Atlassian team field)
-        routes:
-          - {teams: [Reliability, Calls, Sustained Engineering], username: jesse.hallam, name: Jesse Hallam}
-          - {teams: [Information Control], username: maria.nunez, name: Maria Nunez}
-          - {teams: [Agents], username: christopher, name: Christopher Speller}
-          - {teams: [Platform Integration, Integrations], username: doug.lauder, name: Doug Lauder}
     pass_when: report_only
     on_fail: report
 
@@ -211,7 +207,9 @@ rules:
   # RC-1 is cut at T-15, a working day after Feature Complete.
   - task: e2e-results
     title: E2E results for the latest RC
-    playbook_item: "Check with Saturn/Yasser that mmctl and e2e tests get done. Follow results at Release: Testing Alerts channel."
+    # A title that names people is matched without them: "…" matches any text, so a new owner in
+    # the title doesn't stop the tick.
+    playbook_item: "Check with … that mmctl and e2e tests get done…"
     due: feature_complete+1
     type: e2e_results
     source: [hub]

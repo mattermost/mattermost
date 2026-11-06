@@ -63,6 +63,8 @@ def step_summary(body: dict) -> str:
             ticked = ", ".join(t["task"] for t in release["ticked"]) or "none"
             lines += ["", f"Ticked: {ticked}" + (f" · would tick: {', '.join(release['would_tick'])}" if release["would_tick"] else "")]
         lines += [f"- :triangular_flag_on_post: {flag}" for flag in release["flags"]]
+        if release.get("hub_only_flags"):
+            lines.append(f"- :triangular_flag_on_post: {release['hub_only_flags']} more flag(s), shown in Hub only")
         lines.append("")
     lines += [f"- :triangular_flag_on_post: {flag}" for flag in body.get("flags", [])]
     return "\n".join(lines) + "\n"

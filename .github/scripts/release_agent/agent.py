@@ -32,6 +32,8 @@ class Settings:
     playbook_id: str = ""
     release_channels: dict = field(default_factory=dict)
     holidays_page_id: str = ""
+    dev_leads: list = field(default_factory=list)  # RELEASE_AGENT_DEV_LEADS, parsed
+    dev_leads_problem: str = ""  # what's wrong with it, without repeating it
 
 
 @dataclass
@@ -133,7 +135,7 @@ def check_release(release, rules: dict, settings: Settings, services: Services, 
         release=release, today=today,
         vars={**template_vars(release, rules["naming"], rc_numbers), "holidays_page_id": settings.holidays_page_id,
               "next_year": today.year + 1},
-        has_branch=release.key in branches, rc_numbers=rc_numbers, github=services.github,
+        has_branch=release.key in branches, rc_numbers=rc_numbers, github=services.github, dev_leads=settings.dev_leads,
         jira=services.jira, hub=services.hub, testing_alerts_channel=settings.testing_alerts_channel,
         confluence=services.confluence, primary=primary, branches=branches, tags=tags,
         fetch_page=services.fetch_page,
@@ -249,6 +251,8 @@ def public_result(outcome: posting.Outcome) -> dict:
         "summary": result.summary if result else None,
         "items": [label for label in (item.public_label for item in (result.items if result else [])) if label],
     }
+    if result and result.unrouted_tickets:
+        entry["unrouted_tickets"] = result.unrouted_tickets  # their teams' names are Hub only
     if outcome.state == posting.ERROR:
         entry["error"] = outcome.error
     return entry
@@ -306,11 +310,13 @@ def run(rules: dict, settings: Settings, services: Services, today: date) -> tup
 
     body = {"mode": settings.mode, "date": today.isoformat(), "releases": [], "flags": flags,
             "holidays_used": len(holidays)}
-    lead_flags = checks.dev_lead_flags(rules, services.hub) if selected else []
+    lead_flags = checks.dev_lead_flags(settings.dev_leads, services.hub) if selected else []
+    problem_flags = [settings.dev_leads_problem] if settings.dev_leads_problem and selected else []
     for index, release in enumerate(selected):
         report = check_release(release, rules, settings, services, today, holidays, branches, tags, ls_remote,
                                primary=index == 0)
-        report.flags += lead_flags
+        report.flags += problem_flags + lead_flags
+        report.private_flags |= set(lead_flags)  # they name people from a private variable: Hub only
         try:
             post = post_report(report, rules, settings, services, today)
         except Exception as err:  # noqa: BLE001 - still record the run
@@ -334,9 +340,11 @@ def run(rules: dict, settings: Settings, services: Services, today: date) -> tup
             "would_tick": [t.task for t in report.ticks if t.action == playbook.WOULD_TICK],
             "not_ticked": [{"task": t.task, "reason": t.action} for t in report.ticks
                            if t.action not in (playbook.TICKED, playbook.WOULD_TICK)],
-            "flags": report.flags,
+            "flags": [flag for flag in report.flags if flag not in report.private_flags],
+            "hub_only_flags": len(report.private_flags & set(report.flags)),
             "alarms_raised": len(posting.alarm_ids(report)),
-            "false_alarms": [{"id": alarm_id, "what": what} for alarm_id, what in posting.alarm_ids(report).items()
+            "false_alarms": [{"id": alarm_id, "what": "(a flag shown only in Hub)" if what in report.private_flags else what}
+                             for alarm_id, what in posting.alarm_ids(report).items()
                              if alarm_id in report.false_alarms],
         })
     body["totals"] = totals(body)
@@ -354,7 +362,7 @@ def totals(body: dict) -> dict:
         "not_due": count(posting.NOT_DUE),
         "errors": count(posting.ERROR),
         "ticked": sum(len(r["ticked"]) for r in body["releases"]),
-        "flags": len(body["flags"]) + sum(len(r["flags"]) for r in body["releases"]),
+        "flags": len(body["flags"]) + sum(len(r["flags"]) + r.get("hub_only_flags", 0) for r in body["releases"]),
         "alarms_raised": sum(r.get("alarms_raised", 0) for r in body["releases"]),
         "false_alarms": sum(len(r.get("false_alarms", [])) for r in body["releases"]),
     }
@@ -363,6 +371,7 @@ def totals(body: dict) -> dict:
 def env_settings(env=os.environ) -> Settings:
     import json
     channels = env.get("RELEASE_CHANNEL_IDS", "").strip()
+    dev_leads, dev_leads_problem = checks.parse_dev_leads(env.get("DEV_LEADS", ""))
     return Settings(
         mode=resolve_mode(env.get("INPUT_MODE", ""), env.get("RELEASE_AGENT_MODE", "")),
         release_override=env.get("INPUT_RELEASE", "").strip(),
@@ -371,4 +380,6 @@ def env_settings(env=os.environ) -> Settings:
         playbook_id=env.get("PLAYBOOK_ID", ""),
         release_channels=json.loads(channels) if channels else {},
         holidays_page_id=env.get("HOLIDAYS_PAGE_ID", "").strip(),
+        dev_leads=dev_leads,
+        dev_leads_problem=dev_leads_problem,
     )

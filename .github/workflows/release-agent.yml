@@ -42,6 +42,11 @@ name: Release Agent
 #   RELEASE_AGENT_PLAYBOOK_ID              — optional; the Cloud & Self-Hosted playbook
 #   RELEASE_AGENT_RELEASE_CHANNEL_IDS      — optional JSON, {"v12.2": "<channel id>"}, to post
 #                                            somewhere other than "Release: v12.2"
+#   RELEASE_AGENT_DEV_LEADS                — optional JSON list, [{"teams": ["Team A", "Team B"],
+#                                            "username": "<Hub username>", "name": "First Last"}]:
+#                                            the dev lead who gets the unassigned and Matty Code
+#                                            tickets of those Jira Teams (names match in any case).
+#                                            Team names are shown in Hub only.
 #   RELEASE_AGENT_MM_URL                   — optional; defaults to https://hub.mattermost.com
 #   CHANGELOG_READ_CLIENT_ID               — the read app's client ID
 on:
@@ -120,6 +125,7 @@ jobs:
           PLAYBOOK_ID: ${{ vars.RELEASE_AGENT_PLAYBOOK_ID }}
           RELEASE_CHANNEL_IDS: ${{ vars.RELEASE_AGENT_RELEASE_CHANNEL_IDS }}
           HOLIDAYS_PAGE_ID: ${{ vars.RELEASE_AGENT_HOLIDAYS_PAGE_ID }}
+          DEV_LEADS: ${{ vars.RELEASE_AGENT_DEV_LEADS }}
           OUT_DIR: ${{ runner.temp }}/release-agent
         run: python3 -m release_agent run --out-dir "$OUT_DIR"
 

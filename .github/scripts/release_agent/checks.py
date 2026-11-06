@@ -6,6 +6,7 @@ titles, owners and links go in ``items``, which are posted to Hub. Items in a pr
 are shown publicly as "(private repo)".
 """
 
+import json
 import re
 import sys
 from calendar import month_name
@@ -50,6 +51,8 @@ class Result:
     items: list = field(default_factory=list)
     proof_url: str = ""
     hidden: bool = False  # left out of the status post, as when a yearly task is out of season
+    unrouted_tickets: int = 0  # unassigned or bot tickets whose Jira Team has no dev lead
+    unrouted_teams: list = field(default_factory=list)  # those teams' names: Hub only, never public output
 
 
 @dataclass
@@ -68,6 +71,7 @@ class Context:
     branches: set = field(default_factory=set)  # (major, minor) of each release-X.Y branch
     tags: set = field(default_factory=set)  # (major, minor) of each vX.Y.0 tag
     fetch_page: object = None  # (url) -> page text of a public page
+    dev_leads: list = field(default_factory=list)  # RELEASE_AGENT_DEV_LEADS: [{teams, username, name}]
 
     def query(self, rule: dict) -> dict:
         return format_values(rule.get("query") or {}, self.vars)
@@ -208,11 +212,14 @@ def team_names(value) -> list[str]:
 
 class DevLeads:
     """Who leads a ticket's team: the first route naming its Jira Team, else (with
-    ``match_field: team``, as a fallback) the first naming one of its components."""
+    ``match_field: team``, as a fallback) the first naming one of its components.
 
-    def __init__(self, config: dict | None):
+    ``routes`` are the entries of RELEASE_AGENT_DEV_LEADS; ``config`` (from rules.yml) only
+    says which Jira field names the team. Team names match without regard to case."""
+
+    def __init__(self, config: dict | None, routes: list | None = None):
         config = config or {}
-        self.routes = config.get("routes", [])
+        self.routes = routes if routes is not None else config.get("routes", [])
         self.team_field = config.get("team_field", "") if config.get("match_field", "team") == "team" else ""
         self.by_team, self.by_component = {}, {}
         for route in self.routes:
@@ -225,35 +232,71 @@ class DevLeads:
     def fields(self) -> list[str]:
         return [self.team_field] if self.team_field else []
 
+    def teams_of(self, fields: dict) -> list[str]:
+        return team_names(fields.get(self.team_field)) if self.team_field else []
+
     def lead_for(self, fields: dict) -> dict | None:
-        teams = team_names(fields.get(self.team_field)) if self.team_field else []
         components = [c.get("name") or "" for c in fields.get("components") or []]
-        for name, routes in [(t, self.by_team) for t in teams] + [(c, self.by_component) for c in components]:
+        for name, routes in [(t, self.by_team) for t in self.teams_of(fields)] + [(c, self.by_component) for c in components]:
             if name.casefold() in routes:
                 return routes[name.casefold()]
         return None
 
 
-def dev_lead_flags(rules: dict, hub) -> list[str]:
-    """A flag for each dev lead in rules.yml who isn't an active Hub user, so a lead who has
-    left shows up instead of their tickets quietly losing the mention."""
+USERNAME = re.compile(r"^[a-z0-9._-]+$")
+
+
+def parse_dev_leads(text: str) -> tuple[list[dict], str]:
+    """(routes, problem) from RELEASE_AGENT_DEV_LEADS: a JSON list of {teams, username, name}.
+
+    An entry that isn't usable is left out and counted in ``problem``. The message never
+    repeats what the variable says, since it ends up in public output.
+    """
+    if not (text or "").strip():
+        return [], ""
+    try:
+        entries = json.loads(text)
+    except ValueError:
+        return [], "RELEASE_AGENT_DEV_LEADS isn't valid JSON, so unassigned tickets aren't routed to dev leads."
+    if not isinstance(entries, list):
+        return [], "RELEASE_AGENT_DEV_LEADS must be a JSON list of {teams, username, name}, so unassigned tickets aren't routed to dev leads."
+    routes, bad = [], []
+    for number, entry in enumerate(entries, 1):
+        names = [entry.get(key) for key in ("teams", "components")] if isinstance(entry, dict) else []
+        usable = (isinstance(entry, dict) and set(entry) <= {"teams", "components", "username", "name"}
+                  and isinstance(entry.get("username"), str) and USERNAME.match(entry["username"])
+                  and any(names) and all(isinstance(n, list) and all(isinstance(t, str) and t.strip() for t in n)
+                                         for n in names if n is not None)
+                  and isinstance(entry.get("name", ""), str))
+        if usable:
+            routes.append({**entry, **{key: [t.strip() for t in entry[key]] for key in ("teams", "components") if entry.get(key)}})
+        else:
+            bad.append(str(number))
+    problem = (f"RELEASE_AGENT_DEV_LEADS entries {', '.join(bad)} are not {{teams, username, name}} with a Hub username, so they were ignored."
+               if bad else "")
+    return routes, problem
+
+
+def dev_lead_flags(routes: list[dict], hub) -> list[str]:
+    """A flag for each dev lead in RELEASE_AGENT_DEV_LEADS who isn't an active Hub user, so a
+    lead who has left shows up instead of their tickets quietly losing the mention. They name
+    people from a private variable, so they belong in Hub only."""
     flags, seen = [], set()
-    for rule in rules.get("rules", []):
-        for route in DevLeads((rule.get("query") or {}).get("dev_leads")).routes:
-            username = route["username"]
-            if username in seen:
-                continue
-            seen.add(username)
-            who = f"{route.get('name') or username} (`{username}`)"
-            user = lookup_with_retry(lambda: hub.user_by_username(username))
-            if user is LOOKUP_FAILED:
-                # Not a missing account: the lookup itself failed, so say only that.
-                flags.append(f"Couldn't check that dev lead {who} is on Hub.")
-                continue
-            if not user:
-                flags.append(f"Dev lead {who} in rules.yml has no Hub account, so their tickets name them without a mention.")
-            elif user.get("delete_at"):
-                flags.append(f"Dev lead {who} in rules.yml is deactivated on Hub, so their tickets name them without a mention.")
+    for route in routes:
+        username = route["username"]
+        if username in seen:
+            continue
+        seen.add(username)
+        who = f"{route.get('name') or username} (`{username}`)"
+        user = lookup_with_retry(lambda: hub.user_by_username(username))
+        if user is LOOKUP_FAILED:
+            # Not a missing account: the lookup itself failed, so say only that.
+            flags.append(f"Couldn't check that dev lead {who} is on Hub.")
+            continue
+        if not user:
+            flags.append(f"Dev lead {who} in RELEASE_AGENT_DEV_LEADS has no Hub account, so their tickets name them without a mention.")
+        elif user.get("delete_at"):
+            flags.append(f"Dev lead {who} in RELEASE_AGENT_DEV_LEADS is deactivated on Hub, so their tickets name them without a mention.")
     return flags
 
 
@@ -277,7 +320,9 @@ def open_release_items(ctx: Context, rule: dict) -> Result:
     query = ctx.query(rule)
     people = HubPeople(ctx.hub)
     bots = {name.casefold() for name in query.get("bot_assignees", [])}
-    leads = DevLeads(query.get("dev_leads"))
+    leads = DevLeads(query.get("dev_leads"), ctx.dev_leads)
+    unrouted = {}  # team name (any case) -> name as first seen, for tickets with no dev lead
+    unrouted_tickets = 0
     with_links = query.get("linked_prs_status", "").casefold()
     issues = []
     for issue in ctx.jira.search(query["jql"], extra_fields=leads.fields):
@@ -290,6 +335,11 @@ def open_release_items(ctx: Context, rule: dict) -> Result:
             item.reason = name or "unassigned"
             lead = leads.lead_for(fields)
             item.owner = people.by_username(lead["username"], lead.get("name", "")) if lead else ""
+            teams = leads.teams_of(fields)
+            if not lead and teams:
+                unrouted_tickets += 1
+                for team in teams:
+                    unrouted.setdefault(team.casefold(), team)
         if with_links and ((fields.get("status") or {}).get("name") or "").casefold() == with_links:
             item.links = linked_prs(ctx.jira, issue["key"])
         issues.append(item)
@@ -299,7 +349,8 @@ def open_release_items(ctx: Context, rule: dict) -> Result:
         search = f'repo:{repo} is:pr is:open milestone:"{ctx.vars["milestone"]}"{excluded}'
         prs += [pr_item(repo, pr) for pr in ctx.github.search_issues(search)]
     summary = f"{plural(len(issues), 'open Jira issue')} and {plural(len(prs), 'open PR')}{private_count(prs)}"
-    return Result(INFO, summary, issues + prs, ctx.jira.filter_url(query["jql"]))
+    return Result(INFO, summary, issues + prs, ctx.jira.filter_url(query["jql"]), unrouted_tickets=unrouted_tickets,
+                  unrouted_teams=sorted(unrouted.values(), key=str.casefold))
 
 
 REPO_PR_URL = re.compile(r"^https://github\.com/([\w.-]+/[\w.-]+)/pull/(\d+)(?:[/?#].*)?$", re.IGNORECASE)

@@ -68,6 +68,7 @@ class ReleaseReport:
     run: dict | None = None
     release_channel: str = ""
     false_alarms: set = field(default_factory=set)
+    private_flags: set = field(default_factory=set)  # flags for Hub only: run.json and the summary get a count
 
     @property
     def needs_attention(self) -> bool:
@@ -221,7 +222,7 @@ def format_post(report: ReleaseReport, today: date, milestone_names: dict, emoji
         lines += ["", f"**{outcome.title}** — {outcome.result.summary}{_proof(outcome.result, 'Jira filter')}"
                       f"{_tick_note(ticks, outcome.rule['task'])}"]
         if outcome.rule["type"] == "open_release_items":
-            lines += release_bugs_lines(outcome.result.items, release)
+            lines += release_bugs_lines(outcome.result.items, release, outcome.result)
             continue
         groups = {}
         for item in outcome.result.items:
@@ -255,8 +256,9 @@ def _ticket(item, owner: str) -> str:
     return text + "".join(f" [{label}]({url})" for label, url in item.links)
 
 
-def release_bugs_lines(items: list, release) -> list[str]:
-    """The open bugs list: one line per person, most open tickets first, then Unassigned."""
+def release_bugs_lines(items: list, release, result=None) -> list[str]:
+    """The open bugs list: one line per person, most open tickets first, then Unassigned, then
+    how many tickets are from teams with no dev lead (their names are Hub only)."""
     tickets = [item for item in items if not item.repo]
     prs = [item for item in items if item.repo]
     version = release.short_version
@@ -280,6 +282,10 @@ def release_bugs_lines(items: list, release) -> list[str]:
             lines.append(f"{owner or '**Unassigned**'} -- " + ", ".join(_ticket(t, owner) for t in listed) + more)
         if shown < len(tickets):
             lines.append(f"…and {len(tickets) - shown} more tickets, in the Jira filter.")
+        if result and result.unrouted_tickets and result.unrouted_teams:
+            many = len(result.unrouted_teams) > 1
+            lines.append(f"{result.unrouted_tickets} ticket{'s' if result.unrouted_tickets != 1 else ''} from "
+                         f"{'teams' if many else 'a team'} with no dev lead: {', '.join(result.unrouted_teams)}")
     if prs:
         lines.append(f"Open PRs with the {release.version} milestone:")
         lines += [line[2:] for line in _items(prs)]

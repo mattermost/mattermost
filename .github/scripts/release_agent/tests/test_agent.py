@@ -6,7 +6,7 @@ from release_agent import agent, rules
 from release_agent.__main__ import log_line, step_summary
 from release_agent.clients import ServiceError
 from release_agent.tests.test_checks import holidays_page, holidays_page_text
-from release_agent.tests.fakes import FakeConfluence, FakeGitHub, FakeHub, FakeJira, checklist_run, fixture
+from release_agent.tests.fakes import DEV_LEADS_ROUTES, FakeConfluence, FakeGitHub, FakeHub, FakeJira, checklist_run, fixture
 
 MM, ENT = "mattermost/mattermost", "mattermost/enterprise"
 TODAY = date(2026, 11, 4)
@@ -15,7 +15,6 @@ LS_REMOTE = "\n".join(f"0\t{ref}" for ref in [
     "refs/tags/v12.1.0", "refs/tags/v12.2.0-rc1", "refs/tags/v12.2.0-rc2",
 ])
 SECRET = "Top secret enterprise fix"
-DEV_LEADS = next(r for r in rules.load_rules()["rules"] if r["task"] == "open-release-items")["query"]["dev_leads"]
 
 
 def template_items():
@@ -42,7 +41,7 @@ def services(jira=None, confluence=None):
     github.tags = {MM: ["v12.2.0-rc1", "v12.2.0-rc2"], ENT: ["v12.2.0-rc1", "v12.2.0-rc2"]}
     github.dates[(MM, "v12.2.0-rc2")] = "2026-11-02T12:00:00Z"
     hub = FakeHub(("12.2.0", "abc"))
-    hub.users = [{"username": route["username"], "first_name": "", "last_name": ""} for route in DEV_LEADS["routes"]]
+    hub.users = [{"username": route["username"], "first_name": "", "last_name": ""} for route in DEV_LEADS_ROUTES]
     hub.channels = [{"id": "c122", "display_name": "Release: v12.2"}, {"id": "c123", "display_name": "Release: v12.3"}]
     hub.runs = [checklist_run("run122", "Release: v12.2", "c122", template_items()),
                 checklist_run("run123", "Release: v12.3", "c123", template_items())]
@@ -53,7 +52,7 @@ def services(jira=None, confluence=None):
 
 def settings(mode="live", release=""):
     return agent.Settings(mode=mode, release_override=release, testing_alerts_channel="alerts", test_channel="test-chan",
-                          holidays_page_id="page9")
+                          holidays_page_id="page9", dev_leads=DEV_LEADS_ROUTES)
 
 
 def run(svc, mode="live", release="", today=TODAY):
@@ -133,18 +132,65 @@ class LiveRunTest(unittest.TestCase):
         self.assertEqual(len(self.svc.hub.created), created)
         self.assertEqual([r["post"] for r in body["releases"]], ["unchanged", "unchanged"])
 
-    def test_a_dev_lead_who_left_hub_is_flagged_in_each_post(self):
+    def test_a_dev_lead_who_left_hub_is_flagged_in_each_post_and_only_there(self):
         svc = services()
         svc.hub.users = [u for u in svc.hub.users if u["username"] != "maria.nunez"]
         svc.hub.users[0]["delete_at"] = 1761800000000
         body, _ = run(svc)
-        left = ["Dev lead Jesse Hallam (`jesse.hallam`) in rules.yml is deactivated on Hub, so their tickets name them without a mention.",
-                "Dev lead Maria Nunez (`maria.nunez`) in rules.yml has no Hub account, so their tickets name them without a mention."]
-        self.assertEqual([r["flags"] for r in body["releases"]], [left, left])
-        self.assertEqual(self.body["releases"][0]["flags"], [])
+        left = ["Dev lead Jesse Hallam (`jesse.hallam`) in RELEASE_AGENT_DEV_LEADS is deactivated on Hub, so their tickets name them without a mention.",
+                "Dev lead Maria Nunez (`maria.nunez`) in RELEASE_AGENT_DEV_LEADS has no Hub account, so their tickets name them without a mention."]
+        # The leads come from a private variable: run.json and the summary only count the flags.
+        self.assertEqual([(r["flags"], r["hub_only_flags"]) for r in body["releases"]], [([], 2), ([], 2)])
+        self.assertEqual(body["totals"]["flags"], 4)
+        public = json.dumps(body) + step_summary(body)
+        for name in ("Jesse", "jesse.hallam", "Maria", "maria.nunez"):
+            self.assertNotIn(name, public)
+        self.assertIn("2 more flag(s), shown in Hub only", step_summary(body))
+        self.assertEqual(self.body["releases"][0]["hub_only_flags"], 0)
         post = next(p for p in svc.hub.created if p["channel_id"] == "c122" and not p["root_id"])
         self.assertIn(f":triangular_flag_on_post: {left[1]}", post["message"])
         self.assertNotIn("@maria.nunez", post["message"])
+
+    def test_teams_with_no_dev_lead_are_counted_in_the_post_and_named_only_there(self):
+        from release_agent.tests.test_checks import issue
+        jira = FakeJira({"fixVersion": [issue("MM-1", team="Zebra Squad"), issue("MM-2", team="zebra squad"),
+                                        issue("MM-3", team="Quokka Crew", assignee="Matty Code"),
+                                        issue("MM-4", team="Calls"),  # has a dev lead
+                                        issue("MM-5"),  # no team at all
+                                        issue("MM-6", team="Zebra Squad", assignee="Ann Lee")]})  # assigned: not routed
+        svc = services(jira=jira)
+        body, _ = run(svc)
+        post = next(p for p in svc.hub.created if p["channel_id"] == "c122" and not p["root_id"])
+        self.assertIn("3 tickets from teams with no dev lead: Quokka Crew, Zebra Squad", post["message"])
+        entry = by_task({r["version"]: r for r in body["releases"]}["v12.2"])["open-release-items"]
+        self.assertEqual(entry["unrouted_tickets"], 3)
+        public = json.dumps(body) + step_summary(body)
+        self.assertNotIn("Zebra", public)
+        self.assertNotIn("Quokka", public)
+
+    def test_no_line_when_every_team_has_a_dev_lead(self):
+        from release_agent.tests.test_checks import issue
+        svc = services(jira=FakeJira({"fixVersion": [issue("MM-1", team="Calls"), issue("MM-2")]}))
+        body, _ = run(svc)
+        post = next(p for p in svc.hub.created if p["channel_id"] == "c122" and not p["root_id"])
+        self.assertNotIn("no dev lead", post["message"])
+        self.assertNotIn("unrouted_tickets", by_task({r["version"]: r for r in body["releases"]}["v12.2"])["open-release-items"])
+
+    def test_dev_leads_come_from_the_variable(self):
+        env = {"DEV_LEADS": json.dumps([{"teams": ["Calls"], "username": "jesse.hallam", "name": "Jesse Hallam"}])}
+        configured = agent.env_settings(env)
+        self.assertEqual((configured.dev_leads, configured.dev_leads_problem),
+                         ([{"teams": ["Calls"], "username": "jesse.hallam", "name": "Jesse Hallam"}], ""))
+        self.assertEqual(agent.env_settings({}).dev_leads, [])
+
+    def test_a_broken_variable_is_flagged_without_repeating_it(self):
+        from release_agent.tests.test_checks import issue
+        svc = services(jira=FakeJira({"fixVersion": [issue("MM-1", team="Calls")]}))
+        broken = agent.Settings(mode="live", testing_alerts_channel="alerts", test_channel="test-chan", holidays_page_id="page9",
+                                dev_leads=[], dev_leads_problem="RELEASE_AGENT_DEV_LEADS isn't valid JSON, so unassigned tickets aren't routed to dev leads.")
+        body, _ = agent.run(rules.load_rules(), broken, svc, TODAY)
+        self.assertIn("RELEASE_AGENT_DEV_LEADS isn't valid JSON, so unassigned tickets aren't routed to dev leads.",
+                      body["releases"][0]["flags"])
 
     def test_totals(self):
         self.assertEqual(self.body["totals"]["releases"], 2)

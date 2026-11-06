@@ -8,7 +8,7 @@ from release_agent import checks, rules
 from release_agent.agent import template_vars
 from release_agent.clients import Confluence
 from release_agent.release_calendar import Release
-from release_agent.tests.fakes import FakeConfluence, FakeGitHub, FakeHub, FakeJira
+from release_agent.tests.fakes import DEV_LEADS_ROUTES, FakeConfluence, FakeGitHub, FakeHub, FakeJira
 
 MM, ENT = "mattermost/mattermost", "mattermost/enterprise"
 RULES = {rule["task"]: rule for rule in rules.load_yaml(rules.RULES_PATH)["rules"]}
@@ -25,14 +25,15 @@ def release():
 
 
 def context(github=None, jira=None, hub=None, has_branch=True, rc_numbers=(1, 2), today=date(2026, 11, 4),
-            confluence=None, primary=True, page_id="123", rel=None, branches=(), tags=(), fetch_page=None):
+            confluence=None, primary=True, page_id="123", rel=None, branches=(), tags=(), fetch_page=None,
+            dev_leads=DEV_LEADS_ROUTES):
     rel = rel or release()
     values = {**template_vars(rel, NAMING, list(rc_numbers)), "holidays_page_id": page_id, "next_year": today.year + 1}
     return checks.Context(release=rel, today=today, vars=values,
                           has_branch=has_branch, rc_numbers=list(rc_numbers), github=github or FakeGitHub(),
                           jira=jira or FakeJira(), hub=hub or FakeHub(), testing_alerts_channel="alerts",
                           confluence=confluence or FakeConfluence(), primary=primary,
-                          branches=set(branches), tags=set(tags), fetch_page=fetch_page)
+                          branches=set(branches), tags=set(tags), fetch_page=fetch_page, dev_leads=dev_leads)
 
 
 def pr(number, title="A change", login="dev", state="closed", merged_at="2026-10-20T10:00:00Z",
@@ -238,6 +239,24 @@ class NewRegressionsTest(unittest.TestCase):
         self.assertEqual(leads.fields, [])
         self.assertEqual(leads.lead_for(issue("MM-1", team="Calls", components=["Calls"])["fields"])["username"], "b")
 
+    def test_counts_unassigned_and_bot_tickets_whose_team_has_no_dev_lead(self):
+        result, _, _ = self.routed(
+            issue("MM-1", team="Zebra Squad"), issue("MM-2", team="zebra squad", assignee="Matty Code"),
+            issue("MM-3", team="Quokka Crew"), issue("MM-4", team="Calls"), issue("MM-5"),
+            issue("MM-6", team="Zebra Squad", assignee="Ann Lee"))
+        self.assertEqual((result.unrouted_tickets, result.unrouted_teams), (3, ["Quokka Crew", "Zebra Squad"]))
+
+    def test_a_ticket_with_several_teams_is_counted_once(self):
+        jira = FakeJira({"fixVersion": [issue("MM-1")]})
+        jira.issues["fixVersion"][0]["fields"][TEAM_FIELD] = [{"name": "Zebra Squad"}, {"name": "Quokka Crew"}]
+        result = checks.open_release_items(context(jira=jira, hub=FakeHub()), RULES["open-release-items"])
+        self.assertEqual((result.unrouted_tickets, result.unrouted_teams), (1, ["Quokka Crew", "Zebra Squad"]))
+
+    def test_no_routes_at_all_means_every_team_is_unrouted(self):
+        jira = FakeJira({"fixVersion": [issue("MM-1", team="Calls")]})
+        result = checks.open_release_items(context(jira=jira, hub=FakeHub(), dev_leads=[]), RULES["open-release-items"])
+        self.assertEqual((result.unrouted_tickets, result.unrouted_teams), (1, ["Calls"]))
+
     def test_a_dev_lead_missing_on_hub_is_named_and_marked(self):
         result, _, _ = self.routed(issue("MM-1", team="Information Control"))
         self.assertEqual(result.items[0].owner, "Maria Nunez (no Hub user found)")
@@ -277,8 +296,8 @@ class NewRegressionsTest(unittest.TestCase):
 
     def test_dev_lead_table(self):
         config = RULES["open-release-items"]["query"]["dev_leads"]
-        self.assertEqual((config["match_field"], config["team_field"]), ("team", TEAM_FIELD))
-        leads = checks.DevLeads(config)
+        self.assertEqual(config, {"match_field": "team", "team_field": TEAM_FIELD})  # no routes in the public rules file
+        leads = checks.DevLeads(config, DEV_LEADS_ROUTES)
         self.assertEqual({team: lead["username"] for team, lead in leads.by_team.items()}, {
             "reliability": "jesse.hallam", "calls": "jesse.hallam", "sustained engineering": "jesse.hallam",
             "information control": "maria.nunez",
@@ -348,16 +367,14 @@ class HubLookupFailureTest(unittest.TestCase):
         self.assertEqual(hub.calls, 1)
 
     def test_a_failed_lookup_raises_no_dev_lead_flag_for_a_missing_account(self):
-        rules_doc = {"rules": [{"query": {"dev_leads": {"routes": [{"teams": ["X"], "username": "a", "name": "A Lead"}]}}}]}
-        flags = checks.dev_lead_flags(rules_doc, FailingHub())
+        flags = checks.dev_lead_flags([{"teams": ["X"], "username": "a", "name": "A Lead"}], FailingHub())
         self.assertEqual(flags, ["Couldn't check that dev lead A Lead (`a`) is on Hub."])
         self.assertFalse(any("no Hub account" in flag for flag in flags))
 
     def test_the_dev_lead_check_is_retried_once_too(self):
         hub = FailingHub(fail_first=1)
         hub.users = [{"username": "a", "first_name": "", "last_name": ""}]
-        rules_doc = {"rules": [{"query": {"dev_leads": {"routes": [{"teams": ["X"], "username": "a"}]}}}]}
-        self.assertEqual((checks.dev_lead_flags(rules_doc, hub), hub.calls), ([], 2))
+        self.assertEqual((checks.dev_lead_flags([{"teams": ["X"], "username": "a"}], hub), hub.calls), ([], 2))
 
 
 class TruncatedSearchTest(unittest.TestCase):
@@ -409,33 +426,71 @@ class TruncatedSearchTest(unittest.TestCase):
         self.assertEqual((outcome.state, outcome.error), (posting.ERROR, "Jira results truncated at 1000, can't confirm"))
 
 
+class ParseDevLeadsTest(unittest.TestCase):
+    def test_a_list_of_routes(self):
+        text = '[{"teams": [" Calls ", "Agents"], "username": "jesse.hallam", "name": "Jesse Hallam"}, {"components": ["Bookmarks Bar"], "username": "lead"}]'
+        routes, problem = checks.parse_dev_leads(text)
+        self.assertEqual((routes, problem), ([
+            {"teams": ["Calls", "Agents"], "username": "jesse.hallam", "name": "Jesse Hallam"},
+            {"components": ["Bookmarks Bar"], "username": "lead"}], ""))
+
+    def test_unset_is_no_routes_and_no_problem(self):
+        self.assertEqual(checks.parse_dev_leads(""), ([], ""))
+        self.assertEqual(checks.parse_dev_leads("  \n"), ([], ""))
+
+    def test_a_bad_variable_never_repeats_what_it_says(self):
+        for text in ('{"teams": ["Secret Team"]', '{"teams": ["Secret Team"], "username": "x"}'):
+            routes, problem = checks.parse_dev_leads(text)
+            self.assertEqual(routes, [])
+            self.assertIn("RELEASE_AGENT_DEV_LEADS", problem)
+            self.assertNotIn("Secret", problem)
+
+    def test_unusable_entries_are_left_out_and_counted_by_position(self):
+        text = json.dumps([
+            {"teams": ["Calls"], "username": "jesse.hallam"},
+            {"teams": ["Secret Team"], "username": "@jesse.hallam"},  # @ isn't part of a username
+            {"username": "no.teams"},
+            {"teams": [], "username": "empty"},
+            {"teams": ["X"], "username": "ok", "nmae": "misspelt key"},
+            "text",
+        ])
+        routes, problem = checks.parse_dev_leads(text)
+        self.assertEqual([r["username"] for r in routes], ["jesse.hallam"])
+        self.assertEqual(problem, "RELEASE_AGENT_DEV_LEADS entries 2, 3, 4, 5, 6 are not {teams, username, name} with a Hub username, so they were ignored.")
+        self.assertNotIn("Secret", problem)
+
+    def test_team_names_match_in_any_case(self):
+        leads = checks.DevLeads({"match_field": "team", "team_field": TEAM_FIELD}, [{"teams": ["sustained ENGINEERING"], "username": "a"}])
+        self.assertEqual(leads.lead_for(issue("MM-1", team="Sustained Engineering")["fields"])["username"], "a")
+
+
 class DevLeadFlagsTest(unittest.TestCase):
-    RULES_DOC = {"rules": [{"query": {"dev_leads": {"routes": [
+    ROUTES = [
         {"teams": ["Calls"], "username": "jesse.hallam", "name": "Jesse Hallam"},
         {"teams": ["Agents"], "username": "christopher", "name": "Christopher Speller"},
         {"teams": ["Integrations"], "username": "gone.person", "name": "Gone Person"},
         {"components": ["Bookmarks Bar"], "username": "jesse.hallam", "name": "Jesse Hallam"},
-    ]}}}, {"query": {}}]}
+    ]
 
     def test_flags_leads_missing_or_deactivated_on_hub(self):
         hub = FakeHub()
         hub.users = [{"username": "jesse.hallam", "first_name": "Jesse", "last_name": "Hallam", "delete_at": 0},
                      {"username": "christopher", "first_name": "Christopher", "last_name": "Speller", "delete_at": 1761800000000}]
-        self.assertEqual(checks.dev_lead_flags(self.RULES_DOC, hub), [
-            "Dev lead Christopher Speller (`christopher`) in rules.yml is deactivated on Hub, so their tickets name them without a mention.",
-            "Dev lead Gone Person (`gone.person`) in rules.yml has no Hub account, so their tickets name them without a mention.",
+        self.assertEqual(checks.dev_lead_flags(self.ROUTES, hub), [
+            "Dev lead Christopher Speller (`christopher`) in RELEASE_AGENT_DEV_LEADS is deactivated on Hub, so their tickets name them without a mention.",
+            "Dev lead Gone Person (`gone.person`) in RELEASE_AGENT_DEV_LEADS has no Hub account, so their tickets name them without a mention.",
         ])
 
     def test_no_flags_when_every_lead_is_active(self):
         hub = FakeHub()
         hub.users = [{"username": u, "first_name": "", "last_name": ""} for u in ("jesse.hallam", "christopher", "gone.person")]
-        self.assertEqual(checks.dev_lead_flags(self.RULES_DOC, hub), [])
+        self.assertEqual(checks.dev_lead_flags(self.ROUTES, hub), [])
 
     def test_a_hub_error_is_reported_not_raised(self):
         class BrokenHub(FakeHub):
             def user_by_username(self, username):
                 raise RuntimeError("Hub is down")
-        flags = checks.dev_lead_flags({"rules": [{"query": {"dev_leads": {"routes": [{"teams": ["X"], "username": "a"}]}}}]}, BrokenHub())
+        flags = checks.dev_lead_flags([{"teams": ["X"], "username": "a"}], BrokenHub())
         self.assertEqual(flags, ["Couldn't check that dev lead a (`a`) is on Hub."])
 
 

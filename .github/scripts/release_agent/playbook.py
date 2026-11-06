@@ -56,13 +56,29 @@ def find_run(runs: list[dict], fragment: str, by_name: bool = True) -> tuple[dic
     return matches[0], None
 
 
+def title_matches(item_title: str, wanted: str) -> bool:
+    """Whether a checklist item has the expected title.
+
+    Without "…" the titles must be the same. A trailing "…" matches any item that starts with
+    the text before it, and a "…" inside the text matches anything, so a title that names a
+    person is written without them: "Check with … that tests get done…" still matches after
+    the owner in the title changes.
+    """
+    title, expected = normalize(item_title), normalize(wanted)
+    if "…" not in expected:
+        return title == expected
+    parts = [part.strip() for part in expected.split("…")]
+    # A trailing "…" leaves an empty last part, so the pattern ends in ".*": any ending matches.
+    pattern = ".*".join(re.escape(part) for part in parts)
+    return re.fullmatch(pattern, title, re.DOTALL) is not None
+
+
 def find_items(run: dict, title: str) -> list[tuple[int, int, dict]]:
-    wanted = normalize(title)
     return [
         (checklist_index, item_index, item)
         for checklist_index, checklist in enumerate(run.get("checklists") or [])
         for item_index, item in enumerate(checklist.get("items") or [])
-        if normalize(item.get("title")) == wanted
+        if title_matches(item.get("title"), title)
     ]
 
 

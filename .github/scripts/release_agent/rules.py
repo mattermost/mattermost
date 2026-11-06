@@ -9,7 +9,7 @@ import jsonschema
 import yaml
 
 from .checks import CHECKS
-from .playbook import normalize
+from .playbook import normalize, title_matches
 
 CONFIG_DIR = Path(__file__).resolve().parents[2] / "release-agent"
 RULES_PATH = CONFIG_DIR / "rules.yml"
@@ -73,7 +73,7 @@ def problems(rules: dict, schema: dict, template_titles: set[str] | None = None)
     if errors:
         return errors
     milestones = rules["calendar"]["milestones"]
-    known_items = {normalize(title) for title in template_titles} if template_titles is not None else None
+    known_items = list(template_titles) if template_titles is not None else None
     seen = set()
     for rule in rules["rules"]:
         task = rule["task"]
@@ -95,7 +95,7 @@ def problems(rules: dict, schema: dict, template_titles: set[str] | None = None)
         if anchor and anchor.group(1) not in milestones:
             errors.append(f"{task}: due {rule['due']!r} names no calendar milestone")
         if known_items is not None and rule["playbook_item"] is not None \
-                and normalize(rule["playbook_item"]) not in known_items:
+                and not any(title_matches(known, rule["playbook_item"]) for known in known_items):
             errors.append(f"{task}: playbook_item {rule['playbook_item']!r} is not in the playbook template")
     for day in rules.get("holidays", []):
         try:

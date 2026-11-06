@@ -77,6 +77,37 @@ class PlanTickTest(unittest.TestCase):
         self.assertEqual(playbook.plan_tick(self.playbook_run, "Duplicate")[0], playbook.AMBIGUOUS)
 
 
+class NamedPeopleInTitlesTest(unittest.TestCase):
+    """A title that names people is written with "…" for them, so a new owner doesn't break the match."""
+    WANTED = "Check with … that mmctl and e2e tests get done…"
+    MMCTL = "Check with {} that mmctl and e2e tests get done. Follow results at Release: Testing Alerts channel."
+    MANUAL = "Check with Saturn/Yasser that manual tests get done if needed - see guidelines here."
+
+    def run_with(self, owner):
+        return checklist_run("r", "v12.2", "c", [(self.MANUAL, "", 0), (self.MMCTL.format(owner), "", 0)])
+
+    def test_a_renamed_owner_in_the_title_still_matches(self):
+        for owner in ("Saturn/Yasser", "Pat", "[Alex](https://hub/alex) and Sam"):
+            self.assertEqual(playbook.plan_tick(self.run_with(owner), self.WANTED), (playbook.TICKED, (0, 1)), owner)
+
+    def test_the_other_item_that_names_the_same_people_is_not_matched(self):
+        run = checklist_run("r", "v12.2", "c", [(self.MANUAL, "", 0)])
+        self.assertEqual(playbook.plan_tick(run, self.WANTED), (playbook.NOT_FOUND, None))
+
+    def test_a_trailing_ellipsis_matches_the_start_of_the_title(self):
+        run = checklist_run("r", "v12.2", "c", [("Merge the automated PRs to update version.go - example PR.", "", 0)])
+        self.assertEqual(playbook.plan_tick(run, "Merge the automated PRs to update version.go…"), (playbook.TICKED, (0, 0)))
+        self.assertEqual(playbook.plan_tick(run, "Merge the automated PRs to update the…"), (playbook.NOT_FOUND, None))
+
+    def test_without_an_ellipsis_the_title_must_be_the_same(self):
+        run = checklist_run("r", "v12.2", "c", [("Merge the automated PRs", "", 0)])
+        self.assertEqual(playbook.plan_tick(run, "Merge the automated"), (playbook.NOT_FOUND, None))
+
+    def test_two_items_matching_the_start_are_ambiguous_not_ticked(self):
+        run = checklist_run("r", "v12.2", "c", [(self.MANUAL, "", 0), ("Check with Saturn/Yasser that mmctl tests get done", "", 0)])
+        self.assertEqual(playbook.plan_tick(run, "Check with…"), (playbook.AMBIGUOUS, None))
+
+
 class TickItemsTest(unittest.TestCase):
     def setUp(self):
         self.hub = FakeHub()
