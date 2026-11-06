@@ -1439,8 +1439,8 @@ func (h *AccessControlAttributeValidationHook) validateSyncSources(field, existi
 
 // refuseSetOnCreate refuses a field whose mutability is set_on_create, flag on or
 // off: that lock allows a write only from the request that creates the object, and
-// nothing enforces that yet, so a field must not carry a lock that isn't enforced.
-// Delete this with the change that enforces it.
+// no write path checks that, so a field must not carry a lock that isn't enforced.
+// TODO: remove once writes enforce set_on_create.
 func refuseSetOnCreate(field *model.PropertyField) error {
 	if field.Mutability != model.PropertyFieldMutabilitySetOnCreate {
 		return nil
@@ -1452,8 +1452,8 @@ func refuseSetOnCreate(field *model.PropertyField) error {
 // validateBoundsChange refuses a new bounds rule, or a mutability that newly
 // becomes write_once, while the PropertyFieldBounds flag is off. Rules and locks
 // already on the field ride along, and removing them is always allowed. Unstated
-// bounds (nil) and mutability ("") add nothing; they are resolved from the stored
-// field later. This hook manages only the access_control group, the one v3 group
+// bounds (nil) and mutability ("") add nothing; the update path fills them in from
+// the stored field. This hook manages only the access_control group, the one v3 group
 // that can carry bounds, so every field that can gain them passes through here.
 func (h *AccessControlAttributeValidationHook) validateBoundsChange(field, existing *model.PropertyField) error {
 	if h.propertyFieldBoundsEnabled() {

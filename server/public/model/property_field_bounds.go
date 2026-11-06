@@ -54,8 +54,6 @@ func (m PropertyFieldMutability) orMutable() PropertyFieldMutability {
 	return m
 }
 
-// Scan implements sql.Scanner so a jsonb column reads directly into a
-// PropertyBounds field.
 func (b *PropertyBounds) Scan(value any) error {
 	if value == nil {
 		return nil
