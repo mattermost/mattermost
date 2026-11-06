@@ -73,6 +73,11 @@ func validateChannelSchemeAssignment(c *Context, channel *model.Channel) bool {
 		return false
 	}
 
+	if scheme.DeleteAt != 0 {
+		c.Err = model.NewAppError("validateChannelSchemeAssignment", "app.scheme.get.app_error", nil, "", http.StatusNotFound)
+		return false
+	}
+
 	if scheme.Scope != model.SchemeScopeChannel {
 		c.Err = model.NewAppError("validateChannelSchemeAssignment", "api.channel.create_channel.scheme_scope.error", nil, "", http.StatusBadRequest)
 		return false

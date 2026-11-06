@@ -169,6 +169,16 @@ func TestCreateBoardSchemeAssignment(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	removedScheme, _, err := th.SystemAdminClient.CreateScheme(context.Background(), &model.Scheme{
+		DisplayName: model.NewId(),
+		Name:        model.NewId(),
+		Description: model.NewId(),
+		Scope:       model.SchemeScopeChannel,
+	})
+	require.NoError(t, err)
+	_, err = th.SystemAdminClient.DeleteScheme(context.Background(), removedScheme.Id)
+	require.NoError(t, err)
+
 	testCases := []struct {
 		name         string
 		client       *model.Client4
@@ -224,6 +234,22 @@ func TestCreateBoardSchemeAssignment(t *testing.T) {
 			schemeID:     channelScheme.Id,
 			mustSucceed:  true,
 			wantAssigned: true,
+		},
+		{
+			name:        "team member, open board, channel-scope scheme id that was removed",
+			client:      th.Client,
+			boardType:   model.ChannelTypeOpenBoard,
+			schemeID:    removedScheme.Id,
+			wantStatus:  http.StatusForbidden,
+			wantErrorID: schemePermissionErrorID,
+		},
+		{
+			name:        "system admin, open board, channel-scope scheme id that was removed",
+			client:      th.SystemAdminClient,
+			boardType:   model.ChannelTypeOpenBoard,
+			schemeID:    removedScheme.Id,
+			wantStatus:  http.StatusNotFound,
+			wantErrorID: schemeNotFoundErrorID,
 		},
 	}
 

@@ -599,6 +599,14 @@ func TestCreateChannelSchemeAssignment(t *testing.T) {
 			wantStatus:  http.StatusForbidden,
 			wantErrorID: schemePermissionErrorID,
 		},
+		{
+			name:        "system admin, public channel, channel-scope scheme id that was removed",
+			client:      th.SystemAdminClient,
+			channelType: model.ChannelTypeOpen,
+			schemeID:    removedScheme.Id,
+			wantStatus:  http.StatusNotFound,
+			wantErrorID: schemeNotFoundErrorID,
+		},
 	}
 
 	for _, tc := range testCases {
