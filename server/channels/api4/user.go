@@ -2354,10 +2354,6 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 		"cyber-defense": "/cyber-defense-hq",
 	}
 
-	if !c.App.IsCWSLoginEnabled() {
-		c.Err = model.NewAppError("loginCWS", "api.user.login_cws.license.error", nil, "", http.StatusUnauthorized)
-		return
-	}
 	if err := r.ParseForm(); err != nil {
 		c.Logger.Warn("Failed to parse form data", mlog.Err(err))
 	}

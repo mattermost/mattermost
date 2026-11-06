@@ -6041,10 +6041,14 @@ func TestLoginCookies(t *testing.T) {
 		}
 		th := SetupAndApplyConfigBeforeLogin(t, updateConfig).InitBasic(t)
 
-		th.App.Srv().SetCWSTokenOverride(token)
-		t.Cleanup(func() { th.App.Srv().SetCWSTokenOverride("") })
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 		user := th.CreateUser(t)
+		th.App.Srv().SetCWSTokenOverride(token)
+		th.App.Srv().SetCWSLoginIDOverride(user.Email)
+		t.Cleanup(func() {
+			th.App.Srv().SetCWSTokenOverride("")
+			th.App.Srv().SetCWSLoginIDOverride("")
+		})
 
 		form := url.Values{}
 		form.Add("login_id", user.Email)
@@ -6098,7 +6102,7 @@ func TestLoginCookies(t *testing.T) {
 			{
 				name:           "self-hosted license without the CWS login ID",
 				bindTo:         func(_, _ *model.User) string { return "" },
-				expectedStatus: http.StatusUnauthorized,
+				expectedStatus: http.StatusFound,
 			},
 			{
 				name:           "self-hosted license with a mismatched login ID",
@@ -6127,7 +6131,6 @@ func TestLoginCookies(t *testing.T) {
 				cloud:          true,
 				bindTo:         func(_, _ *model.User) string { return "" },
 				expectedStatus: http.StatusFound,
-				expectSession:  true,
 			},
 			{
 				name:           "Cloud license with a matching login ID",

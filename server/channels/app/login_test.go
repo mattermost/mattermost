@@ -32,7 +32,11 @@ func TestCWSLogin(t *testing.T) {
 		}()
 
 		th.App.Srv().SetCWSTokenOverride(token.Token)
-		t.Cleanup(func() { th.App.Srv().SetCWSTokenOverride("") })
+		th.App.Srv().SetCWSLoginIDOverride(th.BasicUser.Username)
+		t.Cleanup(func() {
+			th.App.Srv().SetCWSTokenOverride("")
+			th.App.Srv().SetCWSLoginIDOverride("")
+		})
 		user, appErr := th.App.AuthenticateUserForLogin(th.Context, "", th.BasicUser.Username, "", "", token.Token, false)
 		require.Nil(t, appErr)
 		require.NotNil(t, user)
@@ -46,7 +50,11 @@ func TestCWSLogin(t *testing.T) {
 	t.Run("Should not authenticate the user when CWS token was used", func(t *testing.T) {
 		token := model.NewToken(model.TokenTypeCWSAccess, "")
 		th.App.Srv().SetCWSTokenOverride(token.Token)
-		t.Cleanup(func() { th.App.Srv().SetCWSTokenOverride("") })
+		th.App.Srv().SetCWSLoginIDOverride(th.BasicUser.Username)
+		t.Cleanup(func() {
+			th.App.Srv().SetCWSTokenOverride("")
+			th.App.Srv().SetCWSLoginIDOverride("")
+		})
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
 		defer func() {
 			appErr := th.App.DeleteToken(token)
@@ -105,11 +113,10 @@ func TestCWSLogin(t *testing.T) {
 				loginID: func(user, _ *model.User) string { return user.Email },
 			},
 			{
-				name:     "Cloud license without the CWS login ID",
-				cloud:    true,
-				bindTo:   func(_, _ *model.User) string { return "" },
-				loginID:  func(user, _ *model.User) string { return user.Email },
-				expectOK: true,
+				name:    "Cloud license without the CWS login ID",
+				cloud:   true,
+				bindTo:  func(_, _ *model.User) string { return "" },
+				loginID: func(user, _ *model.User) string { return user.Email },
 			},
 			{
 				name:     "Cloud license with a matching login ID",
@@ -205,11 +212,9 @@ func TestCWSLogin(t *testing.T) {
 		variants := []struct {
 			name  string
 			cloud bool
-			bound bool
 		}{
 			{name: "on a Cloud license", cloud: true},
-			{name: "on a Cloud license with the CWS login ID set", cloud: true, bound: true},
-			{name: "on a self-hosted license with the CWS login ID set", bound: true},
+			{name: "on a self-hosted license"},
 		}
 
 		for _, variant := range variants {
@@ -224,9 +229,7 @@ func TestCWSLogin(t *testing.T) {
 						_ = th.App.Srv().Store().Token().Delete(token.Token)
 					})
 					bind := func(user *model.User) {
-						if variant.bound {
-							th.App.Srv().SetCWSLoginIDOverride(user.Username)
-						}
+						th.App.Srv().SetCWSLoginIDOverride(user.Username)
 					}
 
 					user := tc.setup(t, token, bind)

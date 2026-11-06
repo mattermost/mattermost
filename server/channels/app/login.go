@@ -26,8 +26,7 @@ import (
 
 const (
 	cwsTokenEnv = "CWS_CLOUD_TOKEN"
-	// cwsLoginIDEnv names the only user the CWS token may log in as. Setting it also enables CWS
-	// login on non-Cloud licenses, which preview installations use.
+	// cwsLoginIDEnv names the only user the CWS token may log in as. CWS login is refused when unset.
 	cwsLoginIDEnv = "CWS_CLOUD_LOGIN_ID"
 )
 
@@ -43,14 +42,14 @@ func (a *App) AuthenticateUserForLogin(rctx request.CTX, id, loginId, password, 
 		}
 	}()
 
-	cwsLogin := isCWSLogin(a, cwsToken)
+	cwsLogin := cwsToken != ""
 	if password == "" && !cwsLogin {
 		return nil, model.NewAppError("AuthenticateUserForLogin", "api.user.login.blank_pwd.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if cwsLogin && !a.cwsLoginIDAllowed(id, loginId) {
+	if cwsLogin && !a.cwsLoginIDMatches(id, loginId) {
 		return nil, model.NewAppError("AuthenticateUserForLogin",
-			"api.user.login_by_cws.invalid_token.app_error", nil, "login_id does not match the CWS login user", http.StatusBadRequest)
+			"api.user.login_by_cws.invalid_token.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	// Get the MM user we are trying to login
@@ -375,29 +374,12 @@ func GetProtocol(r *http.Request) string {
 	return "http"
 }
 
-func (a *App) cwsLoginID() string {
-	if a.Srv().cwsLoginIDOverride != "" {
-		return a.Srv().cwsLoginIDOverride
-	}
-	return os.Getenv(cwsLoginIDEnv)
-}
-
-// IsCWSLoginEnabled reports whether the installation accepts the CWS one-time login: always on
-// Cloud, and on other licenses only when CWS_CLOUD_LOGIN_ID binds it to a user.
-func (a *App) IsCWSLoginEnabled() bool {
-	return a.License().IsCloud() || a.cwsLoginID() != ""
-}
-
-// cwsLoginIDAllowed reports whether a CWS login may look up the requested user. When
-// CWS_CLOUD_LOGIN_ID is set, login_id must match it case-insensitively, as GetForLogin does.
-func (a *App) cwsLoginIDAllowed(id, loginID string) bool {
-	expected := a.cwsLoginID()
+// cwsLoginIDMatches reports whether CWS_CLOUD_LOGIN_ID is set and login_id matches it
+// case-insensitively, as GetForLogin does.
+func (a *App) cwsLoginIDMatches(id, loginID string) bool {
+	expected := a.Srv().cwsLoginIDOverride
 	if expected == "" {
-		return true
+		expected = os.Getenv(cwsLoginIDEnv)
 	}
-	return id == "" && strings.EqualFold(loginID, expected)
-}
-
-func isCWSLogin(a *App, token string) bool {
-	return token != "" && a.IsCWSLoginEnabled()
+	return expected != "" && id == "" && strings.EqualFold(loginID, expected)
 }
