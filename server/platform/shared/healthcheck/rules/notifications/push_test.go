@@ -256,9 +256,20 @@ func TestPushProxyUnreachable(t *testing.T) {
 			want:     healthcheck.Resolved(),
 		},
 		{
-			name:     "invalid HTTPS URL is suppressed",
-			snapshot: pushProxySnapshot(true, "https://[::1", failed),
-			want:     healthcheck.Resolved(),
+			name: "malformed HTTPS URL reports the failed probe",
+			snapshot: pushProxySnapshot(true, "https://[::1",
+				pushProxyNode("app-1", model.StatusFail, `parse "https://[::1": missing ']' in host`, nil)),
+			want: healthcheck.Firing(messageID).
+				WithDetail("nodes", "app-1").
+				WithDetail("error", `parse "https://[::1": missing ']' in host`),
+		},
+		{
+			name: "HTTPS URL without a host reports the failed probe",
+			snapshot: pushProxySnapshot(true, "https:///push",
+				pushProxyNode("app-1", model.StatusFail, `Get "https:///push/version": http: no Host in request URL`, nil)),
+			want: healthcheck.Firing(messageID).
+				WithDetail("nodes", "app-1").
+				WithDetail("error", `Get "https:///push/version": http: no Host in request URL`),
 		},
 		{
 			name:     "no node reported the probe",

@@ -159,8 +159,9 @@ func evalPushProxyUnreachable(s *healthcheck.Snapshot) healthcheck.Result {
 		return healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)
 	}
 
-	u, err := url.Parse(server)
-	if err != nil || !strings.EqualFold(u.Scheme, "https") || u.Hostname() == "" {
+	// Skip only what PUSH_EMPTY_URL and PUSH_BAD_SCHEME report. A malformed HTTPS URL passes both, so the
+	// failed probe is its only signal.
+	if server == "" || !hasScheme(server, "https://") {
 		return healthcheck.Resolved()
 	}
 
