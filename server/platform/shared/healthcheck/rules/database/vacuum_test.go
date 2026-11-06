@@ -66,7 +66,8 @@ func TestDBPostsVacuumStale(t *testing.T) {
 		{"at stale threshold", vacuumSnapshot(&postgres, &dead, &posts, &exactlySevenDays, nil), resolvedWant.withValue(float64(dead))},
 		{"manual vacuum stale", vacuumSnapshot(&postgres, &dead, &posts, &stale, nil), firing},
 		{"autovacuum stale", vacuumSnapshot(&postgres, &dead, &posts, nil, &stale), firing},
-		{"vacuum timestamps absent", vacuumSnapshot(&postgres, &dead, &posts, nil, nil), unknownDiagWant},
+		{"never vacuumed", vacuumSnapshot(&postgres, &dead, &posts, nil, nil), firingWant("health.rule.db_posts_vacuum_stale.message.never").withValue(float64(dead))},
+		{"never vacuumed below dead tuple ratio", vacuumSnapshot(&postgres, &dead, &exactRatioPosts, nil, nil), resolvedWant.withValue(float64(dead))},
 		{"vacuum timestamp after collection", vacuumSnapshot(&postgres, &dead, &posts, &future, nil), unknownDiagWant},
 		{
 			"collection time absent",
@@ -93,6 +94,14 @@ func TestDBPostsVacuumStale(t *testing.T) {
 		"dead_percent": "40.0",
 		"dead_tuples":  "200000",
 		"last_vacuum":  "2026-10-28T12:00:00Z",
+		"posts":        "500000",
+	}, results[0].Details)
+
+	results = dbPostsVacuumStale.Eval(vacuumSnapshot(&postgres, &dead, &posts, nil, nil))
+	require.Len(t, results, 1)
+	assert.Equal(t, map[string]string{
+		"dead_percent": "40.0",
+		"dead_tuples":  "200000",
 		"posts":        "500000",
 	}, results[0].Details)
 }

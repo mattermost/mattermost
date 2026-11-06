@@ -63,9 +63,13 @@ func evalDBPostsVacuumStale(s *healthcheck.Snapshot) healthcheck.Result {
 		return healthcheck.Resolved().WithValue(float64(dead))
 	}
 
-	lastVacuum, ok := postsLastVacuum(diag)
-	if !ok {
-		return unknownDiagnostics()
+	lastVacuum, vacuumed := postsLastVacuum(diag)
+	if !vacuumed {
+		return healthcheck.Firing(healthcheck.TranslationId("health.rule.db_posts_vacuum_stale.message.never")).
+			WithDetail("dead_percent", strconv.FormatFloat(100*deadRatio, 'f', 1, 64)).
+			WithDetail("dead_tuples", strconv.FormatInt(dead, 10)).
+			WithDetail("posts", strconv.FormatInt(posts, 10)).
+			WithValue(float64(dead))
 	}
 	age, ok := s.Since(lastVacuum)
 	if !ok {

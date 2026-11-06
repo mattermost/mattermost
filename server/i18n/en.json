@@ -14707,6 +14707,11 @@
     "description": "Health dashboard finding detail when the PostgreSQL Posts table has many dead tuples and has not been vacuumed recently; {{.dead_tuples}}, {{.dead_percent}}, {{.posts}} and {{.age_days}} are numbers, and {{.last_vacuum}} is an RFC 3339 timestamp. 'Posts', 'vacuum' and 'dead tuples' are PostgreSQL technical terms and should not be translated."
   },
   {
+    "id": "health.rule.db_posts_vacuum_stale.message.never",
+    "translation": "The Posts table has {{.dead_tuples}} estimated dead tuples ({{.dead_percent}}% of {{.posts}} posts), and PostgreSQL has no record of it being vacuumed since its statistics were last reset. Table and index bloat can degrade query performance and increase disk use.",
+    "description": "Health dashboard finding detail when the PostgreSQL Posts table has many dead tuples and has no recorded vacuum; {{.dead_tuples}}, {{.dead_percent}} and {{.posts}} are numbers. 'Posts', 'vacuum' and 'dead tuples' are PostgreSQL technical terms and should not be translated."
+  },
+  {
     "id": "health.rule.db_posts_vacuum_stale.remediation",
     "translation": "Check for long-running transactions that block vacuum progress, verify autovacuum is enabled, and tune the Posts table's autovacuum thresholds if it cannot keep up. After addressing blockers, schedule a targeted VACUUM (ANALYZE) of the Posts table during a low-traffic period. Do not use VACUUM FULL without planning for its exclusive lock and extra disk space.",
     "description": "Health dashboard fix-it step when the PostgreSQL Posts table has many dead tuples and has not been vacuumed recently. 'Posts', 'autovacuum', 'VACUUM (ANALYZE)' and 'VACUUM FULL' are PostgreSQL technical terms and should not be translated."
