@@ -81,3 +81,18 @@ func TestEval(t *testing.T) {
 		})
 	}
 }
+
+func TestMaskURLCredentials(t *testing.T) {
+	t.Parallel()
+
+	for in, want := range map[string]string{
+		"http://search.example.com:9200":             "http://search.example.com:9200",
+		"http://user:pass@search.example.com:9200":   "http://****@search.example.com:9200",
+		"https://token@search.example.com":           "https://****@search.example.com",
+		"https://user:p@ss@search.example.com/x@y":   "https://****@search.example.com/x@y",
+		"a http://u:p@one.example.com b ftp://x@two": "a http://****@one.example.com b ftp://****@two",
+		"no url here, user@example.com":              "no url here, user@example.com",
+	} {
+		assert.Equal(t, want, MaskURLCredentials(in), in)
+	}
+}
