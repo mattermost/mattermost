@@ -170,9 +170,10 @@ func readNodes(z *budgetedZip, root []string, byNode map[string][]string) ([]*he
 		}
 		// Packets don't record which sections were collected. A Linux server that collects
 		// memory diagnostics always writes available_memory_mb, so leave server_memory absent
-		// without it: packets from older servers or other platforms would otherwise read their
-		// missing memory fields as "nothing to report".
-		if diag.Server.AvailableMemoryMB == nil {
+		// without it: packets from older servers would otherwise read their missing memory
+		// fields as "nothing to report". Other platforms collect no memory diagnostics, and a
+		// live evaluation there treats the section as collected, so their packets do too.
+		if diag.Server.OS == "linux" && diag.Server.AvailableMemoryMB == nil {
 			delete(errs, model.SectionServerMemory)
 		}
 		node.Diagnostics = &model.NodeDiagnostics{Diagnostics: &diag, Errors: errs}

@@ -404,6 +404,15 @@ func TestReadNodeWithoutMemoryDiagnostics(t *testing.T) {
 		}
 	}
 	assert.ElementsMatch(t, memoryCodes, unknown)
+
+	t.Run("a packet from another platform keeps the section", func(t *testing.T) {
+		require.Contains(t, string(files[name]), "  os: linux\n")
+		files[name] = bytes.Replace(files[name], []byte("  os: linux\n"), []byte("  os: darwin\n"), 1)
+
+		for _, node := range readFiles(t, files).Snapshot.Nodes() {
+			assert.True(t, node.Has(model.SectionServerMemory), "node %q", node.Hostname)
+		}
+	})
 }
 
 func TestReadLicense(t *testing.T) {
