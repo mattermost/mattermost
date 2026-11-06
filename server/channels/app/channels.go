@@ -84,6 +84,12 @@ type Channels struct {
 	AccessControl    einterfaces.AccessControlServiceInterface
 	Intune           einterfaces.IntuneInterface
 
+	// accessDecisions caches PDP decisions on this node; see access_decision_cache.go.
+	accessDecisions           *accessDecisionCache
+	accessDecisionBroadcaster *accessDecisionBroadcaster
+	accessDecisionStop        chan struct{}
+	accessDecisionDone        chan struct{}
+
 	attributeViewRefreshMut   sync.Mutex
 	attributeViewRefreshLast  time.Time
 	attributeViewNeedsRefresh atomic.Bool
@@ -217,6 +223,8 @@ func NewChannels(s *Server) (*Channels, error) {
 		})
 	}
 
+	ch.initAccessDecisionCache()
+
 	var imgErr error
 	decoderConcurrency := int(*ch.cfgSvc.Config().FileSettings.MaxImageDecoderConcurrency)
 	if decoderConcurrency == -1 {
@@ -307,6 +315,8 @@ func (ch *Channels) Start() error {
 
 	ch.AddConfigListener(ch.clearABACRenderCachesOnFlip)
 
+	ch.startAccessDecisionMaintenance()
+
 	// TODO: This should be moved to the platform service.
 	if err := ch.srv.platform.EnsureAsymmetricSigningKey(); err != nil {
 		return errors.Wrapf(err, "unable to ensure asymmetric signing key")
@@ -330,6 +340,7 @@ func (ch *Channels) Stop() error {
 	ch.postReminderTask.stop()
 	ch.scheduledPostTask.stop()
 	ch.healthCheckTask.stop()
+	ch.stopAccessDecisionMaintenance()
 
 	close(ch.interruptQuitChan)
 

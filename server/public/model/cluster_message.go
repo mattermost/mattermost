@@ -61,6 +61,7 @@ const (
 	ClusterEventInvalidateCacheForUserPropertyValuesEpoch   ClusterEvent = "inv_user_property_values_epoch"
 	ClusterEventInvalidateCacheForUserAttributes            ClusterEvent = "inv_user_attributes"
 	ClusterEventInvalidateCacheForChannelMemberRoles        ClusterEvent = "inv_channel_member_roles"
+	ClusterEventInvalidateAccessDecisions                   ClusterEvent = "inv_access_decisions"
 	ClusterEventAutoTranslationTask                         ClusterEvent = "autotranslation_task"
 	ClusterEventBusyStateChanged                            ClusterEvent = "busy_state_change"
 	// Note: if you are adding a new event, please also add it in the slice of

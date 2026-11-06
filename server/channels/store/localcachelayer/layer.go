@@ -119,6 +119,9 @@ type LocalCacheStore struct {
 	cluster   einterfaces.ClusterInterface
 	logger    mlog.LoggerIFace
 
+	// membership is shared by every copy of the store: NewLocalCacheLayer returns it by value.
+	membership *membershipListenerSlot
+
 	reaction      LocalCacheReactionStore
 	reactionCache cache.Cache
 
@@ -199,11 +202,12 @@ type LocalCacheStore struct {
 
 func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterface, cluster einterfaces.ClusterInterface, cacheProvider cache.Provider, logger mlog.LoggerIFace) (localCacheStore LocalCacheStore, err error) {
 	localCacheStore = LocalCacheStore{
-		Store:     baseStore,
-		cluster:   cluster,
-		metrics:   metrics,
-		cacheType: cacheProvider.Type(),
-		logger:    logger,
+		Store:      baseStore,
+		cluster:    cluster,
+		metrics:    metrics,
+		cacheType:  cacheProvider.Type(),
+		logger:     logger,
+		membership: &membershipListenerSlot{},
 	}
 	// Reactions
 	if localCacheStore.reactionCache, err = cacheProvider.NewCache(&cache.CacheOptions{

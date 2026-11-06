@@ -400,6 +400,7 @@ func (s LocalCacheChannelStore) invalidateChannelMemberRoles(channelID string, u
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.channelMemberRolesCache.Name())
 	}
+	s.rootStore.notifyChannelMembershipsChanged(channelID, userIDs)
 }
 
 // clearChannelMemberRoles drops every cached membership role, for the writes that change
@@ -409,6 +410,7 @@ func (s LocalCacheChannelStore) clearChannelMemberRoles() {
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.channelMemberRolesCache.Name())
 	}
+	s.rootStore.notifyAllChannelMembershipsChanged()
 }
 
 func (s LocalCacheChannelStore) GetAllChannelMembersNotifyPropsForChannel(channelId string, allowFromCache bool) (map[string]model.StringMap, error) {
@@ -545,6 +547,9 @@ func (s LocalCacheChannelStore) SaveMember(rctx request.CTX, member *model.Chann
 	} else {
 		s.InvalidateMemberCount(member.ChannelId)
 	}
+	// A new membership gives the user a channel role, so decisions made while they weren't a
+	// member are stale.
+	s.rootStore.notifyChannelMembershipsChanged(member.ChannelId, []string{member.UserId})
 	return member, nil
 }
 
@@ -563,6 +568,7 @@ func (s LocalCacheChannelStore) SaveMultipleMembers(members []*model.ChannelMemb
 		} else {
 			s.InvalidateMemberCount(member.ChannelId)
 		}
+		s.rootStore.notifyChannelMembershipsChanged(member.ChannelId, []string{member.UserId})
 	}
 	return members, nil
 }

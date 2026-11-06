@@ -238,6 +238,7 @@ func (a *App) ProcessSessionAttributesRequest(rctx request.CTX, r *http.Request)
 			rctx.Logger().Warn("Failed to refresh session attributes", mlog.Err(err))
 		} else {
 			a.broadcastSessionAttributes(rctx, rctx.Session().Id, attrsToMerge, refreshAt)
+			a.invalidateAccessDecisionsForSession(rctx.Session().Id)
 		}
 	}
 }
