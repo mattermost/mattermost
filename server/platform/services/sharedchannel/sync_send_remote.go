@@ -165,7 +165,9 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 	// schedule another sync if the repeat flag is set at some point.
 	defer func(rpt *bool) {
 		if *rpt {
-			scs.addTask(newSyncTask(task.channelID, task.userID, task.remoteID, nil, nil))
+			repeat := newSyncTask(task.channelID, task.userID, task.remoteID, nil, nil)
+			repeat.catchUp = task.catchUp
+			scs.addTask(repeat)
 		}
 	}(&sd.resultRepeat)
 
