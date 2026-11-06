@@ -11111,6 +11111,11 @@
     "description": "API error when editing a property field whose values are controlled by an external sync source (e.g. LDAP) and thus read-only."
   },
   {
+    "id": "app.property_field.bounds_requires_v3_group.app_error",
+    "translation": "Only fields in a version 3 property group can have bounds or a mutability other than mutable.",
+    "description": "API error when a property field in a property group older than version 3 is saved with bounds or a write_once or set_on_create mutability; only version 3 groups enforce them."
+  },
+  {
     "id": "app.property_field.count_for_group.app_error",
     "translation": "Unable to count property fields for group.",
     "description": "Internal error when counting the property fields defined in a group fails; developer/log-facing."

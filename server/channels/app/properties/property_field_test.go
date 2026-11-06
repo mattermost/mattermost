@@ -4371,3 +4371,109 @@ func TestUpdatingTheFieldACreateReturned(t *testing.T) {
 		assert.Equal(t, model.PermissionLevelNone, stored.Permissions.Restrictions.TierFor(model.PropertyActionOptionRead))
 	})
 }
+
+func TestPropertyFieldBoundsGroupVersionAndUnstated(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	rctx := RequestContextWithCallerID(th.Context, model.NewId())
+
+	raiseOnly := model.PropertyBounds{{Operator: model.PropertyBoundsOperatorAtOrAbove, Reference: model.PropertyBoundsReferenceSelf}}
+	newField := func(groupID string, mutate func(f *model.PropertyField)) *model.PropertyField {
+		f := &model.PropertyField{
+			ObjectType:  model.PropertyFieldObjectTypeUser,
+			GroupID:     groupID,
+			TargetType:  string(model.PropertyFieldTargetLevelSystem),
+			Type:        model.PropertyFieldTypeRank,
+			Name:        "Level " + model.NewId(),
+			Permissions: openPermissions(),
+		}
+		mutate(f)
+		return f
+	}
+
+	t.Run("a group that is not v3 refuses a rule or a lock but accepts mutable", func(t *testing.T) {
+		v2 := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2).ID
+
+		for name, mutate := range map[string]func(f *model.PropertyField){
+			"rule":       func(f *model.PropertyField) { f.Bounds = raiseOnly },
+			"write_once": func(f *model.PropertyField) { f.Mutability = model.PropertyFieldMutabilityWriteOnce },
+			"set_on_create": func(f *model.PropertyField) {
+				f.ObjectType = model.PropertyFieldObjectTypeChannel
+				f.Mutability = model.PropertyFieldMutabilitySetOnCreate
+			},
+		} {
+			_, err := th.service.CreatePropertyField(rctx, newField(v2, mutate))
+			var appErr *model.AppError
+			require.ErrorAs(t, err, &appErr, name)
+			assert.Equal(t, "app.property_field.bounds_requires_v3_group.app_error", appErr.Id, name)
+			assert.Equal(t, http.StatusBadRequest, appErr.StatusCode, name)
+		}
+
+		created, err := th.service.CreatePropertyField(rctx, newField(v2, func(f *model.PropertyField) {
+			f.Mutability = model.PropertyFieldMutabilityMutable
+		}))
+		require.NoError(t, err)
+		assert.NotEmpty(t, created.ID)
+	})
+
+	t.Run("a v3 group stores the rule", func(t *testing.T) {
+		v3 := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV3).ID
+		created, err := th.service.CreatePropertyField(rctx, newField(v3, func(f *model.PropertyField) { f.Bounds = raiseOnly }))
+		require.NoError(t, err)
+
+		stored, err := th.service.fieldStore.Get(th.Context, v3, created.ID)
+		require.NoError(t, err)
+		assert.True(t, model.PropertyBoundsEqual(raiseOnly, stored.Bounds))
+	})
+
+	t.Run("an update that states neither keeps both, and states of empty or mutable clear them", func(t *testing.T) {
+		v3 := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV3).ID
+		created, err := th.service.CreatePropertyField(rctx, newField(v3, func(f *model.PropertyField) {
+			f.ObjectType = model.PropertyFieldObjectTypeSystem
+			f.Type = model.PropertyFieldTypeText
+			f.Mutability = model.PropertyFieldMutabilityWriteOnce
+		}))
+		require.NoError(t, err)
+		ruled, err := th.service.CreatePropertyField(rctx, newField(v3, func(f *model.PropertyField) { f.Bounds = raiseOnly }))
+		require.NoError(t, err)
+
+		// Nothing stated on either: the name changes and the settings survive.
+		created.Bounds, created.Mutability, created.Name = nil, "", "renamed"
+		ruled.Bounds, ruled.Mutability, ruled.Name = nil, "", "renamed too"
+		_, _, _, err = th.service.UpdatePropertyFields(rctx, v3, []*model.PropertyField{created, ruled})
+		require.NoError(t, err)
+		storedLocked, err := th.service.fieldStore.Get(th.Context, v3, created.ID)
+		require.NoError(t, err)
+		assert.Equal(t, model.PropertyFieldMutabilityWriteOnce, storedLocked.Mutability)
+		storedRuled, err := th.service.fieldStore.Get(th.Context, v3, ruled.ID)
+		require.NoError(t, err)
+		assert.True(t, model.PropertyBoundsEqual(raiseOnly, storedRuled.Bounds))
+
+		// Stated empty and mutable: both are removed.
+		storedRuled.Bounds = model.PropertyBounds{}
+		_, _, err = th.service.UpdatePropertyField(rctx, v3, storedRuled)
+		require.NoError(t, err)
+		storedLocked.Mutability = model.PropertyFieldMutabilityMutable
+		_, _, err = th.service.UpdatePropertyField(rctx, v3, storedLocked)
+		require.NoError(t, err)
+		storedRuled, err = th.service.fieldStore.Get(th.Context, v3, ruled.ID)
+		require.NoError(t, err)
+		assert.Empty(t, storedRuled.Bounds)
+		storedLocked, err = th.service.fieldStore.Get(th.Context, v3, created.ID)
+		require.NoError(t, err)
+		assert.Empty(t, storedLocked.Mutability) // a mutable field is stored unset
+	})
+
+	t.Run("a write_once field adding a self rule with mutability unstated is refused by validation", func(t *testing.T) {
+		v3 := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV3).ID
+		created, err := th.service.CreatePropertyField(rctx, newField(v3, func(f *model.PropertyField) {
+			f.Mutability = model.PropertyFieldMutabilityWriteOnce
+		}))
+		require.NoError(t, err)
+
+		created.Mutability, created.Bounds = "", raiseOnly
+		_, _, err = th.service.UpdatePropertyField(rctx, v3, created)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		assert.Equal(t, "model.property_field.is_valid.app_error", appErr.Id)
+	})
+}
