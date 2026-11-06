@@ -84,10 +84,11 @@ var pushProxyUnreachable = healthcheck.Rule{
 		DocsURL:       pushDocsURL,
 		ConsolePath:   pushConsolePath,
 	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityProbe,
-	Subject:    pushSubject,
-	Eval:       healthcheck.Gate(pushEnabled, healthcheck.ReasonConfigUnavailable, evalPushProxyUnreachable),
+	Surface:        healthcheck.SurfaceProduct,
+	Volatility:     healthcheck.VolatilityProbe,
+	AppliesToCloud: true,
+	Subject:        pushSubject,
+	Eval:           healthcheck.Gate(pushEnabled, healthcheck.ReasonConfigUnavailable, evalPushProxyUnreachable),
 }
 
 func pushEnabled(s *healthcheck.Snapshot) (bool, bool) {
