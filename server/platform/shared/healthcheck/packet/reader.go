@@ -74,7 +74,8 @@ func readPacket(z *budgetedZip) (*Packet, error) {
 	}
 
 	nodes, warnings := readNodes(z, root, byNode)
-	leader, reported := selectLeader(nodes)
+	// Packets written before nodes reported it fall back to the first node by hostname.
+	leader, reported := healthcheck.SelectLeader(nodes, nodes[0])
 	if len(nodes) > 1 && !reported {
 		warnings = append(warnings, fmt.Sprintf("The packet does not record which node is the leader, so the configuration was read from %s. Configuration findings may not match the leader's configuration.", leader.Hostname))
 	}
@@ -189,22 +190,6 @@ func readNodes(z *budgetedZip, root []string, byNode map[string][]string) ([]*he
 	}
 
 	return nodes, warnings
-}
-
-// selectLeader marks the node that reported itself as leader. Packets written before nodes
-// reported it fall back to the first node by hostname, with reported false.
-func selectLeader(nodes []*healthcheck.NodeSnapshot) (leader *healthcheck.NodeSnapshot, reported bool) {
-	leader = nodes[0]
-	for _, node := range nodes {
-		if diag, ok := node.Diag(); ok && diag.Cluster.IsLeader {
-			leader = node
-			reported = true
-			break
-		}
-	}
-
-	leader.IsLeader = true
-	return leader, reported
 }
 
 // readSection decodes a workspace section file. A present file records its section, with the

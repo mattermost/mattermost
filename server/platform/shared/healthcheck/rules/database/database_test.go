@@ -78,12 +78,16 @@ func (w want) withValue(v float64) want {
 
 func assertResult(t *testing.T, rule healthcheck.Rule, s *healthcheck.Snapshot, expected want) {
 	t.Helper()
+	assertResults(t, rule.Eval(s), expected, rule.Code)
+}
 
-	results := rule.Eval(s)
-	require.Len(t, results, 1, rule.Code)
-	assert.Equal(t, expected.state, results[0].State, rule.Code)
-	assert.Equal(t, expected.messageID, results[0].MessageID, rule.Code)
-	assert.Equal(t, expected.value, results[0].Value, rule.Code)
+func assertResults(t *testing.T, results []healthcheck.Result, expected want, msgAndArgs ...any) {
+	t.Helper()
+
+	require.Len(t, results, 1, msgAndArgs...)
+	assert.Equal(t, expected.state, results[0].State, msgAndArgs...)
+	assert.Equal(t, expected.messageID, results[0].MessageID, msgAndArgs...)
+	assert.Equal(t, expected.value, results[0].Value, msgAndArgs...)
 }
 
 func TestRegistered(t *testing.T) {
@@ -94,17 +98,18 @@ func TestRegistered(t *testing.T) {
 		severity   healthcheck.Severity
 		volatility healthcheck.Volatility
 		subject    string
+		nodeScoped bool
 	}{
-		{"DB_NO_READ_REPLICA", healthcheck.SeverityInfo, healthcheck.VolatilityThreshold, "SqlSettings.DataSourceReplicas"},
-		{"DB_NO_SEARCH_REPLICA", healthcheck.SeverityWarning, healthcheck.VolatilityThreshold, "SqlSettings.DataSourceSearchReplicas"},
-		{"DB_TRACE_ON", healthcheck.SeverityWarning, healthcheck.VolatilityStable, "SqlSettings.Trace"},
-		{"DB_MAX_OPEN_CONNS_LOW", healthcheck.SeverityInfo, healthcheck.VolatilityThreshold, "SqlSettings.MaxOpenConns"},
-		{"DB_QUERY_TIMEOUT_HIGH", healthcheck.SeverityWarning, healthcheck.VolatilityStable, "SqlSettings.QueryTimeout"},
-		{"DB_HA_FAILOVER_STORM_RISK", healthcheck.SeverityWarning, healthcheck.VolatilityTopology, "SqlSettings.MaxOpenConns"},
-		{"DB_POSTGRES_UNSUPPORTED", healthcheck.SeverityWarning, healthcheck.VolatilityStable, "Database.Version"},
-		{"DB_POOL_SATURATED", healthcheck.SeverityCritical, healthcheck.VolatilityThreshold, "SqlSettings.MaxOpenConns"},
-		{"DB_REPLICA_UNUSED", healthcheck.SeverityWarning, healthcheck.VolatilityProbe, "SqlSettings.DataSourceReplicas"},
-		{"DB_IDLE_EXCEEDS_OPEN", healthcheck.SeverityInfo, healthcheck.VolatilityStable, "SqlSettings.MaxIdleConns"},
+		{"DB_NO_READ_REPLICA", healthcheck.SeverityInfo, healthcheck.VolatilityThreshold, "SqlSettings.DataSourceReplicas", false},
+		{"DB_NO_SEARCH_REPLICA", healthcheck.SeverityWarning, healthcheck.VolatilityThreshold, "SqlSettings.DataSourceSearchReplicas", false},
+		{"DB_TRACE_ON", healthcheck.SeverityWarning, healthcheck.VolatilityStable, "SqlSettings.Trace", false},
+		{"DB_MAX_OPEN_CONNS_LOW", healthcheck.SeverityInfo, healthcheck.VolatilityThreshold, "SqlSettings.MaxOpenConns", false},
+		{"DB_QUERY_TIMEOUT_HIGH", healthcheck.SeverityWarning, healthcheck.VolatilityStable, "SqlSettings.QueryTimeout", false},
+		{"DB_HA_FAILOVER_STORM_RISK", healthcheck.SeverityWarning, healthcheck.VolatilityTopology, "SqlSettings.MaxOpenConns", false},
+		{"DB_POSTGRES_UNSUPPORTED", healthcheck.SeverityWarning, healthcheck.VolatilityStable, "Database.Version", false},
+		{"DB_POOL_SATURATED", healthcheck.SeverityCritical, healthcheck.VolatilityThreshold, "SqlSettings.MaxOpenConns", true},
+		{"DB_REPLICA_UNUSED", healthcheck.SeverityWarning, healthcheck.VolatilityProbe, "SqlSettings.DataSourceReplicas", false},
+		{"DB_IDLE_EXCEEDS_OPEN", healthcheck.SeverityInfo, healthcheck.VolatilityStable, "SqlSettings.MaxIdleConns", false},
 	}
 
 	registry := healthcheck.Builtin()
@@ -120,8 +125,8 @@ func TestRegistered(t *testing.T) {
 			assert.Equal(t, healthcheck.SurfaceProduct, rule.Surface)
 			assert.Equal(t, tc.subject, rule.Subject)
 			assert.False(t, rule.AppliesToCloud)
-			assert.NotNil(t, rule.Eval)
-			assert.Nil(t, rule.EvalNode)
+			assert.Equal(t, !tc.nodeScoped, rule.Eval != nil)
+			assert.Equal(t, tc.nodeScoped, rule.EvalNode != nil)
 		})
 	}
 }

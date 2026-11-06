@@ -64,6 +64,10 @@ func (c *FakeClusterInterface) GenerateSupportPacket(rctx request.CTX, options *
 	return nil, nil
 }
 
+func (c *FakeClusterInterface) CollectHealthDiagnostics(rctx request.CTX) map[string]*model.NodeDiagnostics {
+	return nil
+}
+
 func (c *FakeClusterInterface) ConfigChanged(previousConfig *model.Config, newConfig *model.Config, sendToOtherServer bool) *model.AppError {
 	return nil
 }
