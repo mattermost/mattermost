@@ -22,11 +22,13 @@ var resourcePaths = struct {
 	procSelfStatus    string
 	procSelfCgroup    string
 	procSelfMountInfo string
+	procLoadAvg       string
 }{
 	procMeminfo:       "/proc/meminfo",
 	procSelfStatus:    "/proc/self/status",
 	procSelfCgroup:    "/proc/self/cgroup",
 	procSelfMountInfo: "/proc/self/mountinfo",
+	procLoadAvg:       "/proc/loadavg",
 }
 
 var mountInfoPathReplacer = strings.NewReplacer(
@@ -171,6 +173,71 @@ func resolveCgroupV2Dir(membership, contents string) (string, error) {
 		return "", fmt.Errorf("cgroup v2 membership %q has no matching cgroup2 mount", membership)
 	}
 	return bestDir, nil
+}
+
+func getCPUStats(info cgroupV2Info) (cpuStats, error) {
+	var stats cpuStats
+
+	loadAverage, err := readTrimmed(resourcePaths.procLoadAvg)
+	if err != nil {
+		return stats, err
+	}
+	fields := strings.Fields(loadAverage)
+	if len(fields) < 3 {
+		return stats, errors.New("unexpected format in loadavg")
+	}
+	var loads [3]float64
+	for i := range loads {
+		loads[i], err = strconv.ParseFloat(fields[i], 64)
+		if err != nil {
+			return stats, err
+		}
+	}
+	stats.LoadAverage1m = &loads[0]
+	stats.LoadAverage5m = &loads[1]
+	stats.LoadAverage15m = &loads[2]
+
+	if info.dir == "" {
+		return stats, nil
+	}
+	if _, err = os.Stat(filepath.Join(info.dir, "cpu.max")); err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return stats, nil
+		}
+		return stats, err
+	}
+
+	cpuStat, err := readTrimmed(filepath.Join(info.dir, "cpu.stat"))
+	if err != nil {
+		return stats, err
+	}
+	values := make(map[string]uint64)
+	for line := range strings.SplitSeq(cpuStat, "\n") {
+		parts := strings.Fields(line)
+		if len(parts) != 2 {
+			continue
+		}
+		switch parts[0] {
+		case "nr_periods", "nr_throttled", "throttled_usec":
+			values[parts[0]], err = strconv.ParseUint(parts[1], 10, 64)
+			if err != nil {
+				return stats, err
+			}
+		}
+	}
+
+	periods, periodsOK := values["nr_periods"]
+	throttled, throttledOK := values["nr_throttled"]
+	throttledUsec, secondsOK := values["throttled_usec"]
+	if !periodsOK || !throttledOK || !secondsOK {
+		return stats, errors.New("cpu.stat is missing throttling counters")
+	}
+	stats.ContainerCPUPeriods = &periods
+	stats.ContainerCPUThrottledPeriods = &throttled
+	throttledSeconds := float64(throttledUsec) / 1_000_000
+	stats.ContainerCPUThrottledSeconds = &throttledSeconds
+
+	return stats, nil
 }
 
 func readTrimmed(path string) (string, error) {

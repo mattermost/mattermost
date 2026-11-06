@@ -53,6 +53,13 @@ var diagnosticsYAMLComments = yaml.CommentMap{
 	"$.server.container_memory_usage_mb":       {yaml.LineComment(" cgroup v2 memory.current in MB, including page cache; Linux only")},
 	"$.server.container_memory_working_set_mb": {yaml.LineComment(" cgroup v2 memory.current minus inactive file cache in MB; Linux only")},
 	"$.server.container_oom_kills":             {yaml.LineComment(" cgroup v2 OOM kills since the cgroup was created; Linux only")},
+	"$.server.load_average_1m":                 {yaml.LineComment(" host-wide runnable and uninterruptible tasks averaged over 1 minute; Linux only")},
+	"$.server.load_average_5m":                 {yaml.LineComment(" host-wide runnable and uninterruptible tasks averaged over 5 minutes; Linux only")},
+	"$.server.load_average_15m":                {yaml.LineComment(" host-wide runnable and uninterruptible tasks averaged over 15 minutes; Linux only")},
+	"$.server.container_cpu_periods":           {yaml.LineComment(" cgroup v2 CPU scheduling periods since the cgroup was created; Linux only")},
+	"$.server.container_cpu_throttled_periods": {yaml.LineComment(" throttled periods divided by total periods is the CPU throttling ratio")},
+	"$.server.container_cpu_throttled_seconds": {yaml.LineComment(" total cgroup v2 CPU throttling time since the cgroup was created")},
+	"$.server.go_max_procs":                    {yaml.LineComment(" maximum CPUs Go can execute simultaneously")},
 	"$.server.process_id":                      {yaml.HeadComment(" Process lifecycle")},
 	"$.server.started_at":                      {yaml.LineComment(" when Mattermost process started")},
 	"$.server.host_started_at":                 {yaml.LineComment(" when the host OS booted; omitted if unavailable")},
@@ -204,6 +211,7 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 	// Note: These values represent the host machine's resources, not any
 	// container limits (e.g., Docker or Kubernetes) that may be in effect.
 	d.Server.CPUCores = runtime.NumCPU()
+	d.Server.GoMaxProcs = new(runtime.GOMAXPROCS(0))
 	totalMemoryBytes, err := getTotalMemory()
 	if err != nil {
 		fail(model.SectionServerHost, errors.Wrap(err, "error while getting total memory"))
@@ -212,13 +220,15 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 	}
 	cgroupV2, err := getCgroupV2Info()
 	if err != nil {
-		fail(model.SectionServerMemory, errors.Wrap(err, "error while resolving cgroup v2"))
+		err = errors.Wrap(err, "error while resolving cgroup v2")
+		fail(model.SectionServerMemory, err)
+		fail(model.SectionServerCPU, err)
 	}
 	containerLimits, err := getContainerLimits(cgroupV2)
 	d.Server.ContainerCPULimit = containerLimits.CPULimit
 	d.Server.ContainerMemoryLimitMB = containerLimits.MemoryLimitMB
 	if err != nil {
-		rctx.Logger().Debug("Failed to get container limits for Support Packet", mlog.Err(err))
+		fail(model.SectionServerCPU, errors.Wrap(err, "error while getting container limits"))
 	}
 	memory, memoryErr := getMemoryDiagnostics(cgroupV2)
 	if memoryErr != nil {
@@ -237,6 +247,17 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 			goMemoryLimitMB = uint64((goMemoryLimit-1)/(1024*1024) + 1)
 		}
 		d.Server.GoMemoryLimitMB = &goMemoryLimitMB
+	}
+	cpuStats, err := getCPUStats(cgroupV2)
+	if err != nil {
+		fail(model.SectionServerCPU, errors.Wrap(err, "error while getting CPU statistics"))
+	} else {
+		d.Server.LoadAverage1m = cpuStats.LoadAverage1m
+		d.Server.LoadAverage5m = cpuStats.LoadAverage5m
+		d.Server.LoadAverage15m = cpuStats.LoadAverage15m
+		d.Server.ContainerCPUPeriods = cpuStats.ContainerCPUPeriods
+		d.Server.ContainerCPUThrottledPeriods = cpuStats.ContainerCPUThrottledPeriods
+		d.Server.ContainerCPUThrottledSeconds = cpuStats.ContainerCPUThrottledSeconds
 	}
 	serverHostname, err := os.Hostname()
 	if err != nil {

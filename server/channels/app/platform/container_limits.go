@@ -24,3 +24,12 @@ type memoryDiagnostics struct {
 	ContainerMemoryWorkingSetMB *uint64
 	ContainerOOMKills           *uint64
 }
+
+type cpuStats struct {
+	LoadAverage1m                *float64
+	LoadAverage5m                *float64
+	LoadAverage15m               *float64
+	ContainerCPUPeriods          *uint64
+	ContainerCPUThrottledPeriods *uint64
+	ContainerCPUThrottledSeconds *float64
+}

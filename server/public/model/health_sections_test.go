@@ -85,6 +85,7 @@ func TestNodeAccessorSectionConstantsCoveredByAllNodeSections(t *testing.T) {
 		"SectionServerSoftware":   {},
 		"SectionServerHost":       {},
 		"SectionServerMemory":     {},
+		"SectionServerCPU":        {},
 		"SectionServerFDs":        {},
 		"SectionConfigSource":     {},
 		"SectionDatabaseIdentity": {},
@@ -146,6 +147,8 @@ func constantNameToValue(name string) string {
 		return string(SectionServerHost)
 	case "SectionServerMemory":
 		return string(SectionServerMemory)
+	case "SectionServerCPU":
+		return string(SectionServerCPU)
 	case "SectionServerFDs":
 		return string(SectionServerFDs)
 	case "SectionConfigSource":

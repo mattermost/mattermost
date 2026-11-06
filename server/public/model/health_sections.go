@@ -12,6 +12,7 @@ const (
 	SectionServerSoftware   NodeSection = "server_software"
 	SectionServerHost       NodeSection = "server_host"
 	SectionServerMemory     NodeSection = "server_memory"
+	SectionServerCPU        NodeSection = "server_cpu"
 	SectionServerFDs        NodeSection = "server_fds"
 	SectionConfigSource     NodeSection = "config_source"
 	SectionDatabaseIdentity NodeSection = "database_identity"
@@ -42,6 +43,7 @@ func AllNodeSections() []NodeSection {
 		SectionServerSoftware,
 		SectionServerHost,
 		SectionServerMemory,
+		SectionServerCPU,
 		SectionServerFDs,
 		SectionConfigSource,
 		SectionDatabaseIdentity,

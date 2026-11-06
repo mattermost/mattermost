@@ -55,16 +55,23 @@ type SupportPacketDiagnostics struct {
 		InstallationType string  `yaml:"installation_type"`
 
 		// Capacity
-		CPUCores                    int     `yaml:"cpu_cores"`
-		TotalMemoryMB               *uint64 `yaml:"total_memory_mb,omitempty"`
-		AvailableMemoryMB           *uint64 `yaml:"available_memory_mb,omitempty"`
-		SwapTotalMB                 *uint64 `yaml:"swap_total_mb,omitempty"`
-		SwapUsedMB                  *uint64 `yaml:"swap_used_mb,omitempty"`
-		ContainerCPULimit           float64 `yaml:"container_cpu_limit,omitempty"`
-		ContainerMemoryLimitMB      uint64  `yaml:"container_memory_limit_mb,omitempty"`
-		ContainerMemoryUsageMB      *uint64 `yaml:"container_memory_usage_mb,omitempty"`
-		ContainerMemoryWorkingSetMB *uint64 `yaml:"container_memory_working_set_mb,omitempty"`
-		ContainerOOMKills           *uint64 `yaml:"container_oom_kills,omitempty"`
+		CPUCores                     int      `yaml:"cpu_cores"`
+		TotalMemoryMB                *uint64  `yaml:"total_memory_mb,omitempty"`
+		AvailableMemoryMB            *uint64  `yaml:"available_memory_mb,omitempty"`
+		SwapTotalMB                  *uint64  `yaml:"swap_total_mb,omitempty"`
+		SwapUsedMB                   *uint64  `yaml:"swap_used_mb,omitempty"`
+		ContainerCPULimit            float64  `yaml:"container_cpu_limit,omitempty"`
+		ContainerMemoryLimitMB       uint64   `yaml:"container_memory_limit_mb,omitempty"`
+		ContainerMemoryUsageMB       *uint64  `yaml:"container_memory_usage_mb,omitempty"`
+		ContainerMemoryWorkingSetMB  *uint64  `yaml:"container_memory_working_set_mb,omitempty"`
+		ContainerOOMKills            *uint64  `yaml:"container_oom_kills,omitempty"`
+		LoadAverage1m                *float64 `yaml:"load_average_1m,omitempty"`
+		LoadAverage5m                *float64 `yaml:"load_average_5m,omitempty"`
+		LoadAverage15m               *float64 `yaml:"load_average_15m,omitempty"`
+		ContainerCPUPeriods          *uint64  `yaml:"container_cpu_periods,omitempty"`
+		ContainerCPUThrottledPeriods *uint64  `yaml:"container_cpu_throttled_periods,omitempty"`
+		ContainerCPUThrottledSeconds *float64 `yaml:"container_cpu_throttled_seconds,omitempty"`
+		GoMaxProcs                   *int     `yaml:"go_max_procs,omitempty"`
 
 		// Process lifecycle
 		ProcessID           int       `yaml:"process_id"`
