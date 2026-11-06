@@ -270,6 +270,10 @@ func (a *App) CanSetPostPropertyValueOnCreate(rctx request.CTX, userID string, f
 		return a.hasChannelPropertyAdmin(rctx, userID, channel.Id)
 	case model.PermissionLevelSysadmin:
 		return a.HasPermissionTo(rctx, userID, model.PermissionManageSystem)
+	case model.PermissionLevelEveryone:
+		return true
+	case model.PermissionLevelNone:
+		return false
 	default:
 		return false
 	}

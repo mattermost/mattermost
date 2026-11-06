@@ -551,6 +551,11 @@ func TestCanSetPostPropertyValueOnCreate(t *testing.T) {
 		{"sysadmin level, channel admin", th.BasicUser.Id, fieldAt(model.PermissionLevelSysadmin), th.BasicChannel, false},
 		{"sysadmin level, plain member", plainMember.Id, fieldAt(model.PermissionLevelSysadmin), th.BasicChannel, false},
 
+		// everyone lets any caller set the value, as the property API does when the same value
+		// is written after the post exists.
+		{"everyone level, plain member", plainMember.Id, fieldAt(model.PermissionLevelEveryone), th.BasicChannel, true},
+		{"everyone level, outsider", outsider.Id, fieldAt(model.PermissionLevelEveryone), th.BasicChannel, true},
+
 		// A field the property API would refuse a value for must not become
 		// settable here, so everything that is not a recognised level denies —
 		// for the sysadmin too.

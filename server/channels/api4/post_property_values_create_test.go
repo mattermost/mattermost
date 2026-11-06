@@ -375,6 +375,20 @@ func TestCreatePostWithPropertyValues(t *testing.T) {
 		assert.Equal(t, field.ID, stored[0].FieldID)
 	})
 
+	t.Run("an everyone-level field is accepted from an ordinary member", func(t *testing.T) {
+		field := th.createField(t, model.PropertyFieldTargetLevelChannel, th.BasicChannel.Id, model.PermissionLevelEveryone)
+
+		created, resp, err := th.Client.CreatePost(context.Background(), postWithPropertyValues(th.BasicChannel.Id,
+			submittedPropertyValue(field.ID, `"open"`),
+		))
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		stored := th.storedValues(t, created.Id)
+		require.Len(t, stored, 1)
+		assert.Equal(t, field.ID, stored[0].FieldID)
+	})
+
 	t.Run("a post with no metadata stores no property values", func(t *testing.T) {
 		// A field exists for this channel, so a stored value would mean createPost looked it up
 		// despite the request submitting nothing.
