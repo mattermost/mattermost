@@ -1,0 +1,75 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import {useEffect, useMemo, useState} from 'react';
+import {useDispatch, useSelector} from 'react-redux';
+
+import type {GlobalState} from '@mattermost/types/store';
+
+import {fetchPropertyFields} from 'mattermost-redux/actions/properties';
+import {
+    ACCESS_CONTROL_PROPERTY_GROUP,
+    SYSTEM_TARGET_ID,
+    SYSTEM_TARGET_TYPE,
+    USER_OBJECT_TYPE,
+} from 'mattermost-redux/constants/properties';
+import {getAccessControlSettings} from 'mattermost-redux/selectors/entities/access_control';
+import {getPropertyGroupByName, makeGetPropertyFieldsForObjectTypeAndGroup} from 'mattermost-redux/selectors/entities/properties';
+
+/**
+ * Whether the classification clearance attribute is enabled: ABAC is on and a
+ * live user field is linked to the classification template. Access policies can
+ * then compare a user's clearance with a channel's classification, so markings
+ * are no longer informational only. Mirrors the System Console's check.
+ *
+ * `isResolving` stays true until the lookup succeeds (a failed lookup is retried
+ * once the browser is back online) so callers can avoid flashing the
+ * informational notice. Pass no template id to skip the lookup.
+ */
+export default function useClassificationClearance(templateFieldId?: string): {clearanceEnabled: boolean; isResolving: boolean} {
+    const dispatch = useDispatch();
+    const abacEnabled = Boolean(useSelector(getAccessControlSettings)?.EnableAttributeBasedAccessControl);
+    const shouldCheck = abacEnabled && Boolean(templateFieldId);
+
+    const getUserFields = useMemo(() => makeGetPropertyFieldsForObjectTypeAndGroup(), []);
+    const groupId = useSelector((state: GlobalState) => getPropertyGroupByName(state, ACCESS_CONTROL_PROPERTY_GROUP)?.id);
+    const userFields = useSelector((state: GlobalState) => (groupId ? getUserFields(state, USER_OBJECT_TYPE, groupId) : undefined));
+
+    const [lookupSettled, setLookupSettled] = useState(false);
+    const [attempt, setAttempt] = useState(0);
+
+    useEffect(() => {
+        if (!shouldCheck) {
+            return undefined;
+        }
+
+        let active = true;
+        const retryWhenOnline = () => setAttempt((n) => n + 1);
+
+        const lookup = async () => {
+            try {
+                await dispatch(fetchPropertyFields(ACCESS_CONTROL_PROPERTY_GROUP, USER_OBJECT_TYPE, SYSTEM_TARGET_TYPE, SYSTEM_TARGET_ID));
+            } catch {
+                // A failed lookup does not prove that no clearance attribute exists.
+                if (active) {
+                    window.addEventListener('online', retryWhenOnline, {once: true});
+                }
+                return;
+            }
+            if (active) {
+                setLookupSettled(true);
+            }
+        };
+        lookup();
+
+        return () => {
+            active = false;
+            window.removeEventListener('online', retryWhenOnline);
+            setLookupSettled(false);
+        };
+    }, [shouldCheck, dispatch, attempt]);
+
+    const clearanceEnabled = shouldCheck && Boolean(userFields?.some((f) => f.linked_field_id === templateFieldId));
+
+    return {clearanceEnabled, isResolving: shouldCheck && !clearanceEnabled && !lookupSettled};
+}

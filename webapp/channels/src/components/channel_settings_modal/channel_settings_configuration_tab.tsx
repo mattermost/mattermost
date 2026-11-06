@@ -33,6 +33,7 @@ import BannerTextEditor from 'components/channel_attributes/banner_text_editor';
 import ColorInput from 'components/color_input';
 import useChannelAttributes from 'components/common/hooks/useChannelAttributes';
 import useChannelClassificationBanner from 'components/common/hooks/useChannelClassificationBanner';
+import useClassificationClearance from 'components/common/hooks/useClassificationClearance';
 import useClassificationMarkings from 'components/common/hooks/useClassificationMarkings';
 import useDidUpdate from 'components/common/hooks/useDidUpdate';
 import useResolvedChannelAttributes from 'components/common/hooks/useResolvedChannelAttributes';
@@ -185,6 +186,7 @@ function ChannelSettingsConfigurationTab({
     // Assignment moves to Channel Info once the flag is on; two controls for one
     // value would disagree the moment either changed.
     const canManageClassification = classification.available && canManageChannelRoles && !channelAttributesEnabled;
+    const {clearanceEnabled, isResolving: clearanceResolving} = useClassificationClearance(canManageClassification ? classification.channelField?.linked_field_id : undefined);
     const resolvedAttributes = useResolvedChannelAttributes(channel.id);
 
     // With channel attributes on the banner is authored per channel, so locking it
@@ -905,17 +907,19 @@ function ChannelSettingsConfigurationTab({
 
                     {classificationEnabled && (
                         <div className='channel_banner_section_body'>
-                            <SectionNotice
-                                type='warning'
-                                icon={<Icon glyph={<InformationOutlineIcon/>}/>}
-                                title={
-                                    <FormattedMessage
-                                        id='admin.classification_markings.notice.title'
-                                        defaultMessage='Classification markings are informational only'
-                                    />
-                                }
-                                description={formatMessage({id: 'admin.classification_markings.notice.body', defaultMessage: 'Markings are not tied to access control decisions at this time and are for display purposes only.'})}
-                            />
+                            {!clearanceEnabled && !clearanceResolving && (
+                                <SectionNotice
+                                    type='warning'
+                                    icon={<Icon glyph={<InformationOutlineIcon/>}/>}
+                                    title={
+                                        <FormattedMessage
+                                            id='admin.classification_markings.notice.title'
+                                            defaultMessage='Classification markings are informational only'
+                                        />
+                                    }
+                                    description={formatMessage({id: 'admin.classification_markings.notice.body', defaultMessage: 'Markings are not tied to access control decisions at this time and are for display purposes only.'})}
+                                />
+                            )}
 
                             <div className='setting_section'>
                                 <span className='setting_title'>
