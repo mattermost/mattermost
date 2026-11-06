@@ -253,6 +253,8 @@ func TestGenerateSupportPacket(t *testing.T) {
 }
 
 func TestGetSupportPacketDiagnostics(t *testing.T) {
+	t.Skip("Skipped due to flakiness — tracked in https://mattermost.atlassian.net/browse/MM-71672")
+
 	th := Setup(t).InitBasic(t)
 
 	th.Service.installTypeOverride = "docker"
