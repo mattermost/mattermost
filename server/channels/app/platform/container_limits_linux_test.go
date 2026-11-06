@@ -41,28 +41,23 @@ func TestGetContainerLimits(t *testing.T) {
 	dir := t.TempDir()
 	info := cgroupV2Info{dir: dir, memoryStatsSupported: true}
 
-	t.Run("limited CPU and memory", func(t *testing.T) {
-		writeTempCgroupFile(t, dir, "memory.max", "536870912\n")
+	t.Run("limited CPU", func(t *testing.T) {
 		writeTempCgroupFile(t, dir, "cpu.max", "200000 100000\n")
 
 		limits, err := getContainerLimits(info)
 		require.NoError(t, err)
-		assert.Equal(t, uint64(512), limits.MemoryLimitMB)
 		assert.InDelta(t, 2.0, limits.CPULimit, 0.001)
 	})
 
-	t.Run("unlimited CPU and memory", func(t *testing.T) {
-		writeTempCgroupFile(t, dir, "memory.max", "max\n")
+	t.Run("unlimited CPU", func(t *testing.T) {
 		writeTempCgroupFile(t, dir, "cpu.max", "max 100000\n")
 
 		limits, err := getContainerLimits(info)
 		require.NoError(t, err)
-		assert.Equal(t, uint64(0), limits.MemoryLimitMB)
 		assert.Equal(t, float64(0), limits.CPULimit)
 	})
 
 	t.Run("fractional CPU limit", func(t *testing.T) {
-		writeTempCgroupFile(t, dir, "memory.max", "max\n")
 		writeTempCgroupFile(t, dir, "cpu.max", "50000 100000\n")
 
 		limits, err := getContainerLimits(info)
@@ -70,26 +65,25 @@ func TestGetContainerLimits(t *testing.T) {
 		assert.InDelta(t, 0.5, limits.CPULimit, 0.001)
 	})
 
-	t.Run("sub-MB memory rounds up to 1MB", func(t *testing.T) {
-		writeTempCgroupFile(t, dir, "memory.max", "524288\n")
-		writeTempCgroupFile(t, dir, "cpu.max", "max 100000\n")
+	t.Run("CPU limit does not depend on memory.max", func(t *testing.T) {
+		cpuOnlyDir := filepath.Join(dir, "cpu-only")
+		writeTempCgroupFile(t, cpuOnlyDir, "cpu.max", "100000 100000\n")
 
-		limits, err := getContainerLimits(info)
+		limits, err := getContainerLimits(cgroupV2Info{dir: cpuOnlyDir, memoryStatsSupported: true})
 		require.NoError(t, err)
-		assert.Equal(t, uint64(1), limits.MemoryLimitMB)
+		assert.InDelta(t, 1.0, limits.CPULimit, 0.001)
 	})
 
-	t.Run("missing memory stats fails", func(t *testing.T) {
-		missingInfo := cgroupV2Info{dir: filepath.Join(dir, "missing"), memoryStatsSupported: true}
-		_, err := getContainerLimits(missingInfo)
-		require.ErrorIs(t, err, os.ErrNotExist)
+	t.Run("missing cpu.max returns zero values", func(t *testing.T) {
+		limits, err := getContainerLimits(cgroupV2Info{dir: filepath.Join(dir, "missing"), memoryStatsSupported: true})
+		require.NoError(t, err)
+		assert.Equal(t, float64(0), limits.CPULimit)
 	})
 
 	t.Run("unsupported cgroup returns zero values", func(t *testing.T) {
 		limits, err := getContainerLimits(cgroupV2Info{})
 
 		require.NoError(t, err)
-		assert.Equal(t, uint64(0), limits.MemoryLimitMB)
 		assert.Equal(t, float64(0), limits.CPULimit)
 	})
 }
@@ -171,11 +165,11 @@ func TestGetCgroupV2Info(t *testing.T) {
 
 		limits, err := getContainerLimits(info)
 		require.NoError(t, err)
-		assert.Equal(t, uint64(1024), limits.MemoryLimitMB)
 		assert.Equal(t, 2.0, limits.CPULimit)
 
 		diagnostics, err := getMemoryDiagnostics(info)
 		require.NoError(t, err)
+		assert.Equal(t, uint64(1024), diagnostics.ContainerMemoryLimitMB)
 		assert.Equal(t, new(uint64(512)), diagnostics.ContainerMemoryUsageMB)
 		assert.Equal(t, new(uint64(384)), diagnostics.ContainerMemoryWorkingSetMB)
 		assert.Equal(t, new(uint64(2)), diagnostics.ContainerOOMKills)
@@ -211,7 +205,6 @@ func TestGetCgroupV2Info(t *testing.T) {
 		limits, err := getContainerLimits(info)
 		require.NoError(t, err)
 		assert.Equal(t, 0.5, limits.CPULimit)
-		assert.Zero(t, limits.MemoryLimitMB)
 	})
 
 	t.Run("v2 membership without a matching mount fails", func(t *testing.T) {
@@ -249,6 +242,7 @@ func TestGetMemoryDiagnostics(t *testing.T) {
 		assert.Equal(t, new(uint64(4)), got.SwapTotalMB)
 		assert.Equal(t, new(uint64(3)), got.SwapUsedMB)
 		assert.Equal(t, new(uint64(128)), got.ProcessRSSMB)
+		assert.Equal(t, uint64(1024), got.ContainerMemoryLimitMB)
 		assert.Equal(t, new(uint64(512)), got.ContainerMemoryUsageMB)
 		assert.Equal(t, new(uint64(384)), got.ContainerMemoryWorkingSetMB)
 		assert.Equal(t, new(uint64(2)), got.ContainerOOMKills)
@@ -260,9 +254,41 @@ func TestGetMemoryDiagnostics(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, new(uint64(1000)), got.AvailableMemoryMB)
 		assert.Equal(t, new(uint64(128)), got.ProcessRSSMB)
+		assert.Zero(t, got.ContainerMemoryLimitMB)
 		assert.Nil(t, got.ContainerMemoryUsageMB)
 		assert.Nil(t, got.ContainerMemoryWorkingSetMB)
 		assert.Nil(t, got.ContainerOOMKills)
+	})
+
+	t.Run("cgroup memory limit", func(t *testing.T) {
+		setProcFiles(t)
+		writeTempCgroupFile(t, dir, "memory.current", "1\n")
+		writeTempCgroupFile(t, dir, "memory.stat", "inactive_file 0\n")
+		writeTempCgroupFile(t, dir, "memory.events", "oom_kill 0\n")
+
+		for _, tc := range []struct {
+			name      string
+			memoryMax string
+			want      uint64
+		}{
+			{"unlimited", "max\n", 0},
+			{"limited", "536870912\n", 512},
+			{"sub-MB rounds up to 1MB", "524288\n", 1},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				writeTempCgroupFile(t, dir, "memory.max", tc.memoryMax)
+
+				got, err := getMemoryDiagnostics(info)
+				require.NoError(t, err)
+				assert.Equal(t, tc.want, got.ContainerMemoryLimitMB)
+			})
+		}
+	})
+
+	t.Run("missing cgroup memory limit fails", func(t *testing.T) {
+		setProcFiles(t)
+		_, err := getMemoryDiagnostics(cgroupV2Info{dir: filepath.Join(dir, "missing"), memoryStatsSupported: true})
+		require.ErrorIs(t, err, os.ErrNotExist)
 	})
 
 	t.Run("missing proc field", func(t *testing.T) {

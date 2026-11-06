@@ -219,7 +219,6 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 	}
 	containerLimits, err := getContainerLimits(cgroupV2)
 	d.Server.ContainerCPULimit = containerLimits.CPULimit
-	d.Server.ContainerMemoryLimitMB = containerLimits.MemoryLimitMB
 	if err != nil {
 		rctx.Logger().Debug("Failed to get container limits for Support Packet", mlog.Err(err))
 	}
@@ -231,6 +230,7 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 	d.Server.SwapTotalMB = memory.SwapTotalMB
 	d.Server.SwapUsedMB = memory.SwapUsedMB
 	d.Server.ProcessRSSMB = memory.ProcessRSSMB
+	d.Server.ContainerMemoryLimitMB = memory.ContainerMemoryLimitMB
 	d.Server.ContainerMemoryUsageMB = memory.ContainerMemoryUsageMB
 	d.Server.ContainerMemoryWorkingSetMB = memory.ContainerMemoryWorkingSetMB
 	d.Server.ContainerOOMKills = memory.ContainerOOMKills

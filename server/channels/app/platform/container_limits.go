@@ -3,11 +3,11 @@
 
 package platform
 
-// ContainerLimits holds effective CPU and memory limits for the current container.
+// ContainerLimits holds the effective CPU limit for the current container. The memory
+// limit is read with the other memory diagnostics, see memoryDiagnostics.
 // Zero values indicate no limit is set (fields will be omitted from YAML output).
 type ContainerLimits struct {
-	CPULimit      float64
-	MemoryLimitMB uint64
+	CPULimit float64
 }
 
 type cgroupV2Info struct {
@@ -20,6 +20,7 @@ type memoryDiagnostics struct {
 	SwapTotalMB                 *uint64
 	SwapUsedMB                  *uint64
 	ProcessRSSMB                *uint64
+	ContainerMemoryLimitMB      uint64 // zero when no limit is set
 	ContainerMemoryUsageMB      *uint64
 	ContainerMemoryWorkingSetMB *uint64
 	ContainerOOMKills           *uint64
