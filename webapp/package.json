@@ -25,7 +25,7 @@
   },
   "dependencies": {
     "@mattermost/compass-icons": "0.1.64",
-    "@mattermost/compass-ui": "0.1.0-alpha.25",
+    "@mattermost/compass-ui": "0.1.0-alpha.26",
     "@typescript/native": "npm:typescript@7.0.2",
     "react": "19.3.1",
     "react-dom": "19.3.1",

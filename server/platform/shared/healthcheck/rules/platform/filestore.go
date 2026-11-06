@@ -6,6 +6,7 @@ package platform
 import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/rules/internal/probes"
 )
 
 func init() {
@@ -72,7 +73,7 @@ var filestoreUnreachable = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityProbe,
 	Subject:    "FileSettings.DriverName",
-	EvalNode:   healthcheck.SingleNode(evalFilestoreUnreachable),
+	Eval:       healthcheck.Single(evalFilestoreUnreachable),
 }
 
 func usesS3(s *healthcheck.Snapshot) (bool, bool) {
@@ -120,18 +121,17 @@ func evalFilestoreS3SSLOff(s *healthcheck.Snapshot) healthcheck.Result {
 	}
 }
 
-func evalFilestoreUnreachable(_ *healthcheck.Snapshot, n *healthcheck.NodeSnapshot) healthcheck.Result {
-	diag, ok := n.Diag()
+func evalFilestoreUnreachable(s *healthcheck.Snapshot) healthcheck.Result {
+	return probes.Eval(s, filestoreProbe,
+		healthcheck.TranslationId("health.rule.filestore_unreachable.message"),
+		healthcheck.TranslationId("health.rule.filestore_unreachable.message.partial"))
+}
+
+func filestoreProbe(n *healthcheck.NodeSnapshot) (status, probeErr string) {
+	diag, ok := n.SectionDiag(model.SectionFilestoreConn)
 	if !ok {
-		return healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)
+		return "", ""
 	}
 
-	switch diag.FileStore.Status {
-	case model.StatusFail:
-		return healthcheck.Firing(healthcheck.TranslationId("health.rule.filestore_unreachable.message")).WithDetail("error", diag.FileStore.Error)
-	case model.StatusOk:
-		return healthcheck.Resolved()
-	default:
-		return healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)
-	}
+	return diag.FileStore.Status, diag.FileStore.Error
 }
