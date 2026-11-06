@@ -5,6 +5,7 @@ package sharedchannel
 
 import (
 	"errors"
+	"slices"
 	"testing"
 	"time"
 
@@ -187,7 +188,7 @@ func TestSyncForPluginRemote_Cursor(t *testing.T) {
 		require.NoError(t, f.scs.processTask(newSyncTask(f.channelID, "", f.remoteID, nil, nil)))
 
 		f.scStore.AssertNotCalled(t, "UpdateRemoteCursor", mock.Anything, mock.Anything)
-		assert.Equal(t, []string{f.remoteID}, f.rcs.notifyCalls)
+		assert.Equal(t, []string{f.remoteID}, f.rcs.getNotifyCalls())
 
 		tasks := f.queuedTasks()
 		require.Len(t, tasks, 1, "only the delayed retry should be queued")
@@ -213,7 +214,7 @@ func TestSyncForPluginRemote_Cursor(t *testing.T) {
 		require.NoError(t, f.scs.processTask(newSyncTask(f.channelID, "", f.remoteID, nil, nil)))
 
 		f.scStore.AssertCalled(t, "UpdateRemoteCursor", f.scr.Id, f.nextCursor)
-		assert.Empty(t, f.rcs.notifyCalls)
+		assert.Empty(t, f.rcs.getNotifyCalls())
 		assert.Empty(t, f.queuedTasks())
 	})
 
@@ -226,7 +227,7 @@ func TestSyncForPluginRemote_Cursor(t *testing.T) {
 		require.NoError(t, f.scs.processTask(newSyncTask(f.channelID, "", f.remoteID, nil, nil)))
 
 		f.scStore.AssertCalled(t, "UpdateRemoteCursor", f.scr.Id, f.nextCursor)
-		assert.Empty(t, f.rcs.notifyCalls)
+		assert.Empty(t, f.rcs.getNotifyCalls())
 
 		tasks := f.queuedTasks()
 		require.Len(t, tasks, 1)
@@ -244,10 +245,16 @@ func TestSyncForPluginRemote_Cursor(t *testing.T) {
 		require.NoError(t, f.scs.processTask(newSyncTask(f.channelID, "", f.remoteID, nil, nil)))
 
 		f.scStore.AssertNotCalled(t, "UpdateRemoteCursor", mock.Anything, mock.Anything)
-		assert.Equal(t, []string{f.remoteID}, f.rcs.notifyCalls)
+		assert.Equal(t, []string{f.remoteID}, f.rcs.getNotifyCalls())
 
 		tasks := f.queuedTasks()
 		require.Len(t, tasks, 1)
 		assert.Equal(t, 1, tasks[0].retryCount)
 	})
+}
+
+func (m *mockRCSForSync) getNotifyCalls() []string {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return slices.Clone(m.notifyCalls)
 }
