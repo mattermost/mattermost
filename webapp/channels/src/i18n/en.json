@@ -22137,47 +22137,47 @@
   },
   "commercial_support_modal.basic_contents.description": {
     "defaultMessage": "Server version, sanitized configuration, usage counts, job status, permissions, plugin list, and performance profiles. Does not include message content.",
-    "description": ""
+    "description": "Helper text under the mandatory 'Basic contents' checkbox in the Commercial Support modal, summarizing what the Support Packet always includes; 'Support Packet' is a product term."
   },
   "commercial_support_modal.basic_contents.included.config": {
     "defaultMessage": "Configuration with credentials removed",
-    "description": ""
+    "description": "Item in the expandable 'What's included' list for Basic contents in the Commercial Support modal: the server configuration with passwords, keys, and tokens stripped out."
   },
   "commercial_support_modal.basic_contents.included.database_schema": {
     "defaultMessage": "Database table structure (no data)",
-    "description": ""
+    "description": "Item in the expandable 'What's included' list for Basic contents in the Commercial Support modal: the database schema (table structure) without any stored data."
   },
   "commercial_support_modal.basic_contents.included.diagnostics": {
     "defaultMessage": "System diagnostics: OS, CPU, memory, database, file storage, and connectivity checks",
-    "description": ""
+    "description": "Item in the expandable 'What's included' list for Basic contents in the Commercial Support modal: system diagnostics and connectivity checks; text after the colon lists examples."
   },
   "commercial_support_modal.basic_contents.included.jobs": {
     "defaultMessage": "Background job status",
-    "description": ""
+    "description": "Item in the expandable 'What's included' list for Basic contents in the Commercial Support modal: status of the server's background jobs."
   },
   "commercial_support_modal.basic_contents.included.permissions": {
     "defaultMessage": "Permission schemes and roles",
-    "description": ""
+    "description": "Item in the expandable 'What's included' list for Basic contents in the Commercial Support modal: permission schemes and user roles."
   },
   "commercial_support_modal.basic_contents.included.plugins": {
     "defaultMessage": "Installed plugins and their versions",
-    "description": ""
+    "description": "Item in the expandable 'What's included' list for Basic contents in the Commercial Support modal: the installed plugins and their version numbers."
   },
   "commercial_support_modal.basic_contents.included.profiles": {
     "defaultMessage": "Performance profiles (CPU, memory, goroutines)",
-    "description": ""
+    "description": "Item in the expandable 'What's included' list for Basic contents in the Commercial Support modal: performance profiles; 'goroutines' is a Go programming term and should not be translated."
   },
   "commercial_support_modal.basic_contents.included.server_info": {
     "defaultMessage": "Server version, license, and server ID",
-    "description": ""
+    "description": "Item in the expandable 'What's included' list for Basic contents in the Commercial Support modal: server version, license, and server identifier."
   },
   "commercial_support_modal.basic_contents.included.usage": {
     "defaultMessage": "Usage counts: users, posts, channels, teams",
-    "description": ""
+    "description": "Item in the expandable 'What's included' list for Basic contents in the Commercial Support modal: counts of users, posts, channels, and teams; text after the colon lists examples."
   },
   "commercial_support_modal.basic_contents.whats_included": {
     "defaultMessage": "What's included",
-    "description": ""
+    "description": "Toggle under the 'Basic contents' option in the Commercial Support modal that expands or collapses a detailed list of what Basic contents includes."
   },
   "commercial_support_modal.description": {
     "defaultMessage": "If you're experiencing issues, <supportLink>submit a support ticket</supportLink>. To help with troubleshooting, it's recommended to download the Support Packet below that includes more details about your Mattermost environment.",
@@ -22189,11 +22189,11 @@
   },
   "commercial_support_modal.required": {
     "defaultMessage": "(required)",
-    "description": ""
+    "description": "Marker shown next to the 'Basic contents' option in the Commercial Support modal, indicating that this Support Packet content is always included and cannot be deselected."
   },
   "commercial_support_modal.server_logs.description": {
     "defaultMessage": "Recent server log files. May contain user IDs, IP addresses, and error details.",
-    "description": ""
+    "description": "Helper text under the optional 'Server logs' checkbox in the Commercial Support modal, warning what personal or diagnostic data the server log files may contain."
   },
   "commercial_support_modal.warning.banner": {
     "defaultMessage": "Before downloading the Support Packet, set <strong>Output Logs to File</strong> to <strong>true</strong> and set <strong>File Log Level</strong> to <strong>DEBUG</strong> <debugLink>here</debugLink>.",
