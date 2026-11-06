@@ -105,7 +105,7 @@ func TestNewActionRegistry(t *testing.T) {
 }
 
 func TestActionRegistryLookups(t *testing.T) {
-	SetRegisteredActionsForTesting(t,
+	RegisterActionsForTesting(t,
 		ActionEntry{Name: "run_system_action", ResourceType: AccessControlPolicyTypeSystem, Grantable: true, Permissions: []string{"perm_a", "perm_b"}},
 		ActionEntry{Name: "run_channel_action", ResourceType: AccessControlPolicyTypeChannel, Permissions: []string{"perm_c"}},
 	)
@@ -126,14 +126,20 @@ func TestActionRegistryLookups(t *testing.T) {
 	assert.True(t, IsRegisteredAction("run_channel_action"))
 	assert.False(t, IsRegisteredAction("perm_c"))
 
-	system := RegisteredActionsForResourceType(AccessControlPolicyTypeSystem)
-	require.Len(t, system, 1)
-	assert.Equal(t, "run_system_action", system[0].Name)
-	assert.Empty(t, RegisteredActionsForResourceType(AccessControlPolicyTypeTeam))
+	names := func(entries []ActionEntry) []string {
+		var out []string
+		for _, e := range entries {
+			out = append(out, e.Name)
+		}
+		return out
+	}
+	assert.Contains(t, names(RegisteredActionsForResourceType(AccessControlPolicyTypeSystem)), "run_system_action")
+	assert.NotContains(t, names(RegisteredActionsForResourceType(AccessControlPolicyTypeSystem)), "run_channel_action")
+	assert.Contains(t, names(RegisteredActionsForResourceType(AccessControlPolicyTypeChannel)), "run_channel_action")
 }
 
 func TestRegisteredActionPolicyValidation(t *testing.T) {
-	SetRegisteredActionsForTesting(t,
+	RegisterActionsForTesting(t,
 		ActionEntry{Name: "run_system_action", ResourceType: AccessControlPolicyTypeSystem, Grantable: true, Permissions: []string{"perm_a"}},
 	)
 

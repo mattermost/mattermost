@@ -6830,6 +6830,11 @@
     "description": "Error returned by a local-mode (mmctl) plugin reattach endpoint when the request body cannot be parsed; developer-facing."
   },
   {
+    "id": "app.access_control.access_evaluation.resource_type_mismatch.app_error",
+    "translation": "Unable to evaluate access: the permission was checked against the wrong type of resource.",
+    "description": "API error returned when a permission check names a resource type other than the one its registered action is evaluated on; indicates a server bug."
+  },
+  {
     "id": "app.access_control.build_subject.get_subject.app_error",
     "translation": "Failed to retrieve the access control subject.",
     "description": "Internal error in attribute-based access control when loading the user's attribute data (the policy 'subject') fails."
@@ -6850,9 +6855,19 @@
     "description": "API error returned when loading the attributes attached to the user's session for attribute-based access control fails."
   },
   {
+    "id": "app.access_control.has_stored_policy.app_error",
+    "translation": "Unable to check the access policies for this action.",
+    "description": "API error returned when the server cannot look up whether a saved permission policy governs an action, so the permission check is denied."
+  },
+  {
     "id": "app.access_control.insufficient_permissions",
     "translation": "You do not have permission to manage this access control policy.",
     "description": "API error when the caller lacks permission to manage an attribute-based access control policy; admin-facing."
+  },
+  {
+    "id": "app.access_control.missing_subject.app_error",
+    "translation": "Unable to evaluate access for this request.",
+    "description": "API error returned when a permission check governed by an access policy cannot run because the requesting user's attributes could not be loaded for the request."
   },
   {
     "id": "app.access_control.plugin.evaluation_unavailable.app_error",

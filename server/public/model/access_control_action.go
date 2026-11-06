@@ -168,12 +168,13 @@ func cloneActionEntry(entry ActionEntry) ActionEntry {
 	return entry
 }
 
-// SetRegisteredActionsForTesting replaces the action registry with entries
-// until the test ends. The registry is process-wide, so tests that call it
-// must not run in parallel with tests that evaluate registered actions.
-func SetRegisteredActionsForTesting(tb testing.TB, entries ...ActionEntry) {
+// RegisterActionsForTesting adds entries to the built-in registered actions
+// until the test ends. The registry is process-wide: tests that call it must
+// not run in parallel with each other, and should register permission IDs no
+// other test checks.
+func RegisterActionsForTesting(tb testing.TB, entries ...ActionEntry) {
 	tb.Helper()
-	r, err := newActionRegistry(entries)
+	r, err := newActionRegistry(append(slices.Clone(registeredActions), entries...))
 	if err != nil {
 		tb.Fatalf("invalid action registry: %v", err)
 	}
