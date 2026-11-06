@@ -333,14 +333,15 @@ func TestSearchTeamAccessPolicies(t *testing.T) {
 		assert.Equal(t, int64(0), total)
 	})
 
-	t.Run("includes team-scoped policy", func(t *testing.T) {
+	t.Run("omits parent saved with an empty scope when its channels are in one team", func(t *testing.T) {
+		// A parent whose first save has an empty scope is omitted even when every channel is in the team.
 		ch1 := th.CreatePrivateChannel(t, th.BasicTeam)
 		teamPolicy, mockACS := createTestPolicyHierarchy(t, th, []*model.Channel{ch1})
 
 		mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"), "true", mock.Anything).
-			Return([]*model.User{th.BasicUser}, int64(1), nil)
+			Return([]*model.User{th.BasicUser}, int64(1), nil).Maybe()
 
-		policies, total, appErr := th.App.SearchTeamAccessPolicies(th.Context, th.BasicTeam.Id, th.BasicUser.Id, model.AccessControlPolicySearch{})
+		policies, _, appErr := th.App.SearchTeamAccessPolicies(th.Context, th.BasicTeam.Id, th.BasicUser.Id, model.AccessControlPolicySearch{})
 		require.Nil(t, appErr)
 		found := false
 		for _, p := range policies {
@@ -349,8 +350,7 @@ func TestSearchTeamAccessPolicies(t *testing.T) {
 				break
 			}
 		}
-		assert.True(t, found, "team-scoped policy should be in results")
-		assert.True(t, total >= 1, "at least one policy expected")
+		require.Equal(t, false, found, "a parent saved with an empty scope is omitted")
 	})
 
 	t.Run("filters out cross-team policies", func(t *testing.T) {
@@ -368,17 +368,37 @@ func TestSearchTeamAccessPolicies(t *testing.T) {
 		}
 	})
 
-	t.Run("includes channelless policy found via scope query", func(t *testing.T) {
-		// Policy with no channels but with scope=team — found only via the second
-		// (scope-based) query in SearchTeamAccessPolicies, not via channel inference.
-		policy, mockACS := createTestPolicyHierarchy(t, th, []*model.Channel{})
-		policy.Scope = model.AccessControlPolicyScopeTeam
-		policy.ScopeID = th.BasicTeam.Id
-		_, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, policy)
+	t.Run("includes channelless policy whose first save has team scope", func(t *testing.T) {
+		// A parent with no channels whose first save already records this team's scope is returned.
+		policy := &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Type:     model.AccessControlPolicyTypeParent,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Revision: 1,
+			Name:     "Test Team Policy " + model.NewId(),
+			Rules: []model.AccessControlPolicyRule{
+				{Expression: "true", Actions: []string{"*"}},
+			},
+			Scope:   model.AccessControlPolicyScopeTeam,
+			ScopeID: th.BasicTeam.Id,
+		}
+		var err error
+		policy, err = th.App.Srv().Store().AccessControlPolicy().Save(th.Context, policy)
 		require.NoError(t, err)
 
+		originalACS := th.App.Srv().ch.AccessControl
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+		t.Cleanup(func() {
+			th.App.Srv().ch.AccessControl = originalACS
+			mockACS.AssertExpectations(t)
+		})
+		mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string")).
+			Return((*model.AccessControlPolicy)(nil), model.NewAppError("test", "test.policy_not_found", nil, "", 404)).Maybe()
+		mockACS.On("NormalizePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).
+			Return((*model.AccessControlPolicy)(nil), model.NewAppError("test", "test.normalize_skip", nil, "", 500)).Maybe()
 		mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"), "true", mock.Anything).
-			Return([]*model.User{th.BasicUser}, int64(1), nil)
+			Return([]*model.User{th.BasicUser}, int64(1), nil).Maybe()
 
 		policies, _, appErr := th.App.SearchTeamAccessPolicies(th.Context, th.BasicTeam.Id, th.BasicUser.Id, model.AccessControlPolicySearch{})
 		require.Nil(t, appErr)
@@ -389,7 +409,31 @@ func TestSearchTeamAccessPolicies(t *testing.T) {
 				break
 			}
 		}
-		assert.True(t, found, "channelless policy with team scope should appear in search results")
+		assert.True(t, found, "channelless policy whose first save has team scope should appear in search results")
+	})
+
+	t.Run("omits a parent whose scope was set on a later save", func(t *testing.T) {
+		// A parent whose first save has an empty scope is omitted when a later save records team scope and its channels are in the team.
+		ch1 := th.CreatePrivateChannel(t, th.BasicTeam)
+		policy, mockACS := createTestPolicyHierarchy(t, th, []*model.Channel{ch1})
+		policy.Scope = model.AccessControlPolicyScopeTeam
+		policy.ScopeID = th.BasicTeam.Id
+		_, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, policy)
+		require.NoError(t, err)
+
+		mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"), "true", mock.Anything).
+			Return([]*model.User{th.BasicUser}, int64(1), nil).Maybe()
+
+		policies, _, appErr := th.App.SearchTeamAccessPolicies(th.Context, th.BasicTeam.Id, th.BasicUser.Id, model.AccessControlPolicySearch{})
+		require.Nil(t, appErr)
+		found := false
+		for _, p := range policies {
+			if p.ID == policy.ID {
+				found = true
+				break
+			}
+		}
+		require.Equal(t, false, found, "a parent whose first save has an empty scope is omitted")
 	})
 }
 
@@ -409,6 +453,8 @@ func TestSearchTeamAccessPolicies_SelfExclusionFiltering(t *testing.T) {
 		Rules: []model.AccessControlPolicyRule{
 			{Expression: "user.attributes.clearance == 'top-secret'", Actions: []string{"*"}},
 		},
+		Scope:   model.AccessControlPolicyScopeTeam,
+		ScopeID: th.BasicTeam.Id,
 	}
 	var err error
 	parentPolicy, err = th.App.Srv().Store().AccessControlPolicy().Save(th.Context, parentPolicy)
@@ -450,13 +496,14 @@ func TestSearchTeamAccessPolicies_SelfExclusionFiltering(t *testing.T) {
 func TestValidateTeamAdminPolicyOwnership(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
-	t.Run("policy scoped to team passes", func(t *testing.T) {
+	t.Run("parent saved with an empty scope is not owned when its channels are in the team", func(t *testing.T) {
+		// A parent whose first save has an empty scope is not owned by the team, even when every channel is in that team.
 		ch1 := th.CreatePrivateChannel(t, th.BasicTeam)
 		teamPolicy, _ := createTestPolicyHierarchy(t, th, []*model.Channel{ch1})
 
 		owned, appErr := th.App.ValidateTeamAdminPolicyOwnership(th.Context, th.BasicTeam.Id, teamPolicy.ID)
 		require.Nil(t, appErr)
-		assert.True(t, owned)
+		assert.Equal(t, false, owned)
 	})
 
 	t.Run("policy scoped to different team fails", func(t *testing.T) {
@@ -480,9 +527,9 @@ func TestValidateTeamAdminPolicyOwnership(t *testing.T) {
 		assert.False(t, owned)
 	})
 
-	t.Run("policy with no channels but with scope passes", func(t *testing.T) {
+	t.Run("parent whose scope was set on a later save is not owned", func(t *testing.T) {
+		// A parent whose first save has an empty scope is not owned when a later save records this team's scope.
 		noChannelPolicy, _ := createTestPolicyHierarchy(t, th, []*model.Channel{})
-		// Set scope on the channelless policy
 		noChannelPolicy.Scope = model.AccessControlPolicyScopeTeam
 		noChannelPolicy.ScopeID = th.BasicTeam.Id
 		_, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, noChannelPolicy)
@@ -490,7 +537,96 @@ func TestValidateTeamAdminPolicyOwnership(t *testing.T) {
 
 		owned, appErr := th.App.ValidateTeamAdminPolicyOwnership(th.Context, th.BasicTeam.Id, noChannelPolicy.ID)
 		require.Nil(t, appErr)
+		assert.Equal(t, false, owned)
+	})
+
+	t.Run("parent whose first save has team scope is owned", func(t *testing.T) {
+		// A parent whose first save already records this team's scope stays owned after a later save that keeps that scope.
+		policy := &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Type:     model.AccessControlPolicyTypeParent,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Revision: 1,
+			Name:     "Test Team Policy " + model.NewId(),
+			Rules: []model.AccessControlPolicyRule{
+				{Expression: "true", Actions: []string{"*"}},
+			},
+			Scope:   model.AccessControlPolicyScopeTeam,
+			ScopeID: th.BasicTeam.Id,
+		}
+		var err error
+		policy, err = th.App.Srv().Store().AccessControlPolicy().Save(th.Context, policy)
+		require.NoError(t, err)
+
+		policy.Rules = []model.AccessControlPolicyRule{
+			{Expression: "false", Actions: []string{"*"}},
+		}
+		policy, err = th.App.Srv().Store().AccessControlPolicy().Save(th.Context, policy)
+		require.NoError(t, err)
+		require.Equal(t, model.AccessControlPolicyScopeTeam, policy.Scope)
+		require.Equal(t, th.BasicTeam.Id, policy.ScopeID)
+
+		owned, appErr := th.App.ValidateTeamAdminPolicyOwnership(th.Context, th.BasicTeam.Id, policy.ID)
+		require.Nil(t, appErr)
 		assert.True(t, owned)
+	})
+
+	t.Run("parent whose later save records a different team is not owned or listed for either team", func(t *testing.T) {
+		// A parent whose first save records one team and whose later save records another team is not owned by either team and is omitted from both listings.
+		teamB := th.CreateTeam(t)
+		policy := &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Type:     model.AccessControlPolicyTypeParent,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Revision: 1,
+			Name:     "Test Team Policy " + model.NewId(),
+			Rules: []model.AccessControlPolicyRule{
+				{Expression: "true", Actions: []string{"*"}},
+			},
+			Scope:   model.AccessControlPolicyScopeTeam,
+			ScopeID: th.BasicTeam.Id,
+		}
+		var err error
+		policy, err = th.App.Srv().Store().AccessControlPolicy().Save(th.Context, policy)
+		require.NoError(t, err)
+
+		policy.ScopeID = teamB.Id
+		policy, err = th.App.Srv().Store().AccessControlPolicy().Save(th.Context, policy)
+		require.NoError(t, err)
+		require.Greater(t, policy.Revision, 1)
+		require.Equal(t, model.AccessControlPolicyScopeTeam, policy.Scope)
+		require.Equal(t, teamB.Id, policy.ScopeID)
+
+		originalACS := th.App.Srv().ch.AccessControl
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+		t.Cleanup(func() {
+			th.App.Srv().ch.AccessControl = originalACS
+			mockACS.AssertExpectations(t)
+		})
+		mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string")).
+			Return((*model.AccessControlPolicy)(nil), model.NewAppError("test", "test.policy_not_found", nil, "", 404)).Maybe()
+		mockACS.On("NormalizePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).
+			Return((*model.AccessControlPolicy)(nil), model.NewAppError("test", "test.normalize_skip", nil, "", 500)).Maybe()
+		mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string"), mock.Anything).
+			Return([]*model.User{th.BasicUser}, int64(1), nil).Maybe()
+
+		for _, teamID := range []string{th.BasicTeam.Id, teamB.Id} {
+			owned, appErr := th.App.ValidateTeamAdminPolicyOwnership(th.Context, teamID, policy.ID)
+			require.Nil(t, appErr)
+			require.Equal(t, false, owned)
+
+			policies, _, appErr := th.App.SearchTeamAccessPolicies(th.Context, teamID, th.BasicUser.Id, model.AccessControlPolicySearch{})
+			require.Nil(t, appErr)
+			found := false
+			for _, p := range policies {
+				if p.ID == policy.ID {
+					found = true
+					break
+				}
+			}
+			require.Equal(t, false, found)
+		}
 	})
 
 	t.Run("policy with no channels and no scope fails", func(t *testing.T) {
@@ -532,7 +668,8 @@ func TestReconcilePolicyTeamScope(t *testing.T) {
 		return p.Scope, p.ScopeID
 	}
 
-	t.Run("single team channels sets scope", func(t *testing.T) {
+	t.Run("single team channels leave an empty scope empty", func(t *testing.T) {
+		// Reconcile leaves the scope empty when the parent was saved with an empty scope and every channel is in one team.
 		ch1 := th.CreatePrivateChannel(t, th.BasicTeam)
 		ch2 := th.CreatePrivateChannel(t, th.BasicTeam)
 		policy, _ := createTestPolicyHierarchy(t, th, []*model.Channel{ch1, ch2})
@@ -541,8 +678,23 @@ func TestReconcilePolicyTeamScope(t *testing.T) {
 		require.Nil(t, appErr)
 
 		scope, scopeID := getScope(t, policy.ID)
-		assert.Equal(t, model.AccessControlPolicyScopeTeam, scope)
-		assert.Equal(t, th.BasicTeam.Id, scopeID)
+		assert.Equal(t, "", scope)
+		assert.Equal(t, "", scopeID)
+	})
+
+	t.Run("empty scope stays empty when a channel team id is empty", func(t *testing.T) {
+		// Reconcile leaves the scope empty when the parent was saved with an empty scope, one channel is in the team, and another channel has an empty team id.
+		ch1 := th.CreatePrivateChannel(t, th.BasicTeam)
+		dm := th.CreateDmChannel(t, th.BasicUser2)
+		require.Empty(t, dm.TeamId)
+		policy, _ := createTestPolicyHierarchy(t, th, []*model.Channel{ch1, dm})
+
+		appErr := th.App.ReconcilePolicyTeamScope(th.Context, policy.ID)
+		require.Nil(t, appErr)
+
+		scope, scopeID := getScope(t, policy.ID)
+		assert.Equal(t, "", scope)
+		assert.Equal(t, "", scopeID)
 	})
 
 	t.Run("cross-team channels clears scope", func(t *testing.T) {
@@ -636,41 +788,34 @@ func TestReconcilePolicyTeamScope(t *testing.T) {
 		assert.Equal(t, th.BasicTeam.Id, scopeID)
 	})
 
-	t.Run("pre-scope policy migration: reconcile before unassign sets scope", func(t *testing.T) {
-		// Simulates a pre-scope policy (no scope field) with channels in a team.
-		// The pre-flight reconcile before unassign should set the scope.
+	t.Run("parent saved without a scope stays empty across reconcile and channel removal", func(t *testing.T) {
+		// A parent saved with an empty scope stays empty when its channels are in one team, including after those channels are removed, and is not owned by the team.
 		ch1 := th.CreatePrivateChannel(t, th.BasicTeam)
 		policy, _ := createTestPolicyHierarchy(t, th, []*model.Channel{ch1})
 
-		// Verify scope is initially empty (pre-scope policy)
 		scope, _ := getScope(t, policy.ID)
 		assert.Empty(t, scope)
 
-		// Pre-flight reconcile (called before unassign in the handler)
 		appErr := th.App.ReconcilePolicyTeamScope(th.Context, policy.ID)
 		require.Nil(t, appErr)
 
-		// Scope is now set
 		scope, scopeID := getScope(t, policy.ID)
-		assert.Equal(t, model.AccessControlPolicyScopeTeam, scope)
-		assert.Equal(t, th.BasicTeam.Id, scopeID)
+		assert.Equal(t, "", scope)
+		assert.Equal(t, "", scopeID)
 
-		// Simulate unassign: remove the child policy
 		err := th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, ch1.Id)
 		require.NoError(t, err)
 
-		// Post-unassign reconcile: no channels → no-op, scope preserved
 		appErr = th.App.ReconcilePolicyTeamScope(th.Context, policy.ID)
 		require.Nil(t, appErr)
 
 		scope, scopeID = getScope(t, policy.ID)
-		assert.Equal(t, model.AccessControlPolicyScopeTeam, scope)
-		assert.Equal(t, th.BasicTeam.Id, scopeID)
+		assert.Equal(t, "", scope)
+		assert.Equal(t, "", scopeID)
 
-		// Ownership check should pass now
 		owned, appErr := th.App.ValidateTeamAdminPolicyOwnership(th.Context, th.BasicTeam.Id, policy.ID)
 		require.Nil(t, appErr)
-		assert.True(t, owned, "channelless policy with scope should pass ownership check")
+		assert.Equal(t, false, owned)
 	})
 }
 
