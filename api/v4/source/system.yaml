@@ -1182,6 +1182,11 @@
         `Failed to fetch logs from node`, `failed_node` set to `true`, and an
         `error` field describing the failure.
 
+        If reading a node's log file stops at its time or size limit, that
+        node's lines end with a JSON line with `scan_limited` set to `true` and
+        `scanned_back_to` set to the timestamp of the oldest line read, if a
+        line with a timestamp was read.
+
         ##### Permissions
 
         Must have `manage_system` permission.
@@ -1267,6 +1272,11 @@
         `Failed to fetch logs from node`, `failed_node` set to `true`, and an
         `error` field describing the failure. This entry is returned regardless
         of `log_levels`, `date_from`, `date_to` and `search`.
+
+        If reading a node's log file stops at its time or size limit, that
+        node's array ends with an entry with `scan_limited` set to `true` and
+        `scanned_back_to` set to the timestamp of the oldest line read, if a
+        line with a timestamp was read.
 
         ##### Permissions
         Must have `get_logs` permission.

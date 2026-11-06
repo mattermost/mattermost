@@ -3,7 +3,7 @@
 
 import {batchActions} from 'redux-batched-actions';
 
-import type {LogFilter, LogFilterQuery} from '@mattermost/types/admin';
+import type {LogFilter, LogFilterQuery, LogsByNode} from '@mattermost/types/admin';
 import type {
     Channel,
     ChannelSearchOpts,
@@ -45,14 +45,27 @@ function toLogFilterQuery({serverNames = [], logLevels = [], dateFrom, dateTo, s
     };
 }
 
-export function getLogs(logFilter: LogFilter) {
-    return bindClientFunc({
-        clientFunc: Client4.getLogs,
-        onSuccess: [AdminTypes.RECEIVED_LOGS],
-        params: [
-            toLogFilterQuery(logFilter),
-        ],
-    });
+// Aborting signal drops the request without storing or reporting anything, as a newer one replaces it
+export function getLogs(logFilter: LogFilter, signal?: AbortSignal): ActionFuncAsync<LogsByNode> {
+    return async (dispatch, getState) => {
+        let data: LogsByNode;
+        try {
+            data = await Client4.getLogs(toLogFilterQuery(logFilter), undefined, undefined, signal);
+        } catch (error) {
+            if (signal?.aborted) {
+                return {error};
+            }
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+
+        if (signal?.aborted) {
+            return {error: signal.reason};
+        }
+        dispatch({type: AdminTypes.RECEIVED_LOGS, data});
+        return {data};
+    };
 }
 
 // Merges the response into the loaded entries instead of replacing them

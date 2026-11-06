@@ -136,7 +136,32 @@ func (ps *PlatformService) RemoveUnlicensedLogTargets(license *model.License) {
 // logDateFromStopEntries is how many consecutive entries older than LogFilter.DateFrom end a log scan.
 const logDateFromStopEntries = 100
 
+// logScanBudget bounds how much of the log file a single logs query reads. A scan stops at
+// whichever limit it reaches first.
+type logScanBudget struct {
+	duration time.Duration
+	bytes    int64
+}
+
+// defaultLogScanBudget keeps a scan below the 30 seconds a node waits for another node's logs, so
+// a remote scan ends before its reply would be discarded. Reading takes about 11 ms per MB, so the
+// byte limit is reached first on a fast disk.
+var defaultLogScanBudget = logScanBudget{
+	duration: 20 * time.Second,
+	bytes:    1 << 30,
+}
+
+// errLogScanLimited is returned by the reverse line reader once a scan has used its budget.
+var errLogScanLimited = errors.New("log scan stopped at its limit")
+
+// GetLogsSkipSend returns the newest page of log lines on this node that match logFilter, oldest
+// first. A scan that reaches its time or byte budget returns the lines found so far, followed by
+// a line with scan_limited set.
 func (ps *PlatformService) GetLogsSkipSend(rctx request.CTX, page, perPage int, logFilter *model.LogFilter) ([]string, *model.AppError) {
+	return ps.getLogsSkipSend(rctx, page, perPage, logFilter, defaultLogScanBudget)
+}
+
+func (ps *PlatformService) getLogsSkipSend(rctx request.CTX, page, perPage int, logFilter *model.LogFilter, budget logScanBudget) ([]string, *model.AppError) {
 	var lines []string
 	search := newLogSearch(logFilter)
 
@@ -194,15 +219,38 @@ func (ps *PlatformService) GetLogsSkipSend(rctx request.CTX, page, perPage int, 
 			end = logScanEnd(file, size, dateTo)
 		}
 
+		parent := rctx.Context()
+		if parent == nil {
+			parent = context.Background()
+		}
+		// The caller's context may end the scan sooner
+		ctx, cancel := context.WithTimeout(parent, budget.duration)
+		defer cancel()
+
 		reader := newReverseLineReader(file, end, logReadBlockSize)
+		reader.limit = func(read int64) (int64, error) {
+			if read >= budget.bytes || ctx.Err() != nil {
+				return 0, errLogScanLimited
+			}
+			return budget.bytes - read, nil
+		}
+
+		// oldest is the last line the reader returned. The reader leaves it intact when it stops
+		// at the budget, so its timestamp tells how far back the scan got.
+		var oldest []byte
+		var scanLimited bool
 		toSkip := page * perPage
 		for len(lines) < perPage {
 			line, err := reader.Next()
 			if err == io.EOF {
 				break
+			} else if errors.Is(err, errLogScanLimited) {
+				scanLimited = true
+				break
 			} else if err != nil {
 				return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
+			oldest = line
 
 			if toSkip > 0 {
 				toSkip--
@@ -246,11 +294,48 @@ func (ps *PlatformService) GetLogsSkipSend(rctx request.CTX, page, perPage int, 
 		for i, j := 0, len(lines)-1; i < j; i, j = i+1, j-1 {
 			lines[i], lines[j] = lines[j], lines[i]
 		}
+
+		if scanLimited {
+			rctx.Logger().Debug("Log scan stopped at its limit",
+				mlog.Int("bytes_read", end-reader.offset),
+				mlog.Int("lines", len(lines)))
+			lines = append(lines, scanLimitedLogLine(logLineTimestamp(oldest)))
+		}
 	} else {
 		lines = append(lines, "")
 	}
 
 	return lines, nil
+}
+
+// scanLimitedLogLine returns an mlog-style JSON log line reporting that a node's log scan stopped
+// at its budget. scan_limited marks it so clients can tell it apart from lines the node logged
+// itself, and scanned_back_to holds the timestamp of the oldest line read, when it has one.
+func scanLimitedLogLine(scannedBackTo string) string {
+	return string(model.ToJSON(struct {
+		Timestamp     string `json:"timestamp"`
+		Level         string `json:"level"`
+		Msg           string `json:"msg"`
+		ScanLimited   bool   `json:"scan_limited"`
+		ScannedBackTo string `json:"scanned_back_to,omitempty"`
+	}{
+		Timestamp:     time.Now().Format(logr.DefTimestampFormat),
+		Level:         mlog.LvlWarn.Name,
+		Msg:           "Log scan stopped at its limit",
+		ScanLimited:   true,
+		ScannedBackTo: scannedBackTo,
+	}))
+}
+
+// logLineTimestamp returns the timestamp of a JSON log line, or "" if it has none.
+func logLineTimestamp(line []byte) string {
+	var entry struct {
+		Timestamp string `json:"timestamp"`
+	}
+	if json.Unmarshal(line, &entry) != nil {
+		return ""
+	}
+	return entry.Timestamp
 }
 
 func (ps *PlatformService) GetLogFile(rctx request.CTX) (*model.FileData, error) {

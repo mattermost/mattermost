@@ -142,12 +142,12 @@ describe('components/admin_console/server_logs/Logs', () => {
     test('should apply a cleared search immediately', async () => {
         const searchInput = screen.getByLabelText('Search logs');
         await userEvent.type(searchInput, 'msg 1');
-        await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({search: 'msg 1'})));
+        await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({search: 'msg 1'}), expect.any(AbortSignal)));
 
         await userEvent.click(screen.getByLabelText('Clear search'));
 
         expect(searchInput).toHaveValue('');
-        await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({search: ''})));
+        await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({search: ''}), expect.any(AbortSignal)));
     });
 
     test('should default the live tail selector to off', () => {
@@ -322,7 +322,7 @@ describe('components/admin_console/server_logs/Logs fetching', () => {
         await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({
             dateFrom: '2026-10-20 12:25:00.000 +00:00',
             dateTo: '',
-        })));
+        }), expect.any(AbortSignal)));
     });
 
     test('should clear the time range from the empty state', async () => {
@@ -335,7 +335,7 @@ describe('components/admin_console/server_logs/Logs fetching', () => {
 
         await userEvent.click(screen.getByRole('button', {name: 'Clear filters'}));
 
-        await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({dateFrom: ''})));
+        await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({dateFrom: ''}), expect.any(AbortSignal)));
         expect(await screen.findByText(/No logs found/)).toBeInTheDocument();
     });
 
@@ -368,13 +368,13 @@ describe('components/admin_console/server_logs/Logs fetching', () => {
         await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({
             dateFrom: '2026-10-20 11:12:00.000 +00:00',
             dateTo: '2026-10-20 12:00:59.999 +00:00',
-        })));
+        }), expect.any(AbortSignal)));
         expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
         expect((screen.getByLabelText('Duration') as HTMLInputElement).value.replace(/\s/g, ' ')).toBe('Oct 20, 11:12 AM – 12:00 PM');
 
         await pickMenuItem('Open menu to select a time range', 'All time');
 
-        await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({dateFrom: '', dateTo: ''})));
+        await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({dateFrom: '', dateTo: ''}), expect.any(AbortSignal)));
     });
 
     test('should not apply a custom range that ends before it starts', async () => {
@@ -497,7 +497,7 @@ describe('components/admin_console/server_logs/Logs fetching', () => {
         await userEvent.type(screen.getByLabelText('Search logs'), 'WebSocket');
 
         // Debounced, so the whole term goes out in one query
-        await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({search: 'WebSocket'})));
+        await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({search: 'WebSocket'}), expect.any(AbortSignal)));
         expect(getLogs).toHaveBeenCalledTimes(2);
     });
 
@@ -532,6 +532,41 @@ describe('components/admin_console/server_logs/Logs fetching', () => {
 
         expect(getLogs).toHaveBeenCalledTimes(2);
         expect(getNewLogs).not.toHaveBeenCalled();
+    });
+
+    test('should abort a pending search when a newer one starts', async () => {
+        const signals: AbortSignal[] = [];
+        const getLogs = jest.fn((_query, signal: AbortSignal) => {
+            signals.push(signal);
+
+            // The first request only ends once aborted, like a long scan
+            if (signals.length === 1) {
+                return new Promise((resolve) => signal.addEventListener('abort', () => resolve({error: signal.reason})));
+            }
+            return Promise.resolve({});
+        });
+        renderLogs(getLogs);
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
+
+        await pickMenuItem('Open menu to select a time range', 'Last hour');
+
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(2));
+        expect(signals[0].aborted).toBe(true);
+        expect(signals[1].aborted).toBe(false);
+    });
+
+    test('should not abort a pending search for a live-tail poll', async () => {
+        const getLogs = jest.fn().mockResolvedValue({});
+        const getNewLogs = jest.fn().mockResolvedValue({});
+        renderLogs(getLogs, getNewLogs);
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
+
+        // Turning live tail on polls straight away
+        await pickMenuItem('Open menu to turn live tail on or off', 'Every 10 seconds');
+
+        await waitFor(() => expect(getNewLogs).toHaveBeenCalled());
+        expect(getNewLogs.mock.calls[0]).toHaveLength(1);
+        expect(getLogs.mock.calls[0][1].aborted).toBe(false);
     });
 
     test('should skip a queued fetch that a newer one replaces', async () => {
@@ -588,7 +623,7 @@ describe('components/admin_console/server_logs/Logs nodes', () => {
         expect(document.querySelector('.LogRow__node')).toBeNull();
     });
 
-    test('should show the truncation notice for a node that returned a full page', async () => {
+    test('should mark the total as capped for a node that returned a full page', async () => {
         renderWithContext(
             <Logs
                 logs={[nodeLog('node-a', 'a'), nodeLog('node-b', 'b')]}
@@ -600,7 +635,9 @@ describe('components/admin_console/server_logs/Logs nodes', () => {
             />,
         );
 
-        expect(await screen.findByText('Only the latest 10,000 entries from each node are shown')).toBeInTheDocument();
+        expect(await screen.findByText('a')).toBeInTheDocument();
+        expect(document.querySelector('.LogViewer__footer-info')).toHaveTextContent(/^Showing 1 - 2 of 2\+$/);
+        expect(screen.queryByText(/Only the latest/)).not.toBeInTheDocument();
     });
 
     test('should send the picked node with the query', async () => {
@@ -609,11 +646,11 @@ describe('components/admin_console/server_logs/Logs nodes', () => {
         expect(getLogs.mock.calls[0][0].serverNames).toEqual([]);
 
         await pickNode('node-b');
-        await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({serverNames: ['node-b']})));
+        await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({serverNames: ['node-b']}), expect.any(AbortSignal)));
         expect(screen.getByLabelText('Node')).toHaveValue('node-b');
 
         await pickNode('All nodes');
-        await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({serverNames: []})));
+        await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({serverNames: []}), expect.any(AbortSignal)));
         expect(screen.getByLabelText('Node')).toHaveValue('All nodes');
     });
 
@@ -690,7 +727,7 @@ describe('components/admin_console/server_logs/Logs nodes', () => {
 
         await pickNode('All nodes');
 
-        await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({serverNames: []})));
+        await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({serverNames: []}), expect.any(AbortSignal)));
     });
 
     test('should remember the picked node', async () => {
@@ -807,7 +844,7 @@ describe('components/admin_console/server_logs/Logs live tail', () => {
         fakeNow('2026-10-20T12:00:00.000Z');
         const {getLogs, getNewLogs} = renderLogs();
         await pickMenuItem('Open menu to select a time range', 'Last 5 minutes');
-        await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({dateFrom: '2026-10-20 11:55:00.000 +00:00'})));
+        await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({dateFrom: '2026-10-20 11:55:00.000 +00:00'}), expect.any(AbortSignal)));
 
         // The tab was hidden for a while, so the last fetch is older than the range
         jest.setSystemTime(new Date('2026-10-20T12:10:00.000Z'));
@@ -854,7 +891,7 @@ describe('components/admin_console/server_logs/Logs live tail', () => {
         await pickMenuItem('Open menu to select which log levels to show', 'Debug', 'menuitemcheckbox');
 
         await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(2));
-        expect(getLogs).toHaveBeenLastCalledWith({serverNames: [], logLevels: ['panic', 'fatal', 'critical', 'error', 'warn', 'info', 'stdlog'], dateFrom: '', dateTo: '', search: ''});
+        expect(getLogs).toHaveBeenLastCalledWith({serverNames: [], logLevels: ['panic', 'fatal', 'critical', 'error', 'warn', 'info', 'stdlog'], dateFrom: '', dateTo: '', search: ''}, expect.any(AbortSignal));
     });
 
     test('should reload everything on a manual reload while live tail is on', async () => {
@@ -920,7 +957,7 @@ describe('components/admin_console/server_logs/Logs URL filters', () => {
             serverNames: ['node-b'],
             dateFrom: '2026-10-20 11:00:00.000 +00:00',
             dateTo: '',
-        });
+        }, expect.any(AbortSignal));
         expect(screen.getByLabelText('Search logs')).toHaveValue('timeout');
         expect(screen.getByLabelText('Levels')).toHaveValue('2 selected');
         expect(screen.getByLabelText('Node')).toHaveValue('node-b');
@@ -934,7 +971,7 @@ describe('components/admin_console/server_logs/Logs URL filters', () => {
         expect(getLogs).toHaveBeenCalledWith(expect.objectContaining({
             dateFrom: '2026-10-20 11:12:00.000 +00:00',
             dateTo: '2026-10-20 12:00:59.999 +00:00',
-        }));
+        }), expect.any(AbortSignal));
         expect((screen.getByLabelText('Duration') as HTMLInputElement).value.replace(/\s/g, ' ')).toBe('Oct 20, 11:12 AM – 12:00 PM');
     });
 
@@ -943,7 +980,7 @@ describe('components/admin_console/server_logs/Logs URL filters', () => {
         const {getLogs} = renderLogs(`${PAGE}?levels=error,warn`);
 
         await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
-        expect(getLogs).toHaveBeenCalledWith(expect.objectContaining({logLevels: ERROR_AND_WARN, serverNames: ['node-a']}));
+        expect(getLogs).toHaveBeenCalledWith(expect.objectContaining({logLevels: ERROR_AND_WARN, serverNames: ['node-a']}), expect.any(AbortSignal));
     });
 
     test('should remember the levels and node of an opened link as the last used ones', async () => {
@@ -957,7 +994,7 @@ describe('components/admin_console/server_logs/Logs URL filters', () => {
         localStorage.setItem('mm_admin_logs_format', 'plain');
         const {getLogs, getPlainLogs} = renderLogs(`${PAGE}?search=timeout`);
 
-        await waitFor(() => expect(getLogs).toHaveBeenCalledWith(expect.objectContaining({search: 'timeout'})));
+        await waitFor(() => expect(getLogs).toHaveBeenCalledWith(expect.objectContaining({search: 'timeout'}), expect.any(AbortSignal)));
         expect(getPlainLogs).not.toHaveBeenCalled();
     });
 
@@ -966,7 +1003,7 @@ describe('components/admin_console/server_logs/Logs URL filters', () => {
         const {getLogs, history} = renderLogs(`${PAGE}?search=${'a'.repeat(257)}&levels=bogus,warn&range=7&from=2026-10-20T11:00:00Z&to=yesterday&tab=1`);
 
         await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
-        expect(getLogs).toHaveBeenCalledWith({search: '', logLevels: ['warn'], serverNames: [], dateFrom: '', dateTo: ''});
+        expect(getLogs).toHaveBeenCalledWith({search: '', logLevels: ['warn'], serverNames: [], dateFrom: '', dateTo: ''}, expect.any(AbortSignal));
         expect(screen.getByLabelText('Duration')).toHaveValue('All time');
 
         // Parameters that aren't filters are left alone
@@ -986,14 +1023,14 @@ describe('components/admin_console/server_logs/Logs URL filters', () => {
         const {getLogs} = renderLogs(`${PAGE}?${query}`);
 
         await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
-        expect(getLogs).toHaveBeenCalledWith(expect.objectContaining(expected));
+        expect(getLogs).toHaveBeenCalledWith(expect.objectContaining(expected), expect.any(AbortSignal));
     });
 
     test('should keep a search of 256 characters that take two UTF-16 code units each', async () => {
         const search = '😀'.repeat(256);
         const {getLogs} = renderLogs(`${PAGE}?search=${encodeURIComponent(search)}`);
 
-        await waitFor(() => expect(getLogs).toHaveBeenCalledWith(expect.objectContaining({search})));
+        await waitFor(() => expect(getLogs).toHaveBeenCalledWith(expect.objectContaining({search}), expect.any(AbortSignal)));
     });
 
     test('should mirror the filters in the URL as they change, without adding history entries', async () => {
@@ -1035,7 +1072,7 @@ describe('components/admin_console/server_logs/Logs URL filters', () => {
         await userEvent.type(screen.getByLabelText('Search logs'), 'WebSocket');
 
         await waitFor(() => expect(urlParams(history)).toEqual({search: 'WebSocket'}));
-        expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({search: 'WebSocket'}));
+        expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({search: 'WebSocket'}), expect.any(AbortSignal));
         expect(searches).toEqual(['WebSocket']);
     });
 
@@ -1063,7 +1100,7 @@ describe('components/admin_console/server_logs/Logs URL filters', () => {
             serverNames: ['node-b'],
             dateFrom: '2026-10-20 11:00:00.000 +00:00',
             dateTo: '',
-        }));
+        }, expect.any(AbortSignal)));
         expect(screen.getByLabelText('Search logs')).toHaveValue('second');
         expect(screen.getByLabelText('Duration')).toHaveValue('Last hour');
 
@@ -1089,7 +1126,7 @@ describe('components/admin_console/server_logs/Logs URL filters', () => {
 
         act(() => history.push(PAGE));
 
-        await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith({search: '', logLevels: [], serverNames: [], dateFrom: '', dateTo: ''}));
+        await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith({search: '', logLevels: [], serverNames: [], dateFrom: '', dateTo: ''}, expect.any(AbortSignal)));
         expect(screen.getByLabelText('Search logs')).toHaveValue('');
         expect(history.location.search).toBe('');
     });

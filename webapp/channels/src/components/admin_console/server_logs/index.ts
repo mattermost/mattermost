@@ -19,6 +19,7 @@ function mapStateToProps(state: GlobalState) {
         logs: Selectors.getAllLogsWithNode(state),
         logNodes: Selectors.getLogNodes(state),
         truncatedLogNodes: Selectors.getTruncatedLogNodes(state),
+        scanLimitedLogNodes: Selectors.getScanLimitedLogNodes(state),
         plainLogs: Selectors.getPlainLogs(state),
         isPlainLogs: config.LogSettings?.FileJson === false,
     };
