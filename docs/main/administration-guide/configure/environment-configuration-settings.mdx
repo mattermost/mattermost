@@ -473,7 +473,7 @@ This setting only takes effect if you are using the built-in server binary direc
 - We recommend keeping the default setting when Mattermost is running without a proxy to avoid the client sending the headers and bypassing rate limiting and/or the audit log.
 - For environments that use a reverse proxy, this issue does not exist, provided that the headers are set by the reverse proxy. In those environments, only explicitly whitelist the header set by the reverse proxy and no additional values.
 - Behind NGINX, set this to `["X-Real-IP"]`. NGINX overwrites `X-Real-IP` with the address of the connecting client. See [Set up an NGINX proxy](/deployment-guide/server/setup-nginx-proxy#mattermost-settings-behind-nginx) for the matching NGINX configuration.
-- Keep Mattermost Server reachable only through the proxy, apart from machines that you fully trust, because a client that connects directly can send any value in the trusted header.
+- Keep Mattermost Server reachable only through the proxy, including for administration, because a client that connects directly can send any value in the trusted header.
 - If another load balancer sits in front of NGINX, use the NGINX `real_ip` module with `set_real_ip_from` limited to that load balancer's addresses. See [Set up an NGINX proxy](/deployment-guide/server/setup-nginx-proxy#mattermost-settings-behind-nginx).
 
 </Note>

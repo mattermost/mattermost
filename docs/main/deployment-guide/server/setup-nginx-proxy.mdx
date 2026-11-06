@@ -254,7 +254,7 @@ resolver <your DNS server>;                                 # DNS server for rea
 
     On NGINX 1.25.1 and later, `nginx -t` warns that the `http2` parameter of `listen` is deprecated. The configuration still works. On RHEL/CentOS with SELinux enforcing, also allow NGINX to connect to Mattermost: `sudo setsebool -P httpd_can_network_connect 1`.
 
-6.  Restrict access to port 8065. Use your firewall to block it for every machine except the NGINX server and the machine that you administer Mattermost from. On Amazon Web Services, use Security Groups.
+6.  Restrict access to port 8065. Use your firewall to block it for every machine except the NGINX server. Administer Mattermost through NGINX as well, so that nobody can send a trusted `X-Real-IP` header directly. On Amazon Web Services, use Security Groups.
 
 7.  Tell Mattermost to read the user's IP address from the header that NGINX sets. Set [`ServiceSettings.TrustedProxyIPHeader`](/administration-guide/configure/environment-configuration-settings#trusted-proxy-ip-header) to `["X-Real-IP"]` in `config.json`. Without it, Mattermost sees every user with the IP address of NGINX, which affects rate limiting and logs. Don't use `X-Forwarded-For`, because clients can fake it.
 
