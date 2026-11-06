@@ -676,12 +676,22 @@ func (ps *PropertyService) templateFieldsOfType(rctx request.CTX, field *model.P
 // isOnlyDependedParentField reports whether field is the only field of its
 // object type on its template while a child field's parent rule reads from it.
 // Deleting or unlinking it would leave every write to the child refusing as
-// broken data; with another such field present, one is still left. Store
-// errors are returned unwrapped.
-func (ps *PropertyService) isOnlyDependedParentField(rctx request.CTX, field *model.PropertyField) (bool, error) {
-	depended, err := ps.childFieldHasParentRule(rctx, field)
-	if err != nil || !depended {
-		return false, err
+// broken data; with another such field present, one is still left. Child fields
+// are read from the store and from incoming, the fields of the update call in
+// flight (nil when there is none). Store errors are returned unwrapped.
+func (ps *PropertyService) isOnlyDependedParentField(rctx request.CTX, field *model.PropertyField, incoming map[string]*model.PropertyField) (bool, error) {
+	depended := field.LinkSourceID() != "" && slices.ContainsFunc(slices.Collect(maps.Values(incoming)), func(c *model.PropertyField) bool {
+		return model.PropertyFieldParentObjectType(c.ObjectType) == field.ObjectType &&
+			c.LinkSourceID() == field.LinkSourceID() &&
+			slices.ContainsFunc(c.Bounds, func(r model.PropertyBoundsRule) bool {
+				return r.Reference == model.PropertyBoundsReferenceParent
+			})
+	})
+	if !depended {
+		var err error
+		if depended, err = ps.childFieldHasParentRule(rctx, field); err != nil || !depended {
+			return false, err
+		}
 	}
 	matches, err := ps.templateFieldsOfType(rctx, field, field.ObjectType, 2)
 	if err != nil {
@@ -1085,10 +1095,12 @@ func (ps *PropertyService) updatePropertyFieldsIfUnchanged(rctx request.CTX, gro
 			}
 
 			// Unlinking is refused for the same reason deleting is: the field is
-			// the only one a child field's parent rule reads from. Checked on the
-			// stored field, so a call that also removes the child's rule is still
-			// refused; remove the rule first.
-			onlyDepended, dErr := ps.isOnlyDependedParentField(rctx, existing)
+			// the only one a child field's parent rule reads from. Child fields are
+			// read from the store as well as from this call, so a call that gives a
+			// child a parent rule while unlinking its parent-side field is refused,
+			// and so is one that removes the child's rule while unlinking; remove
+			// the rule first.
+			onlyDepended, dErr := ps.isOnlyDependedParentField(rctx, existing, incoming)
 			if dErr != nil {
 				return nil, nil, nil, fmt.Errorf("UpdatePropertyFields: failed to look up child fields: %w", dErr)
 			}
@@ -1808,7 +1820,7 @@ func (ps *PropertyService) deletePropertyField(rctx request.CTX, groupID, id str
 	// Nor the only parent-side field a child field's parent rule compares
 	// against: every write to the child would then refuse as broken data.
 	// Deleting one of several is allowed, since it leaves exactly one.
-	onlyDepended, err := ps.isOnlyDependedParentField(rctx, field)
+	onlyDepended, err := ps.isOnlyDependedParentField(rctx, field, nil)
 	if err != nil {
 		return fmt.Errorf("DeletePropertyField: failed to look up child fields: %w", err)
 	}

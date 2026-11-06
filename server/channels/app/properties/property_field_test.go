@@ -4726,6 +4726,29 @@ func TestPropertyFieldBoundsParentField(t *testing.T) {
 			assert.Equal(t, template.ID, stored.LinkSourceID())
 		})
 
+		t.Run("a child gaining a parent rule in the same call", func(t *testing.T) {
+			groupID, template, create := setup(t)
+			system, err := create(model.PropertyFieldObjectTypeSystem, nil)
+			require.NoError(t, err)
+			channel, err := create(model.PropertyFieldObjectTypeChannel, nil)
+			require.NoError(t, err)
+
+			channel.Bounds = belowParent
+			system.LinkedFieldID = model.NewPointer("")
+			_, _, _, err = th.service.UpdatePropertyFields(rctx, groupID, []*model.PropertyField{channel, system})
+			var appErr *model.AppError
+			require.ErrorAs(t, err, &appErr)
+			assert.Equal(t, "app.property_field.update.unlink_parent_rule_dependents.app_error", appErr.Id)
+			assert.Equal(t, http.StatusConflict, appErr.StatusCode)
+
+			storedSystem, err := th.service.GetPropertyField(rctx, groupID, system.ID)
+			require.NoError(t, err)
+			assert.Equal(t, template.ID, storedSystem.LinkSourceID())
+			storedChannel, err := th.service.GetPropertyField(rctx, groupID, channel.ID)
+			require.NoError(t, err)
+			assert.Empty(t, storedChannel.Bounds)
+		})
+
 		t.Run("allowed once the child's parent rule is removed", func(t *testing.T) {
 			groupID, _, create := setup(t)
 			system, err := create(model.PropertyFieldObjectTypeSystem, nil)
