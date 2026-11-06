@@ -6603,11 +6603,14 @@ func testPropertyFieldBounds(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	t.Run("update sets bounds and a lock", func(t *testing.T) {
 		plain.Bounds = rules
-		plain.Mutability = model.PropertyFieldMutabilitySetOnCreate
-		_, err := ss.PropertyField().Update("", []*model.PropertyField{plain}, nil)
+		locked.Mutability = model.PropertyFieldMutabilitySetOnCreate
+		_, err := ss.PropertyField().Update("", []*model.PropertyField{plain, locked}, nil)
 		require.NoError(t, err)
-		got := get(t, plain.ID)
-		require.Equal(t, rules, got.Bounds)
-		require.Equal(t, model.PropertyFieldMutabilitySetOnCreate, got.Mutability)
+		gotPlain := get(t, plain.ID)
+		require.Equal(t, rules, gotPlain.Bounds)
+		require.Empty(t, gotPlain.Mutability)
+		gotLocked := get(t, locked.ID)
+		require.Nil(t, gotLocked.Bounds)
+		require.Equal(t, model.PropertyFieldMutabilitySetOnCreate, gotLocked.Mutability)
 	})
 }
