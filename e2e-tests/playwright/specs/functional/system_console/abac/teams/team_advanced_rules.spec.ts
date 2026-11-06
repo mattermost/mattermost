@@ -880,10 +880,13 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
         // # A team admin who satisfies both rules, so self-inclusion never decides the outcome
         const teamAdmin = users.teamAdminSalesUS;
         await adminClient.addToTeam(team.id, teamAdmin.id);
-        await (adminClient as any).doFetch(`${adminClient.getBaseRoute()}/teams/${team.id}/members/${teamAdmin.id}/roles`, {
-            method: 'put',
-            body: JSON.stringify({roles: 'team_user team_admin'}),
-        });
+        await (adminClient as any).doFetch(
+            `${adminClient.getBaseRoute()}/teams/${team.id}/members/${teamAdmin.id}/roles`,
+            {
+                method: 'put',
+                body: JSON.stringify({roles: 'team_user team_admin'}),
+            },
+        );
         const {client: teamAdminClient} = await pw.makeClient({
             username: teamAdmin.username,
             password: teamAdmin.password,
