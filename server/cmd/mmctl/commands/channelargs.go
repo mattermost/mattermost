@@ -54,7 +54,7 @@ func getChannelFromChannelArg(c client.Client, channelArg string) *model.Channel
 		if model.IsValidId(channelPart) {
 			channel, _, _ = c.GetChannel(context.TODO(), strings.ToLower(channelPart))
 			if channel != nil && channel.TeamId != team.Id {
-				return nil
+				channel = nil
 			}
 		}
 
@@ -108,6 +108,7 @@ func getChannelFromArg(c client.Client, arg string) (*model.Channel, error) {
 	var channel *model.Channel
 	var response *model.Response
 	var team *model.Team
+	var crossTeamID bool
 	if teamArg != "" {
 		var err error
 		team, err = getTeamFromArg(c, teamArg)
@@ -126,7 +127,8 @@ func getChannelFromArg(c client.Client, arg string) (*model.Channel, error) {
 				}
 			}
 			if channel != nil && channel.TeamId != team.Id {
-				return nil, fmt.Errorf("channel does not belong to team %q", teamArg)
+				crossTeamID = true
+				channel = nil
 			}
 		}
 		if channel == nil {
@@ -138,6 +140,9 @@ func getChannelFromArg(c client.Client, arg string) (*model.Channel, error) {
 				if !errors.As(err, &nfErr) && !errors.As(err, &badRequestErr) {
 					return nil, err
 				}
+			}
+			if channel == nil && crossTeamID {
+				return nil, fmt.Errorf("channel does not belong to team %q", teamArg)
 			}
 		}
 	}

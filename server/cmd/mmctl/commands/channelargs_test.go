@@ -355,6 +355,7 @@ func (s *MmctlUnitTestSuite) TestGetChannelFromArg_PrefersIdWhenChannelPartLooks
 			channelID := model.NewId()
 			teamA := &model.Team{Id: teamAID}
 			channelInTeamB := &model.Channel{Id: channelID, TeamId: teamBID, Name: "town-square"}
+			notFoundErr := errors.New("channel not found")
 
 			s.client.
 				EXPECT().
@@ -365,6 +366,11 @@ func (s *MmctlUnitTestSuite) TestGetChannelFromArg_PrefersIdWhenChannelPartLooks
 				EXPECT().
 				GetChannel(context.TODO(), channelID).
 				Return(channelInTeamB, &model.Response{StatusCode: http.StatusOK}, nil).
+				Times(1)
+			s.client.
+				EXPECT().
+				GetChannelByNameIncludeDeleted(context.TODO(), channelID, teamAID, "").
+				Return(nil, &model.Response{StatusCode: http.StatusNotFound}, notFoundErr).
 				Times(1)
 
 			channel, err := resolver.call(fmt.Sprintf("%s:%s", teamAID, channelID))
@@ -399,6 +405,37 @@ func (s *MmctlUnitTestSuite) TestGetChannelFromArg_PrefersIdWhenChannelPartLooks
 			s.Require().NoError(err)
 			s.Require().NotNil(result)
 			s.Require().Equal(channelID, result.Id)
+		})
+
+		s.Run(resolver.name+" falls back to name lookup when ID belongs to different team", func() {
+			teamAID := model.NewId()
+			teamBID := model.NewId()
+			channelIDValue := model.NewId()
+			teamA := &model.Team{Id: teamAID}
+			channelInTeamB := &model.Channel{Id: channelIDValue, TeamId: teamBID, Name: "other-channel"}
+			channelInTeamAWithIDAsName := &model.Channel{Id: model.NewId(), TeamId: teamAID, Name: channelIDValue}
+
+			s.client.
+				EXPECT().
+				GetTeam(context.TODO(), teamAID, "").
+				Return(teamA, &model.Response{StatusCode: http.StatusOK}, nil).
+				Times(1)
+			s.client.
+				EXPECT().
+				GetChannel(context.TODO(), channelIDValue).
+				Return(channelInTeamB, &model.Response{StatusCode: http.StatusOK}, nil).
+				Times(1)
+			s.client.
+				EXPECT().
+				GetChannelByNameIncludeDeleted(context.TODO(), channelIDValue, teamAID, "").
+				Return(channelInTeamAWithIDAsName, &model.Response{StatusCode: http.StatusOK}, nil).
+				Times(1)
+
+			result, err := resolver.call(fmt.Sprintf("%s:%s", teamAID, channelIDValue))
+			s.Require().NoError(err)
+			s.Require().NotNil(result)
+			s.Require().Equal(teamAID, result.TeamId)
+			s.Require().Equal(channelIDValue, result.Name)
 		})
 	}
 }
