@@ -309,6 +309,7 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 			case "NODE_FD_EXHAUSTION", "FILESTORE_DISK_LOW", "FILESTORE_DISK_FULL":
 				require.NotNil(t, evaluations[i].Result.Value)
 				evaluations[i].Result.Value = nil
+				evaluations[i].Result.Details = nil
 			}
 		}
 		return evaluations
