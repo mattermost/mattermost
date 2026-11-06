@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"slices"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -86,4 +87,44 @@ func (h *AccessControlAttributeValidationHook) boundsParent(rctx request.CTX, fi
 		return nil, "", "", fmt.Errorf("field %s: target %s needs exactly one parent field, found %s: %w", field.ID, targetID, found, errBoundsCheckFailed)
 	}
 	return matches[0], parentTargetType, parentTargetID, nil
+}
+
+// checkParentRule decides whether value, about to be written to field, satisfies
+// a parent rule. An empty parent value isn't a limit: the walk moves up only
+// through parent fields carrying the same rule, so an object isn't held to a
+// level that its own level isn't. Nothing up the chain having a value means no
+// limit. The parent's value is read from the store directly, so masking doesn't
+// loosen the rule.
+func (h *AccessControlAttributeValidationHook) checkParentRule(rctx request.CTX, field *model.PropertyField, rule model.PropertyBoundsRule, value *model.PropertyValue) error {
+	if model.IsEmptyPropertyValue(value.Value) {
+		return nil
+	}
+
+	// The walk ends at the system, which has no parent and so never carries a parent rule.
+	current, targetID := field, value.TargetID
+	for {
+		parentField, parentTargetType, parentTargetID, err := h.boundsParent(rctx, current, targetID)
+		if err != nil {
+			return err
+		}
+
+		values, err := h.propertyService.searchPropertyValues(rctx, field.GroupID, model.PropertyValueSearchOpts{
+			FieldID:    parentField.ID,
+			TargetType: parentTargetType,
+			TargetIDs:  []string{parentTargetID},
+			PerPage:    1,
+		})
+		if err != nil {
+			return fmt.Errorf("field %s: failed to read the parent's value for target %s: %w", field.ID, targetID, err)
+		}
+
+		// A user's clear leaves a null-valued row behind, so a row isn't proof of a value.
+		if len(values) > 0 && !model.IsEmptyPropertyValue(values[0].Value) {
+			return compareByRank(field, rule.Operator, value.Value, values[0].Value)
+		}
+		if !slices.Contains(parentField.Bounds, rule) {
+			return nil
+		}
+		current, targetID = parentField, parentTargetID
+	}
 }
