@@ -89,6 +89,7 @@ func TestBuiltinRegistry(t *testing.T) {
 		"PUSH_EMPTY_URL",
 		"PUSH_BAD_SCHEME",
 		"PUSH_TEST_PROXY",
+		"PUSH_PROXY_UNREACHABLE",
 
 		// platform
 		"FILESTORE_LOCAL_IN_CLUSTER",
@@ -154,6 +155,7 @@ func TestBuiltinRulesOnCloud(t *testing.T) {
 		"PUSH_BAD_SCHEME",
 		"PUSH_EMPTY_URL",
 		"PUSH_ID_ONLY",
+		"PUSH_PROXY_UNREACHABLE",
 		"PUSH_TEST_PROXY",
 		"SAML_ENCRYPT_OFF",
 		"SAML_ID_IS_EMAIL",

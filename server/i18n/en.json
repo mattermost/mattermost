@@ -15467,6 +15467,26 @@
     "description": "Health dashboard finding title when push notification payloads contain the message text and sender."
   },
   {
+    "id": "health.rule.push_proxy_unreachable.message",
+    "translation": "The connection test to the push notification server failed: {{.error}}. Mobile users may not receive push notifications.",
+    "description": "Health dashboard finding detail when no app node could connect to the configured push notification server; {{.error}} is the error the failing nodes reported, with URL credentials masked."
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.message.partial",
+    "translation": "The connection test to the push notification server failed on {{.nodes}}, while the other nodes reach it. Push notifications sent by those nodes may fail. Check the network, firewall, proxy and DNS settings on those nodes. Error: {{.error}}",
+    "description": "Health dashboard finding detail when the push notification server connection test fails on some cluster nodes but not others; {{.nodes}} is a comma-separated list of node hostnames and {{.error}} is the error the failing nodes reported, with URL credentials masked."
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.remediation",
+    "translation": "Check PushNotificationServer, TLS certificates and push proxy health. Confirm every Mattermost app node can reach the configured host over HTTPS, then verify its /version endpoint.",
+    "description": "Health dashboard fix-it step for a failed push notification server connection test; 'PushNotificationServer' is a config setting path, '/version' is a literal endpoint, and neither should be translated."
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.title",
+    "translation": "Push notification server connection test failed",
+    "description": "Health dashboard finding title when one or more app nodes could not connect to the configured push notification server."
+  },
+  {
     "id": "health.rule.push_test_proxy.message",
     "translation": "push-test.mattermost.com is the Mattermost test push proxy. It has no SLA, limited throughput, and is not intended for production use. Mobile push delivery will be unreliable for anything beyond small-scale testing.",
     "description": "Health dashboard finding detail when the push notification server is push-test.mattermost.com, Mattermost's test push proxy that is not meant for production; 'SLA' means service level agreement."
