@@ -16,6 +16,38 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const SITE_ROOT = resolve(HERE, '..');
 const REPO_ROOT = resolve(SITE_ROOT, '..');
 const SRC = join(REPO_ROOT, 'main');
+
+// Sidebar entries for pages staged from the Agents plugin submodule into
+// main/agents/docs/ (see stage-agents-docs.mjs). The pinned submodule can lag
+// the plugin repo, so a page listed here may not exist yet: skip it with a
+// warning instead of failing the build. `id` is the full doc id, e.g.
+// 'agents/docs/mcp_server'. `label` overrides the staged page's title.
+function agentsDocItems(specs) {
+  const items = [];
+  for (const spec of specs) {
+    const {id, label} = typeof spec === 'string' ? {id: spec} : spec;
+    if (!existsSync(join(SRC, `${id}.md`)) && !existsSync(join(SRC, `${id}.mdx`))) {
+      console.warn(`[sidebar] WARN: ${id} was not staged from the Agents plugin docs (submodule too old?) — skipping it in the sidebar.`);
+      continue;
+    }
+    items.push(label ? {doc: id, label} : {doc: id});
+  }
+  return items;
+}
+
+// A nested sidebar category of staged Agents pages whose landing page is one
+// of them. Returns a one-element array, so callers can spread it into an
+// items list. When the landing page isn't staged (submodule too old), the
+// children are returned flat instead, so nothing is lost and the category
+// never points at a missing doc.
+function agentsDocCategory(label, landingId, specs) {
+  const children = agentsDocItems(specs);
+  if (!existsSync(join(SRC, `${landingId}.md`)) && !existsSync(join(SRC, `${landingId}.mdx`))) {
+    console.warn(`[sidebar] WARN: ${landingId} was not staged from the Agents plugin docs (submodule too old?) — listing the "${label}" pages without a category.`);
+    return children;
+  }
+  return [{label, landingDoc: landingId, items: children}];
+}
 const OUT = join(SITE_ROOT, 'sidebars', 'documentation.generated.json');
 
 // ===========================================================================
@@ -427,9 +459,35 @@ const ADMIN_CONFIGURE_GROUPS = {
     label: 'AI agents',
     landing: 'agents-admin-guide',
     items: [
-      {doc: 'agents/docs/providers'},
-      {doc: 'agents/docs/aws_bedrock_setup'},
-      {doc: 'agents/docs/sovereign_ai'},
+      ...agentsDocCategory('Connect an LLM', 'agents/docs/llm_services', [
+        {id: 'agents/docs/providers', label: 'Provider configuration'},
+        {id: 'agents/docs/aws_bedrock_setup', label: 'AWS Bedrock'},
+      ]),
+      ...agentsDocItems([
+        {id: 'agents/docs/managing_agents', label: 'Create and manage agents'},
+        {id: 'agents/docs/access_control', label: 'Control who can use agents'},
+      ]),
+      ...agentsDocItems([
+        {id: 'agents/docs/channel_settings', label: 'Control agents in channels'},
+      ]),
+      ...agentsDocCategory('MCP and tools', 'agents/docs/mcp_integrations', [
+        {id: 'agents/docs/tool_approval', label: 'Tool approval and credentials'},
+      ]),
+      ...agentsDocCategory('Developers and integrators', 'agents/docs/mcp_server', [
+        {id: 'agents/docs/mcp_tools', label: 'Mattermost MCP tool reference'},
+        {id: 'agents/docs/llm_bridge', label: 'LLM Bridge for plugins'},
+      ]),
+      ...agentsDocItems([
+        {id: 'agents/docs/web_search', label: 'Web search'},
+        {id: 'agents/docs/embedding_search', label: 'Set up semantic search'},
+        {id: 'agents/docs/ai_output_security', label: 'Secure AI-generated links and HTML'},
+        {id: 'agents/docs/observability', label: 'Monitor Agents'},
+        {id: 'agents/docs/backup_and_automation', label: 'Back up and automate'},
+        {id: 'agents/docs/troubleshooting', label: 'Troubleshoot Agents'},
+        {id: 'agents/docs/data_handling', label: 'Data handling'},
+        {id: 'agents/docs/sovereign_ai', label: 'Sovereign AI deployments'},
+        {id: 'agents/docs/upgrading_to_2.0', label: 'Upgrade from Agents 1.x'},
+      ]),
     ],
   },
 };
@@ -931,10 +989,10 @@ const ADMIN_ROOT_ORDER = [
   'Migrate',
 ];
 
-// AI Agents above Project Management: Boards is in maintenance mode (see
+// Use Mattermost Agents above Project Management: Boards is in maintenance mode (see
 // administration-guide/configure/install-boards), Agents is not.
 const ENDUSER_ROOT_ORDER = [
-  'Access your workspace', 'Collaborate', 'Workflow Automation', 'AI Agents',
+  'Access your workspace', 'Collaborate', 'Workflow Automation', 'Use Mattermost Agents',
   'Project Management', 'Preferences',
 ];
 
@@ -1450,7 +1508,9 @@ function buildAdminConfigureItem(spec, leafLabels) {
   if (spec.doc) {
     return {type: 'doc', id: spec.doc, label: spec.label || docLabelById(spec.doc)};
   }
-  const g = ADMIN_CONFIGURE_GROUPS[spec.group];
+  // A group is either referenced by key ({group: 'agents'}) or written inline
+  // ({label, landingDoc, items}), which is how a group nests inside another.
+  const g = spec.items ? spec : ADMIN_CONFIGURE_GROUPS[spec.group];
   if (!g) throw new Error(`unknown admin configure group: ${spec.group}`);
   const items = g.items.map((it) => buildAdminConfigureItem(it, leafLabels));
   const cat = {type: 'category', label: g.label, collapsed: true, items};
@@ -2053,11 +2113,19 @@ function regroupEndUserSection(sectionCat, dirName, override) {
 }
 
 function buildEndUserGuideSidebar(autoCat) {
-  // usage_tips' label is overridden here because agents/docs/ is staged from
-  // the plugin submodule and gitignored, so its frontmatter title can't be
-  // corrected in this repo.
+  // Labels are overridden here where the staged page's title is longer than a
+  // sidebar entry should be. agents/docs/ is staged from the plugin submodule
+  // and gitignored, so a title can't be corrected in this repo.
   const promoted = promoteDocToCategory(autoCat.items, 'end-user-guide/agents', [
-    {doc: 'agents/docs/usage_tips', label: 'Agents usage tips and best practices'},
+    ...agentsDocItems([
+      {id: 'agents/docs/personal_agent', label: 'Use Agents as your personal AI assistant'},
+      {id: 'agents/docs/using_tools', label: 'Use tools and approve actions'},
+      {id: 'agents/docs/agents_in_channels', label: 'Use agents in channels'},
+      {id: 'agents/docs/summaries_and_search', label: 'Summaries and AI search'},
+      {id: 'agents/docs/meeting_summaries', label: 'Meeting summaries'},
+      {id: 'agents/docs/skills', label: 'Skills'},
+      {id: 'agents/docs/mcp_server', label: 'Use Mattermost from Claude, Cursor, or VS Code'},
+    ]),
     'end-user-guide/collaborate/agents-context-management',
   ]);
   if (!promoted) {

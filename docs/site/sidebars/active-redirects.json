@@ -3170,10 +3170,6 @@
       "to": "/"
     },
     {
-      "from": "/agents/docs/upgrading_to_2.0",
-      "to": "/administration-guide/configure/agents-admin-guide"
-    },
-    {
       "from": "/boards/share-and-collaborate",
       "to": "/end-user-guide/project-management/share-and-collaborate"
     },
@@ -4176,6 +4172,30 @@
     {
       "from": "/administration-guide/onboard/moving-from-slack",
       "to": "/administration-guide/onboard/slack-migration-overview"
+    },
+    {
+      "from": "/agents/docs/usage_tips",
+      "to": "/agents/docs/personal_agent"
+    },
+    {
+      "from": "/agents/docs/features/managing_agents",
+      "to": "/agents/docs/managing_agents"
+    },
+    {
+      "from": "/agents/docs/features/custom_prompts",
+      "to": "/agents/docs/skills"
+    },
+    {
+      "from": "/agents/docs/custom_prompts",
+      "to": "/agents/docs/skills"
+    },
+    {
+      "from": "/agents/docs/features/channel_summaries",
+      "to": "/agents/docs/summaries_and_search"
+    },
+    {
+      "from": "/agents/docs/features/multiplayer_tool_calling",
+      "to": "/agents/docs/tool_approval"
     }
   ]
 }
