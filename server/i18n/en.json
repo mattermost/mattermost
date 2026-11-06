@@ -7020,6 +7020,11 @@
     "description": "API error returned when the server fails to save an audit log record."
   },
   {
+    "id": "app.authorization.missing_resource_id.app_error",
+    "translation": "A resource ID is required to check this permission.",
+    "description": "API error returned when a team or channel permission check is requested without the ID of the team or channel to check against."
+  },
+  {
     "id": "app.bot.createbot.internal_error",
     "translation": "Unable to save the bot.",
     "description": "Internal API error when saving a new bot account to the database fails."

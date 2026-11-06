@@ -16,10 +16,17 @@ import (
 )
 
 func (a *App) SessionHasPermissionTo(session model.Session, permission *model.Permission) bool {
+	hasPermission, _ := a.sessionHasPermissionToWithError(session, permission)
+	return hasPermission
+}
+
+// sessionHasPermissionToWithError is the system-scope RBAC check behind
+// SessionHasPermissionTo, also reporting a role lookup failure.
+func (a *App) sessionHasPermissionToWithError(session model.Session, permission *model.Permission) (bool, *model.AppError) {
 	if session.IsUnrestricted() {
-		return true
+		return true, nil
 	}
-	return a.RolesGrantPermission(session.GetUserRoles(), permission.Id)
+	return a.rolesGrantPermissionWithError(session.GetUserRoles(), permission.Id)
 }
 
 // SessionHasPermissionToAndNotRestrictedAdmin is a variant of [App.SessionHasPermissionTo] that
@@ -46,21 +53,38 @@ func (a *App) SessionHasPermissionToAny(session model.Session, permissions []*mo
 }
 
 func (a *App) SessionHasPermissionToTeam(session model.Session, teamID string, permission *model.Permission) bool {
+	hasPermission, _ := a.sessionHasPermissionToTeamWithError(session, teamID, permission)
+	return hasPermission
+}
+
+// sessionHasPermissionToTeamWithError is the team-scope RBAC check behind
+// SessionHasPermissionToTeam. The result is the one SessionHasPermissionToTeam
+// returns; the error additionally reports an empty team ID or a role lookup
+// failure, even when the check still allowed through another role.
+func (a *App) sessionHasPermissionToTeamWithError(session model.Session, teamID string, permission *model.Permission) (bool, *model.AppError) {
 	if teamID == "" {
-		return false
+		return false, model.NewAppError("sessionHasPermissionToTeamWithError", "app.authorization.missing_resource_id.app_error", nil, "team_id is empty", http.StatusBadRequest)
 	}
 	if session.IsUnrestricted() {
-		return true
+		return true, nil
 	}
 
+	var lookupErr *model.AppError
 	teamMember := session.GetTeamByTeamId(teamID)
 	if teamMember != nil {
-		if a.RolesGrantPermission(teamMember.GetRoles(), permission.Id) {
-			return true
+		granted, appErr := a.rolesGrantPermissionWithError(teamMember.GetRoles(), permission.Id)
+		if appErr != nil {
+			lookupErr = appErr
+		} else if granted {
+			return true, nil
 		}
 	}
 
-	return a.RolesGrantPermission(session.GetUserRoles(), permission.Id)
+	granted, appErr := a.rolesGrantPermissionWithError(session.GetUserRoles(), permission.Id)
+	if lookupErr == nil {
+		lookupErr = appErr
+	}
+	return granted, lookupErr
 }
 
 // SessionHasPermissionToTeams returns true only if user has access to all teams.
@@ -99,44 +123,64 @@ func (a *App) SessionHasPermissionToTeams(rctx request.CTX, session model.Sessio
 // hasPermission: true if the user has the specified permission for the channel, otherwise false.
 // isMember: used for auditing access without membership. True if the user is a member of the channel, otherwise false.
 func (a *App) SessionHasPermissionToChannel(rctx request.CTX, session model.Session, channelID string, permission *model.Permission) (hasPermission bool, isMember bool) {
+	hasPermission, isMember, _ = a.sessionHasPermissionToChannelWithError(rctx, session, channelID, permission)
+	return hasPermission, isMember
+}
+
+// sessionHasPermissionToChannelWithError is the channel-scope RBAC check behind
+// SessionHasPermissionToChannel. hasPermission and isMember are the values
+// SessionHasPermissionToChannel returns; the error additionally reports an
+// empty or nonexistent channel, a channel or channel-member lookup failure, or
+// a role lookup failure. A failed member lookup doesn't stop the check, so the
+// error can accompany an allow granted through another role.
+func (a *App) sessionHasPermissionToChannelWithError(rctx request.CTX, session model.Session, channelID string, permission *model.Permission) (hasPermission bool, isMember bool, appErr *model.AppError) {
 	if channelID == "" {
-		return false, false
+		return false, false, model.NewAppError("sessionHasPermissionToChannelWithError", "app.authorization.missing_resource_id.app_error", nil, "channel_id is empty", http.StatusBadRequest)
 	}
 
 	channel, appErr := a.GetChannel(rctx, channelID)
-	if appErr != nil && appErr.StatusCode == http.StatusNotFound {
-		return false, false
-	} else if appErr != nil {
-		rctx.Logger().Warn("Failed to get channel", mlog.String("channel_id", channelID), mlog.Err(appErr))
-		return false, false
+	if appErr != nil {
+		if appErr.StatusCode != http.StatusNotFound {
+			rctx.Logger().Warn("Failed to get channel", mlog.String("channel_id", channelID), mlog.Err(appErr))
+		}
+		return false, false, appErr
 	}
 
 	if session.IsUnrestricted() {
-		return true, false
+		return true, false, nil
 	}
 
-	isMember = false
+	var lookupErr *model.AppError
 	ids, err := a.Srv().Store().Channel().GetAllChannelMembersForUser(rctx, session.UserId, true, true)
-	var channelRoles []string
-	if err == nil {
-		if roles, ok := ids[channelID]; ok {
-			isMember = true
-			channelRoles = strings.Fields(roles)
-			if a.RolesGrantPermission(channelRoles, permission.Id) {
-				return true, isMember
-			}
+	if err != nil {
+		lookupErr = model.NewAppError("sessionHasPermissionToChannelWithError", "app.channel.get_members.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	} else if roles, ok := ids[channelID]; ok {
+		isMember = true
+		granted, roleErr := a.rolesGrantPermissionWithError(strings.Fields(roles), permission.Id)
+		if roleErr != nil {
+			lookupErr = roleErr
+		} else if granted {
+			return true, isMember, nil
 		}
 	}
 
-	if a.RolesGrantPermission(session.GetUserRoles(), model.PermissionManageSystem.Id) {
-		return true, isMember
+	granted, roleErr := a.rolesGrantPermissionWithError(session.GetUserRoles(), model.PermissionManageSystem.Id)
+	if lookupErr == nil {
+		lookupErr = roleErr
+	}
+	if granted {
+		return true, isMember, lookupErr
 	}
 
 	if channel.TeamId != "" {
-		return a.SessionHasPermissionToTeam(session, channel.TeamId, permission), isMember
+		hasPermission, appErr = a.sessionHasPermissionToTeamWithError(session, channel.TeamId, permission)
+	} else {
+		hasPermission, appErr = a.sessionHasPermissionToWithError(session, permission)
 	}
-
-	return a.SessionHasPermissionTo(session, permission), isMember
+	if lookupErr == nil {
+		lookupErr = appErr
+	}
+	return hasPermission, isMember, lookupErr
 }
 
 // SessionHasPermissionToChannels returns true only if user has access to all channels.
@@ -381,12 +425,19 @@ func (a *App) HasPermissionToUser(rctx request.CTX, askingUserId string, userID 
 }
 
 func (a *App) RolesGrantPermission(roleNames []string, permissionId string) bool {
+	granted, _ := a.rolesGrantPermissionWithError(roleNames, permissionId)
+	return granted
+}
+
+// rolesGrantPermissionWithError reports whether any of the named roles grants
+// the permission, and the role lookup error when the roles can't be read.
+func (a *App) rolesGrantPermissionWithError(roleNames []string, permissionId string) (bool, *model.AppError) {
 	roles, err := a.GetRolesByNames(roleNames)
 	if err != nil {
 		// This should only happen if something is very broken. We can't realistically
 		// recover the situation, so deny permission and log an error.
 		mlog.Error("Failed to get roles from database with role names: "+strings.Join(roleNames, ",")+" ", mlog.Err(err))
-		return false
+		return false, err
 	}
 
 	for _, role := range roles {
@@ -396,11 +447,11 @@ func (a *App) RolesGrantPermission(roleNames []string, permissionId string) bool
 
 		permissions := role.Permissions
 		if slices.Contains(permissions, permissionId) {
-			return true
+			return true, nil
 		}
 	}
 
-	return false
+	return false, nil
 }
 
 // SessionHasPermissionToManageBot returns nil if the session has access to manage the given bot.

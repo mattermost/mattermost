@@ -5,8 +5,10 @@ package app
 
 import (
 	"encoding/csv"
+	"errors"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -18,6 +20,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
 
@@ -3929,5 +3932,214 @@ func TestPropertyFieldPermissionEntryPointsUseDecision(t *testing.T) {
 
 		local := model.Session{UserId: th.BasicUser.Id, Local: true}
 		assert.True(t, th.App.SessionHasPermissionToEditPropertyField(th.Context, local, field))
+	})
+}
+
+type failingRoleStore struct {
+	store.RoleStore
+}
+
+func (s *failingRoleStore) GetByNames(names []string) ([]*model.Role, error) {
+	return nil, errors.New("role lookup failed")
+}
+
+type failingChannelMembersStore struct {
+	store.ChannelStore
+}
+
+func (s *failingChannelMembersStore) GetAllChannelMembersForUser(rctx request.CTX, userID string, allowFromCache bool, includeDeleted bool) (map[string]string, error) {
+	return nil, errors.New("channel member lookup failed")
+}
+
+// rbacFailureStore passes every call through to the real store except the
+// role or channel-member lookups it is told to fail.
+type rbacFailureStore struct {
+	store.Store
+	failRoles          bool
+	failChannelMembers bool
+}
+
+func (s *rbacFailureStore) Role() store.RoleStore {
+	if s.failRoles {
+		return &failingRoleStore{RoleStore: s.Store.Role()}
+	}
+	return s.Store.Role()
+}
+
+func (s *rbacFailureStore) Channel() store.ChannelStore {
+	if s.failChannelMembers {
+		return &failingChannelMembersStore{ChannelStore: s.Store.Channel()}
+	}
+	return s.Store.Channel()
+}
+
+func useRBACFailureStore(t *testing.T, th *TestHelper, failRoles, failChannelMembers bool) {
+	t.Helper()
+	original := th.App.Srv().Store()
+	th.App.Srv().SetStore(&rbacFailureStore{Store: original, failRoles: failRoles, failChannelMembers: failChannelMembers})
+	t.Cleanup(func() { th.App.Srv().SetStore(original) })
+}
+
+func TestRolesGrantPermissionWithError(t *testing.T) {
+	th := Setup(t)
+
+	granted, appErr := th.App.rolesGrantPermissionWithError([]string{model.SystemAdminRoleId}, model.PermissionManageSystem.Id)
+	require.Nil(t, appErr)
+	require.True(t, granted)
+
+	granted, appErr = th.App.rolesGrantPermissionWithError([]string{model.SystemUserRoleId}, model.PermissionManageSystem.Id)
+	require.Nil(t, appErr)
+	require.False(t, granted)
+
+	t.Run("a role lookup failure is reported, and the wrapper still denies", func(t *testing.T) {
+		useRBACFailureStore(t, th, true, false)
+
+		granted, appErr := th.App.rolesGrantPermissionWithError([]string{model.SystemAdminRoleId}, model.PermissionManageSystem.Id)
+		require.NotNil(t, appErr)
+		require.False(t, granted)
+		require.False(t, th.App.RolesGrantPermission([]string{model.SystemAdminRoleId}, model.PermissionManageSystem.Id))
+	})
+}
+
+func TestSessionHasPermissionToWithError(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	userSession := model.Session{UserId: th.BasicUser.Id, Roles: model.SystemUserRoleId}
+	adminSession := model.Session{UserId: th.SystemAdminUser.Id, Roles: model.SystemAdminRoleId}
+	localSession := model.Session{Local: true}
+
+	hasPermission, appErr := th.App.sessionHasPermissionToWithError(adminSession, model.PermissionManageSystem)
+	require.Nil(t, appErr)
+	require.True(t, hasPermission)
+
+	hasPermission, appErr = th.App.sessionHasPermissionToWithError(userSession, model.PermissionManageSystem)
+	require.Nil(t, appErr)
+	require.False(t, hasPermission)
+
+	t.Run("role lookup failure", func(t *testing.T) {
+		useRBACFailureStore(t, th, true, false)
+
+		hasPermission, appErr := th.App.sessionHasPermissionToWithError(adminSession, model.PermissionManageSystem)
+		require.NotNil(t, appErr)
+		require.False(t, hasPermission)
+		require.False(t, th.App.SessionHasPermissionTo(adminSession, model.PermissionManageSystem))
+
+		hasPermission, appErr = th.App.sessionHasPermissionToWithError(localSession, model.PermissionManageSystem)
+		require.Nil(t, appErr, "local mode never reads roles")
+		require.True(t, hasPermission)
+	})
+}
+
+func TestSessionHasPermissionToTeamWithError(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	teamMemberSession := model.Session{
+		UserId: th.BasicUser.Id,
+		Roles:  model.SystemUserRoleId,
+		TeamMembers: []*model.TeamMember{
+			{UserId: th.BasicUser.Id, TeamId: th.BasicTeam.Id, Roles: model.TeamUserRoleId},
+		},
+	}
+	localSession := model.Session{Local: true}
+
+	t.Run("empty team ID is an error, even in local mode", func(t *testing.T) {
+		for _, session := range []model.Session{teamMemberSession, localSession} {
+			hasPermission, appErr := th.App.sessionHasPermissionToTeamWithError(session, "", model.PermissionListTeamChannels)
+			require.NotNil(t, appErr)
+			require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+			require.False(t, hasPermission)
+			require.False(t, th.App.SessionHasPermissionToTeam(session, "", model.PermissionListTeamChannels))
+		}
+	})
+
+	t.Run("team role grants", func(t *testing.T) {
+		hasPermission, appErr := th.App.sessionHasPermissionToTeamWithError(teamMemberSession, th.BasicTeam.Id, model.PermissionListTeamChannels)
+		require.Nil(t, appErr)
+		require.True(t, hasPermission)
+	})
+
+	t.Run("no role grants", func(t *testing.T) {
+		hasPermission, appErr := th.App.sessionHasPermissionToTeamWithError(teamMemberSession, th.BasicTeam.Id, model.PermissionManageTeam)
+		require.Nil(t, appErr)
+		require.False(t, hasPermission)
+	})
+
+	t.Run("role lookup failure", func(t *testing.T) {
+		useRBACFailureStore(t, th, true, false)
+
+		hasPermission, appErr := th.App.sessionHasPermissionToTeamWithError(teamMemberSession, th.BasicTeam.Id, model.PermissionListTeamChannels)
+		require.NotNil(t, appErr)
+		require.False(t, hasPermission)
+	})
+}
+
+func TestSessionHasPermissionToChannelWithError(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	memberSession := model.Session{UserId: th.BasicUser.Id, Roles: model.SystemUserRoleId}
+	adminSession := model.Session{UserId: th.SystemAdminUser.Id, Roles: model.SystemAdminRoleId}
+	localSession := model.Session{Local: true}
+
+	t.Run("member is granted through the channel role", func(t *testing.T) {
+		hasPermission, isMember, appErr := th.App.sessionHasPermissionToChannelWithError(th.Context, memberSession, th.BasicChannel.Id, model.PermissionAddReaction)
+		require.Nil(t, appErr)
+		assert.True(t, hasPermission)
+		assert.True(t, isMember)
+	})
+
+	t.Run("admin is granted without membership", func(t *testing.T) {
+		hasPermission, isMember, appErr := th.App.sessionHasPermissionToChannelWithError(th.Context, adminSession, th.BasicChannel.Id, model.PermissionAddReaction)
+		require.Nil(t, appErr)
+		assert.True(t, hasPermission)
+		assert.False(t, isMember)
+	})
+
+	t.Run("empty and nonexistent channels are errors, even in local mode", func(t *testing.T) {
+		for _, session := range []model.Session{memberSession, localSession} {
+			hasPermission, isMember, appErr := th.App.sessionHasPermissionToChannelWithError(th.Context, session, "", model.PermissionAddReaction)
+			require.NotNil(t, appErr)
+			assert.False(t, hasPermission)
+			assert.False(t, isMember)
+
+			hasPermission, isMember, appErr = th.App.sessionHasPermissionToChannelWithError(th.Context, session, model.NewId(), model.PermissionAddReaction)
+			require.NotNil(t, appErr)
+			require.Equal(t, http.StatusNotFound, appErr.StatusCode)
+			assert.False(t, hasPermission)
+			assert.False(t, isMember)
+
+			hasPermission, _ = th.App.SessionHasPermissionToChannel(th.Context, session, model.NewId(), model.PermissionAddReaction)
+			assert.False(t, hasPermission)
+		}
+	})
+
+	t.Run("a member lookup failure is reported alongside an allow, and the wrapper keeps the allow", func(t *testing.T) {
+		useRBACFailureStore(t, th, false, true)
+
+		hasPermission, isMember, appErr := th.App.sessionHasPermissionToChannelWithError(th.Context, adminSession, th.BasicChannel.Id, model.PermissionAddReaction)
+		require.NotNil(t, appErr)
+		assert.True(t, hasPermission)
+		assert.False(t, isMember)
+
+		hasPermission, isMember = th.App.SessionHasPermissionToChannel(th.Context, adminSession, th.BasicChannel.Id, model.PermissionAddReaction)
+		assert.True(t, hasPermission)
+		assert.False(t, isMember)
+	})
+
+	t.Run("a member lookup failure denies a member who has no other grant", func(t *testing.T) {
+		useRBACFailureStore(t, th, false, true)
+
+		hasPermission, isMember, appErr := th.App.sessionHasPermissionToChannelWithError(th.Context, memberSession, th.BasicChannel.Id, model.PermissionAddReaction)
+		require.NotNil(t, appErr)
+		assert.False(t, hasPermission)
+		assert.False(t, isMember)
+	})
+
+	t.Run("role lookup failure", func(t *testing.T) {
+		useRBACFailureStore(t, th, true, false)
+
+		hasPermission, isMember, appErr := th.App.sessionHasPermissionToChannelWithError(th.Context, memberSession, th.BasicChannel.Id, model.PermissionAddReaction)
+		require.NotNil(t, appErr)
+		assert.False(t, hasPermission)
+		assert.True(t, isMember)
 	})
 }
