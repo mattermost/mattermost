@@ -144,23 +144,14 @@ func teamAdminOnPolicyGet(c *Context, channelID, teamID string) bool {
 	return c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionManageTeamAccessRules)
 }
 
-// requireParentPolicySelfInclusion runs the stored-rule check when policyID is
-// a parent. Returns false when the handler should stop. A missing policy or
-// any other type returns true so the caller keeps the channel read result; the
-// handler reports a missing policy on its own lookup.
-func requireParentPolicySelfInclusion(c *Context, policyID string) bool {
-	policy, appErr := c.App.GetAccessControlPolicy(c.AppContext, policyID)
-	if appErr != nil {
-		if appErr.StatusCode == http.StatusNotFound {
-			return true
-		}
-		c.Err = appErr
-		return false
-	}
+// requireParentPolicySelfInclusion runs the stored-rule check when policy is a
+// parent. Returns false when the handler should stop. Any other type returns
+// true so the caller keeps the channel read result.
+func requireParentPolicySelfInclusion(c *Context, policy *model.AccessControlPolicy) bool {
 	if policy.Type != model.AccessControlPolicyTypeParent {
 		return true
 	}
-	return requireTeamAdminPolicySelfInclusion(c, policyID, nil)
+	return requireTeamAdminPolicySelfInclusion(c, policy.ID, nil)
 }
 
 func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -329,6 +320,7 @@ func getAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) 
 	// Extract optional channelId from query parameters for context
 	channelID := r.URL.Query().Get("channelId")
 
+	var policy *model.AccessControlPolicy
 	hasSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
 	if !hasSystemPermission {
 		// Try delegated admin permissions: channel admin first, then team admin
@@ -356,16 +348,25 @@ func getAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) 
 			}
 		} else if teamAdminOnPolicyGet(c, channelID, r.URL.Query().Get("team_id")) {
 			// Team admins run the stored-rule check on this read as well.
-			if !requireParentPolicySelfInclusion(c, policyID) {
+			var getErr *model.AppError
+			policy, getErr = c.App.GetAccessControlPolicy(c.AppContext, policyID)
+			if getErr != nil {
+				c.Err = getErr
+				return
+			}
+			if !requireParentPolicySelfInclusion(c, policy) {
 				return
 			}
 		}
 	}
 
-	policy, appErr := c.App.GetAccessControlPolicy(c.AppContext, policyID)
-	if appErr != nil {
-		c.Err = appErr
-		return
+	if policy == nil {
+		var appErr *model.AppError
+		policy, appErr = c.App.GetAccessControlPolicy(c.AppContext, policyID)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
 	}
 
 	// Stamp assigned-resource counts (channel_count, team_count, child_ids) so the
