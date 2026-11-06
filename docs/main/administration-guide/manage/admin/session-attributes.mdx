@@ -55,7 +55,7 @@ Grace periods absorb brief network interruptions. A very short grace period can 
 
 Collection is opt-in on the server and on by default in the client. No attribute is collected unless a System Admin enables it.
 
-Desktop App users can stop reporting attributes by clearing **Settings \> Advanced \> Enable session attributes**, after which any rule that depends on a client-reported attribute denies that user. While the setting is enabled, the Desktop App shows users every attribute it can collect and the value it currently reports. See [Session attribute collection](/deployment-guide/desktop/desktop-app-deployment#session-attribute-collection) for how to communicate this to your users.
+Desktop App users can stop reporting attributes by clearing **Settings \> Advanced \> Enable session attributes**. Previously reported values can remain in use until their TTL and grace period expire. After those values expire, any rule that depends on a client-reported attribute denies that user. While the setting is enabled, the Desktop App shows users every attribute it can collect and the value it currently reports. See [Session attribute collection](/deployment-guide/desktop/desktop-app-privacy#session-attribute-collection) for how to communicate this to your users.
 
 ## Set up session attributes
 
