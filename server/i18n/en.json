@@ -15353,7 +15353,7 @@
   },
   {
     "id": "health.rule.node_go_memory_limit_above_container.title",
-    "translation": "Go memory limit is above the container limit",
+    "translation": "Go memory limit is at or above the container limit",
     "description": "Health dashboard finding title when GOMEMLIMIT is equal to or greater than the container memory limit; 'Go' is the programming language name."
   },
   {
