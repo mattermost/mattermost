@@ -1666,7 +1666,6 @@ func TestSupportPacketMarshalGolden(t *testing.T) {
 	diagnostics.Server.AvailableMemoryMB = new(uint64(24576))
 	diagnostics.Server.SwapTotalMB = new(uint64(4096))
 	diagnostics.Server.SwapUsedMB = new(uint64(1024))
-	diagnostics.Server.CgroupMemoryStatsSupported = new(true)
 	diagnostics.Server.ContainerCPULimit = 6.5
 	diagnostics.Server.ContainerMemoryLimitMB = 16384
 	diagnostics.Server.ContainerMemoryUsageMB = new(uint64(12288))

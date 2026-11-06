@@ -23,7 +23,6 @@ server:
   available_memory_mb: 8000 # host/VM MemAvailable from /proc/meminfo; Linux only
   swap_total_mb: 4096 # host/VM total swap; Linux only
   swap_used_mb: 0 # host/VM used swap; Linux only
-  cgroup_memory_stats_supported: true # whether cgroup v2 memory statistics apply to this process
   container_memory_limit_mb: 8000 # cgroup v2 memory quota in MB; Linux only, omitted if no limit set
   container_memory_usage_mb: 6000 # cgroup v2 memory.current in MB, including page cache; Linux only
   container_memory_working_set_mb: 5000 # cgroup v2 memory.current minus inactive file cache in MB; Linux only

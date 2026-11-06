@@ -113,16 +113,11 @@ func evalNodeContainerMemoryPressure(_ *healthcheck.Snapshot, n *healthcheck.Nod
 
 func evalNodeContainerOOMKills(_ *healthcheck.Snapshot, n *healthcheck.NodeSnapshot) healthcheck.Result {
 	diag, ok := nodeMemoryDiagnostics(n)
-	if !ok || diag.Server.CgroupMemoryStatsSupported == nil {
+	if !ok {
 		return healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)
 	}
-	if !*diag.Server.CgroupMemoryStatsSupported {
-		return healthcheck.Resolved()
-	}
-	if diag.Server.ContainerOOMKills == nil {
-		return healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)
-	}
-	if *diag.Server.ContainerOOMKills > 0 {
+	// A nil count means cgroup v2 memory stats do not apply to this process.
+	if diag.Server.ContainerOOMKills != nil && *diag.Server.ContainerOOMKills > 0 {
 		return healthcheck.Firing(healthcheck.TranslationId("health.rule.node_container_oom_kills.message")).
 			WithDetail("kills", strconv.FormatUint(*diag.Server.ContainerOOMKills, 10))
 	}
@@ -157,11 +152,9 @@ func evalNodeGoMemoryLimitAboveContainer(_ *healthcheck.Snapshot, n *healthcheck
 	if !ok {
 		return healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)
 	}
-	if diag.Server.ContainerMemoryLimitMB == 0 {
+	// A nil Go limit means none is set.
+	if diag.Server.ContainerMemoryLimitMB == 0 || diag.Server.GoMemoryLimitMB == nil {
 		return healthcheck.Resolved()
-	}
-	if diag.Server.GoMemoryLimitMB == nil {
-		return healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)
 	}
 	if *diag.Server.GoMemoryLimitMB >= diag.Server.ContainerMemoryLimitMB {
 		return healthcheck.Firing(healthcheck.TranslationId("health.rule.node_go_memory_limit_above_container.message")).

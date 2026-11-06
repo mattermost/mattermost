@@ -94,7 +94,6 @@ func TestSupportPacketDiagnosticsYAMLOmitsNilAndKeepsZero(t *testing.T) {
 	t.Parallel()
 
 	var diagnostics SupportPacketDiagnostics
-	diagnostics.Server.CgroupMemoryStatsSupported = new(false)
 	diagnostics.Server.OpenFileDescriptors = new(int64(0))
 	diagnostics.Database.MasterConnectionsInUse = new(0)
 	diagnostics.FileStore.AvailableMB = new(uint64(0))
@@ -103,7 +102,6 @@ func TestSupportPacketDiagnosticsYAMLOmitsNilAndKeepsZero(t *testing.T) {
 	require.NoError(t, err)
 
 	body := string(data)
-	assert.Contains(t, body, "cgroup_memory_stats_supported: false\n")
 	assert.Contains(t, body, "open_file_descriptors: 0\n")
 	assert.Contains(t, body, "master_connections_in_use: 0\n")
 	assert.Contains(t, body, "available_mb: 0\n")
@@ -115,7 +113,6 @@ func TestSupportPacketDiagnosticsYAMLOmitsNilAndKeepsZero(t *testing.T) {
 	require.NoError(t, err)
 	assert.Nil(t, roundTrip.Server.MaxFileDescriptors)
 	assert.Nil(t, roundTrip.Database.SchemaVersion)
-	assert.Equal(t, new(false), roundTrip.Server.CgroupMemoryStatsSupported)
 	assert.Equal(t, new(int64(0)), roundTrip.Server.OpenFileDescriptors)
 	assert.Equal(t, new(0), roundTrip.Database.MasterConnectionsInUse)
 	assert.Equal(t, new(uint64(0)), roundTrip.FileStore.AvailableMB)

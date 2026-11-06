@@ -15,7 +15,6 @@ func memoryNode(mutate func(*model.SupportPacketDiagnostics)) *healthcheck.NodeS
 	return leaderNode(func(diag *model.SupportPacketDiagnostics) {
 		diag.Server.TotalMemoryMB = new(uint64(1000))
 		diag.Server.AvailableMemoryMB = new(uint64(500))
-		diag.Server.CgroupMemoryStatsSupported = new(true)
 		diag.Server.ContainerMemoryLimitMB = 1000
 		diag.Server.ContainerMemoryWorkingSetMB = new(uint64(500))
 		diag.Server.ContainerOOMKills = new(uint64(0))
@@ -83,6 +82,9 @@ func TestNodeContainerMemoryPressure(t *testing.T) {
 func TestNodeContainerOOMKills(t *testing.T) {
 	t.Parallel()
 
+	failed := memoryNode(nil)
+	failed.Diagnostics.Errors[model.SectionServerMemory] = errors.New("memory.events read failed")
+
 	testCases := []struct {
 		name string
 		node *healthcheck.NodeSnapshot
@@ -97,27 +99,11 @@ func TestNodeContainerOOMKills(t *testing.T) {
 		},
 		{"none recorded", memoryNode(nil), resolved},
 		{
-			"unsupported",
+			"cgroup memory stats not applicable",
 			memoryNode(func(diag *model.SupportPacketDiagnostics) {
-				diag.Server.CgroupMemoryStatsSupported = new(false)
 				diag.Server.ContainerOOMKills = nil
 			}),
 			resolved,
-		},
-		{
-			"capability not collected",
-			memoryNode(func(diag *model.SupportPacketDiagnostics) {
-				diag.Server.CgroupMemoryStatsSupported = nil
-				diag.Server.ContainerOOMKills = new(uint64(3))
-			}),
-			diagUnknown,
-		},
-		{
-			"expected stats not collected",
-			memoryNode(func(diag *model.SupportPacketDiagnostics) {
-				diag.Server.ContainerOOMKills = nil
-			}),
-			diagUnknown,
 		},
 		{
 			"unlimited cgroup still reports kills",
@@ -127,6 +113,8 @@ func TestNodeContainerOOMKills(t *testing.T) {
 			}),
 			firing("health.rule.node_container_oom_kills.message", map[string]string{"kills": "1"}),
 		},
+		{"section absent", withoutSection(memoryNode(nil), model.SectionServerMemory), diagUnknown},
+		{"section failed", failed, diagUnknown},
 	}
 
 	for _, tc := range testCases {
@@ -217,11 +205,11 @@ func TestNodeGoMemoryLimitAboveContainer(t *testing.T) {
 			resolved,
 		},
 		{
-			"go limit not collected",
+			"no go limit set",
 			memoryNode(func(diag *model.SupportPacketDiagnostics) {
 				diag.Server.GoMemoryLimitMB = nil
 			}),
-			diagUnknown,
+			resolved,
 		},
 	}
 

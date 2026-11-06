@@ -60,7 +60,6 @@ type SupportPacketDiagnostics struct {
 		AvailableMemoryMB           *uint64 `yaml:"available_memory_mb,omitempty"`
 		SwapTotalMB                 *uint64 `yaml:"swap_total_mb,omitempty"`
 		SwapUsedMB                  *uint64 `yaml:"swap_used_mb,omitempty"`
-		CgroupMemoryStatsSupported  *bool   `yaml:"cgroup_memory_stats_supported,omitempty"`
 		ContainerCPULimit           float64 `yaml:"container_cpu_limit,omitempty"`
 		ContainerMemoryLimitMB      uint64  `yaml:"container_memory_limit_mb,omitempty"`
 		ContainerMemoryUsageMB      *uint64 `yaml:"container_memory_usage_mb,omitempty"`
