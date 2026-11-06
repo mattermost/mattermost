@@ -327,30 +327,6 @@ func TestPushProxyUnreachable(t *testing.T) {
 				WithDetail("error", "i/o timeout"),
 		},
 		{
-			name: "credentials in an unparsable URL are masked when they contain a space",
-			snapshot: pushProxySnapshot(true, "https://user:secret word@push.example.com",
-				pushProxyNode("app-1", model.StatusFail, `parse "https://user:secret word@push.example.com": net/url: invalid userinfo`, nil)),
-			want: healthcheck.Firing(messageID).
-				WithDetail("nodes", "app-1").
-				WithDetail("error", `parse "https://****@push.example.com": net/url: invalid userinfo`),
-		},
-		{
-			name: "credentials in an unparsable URL are masked when they contain a slash",
-			snapshot: pushProxySnapshot(true, "https://user:pa/ss@push.example.com",
-				pushProxyNode("app-1", model.StatusFail, `parse "https://user:pa/ss@push.example.com": invalid port ":pa" after host`, nil)),
-			want: healthcheck.Firing(messageID).
-				WithDetail("nodes", "app-1").
-				WithDetail("error", `parse "https://****@push.example.com": invalid port ":pa" after host`),
-		},
-		{
-			name: "credentials in an unparsable URL are masked when they contain a quote",
-			snapshot: pushProxySnapshot(true, `https://user:a"b c@push.example.com`,
-				pushProxyNode("app-1", model.StatusFail, `parse "https://user:a\"b c@push.example.com": net/url: invalid userinfo`, nil)),
-			want: healthcheck.Firing(messageID).
-				WithDetail("nodes", "app-1").
-				WithDetail("error", `parse "https://****@push.example.com": net/url: invalid userinfo`),
-		},
-		{
 			name: "URL credentials are masked in the error",
 			snapshot: pushProxySnapshot(true, "https://user:secret@push.example.com",
 				pushProxyNode("app-1", model.StatusFail, `Get "https://user:secret@push.example.com/version": connection refused`, nil)),

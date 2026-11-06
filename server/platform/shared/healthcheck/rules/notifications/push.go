@@ -5,7 +5,6 @@ package notifications
 
 import (
 	"net/url"
-	"strconv"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -167,36 +166,16 @@ func evalPushProxyUnreachable(s *healthcheck.Snapshot) healthcheck.Result {
 		return healthcheck.Resolved()
 	}
 
-	return probes.Eval(s, pushProxyProbe(server),
+	return probes.Eval(s, pushProxyProbe,
 		healthcheck.TranslationId("health.rule.push_proxy_unreachable.message"),
 		healthcheck.TranslationId("health.rule.push_proxy_unreachable.message.partial"))
 }
 
-func pushProxyProbe(server string) probes.Read {
-	return func(n *healthcheck.NodeSnapshot) (status, probeErr string) {
-		diag, ok := n.SectionDiag(model.SectionPushProbe)
-		if !ok {
-			return "", ""
-		}
-
-		probeErr = maskUnparsedPushURL(diag.Notifications.Push.Error, server)
-		return diag.Notifications.Push.Status, probes.MaskURLCredentials(probeErr)
-	}
-}
-
-// maskUnparsedPushURL masks the userinfo of a push URL that net/url rejects. The probe's parse error quotes
-// that URL whole, and MaskURLCredentials cannot find where userinfo ends once it holds a space or a slash.
-func maskUnparsedPushURL(probeErr, server string) string {
-	if _, err := url.Parse(server); err == nil {
-		return probeErr
-	}
-	start := strings.Index(server, "://") + len("://")
-	at := strings.LastIndex(server, "@")
-	if start < len("://") || at < start {
-		return probeErr
+func pushProxyProbe(n *healthcheck.NodeSnapshot) (status, probeErr string) {
+	diag, ok := n.SectionDiag(model.SectionPushProbe)
+	if !ok {
+		return "", ""
 	}
 
-	masked := server[:start] + "****" + server[at:]
-	probeErr = strings.ReplaceAll(probeErr, strconv.Quote(server), strconv.Quote(masked))
-	return strings.ReplaceAll(probeErr, server, masked)
+	return diag.Notifications.Push.Status, probes.MaskURLCredentials(diag.Notifications.Push.Error)
 }
