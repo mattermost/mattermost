@@ -290,6 +290,28 @@ describe('components/dot_menu/DotMenu', () => {
         expect(screen.queryByText('Move Thread')).not.toBeInTheDocument();
     });
 
+    test.each([
+        [true, true],
+        [false, false],
+    ])('pin menu item follows canPin=%s', async (canPin, shown) => {
+        renderWithContext(
+            <DotMenu
+                {...baseProps}
+                canPin={canPin}
+            />,
+            initialState,
+        );
+
+        await userEvent.click(screen.getByTestId(`PostDotMenu-Button-${baseProps.post.id}`));
+
+        // canPin carries the channel write denial, so the item must follow it like the P shortcut does.
+        if (shown) {
+            expect(screen.getByTestId(`pin_post_${baseProps.post.id}`)).toBeInTheDocument();
+        } else {
+            expect(screen.queryByTestId(`pin_post_${baseProps.post.id}`)).not.toBeInTheDocument();
+        }
+    });
+
     test('should not show move thread menu for burn-on-read posts', async () => {
         const borPost = {
             ...post1,

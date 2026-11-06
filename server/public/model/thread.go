@@ -90,6 +90,10 @@ type GetUserThreadsOpts struct {
 	IncludeIsUrgent bool
 
 	ExcludeDirect bool
+
+	// ExcludeChannelIds leaves out threads in these channels. The server sets it to the
+	// channels the channel_read_access policy denies the user; it is never read from a client.
+	ExcludeChannelIds []string
 }
 
 func (o *Thread) Etag() string {

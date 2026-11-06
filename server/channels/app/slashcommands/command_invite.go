@@ -293,6 +293,14 @@ func (i *InviteProvider) checkPermissions(a *app.App, rctx request.CTX, args *mo
 			*resps = append(*resps, args.T("api.command_invite.directchannel.app_error"))
 			continue
 		}
+		// Checked per target: the channel the command runs in only had its posting gated.
+		if channelManagementDenied(a, rctx, args, targetChannel) {
+			*resps = append(*resps, args.T("api.command_invite.permission.app_error", map[string]any{
+				"User":    targetUser.Username,
+				"Channel": targetChannel.Name,
+			}))
+			continue
+		}
 		validChannels = append(validChannels, targetChannel)
 	}
 	return validChannels

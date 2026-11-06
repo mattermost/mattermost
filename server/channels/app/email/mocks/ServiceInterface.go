@@ -21,17 +21,17 @@ type ServiceInterface struct {
 	mock.Mock
 }
 
-// AddNotificationEmailToBatch provides a mock function with given fields: user, post, team
-func (_m *ServiceInterface) AddNotificationEmailToBatch(user *model.User, post *model.Post, team *model.Team) *model.AppError {
-	ret := _m.Called(user, post, team)
+// AddNotificationEmailToBatch provides a mock function with given fields: user, post, team, withholdContents
+func (_m *ServiceInterface) AddNotificationEmailToBatch(user *model.User, post *model.Post, team *model.Team, withholdContents bool) *model.AppError {
+	ret := _m.Called(user, post, team, withholdContents)
 
 	if len(ret) == 0 {
 		panic("no return value specified for AddNotificationEmailToBatch")
 	}
 
 	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(*model.User, *model.Post, *model.Team) *model.AppError); ok {
-		r0 = rf(user, post, team)
+	if rf, ok := ret.Get(0).(func(*model.User, *model.Post, *model.Team, bool) *model.AppError); ok {
+		r0 = rf(user, post, team, withholdContents)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)

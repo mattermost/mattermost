@@ -530,6 +530,10 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !requireChannelReadAccess(c, channel) {
+		return
+	}
+
 	isContentReviewer := false
 	asContentReviewer, _ := strconv.ParseBool(r.URL.Query().Get(model.AsContentReviewerParam))
 	if asContentReviewer {
@@ -639,6 +643,9 @@ func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	perm, isMember := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
+	if !requireChannelReadAccess(c, channel) {
+		return
+	}
 	if info.CreatorId == model.BookmarkFileOwner {
 		if !perm {
 			c.SetPermissionError(model.PermissionReadChannelContent)
@@ -714,6 +721,9 @@ func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	perm, isMember := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
+	if !requireChannelReadAccess(c, channel) {
+		return
+	}
 	if info.CreatorId == model.BookmarkFileOwner {
 		if !perm {
 			c.SetPermissionError(model.PermissionReadChannelContent)
@@ -768,6 +778,9 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	perm, isMember := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
+	if !requireChannelReadAccess(c, channel) {
+		return
+	}
 	if info.CreatorId == model.BookmarkFileOwner {
 		if !perm {
 			c.SetPermissionError(model.PermissionReadChannelContent)
@@ -835,6 +848,9 @@ func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	perm, isMember := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
+	if !requireChannelReadAccess(c, channel) {
+		return
+	}
 	if info.CreatorId == model.BookmarkFileOwner {
 		if !perm {
 			c.SetPermissionError(model.PermissionReadChannelContent)

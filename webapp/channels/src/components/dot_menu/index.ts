@@ -15,6 +15,7 @@ import {getLicense, getConfig, isPostAttributesEnabled} from 'mattermost-redux/s
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getBool, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {makeGetPostAttributeFields} from 'mattermost-redux/selectors/entities/properties';
+import {isChannelWriteDenied} from 'mattermost-redux/selectors/entities/roles';
 import {
     getCurrentTeamId,
     getCurrentTeam,
@@ -153,7 +154,7 @@ function makeMapStateToProps() {
             timezone: getCurrentTimezone(state),
             isMilitaryTime,
             canMove: channel && !isBoRPost ? canWrangler(state, channel.type, threadReplyCount) : false,
-            canReply: !systemMessage && !isBoRPost && ownProps.location === Locations.CENTER,
+            canReply: !systemMessage && !isBoRPost && ownProps.location === Locations.CENTER && !isChannelWriteDenied(state, post.channel_id),
             canForward: !systemMessage && !isBoRPost,
             canFollowThread: !systemMessage && !isBoRPost && collapsedThreads && (
                 !ownProps.location ||
@@ -161,7 +162,7 @@ function makeMapStateToProps() {
                 ownProps.location === Locations.RHS_ROOT ||
                 ownProps.location === Locations.RHS_COMMENT
             ),
-            canPin: !systemMessage && !isBoRPost && !isArchivedChannel(channel),
+            canPin: !systemMessage && !isBoRPost && !isArchivedChannel(channel) && !isChannelWriteDenied(state, post.channel_id),
             canCopyText: !systemMessage && !isBoRPost,
             canCopyLink: !systemMessage && (!isBoRPost || isPostSender),
             canFlagContent,

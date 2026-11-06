@@ -9,6 +9,7 @@ import (
 	"html/template"
 	"io"
 	"net/http"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -50,12 +51,12 @@ func (es *Service) InitEmailBatching() {
 	}
 }
 
-func (es *Service) AddNotificationEmailToBatch(user *model.User, post *model.Post, team *model.Team) *model.AppError {
+func (es *Service) AddNotificationEmailToBatch(user *model.User, post *model.Post, team *model.Team, withholdContents bool) *model.AppError {
 	if !*es.config().EmailSettings.EnableEmailBatching {
 		return model.NewAppError("AddNotificationEmailToBatch", "api.email_batching.add_notification_email_to_batch.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if !es.EmailBatching.Add(user, post, team) {
+	if !es.EmailBatching.Add(user, post, team, withholdContents) {
 		mlog.Error("Email batching job's receiving buffer was full. Please increase the EmailBatchingBufferSize. Falling back to sending immediate mail.")
 		return model.NewAppError("AddNotificationEmailToBatch", "api.email_batching.add_notification_email_to_batch.channel_full.app_error", nil, "", http.StatusInternalServerError)
 	}
@@ -64,9 +65,10 @@ func (es *Service) AddNotificationEmailToBatch(user *model.User, post *model.Pos
 }
 
 type batchedNotification struct {
-	userID   string
-	post     *model.Post
-	teamName string
+	userID           string
+	post             *model.Post
+	teamName         string
+	withholdContents bool
 }
 
 type EmailBatchingJob struct {
@@ -113,11 +115,12 @@ func (job *EmailBatchingJob) Stop() {
 	job.taskMutex.Unlock()
 }
 
-func (job *EmailBatchingJob) Add(user *model.User, post *model.Post, team *model.Team) bool {
+func (job *EmailBatchingJob) Add(user *model.User, post *model.Post, team *model.Team, withholdContents bool) bool {
 	notification := &batchedNotification{
-		userID:   user.Id,
-		post:     post,
-		teamName: team.Name,
+		userID:           user.Id,
+		post:             post,
+		teamName:         team.Name,
+		withholdContents: withholdContents,
 	}
 
 	select {
@@ -250,6 +253,17 @@ func truncateUserNames(name string, i int) string {
 	return name
 }
 
+func (es *Service) batchedEmailContentsType(notifications []*batchedNotification) string {
+	if slices.ContainsFunc(notifications, func(n *batchedNotification) bool { return n.withholdContents }) {
+		return model.EmailNotificationContentsGeneric
+	}
+
+	if license := es.license(); license != nil && *license.Features.EmailNotificationContents {
+		return *es.config().EmailSettings.EmailNotificationContentsType
+	}
+	return model.EmailNotificationContentsFull
+}
+
 func (es *Service) sendBatchedEmailNotification(userID string, notifications []*batchedNotification) {
 	user, err := es.userService.GetUser(request.EmptyContext(es.logger), userID)
 	if err != nil {
@@ -264,10 +278,7 @@ func (es *Service) sendBatchedEmailNotification(userID string, notifications []*
 	postsData := make([]*postData, 0 /* len */, len(notifications) /* cap */)
 	embeddedFiles := make(map[string]io.Reader)
 
-	emailNotificationContentsType := model.EmailNotificationContentsFull
-	if license := es.license(); license != nil && *license.Features.EmailNotificationContents {
-		emailNotificationContentsType = *es.config().EmailSettings.EmailNotificationContentsType
-	}
+	emailNotificationContentsType := es.batchedEmailContentsType(notifications)
 
 	// check if user has CRT set to ON
 	appCRT := *es.config().ServiceSettings.CollapsedThreads

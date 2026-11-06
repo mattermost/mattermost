@@ -3,6 +3,7 @@
 
 import React, {
     useCallback,
+    useEffect,
     useMemo,
     useState,
     useRef,
@@ -16,7 +17,7 @@ import type {Channel} from '@mattermost/types/channels';
 import Permissions from 'mattermost-redux/constants/permissions';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig, getLicense, isChannelPermissionPoliciesEnabled} from 'mattermost-redux/selectors/entities/general';
-import {haveIChannelPermission, haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
+import {haveIChannelPermissionRBACOnly, haveISystemPermission, isChannelManagementDenied} from 'mattermost-redux/selectors/entities/roles';
 
 import {getBasePath, isChannelAccessControlEnabled} from 'selectors/general';
 import {getChannelSettingsTabs} from 'selectors/plugins';
@@ -56,6 +57,10 @@ type ChannelSettingsModalProps = {
      * channel falls back to the first one, as a selection that becomes unavailable does.
      */
     initialTab?: string;
+};
+
+type ChannelSettingsModalBodyProps = Omit<ChannelSettingsModalProps, 'channelId'> & {
+    channel: Channel;
 };
 
 const BuiltInTabIds = {
@@ -105,9 +110,31 @@ function initialTabName(initialTab: string | undefined): string {
     return getPluginTabName(initialTab);
 }
 
-function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement, initialTab}: ChannelSettingsModalProps) {
+function ChannelSettingsModal(props: ChannelSettingsModalProps) {
+    const channel = useSelector((state: GlobalState) => getChannel(state, props.channelId));
+    const {onExited} = props;
+
+    useEffect(() => {
+        if (!channel) {
+            onExited();
+        }
+    }, [channel, onExited]);
+
+    if (!channel) {
+        return null;
+    }
+
+    return (
+        <ChannelSettingsModalBody
+            {...props}
+            channel={channel}
+        />
+    );
+}
+
+function ChannelSettingsModalBody({channel, isOpen, onExited, focusOriginElement, initialTab}: ChannelSettingsModalBodyProps) {
     const {formatMessage} = useIntl();
-    const channel = useSelector((state: GlobalState) => getChannel(state, channelId)) as Channel;
+    const channelId = channel.id;
     const channelKind = useChannelKind(channel);
     const visiblePluginTabRegistrations = useSelector((state: GlobalState) => {
         const currentChannel = getChannel(state, channelId);
@@ -121,10 +148,10 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement, 
     const channelBannerEnabled = isMinimumEnterpriseAdvancedLicense(useSelector(getLicense));
 
     const canManagePublicChannelBanner = useSelector((state: GlobalState) =>
-        haveIChannelPermission(state, channel.team_id, channel.id, Permissions.MANAGE_PUBLIC_CHANNEL_BANNER),
+        haveIChannelPermissionRBACOnly(state, channel.team_id, channel.id, Permissions.MANAGE_PUBLIC_CHANNEL_BANNER),
     );
     const canManagePrivateChannelBanner = useSelector((state: GlobalState) =>
-        haveIChannelPermission(state, channel.team_id, channel.id, Permissions.MANAGE_PRIVATE_CHANNEL_BANNER),
+        haveIChannelPermissionRBACOnly(state, channel.team_id, channel.id, Permissions.MANAGE_PRIVATE_CHANNEL_BANNER),
     );
     const hasManageChannelBannerPermission = (channel.type === 'O' && canManagePublicChannelBanner) || (channel.type === 'P' && canManagePrivateChannelBanner);
 
@@ -144,7 +171,7 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement, 
         }
 
         const permissionToCheck = channel.type === Constants.PRIVATE_CHANNEL ? Permissions.MANAGE_PRIVATE_CHANNEL_AUTO_TRANSLATION : Permissions.MANAGE_PUBLIC_CHANNEL_AUTO_TRANSLATION;
-        return haveIChannelPermission(state, channel.team_id, channel.id, permissionToCheck);
+        return haveIChannelPermissionRBACOnly(state, channel.team_id, channel.id, permissionToCheck);
     });
 
     const canManageBanner = channelBannerEnabled && hasManageChannelBannerPermission;
@@ -153,7 +180,7 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement, 
             return true;
         }
         const permission = channel.type === Constants.PRIVATE_CHANNEL ? Permissions.MANAGE_PRIVATE_CHANNEL_PROPERTIES : Permissions.MANAGE_PUBLIC_CHANNEL_PROPERTIES;
-        return haveIChannelPermission(state, channel.team_id, channel.id, permission);
+        return haveIChannelPermissionRBACOnly(state, channel.team_id, channel.id, permission);
     });
     const canManageSharedChannels = useSelector((state: GlobalState) => {
         const config = getConfig(state);
@@ -168,15 +195,30 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement, 
     const shouldShowInfoTab = canManageChannelProperties;
 
     const canArchivePrivateChannels = useSelector((state: GlobalState) =>
-        haveIChannelPermission(state, channel.team_id, channel.id, Permissions.DELETE_PRIVATE_CHANNEL),
+        haveIChannelPermissionRBACOnly(state, channel.team_id, channel.id, Permissions.DELETE_PRIVATE_CHANNEL),
     );
 
     const canArchivePublicChannels = useSelector((state: GlobalState) =>
-        haveIChannelPermission(state, channel.team_id, channel.id, Permissions.DELETE_PUBLIC_CHANNEL),
+        haveIChannelPermissionRBACOnly(state, channel.team_id, channel.id, Permissions.DELETE_PUBLIC_CHANNEL),
     );
 
     const canManageChannelAccessRules = useSelector((state: GlobalState) =>
-        haveIChannelPermission(state, channel.team_id, channel.id, Permissions.MANAGE_CHANNEL_ACCESS_RULES),
+        haveIChannelPermissionRBACOnly(state, channel.team_id, channel.id, Permissions.MANAGE_CHANNEL_ACCESS_RULES),
+    );
+
+    // Changing any channel setting is managing the channel, so a policy denying
+    // channel_management_access makes the whole modal read-only. Every tab above is gated
+    // on a permission the management gate covers, so honouring the denial in the
+    // visibility checks would hide all of them at once and leave an empty modal that
+    // explains nothing — hence RBAC-only visibility plus a disabled state and a banner.
+    // System admins are never denied: the gate, and the decision it renders from, exempt
+    // manage_system.
+    //
+    // Reads the cached decision rather than fetching one: an unfetched channel falls open
+    // and the server's 403 is the backstop. In practice the composer for the channel you
+    // are viewing has already fetched it, and Channel Settings opens from that channel.
+    const isReadOnly = useSelector((state: GlobalState) =>
+        isChannelManagementDenied(state, channel.id),
     );
 
     const basePath = useSelector(getBasePath);
@@ -374,6 +416,7 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement, 
                 channel={channel}
                 setAreThereUnsavedChanges={setAreThereUnsavedChanges}
                 showTabSwitchError={showTabSwitchError}
+                isReadOnly={isReadOnly}
             />
         );
     };
@@ -388,6 +431,7 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement, 
                 canManageBanner={canManageBanner}
                 canManageSharedChannels={canManageSharedChannels}
                 canManageJoinLeaveMessages={canManageJoinLeaveMessages}
+                isReadOnly={isReadOnly}
             />
         );
     };
@@ -398,6 +442,7 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement, 
                 channel={channel}
                 setAreThereUnsavedChanges={setAreThereUnsavedChanges}
                 showTabSwitchError={showTabSwitchError}
+                isReadOnly={isReadOnly}
             />
         );
     };
@@ -408,6 +453,7 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement, 
                 channel={channel}
                 setAreThereUnsavedChanges={setAreThereUnsavedChanges}
                 showTabSwitchError={showTabSwitchError}
+                isReadOnly={isReadOnly}
             />
         );
     };
@@ -417,6 +463,7 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement, 
             <ChannelSettingsArchiveTab
                 channel={channel}
                 onHide={handleHideConfirm}
+                isReadOnly={isReadOnly}
             />
         );
     };

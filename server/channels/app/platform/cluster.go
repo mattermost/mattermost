@@ -191,6 +191,10 @@ func (ps *PlatformService) Publish(message *model.WebSocketEvent) {
 		ps.metricsIFace.IncrementWebsocketEvent(message.EventType())
 	}
 
+	if ps.prePublishHook != nil {
+		ps.prePublishHook(message)
+	}
+
 	ps.PublishSkipClusterSend(message)
 
 	if ps.clusterIFace != nil {

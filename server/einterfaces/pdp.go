@@ -13,4 +13,6 @@ import (
 // an action on a resource based on the resource policy.
 type PolicyDecisionPointInterface interface {
 	AccessEvaluation(rctx request.CTX, accessRequest model.AccessRequest) (model.AccessDecision, *model.AppError)
+	ActionHasPermissionPolicy(rctx request.CTX, action string) (bool, *model.AppError)
+	ResourcePolicyGovernsAction(rctx request.CTX, resourceID string, action string) (bool, *model.AppError)
 }

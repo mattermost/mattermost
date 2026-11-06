@@ -27,7 +27,7 @@ func (api *API) userTyping(req *model.WebSocketRequest) (map[string]any, *model.
 		return nil, NewInvalidWebSocketParamError(req.Action, "channel_id")
 	}
 
-	if hasPermission, _ := api.App.SessionHasPermissionToChannel(request.EmptyContext(api.App.Log()), req.Session, channelId, model.PermissionCreatePost); !hasPermission {
+	if hasPermission, _ := api.App.SessionHasPermissionToChannelRBACOnly(request.EmptyContext(api.App.Log()), req.Session, channelId, model.PermissionCreatePost); !hasPermission {
 		return nil, NewInvalidWebSocketParamError(req.Action, "channel_id")
 	}
 

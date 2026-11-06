@@ -16,14 +16,18 @@ import {useChannelKind} from 'hooks/useChannelKind';
 import type {KindMessages} from 'utils/channel_kind';
 import {channelKindMessages} from 'utils/channel_kind_messages';
 
+import ChannelSettingsReadOnlyNotice from './channel_settings_read_only_notice';
+
 type ChannelSettingsArchiveTabProps = {
     channel: Channel;
     onHide: () => void;
+    isReadOnly?: boolean;
 };
 
 function ChannelSettingsArchiveTab({
     channel,
     onHide,
+    isReadOnly = false,
 }: ChannelSettingsArchiveTabProps) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
@@ -45,11 +49,13 @@ function ChannelSettingsArchiveTab({
 
     return (
         <div className='ChannelSettingsModal__archiveTab'>
+            {isReadOnly && <ChannelSettingsReadOnlyNotice/>}
             <FormattedMessage {...messages.warning[channelKind]}/>
             <Button
                 type='button'
                 destructive={true}
                 onClick={handleArchiveChannel}
+                disabled={isReadOnly}
                 id='channelSettingsArchiveChannelButton'
                 aria-label={formatMessage(messages.buttonAriaLabel[channelKind], {displayName: channel.display_name})}
             >

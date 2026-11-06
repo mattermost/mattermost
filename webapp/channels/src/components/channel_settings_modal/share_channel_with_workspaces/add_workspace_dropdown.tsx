@@ -17,6 +17,8 @@ type Props = {
 
     /** When provided, this list is used instead of fetching on open. null = still loading. */
     remoteClusters?: RemoteCluster[] | null;
+
+    disabled?: boolean;
 };
 
 const MENU_ID = 'add_workspace_to_channel_menu';
@@ -25,6 +27,7 @@ export default function AddWorkspaceDropdown({
     currentRemoteIds,
     onAdd,
     remoteClusters = undefined,
+    disabled = false,
 }: Props) {
     const {formatMessage} = useIntl();
 
@@ -41,6 +44,7 @@ export default function AddWorkspaceDropdown({
 
     const menuButton = useMemo(() => ({
         id: `${MENU_ID}-button`,
+        disabled,
         class: buttonClassNames({emphasis: 'tertiary', size: 'sm'}, 'ShareChannelWithWorkspaces__addBtn'),
         children: (
             <>
@@ -58,7 +62,7 @@ export default function AddWorkspaceDropdown({
                 />
             </>
         ),
-    }), []);
+    }), [disabled]);
     const menu = useMemo(() => ({
         id: MENU_ID,
         className: 'ShareChannelWithWorkspaces__dropdown',

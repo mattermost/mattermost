@@ -5,6 +5,7 @@ import {Permissions} from 'mattermost-redux/constants';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {haveIChannelPermission, haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
 
+import {isChannelAccessControlEnabled} from 'selectors/general';
 import {getChannelSettingsTabs} from 'selectors/plugins';
 
 import Constants from 'utils/constants';
@@ -86,6 +87,21 @@ export function canAccessChannelSettings(state: GlobalState, channelId: string):
         archivePermission,
     );
 
+    const isPolicyEligibleChannelType = isPrivate || channel.type === Constants.OPEN_CHANNEL;
+    const isPolicyDefaultChannel = channel.name === Constants.DEFAULT_CHANNEL || channel.name === Constants.OFFTOPIC_CHANNEL;
+
+    const hasAccessRulesPermission = isPolicyEligibleChannelType &&
+        !isPolicyDefaultChannel &&
+        !channel.group_constrained &&
+        !channel.shared &&
+        haveIChannelPermission(
+            state,
+            teamId,
+            channelId,
+            Permissions.MANAGE_CHANNEL_ACCESS_RULES,
+        ) &&
+        isChannelAccessControlEnabled(state);
+
     // User can access channel settings if they have permission for at least one tab
-    return hasInfoPermission || hasBannerPermission || hasTranslationPermission || hasSharedChannelsPermission || hasArchivePermission || hasVisiblePluginTabs;
+    return hasInfoPermission || hasBannerPermission || hasTranslationPermission || hasSharedChannelsPermission || hasArchivePermission || hasAccessRulesPermission || hasVisiblePluginTabs;
 }

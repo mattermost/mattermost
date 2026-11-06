@@ -97,6 +97,10 @@ func postHardenedModeCheck(hardenedModeEnabled, isIntegration bool, props model.
 	return nil
 }
 
+// userCreatePostPermissionCheckWithApp is RBAC-only, like the HasPermissionToChannel it
+// calls. It runs from the scheduled-post job, which has no session for a policy over
+// user.session.* to evaluate, so there is no channel-access gate here; the interactive
+// twin in api4/post_utils.go carries one.
 func userCreatePostPermissionCheckWithApp(rctx request.CTX, a *App, userId, channelId string) *model.AppError {
 	hasPermission := false
 	if ok, _ := a.HasPermissionToChannel(rctx, userId, channelId, model.PermissionCreatePost); ok {
