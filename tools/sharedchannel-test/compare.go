@@ -127,8 +127,11 @@ func (tr *TestRunner) waitForChannelsToMatch(ctx context.Context, channelA, chan
 	var diffs []string
 	var fetchErr error
 	for {
-		a, errA := fetchChannelState(ctx, tr.clientA, channelA)
-		b, errB := fetchChannelState(ctx, tr.clientB, channelB)
+		// Bound each attempt, since the API clients have no request timeout.
+		attemptCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+		a, errA := fetchChannelState(attemptCtx, tr.clientA, channelA)
+		b, errB := fetchChannelState(attemptCtx, tr.clientB, channelB)
+		cancel()
 		fetchErr = errors.Join(errA, errB)
 		if fetchErr == nil {
 			diffs = diffChannelStates(a, b, labels)
@@ -137,7 +140,7 @@ func (tr *TestRunner) waitForChannelsToMatch(ctx context.Context, channelA, chan
 			}
 		}
 		if time.Now().After(deadline) {
-			if diffs == nil && fetchErr != nil {
+			if fetchErr != nil {
 				return nil, fetchErr
 			}
 			return diffs, nil

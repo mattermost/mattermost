@@ -54,6 +54,7 @@ func (tr *TestRunner) runCatchUpTests(ctx context.Context) error {
 	if err := cr.mutate(ctx, 60); err != nil {
 		tr.fail("catchup/mutate", err.Error())
 		if startErr := tr.mgr.StartServerB(ctx); startErr != nil {
+			tr.fail("catchup/restart", "failed to restart Server B: "+startErr.Error())
 			tr.logger.Error("Failed to restart Server B", mlog.Err(startErr))
 		}
 		return nil
