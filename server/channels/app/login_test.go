@@ -81,6 +81,7 @@ func TestCWSLogin(t *testing.T) {
 		testCases := []struct {
 			name     string
 			cloud    bool
+			email    func(user *model.User) string
 			bindTo   func(user, otherUser *model.User) string
 			loginID  func(user, otherUser *model.User) string
 			expectOK bool
@@ -113,6 +114,12 @@ func TestCWSLogin(t *testing.T) {
 				loginID: func(user, _ *model.User) string { return user.Email },
 			},
 			{
+				name:    "self-hosted license with a login ID matching only under Unicode case folding",
+				email:   func(user *model.User) string { return "σοσ" + user.Id + "@example.com" },
+				bindTo:  func(user, _ *model.User) string { return strings.Replace(user.Email, "σοσ", "σος", 1) },
+				loginID: func(user, _ *model.User) string { return user.Email },
+			},
+			{
 				name:    "Cloud license without the CWS login ID",
 				cloud:   true,
 				bindTo:  func(_, _ *model.User) string { return "" },
@@ -140,6 +147,11 @@ func TestCWSLogin(t *testing.T) {
 				th.App.Srv().SetCWSTokenOverride(token.Token)
 				user := th.CreateUser(t)
 				otherUser := th.CreateUser(t)
+				if tc.email != nil {
+					user.Email = tc.email(user)
+					_, err := th.App.Srv().Store().User().Update(th.Context, user, false)
+					require.NoError(t, err)
+				}
 				th.App.Srv().SetCWSLoginIDOverride(tc.bindTo(user, otherUser))
 				t.Cleanup(func() {
 					th.App.Srv().SetCWSTokenOverride("")

@@ -375,11 +375,12 @@ func GetProtocol(r *http.Request) string {
 }
 
 // cwsLoginIDMatches reports whether CWS_CLOUD_LOGIN_ID is set and login_id matches it
-// case-insensitively, as GetForLogin does.
+// case-insensitively, as GetForLogin does. strings.EqualFold is not used because it folds
+// more than SQL lower() (e.g. σ and ς), so it could accept a login_id resolving to another user.
 func (a *App) cwsLoginIDMatches(id, loginID string) bool {
 	expected := a.Srv().cwsLoginIDOverride
 	if expected == "" {
 		expected = os.Getenv(cwsLoginIDEnv)
 	}
-	return expected != "" && id == "" && strings.EqualFold(loginID, expected)
+	return expected != "" && id == "" && strings.ToLower(loginID) == strings.ToLower(expected) //nolint:staticcheck
 }
