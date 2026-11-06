@@ -273,8 +273,9 @@ func TestHasChannelReadAccess(t *testing.T) {
 		mockACS.AssertNumberOfCalls(t, "AccessEvaluation", 1)
 	})
 
-	t.Run("evaluates every call when no memo is installed", func(t *testing.T) {
-		// Background jobs and websocket fan-out build contexts with no memo.
+	t.Run("reuses the cached decision when no memo is installed", func(t *testing.T) {
+		// Background jobs and websocket fan-out build contexts with no memo; the
+		// cross-request decision cache answers them instead.
 		h := setupChannelReadAccessTest(t)
 		mockACS := h.mockACS(t)
 		governed(mockACS)
@@ -285,7 +286,11 @@ func TestHasChannelReadAccess(t *testing.T) {
 		for range 3 {
 			require.True(t, h.th.App.HasChannelReadAccess(bare, h.th.BasicUser.Id, h.th.BasicChannel))
 		}
-		mockACS.AssertNumberOfCalls(t, "AccessEvaluation", 3)
+		mockACS.AssertNumberOfCalls(t, "AccessEvaluation", 1)
+
+		h.th.App.InvalidateAccessDecisionsForPolicyChange()
+		require.True(t, h.th.App.HasChannelReadAccess(bare, h.th.BasicUser.Id, h.th.BasicChannel))
+		mockACS.AssertNumberOfCalls(t, "AccessEvaluation", 2)
 	})
 
 	t.Run("does not reuse one user's decision for another", func(t *testing.T) {

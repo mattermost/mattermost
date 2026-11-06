@@ -520,32 +520,37 @@ func (a *App) hasChannelAccess(rctx request.CTX, userID string, channel *model.C
 }
 
 func (a *App) evaluateChannelAccess(rctx request.CTX, userID string, channel *model.Channel, action string) bool {
-	acs := a.Srv().Channels().AccessControl
-
 	governed, byChannelPolicy := a.channelAccessGoverned(rctx, channel, action)
 	if !governed {
 		return true
 	}
 
-	subject, appErr := a.channelAccessSubject(rctx, userID, channel.Id, byChannelPolicy)
-	if appErr != nil {
+	// Read access is the hottest check (every recipient of every channel event), so its PDP
+	// decisions are cached across requests. Other actions evaluate every time for now.
+	var ref accessSubjectRef
+	if action == model.AccessControlPolicyActionChannelReadAccess {
+		ref = accessSubjectRefFor(rctx, userID)
+	}
+
+	var buildErr *model.AppError
+	decision, evalErr := a.evaluateAccessCached(rctx, ref,
+		model.Resource{Type: model.AccessControlPolicyTypeChannel, ID: channel.Id},
+		action,
+		func() (model.Subject, *model.AppError) {
+			subject, appErr := a.channelAccessSubject(rctx, userID, channel.Id, byChannelPolicy)
+			buildErr = appErr
+			return subject, appErr
+		},
+	)
+	if buildErr != nil {
 		rctx.Logger().Info("Failed to build ABAC subject for channel-access evaluation; denying",
 			mlog.String("action", action),
 			mlog.String("user_id", userID),
 			mlog.String("channel_id", channel.Id),
-			mlog.Err(appErr),
+			mlog.Err(buildErr),
 		)
 		return false
 	}
-
-	decision, evalErr := acs.AccessEvaluation(rctx, model.AccessRequest{
-		Subject: subject,
-		Resource: model.Resource{
-			Type: model.AccessControlPolicyTypeChannel,
-			ID:   channel.Id,
-		},
-		Action: action,
-	})
 	if evalErr != nil {
 		rctx.Logger().Warn("ABAC channel-access evaluation failed; denying",
 			mlog.String("action", action),
