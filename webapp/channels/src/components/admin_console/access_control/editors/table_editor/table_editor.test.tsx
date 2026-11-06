@@ -1525,6 +1525,11 @@ describe('isMultiselectOrGroup', () => {
         expect(isMultiselectOrGroup('"a" in user.attributes.X || "b" in user.attributes.X')).toBe(true);
     });
 
+    test('requires enclosing parentheses when requested', () => {
+        expect(isMultiselectOrGroup('"a" in user.attributes.X || "b" in user.attributes.X', {requireParens: true})).toBe(false);
+        expect(isMultiselectOrGroup('("a||b" in user.attributes.X || "c" in user.attributes.X)', {requireParens: true})).toBe(true);
+    });
+
     test('rejects equality conditions in OR group', () => {
         expect(isMultiselectOrGroup('(user.attributes.X == "a" || user.attributes.X == "b")')).toBe(false);
     });

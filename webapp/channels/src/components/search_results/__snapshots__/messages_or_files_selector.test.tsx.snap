@@ -50,13 +50,13 @@ exports[`components/search_results/MessagesOrFilesSelector should match snapshot
         <button
           aria-label="Filter"
           aria-pressed="true"
-          class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 action-icon dots-icon"
+          class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 action-icon dots-icon"
           id="filesFilterButton"
           type="button"
         >
           <span
             aria-hidden="true"
-            class="_icon-button__icon-slot_13ryy_41"
+            class="_icon-button__icon-slot_ft92e_41"
           >
             <div
               aria-hidden="true"
@@ -80,7 +80,7 @@ exports[`components/search_results/MessagesOrFilesSelector should match snapshot
               </div>
             </div>
             <span
-              class="_icon-button__unread-badge_13ryy_48"
+              class="_icon-button__unread-badge_ft92e_48"
             />
           </span>
         </button>
@@ -170,13 +170,13 @@ exports[`components/search_results/MessagesOrFilesSelector should match snapshot
         <button
           aria-label="Filter"
           aria-pressed="true"
-          class="_icon-button_13ryy_2 _icon-button--size-small_13ryy_77 action-icon dots-icon"
+          class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 action-icon dots-icon"
           id="filesFilterButton"
           type="button"
         >
           <span
             aria-hidden="true"
-            class="_icon-button__icon-slot_13ryy_41"
+            class="_icon-button__icon-slot_ft92e_41"
           >
             <div
               aria-hidden="true"
@@ -200,7 +200,7 @@ exports[`components/search_results/MessagesOrFilesSelector should match snapshot
               </div>
             </div>
             <span
-              class="_icon-button__unread-badge_13ryy_48"
+              class="_icon-button__unread-badge_ft92e_48"
             />
           </span>
         </button>

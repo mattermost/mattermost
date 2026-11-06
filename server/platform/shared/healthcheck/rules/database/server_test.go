@@ -78,6 +78,7 @@ func TestDBPoolSaturated(t *testing.T) {
 		cfg.SqlSettings.MaxOpenConns = n
 		return cfg
 	}
+	noReply := newSnapshot(maxOpen(new(100)), nil, nil)
 
 	firing := firingWant("health.rule.db_pool_saturated.message")
 
@@ -88,7 +89,6 @@ func TestDBPoolSaturated(t *testing.T) {
 	}{
 		{"config absent", newSnapshot(nil, nil, poolDiag(new(95), nil)), unknownConfigWant},
 		{"max open unset", newSnapshot(maxOpen(nil), nil, poolDiag(new(95), nil)), unknownConfigWant},
-		{"leader diagnostics absent", newSnapshot(maxOpen(new(100)), nil, nil), unknownDiagWant},
 		{"in use not collected", newSnapshot(maxOpen(new(100)), nil, poolDiag(nil, nil)), unknownDiagWant},
 		{"pool section failed", failSection(newSnapshot(maxOpen(new(100)), nil, poolDiag(new(95), nil)), model.SectionDatabasePool), unknownDiagWant},
 		{"95 of 100 in use", newSnapshot(maxOpen(new(100)), nil, poolDiag(new(95), nil)), firing.withValue(95)},
@@ -101,13 +101,40 @@ func TestDBPoolSaturated(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			assertResult(t, dbPoolSaturated, tc.snapshot, tc.want)
+			assertResults(t, dbPoolSaturated.EvalNode(tc.snapshot, tc.snapshot.Nodes()[0]), tc.want)
 		})
 	}
 
-	results := dbPoolSaturated.Eval(newSnapshot(maxOpen(new(100)), nil, poolDiag(new(95), nil)))
-	require.Len(t, results, 1)
-	assert.Equal(t, map[string]string{"in_use": "95", "max_open": "100", "percent": "95"}, results[0].Details)
+	t.Run("node did not reply", func(t *testing.T) {
+		t.Parallel()
+		node := &healthcheck.NodeSnapshot{Hostname: "app-2.example.com", CollectErr: healthcheck.ErrNodeNoReply}
+		assertResults(t, dbPoolSaturated.EvalNode(noReply, node), unknownDiagWant)
+	})
+
+	t.Run("fires for the saturated node only", func(t *testing.T) {
+		t.Parallel()
+
+		node := func(hostname string, inUse int) *healthcheck.NodeSnapshot {
+			return &healthcheck.NodeSnapshot{Hostname: hostname, Diagnostics: &model.NodeDiagnostics{Diagnostics: poolDiag(new(inUse), nil)}}
+		}
+		s := healthcheck.NewSnapshot([]*healthcheck.NodeSnapshot{node("app-1.example.com", 20), node("app-2.example.com", 95), node("app-3.example.com", 40)})
+		s.Config, s.Sections = noReply.Config, noReply.Sections
+
+		registry := healthcheck.NewRegistry()
+		registry.Register(dbPoolSaturated)
+		states := map[string]healthcheck.State{}
+		for _, evaluation := range healthcheck.NewEngine(healthcheck.EngineOpts{Registry: registry}).Evaluate(s) {
+			states[evaluation.Result.Scope] = evaluation.Result.State
+			if evaluation.Result.State == healthcheck.StateFiring {
+				assert.Equal(t, map[string]string{"in_use": "95", "max_open": "100", "percent": "95"}, evaluation.Result.Details)
+			}
+		}
+		assert.Equal(t, map[string]healthcheck.State{
+			"app-1.example.com": healthcheck.StateResolved,
+			"app-2.example.com": healthcheck.StateFiring,
+			"app-3.example.com": healthcheck.StateResolved,
+		}, states)
+	})
 }
 
 func TestDBReplicaUnused(t *testing.T) {

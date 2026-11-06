@@ -329,7 +329,10 @@ function CELEditor({
         }
 
         // Create the editor instance
-        const editor = monaco.editor.create(editorRef.current, MONACO_EDITOR_OPTIONS);
+        const editor = monaco.editor.create(editorRef.current, {
+            ...MONACO_EDITOR_OPTIONS,
+            ariaLabel: intl.formatMessage({id: 'admin.access_control.cel.editor_aria_label', defaultMessage: 'CEL expression editor'}),
+        });
         monacoRef.current = editor;
 
         // Set the initial value from the expression state
@@ -481,7 +484,11 @@ function CELEditor({
                     style={{backgroundColor: editorState.statusBarColor}}
                     data-validation-state={getValidationState()}
                 >
-                    <div className='cel-editor__status-message'>
+                    <div
+                        className='cel-editor__status-message'
+                        role='status'
+                        aria-live='polite'
+                    >
                         {renderStatusMessage(getValidationState())}
                     </div>
                     <div className='cel-editor__cursor-position'>

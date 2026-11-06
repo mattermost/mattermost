@@ -4610,6 +4610,11 @@
     "description": "API error shown to an admin when updating a secure connection to a URL already used by another connection."
   },
   {
+    "id": "api.remote_cluster.upload_resume_not_allowed.app_error",
+    "translation": "Upload from a secure connection cannot resume a partially received file.",
+    "description": "API error returned to a connected Mattermost server when it sends file data for an upload that has already received some data, which would otherwise corrupt the file."
+  },
+  {
     "id": "api.restricted_system_admin",
     "translation": "This action is forbidden to a restricted system admin.",
     "description": "API error when a restricted system admin (an admin role with limited settings access) attempts an action outside their allowed scope."
@@ -6343,11 +6348,6 @@
     "id": "api.user.login_by_oauth.parse.app_error",
     "translation": "Could not parse auth data out of {{.Service}} user object.",
     "description": "Login error; {{.Service}} is the OAuth provider name whose returned user object could not be parsed."
-  },
-  {
-    "id": "api.user.login_cws.license.error",
-    "translation": "CWS login is forbidden.",
-    "description": "Login error when a Customer Web Server (CWS) portal login is attempted where it is not permitted; 'CWS' is the Mattermost customer portal."
   },
   {
     "id": "api.user.login_ldap.not_available.app_error",
@@ -10326,6 +10326,11 @@
     "description": "API error for admins when restoring rank-comparison operators in an access control policy expression fails; technical failure, not user mistake."
   },
   {
+    "id": "app.pap.save_policy.advanced_rule_requires_system_admin",
+    "translation": "Only a System Admin can change membership rules that use advanced logic. Edit them in the System Console.",
+    "description": "API error when a team or channel admin tries to save, or replace, a membership rule that can only be edited in the System Console's Advanced (CEL) editor."
+  },
+  {
     "id": "app.pap.save_policy.app_error",
     "translation": "Unable to save access control policy.",
     "description": "Generic API error shown to system admins when saving an attribute-based access control policy fails."
@@ -10349,6 +10354,16 @@
     "id": "app.pap.save_policy.masked_token_in_expression",
     "translation": "The policy expression contains a placeholder value that could not be resolved. Please reload the policy and try again.",
     "description": "API error when a saved access control policy expression still contains an unresolved masked-value placeholder; asks the admin to reload the policy and retry."
+  },
+  {
+    "id": "app.pap.save_policy.membership_rule_not_sqlizable",
+    "translation": "This membership rule uses an expression that membership sync cannot evaluate. Rewrite the rule using only comparisons, &&, ||, in, and the supported attribute functions.",
+    "description": "API error (400) shown to an admin saving a team, channel, or parent access policy whose membership rule uses allowed functions in a shape that cannot be converted to the database query used by membership sync (for example has()). Without this error the rule would be stored but never add or remove members."
+  },
+  {
+    "id": "app.pap.save_policy.membership_rule_unsupported_function",
+    "translation": "This membership rule uses {{.Function}}, which membership sync cannot evaluate. Rewrite the rule using only comparisons, &&, ||, in, and the supported attribute functions.",
+    "description": "API error (400) shown to an admin saving a team, channel, or parent access policy whose membership rule uses an operator or function that only works outside membership sync. {{.Function}} is the operator or function name, for example \"the conditional operator (?:)\" or \"inCIDR\"."
   },
   {
     "id": "app.pap.save_policy.name_exists.app_error",
@@ -11304,6 +11319,11 @@
     "id": "app.property_field.search.app_error",
     "translation": "Unable to search property fields.",
     "description": "API error returned when a search query over property fields (custom attribute definitions) fails."
+  },
+  {
+    "id": "app.property_field.search_global_attribute_listing.app_error",
+    "translation": "Unable to search the global attributes.",
+    "description": "API error returned when the Global Attributes listing in the System Console cannot be loaded."
   },
   {
     "id": "app.property_field.self_writable_holdings.app_error",
@@ -14837,6 +14857,11 @@
     "description": "Health dashboard finding detail when the search engine connection test failed and SqlSettings.DisableDatabaseSearch is on; {{.error}} is the error the server reported, with URL credentials masked."
   },
   {
+    "id": "health.rule.es_server_error.message.partial",
+    "translation": "The connection test to the search engine failed on {{.nodes}}, while the other nodes reach it, so search and indexing on those nodes may fail. Check the network, firewall, proxy and DNS settings on those nodes. Error: {{.error}}",
+    "description": "Health dashboard finding detail when the Elasticsearch or OpenSearch connection test fails on some cluster nodes but not others; {{.nodes}} is a comma-separated list of node hostnames and {{.error}} is the error the failing nodes reported."
+  },
+  {
     "id": "health.rule.es_server_error.remediation",
     "translation": "Verify ElasticsearchSettings.ConnectionURL reachability, TLS, and credentials. Check the search cluster health (GET /_cluster/health).",
     "description": "Health dashboard fix-it step for a failed search engine connection test; 'ElasticsearchSettings.ConnectionURL' is a config setting name and 'GET /_cluster/health' is a literal API call, neither should be translated."
@@ -14957,6 +14982,11 @@
     "description": "Health dashboard finding detail when the file storage connection test failed; {{.error}} is the error returned by the test, in English."
   },
   {
+    "id": "health.rule.filestore_unreachable.message.partial",
+    "translation": "The connection test to file storage failed on {{.nodes}}, while the other nodes reach it, so file uploads and downloads through those nodes may fail. Check the network, firewall, proxy and DNS settings on those nodes. For local storage, also check that the shared directory is mounted on them. Error: {{.error}}",
+    "description": "Health dashboard finding detail when the file storage connection test fails on some cluster nodes but not others; {{.nodes}} is a comma-separated list of node hostnames and {{.error}} is the error the failing nodes reported."
+  },
+  {
     "id": "health.rule.filestore_unreachable.remediation",
     "translation": "Check the file storage settings, then use Test Connection in System Console > Environment > File Storage. For local storage, check that FileSettings.Directory exists and the Mattermost user can write to it. For Amazon S3, check the bucket, endpoint and credentials.",
     "description": "Health dashboard fix-it step for a failed file storage connection test; 'Test Connection' and 'System Console > Environment > File Storage' name System Console elements; 'FileSettings.Directory' is a config setting path and should not be translated."
@@ -15063,8 +15093,13 @@
   },
   {
     "id": "health.rule.ldap_probe_failed.message",
-    "translation": "The leader node's LDAP test (connect, bind and a user search) failed, so LDAP sign-in and sync may be failing.",
+    "translation": "The LDAP test (connect, bind and a user search) failed, so LDAP sign-in and sync may be failing.",
     "description": "Health dashboard finding detail when the AD/LDAP connection test run by the server failed. 'LdapServer', 'LdapPort', 'ConnectionSecurity' and the button label 'Test Connection' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.message.partial",
+    "translation": "The LDAP test (connect, bind and a user search) failed on {{.nodes}}, while the other nodes reach the LDAP server, so LDAP sign-in may fail on those nodes. Check the network, firewall, proxy and DNS settings on those nodes.",
+    "description": "Health dashboard finding detail when the LDAP connection test fails on some cluster nodes but not others; {{.nodes}} is a comma-separated list of node hostnames."
   },
   {
     "id": "health.rule.ldap_probe_failed.remediation",
@@ -15270,6 +15305,41 @@
     "id": "health.rule.node_fd_exhaustion.title",
     "translation": "File descriptors nearly exhausted",
     "description": "Health dashboard finding title when a server node uses 90% or more of its open file descriptor limit."
+  },
+  {
+    "id": "health.rule.node_not_responding.message",
+    "translation": "This node did not return its diagnostics for the health check. It may be down, overloaded, or cut off from the other nodes. Until it responds, its other findings keep their last known state.",
+    "description": "Health dashboard finding detail when a cluster node did not return its diagnostics; 'findings' are the health dashboard's reported problems."
+  },
+  {
+    "id": "health.rule.node_not_responding.remediation",
+    "translation": "Check that Mattermost is running on this node, review its logs and its CPU and memory use, and confirm it can reach the other nodes on the gossip port (ClusterSettings.GossipPort).",
+    "description": "Health dashboard fix-it step for a cluster node that is not responding; 'ClusterSettings.GossipPort' is a config setting name and should not be translated, and 'gossip' is the protocol cluster nodes use to talk to each other."
+  },
+  {
+    "id": "health.rule.node_not_responding.title",
+    "translation": "A cluster node is not responding",
+    "description": "Health dashboard finding title when a node of a high availability cluster did not return its diagnostics for the health check."
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.message",
+    "translation": "The OAuth/OIDC provider connectivity probe failed from every reporting Mattermost node, so sign-in through this provider is likely unavailable.",
+    "description": "Health dashboard finding detail when every reporting Mattermost node fails to reach an enabled OAuth or OpenID Connect provider."
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.message.partial",
+    "translation": "The OAuth/OIDC provider connectivity probe failed on {{.nodes}}, while the other reporting nodes can reach the provider. Sign-in through this provider may fail on those nodes.",
+    "description": "Health dashboard finding detail when some cluster nodes cannot reach an enabled OAuth or OpenID Connect provider; {{.nodes}} is a comma-separated list of node hostnames."
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.remediation",
+    "translation": "Check the error details, the provider's discovery or token endpoint, and outbound network, firewall, proxy and DNS settings. Then confirm sign-in through the provider.",
+    "description": "Health dashboard fix-it step when an enabled OAuth or OpenID Connect provider connectivity probe fails."
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.title",
+    "translation": "OAuth/OIDC provider connectivity probe failed",
+    "description": "Health dashboard finding title when an enabled OAuth or OpenID Connect provider connectivity probe fails."
   },
   {
     "id": "health.rule.plugin_health_off.message",
@@ -15478,8 +15548,13 @@
   },
   {
     "id": "health.rule.saml_probe_failed.message",
-    "translation": "The leader node's SAML check of the IdP certificate and IdP URL failed, so SAML sign-in is likely broken.",
+    "translation": "The SAML check of the IdP certificate and IdP URL failed, so SAML sign-in is likely broken.",
     "description": "Health dashboard finding detail when the SAML configuration check run by the server failed: the IdP certificate is missing, invalid or expired, or the IdP URL is missing or invalid. 'IdpCertificateFile' and 'IdpURL' are config names and should not be translated."
+  },
+  {
+    "id": "health.rule.saml_probe_failed.message.partial",
+    "translation": "The SAML check of the IdP certificate and IdP URL failed on {{.nodes}}, while it passes on the other nodes, so SAML sign-in may fail on those nodes. Make sure those nodes have the same valid IdP certificate as the other nodes.",
+    "description": "Health dashboard finding detail when the SAML check fails on some cluster nodes but not others; {{.nodes}} is a comma-separated list of node hostnames, and 'IdP' means identity provider."
   },
   {
     "id": "health.rule.saml_probe_failed.remediation",
@@ -15665,6 +15740,11 @@
     "id": "health.rule.smtp_unreachable.message",
     "translation": "The connection test to the SMTP server failed: {{.error}}",
     "description": "Health dashboard finding detail when the server could not connect to its SMTP server; {{.error}} is the error returned by the connection test and should not be translated."
+  },
+  {
+    "id": "health.rule.smtp_unreachable.message.partial",
+    "translation": "The connection test to the SMTP server failed on {{.nodes}}, while the other nodes reach it. Check the network, firewall, proxy and DNS settings on those nodes. Error: {{.error}}",
+    "description": "Health dashboard finding detail when the SMTP connection test fails on some cluster nodes but not others; {{.nodes}} is a comma-separated list of node hostnames and {{.error}} is the error the failing nodes reported."
   },
   {
     "id": "health.rule.smtp_unreachable.remediation",
@@ -17328,8 +17408,8 @@
   },
   {
     "id": "model.config.is_valid.max_channels.app_error",
-    "translation": "Invalid maximum channels per team for team settings. Must be a positive number.",
-    "description": "Config validation error shown to system admins for the maximum channels per team setting; must be a positive number."
+    "translation": "Invalid maximum channels per team for team settings. Must be 0 (unlimited) or a positive number.",
+    "description": "Config validation error shown to system admins for the maximum channels per team setting; must be 0, meaning no limit, or a positive number."
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
@@ -17358,8 +17438,8 @@
   },
   {
     "id": "model.config.is_valid.max_users.app_error",
-    "translation": "Invalid maximum users per team for team settings. Must be a positive number.",
-    "description": "Config validation error shown to system admins for the maximum users per team setting; must be a positive number."
+    "translation": "Invalid maximum users per team for team settings. Must be 0 (unlimited) or a positive number.",
+    "description": "Config validation error shown to system admins for the maximum users per team setting; must be 0, meaning no limit, or a positive number."
   },
   {
     "id": "model.config.is_valid.message_export.batch_size.app_error",
@@ -19658,12 +19738,12 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 150+",
+    "translation": "Version 156+",
     "description": "Compact version requirement label on the Chrome card of the 'unsupported browser' page; the number is the minimum Chrome version."
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 150+",
+    "translation": "Version 156+",
     "description": "Compact version requirement label on the Edge card of the 'unsupported browser' page; the number is the minimum Edge version."
   },
   {

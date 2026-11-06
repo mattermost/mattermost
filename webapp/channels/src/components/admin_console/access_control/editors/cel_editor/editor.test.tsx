@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import * as monaco from 'monaco-editor';
 import React from 'react';
 
 import {searchUsersForExpression} from 'mattermost-redux/actions/access_control';
@@ -258,6 +259,21 @@ describe('CELEditor', () => {
             expect(testButton()).toBeDisabled();
             expect(await hoverTooltip()).toHaveTextContent(MASKED_TOOLTIP);
         });
+    });
+
+    test('should announce the validation status to screen readers', async () => {
+        renderWithContext(<CELEditor {...baseProps}/>, {});
+
+        const status = (await screen.findByText('Valid')).closest('.cel-editor__status-message');
+        expect(status).toHaveAttribute('role', 'status');
+        expect(status).toHaveAttribute('aria-live', 'polite');
+    });
+
+    test('should give the Monaco editor an accessible name', () => {
+        renderWithContext(<CELEditor {...baseProps}/>, {});
+
+        const createMock = monaco.editor.create as jest.Mock;
+        expect(createMock.mock.calls.at(-1)[1]).toEqual(expect.objectContaining({ariaLabel: 'CEL expression editor'}));
     });
 });
 

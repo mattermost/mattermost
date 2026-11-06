@@ -111,14 +111,11 @@ describe('SessionAttributesPage', () => {
             expect(getPropertyFields).toHaveBeenCalled();
         });
 
-        expect(getPropertyFields.mock.calls[0].slice(0, 4)).toEqual([
-            SESSION_ATTRIBUTES_GROUP_ID,
-            'session',
-            'system',
-            undefined,
-        ]);
+        expect(getPropertyFields.mock.calls[0][0]).toEqual(SESSION_ATTRIBUTES_GROUP_ID);
+        expect(getPropertyFields.mock.calls[0][1]).toEqual('session');
+        expect(getPropertyFields.mock.calls[0][2]).toMatchObject({targetType: 'system'});
 
-        const initialFetches = getPropertyFields.mock.calls.filter((call) => call[4]?.cursorId === undefined);
+        const initialFetches = getPropertyFields.mock.calls.filter((call) => call[2]?.cursorId === undefined);
         expect(initialFetches).toHaveLength(1);
     });
 

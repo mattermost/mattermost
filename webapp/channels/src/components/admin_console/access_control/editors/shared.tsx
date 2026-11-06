@@ -416,9 +416,14 @@ function isMultiselectGroupBody(body: string): boolean {
 }
 
 // A "has any of" group, with or without one pair of enclosing parens.
-export function isMultiselectOrGroup(s: string): boolean {
+export function isMultiselectOrGroup(s: string, {requireParens = false} = {}): boolean {
     const trimmed = s.trim();
-    return isMultiselectGroupBody(isWrappedInParens(trimmed) ? trimmed.slice(1, -1) : trimmed);
+    if (isWrappedInParens(trimmed)) {
+        return isMultiselectGroupBody(trimmed.slice(1, -1));
+    } else if (requireParens) {
+        return false;
+    }
+    return isMultiselectGroupBody(trimmed);
 }
 
 export function isSimpleExpression(expr: string): boolean {
@@ -434,6 +439,24 @@ export function isSimpleExpression(expr: string): boolean {
         const trimmed = condition.trim();
         return isSimpleCondition(trimmed) || (isWrappedInParens(trimmed) && isMultiselectGroupBody(trimmed.slice(1, -1)));
     });
+}
+
+// The server parser behind the table editor decides what the table can show;
+// isSimpleExpression is only a text heuristic. Any failure, including a 403,
+// counts as not renderable so a rule nobody can see is never overwritten.
+export async function canTableEditorRender(
+    getVisualAST: (expression: string) => Promise<{error?: unknown}>,
+    expression: string,
+): Promise<boolean> {
+    if (!expression.trim()) {
+        return true;
+    }
+    try {
+        const result = await getVisualAST(expression);
+        return !result.error;
+    } catch {
+        return false;
+    }
 }
 
 // Checks if there are any usable attributes for ABAC policies.
