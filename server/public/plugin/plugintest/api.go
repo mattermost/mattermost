@@ -1283,6 +1283,26 @@ func (_m *API) DeleteUser(userID string) *model.AppError {
 	return r0
 }
 
+// DeliverPostNotifications provides a mock function with given fields: postID, options
+func (_m *API) DeliverPostNotifications(postID string, options *model.DeliverPostNotificationsOptions) *model.AppError {
+	ret := _m.Called(postID, options)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeliverPostNotifications")
+	}
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, *model.DeliverPostNotificationsOptions) *model.AppError); ok {
+		r0 = rf(postID, options)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // DisablePlugin provides a mock function with given fields: id
 func (_m *API) DisablePlugin(id string) *model.AppError {
 	ret := _m.Called(id)

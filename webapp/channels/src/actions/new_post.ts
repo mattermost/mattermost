@@ -7,6 +7,7 @@ import {batchActions} from 'redux-batched-actions';
 import type {WebSocketMessages} from '@mattermost/client';
 import type {Post} from '@mattermost/types/posts';
 
+import {ChannelTypes} from 'mattermost-redux/action_types';
 import {
     actionsToMarkChannelAsRead,
     actionsToMarkChannelAsUnread,
@@ -138,7 +139,14 @@ export function setChannelReadAndViewed(dispatch: DispatchFunc, getState: GetSta
         return [];
     }
 
-    return actionsToMarkChannelAsUnread(getState, websocketMessageProps.team_id || '', post.channel_id, websocketMessageProps.mentions || '', fetchedChannelMember, post.root_id === '', post?.metadata?.priority?.priority);
+    const actions = actionsToMarkChannelAsUnread(getState, websocketMessageProps.team_id || '', post.channel_id, websocketMessageProps.mentions || '', fetchedChannelMember, post.root_id === '', post?.metadata?.priority?.priority);
+
+    // The server counts only the mention for a notification-only event, not a new message.
+    if (websocketMessageProps.notification_only) {
+        return actions.filter((action) => action.type === ChannelTypes.INCREMENT_UNREAD_MENTION_COUNT);
+    }
+
+    return actions;
 }
 
 export function setThreadRead(post: Post): ActionFunc<boolean> {
