@@ -20,7 +20,7 @@ const ProductBranding = (): JSX.Element => {
     if (currentProduct) {
         productName = currentProduct.switcherText;
     } else if (inBoards) {
-        productName = formatMessage({id: 'product_rail.boards', defaultMessage: 'Boards'});
+        productName = formatMessage({id: 'globalHeader.productBranding.boards', defaultMessage: 'Boards', description: 'Product name in the global header while the channel sidebar is narrowed to boards.'});
     }
 
     // Products may register either a compass icon name or a React element.

@@ -46,8 +46,9 @@ export default function ProductSwitcherBoardsMenuItem({isActive}: Props) {
             labels={(
                 <span>
                     <FormattedMessage
-                        id='product_rail.boards'
+                        id='globalHeader.productSwitcherMenu.boardsMenuItem.label'
                         defaultMessage='Boards'
+                        description='Product menu item, shown where the product rail is not, that narrows the channel sidebar to boards.'
                     />
                 </span>
             )}

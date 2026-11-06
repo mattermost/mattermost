@@ -22,7 +22,7 @@ export function ProductHeading() {
     if (currentProduct) {
         productName = currentProduct.switcherText;
     } else if (inBoards) {
-        productName = formatMessage({id: 'product_rail.boards', defaultMessage: 'Boards'});
+        productName = formatMessage({id: 'globalHeader.productBranding.boards', defaultMessage: 'Boards', description: 'Product name in the global header while the channel sidebar is narrowed to boards.'});
     }
 
     return (

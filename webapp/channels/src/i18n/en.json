@@ -24415,6 +24415,10 @@
     "defaultMessage": "Settings",
     "description": "Tooltip/accessibility label for the gear button in the global header that opens the Settings modal."
   },
+  "globalHeader.productBranding.boards": {
+    "defaultMessage": "Boards",
+    "description": "Product name in the global header while the channel sidebar is narrowed to boards."
+  },
   "globalHeader.productSwitcherMenu.aboutMenuItem.label": {
     "defaultMessage": "About {appTitle}",
     "description": "Menu item in the product menu (grid icon at the top left of the global header). It opens the About dialog. {appTitle} is the configured site name, or 'Mattermost' if none is set."
@@ -24422,6 +24426,10 @@
   "globalHeader.productSwitcherMenu.ariaLabel": {
     "defaultMessage": "Product menu",
     "description": "Screen-reader label for the product menu that opens from the grid icon and product name at the top left of the global header."
+  },
+  "globalHeader.productSwitcherMenu.boardsMenuItem.label": {
+    "defaultMessage": "Boards",
+    "description": "Product menu item, shown where the product rail is not, that narrows the channel sidebar to boards."
   },
   "globalHeader.productSwitcherMenu.downloadMenuItem.label": {
     "defaultMessage": "Download Apps",

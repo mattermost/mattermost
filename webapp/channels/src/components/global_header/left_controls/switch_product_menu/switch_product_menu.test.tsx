@@ -14,6 +14,14 @@ import type {GlobalState} from 'types/store';
 
 import {SwitchProductMenu} from './switch_product_menu';
 
+const mockHistoryPush = jest.fn();
+jest.mock('react-router-dom', () => ({
+    ...jest.requireActual('react-router-dom'),
+    useHistory: () => ({
+        push: mockHistoryPush,
+    }),
+}));
+
 describe('SwitchProductMenu', () => {
     const initialState: DeepPartial<GlobalState> = {
         entities: {
@@ -156,6 +164,7 @@ describe('SwitchProductMenu', () => {
 
             await waitFor(() => {
                 expect((store as unknown as {getActions: () => AnyAction[]}).getActions()).toContainEqual({type: ActionTypes.SET_PRODUCT_RAIL_SECTION, data: {section: 'boards'}});
+                expect(mockHistoryPush).toHaveBeenCalledWith('/team/channels/roadmap');
             });
         });
 
