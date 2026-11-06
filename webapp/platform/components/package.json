@@ -1,6 +1,6 @@
 {
   "name": "@mattermost/components",
-  "version": "12.1.0",
+  "version": "12.2.0",
   "private": true,
   "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
@@ -37,9 +37,9 @@
   },
   "peerDependencies": {
     "@babel/runtime-corejs3": "^7.29.10",
-    "@mattermost/compass-icons": "0.1.63",
-    "@mattermost/compass-ui": "0.1.0-alpha.21",
-    "@mattermost/shared": "12.1.0",
+    "@mattermost/compass-icons": "0.1.64",
+    "@mattermost/compass-ui": "0.1.0-alpha.26",
+    "@mattermost/shared": "12.2.0",
     "classnames": "^2.5.1",
     "lodash": "^4.17.21",
     "react-intl": "*",

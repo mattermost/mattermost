@@ -653,9 +653,11 @@ describe('ChannelSettingsConfigurationTab', () => {
             });
             await userEvent.click(screen.getByRole('menuitem', {name: 'Nebula Networks'}));
 
+            // The menu item's onClick only runs once the menu's exit transition finishes,
+            // which can take longer than the default timeout on a loaded CI runner.
             await waitFor(() => {
                 expect(screen.getByRole('button', {name: /Remove Nebula Networks/i})).toBeInTheDocument();
-            });
+            }, {timeout: 5000});
 
             expect(await screen.findByRole('button', {name: 'Save'})).toBeInTheDocument();
         });

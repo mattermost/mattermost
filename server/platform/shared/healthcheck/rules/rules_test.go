@@ -5,7 +5,9 @@ package rules
 
 import (
 	"testing"
+	"time"
 
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -47,6 +49,7 @@ func TestBuiltinRegistry(t *testing.T) {
 		"CLUSTER_BAD_ADVERTISE",
 		"CLUSTER_CONFIG_WRITABLE",
 		"CLUSTER_VERSION_SKEW",
+		"NODE_NOT_RESPONDING",
 
 		// compliance
 		"AUDIT_LOG_OFF",
@@ -155,4 +158,62 @@ func TestBuiltinRulesOnCloud(t *testing.T) {
 		"SAML_SIGNATURE_SHA1",
 		"SAML_VERIFY_OFF",
 	}, cloud)
+}
+
+// A node that did not reply yields one node-down finding, and the reconciler drops the
+// unknown results the node's other per-node rules give.
+func TestNodeNotRespondingSuppressesNodeUnknowns(t *testing.T) {
+	cfg := &model.Config{}
+	cfg.SetDefaults()
+	cfg.ClusterSettings.Enable = new(true)
+	cfg.ClusterSettings.ClusterName = new("production")
+
+	node := func(hostname string, leader bool) *healthcheck.NodeSnapshot {
+		diag := &model.SupportPacketDiagnostics{License: model.SupportPacketLicense{
+			SkuShortName: model.LicenseShortSkuEnterprise,
+			Features:     &model.Features{Cluster: new(true)},
+		}}
+		diag.Server.OpenFileDescriptors = new(int64(120))
+		diag.Server.MaxFileDescriptors = new(int64(65536))
+		diag.Database.MasterConnectionsInUse = new(10)
+		return &healthcheck.NodeSnapshot{Hostname: hostname, IsLeader: leader, Diagnostics: &model.NodeDiagnostics{Diagnostics: diag}}
+	}
+	s := healthcheck.NewSnapshot([]*healthcheck.NodeSnapshot{
+		node("app-1", true),
+		node("app-2", false),
+		{Hostname: "app-3", CollectErr: healthcheck.ErrNodeNoReply},
+	})
+	s.Config = &model.SupportPacketConfig{Config: cfg}
+	s.Sections = map[model.WorkspaceSection]error{model.SectionConfig: nil}
+
+	now := time.UnixMilli(1_000_000)
+	evaluations := healthcheck.NewEngine(healthcheck.EngineOpts{Now: func() time.Time { return now }}).Evaluate(s)
+
+	var nodeDown, app3Unknowns []healthcheck.Evaluation
+	for _, evaluation := range evaluations {
+		switch {
+		case evaluation.Code == "NODE_NOT_RESPONDING" && evaluation.Result.State == healthcheck.StateFiring:
+			nodeDown = append(nodeDown, evaluation)
+		case evaluation.Result.Scope == "app-3" && evaluation.Result.State == healthcheck.StateUnknown:
+			app3Unknowns = append(app3Unknowns, evaluation)
+		}
+	}
+	require.Len(t, nodeDown, 1)
+	assert.Equal(t, "app-3", nodeDown[0].Result.Scope)
+	require.NotEmpty(t, app3Unknowns, "the down node's per-node rules give unknown before reconcile")
+
+	store := healthcheck.NewMemoryStore()
+	reconciler := healthcheck.NewReconciler(healthcheck.ReconcilerOpts{Store: store, Now: func() time.Time { return now }})
+	_, err := reconciler.Reconcile(evaluations)
+	require.NoError(t, err)
+
+	findings, err := store.List(model.HealthFindingFilter{Muted: model.MutedIncluded})
+	require.NoError(t, err)
+	var app3 []string
+	for _, finding := range findings {
+		if finding.Scope == "app-3" {
+			app3 = append(app3, finding.Code+":"+finding.State)
+		}
+	}
+	assert.Equal(t, []string{"NODE_NOT_RESPONDING:firing"}, app3)
 }

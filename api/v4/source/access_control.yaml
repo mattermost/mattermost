@@ -102,6 +102,9 @@
                 teamId:
                   type: string
                   description: The team ID, required for team admins.
+                membership:
+                  type: boolean
+                  description: Check the expression as a membership rule. Also reports session attribute references and anything membership sync cannot evaluate, such as the ternary operator.
       responses:
         "200":
           description: Expression check result.
