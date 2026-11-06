@@ -1346,6 +1346,32 @@ func TestPluginAPIGetSharedChannelCursor(t *testing.T) {
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "does not belong to plugin")
 	})
+
+	t.Run("channel no longer shared with remote returns error", func(t *testing.T) {
+		uninvitedChannel := th.CreateChannel(t, th.BasicTeam)
+		registerPluginRemoteForTest(t, th, pluginID, uninvitedChannel)
+		src, err := th.App.Srv().Store().SharedChannel().GetRemoteByIds(uninvitedChannel.Id, rc.RemoteId)
+		require.NoError(t, err)
+		_, err = th.App.Srv().Store().SharedChannel().DeleteRemote(src.Id)
+		require.NoError(t, err)
+
+		_, err = api.GetSharedChannelCursor(uninvitedChannel.Id, rc.RemoteId)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "no longer shared")
+	})
+
+	t.Run("deleted remote returns error", func(t *testing.T) {
+		deletedPluginID := "com.test.deleted-cursor-plugin"
+		deletedChannel := th.CreateChannel(t, th.BasicTeam)
+		deletedRC := registerPluginRemoteForTest(t, th, deletedPluginID, deletedChannel)
+		_, err := th.App.Srv().Store().RemoteCluster().Delete(deletedRC.RemoteId)
+		require.NoError(t, err)
+
+		deletedAPI := NewPluginAPI(th.App, th.Context, &model.Manifest{Id: deletedPluginID})
+		_, err = deletedAPI.GetSharedChannelCursor(deletedChannel.Id, deletedRC.RemoteId)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "cannot fetch remote")
+	})
 }
 
 func TestPluginAPIReceiveSharedChannelReactionSyncMsg(t *testing.T) {

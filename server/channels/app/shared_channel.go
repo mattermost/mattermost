@@ -218,7 +218,7 @@ func (a *App) UpdateSharedChannelCursor(channelID, remoteID string, cursor model
 // GetSharedChannelCursor returns the sync cursor for the specified channelID and remoteID.
 // The remote must belong to the plugin identified by pluginID.
 func (a *App) GetSharedChannelCursor(pluginID, channelID, remoteID string) (model.GetPostsSinceForSyncCursor, error) {
-	rc, err := a.Srv().Store().RemoteCluster().Get(remoteID, true)
+	rc, err := a.Srv().Store().RemoteCluster().Get(remoteID, false)
 	if err != nil {
 		return model.GetPostsSinceForSyncCursor{}, fmt.Errorf("cursor fetch failed - cannot fetch remote %s: %w", remoteID, err)
 	}
@@ -230,6 +230,9 @@ func (a *App) GetSharedChannelCursor(pluginID, channelID, remoteID string) (mode
 	src, err := a.Srv().Store().SharedChannel().GetRemoteByIdsFromMaster(channelID, remoteID)
 	if err != nil {
 		return model.GetPostsSinceForSyncCursor{}, fmt.Errorf("cursor fetch failed - cannot fetch shared channel remote: %w", err)
+	}
+	if src.DeleteAt != 0 {
+		return model.GetPostsSinceForSyncCursor{}, fmt.Errorf("cursor fetch failed - channel %s is no longer shared with remote %s", channelID, remoteID)
 	}
 	return model.GetPostsSinceForSyncCursor{
 		LastPostUpdateAt: src.LastPostUpdateAt,
