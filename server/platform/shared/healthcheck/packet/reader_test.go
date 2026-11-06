@@ -183,6 +183,28 @@ func TestReadGoldenPackets(t *testing.T) {
 	}
 }
 
+func TestReadPostsVacuumInProgress(t *testing.T) {
+	files := fixtureFiles(t, "standalone")
+	files[model.SupportPacketDiagnosticsFileName] = bytes.Replace(
+		files[model.SupportPacketDiagnosticsFileName],
+		[]byte("  posts_vacuum_in_progress: false\n"),
+		[]byte("  posts_vacuum_in_progress: true\n"),
+		1,
+	)
+
+	snapshot := readFiles(t, files).Snapshot
+	diag, ok := snapshot.LeaderDiag(model.SectionDatabaseStats)
+	require.True(t, ok)
+	require.NotNil(t, diag.Database.PostsVacuumInProgress)
+	assert.True(t, *diag.Database.PostsVacuumInProgress)
+
+	assert.Contains(t, evaluate(t, snapshot), finding{
+		Code:    "DB_POSTS_VACUUM_STALE",
+		State:   healthcheck.StateUnknown,
+		Subject: "Database.PostsDeadTuples",
+	})
+}
+
 func TestReadSnapshotFields(t *testing.T) {
 	p := readFiles(t, fixtureFiles(t, "standalone"))
 	s := p.Snapshot

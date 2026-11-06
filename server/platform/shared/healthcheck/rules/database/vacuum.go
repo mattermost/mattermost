@@ -63,6 +63,13 @@ func evalDBPostsVacuumStale(s *healthcheck.Snapshot) healthcheck.Result {
 		return healthcheck.Resolved().WithValue(float64(dead))
 	}
 
+	if diag.Database.PostsVacuumInProgress == nil {
+		return unknownDiagnostics()
+	}
+	if *diag.Database.PostsVacuumInProgress {
+		return healthcheck.Unknown(healthcheck.TranslationId("health.rule.db_posts_vacuum_stale.in_progress"))
+	}
+
 	lastVacuum, vacuumed := postsLastVacuum(diag)
 	if !vacuumed {
 		return healthcheck.Firing(healthcheck.TranslationId("health.rule.db_posts_vacuum_stale.message.never")).

@@ -1726,6 +1726,7 @@ func TestSupportPacketMarshalGolden(t *testing.T) {
 	diagnostics.Database.LongestQueryDurationSeconds = &longestQuerySeconds
 	diagnostics.Database.WaitingForLockCount = &waitingForLock
 	diagnostics.Database.PostsDeadTuples = &postsDeadTuples
+	diagnostics.Database.PostsVacuumInProgress = new(true)
 	diagnostics.Database.PostsLastVacuum = &postsLastVacuum
 	diagnostics.Database.PostsLastAutovacuum = &postsLastAutovacuum
 	diagnostics.FileStore.Status = model.StatusOk

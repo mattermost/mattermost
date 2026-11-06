@@ -160,19 +160,37 @@ WHERE datname = current_database()`
 
 func collectPGStatUserTablesDiagnostics(ctx context.Context, db *sqlx.DB, diagnostics *store.DatabaseDiagnostics) error {
 	var row struct {
-		NDeadTup       int64        `db:"n_dead_tup"`
-		LastVacuum     sql.NullTime `db:"last_vacuum"`
-		LastAutovacuum sql.NullTime `db:"last_autovacuum"`
+		NDeadTup         int64        `db:"n_dead_tup"`
+		VacuumInProgress bool         `db:"vacuum_in_progress"`
+		LastVacuum       sql.NullTime `db:"last_vacuum"`
+		LastAutovacuum   sql.NullTime `db:"last_autovacuum"`
 	}
 
+	// pg_stat_progress_vacuum.relid is null for other roles, so identify the table through its relation lock.
 	const query = `
 SELECT
-    n_dead_tup,
-    last_vacuum,
-    last_autovacuum
-FROM pg_stat_user_tables
-WHERE lower(relname) = 'posts'
-  AND schemaname = current_schema()
+    stats.n_dead_tup,
+    EXISTS (
+        SELECT 1
+        FROM pg_stat_progress_vacuum AS progress
+        JOIN pg_locks AS locks ON
+            locks.pid = progress.pid
+            AND locks.database = progress.datid
+        WHERE progress.datid = (
+            SELECT oid
+            FROM pg_database
+            WHERE datname = current_database()
+        )
+          AND locks.locktype = 'relation'
+          AND locks.relation = stats.relid
+          AND locks.mode = 'ShareUpdateExclusiveLock'
+          AND locks.granted
+    ) AS vacuum_in_progress,
+    stats.last_vacuum,
+    stats.last_autovacuum
+FROM pg_stat_user_tables AS stats
+WHERE lower(stats.relname) = 'posts'
+  AND stats.schemaname = current_schema()
 LIMIT 1`
 
 	if err := db.GetContext(ctx, &row, query); err != nil {
@@ -183,6 +201,7 @@ LIMIT 1`
 	}
 
 	diagnostics.PostsDeadTuples = &row.NDeadTup
+	diagnostics.PostsVacuumInProgress = &row.VacuumInProgress
 	if row.LastVacuum.Valid {
 		ts := row.LastVacuum.Time.UTC()
 		diagnostics.PostsLastVacuum = &ts

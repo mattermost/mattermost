@@ -19,6 +19,7 @@ func vacuumSnapshot(dbType *string, dead, posts *int64, manual, auto *time.Time)
 	diag := &model.SupportPacketDiagnostics{}
 	diag.Database.Type = dbType
 	diag.Database.PostsDeadTuples = dead
+	diag.Database.PostsVacuumInProgress = new(false)
 	diag.Database.PostsLastVacuum = manual
 	diag.Database.PostsLastAutovacuum = auto
 
@@ -44,6 +45,15 @@ func TestDBPostsVacuumStale(t *testing.T) {
 	exactRatioPosts := int64(1_000_000)
 	zeroPosts := int64(0)
 
+	progressAbsent := vacuumSnapshot(&postgres, &dead, &posts, &stale, nil)
+	progressAbsentDiag, ok := progressAbsent.LeaderDiag(model.SectionDatabaseStats)
+	require.True(t, ok)
+	progressAbsentDiag.Database.PostsVacuumInProgress = nil
+	vacuumRunning := vacuumSnapshot(&postgres, &dead, &posts, &stale, nil)
+	vacuumRunningDiag, ok := vacuumRunning.LeaderDiag(model.SectionDatabaseStats)
+	require.True(t, ok)
+	vacuumRunningDiag.Database.PostsVacuumInProgress = new(true)
+
 	firing := firingWant("health.rule.db_posts_vacuum_stale.message").withValue(float64(dead))
 	testCases := []struct {
 		name     string
@@ -61,6 +71,8 @@ func TestDBPostsVacuumStale(t *testing.T) {
 		{"zero post count with high dead tuples", vacuumSnapshot(&postgres, &dead, &zeroPosts, &stale, nil), unknownStatsWant},
 		{"at dead tuple threshold", vacuumSnapshot(&postgres, &lowDead, &positiveRatioPosts, &stale, nil), resolvedWant.withValue(float64(lowDead))},
 		{"at dead tuple ratio", vacuumSnapshot(&postgres, &dead, &exactRatioPosts, &stale, nil), resolvedWant.withValue(float64(dead))},
+		{"vacuum progress absent", progressAbsent, unknownDiagWant},
+		{"vacuum in progress", vacuumRunning, want{state: healthcheck.StateUnknown, messageID: "health.rule.db_posts_vacuum_stale.in_progress"}},
 		{"manual vacuum recent", vacuumSnapshot(&postgres, &dead, &posts, &recent, &stale), resolvedWant.withValue(float64(dead))},
 		{"autovacuum recent", vacuumSnapshot(&postgres, &dead, &posts, &stale, &recent), resolvedWant.withValue(float64(dead))},
 		{"at stale threshold", vacuumSnapshot(&postgres, &dead, &posts, &exactlySevenDays, nil), resolvedWant.withValue(float64(dead))},

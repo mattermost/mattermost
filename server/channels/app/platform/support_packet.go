@@ -74,6 +74,7 @@ var diagnosticsYAMLComments = yaml.CommentMap{
 	"$.database.longest_query_duration_seconds": {yaml.LineComment(" point-in-time; max age of any active query right now")},
 	"$.database.waiting_for_lock_count":         {yaml.LineComment(" point-in-time count of backends waiting on a Lock wait_event_type")},
 	"$.database.posts_dead_tuples":              {yaml.LineComment(" n_dead_tup for the posts table from pg_stat_user_tables")},
+	"$.database.posts_vacuum_in_progress":       {yaml.LineComment(" whether pg_stat_progress_vacuum reports an active vacuum on posts")},
 	"$.database.posts_last_vacuum":              {yaml.LineComment(" last manual vacuum on posts; null if never manually vacuumed (then omitted)")},
 	"$.database.posts_last_autovacuum":          {yaml.LineComment(" last autovacuum on posts; null if never autovacuumed (then omitted)")},
 
@@ -466,6 +467,7 @@ func (ps *PlatformService) applyStoreDiagnostics(rctx request.CTX, diagnostics *
 	diagnostics.Database.LongestQueryDurationSeconds = storeDiagnostics.LongestQueryDurationSeconds
 	diagnostics.Database.WaitingForLockCount = storeDiagnostics.WaitingForLockCount
 	diagnostics.Database.PostsDeadTuples = storeDiagnostics.PostsDeadTuples
+	diagnostics.Database.PostsVacuumInProgress = storeDiagnostics.PostsVacuumInProgress
 	diagnostics.Database.PostsLastVacuum = storeDiagnostics.PostsLastVacuum
 	diagnostics.Database.PostsLastAutovacuum = storeDiagnostics.PostsLastAutovacuum
 

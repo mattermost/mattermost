@@ -14702,6 +14702,11 @@
     "description": "Health dashboard finding title when the database runs a PostgreSQL version older than Mattermost supports. 'PostgreSQL' is a product name and should not be translated."
   },
   {
+    "id": "health.rule.db_posts_vacuum_stale.in_progress",
+    "translation": "PostgreSQL is currently vacuuming the Posts table. Let that vacuum finish before evaluating whether another vacuum is needed.",
+    "description": "Health dashboard status when the PostgreSQL Posts table has many dead tuples but a vacuum is already running. 'PostgreSQL', 'Posts' and 'vacuum' are technical terms and should not be translated."
+  },
+  {
     "id": "health.rule.db_posts_vacuum_stale.message",
     "translation": "The Posts table has {{.dead_tuples}} estimated dead tuples ({{.dead_percent}}% of {{.posts}} posts), and its most recent vacuum was {{.age_days}} days ago at {{.last_vacuum}}. Table and index bloat can degrade query performance and increase disk use.",
     "description": "Health dashboard finding detail when the PostgreSQL Posts table has many dead tuples and has not been vacuumed recently; {{.dead_tuples}}, {{.dead_percent}}, {{.posts}} and {{.age_days}} are numbers, and {{.last_vacuum}} is an RFC 3339 timestamp. 'Posts', 'vacuum' and 'dead tuples' are PostgreSQL technical terms and should not be translated."
@@ -14713,8 +14718,8 @@
   },
   {
     "id": "health.rule.db_posts_vacuum_stale.remediation",
-    "translation": "Check for long-running transactions that block vacuum progress, verify autovacuum is enabled, and tune the Posts table's autovacuum thresholds if it cannot keep up. After addressing blockers, schedule a targeted VACUUM (ANALYZE) of the Posts table during a low-traffic period. Do not use VACUUM FULL without planning for its exclusive lock and extra disk space.",
-    "description": "Health dashboard fix-it step when the PostgreSQL Posts table has many dead tuples and has not been vacuumed recently. 'Posts', 'autovacuum', 'VACUUM (ANALYZE)' and 'VACUUM FULL' are PostgreSQL technical terms and should not be translated."
+    "translation": "Check pg_stat_progress_vacuum for a vacuum already running on Posts and let it finish. Otherwise, verify autovacuum is enabled globally and for Posts, and check PostgreSQL logs for canceled autovacuum jobs. If autovacuum cannot keep up, lower autovacuum_vacuum_scale_factor for Posts and raise autovacuum_vacuum_cost_limit and autovacuum_work_mem as capacity allows. Then schedule a targeted VACUUM (ANALYZE) on Posts during low traffic. Avoid VACUUM FULL unless you plan for its exclusive lock and extra disk space; if available, pg_repack is a lower-lock alternative.",
+    "description": "Health dashboard fix-it step when the PostgreSQL Posts table has many dead tuples and has not been vacuumed recently. 'pg_stat_progress_vacuum', 'Posts', 'PostgreSQL', 'autovacuum', 'autovacuum_vacuum_scale_factor', 'autovacuum_vacuum_cost_limit', 'autovacuum_work_mem', 'VACUUM (ANALYZE)', 'VACUUM FULL' and 'pg_repack' are technical terms and should not be translated."
   },
   {
     "id": "health.rule.db_posts_vacuum_stale.title",

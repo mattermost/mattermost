@@ -352,6 +352,7 @@ database:
   version: "15.8"
   master_connections_in_use: 1
   posts_dead_tuples: 0
+  posts_vacuum_in_progress: false
   posts_last_vacuum: 2026-09-25T09:00:00Z
 elastic:
   status: disabled
@@ -513,8 +514,14 @@ Version
 		files := healthTestPacketFiles()
 		files[model.SupportPacketDiagnosticsFileName] = strings.Replace(
 			files[model.SupportPacketDiagnosticsFileName],
-			"  posts_dead_tuples: 0\n  posts_last_vacuum: 2026-09-25T09:00:00Z\n",
-			"  posts_dead_tuples: 200001\n  posts_last_vacuum: 2026-09-10T10:00:00Z\n",
+			"  posts_dead_tuples: 0\n",
+			"  posts_dead_tuples: 200001\n",
+			1,
+		)
+		files[model.SupportPacketDiagnosticsFileName] = strings.Replace(
+			files[model.SupportPacketDiagnosticsFileName],
+			"  posts_last_vacuum: 2026-09-25T09:00:00Z\n",
+			"  posts_last_vacuum: 2026-09-10T10:00:00Z\n",
 			1,
 		)
 		files[model.SupportPacketStatsFileName] = strings.Replace(files[model.SupportPacketStatsFileName], "posts: 1000", "posts: 500000", 1)
