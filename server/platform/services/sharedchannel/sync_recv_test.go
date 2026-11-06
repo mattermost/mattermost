@@ -473,3 +473,74 @@ func TestSameAcknowledgedUsers(t *testing.T) {
 		})
 	}
 }
+
+func TestUpsertSyncAcknowledgement(t *testing.T) {
+	remoteID := model.NewId()
+	channelID := model.NewId()
+	postID := model.NewId()
+	userID := model.NewId()
+	channel := &model.Channel{Id: channelID, Type: model.ChannelTypeOpen}
+	rc := &model.RemoteCluster{RemoteId: remoteID, Name: "test-remote"}
+
+	setup := func(t *testing.T) (*Service, *MockAppIface, *mocks.UserStore) {
+		mockPostStore := &mocks.PostStore{}
+		mockPostStore.On("GetSingle", mock.Anything, postID, true).Return(&model.Post{Id: postID, ChannelId: channelID}, nil)
+
+		mockAckStore := &mocks.PostAcknowledgementStore{}
+		mockAckStore.On("GetSingle", userID, postID, remoteID).Return(nil, store.NewErrNotFound("PostAcknowledgement", postID))
+
+		mockUserStore := &mocks.UserStore{}
+
+		mockStore := &mocks.Store{}
+		mockStore.On("Post").Return(mockPostStore)
+		mockStore.On("PostAcknowledgement").Return(mockAckStore)
+		mockStore.On("User").Return(mockUserStore)
+
+		mockServer := &MockServerIface{}
+		mockServer.On("GetStore").Return(mockStore)
+		mockServer.On("Log").Return(mlog.CreateConsoleTestLogger(t))
+
+		mockApp := &MockAppIface{}
+
+		return &Service{server: mockServer, app: mockApp}, mockApp, mockUserStore
+	}
+
+	received := func() *model.PostAcknowledgement {
+		return &model.PostAcknowledgement{PostId: postID, UserId: userID, ChannelId: channelID, AcknowledgedAt: 100}
+	}
+
+	// PostAcknowledgements holds one row per (PostId, UserId) and its upsert keeps the existing
+	// RemoteId, so a save over a row from another origin repeats on every sync.
+	t.Run("active acknowledgement from another origin is not saved again", func(t *testing.T) {
+		otherOrigin := &model.PostAcknowledgement{PostId: postID, UserId: userID, ChannelId: channelID, AcknowledgedAt: 50}
+
+		scs, mockApp, _ := setup(t)
+		mockApp.On("GetAcknowledgementsForPost", postID).Return([]*model.PostAcknowledgement{
+			{PostId: postID, UserId: model.NewId(), ChannelId: channelID, AcknowledgedAt: 60},
+			otherOrigin,
+		}, (*model.AppError)(nil))
+
+		saved, err := scs.upsertSyncAcknowledgement(received(), channel, rc)
+
+		require.NoError(t, err)
+		assert.Equal(t, otherOrigin, saved)
+		mockApp.AssertNotCalled(t, "SaveAcknowledgementForPostWithModel", mock.Anything, mock.Anything)
+	})
+
+	t.Run("new acknowledgement from the remote user is saved with the remote id", func(t *testing.T) {
+		scs, mockApp, mockUserStore := setup(t)
+		mockApp.On("GetAcknowledgementsForPost", postID).Return([]*model.PostAcknowledgement{
+			{PostId: postID, UserId: model.NewId(), ChannelId: channelID, AcknowledgedAt: 60},
+		}, (*model.AppError)(nil))
+		mockUserStore.On("Get", mockTypeContext, userID).Return(&model.User{Id: userID, RemoteId: new(remoteID)}, nil)
+		hasRemoteID := mock.MatchedBy(func(ack *model.PostAcknowledgement) bool {
+			return ack.GetRemoteID() == remoteID
+		})
+		mockApp.On("SaveAcknowledgementForPostWithModel", mock.Anything, hasRemoteID).Return(received(), (*model.AppError)(nil))
+
+		_, err := scs.upsertSyncAcknowledgement(received(), channel, rc)
+
+		require.NoError(t, err)
+		mockApp.AssertCalled(t, "SaveAcknowledgementForPostWithModel", mock.Anything, hasRemoteID)
+	})
+}

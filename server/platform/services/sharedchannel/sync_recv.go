@@ -804,6 +804,15 @@ func (scs *Service) upsertSyncAcknowledgement(acknowledgement *model.PostAcknowl
 		if isActive {
 			return existingAcknowledgement, nil
 		}
+		if existingAcknowledgement == nil {
+			activeAcknowledgement, err := scs.activeAcknowledgementFromOtherOrigin(acknowledgement.UserId, acknowledgement.PostId)
+			if err != nil {
+				return nil, err
+			}
+			if activeAcknowledgement != nil {
+				return activeAcknowledgement, nil
+			}
+		}
 		// check that user belongs to remote before creating or re-activating the acknowledgement;
 		// this is not done for delete since deletion can be done by admins on the remote
 		user, err := scs.server.GetStore().User().Get(rctx, acknowledgement.UserId)
@@ -832,6 +841,24 @@ func (scs *Service) upsertSyncAcknowledgement(acknowledgement *model.PostAcknowl
 		retErr = errors.New(appErr.Error())
 	}
 	return savedAcknowledgement, retErr
+}
+
+// activeAcknowledgementFromOtherOrigin returns the user's active acknowledgement of the post when
+// it comes from a different origin (local or another remote), or nil when there is none.
+// PostAcknowledgements holds one row per (PostId, UserId) and its upsert keeps the existing RemoteId,
+// so saving over such a row would never make it match the sending remote: every sync would save it
+// again and bump Posts.UpdateAt, which starts another sync.
+func (scs *Service) activeAcknowledgementFromOtherOrigin(userID, postID string) (*model.PostAcknowledgement, error) {
+	acknowledgements, appErr := scs.app.GetAcknowledgementsForPost(postID)
+	if appErr != nil {
+		return nil, fmt.Errorf("error fetching acknowledgements for sync: %w", appErr)
+	}
+	for _, ack := range acknowledgements {
+		if ack.UserId == userID && ack.AcknowledgedAt != 0 {
+			return ack, nil
+		}
+	}
+	return nil, nil
 }
 
 func (scs *Service) upsertSyncUserStatus(rctx request.CTX, status *model.Status, rc *model.RemoteCluster) error {
