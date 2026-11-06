@@ -227,16 +227,14 @@ func (a *App) GetSharedChannelCursor(pluginID, channelID, remoteID string) (mode
 	}
 
 	// Master read: a replica can lag a cursor just written by UpdateSharedChannelCursor.
+	// The master read also includes a channel existence check to prevent returning cursors
+	// for permanently deleted channels (PermanentDeleteChannel leaves SharedChannelRemotes rows behind).
 	src, err := a.Srv().Store().SharedChannel().GetRemoteByIdsFromMaster(channelID, remoteID)
 	if err != nil {
 		return model.GetPostsSinceForSyncCursor{}, fmt.Errorf("cursor fetch failed - cannot fetch shared channel remote: %w", err)
 	}
 	if src.DeleteAt != 0 {
 		return model.GetPostsSinceForSyncCursor{}, fmt.Errorf("cursor fetch failed - channel %s is no longer shared with remote %s", channelID, remoteID)
-	}
-	// PermanentDeleteChannel leaves SharedChannelRemotes rows behind.
-	if _, err := a.Srv().Store().Channel().Get(channelID, true); err != nil {
-		return model.GetPostsSinceForSyncCursor{}, fmt.Errorf("cursor fetch failed - cannot fetch channel %s: %w", channelID, err)
 	}
 	return model.GetPostsSinceForSyncCursor{
 		LastPostUpdateAt: src.LastPostUpdateAt,
