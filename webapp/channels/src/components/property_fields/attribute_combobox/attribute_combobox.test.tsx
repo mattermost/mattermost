@@ -9,6 +9,7 @@ import {act, fireEvent, renderWithContext, screen, userEvent, within} from 'test
 import {ZIndex} from 'utils/constants';
 
 import {AttributeCombobox} from './attribute_combobox';
+import type {AttributeComboboxProps, AttributeComboboxType} from './attribute_combobox';
 
 const OPTIONS: PropertyFieldOption[] = [
     {id: 'opt3', name: 'Option 3'},
@@ -16,21 +17,47 @@ const OPTIONS: PropertyFieldOption[] = [
     {id: 'opt2', name: 'Option 2'},
 ];
 
-const TEST_ID = 'attr';
+const COLOURED: PropertyFieldOption[] = [
+    {id: 'red', name: 'Red', color: '#c8102e'},
+    {id: 'plain', name: 'Plain', color: ''},
+    {id: 'none', name: 'None'},
+];
 
-type HarnessProps = {
+const RANKS: PropertyFieldOption[] = [
+    {id: 'low', name: 'Low', rank: 1},
+    {id: 'top', name: 'Top', rank: 3},
+    {id: 'mid', name: 'Mid', rank: 2, color: '#c8102e'},
+    {id: 'zero', name: 'Zero', rank: 0},
+];
+
+// A rank option without a rank can't be persisted; this stands in for a stale cache.
+const RANKS_WITH_UNRANKED: PropertyFieldOption[] = [
+    {id: 'low', name: 'Low', rank: 1},
+    {id: 'odd', name: 'Odd'},
+    {id: 'top', name: 'Top', rank: 3},
+];
+
+const TEST_ID = 'attr';
+const SWATCH = 'attribute-option-swatch';
+const PLACEHOLDER = 'attribute-option-visual-placeholder';
+const BADGE = 'rank-badge';
+
+type ExtraProps = Partial<Pick<AttributeComboboxProps, 'type' | 'options' | 'required' | 'onBlur'>>;
+
+type HarnessProps = ExtraProps & {
     initialValue?: string | string[];
     onChange?: (value: string | string[]) => void;
 };
 
-function SingleHarness({initialValue = '', onChange}: HarnessProps) {
+function SingleHarness({initialValue = '', onChange, options = OPTIONS, ...extra}: HarnessProps) {
     const [value, setValue] = useState(initialValue);
     return (
         <AttributeCombobox
+            {...extra}
             id='attr-input'
             testId={TEST_ID}
             label='Department'
-            options={OPTIONS}
+            options={options}
             value={value}
             onChange={(next) => {
                 onChange?.(next);
@@ -40,14 +67,15 @@ function SingleHarness({initialValue = '', onChange}: HarnessProps) {
     );
 }
 
-function MultiHarness({initialValue = [], onChange}: HarnessProps) {
+function MultiHarness({initialValue = [], onChange, options = OPTIONS, ...extra}: HarnessProps) {
     const [value, setValue] = useState(initialValue);
     return (
         <AttributeCombobox
-            multiple={true}
+            {...extra}
+            type='multiselect'
             testId={TEST_ID}
             label='Skills'
-            options={OPTIONS}
+            options={options}
             value={value}
             onChange={(next) => {
                 onChange?.(next);
@@ -58,14 +86,15 @@ function MultiHarness({initialValue = [], onChange}: HarnessProps) {
 }
 
 type FormHarnessProps = {
-    multiple?: boolean;
+    type?: AttributeComboboxType;
     initialValue?: string | string[];
     submitOnEnter?: boolean;
     onChange?: (value: string | string[]) => void;
     onSubmit: () => void;
 };
 
-function FormHarness({multiple = false, initialValue, submitOnEnter, onChange, onSubmit}: FormHarnessProps) {
+function FormHarness({type = 'select', initialValue, submitOnEnter, onChange, onSubmit}: FormHarnessProps) {
+    const multiple = type === 'multiselect';
     const [value, setValue] = useState<string | string[]>(initialValue ?? (multiple ? [] : ''));
 
     return (
@@ -80,7 +109,7 @@ function FormHarness({multiple = false, initialValue, submitOnEnter, onChange, o
                 aria-label='Name'
             />
             <AttributeCombobox
-                multiple={multiple}
+                type={type}
                 testId={TEST_ID}
                 label={multiple ? 'Skills' : 'Department'}
                 options={OPTIONS}
@@ -97,6 +126,7 @@ function FormHarness({multiple = false, initialValue, submitOnEnter, onChange, o
 }
 
 const getChips = () => Array.from(document.querySelectorAll<HTMLElement>('[data-chip]'));
+const getRow = (id: string) => within(screen.getByTestId(`${TEST_ID}-option-${id}`));
 
 const getChipLabels = (label: string) => within(screen.getByRole('toolbar', {name: `${label} selections`})).
     queryAllByRole('button').
@@ -282,7 +312,7 @@ describe('AttributeCombobox', () => {
         test('treats a lone id as a one-item list', () => {
             renderWithContext(
                 <AttributeCombobox
-                    multiple={true}
+                    type='multiselect'
                     label='Skills'
                     options={OPTIONS}
                     value='opt1'
@@ -336,7 +366,7 @@ describe('AttributeCombobox', () => {
         test('keeps its chips without remove buttons when disabled', () => {
             renderWithContext(
                 <AttributeCombobox
-                    multiple={true}
+                    type='multiselect'
                     label='Skills'
                     options={OPTIONS}
                     value={['opt1', 'opt2']}
@@ -386,7 +416,7 @@ describe('AttributeCombobox', () => {
             const onChange = jest.fn();
             renderWithContext(
                 <FormHarness
-                    multiple={true}
+                    type='multiselect'
                     initialValue={['opt1']}
                     submitOnEnter={false}
                     onChange={onChange}
@@ -404,15 +434,15 @@ describe('AttributeCombobox', () => {
             expect(getChips()).toHaveLength(1);
         });
 
-        test.each([
-            {multiple: false, label: 'Department'},
-            {multiple: true, label: 'Skills'},
-        ])('even without the prop, Enter with no matching option does not submit (multiple: $multiple)', async ({multiple, label}) => {
+        test.each<{type: AttributeComboboxType; label: string}>([
+            {type: 'select', label: 'Department'},
+            {type: 'multiselect', label: 'Skills'},
+        ])('even without the prop, Enter with no matching option does not submit ($type)', async ({type, label}) => {
             const user = userEvent.setup();
             const onChange = jest.fn();
             renderWithContext(
                 <FormHarness
-                    multiple={multiple}
+                    type={type}
                     onChange={onChange}
                     onSubmit={onSubmit}
                 />,
@@ -431,15 +461,15 @@ describe('AttributeCombobox', () => {
         });
 
         // The first ArrowDown opens on row 0 (opt3), the second moves to opt1.
-        test.each([
-            {multiple: false, label: 'Department', expected: 'opt1'},
-            {multiple: true, label: 'Skills', expected: ['opt1']},
-        ])('Enter that picks an option still picks it and does not submit (multiple: $multiple)', async ({multiple, label, expected}) => {
+        test.each<{type: AttributeComboboxType; label: string; expected: string | string[]}>([
+            {type: 'select', label: 'Department', expected: 'opt1'},
+            {type: 'multiselect', label: 'Skills', expected: ['opt1']},
+        ])('Enter that picks an option still picks it and does not submit ($type)', async ({type, label, expected}) => {
             const user = userEvent.setup();
             const onChange = jest.fn();
             renderWithContext(
                 <FormHarness
-                    multiple={multiple}
+                    type={type}
                     submitOnEnter={false}
                     onChange={onChange}
                     onSubmit={onSubmit}
@@ -498,15 +528,16 @@ describe('AttributeCombobox', () => {
         });
 
         // The default path user settings relies on (SettingItemMax listens on document).
-        test.each([
-            {multiple: false, label: 'Department', initialValue: 'opt1'},
-            {multiple: true, label: 'Skills', initialValue: ['opt1']},
-        ])('without the prop, Enter on a closed field submits and reaches document (multiple: $multiple)', async ({multiple, label, initialValue}) => {
+        test.each<{type: AttributeComboboxType; label: string; initialValue: string | string[]}>([
+            {type: 'select', label: 'Department', initialValue: 'opt1'},
+            {type: 'multiselect', label: 'Skills', initialValue: ['opt1']},
+            {type: 'rank', label: 'Department', initialValue: 'opt1'},
+        ])('without the prop, Enter on a closed field submits and reaches document ($type)', async ({type, label, initialValue}) => {
             const user = userEvent.setup();
             const onChange = jest.fn();
             renderWithContext(
                 <FormHarness
-                    multiple={multiple}
+                    type={type}
                     initialValue={initialValue}
                     onChange={onChange}
                     onSubmit={onSubmit}
@@ -564,7 +595,7 @@ describe('AttributeCombobox', () => {
             const onSubmit = jest.fn();
             renderWithContext(
                 <FormHarness
-                    multiple={true}
+                    type='multiselect'
                     initialValue={['opt1', 'opt2']}
                     onChange={onChange}
                     onSubmit={onSubmit}
@@ -576,6 +607,353 @@ describe('AttributeCombobox', () => {
             expect(onChange).toHaveBeenLastCalledWith(['opt2']);
             expect(getChips()).toHaveLength(1);
             expect(onSubmit).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('option visuals', () => {
+        test('a single field shows a swatch only for options with a colour', async () => {
+            renderWithContext(<SingleHarness options={COLOURED}/>);
+
+            await userEvent.click(screen.getByRole('combobox', {name: 'Department'}));
+
+            expect(getRow('red').getByTestId(SWATCH)).toHaveStyle({backgroundColor: 'rgb(200, 16, 46)'});
+            expect(getRow('plain').queryByTestId(SWATCH)).not.toBeInTheDocument();
+            expect(getRow('none').queryByTestId(SWATCH)).not.toBeInTheDocument();
+        });
+
+        test('uncoloured rows get a placeholder when any option has a visual', async () => {
+            renderWithContext(<SingleHarness options={COLOURED}/>);
+
+            await userEvent.click(screen.getByRole('combobox', {name: 'Department'}));
+
+            expect(getRow('red').queryByTestId(PLACEHOLDER)).not.toBeInTheDocument();
+            expect(getRow('plain').getByTestId(PLACEHOLDER)).toBeInTheDocument();
+            expect(getRow('none').getByTestId(PLACEHOLDER)).toBeInTheDocument();
+        });
+
+        test('rows are unchanged when no option has a colour', async () => {
+            renderWithContext(<SingleHarness/>);
+
+            await userEvent.click(screen.getByRole('combobox', {name: 'Department'}));
+
+            expect(screen.queryByTestId(SWATCH)).not.toBeInTheDocument();
+            expect(screen.queryByTestId(PLACEHOLDER)).not.toBeInTheDocument();
+            expect(screen.getAllByRole('option').map((o) => o.textContent)).toEqual(['Option 3', 'Option 1', 'Option 2']);
+            expect(screen.getByTestId(`${TEST_ID}-option-opt1`)).toHaveAccessibleName('Option 1');
+        });
+
+        test('a multiple field shows no swatch in rows or chips', async () => {
+            renderWithContext(
+                <MultiHarness
+                    options={COLOURED}
+                    initialValue={['red']}
+                />,
+            );
+
+            await userEvent.click(screen.getByRole('combobox', {name: 'Skills'}));
+
+            expect(screen.queryByTestId(SWATCH)).not.toBeInTheDocument();
+            expect(screen.queryByTestId(PLACEHOLDER)).not.toBeInTheDocument();
+            expect(getChips().map((chip) => chip.textContent)).toEqual(['Red']);
+        });
+
+        test('the closed single field shows the committed option\'s swatch', async () => {
+            const {container} = renderWithContext(
+                <SingleHarness
+                    options={COLOURED}
+                    initialValue='red'
+                />,
+            );
+            const input = screen.getByRole('combobox', {name: 'Department'});
+
+            expect(within(container).getByTestId(SWATCH)).toBeInTheDocument();
+
+            await userEvent.click(input);
+            await userEvent.click(screen.getByRole('option', {name: 'Plain'}));
+            expect(within(container).queryByTestId(SWATCH)).not.toBeInTheDocument();
+
+            await userEvent.click(input);
+            await userEvent.click(screen.getByRole('option', {name: 'Red'}));
+            expect(within(container).getByTestId(SWATCH)).toBeInTheDocument();
+
+            await userEvent.click(screen.getByTestId(`${TEST_ID}-clear`));
+            expect(within(container).queryByTestId(SWATCH)).not.toBeInTheDocument();
+        });
+
+        test('the closed single field uses the first id of a list for its swatch', () => {
+            const {container} = renderWithContext(
+                <SingleHarness
+                    options={COLOURED}
+                    initialValue={['red', 'plain']}
+                />,
+            );
+
+            expect(within(container).getByTestId(SWATCH)).toBeInTheDocument();
+        });
+
+        test.each([
+            {name: 'an empty value', initialValue: ''},
+            {name: 'a raw id', initialValue: 'ghost'},
+        ])('the closed single field has no icon for $name', ({initialValue}) => {
+            const {container} = renderWithContext(
+                <SingleHarness
+                    options={COLOURED}
+                    initialValue={initialValue}
+                />,
+            );
+
+            expect(within(container).queryByTestId(SWATCH)).not.toBeInTheDocument();
+        });
+
+        test('the closed multiple field has no icon', () => {
+            const {container} = renderWithContext(
+                <MultiHarness
+                    options={COLOURED}
+                    initialValue={['red']}
+                />,
+            );
+
+            expect(within(container).queryByTestId(SWATCH)).not.toBeInTheDocument();
+        });
+
+        test('a disabled single field still shows the swatch', () => {
+            const {container} = renderWithContext(
+                <AttributeCombobox
+                    label='Department'
+                    options={COLOURED}
+                    value='red'
+                    disabled={true}
+                    onChange={jest.fn()}
+                />,
+            );
+
+            expect(within(container).getByTestId(SWATCH)).toBeInTheDocument();
+        });
+
+        test('picking a coloured option still reports its id', async () => {
+            const onChange = jest.fn();
+            renderWithContext(
+                <SingleHarness
+                    options={COLOURED}
+                    onChange={onChange}
+                />,
+            );
+
+            await userEvent.click(screen.getByRole('combobox', {name: 'Department'}));
+            await userEvent.click(screen.getByRole('option', {name: 'Red'}));
+
+            expect(onChange).toHaveBeenLastCalledWith('red');
+        });
+
+        test('filtering by label keeps the matching row and its swatch', async () => {
+            renderWithContext(<SingleHarness options={COLOURED}/>);
+
+            await userEvent.click(screen.getByRole('combobox', {name: 'Department'}));
+            await userEvent.keyboard('Red');
+
+            expect(screen.getAllByRole('option')).toHaveLength(1);
+            expect(getRow('red').getByTestId(SWATCH)).toBeInTheDocument();
+        });
+
+        test('switching a field from select to multiselect drops its swatches', async () => {
+            const renderCombobox = (type: AttributeComboboxType) => (
+                <AttributeCombobox
+                    type={type}
+                    testId={TEST_ID}
+                    label='Department'
+                    options={COLOURED}
+                    value='red'
+                    onChange={jest.fn()}
+                />
+            );
+            const {container, rerender} = renderWithContext(renderCombobox('select'));
+            expect(within(container).getByTestId(SWATCH)).toBeInTheDocument();
+
+            rerender(renderCombobox('multiselect'));
+            expect(within(container).queryByTestId(SWATCH)).not.toBeInTheDocument();
+
+            await userEvent.click(screen.getByRole('combobox', {name: 'Department'}));
+
+            expect(screen.queryByTestId(SWATCH)).not.toBeInTheDocument();
+            expect(screen.queryByTestId(PLACEHOLDER)).not.toBeInTheDocument();
+            expect(getChips().map((chip) => chip.textContent)).toEqual(['Red']);
+        });
+    });
+
+    describe('rank', () => {
+        const optionIds = () => screen.getAllByRole('option').map((o) => o.id);
+
+        test('lists options highest rank first', async () => {
+            renderWithContext(
+                <SingleHarness
+                    type='rank'
+                    options={RANKS}
+                />,
+            );
+
+            await userEvent.click(screen.getByRole('combobox', {name: 'Department'}));
+
+            expect(optionIds()).toEqual([
+                'attr-input-listbox-option-top',
+                'attr-input-listbox-option-mid',
+                'attr-input-listbox-option-low',
+                'attr-input-listbox-option-zero',
+            ]);
+        });
+
+        test('shows the rank badge for an uncoloured ranked option', async () => {
+            renderWithContext(
+                <SingleHarness
+                    type='rank'
+                    options={RANKS}
+                />,
+            );
+
+            await userEvent.click(screen.getByRole('combobox', {name: 'Department'}));
+
+            expect(getRow('top').getByTestId(BADGE)).toHaveTextContent('3');
+            expect(getRow('top').queryByTestId(SWATCH)).not.toBeInTheDocument();
+            expect(getRow('low').getByTestId(BADGE)).toHaveTextContent('1');
+        });
+
+        test('shows the swatch instead of the badge for a coloured option', async () => {
+            renderWithContext(
+                <SingleHarness
+                    type='rank'
+                    options={RANKS}
+                />,
+            );
+
+            await userEvent.click(screen.getByRole('combobox', {name: 'Department'}));
+
+            expect(getRow('mid').getByTestId(SWATCH)).toHaveStyle({backgroundColor: 'rgb(200, 16, 46)'});
+            expect(getRow('mid').queryByTestId(BADGE)).not.toBeInTheDocument();
+        });
+
+        test('treats rank 0 as ranked', async () => {
+            renderWithContext(
+                <SingleHarness
+                    type='rank'
+                    options={RANKS}
+                />,
+            );
+
+            await userEvent.click(screen.getByRole('combobox', {name: 'Department'}));
+
+            expect(getRow('zero').getByTestId(BADGE)).toHaveTextContent('0');
+            expect(optionIds().at(-1)).toBe('attr-input-listbox-option-zero');
+        });
+
+        test('keeps the badge out of the option\'s accessible name', async () => {
+            renderWithContext(
+                <SingleHarness
+                    type='rank'
+                    options={RANKS}
+                />,
+            );
+
+            await userEvent.click(screen.getByRole('combobox', {name: 'Department'}));
+
+            expect(screen.getByTestId(`${TEST_ID}-option-top`)).toHaveAccessibleName('Top');
+            expect(getRow('top').getByTestId(BADGE).closest('[aria-hidden]')).not.toBeNull();
+            expect(screen.getByRole('option', {name: 'Mid'})).toBeInTheDocument();
+        });
+
+        test('puts an unranked option last, keeping its slot without a badge', async () => {
+            renderWithContext(
+                <SingleHarness
+                    type='rank'
+                    options={RANKS_WITH_UNRANKED}
+                />,
+            );
+
+            await userEvent.click(screen.getByRole('combobox', {name: 'Department'}));
+
+            expect(optionIds()).toEqual([
+                'attr-input-listbox-option-top',
+                'attr-input-listbox-option-low',
+                'attr-input-listbox-option-odd',
+            ]);
+            expect(getRow('odd').getByTestId(PLACEHOLDER)).toBeInTheDocument();
+            expect(getRow('odd').queryByTestId(BADGE)).not.toBeInTheDocument();
+            expect(screen.getByTestId(`${TEST_ID}-option-odd`)).toHaveAccessibleName('Odd');
+        });
+
+        test.each<{options: PropertyFieldOption[]; value: string; badge: string | null; swatch: boolean}>([
+            {options: RANKS, value: 'top', badge: '3', swatch: false},
+            {options: RANKS, value: 'zero', badge: '0', swatch: false},
+            {options: RANKS, value: 'mid', badge: null, swatch: true},
+            {options: RANKS_WITH_UNRANKED, value: 'odd', badge: null, swatch: false},
+            {options: RANKS, value: '', badge: null, swatch: false},
+            {options: RANKS, value: 'ghost', badge: null, swatch: false},
+        ])('closed field for value $value shows badge $badge, swatch $swatch', ({options, value, badge, swatch}) => {
+            const {container} = renderWithContext(
+                <SingleHarness
+                    type='rank'
+                    options={options}
+                    initialValue={value}
+                />,
+            );
+
+            expect(within(container).queryByTestId(BADGE)?.textContent ?? null).toBe(badge);
+            expect(within(container).queryByTestId(SWATCH) !== null).toBe(swatch);
+        });
+
+        test('stays single-select: shows the first id of a list, emits a string on pick and \'\' on clear', async () => {
+            const onChange = jest.fn();
+            renderWithContext(
+                <SingleHarness
+                    type='rank'
+                    options={RANKS}
+                    initialValue={['top', 'low']}
+                    onChange={onChange}
+                />,
+            );
+            const input = screen.getByRole('combobox', {name: 'Department'});
+
+            expect(input).toHaveValue('Top');
+            expect(screen.queryByRole('toolbar')).not.toBeInTheDocument();
+
+            await userEvent.click(input);
+            await userEvent.click(screen.getByRole('option', {name: 'Low'}));
+            expect(onChange).toHaveBeenLastCalledWith('low');
+
+            await userEvent.click(screen.getByTestId(`${TEST_ID}-clear`));
+            expect(onChange).toHaveBeenLastCalledWith('');
+        });
+
+        test('a select ignores ranks: stored order and no badges', async () => {
+            renderWithContext(
+                <SingleHarness
+                    options={[
+                        {id: 'low', name: 'Low', rank: 1},
+                        {id: 'top', name: 'Top', rank: 3},
+                    ]}
+                />,
+            );
+
+            await userEvent.click(screen.getByRole('combobox', {name: 'Department'}));
+
+            expect(optionIds()).toEqual(['attr-input-listbox-option-low', 'attr-input-listbox-option-top']);
+            expect(screen.queryByTestId(BADGE)).not.toBeInTheDocument();
+            expect(screen.queryByTestId(PLACEHOLDER)).not.toBeInTheDocument();
+        });
+
+        test('a multiselect ignores ranks and colours', async () => {
+            renderWithContext(
+                <MultiHarness
+                    options={RANKS}
+                    initialValue={['mid']}
+                />,
+            );
+
+            await userEvent.click(screen.getByRole('combobox', {name: 'Skills'}));
+
+            expect(screen.getAllByRole('option').map((o) => o.textContent)).toEqual(['Low', 'Top', 'Mid', 'Zero']);
+            expect(screen.queryByTestId(BADGE)).not.toBeInTheDocument();
+            expect(screen.queryByTestId(SWATCH)).not.toBeInTheDocument();
+            expect(screen.queryByTestId(PLACEHOLDER)).not.toBeInTheDocument();
+            expect(getChips().map((chip) => chip.textContent)).toEqual(['Mid']);
         });
     });
 
@@ -640,7 +1018,7 @@ describe('AttributeCombobox', () => {
         test('marks the input invalid only with invalid', () => {
             const {rerender} = renderWithContext(
                 <AttributeCombobox
-                    multiple={true}
+                    type='multiselect'
                     label='Skills'
                     options={OPTIONS}
                     value={['opt1']}
@@ -653,7 +1031,7 @@ describe('AttributeCombobox', () => {
 
             rerender(
                 <AttributeCombobox
-                    multiple={true}
+                    type='multiselect'
                     label='Skills'
                     options={OPTIONS}
                     value={['opt1']}
@@ -662,6 +1040,57 @@ describe('AttributeCombobox', () => {
             );
 
             expect(screen.getByRole('combobox', {name: 'Skills'})).not.toHaveAttribute('aria-invalid');
+        });
+
+        test('marks the input aria-required only with required', () => {
+            const {rerender} = renderWithContext(
+                <AttributeCombobox
+                    label='Department'
+                    options={OPTIONS}
+                    value=''
+                    required={true}
+                    onChange={jest.fn()}
+                />,
+            );
+
+            expect(screen.getByRole('combobox', {name: 'Department'})).toHaveAttribute('aria-required', 'true');
+
+            rerender(
+                <AttributeCombobox
+                    label='Department'
+                    options={OPTIONS}
+                    value=''
+                    onChange={jest.fn()}
+                />,
+            );
+
+            expect(screen.getByRole('combobox', {name: 'Department'})).not.toHaveAttribute('aria-required');
+        });
+
+        test('calls onBlur when the input loses focus', async () => {
+            const user = userEvent.setup();
+            const onBlur = jest.fn();
+            renderWithContext(<SingleHarness onBlur={onBlur}/>);
+            const input = screen.getByRole('combobox', {name: 'Department'});
+
+            await user.click(input);
+            expect(onBlur).not.toHaveBeenCalled();
+
+            await user.tab();
+
+            expect(onBlur).toHaveBeenCalledTimes(1);
+            expect(onBlur.mock.calls[0][0].target).toBe(input);
+        });
+
+        test('calls onBlur in multiple mode too', async () => {
+            const user = userEvent.setup();
+            const onBlur = jest.fn();
+            renderWithContext(<MultiHarness onBlur={onBlur}/>);
+
+            await user.click(screen.getByRole('combobox', {name: 'Skills'}));
+            await user.tab();
+
+            expect(onBlur).toHaveBeenCalledTimes(1);
         });
     });
 });

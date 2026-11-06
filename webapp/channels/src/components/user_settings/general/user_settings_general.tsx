@@ -21,7 +21,7 @@ import {isPropertyFieldSyncedForAuthService} from 'mattermost-redux/utils/proper
 
 import {getPluginDisplayName} from 'selectors/plugins';
 
-import {AttributeCombobox} from 'components/property_fields/attribute_combobox';
+import {AttributeCombobox, getAttributeComboboxType} from 'components/property_fields/attribute_combobox';
 import {asGraphValueIds} from 'components/property_fields/graph';
 import GraphProfileAttribute from 'components/property_fields/graph/graph_profile_attribute';
 import SettingItem from 'components/setting_item';
@@ -1624,7 +1624,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                                     defaultMessage: 'Select',
                                 })}
                                 zIndex={ZIndex.MENU}
-                                multiple={attribute.type === 'multiselect'}
+                                type={getAttributeComboboxType(attribute)}
                                 value={this.state.customAttributeValues[attribute.id]}
                                 onChange={(value) => this.updateComboboxAttribute(attribute.id, value)}
                             />,
