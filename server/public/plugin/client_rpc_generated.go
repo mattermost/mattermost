@@ -2297,6 +2297,61 @@ func (s *hooksRPCServer) PropertyValuesHaveBeenUpdated(args *Z_PropertyValuesHav
 	return nil
 }
 
+func init() {
+	hookNameToId["EntityLookup"] = EntityLookupID
+}
+
+type Z_EntityLookupArgs struct {
+	A *Context
+	B *model.EntityLookupRequest
+}
+
+type Z_EntityLookupReturns struct {
+	A *model.EntityCard
+	B error
+}
+
+func (g *hooksRPCClient) EntityLookup(c *Context, req *model.EntityLookupRequest) (*model.EntityCard, error) {
+	_args := &Z_EntityLookupArgs{c, req}
+	_returns := &Z_EntityLookupReturns{}
+	if g.implemented[EntityLookupID] {
+		if err := g.client.Call("Plugin.EntityLookup", _args, _returns); err != nil {
+			g.log.Error("RPC call EntityLookup to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A, _returns.B
+}
+
+// EntityLookupWithRPCErr returns the same values as EntityLookup, with an additional trailing error
+// for the RPC transport — always the LAST return slot.
+func (g *hooksRPCClient) EntityLookupWithRPCErr(c *Context, req *model.EntityLookupRequest) (*model.EntityCard, error, error) {
+	_args := &Z_EntityLookupArgs{c, req}
+	_returns := &Z_EntityLookupReturns{}
+	var _err error
+	if g.implemented[EntityLookupID] {
+		_err = g.client.Call("Plugin.EntityLookup", _args, _returns)
+		if _err != nil {
+			// Reset _returns so partial gob decoding can't leak non-zero
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
+			_returns = &Z_EntityLookupReturns{}
+			g.log.Debug("RPC call EntityLookup to plugin failed.", mlog.Err(_err))
+		}
+	}
+	return _returns.A, _returns.B, _err
+}
+
+func (s *hooksRPCServer) EntityLookup(args *Z_EntityLookupArgs, returns *Z_EntityLookupReturns) error {
+	if hook, ok := s.impl.(interface {
+		EntityLookup(c *Context, req *model.EntityLookupRequest) (*model.EntityCard, error)
+	}); ok {
+		returns.A, returns.B = hook.EntityLookup(args.A, args.B)
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook EntityLookup called but not implemented."))
+	}
+	return nil
+}
+
 // HooksWithRPCErrGenerated provides a WithRPCErr variant for every generated hook. The last error return
 // is always the RPC transport error — if non-nil, the plugin's other return values are zero. For
 // hooks whose base signature already returns error, the tuple is (originalReturns..., rpcErr)
@@ -2393,6 +2448,8 @@ type HooksWithRPCErrGenerated interface {
 	DraftWillBeUpsertedWithRPCErr(c *Context, draft *model.Draft) (*model.Draft, string, error)
 
 	PropertyValuesHaveBeenUpdatedWithRPCErr(c *Context, userID, groupID, targetType, targetID string, values, previousValues []*model.PropertyValue) error
+
+	EntityLookupWithRPCErr(c *Context, req *model.EntityLookupRequest) (*model.EntityCard, error, error)
 }
 
 type Z_RegisterCommandArgs struct {
@@ -10012,6 +10069,147 @@ func (s *apiRPCServer) GetAccessControlVisualAST(args *Z_GetAccessControlVisualA
 		returns.A, returns.B = hook.GetAccessControlVisualAST(args.A, args.B, args.C)
 	} else {
 		return encodableError(fmt.Errorf("API GetAccessControlVisualAST called but not implemented."))
+	}
+	return nil
+}
+
+type Z_RegisterEntityTypeArgs struct {
+	A *model.EntityType
+}
+
+type Z_RegisterEntityTypeReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) RegisterEntityType(t *model.EntityType) *model.AppError {
+	_args := &Z_RegisterEntityTypeArgs{t}
+	_returns := &Z_RegisterEntityTypeReturns{}
+	if err := g.client.Call("Plugin.RegisterEntityType", _args, _returns); err != nil {
+		log.Printf("RPC call to RegisterEntityType API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) RegisterEntityType(args *Z_RegisterEntityTypeArgs, returns *Z_RegisterEntityTypeReturns) error {
+	if hook, ok := s.impl.(interface {
+		RegisterEntityType(t *model.EntityType) *model.AppError
+	}); ok {
+		returns.A = hook.RegisterEntityType(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API RegisterEntityType called but not implemented."))
+	}
+	return nil
+}
+
+type Z_RegisterEntityMatcherArgs struct {
+	A *model.EntityMatcher
+}
+
+type Z_RegisterEntityMatcherReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) RegisterEntityMatcher(m *model.EntityMatcher) *model.AppError {
+	_args := &Z_RegisterEntityMatcherArgs{m}
+	_returns := &Z_RegisterEntityMatcherReturns{}
+	if err := g.client.Call("Plugin.RegisterEntityMatcher", _args, _returns); err != nil {
+		log.Printf("RPC call to RegisterEntityMatcher API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) RegisterEntityMatcher(args *Z_RegisterEntityMatcherArgs, returns *Z_RegisterEntityMatcherReturns) error {
+	if hook, ok := s.impl.(interface {
+		RegisterEntityMatcher(m *model.EntityMatcher) *model.AppError
+	}); ok {
+		returns.A = hook.RegisterEntityMatcher(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API RegisterEntityMatcher called but not implemented."))
+	}
+	return nil
+}
+
+type Z_UnregisterEntityMatcherArgs struct {
+	A string
+}
+
+type Z_UnregisterEntityMatcherReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) UnregisterEntityMatcher(id string) *model.AppError {
+	_args := &Z_UnregisterEntityMatcherArgs{id}
+	_returns := &Z_UnregisterEntityMatcherReturns{}
+	if err := g.client.Call("Plugin.UnregisterEntityMatcher", _args, _returns); err != nil {
+		log.Printf("RPC call to UnregisterEntityMatcher API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) UnregisterEntityMatcher(args *Z_UnregisterEntityMatcherArgs, returns *Z_UnregisterEntityMatcherReturns) error {
+	if hook, ok := s.impl.(interface {
+		UnregisterEntityMatcher(id string) *model.AppError
+	}); ok {
+		returns.A = hook.UnregisterEntityMatcher(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API UnregisterEntityMatcher called but not implemented."))
+	}
+	return nil
+}
+
+type Z_RegisterEntityProviderArgs struct {
+	A *model.EntityProvider
+}
+
+type Z_RegisterEntityProviderReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) RegisterEntityProvider(p *model.EntityProvider) *model.AppError {
+	_args := &Z_RegisterEntityProviderArgs{p}
+	_returns := &Z_RegisterEntityProviderReturns{}
+	if err := g.client.Call("Plugin.RegisterEntityProvider", _args, _returns); err != nil {
+		log.Printf("RPC call to RegisterEntityProvider API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) RegisterEntityProvider(args *Z_RegisterEntityProviderArgs, returns *Z_RegisterEntityProviderReturns) error {
+	if hook, ok := s.impl.(interface {
+		RegisterEntityProvider(p *model.EntityProvider) *model.AppError
+	}); ok {
+		returns.A = hook.RegisterEntityProvider(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API RegisterEntityProvider called but not implemented."))
+	}
+	return nil
+}
+
+type Z_RegisterEntityTermsArgs struct {
+	A string
+	B []model.EntityTerm
+}
+
+type Z_RegisterEntityTermsReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) RegisterEntityTerms(typeID string, terms []model.EntityTerm) *model.AppError {
+	_args := &Z_RegisterEntityTermsArgs{typeID, terms}
+	_returns := &Z_RegisterEntityTermsReturns{}
+	if err := g.client.Call("Plugin.RegisterEntityTerms", _args, _returns); err != nil {
+		log.Printf("RPC call to RegisterEntityTerms API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) RegisterEntityTerms(args *Z_RegisterEntityTermsArgs, returns *Z_RegisterEntityTermsReturns) error {
+	if hook, ok := s.impl.(interface {
+		RegisterEntityTerms(typeID string, terms []model.EntityTerm) *model.AppError
+	}); ok {
+		returns.A = hook.RegisterEntityTerms(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API RegisterEntityTerms called but not implemented."))
 	}
 	return nil
 }

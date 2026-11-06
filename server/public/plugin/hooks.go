@@ -76,6 +76,7 @@ const (
 	MessagesWillBeConsumedWithContextID       = 56
 	OnLicenseChangedID                        = 57
 	PropertyValuesHaveBeenUpdatedID           = 58
+	EntityLookupID                            = 59
 	TotalHooksID                              = iota
 )
 
@@ -565,4 +566,10 @@ type Hooks interface {
 	//
 	// Minimum server version: 12.2
 	PropertyValuesHaveBeenUpdated(c *Context, userID, groupID, targetType, targetID string, values, previousValues []*model.PropertyValue)
+
+	// EntityLookup asks the plugin for the card of a value it provides.
+	// Return a nil card and a nil error when this plugin does not provide the type.
+	//
+	// Minimum server version: 12.2
+	EntityLookup(c *Context, req *model.EntityLookupRequest) (*model.EntityCard, error)
 }

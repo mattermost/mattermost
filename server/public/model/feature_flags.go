@@ -79,6 +79,9 @@ type FeatureFlags struct {
 	// Enable auto-translation feature for messages in channels
 	AutoTranslation bool
 
+	// Enable the entities framework: detect enrichable tokens in posts.
+	Entities bool
+
 	// Enable classification markings for banners at the system and channel level
 	ClassificationMarkings bool
 
@@ -237,6 +240,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.EnableShiftEscapeToMarkAllRead = false
 
 	f.AutoTranslation = true
+
+	f.Entities = false
 
 	f.ClassificationMarkings = true
 

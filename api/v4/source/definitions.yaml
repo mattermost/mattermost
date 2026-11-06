@@ -6115,6 +6115,157 @@ components:
           type: integer
           format: int64
           description: The time in milliseconds the scheduled recap was soft-deleted (0 if not deleted)
+    PostEntity:
+      type: object
+      description: One detected entity occurrence in a post message
+      properties:
+        id:
+          type: string
+          description: Occurrence id (`start:end` UTF-16 offsets)
+        start:
+          type: integer
+          description: Inclusive UTF-16 start offset into the post message
+        end:
+          type: integer
+          description: Exclusive UTF-16 end offset into the post message
+        type_ids:
+          type: array
+          items:
+            type: string
+          description: Entity type ids that apply to this span
+        matcher_id:
+          type: string
+        value:
+          type: string
+        url:
+          type: string
+        display_name:
+          type: string
+        title:
+          type: string
+        has_card:
+          type: boolean
+          description: Whether a provider can open a detail card for this span
+    EntityCard:
+      type: object
+      description: Read-time detail card for one entity value
+      properties:
+        type_id:
+          type: string
+        value:
+          type: string
+        title:
+          type: string
+        summary:
+          type: string
+        score:
+          type: string
+        severity:
+          type: string
+        exploited:
+          type: boolean
+        rows:
+          type: array
+          items:
+            $ref: "#/components/schemas/EntityCardRow"
+        vector:
+          type: array
+          items:
+            $ref: "#/components/schemas/EntityCardMetric"
+        related:
+          type: array
+          items:
+            $ref: "#/components/schemas/EntityCardLink"
+        sections:
+          type: array
+          items:
+            $ref: "#/components/schemas/EntityCardSection"
+        blocks:
+          type: array
+          items:
+            type: object
+          description: Optional Mattermost Blocks body preferred by clients when present
+        url:
+          type: string
+        map:
+          $ref: "#/components/schemas/EntityCardMap"
+        instant:
+          type: integer
+          format: int64
+          description: Unix milliseconds instant when the entity represents a point in time
+    EntityCardRow:
+      type: object
+      properties:
+        label:
+          type: string
+        value:
+          type: string
+    EntityCardMetric:
+      type: object
+      properties:
+        metric:
+          type: string
+        value:
+          type: string
+        severe:
+          type: boolean
+    EntityCardLink:
+      type: object
+      properties:
+        label:
+          type: string
+        text:
+          type: string
+        url:
+          type: string
+        type_id:
+          type: string
+    EntityCardSection:
+      type: object
+      properties:
+        title:
+          type: string
+        count:
+          type: integer
+        url:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/EntityCardItem"
+    EntityCardItem:
+      type: object
+      properties:
+        head:
+          type: string
+        text:
+          type: string
+        url:
+          type: string
+    EntityCardMap:
+      type: object
+      properties:
+        kind:
+          type: string
+          enum: [point, cell, runway]
+        points:
+          type: array
+          items:
+            $ref: "#/components/schemas/EntityCardPin"
+        geojson:
+          type: object
+          description: Optional GeoJSON payload for map rendering
+    EntityCardPin:
+      type: object
+      properties:
+        lat:
+          type: number
+          format: double
+        lon:
+          type: number
+          format: double
+        label:
+          type: string
 externalDocs:
   description: Find out more about Mattermost
   url: 'https://about.mattermost.com'

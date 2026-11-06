@@ -639,6 +639,11 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	postEtag := c.App.AppendEntityEtag(c.App.AppendABACEtag(c.AppContext, post.Etag(), post.ChannelId))
+	if !hydrating && c.HandleEtag(postEtag, "Get Post", w, r) {
+		return
+	}
+
 	post = c.App.PreparePostForClientWithEmbedsAndImages(c.AppContext, post, &model.PreparePostForClientOpts{
 		IncludePriority: true,
 		PropertyGroupID: propertyGroupID,
@@ -650,11 +655,6 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !hydrating {
-		postEtag := c.App.AppendABACEtag(c.AppContext, post.Etag(), post.ChannelId)
-		if c.HandleEtag(postEtag, "Get Post", w, r) {
-			return
-		}
-
 		w.Header().Set(model.HeaderEtagServer, postEtag)
 	}
 
@@ -1003,7 +1003,7 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 	// written when the ETag is non-empty.
 	threadEtag := ""
 	if !hydrating {
-		threadEtag = c.App.AppendABACEtag(c.AppContext, list.Etag(), post.ChannelId)
+		threadEtag = c.App.AppendEntityEtag(c.App.AppendABACEtag(c.AppContext, list.Etag(), post.ChannelId))
 		if c.HandleEtag(threadEtag, "Get Post Thread", w, r) {
 			return
 		}

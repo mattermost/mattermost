@@ -140,13 +140,16 @@ export default class PostMarkdown extends React.PureComponent<Props> {
             undefined;
         const integrationFormat = mmBlocksActionsCookie ? 'mm_block' : undefined;
 
-        const options = this.getOptions(
-            this.props.options,
-            this.props.post?.props?.disable_group_highlight === true,
-            mentionHighlight,
-            this.props.post?.edit_at,
-            this.props?.renderEmoticonsAsEmoji,
-        );
+        const options = {
+            ...this.getOptions(
+                this.props.options,
+                this.props.post?.props?.disable_group_highlight === true,
+                mentionHighlight,
+                this.props.post?.edit_at,
+                this.props?.renderEmoticonsAsEmoji,
+            ),
+            entities: this.props.post && message === this.props.post.message ? this.props.post.metadata?.entities : undefined,
+        };
 
         let highlightKeys;
         if (!this.props.isEnterpriseOrSKUStarterFree && this.props.isEnterpriseReady) {

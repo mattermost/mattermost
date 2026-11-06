@@ -5235,6 +5235,86 @@ func (_m *API) RegisterCommand(command *model.Command) error {
 	return r0
 }
 
+// RegisterEntityMatcher provides a mock function with given fields: m
+func (_m *API) RegisterEntityMatcher(m *model.EntityMatcher) *model.AppError {
+	ret := _m.Called(m)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RegisterEntityMatcher")
+	}
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(*model.EntityMatcher) *model.AppError); ok {
+		r0 = rf(m)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
+// RegisterEntityProvider provides a mock function with given fields: p
+func (_m *API) RegisterEntityProvider(p *model.EntityProvider) *model.AppError {
+	ret := _m.Called(p)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RegisterEntityProvider")
+	}
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(*model.EntityProvider) *model.AppError); ok {
+		r0 = rf(p)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
+// RegisterEntityTerms provides a mock function with given fields: typeID, terms
+func (_m *API) RegisterEntityTerms(typeID string, terms []model.EntityTerm) *model.AppError {
+	ret := _m.Called(typeID, terms)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RegisterEntityTerms")
+	}
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, []model.EntityTerm) *model.AppError); ok {
+		r0 = rf(typeID, terms)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
+// RegisterEntityType provides a mock function with given fields: t
+func (_m *API) RegisterEntityType(t *model.EntityType) *model.AppError {
+	ret := _m.Called(t)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RegisterEntityType")
+	}
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(*model.EntityType) *model.AppError); ok {
+		r0 = rf(t)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // RegisterPluginForSharedChannels provides a mock function with given fields: opts
 func (_m *API) RegisterPluginForSharedChannels(opts model.RegisterPluginOpts) (string, error) {
 	ret := _m.Called(opts)
@@ -6086,6 +6166,26 @@ func (_m *API) UnregisterCommand(teamID string, trigger string) error {
 		r0 = rf(teamID, trigger)
 	} else {
 		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// UnregisterEntityMatcher provides a mock function with given fields: id
+func (_m *API) UnregisterEntityMatcher(id string) *model.AppError {
+	ret := _m.Called(id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UnregisterEntityMatcher")
+	}
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+		r0 = rf(id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
 	}
 
 	return r0

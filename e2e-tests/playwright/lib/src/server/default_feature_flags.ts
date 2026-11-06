@@ -27,6 +27,7 @@ export const defaultFeatureFlags: Record<string, string> = {
     EnableShiftEscapeToMarkAllRead: 'false',
     EnableSyncAllUsersForRemoteCluster: 'false',
     EnforceLogPathRoot: 'false',
+    Entities: 'false',
     HealthDashboard: 'false',
     IntegratedBoards: 'false',
     ManagedChannelCategories: 'false',

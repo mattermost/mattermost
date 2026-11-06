@@ -23427,6 +23427,70 @@
     "defaultMessage": "Medium skin tone",
     "description": "Name of the medium skin tone option in the emoji picker's skin tone selector."
   },
+  "entity_card.known_exploited": {
+    "defaultMessage": "Known exploited",
+    "description": "Badge on an entity card when the vulnerability is known to be exploited."
+  },
+  "entity_card.open_full_list": {
+    "defaultMessage": "Open the full list",
+    "description": "Link that opens the full list for an entity card section."
+  },
+  "entity_card.related": {
+    "defaultMessage": "Related",
+    "description": "Heading above related entity links on an entity card."
+  },
+  "entity_card.severity.critical": {
+    "defaultMessage": "Critical",
+    "description": "Critical severity badge on an entity card."
+  },
+  "entity_card.severity.high": {
+    "defaultMessage": "High",
+    "description": "High severity badge on an entity card."
+  },
+  "entity_card.severity.low": {
+    "defaultMessage": "Low",
+    "description": "Low severity badge on an entity card."
+  },
+  "entity_card.severity.medium": {
+    "defaultMessage": "Medium",
+    "description": "Medium severity badge on an entity card."
+  },
+  "entity_card.severity.none": {
+    "defaultMessage": "None",
+    "description": "None severity badge on an entity card."
+  },
+  "entity_card.show_less": {
+    "defaultMessage": "Show less",
+    "description": "Collapse a long entity card summary in the RHS."
+  },
+  "entity_card.show_more": {
+    "defaultMessage": "Show more",
+    "description": "Expand a long entity card summary in the RHS."
+  },
+  "entity_card.vector_decoded": {
+    "defaultMessage": "Vector, decoded",
+    "description": "Heading above decoded CVSS vector metrics on an entity card."
+  },
+  "entity_label.mm.time": {
+    "defaultMessage": "Time",
+    "description": "Display name for the built-in timestamp entity type."
+  },
+  "entity_mention.open": {
+    "defaultMessage": "Open",
+    "description": "Link in the entity mention hover card that opens the entity URL."
+  },
+  "entity_rhs.back": {
+    "defaultMessage": "Back",
+    "description": "Accessible label for the back control in the entity RHS."
+  },
+  "entity_rhs.close": {
+    "defaultMessage": "Close",
+    "description": "Accessible label for the close control in the entity RHS."
+  },
+  "entity_rhs.no_additional_information": {
+    "defaultMessage": "No additional information",
+    "description": "Shown in the entity RHS when a matched value has no card body beyond its title or URL."
+  },
   "error.channel_not_found.message": {
     "defaultMessage": "The channel you're requesting is private or does not exist. Please contact an Administrator to be added to the channel.",
     "description": "Body text of the full-page error screen shown when a user navigates to a channel they cannot access."
