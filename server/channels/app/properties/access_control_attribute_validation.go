@@ -34,6 +34,12 @@ type PermissionChecker func(rctx request.CTX, userID string, permission *model.P
 // the same way PermissionChecker does.
 type DirectChannelChecker func(rctx request.CTX, channelID string) (bool, error)
 
+// PostChannelResolver returns the ID of the channel a post is in, so a parent
+// rule on a post field can find the channel whose value it compares against.
+// This avoids a circular dependency between the properties and app packages,
+// the same way DirectChannelChecker does.
+type PostChannelResolver func(rctx request.CTX, postID string) (string, error)
+
 // AccessControlAttributeValidationHook validates and sanitizes property field attributes
 // and values for managed property groups. It owns the full attr pipeline
 // for these groups:
@@ -91,6 +97,7 @@ type AccessControlAttributeValidationHook struct {
 	permissionChecker            PermissionChecker
 	pluginChecker                PluginChecker
 	directChannelChecker         DirectChannelChecker
+	postChannelResolver          PostChannelResolver
 	requiredAttributeEnforcement RequiredAttributeEnforcementProvider
 	openIDAttributeSync          OpenIDAttributeSyncProvider
 	propertyFieldBounds          PropertyFieldBoundsProvider
@@ -115,6 +122,9 @@ type AccessControlAttributeValidationHookConfig struct {
 	// DirectChannelChecker reports whether a channel is a DM or GM. Without
 	// it, refuseDirectChannelValueWrite does not run at all.
 	DirectChannelChecker DirectChannelChecker
+	// PostChannelResolver returns the channel a post is in. Without it, a
+	// parent rule on a post field refuses every write.
+	PostChannelResolver PostChannelResolver
 	// RequiredAttributeEnforcement reports whether required-attribute
 	// enforcement is active for channel-object-type fields. A nil provider
 	// defaults to enforced. Applies uniformly to every required channel
@@ -144,6 +154,7 @@ func NewAccessControlAttributeValidationHook(ps *PropertyService, cfg AccessCont
 		permissionChecker:            cfg.PermissionChecker,
 		pluginChecker:                cfg.PluginChecker,
 		directChannelChecker:         cfg.DirectChannelChecker,
+		postChannelResolver:          cfg.PostChannelResolver,
 		requiredAttributeEnforcement: cfg.RequiredAttributeEnforcement,
 		openIDAttributeSync:          cfg.OpenIDAttributeSync,
 		propertyFieldBounds:          cfg.PropertyFieldBounds,

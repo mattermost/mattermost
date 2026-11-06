@@ -391,11 +391,20 @@ func NewServer(options ...Option) (*Server, error) {
 		return channel.IsGroupOrDirect(), nil
 	}
 
+	postChannelResolver := func(rctx request.CTX, postID string) (string, error) {
+		post, appErr := app.GetSinglePost(rctx, postID, false)
+		if appErr != nil {
+			return "", appErr
+		}
+		return post.ChannelId, nil
+	}
+
 	attrValidationHook := properties.NewAccessControlAttributeValidationHook(s.propertyService,
 		properties.AccessControlAttributeValidationHookConfig{
 			PermissionChecker:    permChecker,
 			PluginChecker:        pluginChecker,
 			DirectChannelChecker: directChannelChecker,
+			PostChannelResolver:  postChannelResolver,
 			RequiredAttributeEnforcement: func() bool {
 				return s.Config().FeatureFlags.IsChannelAttributesRequiredEnabled()
 			},
