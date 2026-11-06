@@ -4,7 +4,7 @@
 package platform
 
 import (
-	"math"
+	"fmt"
 	"strconv"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -185,9 +185,9 @@ func formatFilestoreGiB(megabytes uint64) string {
 	return strconv.FormatFloat(float64(megabytes)/megabytesPerGigabyte, 'f', precision, 64)
 }
 
-func formatFilestorePercent(freeRatio float64) string {
-	percent := math.Floor(10_000*freeRatio) / 100
-	return strconv.FormatFloat(percent, 'f', 2, 64)
+func formatFilestorePercent(totalMB, availableMB uint64) string {
+	hundredths := availableMB * 10_000 / totalMB
+	return fmt.Sprintf("%d.%02d", hundredths/100, hundredths%100)
 }
 
 func evalFilestoreDisk(n *healthcheck.NodeSnapshot, messageID string, fires func(totalMB, availableMB uint64) bool) healthcheck.Result {
@@ -214,7 +214,7 @@ func evalFilestoreDisk(n *healthcheck.NodeSnapshot, messageID string, fires func
 	return healthcheck.Firing(messageID).
 		WithDetail("available_gib", formatFilestoreGiB(availableMB)).
 		WithDetail("total_gib", formatFilestoreGiB(totalMB)).
-		WithDetail("percent", formatFilestorePercent(freeRatio)).
+		WithDetail("percent", formatFilestorePercent(totalMB, availableMB)).
 		WithValue(freeRatio)
 }
 

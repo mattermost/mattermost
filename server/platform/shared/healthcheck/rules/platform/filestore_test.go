@@ -311,6 +311,14 @@ func TestFilestoreDiskRules(t *testing.T) {
 			},
 		},
 		{
+			name: "percentage is truncated without floating-point rounding",
+			node: filestoreDiskNode(model.ImageDriverLocal, new(uint64(10_000_000)), new(uint64(3_000))),
+			want: map[string]want{
+				"FILESTORE_DISK_LOW":  resolved.withValue(0.0003),
+				"FILESTORE_DISK_FULL": diskFiring("health.rule.filestore_disk_full.message", "2.9", "9765.6", "0.03", 0.0003),
+			},
+		},
+		{
 			name: "below one GiB above ten percent is low",
 			node: filestoreDiskNode(model.ImageDriverLocal, new(uint64(10*1024)), new(uint64(1023))),
 			want: map[string]want{
