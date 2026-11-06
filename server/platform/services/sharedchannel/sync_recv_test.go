@@ -305,12 +305,15 @@ func TestUpsertSyncPost(t *testing.T) {
 	channel := &model.Channel{Id: channelID, Type: model.ChannelTypeOpen}
 	rc := &model.RemoteCluster{RemoteId: remoteID, Name: "test-remote"}
 
-	setup := func(t *testing.T, existing *model.Post) (*Service, *MockAppIface) {
+	setup := func(t *testing.T, existing *model.Post) (*Service, *MockAppIface, *mocks.PostAcknowledgementStore) {
 		mockPostStore := &mocks.PostStore{}
 		mockPostStore.On("GetSingle", mock.Anything, existing.Id, true).Return(existing, nil)
 
+		mockAckStore := &mocks.PostAcknowledgementStore{}
+
 		mockStore := &mocks.Store{}
 		mockStore.On("Post").Return(mockPostStore)
+		mockStore.On("PostAcknowledgement").Return(mockAckStore)
 
 		logger := mlog.CreateConsoleTestLogger(t)
 		mockServer := &MockServerIface{}
@@ -319,7 +322,7 @@ func TestUpsertSyncPost(t *testing.T) {
 
 		mockApp := &MockAppIface{}
 
-		return &Service{server: mockServer, app: mockApp}, mockApp
+		return &Service{server: mockServer, app: mockApp}, mockApp, mockAckStore
 	}
 
 	t.Run("rejects edit of a post owned by a different remote", func(t *testing.T) {
@@ -327,7 +330,7 @@ func TestUpsertSyncPost(t *testing.T) {
 		postID := model.NewId()
 		existing := &model.Post{Id: postID, ChannelId: channelID, Message: "original", RemoteId: new(otherRemoteID)}
 
-		scs, mockApp := setup(t, existing)
+		scs, mockApp, _ := setup(t, existing)
 
 		_, err := scs.upsertSyncPost(&model.Post{Id: postID, ChannelId: channelID, Message: "tampered"}, channel, rc, nil)
 
@@ -340,7 +343,7 @@ func TestUpsertSyncPost(t *testing.T) {
 		postID := model.NewId()
 		existing := &model.Post{Id: postID, ChannelId: channelID, Message: "original", RemoteId: nil}
 
-		scs, mockApp := setup(t, existing)
+		scs, mockApp, _ := setup(t, existing)
 
 		_, err := scs.upsertSyncPost(&model.Post{Id: postID, ChannelId: channelID, DeleteAt: model.GetMillis()}, channel, rc, nil)
 
@@ -353,7 +356,7 @@ func TestUpsertSyncPost(t *testing.T) {
 		postID := model.NewId()
 		existing := &model.Post{Id: postID, ChannelId: channelID, Message: "original", RemoteId: new(remoteID)}
 
-		scs, mockApp := setup(t, existing)
+		scs, mockApp, _ := setup(t, existing)
 		updated := &model.Post{Id: postID, ChannelId: channelID, Message: "updated"}
 		// A federated, remote-owned edit must be allowed to carry mm_blocks_actions
 		// changes through the UpdatePost freeze — the origin cluster is the trust
@@ -368,4 +371,105 @@ func TestUpsertSyncPost(t *testing.T) {
 		require.NoError(t, err)
 		mockApp.AssertCalled(t, "UpdatePost", mock.Anything, mock.Anything, allowsMmBlocks)
 	})
+
+	// The sender re-sends every post on each sync. A write on receive gives the post or its
+	// acknowledgements a new timestamp, and the next sync sends them back to the sender.
+	t.Run("re-sent post with unchanged acknowledgements writes nothing", func(t *testing.T) {
+		postID := model.NewId()
+		userID := model.NewId()
+		existing := &model.Post{Id: postID, ChannelId: channelID, Message: "original", UpdateAt: 100, RemoteId: new(remoteID)}
+		existingAcks := []*model.PostAcknowledgement{
+			{PostId: postID, UserId: userID, ChannelId: channelID, AcknowledgedAt: 50, RemoteId: new(remoteID)},
+		}
+
+		scs, mockApp, mockAckStore := setup(t, existing)
+		mockApp.On("GetAcknowledgementsForPost", postID).Return(existingAcks, (*model.AppError)(nil))
+
+		resent := &model.Post{
+			Id:        postID,
+			ChannelId: channelID,
+			Message:   "original",
+			UpdateAt:  100,
+			Metadata: &model.PostMetadata{Acknowledgements: []*model.PostAcknowledgement{
+				{PostId: postID, UserId: userID, ChannelId: channelID, AcknowledgedAt: 50},
+			}},
+		}
+
+		rpost, err := scs.upsertSyncPost(resent, channel, rc, nil)
+
+		require.NoError(t, err)
+		require.NotNil(t, rpost.Metadata)
+		assert.Equal(t, existingAcks, rpost.Metadata.Acknowledgements)
+		mockApp.AssertNotCalled(t, "UpdatePost", mock.Anything, mock.Anything, mock.Anything)
+		mockApp.AssertNotCalled(t, "SaveAcknowledgementsForPost", mock.Anything, mock.Anything, mock.Anything)
+		mockAckStore.AssertNotCalled(t, "BatchDelete", mock.Anything)
+	})
+
+	t.Run("re-sent post with a new acknowledgement replaces acknowledgements only", func(t *testing.T) {
+		postID := model.NewId()
+		existingUserID := model.NewId()
+		newUserID := model.NewId()
+		existing := &model.Post{Id: postID, ChannelId: channelID, Message: "original", UpdateAt: 100, RemoteId: new(remoteID)}
+		existingAcks := []*model.PostAcknowledgement{
+			{PostId: postID, UserId: existingUserID, ChannelId: channelID, AcknowledgedAt: 50},
+		}
+		savedAcks := []*model.PostAcknowledgement{
+			{PostId: postID, UserId: existingUserID, ChannelId: channelID, AcknowledgedAt: 200},
+			{PostId: postID, UserId: newUserID, ChannelId: channelID, AcknowledgedAt: 200},
+		}
+
+		scs, mockApp, mockAckStore := setup(t, existing)
+		mockApp.On("GetAcknowledgementsForPost", postID).Return(existingAcks, (*model.AppError)(nil))
+		mockAckStore.On("BatchDelete", existingAcks).Return(nil)
+		mockApp.On("SaveAcknowledgementsForPost", mock.Anything, postID, []string{existingUserID, newUserID}).Return(savedAcks, (*model.AppError)(nil))
+
+		resent := &model.Post{
+			Id:        postID,
+			ChannelId: channelID,
+			Message:   "original",
+			UpdateAt:  100,
+			Metadata: &model.PostMetadata{Acknowledgements: []*model.PostAcknowledgement{
+				{PostId: postID, UserId: existingUserID, ChannelId: channelID, AcknowledgedAt: 50},
+				{PostId: postID, UserId: newUserID, ChannelId: channelID, AcknowledgedAt: 60},
+			}},
+		}
+
+		rpost, err := scs.upsertSyncPost(resent, channel, rc, nil)
+
+		require.NoError(t, err)
+		require.NotNil(t, rpost.Metadata)
+		assert.Equal(t, savedAcks, rpost.Metadata.Acknowledgements)
+		mockApp.AssertNotCalled(t, "UpdatePost", mock.Anything, mock.Anything, mock.Anything)
+		mockAckStore.AssertCalled(t, "BatchDelete", existingAcks)
+		mockApp.AssertCalled(t, "SaveAcknowledgementsForPost", mock.Anything, postID, []string{existingUserID, newUserID})
+	})
+}
+
+func TestSameAcknowledgedUsers(t *testing.T) {
+	userA := model.NewId()
+	userB := model.NewId()
+	ack := func(userID string, acknowledgedAt int64) *model.PostAcknowledgement {
+		return &model.PostAcknowledgement{UserId: userID, AcknowledgedAt: acknowledgedAt}
+	}
+
+	testCases := []struct {
+		name     string
+		existing []*model.PostAcknowledgement
+		received []*model.PostAcknowledgement
+		expected bool
+	}{
+		{"both empty", nil, nil, true},
+		{"same users with different timestamps", []*model.PostAcknowledgement{ack(userA, 1), ack(userB, 2)}, []*model.PostAcknowledgement{ack(userB, 9), ack(userA, 8)}, true},
+		{"received adds a user", []*model.PostAcknowledgement{ack(userA, 1)}, []*model.PostAcknowledgement{ack(userA, 1), ack(userB, 2)}, false},
+		{"received drops a user", []*model.PostAcknowledgement{ack(userA, 1), ack(userB, 2)}, []*model.PostAcknowledgement{ack(userA, 1)}, false},
+		{"received has a different user", []*model.PostAcknowledgement{ack(userA, 1)}, []*model.PostAcknowledgement{ack(userB, 2)}, false},
+		{"withdrawn received acknowledgement is ignored", []*model.PostAcknowledgement{ack(userA, 1)}, []*model.PostAcknowledgement{ack(userA, 1), ack(userB, 0)}, true},
+		{"received withdraws the only acknowledgement", []*model.PostAcknowledgement{ack(userA, 1)}, []*model.PostAcknowledgement{ack(userA, 0)}, false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, sameAcknowledgedUsers(tc.existing, tc.received))
+		})
+	}
 }
