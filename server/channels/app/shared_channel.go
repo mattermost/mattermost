@@ -215,6 +215,30 @@ func (a *App) UpdateSharedChannelCursor(channelID, remoteID string, cursor model
 	return a.Srv().Store().SharedChannel().UpdateRemoteCursor(src.Id, cursor)
 }
 
+// GetSharedChannelCursor returns the sync cursor for the specified channelID and remoteID.
+// The remote must belong to the plugin identified by pluginID.
+func (a *App) GetSharedChannelCursor(pluginID, channelID, remoteID string) (model.GetPostsSinceForSyncCursor, error) {
+	rc, err := a.Srv().Store().RemoteCluster().Get(remoteID, true)
+	if err != nil {
+		return model.GetPostsSinceForSyncCursor{}, fmt.Errorf("cursor fetch failed - cannot fetch remote %s: %w", remoteID, err)
+	}
+	if rc.PluginID != pluginID {
+		return model.GetPostsSinceForSyncCursor{}, fmt.Errorf("remote %s does not belong to plugin %s", remoteID, pluginID)
+	}
+
+	// Master read: a replica can lag a cursor just written by UpdateSharedChannelCursor.
+	src, err := a.Srv().Store().SharedChannel().GetRemoteByIdsFromMaster(channelID, remoteID)
+	if err != nil {
+		return model.GetPostsSinceForSyncCursor{}, fmt.Errorf("cursor fetch failed - cannot fetch shared channel remote: %w", err)
+	}
+	return model.GetPostsSinceForSyncCursor{
+		LastPostUpdateAt: src.LastPostUpdateAt,
+		LastPostUpdateID: src.LastPostUpdateID,
+		LastPostCreateAt: src.LastPostCreateAt,
+		LastPostCreateID: src.LastPostCreateID,
+	}, nil
+}
+
 // SyncSharedChannel forces a shared channel to send any changed content to all remote clusters.
 func (a *App) SyncSharedChannel(channelID string) error {
 	syncService := a.Srv().GetSharedChannelSyncService()

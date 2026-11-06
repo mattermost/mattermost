@@ -579,6 +579,21 @@ func testGetSharedChannelRemoteByIds(t *testing.T, rctx request.CTX, ss store.St
 		require.Nil(t, r)
 	})
 
+	t.Run("Get existing shared channel remote by ids from master", func(t *testing.T) {
+		r, err := ss.SharedChannel().GetRemoteByIdsFromMaster(remoteSaved.ChannelId, remoteSaved.RemoteId)
+		require.NoError(t, err)
+		require.Equal(t, remoteSaved.Id, r.Id)
+		require.Equal(t, remoteSaved.ChannelId, r.ChannelId)
+		require.Equal(t, remoteSaved.RemoteId, r.RemoteId)
+	})
+
+	t.Run("Get non-existent shared channel remote by ids from master", func(t *testing.T) {
+		r, err := ss.SharedChannel().GetRemoteByIdsFromMaster(model.NewId(), model.NewId())
+		var nfErr *store.ErrNotFound
+		require.ErrorAs(t, err, &nfErr)
+		require.Nil(t, r)
+	})
+
 	t.Run("Get deleted shared channel remote by ids", func(t *testing.T) {
 		deleted, err := ss.SharedChannel().DeleteRemote(remoteSaved.Id)
 		require.NoError(t, err)

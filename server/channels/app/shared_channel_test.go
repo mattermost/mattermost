@@ -1285,6 +1285,69 @@ func TestPluginAPIReceiveSharedChannelSyncMsg(t *testing.T) {
 	})
 }
 
+func TestPluginAPIGetSharedChannelCursor(t *testing.T) {
+	th := setupSharedChannels(t).InitBasic(t)
+
+	channel := th.CreateChannel(t, th.BasicTeam)
+	pluginID := "com.test.cursor-plugin"
+	rc := registerPluginRemoteForTest(t, th, pluginID, channel)
+
+	api := NewPluginAPI(th.App, th.Context, &model.Manifest{Id: pluginID})
+
+	t.Run("reads back the cursor written by UpdateSharedChannelCursor", func(t *testing.T) {
+		cursor := model.GetPostsSinceForSyncCursor{
+			LastPostUpdateAt: 1000,
+			LastPostUpdateID: model.NewId(),
+			LastPostCreateAt: 2000,
+			LastPostCreateID: model.NewId(),
+		}
+		require.NoError(t, api.UpdateSharedChannelCursor(channel.Id, rc.RemoteId, cursor))
+
+		got, err := api.GetSharedChannelCursor(channel.Id, rc.RemoteId)
+		require.NoError(t, err)
+		assert.Equal(t, cursor, got)
+
+		rewound := model.GetPostsSinceForSyncCursor{
+			LastPostUpdateAt: 1,
+			LastPostUpdateID: model.NewId(),
+			LastPostCreateAt: 2,
+			LastPostCreateID: model.NewId(),
+		}
+		require.NoError(t, api.UpdateSharedChannelCursor(channel.Id, rc.RemoteId, rewound))
+
+		got, err = api.GetSharedChannelCursor(channel.Id, rc.RemoteId)
+		require.NoError(t, err)
+		assert.Equal(t, rewound, got)
+	})
+
+	t.Run("unknown remoteID returns error", func(t *testing.T) {
+		_, err := api.GetSharedChannelCursor(channel.Id, model.NewId())
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "cannot fetch remote")
+	})
+
+	t.Run("channel not shared with remote returns error", func(t *testing.T) {
+		otherChannel := th.CreateChannel(t, th.BasicTeam)
+		_, err := api.GetSharedChannelCursor(otherChannel.Id, rc.RemoteId)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "cannot fetch shared channel remote")
+	})
+
+	t.Run("unknown channel returns error", func(t *testing.T) {
+		_, err := api.GetSharedChannelCursor(model.NewId(), rc.RemoteId)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "cannot fetch shared channel remote")
+	})
+
+	t.Run("remoteID belonging to different plugin returns error", func(t *testing.T) {
+		otherChannel := th.CreateChannel(t, th.BasicTeam)
+		otherRC := registerPluginRemoteForTest(t, th, "com.test.other-cursor-plugin", otherChannel)
+		_, err := api.GetSharedChannelCursor(otherChannel.Id, otherRC.RemoteId)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "does not belong to plugin")
+	})
+}
+
 func TestPluginAPIReceiveSharedChannelReactionSyncMsg(t *testing.T) {
 	th := setupSharedChannels(t).InitBasic(t)
 
