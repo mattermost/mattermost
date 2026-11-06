@@ -4,7 +4,6 @@
 package app
 
 import (
-	"container/list"
 	"context"
 	"fmt"
 	"os"
@@ -24,14 +23,10 @@ import (
 )
 
 const (
-	entityMemoCap              = 8192
-	entityMemoBytes            = 8 << 20
-	entityRefreshCap           = 4
 	entityCacheWriteCap        = 256
 	validateCacheCap           = 4096
 	validateCacheTTL           = 30 * time.Second
 	entityProviderBudget       = 2 * time.Second
-	entityIncompleteTTL        = 30 * time.Second
 	entityPluginDownTTL        = 10 * time.Second
 	entityPatternTTL           = 24 * time.Hour
 	entityPageValidateCap      = 100
@@ -90,7 +85,7 @@ type entityPageKey struct{}
 type entityServeKey struct{}
 type entityAcceptAllKey struct{}
 
-// EntityServeState records whether a response was filled from an older pattern generation.
+// EntityServeState records whether a response must not be cached under the current entity etag.
 type EntityServeState struct {
 	mu    sync.Mutex
 	stale bool
@@ -135,127 +130,10 @@ func entityAcceptAll(rctx request.CTX) bool {
 	return all
 }
 
-type appliedHit struct {
-	generation string
-	list       []*model.PostEntity
-}
-
-type patternHit struct {
-	generation string
-	protected  [][2]int
-	patterns   []*model.PostEntity
-	incomplete bool
-	until      int64
-}
-
-type memoNode struct {
-	key   string
-	bytes int
-	value any
-}
-
-type entityMemo struct {
-	mu       sync.Mutex
-	capacity int
-	maxBytes int
-	bytes    int
-	order    *list.List
-	items    map[string]*list.Element
-}
-
-func newEntityMemo(capacity, maxBytes int) *entityMemo {
-	return &entityMemo{
-		capacity: capacity,
-		maxBytes: maxBytes,
-		order:    list.New(),
-		items:    map[string]*list.Element{},
-	}
-}
-
-func (m *entityMemo) get(key string) (any, bool) {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	element, ok := m.items[key]
-	if !ok {
-		return nil, false
-	}
-	m.order.MoveToBack(element)
-	return element.Value.(*memoNode).value, true
-}
-
-func (m *entityMemo) put(key string, value any, size int) {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	if element, ok := m.items[key]; ok {
-		node := element.Value.(*memoNode)
-		m.bytes += size - node.bytes
-		node.bytes = size
-		node.value = value
-		m.order.MoveToBack(element)
-		m.evict()
-		return
-	}
-	element := m.order.PushBack(&memoNode{key: key, bytes: size, value: value})
-	m.items[key] = element
-	m.bytes += size
-	m.evict()
-}
-
-func (m *entityMemo) dropPrefix(prefix string) {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	for key, element := range m.items {
-		if strings.HasPrefix(key, prefix) {
-			m.remove(element)
-		}
-	}
-}
-
-func (m *entityMemo) evict() {
-	for m.order.Len() > m.capacity || (m.bytes > m.maxBytes && m.order.Len() > 0) {
-		m.remove(m.order.Front())
-	}
-}
-
-func (m *entityMemo) remove(element *list.Element) {
-	if element == nil {
-		return
-	}
-	node := element.Value.(*memoNode)
-	delete(m.items, node.key)
-	m.bytes -= node.bytes
-	m.order.Remove(element)
-}
-
-func (m *entityMemo) reset() {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	m.order.Init()
-	m.items = map[string]*list.Element{}
-	m.bytes = 0
-}
-
-func entityListBytes(list []*model.PostEntity) int {
-	n := 64
-	for _, entity := range list {
-		if entity == nil {
-			continue
-		}
-		n += 64 + len(entity.ID) + len(entity.Value) + len(entity.URL) + len(entity.DisplayName) + len(entity.Title) + len(entity.MatcherID)
-		for _, typeID := range entity.TypeIDs {
-			n += len(typeID)
-		}
-	}
-	return n
-}
-
 var (
-	appliedMemo     = newEntityMemo(entityMemoCap, entityMemoBytes)
-	patternMemo     = newEntityMemo(entityMemoCap, entityMemoBytes)
 	entityScan      singleflight.Group
 	entityScanCount atomic.Int64
 
-	entityRefreshSlot = make(chan struct{}, entityRefreshCap)
 	patternWritesOnce sync.Once
 	patternWrites     = make(chan patternWrite, entityCacheWriteCap)
 	patternWriteCount atomic.Int64
@@ -288,16 +166,17 @@ type patternScan struct {
 	incomplete bool
 }
 
+type patternHit struct {
+	generation string
+	protected  [][2]int
+	patterns   []*model.PostEntity
+}
+
 type entityMiss struct {
 	post *model.Post
 	hash string
 	list []*model.PostEntity
 	ran  bool
-}
-
-func resetEntityMemos() {
-	appliedMemo.reset()
-	patternMemo.reset()
 }
 
 func (a *App) hydratePostEntities(rctx request.CTX, post *model.Post) {
@@ -309,7 +188,6 @@ func (a *App) hydratePostList(rctx request.CTX, posts []*model.Post) {
 		return
 	}
 	generation := entities.PatternGeneration()
-	termEpoch := entities.TermEpoch()
 	serve := entityServeFrom(rctx)
 	budgetDeadline := time.Now().Add(entityProviderBudget)
 	var validateCalls atomic.Int32
@@ -322,18 +200,7 @@ func (a *App) hydratePostList(rctx request.CTX, posts []*model.Post) {
 		if post.Metadata == nil {
 			post.Metadata = &model.PostMetadata{}
 		}
-		hash := entities.MessageHash(post.Message)
-		if hit, ok := appliedMemo.get(appliedKey(post.Id, hash, termEpoch)); ok {
-			applied := hit.(appliedHit)
-			if applied.generation == generation {
-				post.Metadata.Entities = a.presentPostEntities(rctx, post, applied.list)
-				continue
-			}
-		}
-		if a.applyPatternHit(rctx, post, hash, generation, termEpoch, serve, patternFromMemo(post.Id, hash)) {
-			continue
-		}
-		misses = append(misses, &entityMiss{post: post, hash: hash})
+		misses = append(misses, &entityMiss{post: post, hash: entities.MessageHash(post.Message)})
 	}
 	if len(misses) == 0 {
 		return
@@ -342,7 +209,10 @@ func (a *App) hydratePostList(rctx request.CTX, posts []*model.Post) {
 	cached := a.readPatternCache(misses)
 	var scans []*entityMiss
 	for i, miss := range misses {
-		if cached[i] != nil && a.applyPatternHit(rctx, miss.post, miss.hash, generation, termEpoch, serve, cached[i]) {
+		hit := cached[i]
+		if hit != nil && hit.generation == generation {
+			merged := entities.ApplyTerms(miss.post.Message, hit.protected, hit.patterns)
+			miss.post.Metadata.Entities = a.presentPostEntities(rctx, miss.post, merged)
 			continue
 		}
 		scans = append(scans, miss)
@@ -364,7 +234,7 @@ func (a *App) hydratePostList(rctx request.CTX, posts []*model.Post) {
 			defer wg.Done()
 			defer func() { <-sem }()
 			miss.ran = true
-			miss.list = a.scanAndRemember(rctx, miss.post, miss.hash, generation, termEpoch, budgetDeadline, &validateCalls, serve)
+			miss.list = a.scanAndRemember(rctx, miss.post, miss.hash, generation, budgetDeadline, &validateCalls, serve)
 		}(miss)
 	}
 	wg.Wait()
@@ -375,48 +245,6 @@ func (a *App) hydratePostList(rctx request.CTX, posts []*model.Post) {
 		}
 		miss.post.Metadata.Entities = a.presentPostEntities(rctx, miss.post, miss.list)
 	}
-}
-
-func appliedKey(postID, hash, termEpoch string) string {
-	return postID + "\n" + hash + "\n" + termEpoch
-}
-
-func patternKey(postID, hash string) string {
-	return postID + "\n" + hash
-}
-
-func patternFromMemo(postID, hash string) *patternHit {
-	hit, ok := patternMemo.get(patternKey(postID, hash))
-	if !ok {
-		return nil
-	}
-	stored := hit.(patternHit)
-	return &stored
-}
-
-func (a *App) applyPatternHit(rctx request.CTX, post *model.Post, hash, generation, termEpoch string, serve *EntityServeState, hit *patternHit) bool {
-	if hit == nil {
-		return false
-	}
-	now := model.GetMillis()
-	if hit.incomplete {
-		if hit.until > now {
-			post.Metadata.Entities = a.presentPostEntities(rctx, post, entities.ApplyTerms(post.Message, hit.protected, hit.patterns))
-			serve.mark()
-			return true
-		}
-		return false
-	}
-	merged := entities.ApplyTerms(post.Message, hit.protected, hit.patterns)
-	if hit.generation == generation {
-		appliedMemo.put(appliedKey(post.Id, hash, termEpoch), appliedHit{generation: generation, list: clonePostEntities(merged)}, entityListBytes(merged))
-		post.Metadata.Entities = a.presentPostEntities(rctx, post, merged)
-		return true
-	}
-	post.Metadata.Entities = a.presentPostEntities(rctx, post, merged)
-	serve.mark()
-	a.refreshEntitiesLater(rctx, post)
-	return true
 }
 
 func (a *App) readPatternCache(misses []*entityMiss) []*patternHit {
@@ -450,14 +278,11 @@ func (a *App) readPatternCache(misses []*entityMiss) []*patternHit {
 		if err != nil || values[i].Generation == "" && len(values[i].Patterns) == 0 && len(values[i].Protected) == 0 {
 			continue
 		}
-		hit := patternHit{
+		out[i] = &patternHit{
 			generation: values[i].Generation,
 			protected:  append([][2]int(nil), values[i].Protected...),
 			patterns:   clonePostEntities(values[i].Patterns),
 		}
-		patternMemo.put(patternKey(misses[i].post.Id, misses[i].hash), hit, entityListBytes(hit.patterns)+len(hit.protected)*16)
-		stored := hit
-		out[i] = &stored
 	}
 	return out
 }
@@ -466,29 +291,19 @@ func patternCacheKey(postID, hash string) string {
 	return postID + ":" + hash
 }
 
-func (a *App) scanAndRemember(rctx request.CTX, post *model.Post, hash, generation, termEpoch string, deadline time.Time, calls *atomic.Int32, serve *EntityServeState) []*model.PostEntity {
+func (a *App) scanAndRemember(rctx request.CTX, post *model.Post, hash, generation string, deadline time.Time, calls *atomic.Int32, serve *EntityServeState) []*model.PostEntity {
 	found, protected, incomplete := a.scanPostPatterns(rctx, post, hash, generation, deadline, calls)
 	merged := entities.ApplyTerms(post.Message, protected, found)
-	persist := !entityAcceptAll(rctx)
-	hit := patternHit{
-		generation: generation,
-		protected:  protected,
-		patterns:   clonePostEntities(found),
-		incomplete: incomplete,
-	}
 	if incomplete {
-		hit.until = time.Now().Add(entityIncompleteTTL).UnixMilli()
 		serve.mark()
-	} else if persist {
-		appliedMemo.put(appliedKey(post.Id, hash, termEpoch), appliedHit{generation: generation, list: clonePostEntities(merged)}, entityListBytes(merged))
+		return merged
+	}
+	if !entityAcceptAll(rctx) {
 		a.enqueuePatternWrite(rctx, patternCacheKey(post.Id, hash), model.EntityPatternCache{
 			Generation: generation,
 			Protected:  append([][2]int(nil), protected...),
 			Patterns:   clonePostEntities(found),
 		})
-	}
-	if persist {
-		patternMemo.put(patternKey(post.Id, hash), hit, entityListBytes(hit.patterns)+len(hit.protected)*16)
 	}
 	return merged
 }
@@ -517,49 +332,6 @@ func (a *App) scanPostPatterns(rctx request.CTX, post *model.Post, hash, generat
 	})
 	scanned, _ := v.(patternScan)
 	return scanned.patterns, scanned.protected, scanned.incomplete
-}
-
-func (a *App) refreshEntitiesLater(rctx request.CTX, post *model.Post) {
-	select {
-	case entityRefreshSlot <- struct{}{}:
-	default:
-		return
-	}
-	fresh := post.Clone()
-	logger := rctx.Logger()
-	go func() {
-		defer func() { <-entityRefreshSlot }()
-		hash := entities.MessageHash(fresh.Message)
-		generation := entities.PatternGeneration()
-		deadline := time.Now().Add(entityProviderBudget)
-		var calls atomic.Int32
-		ctx := request.EmptyContext(logger)
-		found, protected, incomplete := a.scanPostPatterns(ctx, fresh, hash, generation, deadline, &calls)
-		if incomplete {
-			if prev, ok := patternMemo.get(patternKey(fresh.Id, hash)); ok && !prev.(patternHit).incomplete {
-				return
-			}
-			patternMemo.put(patternKey(fresh.Id, hash), patternHit{
-				generation: generation,
-				protected:  protected,
-				patterns:   clonePostEntities(found),
-				incomplete: true,
-				until:      time.Now().Add(entityIncompleteTTL).UnixMilli(),
-			}, entityListBytes(found)+len(protected)*16)
-			return
-		}
-		appliedMemo.dropPrefix(fresh.Id + "\n" + hash + "\n")
-		patternMemo.put(patternKey(fresh.Id, hash), patternHit{
-			generation: generation,
-			protected:  protected,
-			patterns:   clonePostEntities(found),
-		}, entityListBytes(found)+len(protected)*16)
-		a.enqueuePatternWrite(ctx, patternCacheKey(fresh.Id, hash), model.EntityPatternCache{
-			Generation: generation,
-			Protected:  append([][2]int(nil), protected...),
-			Patterns:   clonePostEntities(found),
-		})
-	}()
 }
 
 func (a *App) entityPatternCache() cache.Cache {

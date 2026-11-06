@@ -114,7 +114,7 @@ import type {
     PluginsResponse,
     PluginStatus,
 } from '@mattermost/types/plugins';
-import type {Post, PostList, PostSearchResults, PostsUsageResponse, TeamsUsageResponse, PaginatedPostList, FilesUsageResponse, PostAcknowledgement, PostAnalytics, PostInfo, EntityCard, PostEntity} from '@mattermost/types/posts';
+import type {Post, PostList, PostSearchResults, PostsUsageResponse, TeamsUsageResponse, PaginatedPostList, FilesUsageResponse, PostAcknowledgement, PostAnalytics, PostInfo, EntityCard} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {ProductNotices} from '@mattermost/types/product_notices';
 import type {NameMappedPropertyFields, PropertyField, PropertyFieldOptionPage, PropertyFieldsQuery, PropertyValue} from '@mattermost/types/properties';
@@ -4883,13 +4883,6 @@ export default class Client4 {
         return this.doFetch<EntityCard>(
             `${this.getBaseRoute()}/entities/card?${params.toString()}`,
             {method: 'get'},
-        );
-    };
-
-    getEntityPosts = (postIds: string[]) => {
-        return this.doFetch<{posts: Record<string, PostEntity[]>}>(
-            `${this.getBaseRoute()}/entities/posts`,
-            {method: 'post', body: JSON.stringify({post_ids: postIds})},
         );
     };
 

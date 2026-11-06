@@ -5956,16 +5956,6 @@ components:
           format: double
         label:
           type: string
-    EntityPostsResponse:
-      type: object
-      properties:
-        posts:
-          type: object
-          additionalProperties:
-            type: array
-            items:
-              $ref: "#/components/schemas/PostEntity"
-          description: Map of post id to detected entities
 externalDocs:
   description: Find out more about Mattermost
   url: 'https://about.mattermost.com'

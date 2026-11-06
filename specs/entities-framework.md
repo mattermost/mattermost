@@ -1,5 +1,8 @@
 # Entities: a framework for enrichable labels
 
+> **Superseded for shipping:** dictionary websocket refresh and the batch entities-posts API were dropped for HA simplicity; see [entities-parse-on-read.md](entities-parse-on-read.md).
+
+
 Status: ready for M1, after multi-model review (Opus, GPT, Gemini, Grok) and a
 final spec review
 Owner: Daniel Schalla

@@ -243,12 +243,8 @@ func (a *App) RegisterPluginEntityType(pluginID string, t *model.EntityType) *mo
 	if !a.entitiesEnabled() {
 		return model.NewAppError("RegisterPluginEntityType", model.EntitiesDisabledError, nil, "", http.StatusNotImplemented)
 	}
-	before := entities.TermEpoch()
 	if err := entities.AddType(pluginID, t); err != nil {
 		return model.NewAppError("RegisterPluginEntityType", "api.context.invalid_body_param.app_error", map[string]any{"Name": "type"}, err.Error(), http.StatusBadRequest)
-	}
-	if after := entities.TermEpoch(); after != before && t != nil {
-		a.publishDictionaryChanged(t.ID, after)
 	}
 	return nil
 }
@@ -277,12 +273,8 @@ func (a *App) RegisterPluginEntityTerms(pluginID, typeID string, terms []model.E
 	if !a.entitiesEnabled() {
 		return model.NewAppError("RegisterPluginEntityTerms", model.EntitiesDisabledError, nil, "", http.StatusNotImplemented)
 	}
-	epoch, changed, err := entities.ReplaceTerms(pluginID, typeID, terms)
-	if err != nil {
+	if _, _, err := entities.ReplaceTerms(pluginID, typeID, terms); err != nil {
 		return model.NewAppError("RegisterPluginEntityTerms", "api.context.invalid_body_param.app_error", map[string]any{"Name": "terms"}, err.Error(), http.StatusBadRequest)
-	}
-	if changed {
-		a.publishDictionaryChanged(typeID, epoch)
 	}
 	return nil
 }

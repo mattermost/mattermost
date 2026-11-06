@@ -16,7 +16,6 @@ type WebsocketEventType string
 const (
 	WebsocketEventTyping                              WebsocketEventType = "typing"
 	WebsocketEventPosted                              WebsocketEventType = "posted"
-	WebsocketEventEntitiesDictionaryChanged           WebsocketEventType = "entities_dictionary_changed"
 	WebsocketEventPostEdited                          WebsocketEventType = "post_edited"
 	WebsocketEventPostDeleted                         WebsocketEventType = "post_deleted"
 	WebsocketEventPostUnread                          WebsocketEventType = "post_unread"
