@@ -96,7 +96,7 @@ describe('components/CommercialSupportModal', () => {
         renderWithContext(<CommercialSupportModal {...props}/>);
 
         expect(screen.getByRole('checkbox', {name: 'Basic contents'})).toHaveAccessibleDescription(
-            'Server version, sanitized configuration, usage counts, job status, permissions, plugin list, and performance profiles. Does not include message content.',
+            '(required) Server version, sanitized configuration, usage counts, job status, permissions, plugin list, and performance profiles. Does not include message content.',
         );
         expect(screen.getByRole('checkbox', {name: 'Server Logs'})).toHaveAccessibleDescription(
             'Recent server log files. May contain user IDs, IP addresses, and error details.',

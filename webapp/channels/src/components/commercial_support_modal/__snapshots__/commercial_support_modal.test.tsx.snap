@@ -40,7 +40,7 @@ exports[`components/CommercialSupportModal should match snapshot 1`] = `
                 for="basic.contents"
               >
                 <input
-                  aria-describedby="basic.contents-description"
+                  aria-describedby="basic.contents-required basic.contents-description"
                   checked=""
                   class="_checkbox__input_18swc_25"
                   disabled=""
@@ -85,6 +85,7 @@ exports[`components/CommercialSupportModal should match snapshot 1`] = `
               </label>
               <span
                 class="CommercialSupportModal__option_required"
+                id="basic.contents-required"
               >
                 (required)
               </span>

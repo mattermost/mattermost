@@ -314,6 +314,10 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
                         <div className='CommercialSupportModal__options'>
                             {this.state.packetContents.map((item, index) => {
                                 const description = this.renderOptionDescription(item.id);
+                                const describedBy = [
+                                    item.mandatory && `${item.id}-required`,
+                                    description && `${item.id}-description`,
+                                ].filter(Boolean).join(' ');
                                 return (
                                     <div
                                         className='CommercialSupportModal__option'
@@ -326,12 +330,15 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
                                                 checked={item.selected}
                                                 disabled={item.mandatory}
                                                 onChange={() => this.updateCheckStatus(index)}
-                                                aria-describedby={description ? `${item.id}-description` : undefined}
+                                                aria-describedby={describedBy || undefined}
                                             >
                                                 {item.label}
                                             </Checkbox>
                                             {item.mandatory && (
-                                                <span className='CommercialSupportModal__option_required'>
+                                                <span
+                                                    id={`${item.id}-required`}
+                                                    className='CommercialSupportModal__option_required'
+                                                >
                                                     <FormattedMessage {...messages.required}/>
                                                 </span>
                                             )}
