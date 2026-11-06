@@ -989,6 +989,8 @@
         are supported. Leave `actions` empty to get every supported action.
         While attribute-based access control or permission policies are
         disabled, every action is `allowed: true, evaluated: true`.
+        The `create_burn_on_read_post` action requires server version 12.1 or
+        later; earlier versions reject it.
 
         __Minimum server version__: 12.0
 
