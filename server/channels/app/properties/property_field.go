@@ -1126,9 +1126,9 @@ func (ps *PropertyService) updatePropertyFieldsIfUnchanged(rctx request.CTX, gro
 		}
 	}
 
-	// Judged on the rules about to be stored, and on every save: a parent's side
-	// that has since lost its one matching field refuses an otherwise unrelated edit
-	// until the rule is removed.
+	// Judged on the rules about to be stored, and on every save, so a field whose
+	// parent's side no longer has exactly one matching field refuses even an
+	// unrelated edit until the rule is removed.
 	for _, field := range fields {
 		if err := ps.enforceParentField(rctx, "UpdatePropertyFields", field); err != nil {
 			return nil, nil, nil, err
