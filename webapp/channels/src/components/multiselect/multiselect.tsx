@@ -62,6 +62,7 @@ export type Props<T extends Value> = {
     totalCount?: number;
     users?: unknown[];
     valueWithImage: boolean;
+    valueLabelRenderer?: (value: T) => ReactNode;
     valueRenderer?: (props: {data: T}) => any;
     values: T[];
     focusOnLoad?: boolean;
@@ -278,6 +279,7 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
 
     formatOptionLabel = (user: any) => {
         const profileImg = imageURLForUser(user.id, user.last_picture_update);
+        const displayName = this.props.valueLabelRenderer?.(user) ?? getDisplayName(user);
 
         return (
             <>
@@ -287,7 +289,7 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
                     url={profileImg}
                 />
                 <div className='react-select__value__name'>
-                    {getDisplayName(user)}
+                    {displayName}
                 </div>
             </>
         );
