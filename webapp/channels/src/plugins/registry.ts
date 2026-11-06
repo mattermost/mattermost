@@ -50,6 +50,8 @@ import type {
     PostDropdownMenuAction,
     ChannelHeaderAction,
     ChannelHeaderButtonAction,
+    ChannelInfoMenuAction,
+    ChannelBookmarksMenuAction,
     RightHandSidebarComponent,
     AppBarAction,
     FileUploadMethodAction,
@@ -561,6 +563,95 @@ export default class PluginRegistry {
             text: resolveReactElement(text),
             action,
             shouldRender,
+        });
+
+        return id;
+    });
+
+    /**
+     * Register an item in the channel bookmarks "+" / header Bookmarks Bar menus
+     * (alongside Add a link / Attach a file).
+     * Accepts the following:
+     * - icon - A React element for the leading icon
+     * - text - A string or React element to display
+     * - action - A function that receives the channelId when the item is clicked
+     * - shouldRender - Optional. (state, channelId) => boolean for conditional display
+     * Returns a unique identifier.
+     */
+    registerChannelBookmarksMenuAction = reArg([
+        'icon',
+        'text',
+        'action',
+        'shouldRender',
+    ], ({
+        icon,
+        text,
+        action,
+        shouldRender = defaultShouldRender,
+    }: {
+        icon: ReactResolvable;
+        text: ChannelBookmarksMenuAction['text'];
+        action: ChannelBookmarksMenuAction['action'];
+        shouldRender?: ChannelBookmarksMenuAction['shouldRender'];
+    }) => {
+        const id = generateId();
+
+        this.dispatchPluginComponentWithData('ChannelBookmarksMenu', {
+            id,
+            pluginId: this.id,
+            icon: resolveReactElement(icon),
+            text: resolveReactElement(text),
+            action,
+            shouldRender,
+        });
+
+        return id;
+    });
+
+    /**
+     * Register a Channel Info RHS menu item (below Files / Pinned messages).
+     * Accepts the following:
+     * - icon - A React element for the leading icon
+     * - text - A string or React element to display
+     * - action - A function that receives the channelId when the item is clicked
+     * - shouldRender - Optional. (state, channel) => boolean for conditional display
+     * - badge - Optional. Count or React node shown on the trailing edge
+     * - opensSubpanel - Optional. Show a chevron (default false)
+     * Returns a unique identifier.
+     */
+    registerChannelInfoMenuAction = reArg([
+        'icon',
+        'text',
+        'action',
+        'shouldRender',
+        'badge',
+        'opensSubpanel',
+    ], ({
+        icon,
+        text,
+        action,
+        shouldRender = defaultShouldRender,
+        badge,
+        opensSubpanel = false,
+    }: {
+        icon: ReactResolvable;
+        text: ChannelInfoMenuAction['text'];
+        action: ChannelInfoMenuAction['action'];
+        shouldRender?: ChannelInfoMenuAction['shouldRender'];
+        badge?: ChannelInfoMenuAction['badge'];
+        opensSubpanel?: boolean;
+    }) => {
+        const id = generateId();
+
+        this.dispatchPluginComponentWithData('ChannelInfoMenu', {
+            id,
+            pluginId: this.id,
+            icon: resolveReactElement(icon),
+            text: resolveReactElement(text),
+            action,
+            shouldRender,
+            badge: badge === undefined || badge === null ? badge : resolveReactElement(badge as ReactResolvable),
+            opensSubpanel,
         });
 
         return id;
