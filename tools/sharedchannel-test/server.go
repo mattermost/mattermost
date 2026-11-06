@@ -159,9 +159,13 @@ func (sm *ServerManager) commonEnv() []string {
 		// so they don't collide on the metrics port (:8067) when the loaded config.json
 		// happens to have metrics enabled.
 		"MM_METRICSSETTINGS_ENABLE=false",
-		// The cursor rewind test uploads a small plugin.
+		// The cursor rewind test uploads a small unsigned plugin.
 		"MM_PLUGINSETTINGS_ENABLE=true",
 		"MM_PLUGINSETTINGS_ENABLEUPLOADS=true",
+		"MM_PLUGINSETTINGS_REQUIREPLUGINSIGNATURE=false",
+		// The catch-up and rewind tests write more posts than one batch holds, so
+		// they cover sync continuing across batches.
+		"MM_CONNECTEDWORKSPACESSETTINGS_MAXPOSTSPERSYNC=50",
 	}
 }
 

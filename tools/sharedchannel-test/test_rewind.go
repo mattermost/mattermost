@@ -65,6 +65,7 @@ func (tr *TestRunner) runCursorRewindTests(ctx context.Context) error {
 		return err
 	}
 	if err := interruptibleSleep(ctx, time.Second); err != nil {
+		tr.fail("rewind/share", err.Error())
 		return err
 	}
 
@@ -82,6 +83,7 @@ func (tr *TestRunner) runCursorRewindTests(ctx context.Context) error {
 	// be on Server B yet. Otherwise a pass below would not show the rewind worked.
 	// The pause gives any sync started by the share time to finish first.
 	if err := interruptibleSleep(ctx, 10*time.Second); err != nil {
+		tr.fail("rewind/not-synced-before-rewind", err.Error())
 		return err
 	}
 	stateB, err := fetchChannelState(ctx, tr.clientB, channelB)
@@ -117,7 +119,7 @@ func (tr *TestRunner) runCursorRewindTests(ctx context.Context) error {
 		return err
 	}
 
-	tr.checkChannelsMatch(ctx, "rewind/content-synced", channelA, channelB, cr.labels, 10*time.Minute, 2*time.Minute)
+	tr.checkChannelsMatch(ctx, "rewind/content-synced", channelA, channelB, cr.labels, 5*time.Minute)
 	return nil
 }
 
@@ -164,6 +166,7 @@ func (tr *TestRunner) setSyncCursor(ctx context.Context, channelA string, update
 
 	// The plugin can take a moment to start after it is enabled, so retry while its
 	// route is missing or failing.
+	client := &http.Client{Timeout: 30 * time.Second}
 	var lastErr error
 	for range 15 {
 		req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(body))
@@ -174,7 +177,7 @@ func (tr *TestRunner) setSyncCursor(ctx context.Context, channelA string, update
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("X-Requested-With", "XMLHttpRequest")
 
-		resp, err := http.DefaultClient.Do(req)
+		resp, err := client.Do(req)
 		if err != nil {
 			lastErr = fmt.Errorf("set cursor: %w", err)
 		} else {

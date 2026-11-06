@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"slices"
@@ -118,19 +117,16 @@ func setDiff(x, y []string) []string {
 	return out
 }
 
-// waitForChannelsToMatch polls both servers until channel B matches channel A.
-// It gives up when the timeout passes, or earlier when B has not changed for
-// quietPeriod, and then returns the remaining differences.
+// waitForChannelsToMatch polls both servers until channel B matches channel A or
+// the timeout passes, and then returns the remaining differences. A failed read
+// is retried until the timeout, since a server can briefly fail a request while
+// it is busy syncing.
 func (tr *TestRunner) waitForChannelsToMatch(ctx context.Context, channelA, channelB string, labels map[string]string,
-	timeout, quietPeriod time.Duration) ([]string, error) {
+	timeout time.Duration) ([]string, error) {
 	deadline := time.Now().Add(timeout)
-	lastChange := time.Now()
-	var lastKey string
 	var diffs []string
 	var fetchErr error
 	for {
-		// A failed read is retried until the deadline, since a server can briefly
-		// fail a request while it is busy syncing.
 		a, errA := fetchChannelState(ctx, tr.clientA, channelA)
 		b, errB := fetchChannelState(ctx, tr.clientB, channelB)
 		fetchErr = errors.Join(errA, errB)
@@ -138,17 +134,6 @@ func (tr *TestRunner) waitForChannelsToMatch(ctx context.Context, channelA, chan
 			diffs = diffChannelStates(a, b, labels)
 			if len(diffs) == 0 {
 				return nil, nil
-			}
-			key, err := json.Marshal(b)
-			if err != nil {
-				return nil, err
-			}
-			if string(key) != lastKey {
-				lastKey = string(key)
-				lastChange = time.Now()
-			}
-			if time.Since(lastChange) >= quietPeriod {
-				return diffs, nil
 			}
 		}
 		if time.Now().After(deadline) {
@@ -166,8 +151,8 @@ func (tr *TestRunner) waitForChannelsToMatch(ctx context.Context, channelA, chan
 // checkChannelsMatch records one PASS or FAIL for testName from the result of
 // waitForChannelsToMatch, listing up to 20 differences on failure.
 func (tr *TestRunner) checkChannelsMatch(ctx context.Context, testName, channelA, channelB string,
-	labels map[string]string, timeout, quietPeriod time.Duration) bool {
-	diffs, err := tr.waitForChannelsToMatch(ctx, channelA, channelB, labels, timeout, quietPeriod)
+	labels map[string]string, timeout time.Duration) bool {
+	diffs, err := tr.waitForChannelsToMatch(ctx, channelA, channelB, labels, timeout)
 	if err != nil {
 		tr.fail(testName, err.Error())
 		return false

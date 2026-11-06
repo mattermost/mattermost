@@ -44,7 +44,7 @@ func (tr *TestRunner) runCatchUpTests(ctx context.Context) error {
 
 	// Keep this wait short: withdrawing an acknowledgement is only allowed within
 	// five minutes of making it, and mutate withdraws some made by makeBase.
-	if !tr.checkChannelsMatch(ctx, "catchup/base-synced", channelA, channelB, cr.labels, 2*time.Minute, time.Minute) {
+	if !tr.checkChannelsMatch(ctx, "catchup/base-synced", channelA, channelB, cr.labels, 2*time.Minute) {
 		return nil
 	}
 
@@ -64,7 +64,9 @@ func (tr *TestRunner) runCatchUpTests(ctx context.Context) error {
 		return err
 	}
 
+	// Retries run every SyncRetryDelay and remotes are pinged every minute, so a
+	// working catch-up finishes well inside this timeout.
 	tr.logger.Info("Waiting for Server B to catch up...")
-	tr.checkChannelsMatch(ctx, "catchup/all-changes-synced", channelA, channelB, cr.labels, 10*time.Minute, 2*time.Minute)
+	tr.checkChannelsMatch(ctx, "catchup/all-changes-synced", channelA, channelB, cr.labels, 5*time.Minute)
 	return nil
 }
