@@ -83,6 +83,8 @@ Start the Mattermost server and log in to Mattermost as a system admin. Go to **
 
 This populates the **SAML SSO URL** and the **Identity Provider Issuer URL** fields automatically. The Identity Provider Public Certificate is also downloaded from the server and set locally.
 
+Retrieving the metadata does not set the **Service Provider Identifier**. Set it to the same value you used for the Okta **Audience URI**, typically `https://<your-mattermost-url>`.
+
 Alternatively you can enter the following fields manually:  
 - **SAML SSO URL:** `Identity Provider Single Sign-On URL` from Okta, specified earlier.
 
