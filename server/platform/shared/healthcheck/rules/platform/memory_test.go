@@ -101,9 +101,17 @@ func TestNodeContainerOOMKills(t *testing.T) {
 		{
 			"cgroup memory stats not applicable",
 			memoryNode(func(diag *model.SupportPacketDiagnostics) {
+				diag.Server.ContainerMemoryLimitMB = 0
 				diag.Server.ContainerOOMKills = nil
 			}),
 			resolved,
+		},
+		{
+			"container limit without collected count",
+			memoryNode(func(diag *model.SupportPacketDiagnostics) {
+				diag.Server.ContainerOOMKills = nil
+			}),
+			diagUnknown,
 		},
 		{
 			"unlimited cgroup still reports kills",
