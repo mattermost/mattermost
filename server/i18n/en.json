@@ -3814,17 +3814,19 @@
     "description": "Ephemeral system message to the poster when an @-mentioned user is not a team member; {{.Username}} is that user's username, rendered after a literal @."
   },
   {
-    "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
-    "translation": "You do not have permission to send burn-on-read messages in this channel.",
-    "description": "API error when a user does not have permission to send a burn-on-read message in a channel due to an attribute-based-access-control (ABAC) permission policy."
-  },
-  {
     "id": "api.post.create_post.attribute_no_permission.app_error",
-    "translation": "You do not have permission to set one or more of the requested post attribute values."
+    "translation": "You do not have permission to set one or more of the requested post attribute values.",
+    "description": "API error when a post is created with a value for a post attribute the author is not allowed to set; the attribute is deliberately not named. 'Post attributes' are custom fields admins define for posts."
   },
   {
     "id": "api.post.create_post.attributes_feature_disabled.app_error",
-    "translation": "Post attributes are not enabled on this server."
+    "translation": "Post attributes are not enabled on this server.",
+    "description": "API error when a post is created with post attribute values while the post attributes feature is turned off on the server. 'Post attributes' are custom fields admins define for posts."
+  },
+  {
+    "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
+    "translation": "You do not have permission to send burn-on-read messages in this channel.",
+    "description": "API error when a user does not have permission to send a burn-on-read message in a channel due to an attribute-based-access-control (ABAC) permission policy."
   },
   {
     "id": "api.post.create_post.burn_on_read.app_error",
@@ -3853,7 +3855,8 @@
   },
   {
     "id": "api.post.create_post.invalid_attribute.app_error",
-    "translation": "One or more post attribute values could not be applied."
+    "translation": "One or more post attribute values could not be applied.",
+    "description": "API error when a post is created with post attribute values that are unknown, repeated, not available in the post's channel, or that set fields the server assigns itself; the attribute is deliberately not named."
   },
   {
     "id": "api.post.create_post.root_id.app_error",
