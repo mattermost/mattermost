@@ -44,13 +44,22 @@ func (api *API) websocketNotificationAck(req *model.WebSocketRequest) (map[strin
 		return nil, nil
 	}
 
-	notificationStatus := model.NotificationStatus(status.(string))
+	statusStr, ok := status.(string)
+	if !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "status")
+	}
+
+	notificationStatus := model.NotificationStatus(statusStr)
 	if reason == nil && notificationStatus != model.NotificationStatusSuccess {
 		return nil, nil
 	}
 	var notificationReason model.NotificationReason
 	if reason != nil {
-		notificationReason = model.NotificationReason(reason.(string))
+		reasonStr, ok := reason.(string)
+		if !ok {
+			return nil, NewInvalidWebSocketParamError(req.Action, "reason")
+		}
+		notificationReason = model.NotificationReason(reasonStr)
 	}
 
 	api.App.CountNotificationReason(
