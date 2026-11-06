@@ -4569,7 +4569,7 @@ func TestPropertyFieldBoundsParentField(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	t.Run("two parent rules on one field are checked once", func(t *testing.T) {
+	t.Run("a field with both parent rules saves", func(t *testing.T) {
 		_, _, create := setup(t)
 		_, err := create(model.PropertyFieldObjectTypeSystem, nil)
 		require.NoError(t, err)

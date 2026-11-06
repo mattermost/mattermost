@@ -392,9 +392,11 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	postChannelResolver := func(rctx request.CTX, postID string) (string, error) {
-		post, appErr := app.GetSinglePost(rctx, postID, false)
-		if appErr != nil {
-			return "", appErr
+		// Read the row directly: GetSinglePost answers for the writer's session
+		// (burn-on-read, cloud limits), and bounds compare against the real data.
+		post, postErr := s.Store().Post().GetSingle(rctx, postID, false)
+		if postErr != nil {
+			return "", postErr
 		}
 		return post.ChannelId, nil
 	}
