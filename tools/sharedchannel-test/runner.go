@@ -77,6 +77,12 @@ func (tr *TestRunner) Run(ctx context.Context) error {
 	if err := tr.runOfflineRecoveryTests(ctx); err != nil {
 		tr.logger.Error("Offline recovery tests had errors", mlog.Err(err))
 	}
+	if err := tr.runCatchUpTests(ctx); err != nil {
+		tr.logger.Error("Outage catch-up tests had errors", mlog.Err(err))
+	}
+	if err := tr.runCursorRewindTests(ctx); err != nil {
+		tr.logger.Error("Cursor rewind tests had errors", mlog.Err(err))
+	}
 
 	// Report
 	return tr.report()
@@ -174,22 +180,40 @@ func (tr *TestRunner) provision(ctx context.Context) error {
 // setupSharedChannel creates a channel on Server A, shares it with Server B via
 // the pre-established remote cluster, and returns both channel IDs.
 func (tr *TestRunner) setupSharedChannel(ctx context.Context, channelName string) (channelA, channelB string, err error) {
-	uniqueName := channelName + "-" + tr.suffix
+	channelA, err = tr.createChannelOnA(ctx, channelName)
+	if err != nil {
+		return "", "", err
+	}
+	channelB, err = tr.shareChannelWithB(ctx, channelName, channelA)
+	if err != nil {
+		return "", "", err
+	}
+	return channelA, channelB, nil
+}
+
+// createChannelOnA creates an open channel on Server A without sharing it.
+func (tr *TestRunner) createChannelOnA(ctx context.Context, channelName string) (string, error) {
 	ch, _, err := tr.clientA.CreateChannel(ctx, &model.Channel{
 		TeamId:      tr.teamA.Id,
-		Name:        uniqueName,
+		Name:        channelName + "-" + tr.suffix,
 		DisplayName: "Shared: " + channelName,
 		Type:        model.ChannelTypeOpen,
 	})
 	if err != nil {
-		return "", "", fmt.Errorf("create channel: %w", err)
+		return "", fmt.Errorf("create channel: %w", err)
 	}
-	channelA = ch.Id
+	return ch.Id, nil
+}
+
+// shareChannelWithB shares a channel created by createChannelOnA through the
+// pre-established remote cluster and returns its ID on Server B.
+func (tr *TestRunner) shareChannelWithB(ctx context.Context, channelName, channelA string) (channelB string, err error) {
+	uniqueName := channelName + "-" + tr.suffix
 
 	// Share the channel through the existing remote
 	_, err = tr.clientA.InviteRemoteClusterToChannel(ctx, tr.remoteID, channelA)
 	if err != nil {
-		return "", "", fmt.Errorf("share channel: %w", err)
+		return "", fmt.Errorf("share channel: %w", err)
 	}
 
 	// Wait for channel to appear on B
@@ -207,10 +231,10 @@ func (tr *TestRunner) setupSharedChannel(ctx context.Context, channelName string
 		}
 		return false
 	}); err != nil {
-		return "", "", fmt.Errorf("channel did not appear on server B: %w", err)
+		return "", fmt.Errorf("channel did not appear on server B: %w", err)
 	}
 
-	return channelA, channelB, nil
+	return channelB, nil
 }
 
 func (tr *TestRunner) waitForRemoteOnline(ctx context.Context, remoteID string) error {
