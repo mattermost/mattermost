@@ -23,6 +23,7 @@
         "EnableOAuthServiceProvider": null,
         "EnableDynamicClientRegistration": null,
         "DCRRedirectURIAllowlist": null,
+        "OAuthAllowedRedirectURISchemes": null,
         "EnableIncomingWebhooks": null,
         "EnableOutgoingWebhooks": null,
         "EnableOutgoingOAuthConnections": null,

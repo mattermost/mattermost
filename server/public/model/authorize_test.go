@@ -4,6 +4,8 @@
 package model
 
 import (
+	"crypto/sha256"
+	"encoding/base64"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -368,4 +370,112 @@ func TestAuthorizeRequest_ResourceValidation(t *testing.T) {
 		authRequest.Resource = ""
 		require.Nil(t, authRequest.IsValid())
 	})
+}
+
+func TestValidatePKCEForClientType(t *testing.T) {
+	codeVerifier := "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
+	hash := sha256.Sum256([]byte(codeVerifier))
+	challenge := base64.RawURLEncoding.EncodeToString(hash[:])
+
+	withChallenge := func() *AuthData {
+		return &AuthData{ClientId: NewId(), CodeChallenge: challenge, CodeChallengeMethod: PKCECodeChallengeMethodS256}
+	}
+	withoutChallenge := func() *AuthData {
+		return &AuthData{ClientId: NewId()}
+	}
+
+	t.Run("PKCE required", func(t *testing.T) {
+		t.Run("without code challenge fails", func(t *testing.T) {
+			appErr := withoutChallenge().ValidatePKCEForClientType(true, codeVerifier)
+			require.NotNil(t, appErr)
+			require.Equal(t, "model.authorize.validate_pkce.public_client_required.app_error", appErr.Id)
+		})
+
+		t.Run("without code verifier fails", func(t *testing.T) {
+			appErr := withChallenge().ValidatePKCEForClientType(true, "")
+			require.NotNil(t, appErr)
+			require.Equal(t, "model.authorize.validate_pkce.verifier_required.app_error", appErr.Id)
+		})
+
+		t.Run("with wrong code verifier fails", func(t *testing.T) {
+			appErr := withChallenge().ValidatePKCEForClientType(true, "wrong_verifier_that_is_long_enough_to_be_valid_0123456789")
+			require.NotNil(t, appErr)
+			require.Equal(t, "model.authorize.validate_pkce.verification_failed.app_error", appErr.Id)
+		})
+
+		t.Run("with valid code verifier passes", func(t *testing.T) {
+			require.Nil(t, withChallenge().ValidatePKCEForClientType(true, codeVerifier))
+		})
+	})
+
+	t.Run("PKCE optional", func(t *testing.T) {
+		t.Run("without PKCE passes", func(t *testing.T) {
+			require.Nil(t, withoutChallenge().ValidatePKCEForClientType(false, ""))
+		})
+
+		t.Run("verifier without challenge fails", func(t *testing.T) {
+			appErr := withoutChallenge().ValidatePKCEForClientType(false, codeVerifier)
+			require.NotNil(t, appErr)
+			require.Equal(t, "model.authorize.validate_pkce.not_used_in_auth.app_error", appErr.Id)
+		})
+
+		t.Run("challenge without verifier fails", func(t *testing.T) {
+			appErr := withChallenge().ValidatePKCEForClientType(false, "")
+			require.NotNil(t, appErr)
+			require.Equal(t, "model.authorize.validate_pkce.verifier_required.app_error", appErr.Id)
+		})
+
+		t.Run("challenge with wrong verifier fails", func(t *testing.T) {
+			appErr := withChallenge().ValidatePKCEForClientType(false, "wrong_verifier_that_is_long_enough_to_be_valid_0123456789")
+			require.NotNil(t, appErr)
+			require.Equal(t, "model.authorize.validate_pkce.verification_failed.app_error", appErr.Id)
+		})
+
+		t.Run("challenge with valid verifier passes", func(t *testing.T) {
+			require.Nil(t, withChallenge().ValidatePKCEForClientType(false, codeVerifier))
+		})
+	})
+}
+
+func TestRedirectURISchemeValidation(t *testing.T) {
+	newAuthData := func(redirectURI string) *AuthData {
+		ad := &AuthData{
+			ClientId:    NewId(),
+			UserId:      NewId(),
+			Code:        NewId(),
+			ExpiresIn:   AuthCodeExpireTime,
+			CreateAt:    GetMillis(),
+			RedirectUri: redirectURI,
+		}
+		return ad
+	}
+	newAccessData := func(redirectURI string) *AccessData {
+		return &AccessData{
+			ClientId:    NewId(),
+			UserId:      NewId(),
+			Token:       NewId(),
+			RedirectUri: redirectURI,
+		}
+	}
+	newAuthorizeRequest := func(redirectURI string) *AuthorizeRequest {
+		return &AuthorizeRequest{
+			ResponseType: ResponseTypeCode,
+			ClientId:     NewId(),
+			RedirectURI:  redirectURI,
+			State:        "state",
+			Scope:        "user",
+		}
+	}
+
+	for _, uri := range []string{"https://example.com/cb", "com.example.app://cb"} {
+		require.Nil(t, newAuthData(uri).IsValid(), uri)
+		require.Nil(t, newAccessData(uri).IsValid(), uri)
+		require.Nil(t, newAuthorizeRequest(uri).IsValid(), uri)
+	}
+
+	for _, uri := range []string{"javascript://x", "javascript:alert(1)", "data://x/y"} {
+		require.NotNil(t, newAuthData(uri).IsValid(), uri)
+		require.NotNil(t, newAccessData(uri).IsValid(), uri)
+		require.NotNil(t, newAuthorizeRequest(uri).IsValid(), uri)
+	}
 }
