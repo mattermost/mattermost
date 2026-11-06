@@ -45,23 +45,6 @@ Access the following configuration settings in the System Console by going to **
 </tbody>
 </table>
 
-### Enable user-managed attributes \{#enable-user-managed-attributes}
-
-From Mattermost v10.11, access rules can't use attributes that users can set for themselves unless this setting is enabled. Otherwise, a user could meet a rule just by editing their own profile. Attributes whose **Who can set the value** setting is **System Administrator**, and attributes synced from AD/LDAP or SAML, are always available to rules.
-
-<table>
-<colgroup>
-<col style={{width: '56%'}} />
-<col style={{width: '43%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td><p>Controls whether access rules can use attributes that users set themselves.</p><ul><li><strong>true</strong>: Rules can use every user attribute, including ones users can edit. Only enable this if you accept that users can change whether they match those rules.</li><li><strong>false</strong>: <strong>(Default)</strong> Attributes that users can edit are left out of access rules. The policy editors show them as unavailable, and a rule that uses one can't be saved.</li></ul><p>This setting has no System Console option.</p></td>
-<td><ul><li>System Config path: <strong>N/A</strong></li><li><code>config.json</code> setting: <code>AccessControlSettings</code> &gt; <code>EnableUserManagedAttributes</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_ACCESSCONTROLSETTINGS_ENABLEUSERMANAGEDATTRIBUTES</code></li></ul></td>
-</tr>
-</tbody>
-</table>
-
 ### Show channel access indicators \{#enable-channel-policy-indicators}
 
 <table>

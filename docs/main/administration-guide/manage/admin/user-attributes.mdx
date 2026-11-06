@@ -32,44 +32,14 @@ If you plan to synchronize system properties with your AD/LDAP or SAML identity 
 
 From Mattermost v11, user attributes have enhanced admin controls with a security-first approach. All attributes are admin-managed by default, providing better security and governance. System administrators can explicitly enable user editing for specific attributes through the System Console interface.
 
-If your organization uses [attribute-based access control (ABAC)](/administration-guide/manage/admin/attribute-based-access-control), which requires an Enterprise Edition Advanced license, attributes used in access control policies should remain admin-managed for security reasons. You can enable user-managed attributes for ABAC by setting `EnableUserManagedAttributes` in `config.json`, or via an environment variable as noted below, but this should be done with caution:
-
-- `config.json` setting: `EnableUserManagedAttributes` under `AccessControlSettings`, set to `true` or `false` (default `false`):
-
-  ```json
-  {
-    "AccessControlSettings": {
-      "EnableUserManagedAttributes": false
-    }
-  }
-  ```
-
-- Environment variable: `MM_ACCESSCONTROLSETTINGS_ENABLEUSERMANAGEDATTRIBUTES`
-
-See [Enable user-managed attributes](/administration-guide/configure/system-attributes#enable-user-managed-attributes) for details.
-
-This configuration setting isn't managed using the System Console, and is disabled by default to ensure that access control policies remain secure and can't be circumvented by users modifying their own profile attributes. Learn more about [admin-managed versus user-editable attributes](#admin-managed-vs-user-editable-attributes).
+If your organization uses [attribute-based access control (ABAC)](/administration-guide/manage/admin/attribute-based-access-control), which requires an Enterprise Edition Advanced license, attributes used in access control policies should remain admin-managed for security reasons. Attributes that users can edit are excluded from access control rules, so users can't change their own profile to meet a rule. Learn more about [admin-managed versus user-editable attributes](#admin-managed-vs-user-editable-attributes).
 
 Additionally, from mobile app v2.31.0, user attributes are fully supported on mobile devices. Mobile users can both view and manage profile attributes (if allowed by admin settings) directly from the mobile app. Mobile attribute support requires the same server-side configuration, and no additional mobile-specific setup is required.
 
 </TabItem>
 <TabItem value="mattermost-v10-11-or-later" label="Mattermost v10.11 or later">
 
-From Mattermost v10.11, user-managed attributes are excluded from ABAC rules for security reasons. If your organization uses ABAC (which requires Enterprise Edition Advanced), a system admin can explicitly enable user-managed attributes for ABAC by setting `EnableUserManagedAttributes` in `config.json` or via an environment variable as noted below. This configuration setting isn't managed using the System Console, and is disabled by default to ensure that access control policies remain secure and can't be circumvented by users modifying their own profile attributes.
-
-- `config.json` setting: `EnableUserManagedAttributes` under `AccessControlSettings`, set to `true` or `false` (default `false`):
-
-  ```json
-  {
-    "AccessControlSettings": {
-      "EnableUserManagedAttributes": false
-    }
-  }
-  ```
-
-- Environment variable: `MM_ACCESSCONTROLSETTINGS_ENABLEUSERMANAGEDATTRIBUTES`
-
-See [Enable user-managed attributes](/administration-guide/configure/system-attributes#enable-user-managed-attributes) for details.
+From Mattermost v10.11, user-managed attributes are excluded from ABAC rules for security reasons, so access control policies can't be circumvented by users modifying their own profile attributes.
 
 Additionally, from mobile app v2.31.0, user attributes are fully supported on mobile devices. Mobile users can both view and manage profile attributes directly from the mobile app. Mobile attribute support requires the same server-side configuration, and no additional mobile-specific setup is required.
 

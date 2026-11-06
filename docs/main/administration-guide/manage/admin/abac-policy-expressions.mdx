@@ -31,7 +31,7 @@ A rule can refer to the following values:
 Keep the following in mind:
 
 - **In Advanced Mode, use the attribute's unique name, not its display name.** Names can contain only letters, numbers, and underscores, and can't start with a number. They're case-sensitive, so `Clearance` and `clearance` are different attributes. Older attributes whose names contain spaces can't be used in rules.
-- **Attributes that users can edit themselves are excluded by default.** Otherwise, users could give themselves access by changing their own profile. Attributes synced from AD/LDAP or SAML, and attributes users can't edit, are always available. To allow user-editable attributes, enable [`EnableUserManagedAttributes`](/administration-guide/configure/system-attributes#enable-user-managed-attributes). Until then, Simple Mode shows these attributes as unavailable, and a rule that uses one can't be saved.
+- **Attributes that users can edit themselves are excluded.** Otherwise, users could give themselves access by changing their own profile. Attributes synced from AD/LDAP or SAML, and attributes users can't edit, are always available. Simple Mode shows user-editable attributes as unavailable, and a rule that uses one can't be saved.
 - **`true` and `false` aren't quoted** for `user.verified` and `user.isbot`: write `user.verified == true`. Session attributes are different; see [Session attributes](#session-attributes).
 
 ## Operators by attribute type \{#operators-by-attribute-type}
@@ -194,7 +194,7 @@ Session values are always text. For yes-or-no attributes, compare against the qu
 Mattermost combines conditions and rules in the following ways:
 
 - **Rows in Simple Mode** are combined with AND: a user must match every row.
-- **Rules for the same action in one policy** are combined with OR: a user must match at least one. In channel permission rules, this applies to rules for the same channel role. A channel admin with no rule of their own for an action is checked against the channel member rules.
+- **Channel permission rules for the same role and action** are combined with OR: a user must match at least one. For example, a channel could have one rule letting members in Engineering upload files and another letting members on the VPN upload files; a member who matches either can upload. A channel admin with no rule of their own for an action is checked against the channel member rules.
 - **A policy and the system-wide policies it inherits** are combined with AND: the user must pass all of them. A channel's or team's own rules can narrow a system-wide policy but never widen it.
 - **For permission actions**, such as uploading or downloading files, the channel's permission rules and the system-wide permission policies must all allow the action.
 - **An action with no rules at all** isn't restricted.
