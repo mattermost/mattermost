@@ -19,6 +19,11 @@ const (
 	AccessControlPolicyTypePermission = "permission"
 	AccessControlPolicyTypeTeam       = "team"
 
+	// AccessControlPolicyTypeSystem is the resource type of system-level
+	// registered actions, which have no resource instance and so an empty
+	// resource ID. Policies on them are permission policies with scope "".
+	AccessControlPolicyTypeSystem = "system"
+
 	MaxPolicyNameLength = 128
 
 	// PluginAccessControlPolicyTypeSeparator separates the owning plugin ID
@@ -689,7 +694,7 @@ func (p *AccessControlPolicy) accessPolicyVersionV0_3() *AppError {
 			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.actions.app_error", nil, "actions must not be empty", 400)
 		}
 		for _, action := range rule.Actions {
-			if !allowedActionsV0_3[action] {
+			if !allowedActionsV0_3[action] && (p.Type != AccessControlPolicyTypePermission || !IsRegisteredAction(action)) {
 				return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.actions.app_error", nil, fmt.Sprintf("unrecognized action: %s", action), 400)
 			}
 		}

@@ -3,6 +3,8 @@
 
 package model
 
+import "slices"
+
 // AccessControlSubjectScope* enumerates the supported scopes for ScopedRole.
 const (
 	AccessControlSubjectScopeSystem  = "system"
@@ -163,6 +165,23 @@ func (s *Subject) SetScopedRole(scope, role string) {
 	s.ScopedRoles = out
 }
 
+// WithResourceScope returns a copy of s carrying the resource-scoped roles
+// (every scope other than system) of scoped. Identity, system role, user and
+// session attributes always come from s, so a handler can add the roles a
+// resource check needs without being able to substitute the caller's
+// attributes.
+func (s Subject) WithResourceScope(scoped Subject) Subject {
+	out := s
+	out.ScopedRoles = slices.Clone(s.ScopedRoles)
+	for _, sr := range scoped.ScopedRoles {
+		if sr.Scope == AccessControlSubjectScopeSystem {
+			continue
+		}
+		out.SetScopedRole(sr.Scope, sr.Role)
+	}
+	return out
+}
+
 type SubjectSearchOptions struct {
 	Term   string `json:"term"`
 	TeamID string `json:"team_id"`
@@ -226,6 +245,15 @@ type AccessRequest struct {
 // which the PDP reports an AccessDecisionReason.
 const AccessDecisionContextKeyReason = "reason"
 
+// AccessDecisionContextKeyIsMember is the decision-context key under which
+// RBAC reports whether the subject is a member of the channel a channel-scope
+// check was made against. Decisions made by ABAC never carry it.
+const AccessDecisionContextKeyIsMember = "is_member"
+
+// AccessDecisionContextKeyError is the decision-context key carrying the
+// message of the error behind an error decision.
+const AccessDecisionContextKeyError = "error"
+
 // AccessDecisionReason enumerates the well-known reasons the PDP reports in
 // the decision context.
 type AccessDecisionReason string
@@ -234,6 +262,10 @@ type AccessDecisionReason string
 // the request, so callers may apply their own defaults instead of treating the
 // allow as an explicit grant.
 const AccessDecisionReasonNoPolicy AccessDecisionReason = "no_policy"
+
+// AccessDecisionReasonError marks a denial caused by a failure to evaluate the
+// request rather than by a rule, so audit can tell the two apart.
+const AccessDecisionReasonError AccessDecisionReason = "error"
 
 // AccessDecision is the PDP's answer to an AccessRequest. It follows the
 // OpenID AuthZEN evaluation response: a boolean Decision plus an optional
@@ -250,6 +282,30 @@ func NewNoPolicyAccessDecision() AccessDecision {
 		Decision: true,
 		Context:  map[string]any{AccessDecisionContextKeyReason: string(AccessDecisionReasonNoPolicy)},
 	}
+}
+
+// NewErrorAccessDecision returns the denial for a request that could not be
+// evaluated. It enforces as a deny but stays distinguishable from one.
+func NewErrorAccessDecision(err error) AccessDecision {
+	ctx := map[string]any{AccessDecisionContextKeyReason: string(AccessDecisionReasonError)}
+	if err != nil {
+		ctx[AccessDecisionContextKeyError] = err.Error()
+	}
+	return AccessDecision{Decision: false, Context: ctx}
+}
+
+// IsError reports whether the decision is a denial caused by an evaluation
+// failure.
+func (d AccessDecision) IsError() bool {
+	return !d.Decision && d.Reason() == AccessDecisionReasonError
+}
+
+// IsMember returns the channel membership RBAC recorded for a channel-scope
+// check. ok is false when the decision carries no membership, as with every
+// decision made by ABAC.
+func (d AccessDecision) IsMember() (isMember, ok bool) {
+	isMember, ok = d.Context[AccessDecisionContextKeyIsMember].(bool)
+	return isMember, ok
 }
 
 // Reason returns the well-known reason recorded in the decision context, or
