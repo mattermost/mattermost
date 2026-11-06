@@ -116,13 +116,7 @@ func evalNodeContainerOOMKills(_ *healthcheck.Snapshot, n *healthcheck.NodeSnaps
 	if !ok {
 		return healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)
 	}
-	// A container limit is only collected alongside the OOM kill count, so a
-	// limit without a count means the count was never collected (e.g. a
-	// packet from an older server). Without a limit, a nil count means cgroup
-	// v2 memory stats do not apply to this process.
-	if diag.Server.ContainerMemoryLimitMB > 0 && diag.Server.ContainerOOMKills == nil {
-		return healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)
-	}
+	// A nil count means cgroup v2 memory stats do not apply to this process.
 	if diag.Server.ContainerOOMKills != nil && *diag.Server.ContainerOOMKills > 0 {
 		return healthcheck.Firing(healthcheck.TranslationId("health.rule.node_container_oom_kills.message")).
 			WithDetail("kills", strconv.FormatUint(*diag.Server.ContainerOOMKills, 10))
