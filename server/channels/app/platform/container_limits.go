@@ -12,7 +12,7 @@ type ContainerLimits struct {
 
 type cgroupV2Info struct {
 	dir                  string
-	memoryStatsSupported *bool
+	memoryStatsSupported bool
 }
 
 type memoryDiagnostics struct {

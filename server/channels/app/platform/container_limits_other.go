@@ -6,8 +6,7 @@
 package platform
 
 func getCgroupV2Info() (cgroupV2Info, error) {
-	supported := false
-	return cgroupV2Info{memoryStatsSupported: &supported}, nil
+	return cgroupV2Info{}, nil
 }
 
 // getContainerLimits returns zero values on non-Linux platforms.

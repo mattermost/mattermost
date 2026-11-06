@@ -33,14 +33,13 @@ func setTempCgroupLayout(t *testing.T, dir, membership, mountRoot, mountPoint st
 
 	info, err := getCgroupV2Info()
 	require.NoError(t, err)
-	require.Equal(t, new(true), info.memoryStatsSupported)
+	require.True(t, info.memoryStatsSupported)
 	return info
 }
 
 func TestGetContainerLimits(t *testing.T) {
 	dir := t.TempDir()
-	supported := true
-	info := cgroupV2Info{dir: dir, memoryStatsSupported: &supported}
+	info := cgroupV2Info{dir: dir, memoryStatsSupported: true}
 
 	t.Run("limited CPU and memory", func(t *testing.T) {
 		writeTempCgroupFile(t, dir, "memory.max", "536870912\n")
@@ -81,14 +80,13 @@ func TestGetContainerLimits(t *testing.T) {
 	})
 
 	t.Run("missing memory stats fails", func(t *testing.T) {
-		missingInfo := cgroupV2Info{dir: filepath.Join(dir, "missing"), memoryStatsSupported: &supported}
+		missingInfo := cgroupV2Info{dir: filepath.Join(dir, "missing"), memoryStatsSupported: true}
 		_, err := getContainerLimits(missingInfo)
 		require.ErrorIs(t, err, os.ErrNotExist)
 	})
 
 	t.Run("unsupported cgroup returns zero values", func(t *testing.T) {
-		unsupported := false
-		limits, err := getContainerLimits(cgroupV2Info{memoryStatsSupported: &unsupported})
+		limits, err := getContainerLimits(cgroupV2Info{})
 
 		require.NoError(t, err)
 		assert.Equal(t, uint64(0), limits.MemoryLimitMB)
@@ -129,7 +127,7 @@ func TestGetCgroupV2Info(t *testing.T) {
 		info, err := getCgroupV2Info()
 		require.NoError(t, err)
 		assert.Equal(t, mountPoint, info.dir)
-		assert.Equal(t, new(true), info.memoryStatsSupported)
+		assert.True(t, info.memoryStatsSupported)
 	})
 
 	t.Run("nested systemd membership uses leaf files", func(t *testing.T) {
@@ -175,7 +173,7 @@ func TestGetCgroupV2Info(t *testing.T) {
 
 		info, err := getCgroupV2Info()
 		require.NoError(t, err)
-		assert.Equal(t, new(false), info.memoryStatsSupported)
+		assert.False(t, info.memoryStatsSupported)
 		assert.Empty(t, info.dir)
 	})
 
@@ -187,7 +185,7 @@ func TestGetCgroupV2Info(t *testing.T) {
 
 		info, err := getCgroupV2Info()
 		require.NoError(t, err)
-		assert.Equal(t, new(false), info.memoryStatsSupported)
+		assert.False(t, info.memoryStatsSupported)
 		assert.Equal(t, mountPoint, info.dir)
 
 		limits, err := getContainerLimits(info)
@@ -210,8 +208,7 @@ func TestGetMemoryDiagnostics(t *testing.T) {
 
 	originalPaths := resourcePaths
 	t.Cleanup(func() { resourcePaths = originalPaths })
-	supported := true
-	info := cgroupV2Info{dir: dir, memoryStatsSupported: &supported}
+	info := cgroupV2Info{dir: dir, memoryStatsSupported: true}
 
 	setProcFiles := func(t *testing.T) {
 		t.Helper()
@@ -239,9 +236,7 @@ func TestGetMemoryDiagnostics(t *testing.T) {
 
 	t.Run("unsupported cgroup omits container stats", func(t *testing.T) {
 		setProcFiles(t)
-		unsupported := false
-
-		got, err := getMemoryDiagnostics(cgroupV2Info{memoryStatsSupported: &unsupported})
+		got, err := getMemoryDiagnostics(cgroupV2Info{})
 		require.NoError(t, err)
 		assert.Equal(t, new(uint64(1000)), got.AvailableMemoryMB)
 		assert.Equal(t, new(uint64(128)), got.ProcessRSSMB)
@@ -281,7 +276,7 @@ func TestGetMemoryDiagnostics(t *testing.T) {
 				writeTempCgroupFile(t, partialDir, "memory.stat", tc.stat)
 				writeTempCgroupFile(t, partialDir, "memory.events", tc.events)
 
-				_, err := getMemoryDiagnostics(cgroupV2Info{dir: partialDir, memoryStatsSupported: &supported})
+				_, err := getMemoryDiagnostics(cgroupV2Info{dir: partialDir, memoryStatsSupported: true})
 				require.ErrorContains(t, err, tc.wantErr)
 			})
 		}

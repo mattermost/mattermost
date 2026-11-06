@@ -214,6 +214,8 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 	cgroupV2, err := getCgroupV2Info()
 	if err != nil {
 		fail(model.SectionServerMemory, errors.Wrap(err, "error while resolving cgroup v2"))
+	} else {
+		d.Server.CgroupMemoryStatsSupported = new(cgroupV2.memoryStatsSupported)
 	}
 	containerLimits, err := getContainerLimits(cgroupV2)
 	d.Server.ContainerCPULimit = containerLimits.CPULimit
@@ -225,7 +227,6 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 	if memoryErr != nil {
 		fail(model.SectionServerMemory, errors.Wrap(memoryErr, "error while getting memory diagnostics"))
 	}
-	d.Server.CgroupMemoryStatsSupported = cgroupV2.memoryStatsSupported
 	d.Server.AvailableMemoryMB = memory.AvailableMemoryMB
 	d.Server.SwapTotalMB = memory.SwapTotalMB
 	d.Server.SwapUsedMB = memory.SwapUsedMB

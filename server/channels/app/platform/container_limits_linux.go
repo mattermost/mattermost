@@ -44,7 +44,7 @@ func getContainerLimits(info cgroupV2Info) (ContainerLimits, error) {
 		return limits, nil
 	}
 
-	if info.memoryStatsSupported != nil && *info.memoryStatsSupported {
+	if info.memoryStatsSupported {
 		// Memory limit: "max" means unlimited, otherwise bytes
 		memStr, err := readTrimmed(filepath.Join(info.dir, "memory.max"))
 		if err != nil {
@@ -99,8 +99,7 @@ func getCgroupV2Info() (cgroupV2Info, error) {
 		return cgroupV2Info{}, err
 	}
 	if !found {
-		supported := false
-		return cgroupV2Info{memoryStatsSupported: &supported}, nil
+		return cgroupV2Info{}, nil
 	}
 
 	mountInfo, err := readFile(resourcePaths.procSelfMountInfo)
@@ -116,8 +115,7 @@ func getCgroupV2Info() (cgroupV2Info, error) {
 	if err != nil && !errors.Is(err, os.ErrNotExist) {
 		return cgroupV2Info{}, err
 	}
-	memoryStatsSupported := err == nil
-	return cgroupV2Info{dir: dir, memoryStatsSupported: &memoryStatsSupported}, nil
+	return cgroupV2Info{dir: dir, memoryStatsSupported: err == nil}, nil
 }
 
 func parseCgroupV2Membership(contents string) (string, bool, error) {
@@ -219,7 +217,7 @@ func getMemoryDiagnostics(info cgroupV2Info) (memoryDiagnostics, error) {
 	}
 	diagnostics.ProcessRSSMB = new(rssKB / 1024)
 
-	if info.memoryStatsSupported == nil || !*info.memoryStatsSupported {
+	if !info.memoryStatsSupported {
 		return diagnostics, nil
 	}
 
