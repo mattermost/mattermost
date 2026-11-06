@@ -4,16 +4,39 @@
 package healthcheck
 
 import (
+	"errors"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 )
+
+// ErrNodeNoReply marks a node whose diagnostics were not collected in time.
+var ErrNodeNoReply = errors.New("the node did not reply in time")
 
 type NodeSnapshot struct {
 	Hostname    string
 	IsLeader    bool
 	ClusterInfo *model.ClusterInfo
 	Diagnostics *model.NodeDiagnostics
+	// CollectErr is set when the node's diagnostics could not be collected, in which case
+	// Diagnostics is nil. It is ErrNodeNoReply.
+	CollectErr error
+}
+
+// SelectLeader marks the node whose own diagnostics report it as leader, the same rule for
+// live and offline snapshots. If no node does, it marks fallback and reported is false.
+func SelectLeader(nodes []*NodeSnapshot, fallback *NodeSnapshot) (leader *NodeSnapshot, reported bool) {
+	leader = fallback
+	for _, node := range nodes {
+		if diag, ok := node.Diag(); ok && diag.Cluster.IsLeader {
+			leader = node
+			reported = true
+			break
+		}
+	}
+
+	leader.IsLeader = true
+	return leader, reported
 }
 
 func (n *NodeSnapshot) Diag() (*model.SupportPacketDiagnostics, bool) {
@@ -24,7 +47,7 @@ func (n *NodeSnapshot) Diag() (*model.SupportPacketDiagnostics, bool) {
 	return n.Diagnostics.Diagnostics, true
 }
 
-// NodeVersion prefers cluster info so a live snapshot, where only the leader carries
+// NodeVersion prefers cluster info so a live snapshot, where a node that did not reply has no
 // diagnostics, reads every node's version from the same source. Gossip appends the build
 // number, which packets lack, so it is dropped to keep live and offline results equal.
 func (n *NodeSnapshot) NodeVersion() (string, bool) {
