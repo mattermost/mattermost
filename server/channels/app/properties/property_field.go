@@ -263,6 +263,10 @@ func (ps *PropertyService) createPropertyField(rctx request.CTX, field *model.Pr
 		return nil, err
 	}
 
+	if err := ps.enforceSingleParentField(rctx, field); err != nil {
+		return nil, err
+	}
+
 	if err := ps.defaultPropertyFieldPermissions(field, source); err != nil {
 		return nil, err
 	}
@@ -691,6 +695,66 @@ func (ps *PropertyService) enforceParentField(rctx request.CTX, caller string, f
 	return model.NewAppError(caller, "app.property_field.bounds_parent_field.app_error", map[string]any{"ObjectType": parentType},
 		fmt.Sprintf("field %s: bounds[%d] (%s %s) needs exactly one %s field linked to template %s, found %s",
 			field.ID, i, field.Bounds[i].Operator, field.Bounds[i].Reference, parentType, field.LinkSourceID(), found),
+		http.StatusBadRequest)
+}
+
+// childFieldHasParentRule reports whether a field on field's template, one
+// level below field's object type, carries a parent rule, so field is the
+// parent-side field that rule reads from.
+func (ps *PropertyService) childFieldHasParentRule(rctx request.CTX, field *model.PropertyField) (bool, error) {
+	var childTypes []string
+	for _, t := range []string{model.PropertyFieldObjectTypePost, model.PropertyFieldObjectTypeChannel, model.PropertyFieldObjectTypeUser} {
+		if model.PropertyFieldParentObjectType(t) == field.ObjectType {
+			childTypes = append(childTypes, t)
+		}
+	}
+	if field.LinkSourceID() == "" || len(childTypes) == 0 {
+		return false, nil
+	}
+
+	// Capped at one page: a template with more than 100 child fields could slip past this guard,
+	// and writes then still refuse as broken data. Page with a cursor if that ever matters.
+	children, err := ps.searchPropertyFields(store.RequestContextWithMaster(rctx), field.GroupID, model.PropertyFieldSearchOpts{
+		ObjectTypes:   childTypes,
+		LinkedFieldID: field.LinkSourceID(),
+		PerPage:       100,
+	})
+	if err != nil {
+		return false, err
+	}
+	return slices.ContainsFunc(children, func(c *model.PropertyField) bool {
+		return slices.ContainsFunc(c.Bounds, func(r model.PropertyBoundsRule) bool {
+			return r.Reference == model.PropertyBoundsReferenceParent
+		})
+	}), nil
+}
+
+// enforceSingleParentField refuses a second parent-side field on a template
+// while a child field's parent rule reads from the first. A second one would turn
+// every write to the child field into a broken-data refusal, with nothing at
+// this save to warn the admin.
+func (ps *PropertyService) enforceSingleParentField(rctx request.CTX, field *model.PropertyField) error {
+	depended, err := ps.childFieldHasParentRule(rctx, field)
+	if err != nil {
+		return fmt.Errorf("CreatePropertyField: failed to look up child fields: %w", err)
+	}
+	if !depended {
+		return nil
+	}
+
+	existing, err := ps.searchPropertyFields(store.RequestContextWithMaster(rctx), field.GroupID, model.PropertyFieldSearchOpts{
+		ObjectTypes:   []string{field.ObjectType},
+		LinkedFieldID: field.LinkSourceID(),
+		PerPage:       1,
+	})
+	if err != nil {
+		return fmt.Errorf("CreatePropertyField: failed to look up the existing %s field: %w", field.ObjectType, err)
+	}
+	if len(existing) == 0 {
+		return nil
+	}
+	return model.NewAppError("CreatePropertyField", "app.property_field.bounds_parent_field_taken.app_error", map[string]any{"ObjectType": field.ObjectType},
+		fmt.Sprintf("a %s field is already linked to template %s and a child field's parent rule depends on it", field.ObjectType, field.LinkSourceID()),
 		http.StatusBadRequest)
 }
 

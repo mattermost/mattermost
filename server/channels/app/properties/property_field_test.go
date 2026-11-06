@@ -4527,7 +4527,7 @@ func TestPropertyFieldBoundsParentField(t *testing.T) {
 	}
 
 	t.Run("a channel field needs exactly one system field on its template", func(t *testing.T) {
-		_, _, create := setup(t)
+		groupID, template, create := setup(t)
 
 		_, err := create(model.PropertyFieldObjectTypeChannel, belowParent)
 		requireParentRefused(t, err, "none")
@@ -4537,10 +4537,92 @@ func TestPropertyFieldBoundsParentField(t *testing.T) {
 		_, err = create(model.PropertyFieldObjectTypeChannel, belowParent)
 		require.NoError(t, err)
 
-		_, err = create(model.PropertyFieldObjectTypeSystem, nil)
-		require.NoError(t, err)
+		// Saving a second system field is refused, so build the broken state directly.
+		th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:       groupID,
+			ObjectType:    model.PropertyFieldObjectTypeSystem,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Type:          model.PropertyFieldTypeRank,
+			Name:          "system " + model.NewId(),
+			LinkedFieldID: &template.ID,
+			Permissions:   openPermissions(),
+		})
 		_, err = create(model.PropertyFieldObjectTypeChannel, belowParent)
 		requireParentRefused(t, err, "more than one")
+	})
+
+	t.Run("a second parent-side field is refused while a child field's parent rule depends on the first", func(t *testing.T) {
+		requireTaken := func(t *testing.T, err error) {
+			t.Helper()
+			var appErr *model.AppError
+			require.ErrorAs(t, err, &appErr)
+			assert.Equal(t, "app.property_field.bounds_parent_field_taken.app_error", appErr.Id)
+			assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		}
+
+		t.Run("system field with a channel child", func(t *testing.T) {
+			_, _, create := setup(t)
+			_, err := create(model.PropertyFieldObjectTypeSystem, nil)
+			require.NoError(t, err)
+			_, err = create(model.PropertyFieldObjectTypeChannel, belowParent)
+			require.NoError(t, err)
+
+			_, err = create(model.PropertyFieldObjectTypeSystem, nil)
+			requireTaken(t, err)
+		})
+
+		t.Run("system field with a user child", func(t *testing.T) {
+			_, _, create := setup(t)
+			_, err := create(model.PropertyFieldObjectTypeSystem, nil)
+			require.NoError(t, err)
+			_, err = create(model.PropertyFieldObjectTypeUser, aboveParent)
+			require.NoError(t, err)
+
+			_, err = create(model.PropertyFieldObjectTypeSystem, nil)
+			requireTaken(t, err)
+		})
+
+		t.Run("channel field with a post child", func(t *testing.T) {
+			_, _, create := setup(t)
+			_, err := create(model.PropertyFieldObjectTypeChannel, nil)
+			require.NoError(t, err)
+			_, err = create(model.PropertyFieldObjectTypePost, belowParent)
+			require.NoError(t, err)
+
+			_, err = create(model.PropertyFieldObjectTypeChannel, nil)
+			requireTaken(t, err)
+		})
+
+		t.Run("children with no parent rule leave a second field allowed", func(t *testing.T) {
+			_, _, create := setup(t)
+			_, err := create(model.PropertyFieldObjectTypeSystem, nil)
+			require.NoError(t, err)
+			_, err = create(model.PropertyFieldObjectTypeChannel, nil)
+			require.NoError(t, err)
+			_, err = create(model.PropertyFieldObjectTypeChannel, selfOnly)
+			require.NoError(t, err)
+
+			_, err = create(model.PropertyFieldObjectTypeSystem, nil)
+			require.NoError(t, err)
+		})
+
+		t.Run("the first parent-side field repairs a child that has none", func(t *testing.T) {
+			groupID, template, create := setup(t)
+			// Save refuses this child, so build it directly.
+			th.CreatePropertyFieldDirect(t, &model.PropertyField{
+				GroupID:       groupID,
+				ObjectType:    model.PropertyFieldObjectTypeChannel,
+				TargetType:    string(model.PropertyFieldTargetLevelSystem),
+				Type:          model.PropertyFieldTypeRank,
+				Name:          "channel " + model.NewId(),
+				LinkedFieldID: &template.ID,
+				Bounds:        belowParent,
+				Permissions:   openPermissions(),
+			})
+
+			_, err := create(model.PropertyFieldObjectTypeSystem, nil)
+			require.NoError(t, err)
+		})
 	})
 
 	t.Run("at_or_above parent is checked the same way", func(t *testing.T) {
