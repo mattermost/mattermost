@@ -119,6 +119,21 @@ Create a link to a phone number by typing `tel:` followed by the number, such as
 
 Phone links display with a phone icon. Click or tap a phone link to call the number using your device's default calling app.
 
+#### Automatic phone number links
+
+Mattermost automatically displays recognized phone numbers in messages as phone links, so you don't need to type `tel:`. The message text you send isn't changed.
+
+- International numbers that start with `+`, such as `+1 555-123-4567` or `+44 20 7946 0958`.
+- North American 10-digit numbers, such as `555-123-4567`, `(555) 123-4567`, or `1-555-123-4567`.
+
+Seven-digit numbers without an area code, such as `555-1212`, and numbers that are part of a longer word or number aren't linked. Click or tap a phone number to call it using your device's default calling app.
+
+<Note>
+
+System admins can turn off automatic phone number links for each format. See the [Phone number autolinking](/administration-guide/configure/site-configuration-settings#phone-number-autolinking-international) settings.
+
+</Note>
+
 ### Headings
 
 Make a heading by typing `#` and a space before your title. For smaller headings, use more `#`'s.
