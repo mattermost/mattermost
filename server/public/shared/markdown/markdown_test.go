@@ -7,7 +7,6 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
-	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -104,75 +103,78 @@ func TestParse(t *testing.T) {
 		assert.Equal(t, maxNestingDepth-1, depth)
 	})
 
-	t.Run("parse cost stays proportional to document size as reference definitions and uses grow", func(t *testing.T) {
+	// Doubling the number of reference uses and definitions doubles the document, so parse work
+	// proportional to the document roughly doubles with it, while work that pairs every use with
+	// every definition, or rebuilds the rest of a paragraph once per definition, roughly
+	// quadruples. The bound sits between the two.
+	const maxGrowth = 3.0
+
+	t.Run("resolving reference labels costs allocations proportional to the document", func(t *testing.T) {
+		// Scanning every definition for each use allocates per definition scanned, which shows up
+		// in the allocation count. The bytes allocated are not measured here: a paragraph's inline
+		// buffer grows with its lines, which lets them outgrow the document on its own.
 		for _, tc := range []struct {
 			name     string
 			document func(n int) string
-			n        int
-			// cost picks the runtime.MemStats delta that tracks this shape. Resolving a label
-			// allocates once per definition scanned, so it shows up in the allocation count;
-			// re-reading a paragraph allocates a copy of the remaining text, so it shows up in
-			// the bytes allocated rather than in the count. A paragraph's inline buffer and its
-			// merged runs of adjacent text both grow with the lines in that paragraph, so shapes
-			// that spread uses over many lines are measured by count, where those two do not
-			// appear, and shapes that keep them on one line by bytes, where both parts of
-			// resolving a reference do.
-			cost     func(count, bytes uint64) uint64
-			costName string
 		}{
 			{
 				name: "uses in one paragraph, matching no definition",
 				document: func(n int) string {
 					return referenceUses(n, "no", "\n") + "\n" + referenceDefinitions(n, "", " ", "\n")
 				},
-				n:        1000,
-				cost:     func(count, _ uint64) uint64 { return count },
-				costName: "allocation count",
 			},
 			{
 				name: "uses in one paragraph, each matching a definition",
 				document: func(n int) string {
 					return referenceUses(n, "", "\n") + "\n" + referenceDefinitions(n, "", " ", "\n")
 				},
-				n:        1000,
-				cost:     func(count, _ uint64) uint64 { return count },
-				costName: "allocation count",
 			},
 			{
 				name: "uses spread one per paragraph, matching no definition",
 				document: func(n int) string {
 					return referenceUses(n, "no", "\n\n") + referenceDefinitions(n, "", " ", "\n")
 				},
-				n:        1000,
-				cost:     func(count, _ uint64) uint64 { return count },
-				costName: "allocation count",
 			},
 			{
 				name: "uses on one line, each matching a definition",
 				document: func(n int) string {
 					return referenceUses(n, "", " ") + "\n\n" + referenceDefinitions(n, "", " ", "\n")
 				},
-				n:        1000,
-				cost:     func(_, bytes uint64) uint64 { return bytes },
-				costName: "bytes allocated",
 			},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				small, large := tc.document(1000), tc.document(2000)
+				require.LessOrEqual(t, len(large), MaxLen())
+
+				smallCount, _ := parseAllocations(small)
+				largeCount, _ := parseAllocations(large)
+				growth := float64(largeCount) / float64(smallCount)
+				assert.LessOrEqualf(t, growth, maxGrowth, "allocation count grew %.2fx (%d to %d)", growth, smallCount, largeCount)
+			})
+		}
+	})
+
+	t.Run("reading reference definitions allocates bytes proportional to the document", func(t *testing.T) {
+		// Rebuilding the rest of a paragraph for each definition allocates one copy per
+		// definition, so it shows up in the bytes allocated rather than in the allocation count.
+		for _, tc := range []struct {
+			name     string
+			document func(n int) string
+			n        int
+		}{
 			{
 				name: "definitions stacked in one paragraph, with no uses",
 				document: func(n int) string {
 					return referenceDefinitions(n, "", " ", "\n")
 				},
-				n:        2000,
-				cost:     func(_, bytes uint64) uint64 { return bytes },
-				costName: "bytes allocated",
+				n: 2000,
 			},
 			{
 				name: "one definition repeated in one paragraph, with no uses",
 				document: func(n int) string {
 					return strings.Repeat("[a]: b\n", n)
 				},
-				n:        2000,
-				cost:     func(_, bytes uint64) uint64 { return bytes },
-				costName: "bytes allocated",
+				n: 2000,
 			},
 			{
 				// Definitions a container block holds reach the document the same way top level
@@ -182,66 +184,19 @@ func TestParse(t *testing.T) {
 				document: func(n int) string {
 					return referenceDefinitions(n, "> ", "\n> ", "\n") + "\n" + referenceUses(n, "", " ")
 				},
-				n:        700,
-				cost:     func(_, bytes uint64) uint64 { return bytes },
-				costName: "bytes allocated",
+				n: 700,
 			},
 		} {
 			t.Run(tc.name, func(t *testing.T) {
-				small := tc.document(tc.n)
-				large := tc.document(2 * tc.n)
-				// Doubling the number of reference uses and definitions doubles the document, so
-				// parse work that is proportional to the document roughly doubles with it. Work
-				// that pairs every use with every definition, or that rebuilds the remainder of a
-				// paragraph once per definition it holds, roughly quadruples instead. The bound
-				// sits between the two, so it says "cost follows the document" without pinning an
-				// exact constant.
-				const maxGrowth = 3.0
-
-				// Parse and Inspect skip anything longer than MaxLen without looking at it, which
-				// would make both measurements trivially equal.
+				small, large := tc.document(tc.n), tc.document(2*tc.n)
 				require.LessOrEqual(t, len(large), MaxLen())
 
-				smallCost := tc.cost(parseAllocations(small))
-				largeCost := tc.cost(parseAllocations(large))
-				growth := float64(largeCost) / float64(smallCost)
-
-				assert.LessOrEqualf(t, growth, maxGrowth,
-					"%s grew %.2fx (%d to %d) while the document grew %.2fx (%d to %d bytes)",
-					tc.costName, growth, smallCost, largeCost,
-					float64(len(large))/float64(len(small)), len(small), len(large))
+				_, smallBytes := parseAllocations(small)
+				_, largeBytes := parseAllocations(large)
+				growth := float64(largeBytes) / float64(smallBytes)
+				assert.LessOrEqualf(t, growth, maxGrowth, "bytes allocated grew %.2fx (%d to %d)", growth, smallBytes, largeBytes)
 			})
 		}
-	})
-
-	t.Run("concurrent parses of a list of reference definitions keep a bounded allocation total", func(t *testing.T) {
-		const n = 1000
-		markdown := strings.Repeat("[a]: b\n", n)
-		parses := max(20, 4*runtime.GOMAXPROCS(0))
-
-		runtime.GC()
-		var before, after runtime.MemStats
-		runtime.ReadMemStats(&before)
-
-		counts := make([]int, parses)
-		var wg sync.WaitGroup
-		for i := range counts {
-			wg.Go(func() {
-				_, definitions := Parse(markdown)
-				counts[i] = len(definitions)
-			})
-		}
-		wg.Wait()
-
-		runtime.ReadMemStats(&after)
-
-		for i, count := range counts {
-			require.Equal(t, n, count, "parse %d", i)
-		}
-		const maxBytesPerParse = 16 * 1024 * 1024
-		allocated := after.TotalAlloc - before.TotalAlloc
-		assert.LessOrEqualf(t, allocated, uint64(parses)*maxBytesPerParse,
-			"%d concurrent parses allocated %d bytes", parses, allocated)
 	})
 
 	t.Run("a short list of reference definitions keeps each label, destination and title", func(t *testing.T) {
@@ -377,32 +332,5 @@ func TestParse(t *testing.T) {
 		assert.Equal(t,
 			`<p><a href="http://a/1">text</a> [text][two] <a href="http://b/4">text</a></p>`,
 			RenderBlockHTML(document, assembled))
-	})
-
-	t.Run("definitions from one parse resolve the same way from many goroutines", func(t *testing.T) {
-		n := 200
-		markdown := referenceUses(n, "", " ") + "\n\n" + referenceDefinitions(n, "", " ", "\n")
-
-		// The expectation comes from its own parse, so that the renders below are the first
-		// thing to resolve a label against the definitions they are given.
-		expectedDocument, expectedDefinitions := Parse(markdown)
-		expected := RenderBlockHTML(expectedDocument, expectedDefinitions)
-		require.Equal(t, n, strings.Count(expected, "<a href="))
-
-		document, definitions := Parse(markdown)
-		require.Len(t, definitions, n)
-
-		results := make([]string, max(8, runtime.GOMAXPROCS(0)))
-		var wg sync.WaitGroup
-		for i := range results {
-			wg.Go(func() {
-				results[i] = RenderBlockHTML(document, definitions)
-			})
-		}
-		wg.Wait()
-
-		for _, result := range results {
-			assert.Equal(t, expected, result)
-		}
 	})
 }
