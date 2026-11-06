@@ -43,7 +43,6 @@ func TestPostContainsEntityRequiresTheValue(t *testing.T) {
 }
 
 func TestPrivateEntityCardNeedsAPost(t *testing.T) {
-	t.Setenv("MM_ENTITIES", "1")
 	const pluginID = "com.example.privatecard"
 	typeID := pluginID + ".mark"
 	t.Cleanup(func() { entities.RemovePlugin(pluginID) })
@@ -60,7 +59,7 @@ func TestPrivateEntityCardNeedsAPost(t *testing.T) {
 		Cache:   model.EntityCacheNone,
 	}))
 
-	card, appErr := (&App{}).GetEntityCard(request.TestContext(t), typeID, "WX-100")
+	card, appErr := entityEnabledApp(nil).GetEntityCard(request.TestContext(t), typeID, "WX-100")
 	require.Nil(t, card)
 	require.NotNil(t, appErr)
 	require.Equal(t, http.StatusForbidden, appErr.StatusCode)

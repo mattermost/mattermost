@@ -10,7 +10,8 @@
         `type_id` and `value` lookup is limited to shared-cache providers.
 
 
-        Feature-gated behind Entities / `MM_ENTITIES=1`.
+        Feature-gated behind `FeatureFlags.Entities` /
+        `MM_FEATUREFLAGS_ENTITIES=true`.
 
 
         ##### Permissions

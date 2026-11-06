@@ -16,12 +16,15 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
-// Entity API tests use t.Setenv("MM_ENTITIES"), which cannot be combined with
-// t.Parallel (Go forbids Setenv after Parallel and vice versa).
+func enableEntities(cfg *model.Config) {
+	if cfg.FeatureFlags == nil {
+		cfg.FeatureFlags = &model.FeatureFlags{}
+	}
+	cfg.FeatureFlags.Entities = true
+}
 
 func TestGetEntityCardRequiresSession(t *testing.T) {
-	th := Setup(t).InitBasic(t)
-	t.Setenv("MM_ENTITIES", "1")
+	th := SetupConfig(t, enableEntities).InitBasic(t)
 
 	client := th.CreateClient()
 	resp, err := client.DoAPIGet(context.Background(), "/entities/card?type_id=mm.time&value="+url.QueryEscape("2024-06-01T15:04:05Z"), "")
@@ -31,7 +34,7 @@ func TestGetEntityCardRequiresSession(t *testing.T) {
 
 func TestGetEntityCardFeatureOff(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	t.Setenv("MM_ENTITIES", "0")
+	th.ConfigStore.SetReadOnlyFF(false)
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		if cfg.FeatureFlags == nil {
 			cfg.FeatureFlags = &model.FeatureFlags{}
@@ -45,8 +48,7 @@ func TestGetEntityCardFeatureOff(t *testing.T) {
 }
 
 func TestGetEntityCardHappyPath(t *testing.T) {
-	th := Setup(t).InitBasic(t)
-	t.Setenv("MM_ENTITIES", "1")
+	th := SetupConfig(t, enableEntities).InitBasic(t)
 
 	value := "2024-06-01T15:04:05Z"
 	resp, err := th.Client.DoAPIGet(context.Background(), "/entities/card?type_id=mm.time&value="+url.QueryEscape(value), "")
@@ -62,8 +64,7 @@ func TestGetEntityCardHappyPath(t *testing.T) {
 }
 
 func TestGetEntityCardFromPostRequiresReadAccess(t *testing.T) {
-	th := Setup(t).InitBasic(t)
-	t.Setenv("MM_ENTITIES", "1")
+	th := SetupConfig(t, enableEntities).InitBasic(t)
 
 	post := th.CreatePost(t)
 	other := th.CreateClient()
@@ -86,8 +87,7 @@ func TestGetEntityCardFromPostRequiresReadAccess(t *testing.T) {
 }
 
 func TestGetEntityCardForOccurrence(t *testing.T) {
-	th := Setup(t).InitBasic(t)
-	t.Setenv("MM_ENTITIES", "1")
+	th := SetupConfig(t, enableEntities).InitBasic(t)
 
 	created, _, err := th.Client.CreatePost(context.Background(), &model.Post{
 		ChannelId: th.BasicChannel.Id,
@@ -113,8 +113,8 @@ func TestGetEntityCardForOccurrence(t *testing.T) {
 }
 
 func TestGetPostIncludesEntityEtag(t *testing.T) {
-	th := Setup(t).InitBasic(t)
-	t.Setenv("MM_ENTITIES", "1")
+	th := SetupConfig(t, enableEntities).InitBasic(t)
+	th.ConfigStore.SetReadOnlyFF(false)
 
 	created, _, err := th.Client.CreatePost(context.Background(), &model.Post{
 		ChannelId: th.BasicChannel.Id,
@@ -129,7 +129,9 @@ func TestGetPostIncludesEntityEtag(t *testing.T) {
 	etag := resp.Header.Get(model.HeaderEtagServer)
 	require.NotEmpty(t, etag)
 
-	t.Setenv("MM_ENTITIES", "0")
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.Entities = false
+	})
 	_, respOff, err := th.Client.GetPost(context.Background(), created.Id, "")
 	require.NoError(t, err)
 	etagOff := respOff.Header.Get(model.HeaderEtagServer)
@@ -137,7 +139,9 @@ func TestGetPostIncludesEntityEtag(t *testing.T) {
 	require.NotEqual(t, etagOff, etag)
 	require.True(t, strings.HasPrefix(etag, etagOff+"."))
 
-	t.Setenv("MM_ENTITIES", "1")
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.Entities = true
+	})
 	_, resp, err = th.Client.GetPost(context.Background(), created.Id, etag)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusNotModified, resp.StatusCode)

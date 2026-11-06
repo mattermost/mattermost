@@ -4,7 +4,6 @@
 package app
 
 import (
-	"os"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -37,23 +36,28 @@ func (a *App) AppendEntityEtag(etag string) string {
 }
 
 func (a *App) entitiesEnabled() bool {
-	if os.Getenv("MM_ENTITIES") == "1" {
+	if a == nil || a.ch == nil || a.ch.cfgSvc == nil {
+		return false
+	}
+	cfg := a.Config()
+	if cfg == nil || cfg.FeatureFlags == nil || !cfg.FeatureFlags.Entities {
+		return false
+	}
+	// Unit/bench helpers may wire FeatureFlags without a full platform.
+	if a.ch.srv == nil || a.ch.srv.platform == nil {
 		return true
 	}
-	if a.Config().FeatureFlags != nil && a.Config().FeatureFlags.Entities {
-		license := a.License()
-		if license == nil {
-			return true
-		}
-		if !model.MinimumEnterpriseLicense(license) {
-			return false
-		}
-		if license.Features != nil && license.Features.Entities != nil && !*license.Features.Entities {
-			return false
-		}
+	license := a.License()
+	if license == nil {
 		return true
 	}
-	return false
+	if !model.MinimumEnterpriseLicense(license) {
+		return false
+	}
+	if license.Features != nil && license.Features.Entities != nil && !*license.Features.Entities {
+		return false
+	}
+	return true
 }
 
 func shouldDetectEntities(post *model.Post) bool {
