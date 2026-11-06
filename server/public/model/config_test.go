@@ -400,6 +400,15 @@ func TestAccessControlSettingsIsValid(t *testing.T) {
 		"attribute_refresh_interval_zero":       {AccessControlSettings: AccessControlSettings{AttributeRefreshIntervalSeconds: new(0)}, ExpectError: false},
 		"attribute_refresh_interval_negative":   {AccessControlSettings: AccessControlSettings{AttributeRefreshIntervalSeconds: new(-1)}, ExpectError: true},
 		"attribute_refresh_interval_default":    {AccessControlSettings: AccessControlSettings{AttributeRefreshIntervalSeconds: nil}, ExpectError: false}, // Test will set default
+		"decision_cache_max_age_default":        {AccessControlSettings: AccessControlSettings{DecisionCacheMaxAgeSeconds: nil}, ExpectError: false},
+		"decision_cache_max_age_minimum":        {AccessControlSettings: AccessControlSettings{DecisionCacheMaxAgeSeconds: new(1)}, ExpectError: false},
+		"decision_cache_max_age_zero":           {AccessControlSettings: AccessControlSettings{DecisionCacheMaxAgeSeconds: new(0)}, ExpectError: true},
+		"decision_cache_max_age_maximum":        {AccessControlSettings: AccessControlSettings{DecisionCacheMaxAgeSeconds: new(3600)}, ExpectError: false},
+		"decision_cache_max_age_too_long":       {AccessControlSettings: AccessControlSettings{DecisionCacheMaxAgeSeconds: new(3601)}, ExpectError: true},
+		"decision_cache_size_default":           {AccessControlSettings: AccessControlSettings{DecisionCacheSize: nil}, ExpectError: false},
+		"decision_cache_size_minimum":           {AccessControlSettings: AccessControlSettings{DecisionCacheSize: new(1000)}, ExpectError: false},
+		"decision_cache_size_too_small":         {AccessControlSettings: AccessControlSettings{DecisionCacheSize: new(999)}, ExpectError: true},
+		"decision_cache_size_too_large":         {AccessControlSettings: AccessControlSettings{DecisionCacheSize: new(50_000_001)}, ExpectError: true},
 	} {
 		t.Run(name, func(t *testing.T) {
 			test.AccessControlSettings.SetDefaults()

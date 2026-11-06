@@ -169,6 +169,8 @@ describe('AdminDefinition - ABAC audit logging toggle', () => {
                         EnforceDeviceIDConsistency: false,
                         SyncJobIntervalSeconds: 0,
                         AttributeRefreshIntervalSeconds: 0,
+                        DecisionCacheMaxAgeSeconds: 60,
+                        DecisionCacheSize: 1000000,
                     },
                     FeatureFlags: {
                         SessionAttributes: true,
