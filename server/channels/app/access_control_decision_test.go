@@ -340,3 +340,93 @@ func TestSearchAllowedActionsForCurrentUser(t *testing.T) {
 		require.Equal(t, 400, appErr.StatusCode)
 	})
 }
+
+func TestSearchAllowedActionsForCurrentUserSystem(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	const action = "run_test_two_permissions"
+	read := model.PermissionSysconsoleReadExperimentalBleve.Id
+	write := model.PermissionSysconsoleWriteExperimentalBleve.Id
+	model.RegisterActionsForTesting(t, model.ActionEntry{
+		Name:         action,
+		ResourceType: model.AccessControlPolicyTypeSystem,
+		Grantable:    true,
+		Permissions:  []string{read, write},
+	})
+
+	user := sessionContext(th, th.BasicUser)
+	discover := func(t *testing.T) *model.ActionSearchResponse {
+		t.Helper()
+		resp, appErr := th.App.SearchAllowedActionsForCurrentUser(user, model.ActionSearchRequest{
+			Resource: model.Resource{Type: model.AccessControlPolicyTypeSystem},
+		})
+		require.Nil(t, appErr)
+		return resp
+	}
+	resultFor := func(resp *model.ActionSearchResponse) *model.ActionSearchResult {
+		for i := range resp.Results {
+			if resp.Results[i].Action.Name == action {
+				return &resp.Results[i]
+			}
+		}
+		return nil
+	}
+
+	t.Run("with ABAC inactive", func(t *testing.T) {
+		setABACInactive(t, th)
+
+		resp := discover(t)
+		require.Nil(t, resultFor(resp), "nothing is allowed by default")
+		require.Contains(t, resp.Decisions, action)
+		require.False(t, resp.Decisions[action].Allowed)
+		require.Equal(t, model.Resource{Type: model.AccessControlPolicyTypeSystem}, resp.Resource)
+
+		th.AddPermissionToRole(t, read, model.SystemUserRoleId)
+		t.Cleanup(func() { th.RemovePermissionFromRole(t, read, model.SystemUserRoleId) })
+
+		result := resultFor(discover(t))
+		require.NotNil(t, result, "a role grant shows")
+		require.Equal(t, []string{read}, result.Permissions, "only the permissions the role grants are listed")
+	})
+
+	t.Run("with ABAC active", func(t *testing.T) {
+		acs := &eMocks.AccessControlServiceInterface{}
+		setABACActive(t, th, acs)
+
+		acs.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Action == action && req.Subject.ID == th.BasicUser.Id
+		})).Return(model.AccessDecision{Decision: true}, (*model.AppError)(nil))
+		result := resultFor(discover(t))
+		require.NotNil(t, result)
+		require.ElementsMatch(t, []string{read, write}, result.Permissions, "a policy grants every permission of the action")
+
+		acs.ExpectedCalls = nil
+		acs.On("AccessEvaluation", mock.Anything, mock.Anything).Return(model.NewNoPolicyAccessDecision(), (*model.AppError)(nil))
+		require.Nil(t, resultFor(discover(t)), "no policy is not a grant")
+
+		acs.ExpectedCalls = nil
+		acs.On("AccessEvaluation", mock.Anything, mock.Anything).Return(model.AccessDecision{}, model.NewAppError("test", "pdp.failed", nil, "", 500))
+		resp := discover(t)
+		require.Nil(t, resultFor(resp), "a failed evaluation denies")
+		require.False(t, resp.Decisions[action].Allowed)
+	})
+
+	t.Run("targeted mode accepts only registered system actions", func(t *testing.T) {
+		setABACInactive(t, th)
+
+		_, appErr := th.App.SearchAllowedActionsForCurrentUser(user, model.ActionSearchRequest{
+			Resource: model.Resource{Type: model.AccessControlPolicyTypeSystem},
+			Actions:  []string{action},
+		})
+		require.Nil(t, appErr)
+
+		for _, unsupported := range []string{model.AccessControlPolicyActionDownloadFileAttachment, "run_not_registered"} {
+			_, appErr = th.App.SearchAllowedActionsForCurrentUser(user, model.ActionSearchRequest{
+				Resource: model.Resource{Type: model.AccessControlPolicyTypeSystem},
+				Actions:  []string{unsupported},
+			})
+			require.NotNil(t, appErr)
+			require.Equal(t, 400, appErr.StatusCode)
+		}
+	})
+}

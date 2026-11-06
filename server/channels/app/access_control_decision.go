@@ -6,6 +6,7 @@ package app
 import (
 	"net/http"
 	"slices"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -67,6 +68,10 @@ func (a *App) SearchAllowedActionsForCurrentUser(rctx request.CTX, req model.Act
 			"SearchAllowedActionsForCurrentUser",
 			"app.access_control_decision.subject_mismatch.app_error",
 			nil, "", http.StatusForbidden)
+	}
+
+	if req.Resource.Type == model.AccessControlPolicyTypeSystem {
+		return a.searchAllowedRegisteredActions(rctx, req)
 	}
 
 	// Discovery mode: collect registry entries for the resource type, then sort for
@@ -150,6 +155,62 @@ func (a *App) SearchAllowedActionsForCurrentUser(rctx request.CTX, req model.Act
 			Allowed:   decision.Decision,
 			Evaluated: true,
 		})
+	}
+
+	return resp, nil
+}
+
+// searchAllowedRegisteredActions answers an action search on the system
+// resource from the action registry. Each permission of a candidate action is
+// decided by AccessEvaluation, so the answer matches enforcement: with ABAC
+// inactive it is the RBAC answer, and nothing is allowed by default. An action
+// is a result when at least one of its permissions is allowed, listing those
+// permissions. A failed evaluation denies that permission.
+func (a *App) searchAllowedRegisteredActions(rctx request.CTX, req model.ActionSearchRequest) (*model.ActionSearchResponse, *model.AppError) {
+	var candidates []model.ActionEntry
+	if len(req.Actions) == 0 {
+		candidates = model.RegisteredActionsForResourceType(req.Resource.Type)
+		slices.SortFunc(candidates, func(x, y model.ActionEntry) int { return strings.Compare(x.Name, y.Name) })
+	} else {
+		registered := model.RegisteredActionsForResourceType(req.Resource.Type)
+		for _, action := range req.Actions {
+			i := slices.IndexFunc(registered, func(e model.ActionEntry) bool { return e.Name == action })
+			if i < 0 {
+				return nil, model.NewAppError("SearchAllowedActionsForCurrentUser", "app.access_control_decision.unsupported_action.app_error", map[string]any{"Action": action}, "", http.StatusBadRequest)
+			}
+			candidates = append(candidates, registered[i])
+		}
+	}
+
+	resp := &model.ActionSearchResponse{
+		Resource:  model.Resource{Type: req.Resource.Type},
+		Results:   []model.ActionSearchResult{},
+		Decisions: make(map[string]model.RenderPermissionDecision, len(candidates)),
+	}
+	for _, entry := range candidates {
+		var allowed []string
+		for _, permission := range entry.Permissions {
+			decision, appErr := a.AccessEvaluation(rctx, model.AccessRequest{Action: permission})
+			if appErr != nil {
+				rctx.Logger().Debug("Access evaluation failed for a delegated action search; denying the permission",
+					mlog.String("action", entry.Name),
+					mlog.String("permission", permission),
+					mlog.Err(appErr),
+				)
+				continue
+			}
+			if decision.Decision {
+				allowed = append(allowed, permission)
+			}
+		}
+
+		resp.Decisions[entry.Name] = model.RenderPermissionDecision{Allowed: len(allowed) > 0, Evaluated: true}
+		if len(allowed) > 0 {
+			resp.Results = append(resp.Results, model.ActionSearchResult{
+				Action:      model.ActionSearchResultAction{Name: entry.Name},
+				Permissions: allowed,
+			})
+		}
 	}
 
 	return resp, nil

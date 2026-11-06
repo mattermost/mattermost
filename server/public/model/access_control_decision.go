@@ -35,6 +35,9 @@ type ActionSearchResultAction struct {
 // Only PERMITTED actions appear in the results list; denial is expressed by omission.
 type ActionSearchResult struct {
 	Action ActionSearchResultAction `json:"action"`
+	// Permissions lists, for a registered action, the permissions of the
+	// action the user is allowed. It is empty for other actions.
+	Permissions []string `json:"permissions,omitempty"`
 }
 
 // ActionSearchSubject is RESERVED for Phase 3 cross-subject evaluation.
