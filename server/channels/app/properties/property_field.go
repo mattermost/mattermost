@@ -1768,6 +1768,33 @@ func (ps *PropertyService) deletePropertyField(rctx request.CTX, groupID, id str
 		}
 	}
 
+	// Nor the only parent-side field a child field's parent rule compares
+	// against: every write to the child would then refuse as broken data. One of
+	// several may go, which repairs the child.
+	depended, err := ps.childFieldHasParentRule(rctx, field)
+	if err != nil {
+		return fmt.Errorf("DeletePropertyField: failed to look up child fields: %w", err)
+	}
+	if depended {
+		matches, mErr := ps.searchPropertyFields(store.RequestContextWithMaster(rctx), field.GroupID, model.PropertyFieldSearchOpts{
+			ObjectTypes:   []string{field.ObjectType},
+			LinkedFieldID: field.LinkSourceID(),
+			PerPage:       2,
+		})
+		if mErr != nil {
+			return fmt.Errorf("DeletePropertyField: failed to look up the %s fields on the template: %w", field.ObjectType, mErr)
+		}
+		if len(matches) == 1 {
+			return model.NewAppError(
+				"DeletePropertyField",
+				"app.property_field.delete.parent_rule_dependents.app_error",
+				map[string]any{"FieldID": id, "TemplateID": field.LinkSourceID()},
+				fmt.Sprintf("field %q is the only %s field on template %q and a child field's parent rule depends on it, so it cannot be deleted", id, field.ObjectType, field.LinkSourceID()),
+				http.StatusConflict,
+			)
+		}
+	}
+
 	if err := ps.valueStore.DeleteForField(groupID, id); err != nil {
 		return err
 	}

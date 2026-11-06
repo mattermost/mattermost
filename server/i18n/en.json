@@ -11241,6 +11241,11 @@
     "description": "API error when the property field targeted for deletion does not exist."
   },
   {
+    "id": "app.property_field.delete.parent_rule_dependents.app_error",
+    "translation": "Cannot delete this field while a parent rule on another field depends on it. Remove the parent rule first.",
+    "description": "API error (409) when deleting the only field of its object type linked to a template while another field's parent bounds rule compares against it."
+  },
+  {
     "id": "app.property_field.delete.protected.app_error",
     "translation": "Cannot delete a protected property field.",
     "description": "API error when trying to delete a protected (system-reserved) property field, which is not allowed."

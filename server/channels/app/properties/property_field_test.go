@@ -4625,6 +4625,82 @@ func TestPropertyFieldBoundsParentField(t *testing.T) {
 		})
 	})
 
+	t.Run("deleting a parent-side field is refused while a child field's parent rule depends on it", func(t *testing.T) {
+		requireDependents := func(t *testing.T, err error) {
+			t.Helper()
+			var appErr *model.AppError
+			require.ErrorAs(t, err, &appErr)
+			assert.Equal(t, "app.property_field.delete.parent_rule_dependents.app_error", appErr.Id)
+			assert.Equal(t, http.StatusConflict, appErr.StatusCode)
+		}
+
+		t.Run("system field with a channel child", func(t *testing.T) {
+			groupID, _, create := setup(t)
+			system, err := create(model.PropertyFieldObjectTypeSystem, nil)
+			require.NoError(t, err)
+			_, err = create(model.PropertyFieldObjectTypeChannel, belowParent)
+			require.NoError(t, err)
+
+			requireDependents(t, th.service.DeletePropertyField(rctx, groupID, system.ID))
+			_, err = th.service.GetPropertyField(rctx, groupID, system.ID)
+			require.NoError(t, err)
+		})
+
+		t.Run("allowed once the child's parent rule is removed", func(t *testing.T) {
+			groupID, _, create := setup(t)
+			system, err := create(model.PropertyFieldObjectTypeSystem, nil)
+			require.NoError(t, err)
+			channel, err := create(model.PropertyFieldObjectTypeChannel, belowParent)
+			require.NoError(t, err)
+
+			channel.Bounds = model.PropertyBounds{}
+			_, _, err = th.service.UpdatePropertyField(rctx, groupID, channel)
+			require.NoError(t, err)
+
+			require.NoError(t, th.service.DeletePropertyField(rctx, groupID, system.ID))
+		})
+
+		t.Run("channel field with a post child", func(t *testing.T) {
+			groupID, _, create := setup(t)
+			channel, err := create(model.PropertyFieldObjectTypeChannel, nil)
+			require.NoError(t, err)
+			_, err = create(model.PropertyFieldObjectTypePost, belowParent)
+			require.NoError(t, err)
+
+			requireDependents(t, th.service.DeletePropertyField(rctx, groupID, channel.ID))
+		})
+
+		t.Run("one of two parent-side fields may go", func(t *testing.T) {
+			groupID, template, create := setup(t)
+			system, err := create(model.PropertyFieldObjectTypeSystem, nil)
+			require.NoError(t, err)
+			_, err = create(model.PropertyFieldObjectTypeChannel, belowParent)
+			require.NoError(t, err)
+			// Saving a second system field is refused, so build the broken state directly.
+			th.CreatePropertyFieldDirect(t, &model.PropertyField{
+				GroupID:       groupID,
+				ObjectType:    model.PropertyFieldObjectTypeSystem,
+				TargetType:    string(model.PropertyFieldTargetLevelSystem),
+				Type:          model.PropertyFieldTypeRank,
+				Name:          "system " + model.NewId(),
+				LinkedFieldID: &template.ID,
+				Permissions:   openPermissions(),
+			})
+
+			require.NoError(t, th.service.DeletePropertyField(rctx, groupID, system.ID))
+		})
+
+		t.Run("children with no parent rule", func(t *testing.T) {
+			groupID, _, create := setup(t)
+			system, err := create(model.PropertyFieldObjectTypeSystem, nil)
+			require.NoError(t, err)
+			_, err = create(model.PropertyFieldObjectTypeChannel, selfOnly)
+			require.NoError(t, err)
+
+			require.NoError(t, th.service.DeletePropertyField(rctx, groupID, system.ID))
+		})
+	})
+
 	t.Run("at_or_above parent is checked the same way", func(t *testing.T) {
 		_, _, create := setup(t)
 
@@ -4676,7 +4752,8 @@ func TestPropertyFieldBoundsParentField(t *testing.T) {
 		channel, err := create(model.PropertyFieldObjectTypeChannel, belowParent)
 		require.NoError(t, err)
 
-		require.NoError(t, th.service.DeletePropertyField(rctx, groupID, system.ID))
+		// Deleting the matching field is refused while the rule depends on it, so reach the broken state through the store.
+		require.NoError(t, th.service.fieldStore.Delete(groupID, system.ID))
 
 		// A deleted matching field no longer counts, so a rename that keeps the rule is refused.
 		stored, err := th.service.fieldStore.Get(th.Context, groupID, channel.ID)

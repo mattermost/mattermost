@@ -130,7 +130,8 @@ func TestBoundsParent(t *testing.T) {
 		groupID, create, _ := boundsSetup(t, th, rctx)
 		system := create(model.PropertyFieldObjectTypeSystem, nil)
 		channel := create(model.PropertyFieldObjectTypeChannel, belowParent)
-		require.NoError(t, th.service.DeletePropertyField(rctx, groupID, system.ID))
+		// Deleting the matching field is refused while the rule depends on it, so reach the broken state through the store.
+		require.NoError(t, th.service.fieldStore.Delete(groupID, system.ID))
 
 		_, _, _, err := newHook(groupID, nil).boundsParent(rctx, channel, model.NewId())
 		require.ErrorIs(t, err, errBoundsCheckFailed)
