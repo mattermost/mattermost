@@ -374,6 +374,10 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if c.Err == nil {
+		c.attachAccessControlSubject()
+	}
+
+	if c.Err == nil {
 		h.HandleFunc(c, w, r)
 	}
 

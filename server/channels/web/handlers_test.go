@@ -21,6 +21,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
+	emocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
 func handlerForHTTPErrors(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1462,5 +1463,77 @@ func TestHandlerServeDoesNotLogRawToken(t *testing.T) {
 		require.NoError(t, th.TestLogger.Flush())
 
 		assert.NotContains(t, buffer.String(), session.Token)
+	})
+}
+
+func TestHandlerAttachesAccessControlSubject(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	var seen *model.Subject
+	handler := Handler{
+		Srv: th.Web.srv,
+		HandleFunc: func(c *Context, w http.ResponseWriter, r *http.Request) {
+			seen = c.AppContext.Subject()
+		},
+		RequireSession: false,
+	}
+
+	createSession := func(t *testing.T, userID string) *model.Session {
+		t.Helper()
+		session, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: userID, Roles: model.SystemUserRoleId})
+		require.Nil(t, appErr)
+		return session
+	}
+	serve := func(t *testing.T, token string) {
+		t.Helper()
+		seen = nil
+		req := httptest.NewRequest(http.MethodGet, "/api/v4/test", nil)
+		if token != "" {
+			req.Header.Set(model.HeaderAuth, model.HeaderBearer+" "+token)
+		}
+		resp := httptest.NewRecorder()
+		handler.ServeHTTP(resp, req)
+		require.Equal(t, http.StatusOK, resp.Code)
+	}
+	setABAC := func(t *testing.T, enabled bool) {
+		t.Helper()
+		original := th.Server.Channels().AccessControl
+		th.Server.Channels().AccessControl = &emocks.AccessControlServiceInterface{}
+		t.Cleanup(func() { th.Server.Channels().AccessControl = original })
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(enabled)
+			cfg.FeatureFlags.PermissionPolicies = true
+		})
+		require.True(t, th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced)))
+		require.Equal(t, enabled, th.App.AttributeBasedAccessControlActive())
+	}
+
+	session := createSession(t, th.BasicUser.Id)
+
+	t.Run("an authenticated request gets the caller's subject when ABAC is active", func(t *testing.T) {
+		setABAC(t, true)
+		serve(t, session.Token)
+		require.NotNil(t, seen)
+		assert.Equal(t, th.BasicUser.Id, seen.ID)
+		assert.Equal(t, model.SystemUserRoleId, seen.RoleForScope(model.AccessControlSubjectScopeSystem))
+	})
+
+	t.Run("no subject is built when ABAC is inactive", func(t *testing.T) {
+		setABAC(t, false)
+		serve(t, session.Token)
+		assert.Nil(t, seen)
+	})
+
+	t.Run("an unauthenticated request gets no subject", func(t *testing.T) {
+		setABAC(t, true)
+		serve(t, "")
+		assert.Nil(t, seen)
+	})
+
+	t.Run("a failed build attaches no subject and still serves the request", func(t *testing.T) {
+		setABAC(t, true)
+		orphan := createSession(t, model.NewId())
+		serve(t, orphan.Token)
+		assert.Nil(t, seen)
 	})
 }
