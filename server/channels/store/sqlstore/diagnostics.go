@@ -166,16 +166,26 @@ func collectPGStatUserTablesDiagnostics(ctx context.Context, db *sqlx.DB, diagno
 		LastAutovacuum   sql.NullTime `db:"last_autovacuum"`
 	}
 
-	// pg_stat_progress_vacuum.relid is null for other roles, so identify the table through its relation lock.
+	// A plain VACUUM reports to pg_stat_progress_vacuum and holds ShareUpdateExclusiveLock on the table.
+	// VACUUM FULL and CLUSTER rewrite the table, report to pg_stat_progress_cluster, and hold
+	// AccessExclusiveLock. Both progress views hide relid and command from other roles unless the
+	// caller has pg_read_all_stats, so identify the table through the process's granted relation lock.
 	const query = `
 SELECT
     stats.n_dead_tup,
     EXISTS (
         SELECT 1
-        FROM pg_stat_progress_vacuum AS progress
+        FROM (
+            SELECT pid, datid, 'ShareUpdateExclusiveLock' AS lock_mode
+            FROM pg_stat_progress_vacuum
+            UNION ALL
+            SELECT pid, datid, 'AccessExclusiveLock' AS lock_mode
+            FROM pg_stat_progress_cluster
+        ) AS progress
         JOIN pg_locks AS locks ON
             locks.pid = progress.pid
             AND locks.database = progress.datid
+            AND locks.mode = progress.lock_mode
         WHERE progress.datid = (
             SELECT oid
             FROM pg_database
@@ -183,7 +193,6 @@ SELECT
         )
           AND locks.locktype = 'relation'
           AND locks.relation = stats.relid
-          AND locks.mode = 'ShareUpdateExclusiveLock'
           AND locks.granted
     ) AS vacuum_in_progress,
     stats.last_vacuum,
