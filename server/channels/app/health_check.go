@@ -50,10 +50,15 @@ func NewHealthCheckService(s store.Store, logger mlog.LoggerIFace) *HealthCheckS
 // can't run them: a node runs all of its framework workers or none, and dedicated job servers,
 // which usually run them, are not cluster members and could not collect from the other nodes.
 func (ch *Channels) startHealthCheckWorkers() {
+	ch.startHealthCheckWorkersWithRun(New(ServerConnector(ch)).RunHealthCheck)
+}
+
+// startHealthCheckWorkersWithRun starts the worker set with run as the job body, so tests
+// can stand in for RunHealthCheck.
+func (ch *Channels) startHealthCheckWorkersWithRun(run func(rctx request.CTX) error) {
 	ctx, cancel := context.WithCancel(context.Background())
-	a := New(ServerConnector(ch))
 	worker := health_check.MakeWorker(ch.srv.Jobs, func(rctx request.CTX) error {
-		return a.RunHealthCheck(rctx.WithContext(ctx))
+		return run(rctx.WithContext(ctx))
 	})
 
 	ch.cancelHealthCheck = cancel

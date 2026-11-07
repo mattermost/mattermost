@@ -49,14 +49,21 @@ func (srv *JobServer) MakeJobTypeWatcher(workers *Workers, pollingInterval int, 
 
 func (watcher *Watcher) Start() {
 	mlog.Debug("Watcher Started")
-	// Delay for some random number of milliseconds before starting to ensure that multiple
-	// instances of the jobserver  don't poll at a time too close to each other.
-	<-time.After(time.Duration(rand.IntN(watcher.pollingInterval)) * time.Millisecond)
 
 	defer func() {
 		mlog.Debug("Watcher Finished")
 		close(watcher.stopped)
 	}()
+
+	// Delay for some random number of milliseconds before starting to ensure that multiple
+	// instances of the jobserver  don't poll at a time too close to each other. A stop during
+	// the delay ends it, so Stop doesn't wait it out.
+	select {
+	case <-watcher.stop:
+		mlog.Debug("Watcher: Received stop signal")
+		return
+	case <-time.After(time.Duration(rand.IntN(watcher.pollingInterval)) * time.Millisecond):
+	}
 
 	for {
 		select {
