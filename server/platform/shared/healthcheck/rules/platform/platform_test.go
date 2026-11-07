@@ -148,6 +148,9 @@ func TestRegistered(t *testing.T) {
 		{nodeContainerOOMKills, "NODE_CONTAINER_OOM_KILLS", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityThreshold, "Server.ContainerOOMKills", false, true},
 		{nodeHostMemoryLow, "NODE_HOST_MEMORY_LOW", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityThreshold, "Server.HostMemory", false, true},
 		{nodeGoMemoryLimitAboveContainer, "NODE_GO_MEMORY_LIMIT_ABOVE_CONTAINER", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityStable, "Server.GoMemoryLimit", false, true},
+		{nodeCPUThrottled, "NODE_CPU_THROTTLED", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityThreshold, "Server.ContainerCPUThrottling", false, true},
+		{nodeGOMAXPROCSAboveCPULimit, "NODE_GOMAXPROCS_ABOVE_CPU_LIMIT", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityStable, "Server.GoMaxProcs", false, true},
+		{nodeHostLoadHigh, "NODE_HOST_LOAD_HIGH", healthcheck.SeverityInfo, healthcheck.SurfaceProduct, healthcheck.VolatilityThreshold, "Server.LoadAverage15m", false, true},
 	}
 
 	registry := healthcheck.Builtin()

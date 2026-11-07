@@ -15352,6 +15352,21 @@
     "description": "Health dashboard finding title when a server node's cgroup reports one or more OOM kills."
   },
   {
+    "id": "health.rule.node_cpu_throttled.message",
+    "translation": "The container was throttled during {{.throttled}} of {{.periods}} CPU scheduling periods. Sustained CPU throttling can make Mattermost slow even when host CPU usage looks low.",
+    "description": "Health dashboard finding detail when a node's container has been CPU-throttled in at least 10% of its scheduling periods; {{.throttled}} is the number of throttled periods and {{.periods}} is the total number of periods."
+  },
+  {
+    "id": "health.rule.node_cpu_throttled.remediation",
+    "translation": "Raise the container CPU limit, or remove the limit while keeping a CPU request.",
+    "description": "Health dashboard fix-it step for sustained container CPU throttling. 'CPU limit' and 'CPU request' are Kubernetes resource terms."
+  },
+  {
+    "id": "health.rule.node_cpu_throttled.title",
+    "translation": "Container CPU throttling is high",
+    "description": "Health dashboard finding title when a server node's container is throttled during at least 10% of CPU scheduling periods."
+  },
+  {
     "id": "health.rule.node_fd_exhaustion.message",
     "translation": "The server process has {{.open}} of {{.max}} file descriptors open. Once it reaches the limit, new connections and file operations fail.",
     "description": "Health dashboard finding detail when a node is close to its open file limit; {{.open}} is the number of open file descriptors and {{.max}} is the limit."
@@ -15380,6 +15395,36 @@
     "id": "health.rule.node_go_memory_limit_above_container.title",
     "translation": "Go memory limit is at or above the container limit",
     "description": "Health dashboard finding title when GOMEMLIMIT is equal to or greater than the container memory limit; 'Go' is the programming language name."
+  },
+  {
+    "id": "health.rule.node_gomaxprocs_above_cpu_limit.message",
+    "translation": "GOMAXPROCS is {{.go_max_procs}}, above the container CPU limit of {{.cpu_limit}} CPUs. The extra runnable threads can increase CPU throttling.",
+    "description": "Health dashboard finding detail when Go can run more threads simultaneously than a node's container CPU quota; {{.go_max_procs}} is GOMAXPROCS and {{.cpu_limit}} is the CPU limit in CPUs. 'GOMAXPROCS' is a Go runtime setting and should not be translated."
+  },
+  {
+    "id": "health.rule.node_gomaxprocs_above_cpu_limit.remediation",
+    "translation": "Unset GOMAXPROCS so the Go runtime sizes it to the container CPU limit, then restart the server.",
+    "description": "Health dashboard fix-it step when GOMAXPROCS exceeds a node's container CPU quota. 'GOMAXPROCS' is a Go runtime setting and should not be translated."
+  },
+  {
+    "id": "health.rule.node_gomaxprocs_above_cpu_limit.title",
+    "translation": "GOMAXPROCS exceeds the container CPU limit",
+    "description": "Health dashboard finding title when Go can run more threads simultaneously than a server node's container CPU quota. 'GOMAXPROCS' is a Go runtime setting and should not be translated."
+  },
+  {
+    "id": "health.rule.node_host_load_high.message",
+    "translation": "The 15-minute host load average is {{.load}} across {{.cores}} CPU cores. A sustained load of two or more tasks per core can indicate CPU or I/O pressure.",
+    "description": "Health dashboard finding detail when a non-containerized node's 15-minute host load average is at least twice its CPU core count; {{.load}} is the load average and {{.cores}} is the number of logical CPU cores."
+  },
+  {
+    "id": "health.rule.node_host_load_high.remediation",
+    "translation": "Check CPU utilization, disk I/O, and running processes on the node, then add capacity or reduce the workload.",
+    "description": "Health dashboard fix-it step when a server node has sustained high host load."
+  },
+  {
+    "id": "health.rule.node_host_load_high.title",
+    "translation": "Host load is high",
+    "description": "Health dashboard finding title when a non-containerized server node's 15-minute load average is at least twice its CPU core count."
   },
   {
     "id": "health.rule.node_host_memory_low.message",

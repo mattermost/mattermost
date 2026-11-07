@@ -18,3 +18,7 @@ func getContainerLimits(cgroupV2Info) (ContainerLimits, error) {
 func getMemoryDiagnostics(cgroupV2Info) (memoryDiagnostics, error) {
 	return memoryDiagnostics{}, nil
 }
+
+func getCPUStats(cgroupV2Info) (cpuStats, error) {
+	return cpuStats{}, nil
+}

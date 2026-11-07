@@ -336,3 +336,98 @@ func TestGetMemoryDiagnostics(t *testing.T) {
 		require.ErrorContains(t, err, "memory.max")
 	})
 }
+
+func TestGetCPUStats(t *testing.T) {
+	dir := t.TempDir()
+
+	originalPaths := resourcePaths
+	t.Cleanup(func() { resourcePaths = originalPaths })
+
+	setLoadAvg := func(t *testing.T, content string) {
+		t.Helper()
+		resourcePaths.procLoadAvg = writeTempCgroupFile(t, dir, "loadavg", content)
+	}
+	cgroupDir := func(t *testing.T, cpuMax, cpuStat string) cgroupV2Info {
+		t.Helper()
+		cgroup := t.TempDir()
+		if cpuMax != "" {
+			writeTempCgroupFile(t, cgroup, "cpu.max", cpuMax)
+		}
+		writeTempCgroupFile(t, cgroup, "cpu.stat", cpuStat)
+		return cgroupV2Info{dir: cgroup}
+	}
+
+	t.Run("load average and cgroup v2 throttling", func(t *testing.T) {
+		setLoadAvg(t, "1.25 2.50 3.75 1/123 456\n")
+		info := cgroupDir(t, "200000 100000\n", "usage_usec 3000000\nnr_periods 2500\nnr_throttled 375\nthrottled_usec 1250000\n")
+
+		stats, err := getCPUStats(info)
+		require.NoError(t, err)
+		assert.Equal(t, new(1.25), stats.LoadAverage1m)
+		assert.Equal(t, new(2.50), stats.LoadAverage5m)
+		assert.Equal(t, new(3.75), stats.LoadAverage15m)
+		assert.Equal(t, new(uint64(2500)), stats.ContainerCPUPeriods)
+		assert.Equal(t, new(uint64(375)), stats.ContainerCPUThrottledPeriods)
+		assert.Equal(t, new(1.25), stats.ContainerCPUThrottledSeconds)
+	})
+
+	t.Run("unlimited cgroup v2 reports zero counters", func(t *testing.T) {
+		setLoadAvg(t, "0.10 0.20 0.30 1/10 12\n")
+		info := cgroupDir(t, "max 100000\n", "nr_periods 0\nnr_throttled 0\nthrottled_usec 0\n")
+
+		stats, err := getCPUStats(info)
+		require.NoError(t, err)
+		assert.Equal(t, new(uint64(0)), stats.ContainerCPUPeriods)
+		assert.Equal(t, new(uint64(0)), stats.ContainerCPUThrottledPeriods)
+		assert.Equal(t, new(0.0), stats.ContainerCPUThrottledSeconds)
+	})
+
+	t.Run("cgroup v2 skips unrecognized cpu.stat lines", func(t *testing.T) {
+		setLoadAvg(t, "0.10 0.20 0.30 1/10 12\n")
+		info := cgroupDir(t, "100000 100000\n", "nr_periods 100\n\nfuture_field 1 2\nnr_throttled 10\nthrottled_usec 500000\n")
+
+		stats, err := getCPUStats(info)
+		require.NoError(t, err)
+		assert.Equal(t, new(uint64(100)), stats.ContainerCPUPeriods)
+		assert.Equal(t, new(uint64(10)), stats.ContainerCPUThrottledPeriods)
+		assert.Equal(t, new(0.5), stats.ContainerCPUThrottledSeconds)
+	})
+
+	t.Run("cgroup v2 without the cpu controller omits counters", func(t *testing.T) {
+		setLoadAvg(t, "0.10 0.20 0.30 1/10 12\n")
+		info := cgroupDir(t, "", "usage_usec 3000000\n")
+
+		stats, err := getCPUStats(info)
+		require.NoError(t, err)
+		assert.Equal(t, new(0.10), stats.LoadAverage1m)
+		assert.Nil(t, stats.ContainerCPUPeriods)
+		assert.Nil(t, stats.ContainerCPUThrottledPeriods)
+		assert.Nil(t, stats.ContainerCPUThrottledSeconds)
+	})
+
+	t.Run("no cgroup v2 omits counters", func(t *testing.T) {
+		setLoadAvg(t, "0.10 0.20 0.30 1/10 12\n")
+
+		stats, err := getCPUStats(cgroupV2Info{})
+		require.NoError(t, err)
+		assert.Equal(t, new(0.10), stats.LoadAverage1m)
+		assert.Nil(t, stats.ContainerCPUPeriods)
+		assert.Nil(t, stats.ContainerCPUThrottledPeriods)
+		assert.Nil(t, stats.ContainerCPUThrottledSeconds)
+	})
+
+	t.Run("missing load average is an error", func(t *testing.T) {
+		resourcePaths.procLoadAvg = filepath.Join(dir, "missing_loadavg")
+
+		_, err := getCPUStats(cgroupV2Info{})
+		require.Error(t, err)
+	})
+
+	t.Run("incomplete cgroup v2 stats are an error", func(t *testing.T) {
+		setLoadAvg(t, "0.10 0.20 0.30 1/10 12\n")
+		info := cgroupDir(t, "100000 100000\n", "nr_periods 100\nnr_throttled 10\n")
+
+		_, err := getCPUStats(info)
+		require.EqualError(t, err, "cpu.stat is missing throttling counters")
+	})
+}
