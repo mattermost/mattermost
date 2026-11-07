@@ -108,6 +108,13 @@ type PlatformService struct {
 	hubs     []*Hub
 	hashSeed maphash.Seed
 
+	// hubChannelIteration is EnableWebHubChannelIteration as read when the hubs started; changes take effect at the next restart.
+	hubChannelIteration bool
+	// membershipLoads caps how many membership loads run at once on this node, so a reconnect
+	// burst does not take the whole database pool from the rest of the server. Each load holds
+	// one slot for the duration of its query. Sized in hubStart.
+	membershipLoads chan struct{}
+
 	goroutineCount      int32
 	goroutineExitSignal chan struct{}
 	goroutineBuffered   chan struct{}
