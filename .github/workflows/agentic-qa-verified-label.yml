@@ -1,0 +1,43 @@
+---
+name: "QA/Verified"
+
+on:
+  pull_request:
+    types: [labeled]
+
+permissions: {}
+
+jobs:
+  verify-qa:
+    permissions:
+      contents: read
+      pull-requests: read
+      statuses: write
+    if: github.event.label.name == 'QA/Verified'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check write permission
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SENDER: ${{ github.event.sender.login }}
+          REPO: ${{ github.repository }}
+        run: |
+          PERM=$(gh api "repos/${REPO}/collaborators/${SENDER}/permission" --jq '.permission')
+          if [[ "$PERM" != "admin" && "$PERM" != "write" ]]; then
+            echo "User lacks write permission"
+            exit 1
+          fi
+
+      - name: Override failed QA execution status
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+          REPO: ${{ github.repository }}
+        run: |
+          STATE=$(gh api "repos/${REPO}/commits/${SHA}/status" --jq '.statuses[] | select(.context=="QA/execution") | .state' | head -1)
+          if [ "$STATE" = "failure" ] || [ "$STATE" = "error" ]; then
+            gh api "repos/${REPO}/statuses/${SHA}" \
+              -f state=success \
+              -f context=QA/execution \
+              -f description="(verified) Human attestation via QA/Verified label"
+          fi
