@@ -18,7 +18,7 @@ import (
 // TestScopedImportReportsUnmatchedUsers is the end-to-end guard for the operator-facing
 // "which users/memberships could not be matched on the new server" log. It runs a real
 // scoped import whose export references:
-//   - a user that exists on the destination (matched, must NOT be reported),
+//   - a user that exists on the destination (reported: username_matched_existing + linked_existing),
 //   - a user absent from the destination (reported: username_not_found + created_inactive),
 //   - a membership for a team absent from the destination (reported: team_not_found),
 //   - a membership for a channel absent from the destination (reported: channel_not_found),
@@ -34,7 +34,8 @@ func TestScopedImportReportsUnmatchedUsers(t *testing.T) {
 	const realChan, ghostChan = "rep-real-chan", "rep-ghost-chan"
 	const existingUser, ghostUser = "rep.existing.user", "rep.ghost.user"
 
-	// existing.user already lives on the destination, so it must match and stay out of the report.
+	// existing.user already lives on the destination. The account is left unchanged,
+	// the username match is recorded, and its memberships are still applied.
 	_ = createUserInDB(t, th, existingUser)
 
 	var sb strings.Builder
@@ -83,12 +84,13 @@ func TestScopedImportReportsUnmatchedUsers(t *testing.T) {
 	require.NotNil(t, report)
 
 	want := []imports.UnmatchedUser{
+		{Username: existingUser, Reason: "username_matched_existing", Action: imports.UnmatchedUserLinkedExisting},
 		{Username: ghostUser, Reason: "username_not_found", Action: imports.UnmatchedUserCreatedInactive},
 		{Username: existingUser, Team: realTeam, Channel: ghostChan, Reason: "channel_not_found", Action: imports.UnmatchedUserMembershipSkipped},
 		{Username: existingUser, Team: ghostTeam, Reason: "team_not_found", Action: imports.UnmatchedUserMembershipSkipped},
 	}
 	require.ElementsMatch(t, want, report.UnmatchedUsers.All(),
-		"report must contain exactly the unmatched user and the two skipped memberships")
+		"report must contain the username match, the unmatched user, and the two skipped memberships")
 
 	// The same data must round-trip through the operator-facing CSV: header + one row per entry.
 	var buf bytes.Buffer
@@ -105,6 +107,7 @@ func TestScopedImportReportsUnmatchedUsers(t *testing.T) {
 	for _, r := range rows[1:] {
 		reasonByUser[r[0]+"|"+r[2]+"|"+r[3]] = r[4]
 	}
+	require.Equal(t, "username_matched_existing", reasonByUser[existingUser+"||"])
 	require.Equal(t, "username_not_found", reasonByUser[ghostUser+"||"])
 	require.Equal(t, "channel_not_found", reasonByUser[existingUser+"|"+realTeam+"|"+ghostChan])
 	require.Equal(t, "team_not_found", reasonByUser[existingUser+"|"+ghostTeam+"|"])
