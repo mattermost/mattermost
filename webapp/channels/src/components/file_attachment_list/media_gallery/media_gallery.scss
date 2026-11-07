@@ -4,7 +4,7 @@
     box-sizing: border-box;
     margin: 8px 0;
     clear: both;
-    container-type: inline-size;
+    container: media-gallery / inline-size;
 
     .post--compact & {
         display: block;
@@ -121,6 +121,8 @@
     }
 
     &__rows {
+        --media-gallery-row-height: 216px;
+
         display: grid;
         overflow: hidden;
         min-width: 0;
@@ -143,29 +145,41 @@
         display: flex;
         overflow: hidden;
         min-width: 0;
-        flex-direction: column;
+        flex-flow: row wrap;
+        align-content: flex-start;
         align-items: flex-start;
         justify-content: flex-start;
         gap: 8px;
     }
 
-    &__row {
-        display: flex;
-        width: 100%;
-        min-width: 0;
-        flex-direction: row;
-        align-items: stretch;
-        justify-content: flex-start;
-        gap: 8px;
-        text-align: left;
+    &--compact &__rows {
+        --media-gallery-row-height: 144px;
+    }
+}
+
+// Sized in CSS rather than from a measured width so the post list sees the
+// final height on first render, including in narrow containers like the RHS.
+// CSS has no hysteresis, so the RHS reserves its scrollbar gutter to keep a
+// scrollbar appearing from toggling the row height near 480px.
+@container media-gallery (width < 480px) {
+    .MediaGallery__rows {
+        --media-gallery-row-height: 144px;
     }
 }
 
 .MediaGallery__tile {
+    // Scale to the row height by aspect ratio, without upscaling past the
+    // file's native width, clamped to 50-500px.
+    --tile-width: max(50px, min(calc(var(--tile-ratio, 1.5) * var(--media-gallery-row-height)), var(--tile-native-width, 500px), 500px));
+
     position: relative;
     display: flex;
     overflow: hidden;
+    width: var(--tile-width);
+    max-width: 100%;
+    height: var(--media-gallery-row-height);
     box-sizing: border-box;
+    flex: 0 0 var(--tile-width);
     align-items: center;
     justify-content: center;
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
