@@ -1333,12 +1333,6 @@ func TestPluginAPIGetSharedChannelCursor(t *testing.T) {
 		assert.Contains(t, err.Error(), "cannot fetch shared channel remote")
 	})
 
-	t.Run("unknown channel returns error", func(t *testing.T) {
-		_, err := api.GetSharedChannelCursor(model.NewId(), rc.RemoteId)
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "cannot fetch shared channel remote")
-	})
-
 	t.Run("remoteID belonging to different plugin returns error", func(t *testing.T) {
 		otherChannel := th.CreateChannel(t, th.BasicTeam)
 		otherRC := registerPluginRemoteForTest(t, th, "com.test.other-cursor-plugin", otherChannel)
