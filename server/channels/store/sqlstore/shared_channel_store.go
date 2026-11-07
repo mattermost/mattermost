@@ -445,20 +445,35 @@ func (s SqlSharedChannelStore) GetRemote(id string) (*model.SharedChannelRemote,
 
 // GetRemoteByIds fetches a shared channel remote by channel id and remote cluster id.
 func (s SqlSharedChannelStore) GetRemoteByIds(channelId string, remoteId string) (*model.SharedChannelRemote, error) {
+	return s.getRemoteByIds(s.GetReplica(), channelId, remoteId, false)
+}
+
+// GetRemoteByIdsFromMaster fetches a shared channel remote whose message channel exists on the master.
+func (s SqlSharedChannelStore) GetRemoteByIdsFromMaster(channelId string, remoteId string) (*model.SharedChannelRemote, error) {
+	return s.getRemoteByIds(s.GetMaster(), channelId, remoteId, true)
+}
+
+func (s SqlSharedChannelStore) getRemoteByIds(db *sqlxDBWrapper, channelId string, remoteId string, requireChannel bool) (*model.SharedChannelRemote, error) {
 	var remote model.SharedChannelRemote
 
 	query := s.getQueryBuilder().
-		Select(sharedChannelRemoteFields("")...).
+		Select(sharedChannelRemoteFields("SharedChannelRemotes")...).
 		From("SharedChannelRemotes").
 		Where(sq.Eq{"SharedChannelRemotes.ChannelId": channelId}).
 		Where(sq.Eq{"SharedChannelRemotes.RemoteId": remoteId})
+
+	if requireChannel {
+		query = query.
+			Join("Channels ON Channels.Id = SharedChannelRemotes.ChannelId").
+			Where(sq.Eq{"Channels.Type": messageChannelTypes})
+	}
 
 	squery, args, err := query.ToSql()
 	if err != nil {
 		return nil, errors.Wrapf(err, "get_shared_channel_remote_by_ids_tosql")
 	}
 
-	if err := s.GetReplica().Get(&remote, squery, args...); err != nil {
+	if err := db.Get(&remote, squery, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("SharedChannelRemote", fmt.Sprintf("channelId=%s, remoteId=%s", channelId, remoteId))
 		}
