@@ -7,6 +7,7 @@ import React, {useCallback, useMemo, type JSX} from 'react';
 import {defineMessages, useIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {UnreadBadge} from '@mattermost/compass-ui/components/unread-badge';
 import {ShortcutKeys} from '@mattermost/shared/components/shortcut_key';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
@@ -24,6 +25,10 @@ const messages = defineMessages({
     urgentMentionTooltip: {
         id: 'channel_mention_badge.urgent_tooltip',
         defaultMessage: 'You have an urgent mention',
+    },
+    unreadBadgeAriaLabel: {
+        id: 'unread_badge.aria_label',
+        defaultMessage: 'Unread',
     },
 });
 
@@ -89,10 +94,14 @@ export default function TeamButton({
             teamClass = 'unread';
 
             badge = (
-                <span
-                    data-testid={'team-badge-' + teamId}
-                    className={'unread-badge'}
-                />
+                <span data-testid={'team-badge-' + teamId}>
+                    <UnreadBadge
+                        className='unread-badge'
+                        context='team-icon'
+                        size='8'
+                        aria-label={formatMessage(messages.unreadBadgeAriaLabel)}
+                    />
+                </span>
             );
         } else if (isNotCreateTeamButton) {
             teamClass = '';
