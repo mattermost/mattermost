@@ -163,7 +163,8 @@ func markPropertyValuesUnavailable(posts []*model.Post) {
 // PreparePostPropertyValuesForCreate checks values submitted for a post about to be created in
 // channel and returns fresh PropertyValues carrying only the group, the field and the value,
 // together with the field each one is for, in the same order. It runs before the post is saved,
-// so bad input is refused before there is a post to roll back.
+// so bad input is refused before there is a post to roll back, including a value whose shape
+// doesn't fit its field's type.
 //
 // It does not check whether the caller may set the values: an API caller asks
 // CanSetPostPropertyValueOnCreate for each returned field, and every caller's write is judged
@@ -223,6 +224,11 @@ func (a *App) PreparePostPropertyValuesForCreate(rctx request.CTX, submitted []*
 		field, ok := fieldByID[item.FieldID]
 		if !ok {
 			return nil, nil, invalid("unknown field")
+		}
+		// The property hook runs the same check when the values are stored, but by then the
+		// post exists and a failure removes it again, attachments included.
+		if err := model.ValidatePropertyValueForFieldType(field.Type, item.Value); err != nil {
+			return nil, nil, invalid("value does not fit the field type")
 		}
 
 		seen[item.FieldID] = true

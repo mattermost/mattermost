@@ -1174,6 +1174,53 @@ func TestPreparePostPropertyValuesForCreate(t *testing.T) {
 		requireInvalid(t, submitted(channelField.ID, `"x"`), nil)
 	})
 
+	t.Run("a value that doesn't fit its field's type is refused", func(t *testing.T) {
+		typedField := func(t *testing.T, fieldType model.PropertyFieldType) *model.PropertyField {
+			t.Helper()
+			field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+				GroupID:    th.groupID,
+				Name:       "f_" + model.NewId(),
+				Type:       fieldType,
+				ObjectType: model.PropertyFieldObjectTypePost,
+				TargetType: string(model.PropertyFieldTargetLevelChannel),
+				TargetID:   th.BasicChannel.Id,
+			}, false, "")
+			require.Nil(t, appErr)
+			return field
+		}
+		numberField := typedField(t, model.PropertyFieldTypeNumber)
+		checkboxField := typedField(t, model.PropertyFieldTypeCheckbox)
+
+		t.Run("a string for a number field", func(t *testing.T) {
+			requireInvalid(t, submitted(numberField.ID, `"abc"`))
+		})
+
+		t.Run("a non-boolean for a checkbox field", func(t *testing.T) {
+			requireInvalid(t, submitted(checkboxField.ID, `"yes"`))
+		})
+
+		t.Run("one bad value refuses the whole set", func(t *testing.T) {
+			requireInvalid(t, submitted(channelField.ID, `"x"`), submitted(numberField.ID, `"abc"`))
+		})
+
+		t.Run("values that fit are accepted", func(t *testing.T) {
+			values, _, appErr := th.App.PreparePostPropertyValuesForCreate(th.Context, []*model.PropertyValue{
+				submitted(numberField.ID, `42`),
+				submitted(checkboxField.ID, `true`),
+				submitted(channelField.ID, `"7"`),
+			}, th.BasicChannel)
+			require.Nil(t, appErr)
+			require.Len(t, values, 3)
+		})
+
+		t.Run("null fits a number field", func(t *testing.T) {
+			_, _, appErr := th.App.PreparePostPropertyValuesForCreate(th.Context, []*model.PropertyValue{
+				submitted(numberField.ID, `null`),
+			}, th.BasicChannel)
+			require.Nil(t, appErr)
+		})
+	})
+
 	// One subtest per server-owned field rather than a loop, so a regression in handling any one
 	// of them names itself in the failure output.
 	t.Run("server-owned fields set by the caller are refused", func(t *testing.T) {

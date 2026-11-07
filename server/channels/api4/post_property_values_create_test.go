@@ -334,6 +334,42 @@ func TestCreatePostWithPropertyValues(t *testing.T) {
 		th.refuseInvalidAttribute(t, th.BasicChannel.Id, nil, submittedPropertyValue(model.NewId(), `"x"`))
 	})
 
+	// Refused before the post is saved: a refusal after the save would remove the post again and
+	// hard-delete its attachments, leaving the client to retry with file ids that no longer exist.
+	t.Run("a value that doesn't fit its field's type is refused and the attachment survives", func(t *testing.T) {
+		numberField, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:          th.groupID,
+			Name:             "f_" + model.NewId(),
+			Type:             model.PropertyFieldTypeNumber,
+			ObjectType:       model.PropertyFieldObjectTypePost,
+			TargetType:       string(model.PropertyFieldTargetLevelChannel),
+			TargetID:         th.BasicChannel.Id,
+			PermissionValues: model.NewPointer(memberLevel),
+		}, false, "")
+		require.Nil(t, appErr)
+		t.Cleanup(func() {
+			require.Nil(t, th.App.DeletePropertyField(th.Context, th.groupID, numberField.ID, true, ""))
+		})
+
+		fileResp, _, err := th.Client.UploadFile(context.Background(), []byte("data"), th.BasicChannel.Id, "attachment.txt")
+		require.NoError(t, err)
+		require.Len(t, fileResp.FileInfos, 1)
+		fileID := fileResp.FileInfos[0].Id
+
+		post := postWithPropertyValues(th.BasicChannel.Id, submittedPropertyValue(numberField.ID, `"not a number"`))
+		post.FileIds = model.StringArray{fileID}
+		_, resp, err := th.Client.CreatePost(context.Background(), post)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.post.create_post.invalid_attribute.app_error")
+		require.NotContains(t, err.Error(), numberField.Name)
+
+		info, appErr := th.App.GetFileInfo(th.Context, fileID)
+		require.Nil(t, appErr)
+		assert.Empty(t, info.PostId, "the file was never attached to a post")
+		assert.Zero(t, info.DeleteAt)
+	})
+
 	t.Run("a sysadmin-level field is refused for a member and accepted for a sysadmin", func(t *testing.T) {
 		field := th.createField(t, model.PropertyFieldTargetLevelChannel, th.BasicChannel.Id, model.PermissionLevelSysadmin)
 
