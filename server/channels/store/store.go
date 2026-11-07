@@ -629,6 +629,9 @@ type RemoteClusterStore interface {
 	Save(rc *model.RemoteCluster) (*model.RemoteCluster, error)
 	Update(rc *model.RemoteCluster) (*model.RemoteCluster, error)
 	Delete(remoteClusterID string) (bool, error)
+	// PermanentDelete removes the row for remoteClusterID and name. It is meant for a connection
+	// that was never established, so shared channel remotes are left untouched.
+	PermanentDelete(remoteClusterID string, name string) error
 	Get(remoteClusterID string, includeDeleted bool) (*model.RemoteCluster, error)
 	// Deprecated: GetByPluginID returns a single remote for the plugin. Only correct
 	// when the plugin has one registration. Use GetAllByPluginID instead.
@@ -1133,6 +1136,7 @@ type SharedChannelStore interface {
 	HasRemote(channelID string, remoteID string) (bool, error)
 	GetRemoteForUser(remoteID string, userID string, includeDeleted bool) (*model.RemoteCluster, error)
 	GetRemoteByIds(channelID string, remoteID string) (*model.SharedChannelRemote, error)
+	GetRemoteByIdsFromMaster(channelID string, remoteID string) (*model.SharedChannelRemote, error)
 	GetRemotes(offset, limit int, opts model.SharedChannelRemoteFilterOpts) ([]*model.SharedChannelRemote, error)
 	UpdateRemoteCursor(id string, cursor model.GetPostsSinceForSyncCursor) error
 	UpdateRemoteMembershipCursor(id string, syncTime int64) error
@@ -1284,6 +1288,9 @@ type PropertyFieldStore interface {
 	// after cursor, of the live PSAv2 fields in version 2 and 3 groups that
 	// have no permissions object: the fields the permissions backfill converts.
 	GetFieldsMissingPermissions(rctx request.CTX, cursor model.PropertyFieldSearchCursor, perPage int) ([]*model.PropertyField, error)
+	SearchGlobalAttributeListing(rctx request.CTX, opts model.GlobalAttributeListingOpts) ([]*model.PropertyField, error)
+	GetLiveLinkedFieldsByObjectTypes(groupID string, fieldIDs, objectTypes []string) ([]*model.PropertyField, error)
+	GetLiveUserFieldsByNames(groupID string, names []string) ([]*model.PropertyField, error)
 	Update(groupID string, fields []*model.PropertyField, expectedUpdateAts map[string]int64) ([]*model.PropertyField, error)
 	Delete(groupID string, id string) error
 	CheckPropertyNameConflict(field *model.PropertyField, excludeID string) (model.PropertyFieldTargetLevel, error)

@@ -70,6 +70,7 @@ import type {CustomEmoji} from '@mattermost/types/emojis';
 import type {ServerError} from '@mattermost/types/errors';
 import type {FileInfo, FileUploadResponse, FileSearchResults} from '@mattermost/types/files';
 import type {SystemSetting} from '@mattermost/types/general';
+import type {GlobalAttributeListing, GlobalAttributeListingSearch} from '@mattermost/types/global_attributes';
 import type {
     Group,
     GroupPatch,
@@ -2595,6 +2596,13 @@ export default class Client4 {
         return this.doFetch<PropertyFieldOptionPage>(
             `${this.getPropertyFieldOptionsRoute(groupName, objectType, fieldId)}?${params.toString()}`,
             {method: 'GET'},
+        );
+    };
+
+    searchGlobalAttributes = async (search: GlobalAttributeListingSearch) => {
+        return this.doFetch<GlobalAttributeListing>(
+            `${this.getBaseRoute()}/properties/groups/access_control/attributes/search`,
+            {method: 'POST', body: JSON.stringify(search)},
         );
     };
 
@@ -5310,13 +5318,17 @@ export default class Client4 {
         );
     };
 
-    checkAccessControlExpression = (expression: string, channelId?: string, teamId?: string) => {
-        const requestBody: {expression: string; channelId?: string; teamId?: string} = {expression};
+    // membership also rejects what the membership sync can't evaluate.
+    checkAccessControlExpression = (expression: string, channelId?: string, teamId?: string, membership?: boolean) => {
+        const requestBody: {expression: string; channelId?: string; teamId?: string; membership?: boolean} = {expression};
         if (channelId) {
             requestBody.channelId = channelId;
         }
         if (teamId) {
             requestBody.teamId = teamId;
+        }
+        if (membership) {
+            requestBody.membership = true;
         }
 
         return this.doFetch<CELExpressionError[]>(
