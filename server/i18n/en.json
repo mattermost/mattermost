@@ -1032,7 +1032,7 @@
   {
     "id": "api.command.disabled.app_error",
     "translation": "Commands have been disabled by the system admin.",
-    "description": "API error shown when a user runs a slash command while custom commands are disabled server-wide by the System Admin."
+    "description": "API error shown when custom slash commands are disabled server-wide by the System Admin and a user tries to run a slash command that is not a built-in or plugin command, or to create, view, edit, or delete a custom slash command."
   },
   {
     "id": "api.command.duplicate_trigger.app_error",
