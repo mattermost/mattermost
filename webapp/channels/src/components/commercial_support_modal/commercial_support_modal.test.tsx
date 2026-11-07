@@ -51,7 +51,7 @@ describe('components/CommercialSupportModal', () => {
         currentUser: TestHelper.getUserMock(),
         packetContents: [
             {id: 'basic.contents', label: 'Basic contents', selected: true, mandatory: true},
-            {id: 'basic.server.logs', label: 'Server Logs', selected: true, mandatory: false},
+            {id: 'basic.server.logs', label: 'Server logs', selected: true, mandatory: false},
         ],
     };
 
@@ -64,7 +64,7 @@ describe('components/CommercialSupportModal', () => {
         renderWithContext(<CommercialSupportModal {...baseProps}/>);
 
         const basicContents = screen.getByRole('checkbox', {name: 'Basic contents'});
-        const serverLogs = screen.getByRole('checkbox', {name: 'Server Logs'});
+        const serverLogs = screen.getByRole('checkbox', {name: 'Server logs'});
 
         expect(basicContents).toBeChecked();
         expect(basicContents).toBeDisabled();
@@ -76,13 +76,40 @@ describe('components/CommercialSupportModal', () => {
         renderWithContext(<CommercialSupportModal {...baseProps}/>);
 
         const user = userEvent.setup();
-        const serverLogs = screen.getByRole('checkbox', {name: 'Server Logs'});
+        const serverLogs = screen.getByRole('checkbox', {name: 'Server logs'});
 
         expect(serverLogs).toBeChecked();
         await user.click(serverLogs);
         expect(serverLogs).not.toBeChecked();
         await user.click(serverLogs);
         expect(serverLogs).toBeChecked();
+    });
+
+    test('should translate built-in option labels and pass plugin labels through', () => {
+        const props = {
+            ...baseProps,
+            packetContents: [
+                {id: 'basic.contents', label: 'untranslated basic', selected: true, mandatory: true},
+                {id: 'basic.server.logs', label: 'untranslated logs', selected: true, mandatory: false},
+                {id: 'com.mattermost.calls', label: 'Calls plugin', selected: false, mandatory: false},
+            ],
+        };
+        renderWithContext(
+            <CommercialSupportModal {...props}/>,
+            {},
+            {
+                intlMessages: {
+                    'commercial_support_modal.basic_contents.label': 'Grundinhalte',
+                    'commercial_support_modal.server_logs.label': 'Serverprotokolle',
+                },
+            },
+        );
+
+        expect(screen.getByRole('checkbox', {name: 'Grundinhalte'})).toBeInTheDocument();
+        expect(screen.getByRole('checkbox', {name: 'Serverprotokolle'})).toBeInTheDocument();
+        expect(screen.getByRole('checkbox', {name: 'Calls plugin'})).toBeInTheDocument();
+        expect(screen.queryByText('untranslated basic')).not.toBeInTheDocument();
+        expect(screen.queryByText('untranslated logs')).not.toBeInTheDocument();
     });
 
     test('should describe built-in options and leave plugin options without a description', () => {
@@ -98,7 +125,7 @@ describe('components/CommercialSupportModal', () => {
         expect(screen.getByRole('checkbox', {name: 'Basic contents'})).toHaveAccessibleDescription(
             '(required) Server version, sanitized configuration, usage counts, job status, permissions, plugin list, and performance profiles. Does not include message content.',
         );
-        expect(screen.getByRole('checkbox', {name: 'Server Logs'})).toHaveAccessibleDescription(
+        expect(screen.getByRole('checkbox', {name: 'Server logs'})).toHaveAccessibleDescription(
             'Recent server log files. May contain user IDs, IP addresses, and error details.',
         );
         expect(screen.getByRole('checkbox', {name: 'Calls plugin'})).not.toHaveAttribute('aria-describedby');

@@ -188,7 +188,7 @@ exports[`components/CommercialSupportModal should match snapshot 1`] = `
                 <span
                   class="_checkbox__label_18swc_120"
                 >
-                  Server Logs
+                  Server logs
                 </span>
               </label>
             </div>

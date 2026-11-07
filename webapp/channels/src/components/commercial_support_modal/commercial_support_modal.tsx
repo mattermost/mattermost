@@ -27,6 +27,14 @@ const SERVER_LOGS_ID = 'basic.server.logs';
 const BASIC_CONTENTS_INCLUDED_LIST_ID = 'commercialSupportModalBasicContentsIncluded';
 
 const messages = defineMessages({
+    basicContentsLabel: {
+        id: 'commercial_support_modal.basic_contents.label',
+        defaultMessage: 'Basic contents',
+    },
+    serverLogsLabel: {
+        id: 'commercial_support_modal.server_logs.label',
+        defaultMessage: 'Server logs',
+    },
     required: {
         id: 'commercial_support_modal.required',
         defaultMessage: '(required)',
@@ -149,6 +157,18 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
 
     toggleBasicContentsIncluded = () => {
         this.setState({showBasicContentsIncluded: !this.state.showBasicContentsIncluded});
+    };
+
+    renderOptionLabel = (item: SupportPacketContent) => {
+        if (item.id === BASIC_CONTENTS_ID) {
+            return <FormattedMessage {...messages.basicContentsLabel}/>;
+        }
+
+        if (item.id === SERVER_LOGS_ID) {
+            return <FormattedMessage {...messages.serverLogsLabel}/>;
+        }
+
+        return item.label;
     };
 
     renderOptionDescription = (id: string) => {
@@ -332,7 +352,7 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
                                                 onChange={() => this.updateCheckStatus(index)}
                                                 aria-describedby={describedBy || undefined}
                                             >
-                                                {item.label}
+                                                {this.renderOptionLabel(item)}
                                             </Checkbox>
                                             {item.mandatory && (
                                                 <span

@@ -22175,6 +22175,10 @@
     "defaultMessage": "Usage counts: users, posts, channels, teams",
     "description": "Item in the expandable 'What's included' list for Basic contents in the Commercial Support modal: counts of users, posts, channels, and teams; text after the colon lists examples."
   },
+  "commercial_support_modal.basic_contents.label": {
+    "defaultMessage": "Basic contents",
+    "description": "Label of the mandatory checkbox in the Commercial Support modal for the core contents that every Support Packet includes; 'Support Packet' is a product term."
+  },
   "commercial_support_modal.basic_contents.whats_included": {
     "defaultMessage": "What's included",
     "description": "Toggle under the 'Basic contents' option in the Commercial Support modal that expands or collapses a detailed list of what Basic contents includes."
@@ -22194,6 +22198,10 @@
   "commercial_support_modal.server_logs.description": {
     "defaultMessage": "Recent server log files. May contain user IDs, IP addresses, and error details.",
     "description": "Helper text under the optional 'Server logs' checkbox in the Commercial Support modal, warning what personal or diagnostic data the server log files may contain."
+  },
+  "commercial_support_modal.server_logs.label": {
+    "defaultMessage": "Server logs",
+    "description": "Label of the optional checkbox in the Commercial Support modal that adds the server log files to the Support Packet download."
   },
   "commercial_support_modal.warning.banner": {
     "defaultMessage": "Before downloading the Support Packet, set <strong>Output Logs to File</strong> to <strong>true</strong> and set <strong>File Log Level</strong> to <strong>DEBUG</strong> <debugLink>here</debugLink>.",
