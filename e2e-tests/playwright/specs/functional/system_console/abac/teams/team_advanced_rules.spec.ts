@@ -68,6 +68,7 @@ const ternaryRule = () => `user.attributes.${LOC} == "US" ? true : false`;
 const ADVANCED_RULE_ERROR_ID = 'app.pap.save_policy.advanced_rule_requires_system_admin';
 const UNSUPPORTED_FUNCTION_ERROR_ID = 'app.pap.save_policy.membership_rule_unsupported_function';
 const NOT_SQLIZABLE_MESSAGE = 'membership sync cannot evaluate';
+const FORCED_SAVE_FAILURE = 'Forced team policy save failure';
 
 async function expectServerRejection(
     call: () => Promise<unknown>,
@@ -966,11 +967,43 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
         expect((await adminClient.getTeam(team.id)).policy_enforced).toBeFalsy();
     });
 
-    // Parent links are written before the team policy, and nothing rolls them back when the
-    // policy save fails. Enable once the save order or a rollback is fixed. The editor now
-    // catches a ternary before save, so this needs a rule only the save rejects, such as
-    // one that excludes the admin.
-    test.fixme('MM-71104-T20b a rejected save does not leave a parent link behind', async ({pw}) => {
+    // The pre-save check catches every rule a System Admin's save would reject, so these
+    // force the team policy write to fail instead. The assign/unassign endpoints stay open.
+    async function failTeamPolicySaves(page: Page) {
+        await page.route(
+            (url) => url.pathname === '/api/v4/access_control_policies',
+            (route) => {
+                if (route.request().method() !== 'PUT') {
+                    return route.continue();
+                }
+                return route.fulfill({
+                    status: 500,
+                    contentType: 'application/json',
+                    body: JSON.stringify({id: 'forced', message: FORCED_SAVE_FAILURE, status_code: 500}),
+                });
+            },
+        );
+    }
+
+    async function linkParentPolicy(page: Page, parentName: string) {
+        await page.locator('[data-testid="link-to-a-policy"]').click();
+        const modal = page.locator('[role="dialog"]').filter({hasText: 'Select a Membership Policy'});
+        await modal.waitFor({state: 'visible', timeout: 5000});
+        await (await findPolicyRow(modal, parentName)).click();
+    }
+
+    async function saveAndApply(page: Page) {
+        await page.getByTestId('saveSetting').click();
+        const confirmModal = page.locator('.ConfirmModal').filter({hasText: 'Apply membership policy'});
+        await expect(confirmModal).toBeVisible({timeout: 15_000});
+        await confirmModal.getByRole('button', {name: 'Apply'}).click();
+    }
+
+    /**
+     * @objective A rejected team policy save leaves no parent link behind, and retrying
+     *            the same edits applies the link and the rule together.
+     */
+    test('MM-71104-T20b a rejected save does not leave a parent link behind', async ({pw}) => {
         const {adminClient, adminUser, team} = await setupFixture(pw);
 
         const parentName = `Eng Parent ${pw.random.id()}`;
@@ -980,26 +1013,89 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
         const {page} = await pw.testBrowser.login(adminUser);
         await openTeamRules(page, team);
 
-        await page.locator('[data-testid="link-to-a-policy"]').click();
-        const modal = page.locator('[role="dialog"]').filter({hasText: 'Select a Membership Policy'});
-        await modal.waitFor({state: 'visible', timeout: 5000});
-        await (await findPolicyRow(modal, parentName)).click();
-
+        // # Link a parent and add a rule, with the team policy save failing
+        await linkParentPolicy(page, parentName);
         await switchTeamRulesMode(page);
-        await typeTeamRulesCel(page, ternaryRule());
+        await typeTeamRulesCel(page, orRule());
         await waitForTeamRulesValidation(page, 'validated');
-        await page.getByTestId('saveSetting').click();
+        await failTeamPolicySaves(page);
+        await saveAndApply(page);
 
-        const confirmModal = page.locator('.ConfirmModal').filter({hasText: 'Apply membership policy'});
-        const errorMessage = page.getByTestId('saveChangesPanel-errorMessage');
-        await expect(confirmModal.or(errorMessage)).toBeVisible({timeout: 15_000});
-        if (await confirmModal.isVisible()) {
-            await confirmModal.getByRole('button', {name: 'Apply'}).click();
-        }
-        await expect(errorMessage).toContainText(NOT_SQLIZABLE_MESSAGE, {timeout: 15_000});
+        // * The error is shown and the edits stay in the form
+        await expect(page.getByTestId('saveChangesPanel-errorMessage')).toContainText(FORCED_SAVE_FAILURE, {
+            timeout: 15_000,
+        });
+        await expect(
+            page.locator('#team_access_control_with_policy').locator('.policy-name').filter({hasText: parentName}),
+        ).toBeVisible();
 
+        // * Nothing was written: no link, no rule, no enforcement
         const response: any = await getTeamAccessControlPolicy(adminClient, team.id).catch(() => null);
         expect(response?.policy?.imports ?? []).not.toContain(parent.id);
+        expect(await getMembershipExpression(adminClient, team.id)).toBeUndefined();
+        expect((await adminClient.getTeam(team.id)).policy_enforced).toBeFalsy();
+
+        // # Retry once the save goes through
+        await page.unrouteAll();
+        await saveAndApply(page);
+
+        // * The link and the rule are saved together
+        await expect.poll(() => getMembershipExpression(adminClient, team.id), {timeout: 15_000}).toBe(orRule());
+        const saved: any = await getTeamAccessControlPolicy(adminClient, team.id);
+        expect(saved.policy.imports).toEqual([parent.id]);
+    });
+
+    /**
+     * @objective A rejected save that unlinks one parent and links another leaves the
+     *            team linked exactly as before, so its membership rules never loosen.
+     */
+    test('MM-71104-T20c a rejected save does not drop a removed parent link', async ({pw}) => {
+        const {adminClient, adminUser, team} = await setupFixture(pw);
+
+        await createTeamMembershipPolicy(adminClient, team.id, orRule(), false);
+        const engName = `Eng Parent ${pw.random.id()}`;
+        const engParent = await createTeamMembershipParentPolicy(adminClient, engName, engineeringRule());
+        createdPolicyIds.push(engParent.id);
+        await assignTeamsToPolicy(adminClient, engParent.id, [team.id]);
+        const salesName = `Sales Parent ${pw.random.id()}`;
+        const salesParent = await createTeamMembershipParentPolicy(adminClient, salesName, simpleRule());
+        createdPolicyIds.push(salesParent.id);
+
+        const {page} = await pw.testBrowser.login(adminUser);
+        await openTeamRules(page, team);
+        const linkedPolicies = page.locator('#team_access_control_with_policy').locator('.policy-name');
+        await expect(linkedPolicies.filter({hasText: engName})).toBeVisible({timeout: 15_000});
+
+        // # Swap the Engineering parent for the Sales parent, with the team policy save failing
+        await page.locator('#team_access_control_with_policy').getByRole('button', {name: 'Remove policy'}).click();
+        await page.locator('#confirmModalButton').click();
+        await linkParentPolicy(page, salesName);
+        await failTeamPolicySaves(page);
+        await saveAndApply(page);
+
+        // * The error is shown and the swap stays in the form
+        await expect(page.getByTestId('saveChangesPanel-errorMessage')).toContainText(FORCED_SAVE_FAILURE, {
+            timeout: 15_000,
+        });
+        await expect(linkedPolicies.filter({hasText: salesName})).toBeVisible();
+        await expect(linkedPolicies.filter({hasText: engName})).toHaveCount(0);
+
+        // * The team is still linked to Engineering only, with its rule intact
+        const response: any = await getTeamAccessControlPolicy(adminClient, team.id);
+        expect(response.policy.imports).toEqual([engParent.id]);
+        expect(await getMembershipExpression(adminClient, team.id)).toBe(orRule());
+
+        // # Retry once the save goes through
+        await page.unrouteAll();
+        await saveAndApply(page);
+
+        // * The swap lands in one save, keeping the rule
+        await expect
+            .poll(async () => ((await getTeamAccessControlPolicy(adminClient, team.id)) as any).policy.imports, {
+                timeout: 15_000,
+            })
+            .toEqual([salesParent.id]);
+        expect(await getMembershipExpression(adminClient, team.id)).toBe(orRule());
     });
 
     /**
