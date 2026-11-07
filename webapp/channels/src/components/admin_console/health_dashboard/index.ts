@@ -6,6 +6,7 @@ import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
 import {getHealthFindings, muteHealthFinding, unmuteHealthFinding} from 'mattermost-redux/actions/health';
+import {createJob, getJob, getJobsByType} from 'mattermost-redux/actions/jobs';
 import {getFindings, getLastEvaluatedAt, getMutedFindings} from 'mattermost-redux/selectors/entities/health';
 
 import type {GlobalState} from 'types/store';
@@ -17,6 +18,7 @@ function mapStateToProps(state: GlobalState) {
         findings: getFindings(state),
         mutedFindings: getMutedFindings(state),
         lastEvaluatedAt: getLastEvaluatedAt(state),
+        jobs: state.entities.jobs.jobs,
     };
 }
 
@@ -26,6 +28,9 @@ function mapDispatchToProps(dispatch: Dispatch) {
             getHealthFindings,
             muteHealthFinding,
             unmuteHealthFinding,
+            createJob,
+            getJob,
+            getJobsByType,
         }, dispatch),
     };
 }

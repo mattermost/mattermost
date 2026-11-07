@@ -113,6 +113,46 @@ func (a *App) runHealthCheck(rctx request.CTX, svc *HealthCheckService) error {
 	return nil
 }
 
+// StartHealthCheckRun creates a health_check job for an app server's health-check workers to
+// pick up, unless a run is already pending or in progress: then it returns that run instead, so
+// runs never overlap. A run left in progress by a node that died is closed as failed and does not
+// count (see health_check.RunningJob). App.CreateJob routes health_check jobs here.
+//
+// It refuses with 501 unless the health dashboard is enabled and licensed: the health-check
+// workers don't run otherwise, so the job would never be picked up.
+func (a *App) StartHealthCheckRun(rctx request.CTX) (*model.Job, *model.AppError) {
+	if !a.Config().FeatureFlags.HealthDashboard {
+		return nil, model.NewAppError("StartHealthCheckRun", "api.health_finding.feature_disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+	if !model.MinimumEnterpriseLicense(a.Channels().License()) {
+		return nil, model.NewAppError("StartHealthCheckRun", "api.health_finding.license.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	running, appErr := health_check.RunningJob(rctx, a.Srv().Jobs)
+	if appErr != nil || running != nil {
+		return running, appErr
+	}
+
+	// CreateJobOnce saves atomically and creates nothing if a run is already pending, or another
+	// request or the scheduler has just created one; that run is returned instead. If that run
+	// finishes before it can be read, a second CreateJobOnce starts a run or finds the next one.
+	for range 2 {
+		job, appErr := a.Srv().Jobs.CreateJobOnce(rctx, model.JobTypeHealthCheck, nil)
+		if appErr != nil || job != nil {
+			return job, appErr
+		}
+
+		existing, err := a.Srv().Jobs.Store.Job().GetNewestJobByStatusesAndType([]string{model.JobStatusPending, model.JobStatusInProgress}, model.JobTypeHealthCheck)
+		if err == nil {
+			return existing, nil
+		}
+		if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
+			return nil, model.NewAppError("StartHealthCheckRun", "app.health_check.start_run.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+	return nil, model.NewAppError("StartHealthCheckRun", "app.health_check.start_run.conflict.app_error", nil, "", http.StatusConflict)
+}
+
 func (a *App) MuteHealthFinding(rctx request.CTX, fingerprint string, userID string) *model.AppError {
 	if err := a.Srv().Store().HealthFinding().Mute(fingerprint, userID, model.GetMillis()); err != nil {
 		if errors.Is(err, healthcheck.ErrFindingNotFound) {

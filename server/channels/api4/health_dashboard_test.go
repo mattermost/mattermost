@@ -80,10 +80,22 @@ func checkHealthDashboardNotImplemented(t *testing.T, th *TestHelper) {
 	require.Error(t, err)
 	CheckNotImplementedStatus(t, resp)
 
+	_, resp, err = th.SystemAdminClient.CreateJob(context.Background(), &model.Job{Type: model.JobTypeHealthCheck})
+	require.Error(t, err)
+	CheckNotImplementedStatus(t, resp)
+
 	stored, err := th.App.Srv().Store().HealthFinding().GetByFingerprints([]string{finding.Fingerprint})
 	require.NoError(t, err)
 	require.Len(t, stored, 1)
 	assert.False(t, stored[0].IsMuted())
+	assert.Empty(t, healthCheckJobs(t, th))
+}
+
+func healthCheckJobs(t *testing.T, th *TestHelper) []*model.Job {
+	t.Helper()
+	jobs, err := th.App.Srv().Store().Job().GetAllByType(th.Context, model.JobTypeHealthCheck)
+	require.NoError(t, err)
+	return jobs
 }
 
 func TestHealthDashboardAccess(t *testing.T) {
@@ -111,6 +123,11 @@ func TestHealthDashboardAccess(t *testing.T) {
 		resp, err = th.Client.UnmuteHealthFinding(context.Background(), finding.Fingerprint)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
+
+		_, resp, err = th.Client.CreateJob(context.Background(), &model.Job{Type: model.JobTypeHealthCheck})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		assert.Empty(t, healthCheckJobs(t, th))
 	})
 
 	t.Run("non-admin with the flag off", func(t *testing.T) {
@@ -159,6 +176,16 @@ func TestHealthDashboardLocal(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		assert.Equal(t, []string{finding.Fingerprint}, findingFingerprints(list.Findings))
+	})
+
+	t.Run("a run can be started and followed", func(t *testing.T) {
+		job, _, err := th.LocalClient.CreateJob(context.Background(), &model.Job{Type: model.JobTypeHealthCheck})
+		require.NoError(t, err)
+		assert.Equal(t, model.JobTypeHealthCheck, job.Type)
+
+		got, _, err := th.LocalClient.GetJob(context.Background(), job.Id)
+		require.NoError(t, err)
+		assert.Equal(t, job.Id, got.Id)
 	})
 
 	t.Run("mute is not routed", func(t *testing.T) {
@@ -527,4 +554,53 @@ func TestHealthCheckPushURLRoundTrip(t *testing.T) {
 	assert.Equal(t, string(healthcheck.StateFiring), unreachableAgain.State)
 	assert.Equal(t, unreachable.Fingerprint, unreachableAgain.Fingerprint)
 	assert.Equal(t, unreachable.FirstSeenAt, unreachableAgain.FirstSeenAt)
+}
+
+// A run is started and followed through the generic jobs API: POST /api/v4/jobs routes health_check
+// to App.StartHealthCheckRun, which returns the active run instead of starting a second one.
+func TestHealthCheckRun(t *testing.T) {
+	th := setupHealthDashboard(t, true)
+	client := th.SystemAdminClient
+	start := func() *model.Job {
+		t.Helper()
+		job, resp, err := client.CreateJob(context.Background(), &model.Job{Type: model.JobTypeHealthCheck})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		return job
+	}
+
+	first := start()
+	assert.Equal(t, model.JobStatusPending, first.Status)
+
+	t.Run("starting while pending returns the pending run", func(t *testing.T) {
+		assert.Equal(t, first.Id, start().Id)
+		assert.Len(t, healthCheckJobs(t, th), 1)
+	})
+
+	t.Run("starting while in progress returns the running run", func(t *testing.T) {
+		first.Status = model.JobStatusInProgress
+		first.LastActivityAt = model.GetMillis()
+		_, err := th.App.Srv().Store().Job().UpdateOptimistically(first, model.JobStatusPending)
+		require.NoError(t, err)
+
+		assert.Equal(t, first.Id, start().Id)
+		assert.Len(t, healthCheckJobs(t, th), 1)
+	})
+
+	t.Run("the run is followed through GET /api/v4/jobs/{id}", func(t *testing.T) {
+		first.Status = model.JobStatusError
+		first.Data = map[string]string{"error": "collect failed"}
+		_, err := th.App.Srv().Store().Job().UpdateOptimistically(first, model.JobStatusInProgress)
+		require.NoError(t, err)
+
+		got, _, err := client.GetJob(context.Background(), first.Id)
+		require.NoError(t, err)
+		assert.Equal(t, model.JobStatusError, got.Status)
+		assert.Equal(t, "collect failed", got.Data["error"])
+	})
+
+	t.Run("starting after a finished run creates a new one", func(t *testing.T) {
+		assert.NotEqual(t, first.Id, start().Id)
+		assert.Len(t, healthCheckJobs(t, th), 2)
+	})
 }

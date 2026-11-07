@@ -19,9 +19,26 @@
         display: none;
     }
 
+    &__summary {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+        gap: 12px;
+
+        &--end {
+            justify-content: flex-end;
+        }
+    }
+
     &__lastEvaluated {
-        margin: 0 0 16px;
+        margin: 0;
         color: rgba(var(--sys-center-channel-color-rgb), 0.72);
+    }
+
+    &__runError {
+        margin-bottom: 16px;
     }
 
     &__toolbar {

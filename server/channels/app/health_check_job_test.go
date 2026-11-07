@@ -4,6 +4,7 @@
 package app
 
 import (
+	"net/http"
 	"testing"
 	"time"
 
@@ -12,6 +13,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/health_check"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 func TestHealthCheckWorkersStartOnAppServersOnly(t *testing.T) {
@@ -31,6 +33,185 @@ func TestHealthCheckWorkersStartOnAppServersOnly(t *testing.T) {
 
 		assert.NotNil(t, th.Server.Channels().healthCheckWorkers)
 	})
+}
+
+func TestStartHealthCheckRun(t *testing.T) {
+	setup := func(t *testing.T) *TestHelper {
+		th := SetupConfig(t, func(cfg *model.Config) { cfg.FeatureFlags.HealthDashboard = true })
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		t.Cleanup(func() { th.App.Srv().SetLicense(nil) })
+		return th
+	}
+	saveJob := func(t *testing.T, th *TestHelper, job *model.Job) *model.Job {
+		t.Helper()
+		job.Id = model.NewId()
+		job.Type = model.JobTypeHealthCheck
+		if job.CreateAt == 0 {
+			job.CreateAt = model.GetMillis()
+		}
+		_, err := th.App.Srv().Store().Job().Save(job)
+		require.NoError(t, err)
+		return job
+	}
+	countJobs := func(t *testing.T, th *TestHelper) int {
+		t.Helper()
+		jobs, err := th.App.Srv().Store().Job().GetAllByType(th.Context, model.JobTypeHealthCheck)
+		require.NoError(t, err)
+		return len(jobs)
+	}
+
+	t.Run("creates a pending job when none is active", func(t *testing.T) {
+		th := setup(t)
+		saveJob(t, th, &model.Job{Status: model.JobStatusSuccess, CreateAt: model.GetMillis() - 1000})
+
+		job, appErr := th.App.StartHealthCheckRun(th.Context)
+		require.Nil(t, appErr)
+		require.NotNil(t, job)
+		assert.Equal(t, model.JobTypeHealthCheck, job.Type)
+		assert.Equal(t, model.JobStatusPending, job.Status)
+		assert.Equal(t, 2, countJobs(t, th))
+	})
+
+	t.Run("returns the pending job", func(t *testing.T) {
+		th := setup(t)
+		pending := saveJob(t, th, &model.Job{Status: model.JobStatusPending})
+
+		job, appErr := th.App.StartHealthCheckRun(th.Context)
+		require.Nil(t, appErr)
+		assert.Equal(t, pending.Id, job.Id)
+		assert.Equal(t, 1, countJobs(t, th))
+	})
+
+	t.Run("returns the job in progress", func(t *testing.T) {
+		th := setup(t)
+		running := saveJob(t, th, &model.Job{Status: model.JobStatusInProgress, LastActivityAt: model.GetMillis()})
+
+		job, appErr := th.App.StartHealthCheckRun(th.Context)
+		require.Nil(t, appErr)
+		assert.Equal(t, running.Id, job.Id)
+		assert.Equal(t, 1, countJobs(t, th))
+	})
+
+	t.Run("a stale job in progress is closed as failed and does not block a new run", func(t *testing.T) {
+		th := setup(t)
+		stale := time.Now().Add(-health_check.StaleInProgressAfter - time.Minute).UnixMilli()
+		dead := saveJob(t, th, &model.Job{Status: model.JobStatusInProgress, CreateAt: stale, LastActivityAt: stale})
+
+		job, appErr := th.App.StartHealthCheckRun(th.Context)
+		require.Nil(t, appErr)
+		assert.NotEqual(t, dead.Id, job.Id)
+		assert.Equal(t, model.JobStatusPending, job.Status)
+		assert.Equal(t, 2, countJobs(t, th))
+
+		closed, err := th.App.Srv().Store().Job().Get(th.Context, dead.Id)
+		require.NoError(t, err)
+		assert.Equal(t, model.JobStatusError, closed.Status)
+	})
+
+	t.Run("returns a pending job queued behind a stale one", func(t *testing.T) {
+		th := setup(t)
+		staleAt := time.Now().Add(-health_check.StaleInProgressAfter - time.Minute).UnixMilli()
+		pending := saveJob(t, th, &model.Job{Status: model.JobStatusPending, CreateAt: staleAt - 1000})
+		saveJob(t, th, &model.Job{Status: model.JobStatusInProgress, CreateAt: staleAt, LastActivityAt: staleAt})
+
+		job, appErr := th.App.StartHealthCheckRun(th.Context)
+		require.Nil(t, appErr)
+		assert.Equal(t, pending.Id, job.Id)
+		assert.Equal(t, 2, countJobs(t, th))
+	})
+
+	t.Run("refused with the feature flag off", func(t *testing.T) {
+		th := setup(t)
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.HealthDashboard = false })
+
+		_, appErr := th.App.StartHealthCheckRun(th.Context)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusNotImplemented, appErr.StatusCode)
+		assert.Equal(t, 0, countJobs(t, th))
+	})
+
+	t.Run("refused without an Enterprise license", func(t *testing.T) {
+		th := setup(t)
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+
+		_, appErr := th.App.StartHealthCheckRun(th.Context)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusNotImplemented, appErr.StatusCode)
+		assert.Equal(t, 0, countJobs(t, th))
+	})
+
+	// missLookup makes the job server's lookup of the active run miss the given number of times,
+	// as if the run had just finished, calling beforeMiss first each time.
+	missLookup := func(t *testing.T, th *TestHelper, misses int, beforeMiss func()) {
+		t.Helper()
+		jobServer := th.App.Srv().Jobs
+		orig := jobServer.Store
+		jobServer.Store = &missingJobStore{Store: orig, misses: misses, beforeMiss: beforeMiss}
+		t.Cleanup(func() { jobServer.Store = orig })
+	}
+
+	t.Run("returns the pending run when a lookup misses it once", func(t *testing.T) {
+		th := setup(t)
+		pending := saveJob(t, th, &model.Job{Status: model.JobStatusPending})
+		missLookup(t, th, 1, nil)
+
+		job, appErr := th.App.StartHealthCheckRun(th.Context)
+		require.Nil(t, appErr)
+		assert.Equal(t, pending.Id, job.Id)
+		assert.Equal(t, 1, countJobs(t, th))
+	})
+
+	t.Run("starts a run when the blocking run finished before it could be read", func(t *testing.T) {
+		th := setup(t)
+		pending := saveJob(t, th, &model.Job{Status: model.JobStatusPending})
+		missLookup(t, th, 1, func() {
+			_, err := th.App.Srv().Store().Job().UpdateStatus(pending.Id, model.JobStatusSuccess)
+			require.NoError(t, err)
+		})
+
+		job, appErr := th.App.StartHealthCheckRun(th.Context)
+		require.Nil(t, appErr)
+		assert.NotEqual(t, pending.Id, job.Id)
+		assert.Equal(t, model.JobStatusPending, job.Status)
+		assert.Equal(t, 2, countJobs(t, th))
+	})
+
+	t.Run("answers 409 when the lookup keeps missing", func(t *testing.T) {
+		th := setup(t)
+		saveJob(t, th, &model.Job{Status: model.JobStatusPending})
+		missLookup(t, th, 2, nil)
+
+		_, appErr := th.App.StartHealthCheckRun(th.Context)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusConflict, appErr.StatusCode)
+		assert.Equal(t, 1, countJobs(t, th))
+	})
+}
+
+type missingJobStore struct {
+	store.Store
+	misses     int
+	beforeMiss func()
+}
+
+func (s *missingJobStore) Job() store.JobStore {
+	return &missingJobs{JobStore: s.Store.Job(), parent: s}
+}
+
+type missingJobs struct {
+	store.JobStore
+	parent *missingJobStore
+}
+
+func (j *missingJobs) GetNewestJobByStatusesAndType(statuses []string, jobType string) (*model.Job, error) {
+	if j.parent.misses > 0 {
+		j.parent.misses--
+		if j.parent.beforeMiss != nil {
+			j.parent.beforeMiss()
+		}
+		return nil, store.NewErrNotFound("Job", jobType)
+	}
+	return j.JobStore.GetNewestJobByStatusesAndType(statuses, jobType)
 }
 
 // Not parallel: it uses the process-wide latest-version cache that BuildHealthSnapshot reads.

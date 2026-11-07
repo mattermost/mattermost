@@ -433,8 +433,10 @@ func (jss SqlJobStore) GetNewestJobByStatusesAndType(status []string, jobType st
 		return nil, errors.Wrap(err, "job_tosql")
 	}
 
+	// Read from master: callers decide from the answer whether to schedule or start a job, or when
+	// one last succeeded, and a lagging replica would show them a job's previous status.
 	var job model.Job
-	if err = jss.GetReplica().Get(&job, query, args...); err != nil {
+	if err = jss.GetMaster().Get(&job, query, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Job", fmt.Sprintf("<status, type>=<%s, %s>", strings.Join(status, ","), jobType))
 		}

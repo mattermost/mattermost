@@ -8846,6 +8846,16 @@
     "description": "API error returned when a group operation conflicts with an existing account; {{.Username}} is the already-taken username."
   },
   {
+    "id": "app.health_check.start_run.app_error",
+    "translation": "Unable to start a health check run.",
+    "description": "Server error when a system admin asked to run the health check now and the server could neither create a run nor find the one already running."
+  },
+  {
+    "id": "app.health_check.start_run.conflict.app_error",
+    "translation": "A health check run is already starting. Try again in a moment.",
+    "description": "Error when a system admin asked to run the health check now while other runs kept starting and finishing, so the server could neither start a run nor return the active one."
+  },
+  {
     "id": "app.health_finding.get.app_error",
     "translation": "Unable to get health finding.",
     "description": "Server error when a single health dashboard finding could not be loaded from the database."

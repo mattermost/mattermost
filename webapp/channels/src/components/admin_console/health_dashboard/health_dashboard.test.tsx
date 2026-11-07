@@ -3,12 +3,18 @@
 
 import React from 'react';
 
+import type {WebSocketMessages} from '@mattermost/client';
 import type {HealthFinding, HealthFindingList} from '@mattermost/types/health';
+import type {Job} from '@mattermost/types/jobs';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {renderWithContext, screen, userEvent, within} from 'tests/react_testing_utils';
+import {handleJobUpdated} from 'actions/websocket_actions';
+
+import {act, renderWithContext, screen, userEvent, within} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
+
+import {HEALTH_CHECK_BACKSTOP_INTERVAL} from './health_dashboard';
 
 import HealthDashboard from './index';
 
@@ -68,12 +74,28 @@ async function renderDashboard(list: HealthFindingList, initialState = {}) {
     return screen.findByText(/^(Last evaluated|Not evaluated yet)/);
 }
 
+function makeRun(status: Job['status'], overrides: Partial<Job> = {}): Job {
+    return {
+        id: 'run1',
+        type: 'health_check',
+        priority: 0,
+        create_at: NOW,
+        start_at: 0,
+        last_activity_at: NOW,
+        status,
+        progress: 0,
+        data: {},
+        ...overrides,
+    };
+}
+
 describe('components/admin_console/health_dashboard', () => {
     const originalFetch = global.fetch;
 
     beforeEach(() => {
         global.fetch = jest.fn();
         jest.spyOn(Date, 'now').mockReturnValue(NOW);
+        jest.spyOn(Client4, 'getJobsByType').mockResolvedValue([]);
     });
 
     afterEach(() => {
@@ -81,14 +103,18 @@ describe('components/admin_console/health_dashboard', () => {
         jest.restoreAllMocks();
     });
 
-    test('makes exactly one findings request on mount, including muted findings, and no other request', async () => {
+    test('makes exactly one findings request, including muted findings, and one request for the latest run on mount, and no other request', async () => {
         const getHealthFindings = jest.spyOn(Client4, 'getHealthFindings').mockResolvedValue(evaluated([makeFinding({fingerprint: 'a'})]));
+        const createJob = jest.spyOn(Client4, 'createJob');
 
         renderWithContext(<HealthDashboard/>);
 
         await screen.findByText('Finding title');
         expect(getHealthFindings).toHaveBeenCalledTimes(1);
         expect(getHealthFindings).toHaveBeenCalledWith({muted: 'included'});
+        expect(Client4.getJobsByType).toHaveBeenCalledTimes(1);
+        expect(Client4.getJobsByType).toHaveBeenCalledWith('health_check', 0, 1, undefined, undefined);
+        expect(createJob).not.toHaveBeenCalled();
         expect(global.fetch).not.toHaveBeenCalled();
     });
 
@@ -499,6 +525,243 @@ describe('components/admin_console/health_dashboard', () => {
             expect(await screen.findByText('The finding could not be unmuted, so it is still muted. Try again.')).toBeVisible();
             expect(rowTitles()).toEqual(['Muted by a colleague']);
             expect(mutedToggle()).toHaveTextContent('Muted1');
+        });
+    });
+
+    describe('re-run checks', () => {
+        const fresh = evaluated([makeFinding({fingerprint: 'f1', title: 'Fresh finding'})]);
+        const stale = {evaluated_at: NOW - hour, findings: [makeFinding({fingerprint: 's1', title: 'Stale finding'})]};
+
+        beforeEach(() => {
+            // Date stays on the spy above; only the backstop timer is faked.
+            jest.useFakeTimers({doNotFake: ['Date']});
+        });
+
+        afterEach(() => {
+            jest.useRealTimers();
+        });
+
+        function setupUser() {
+            return userEvent.setup({advanceTimers: jest.advanceTimersByTime});
+        }
+
+        function runButton() {
+            return screen.getByRole('button', {name: /^(Re-run checks|Running checks…)$/});
+        }
+
+        async function renderRunDashboard(list: HealthFindingList) {
+            jest.spyOn(Client4, 'getHealthFindings').mockResolvedValue(list);
+            const result = renderWithContext(<HealthDashboard/>);
+            await screen.findByText(/^(Last evaluated|Not evaluated yet)/);
+            return result;
+        }
+
+        // Delivers a job_updated WebSocket event through the real handler.
+        async function jobUpdated(store: ReturnType<typeof renderWithContext>['store'], job: Job) {
+            const msg = {event: 'job_updated', data: {job: JSON.stringify(job)}} as unknown as WebSocketMessages.JobUpdated;
+            await act(async () => {
+                store.dispatch(handleJobUpdated(msg));
+                await jest.advanceTimersByTimeAsync(0);
+            });
+        }
+
+        async function backstop() {
+            await act(async () => {
+                await jest.advanceTimersByTimeAsync(HEALTH_CHECK_BACKSTOP_INTERVAL);
+            });
+        }
+
+        async function startRun(user: ReturnType<typeof setupUser>) {
+            jest.spyOn(Client4, 'createJob').mockResolvedValue(makeRun('pending'));
+            await user.click(runButton());
+
+            // Lets the created run reach the store and the page start following it.
+            await act(async () => {
+                await jest.advanceTimersByTimeAsync(0);
+            });
+        }
+
+        test('starts a run, shows it running with the button disabled, and refreshes the findings when its event says it succeeded', async () => {
+            const user = setupUser();
+            const {store} = await renderRunDashboard(stale);
+            const getHealthFindings = jest.spyOn(Client4, 'getHealthFindings').mockResolvedValue(fresh);
+            getHealthFindings.mockClear();
+            const createJob = jest.spyOn(Client4, 'createJob').mockResolvedValue(makeRun('pending'));
+            const getJob = jest.spyOn(Client4, 'getJob');
+
+            expect(runButton()).toHaveTextContent('Re-run checks');
+            expect(runButton()).toBeEnabled();
+
+            await user.click(runButton());
+
+            expect(createJob).toHaveBeenCalledTimes(1);
+            expect(createJob).toHaveBeenCalledWith({type: 'health_check'});
+            expect(runButton()).toHaveTextContent('Running checks…');
+            expect(runButton()).toBeDisabled();
+
+            await jobUpdated(store, makeRun('in_progress'));
+            expect(runButton()).toBeDisabled();
+            expect(getHealthFindings).not.toHaveBeenCalled();
+
+            await jobUpdated(store, makeRun('success'));
+            expect(await screen.findByText('Fresh finding')).toBeInTheDocument();
+            expect(screen.queryByText('Stale finding')).not.toBeInTheDocument();
+            expect(getHealthFindings).toHaveBeenCalledTimes(1);
+            expect(runButton()).toHaveTextContent('Re-run checks');
+            expect(runButton()).toBeEnabled();
+
+            // Events did all the work, and nothing re-reads the finished run.
+            await backstop();
+            expect(getJob).not.toHaveBeenCalled();
+        });
+
+        test('updates "Last evaluated" from the refreshed findings', async () => {
+            const user = setupUser();
+            const {store} = await renderRunDashboard({evaluated_at: 0, findings: []});
+            jest.spyOn(Client4, 'getHealthFindings').mockResolvedValue(fresh);
+
+            expect(screen.getByText('Not evaluated yet')).toBeInTheDocument();
+            await startRun(user);
+            await jobUpdated(store, makeRun('success'));
+
+            expect(await screen.findByText(/^Last evaluated/)).toBeInTheDocument();
+            expect(screen.queryByText('Not evaluated yet')).not.toBeInTheDocument();
+        });
+
+        test('shows the error of a run that failed and keeps the findings', async () => {
+            const user = setupUser();
+            const {store} = await renderRunDashboard(stale);
+            const getHealthFindings = jest.spyOn(Client4, 'getHealthFindings');
+            getHealthFindings.mockClear();
+
+            await startRun(user);
+            await jobUpdated(store, makeRun('error', {data: {error: 'Could not collect diagnostics from node-2.'}}));
+
+            expect(await screen.findByText('The health check failed: Could not collect diagnostics from node-2.')).toBeVisible();
+            expect(getHealthFindings).not.toHaveBeenCalled();
+            expect(screen.getByText('Stale finding')).toBeInTheDocument();
+            expect(runButton()).toBeEnabled();
+        });
+
+        test('shows a generic error for a failed run without a reason', async () => {
+            const user = setupUser();
+            const {store} = await renderRunDashboard(stale);
+
+            await startRun(user);
+            await jobUpdated(store, makeRun('error'));
+
+            expect(await screen.findByText('The health check did not finish.')).toBeVisible();
+        });
+
+        test('keeps the findings on screen when they cannot be reloaded after a successful run', async () => {
+            const user = setupUser();
+            const {store} = await renderRunDashboard(stale);
+            jest.spyOn(Client4, 'getHealthFindings').mockRejectedValue(new Error('boom'));
+
+            await startRun(user);
+            await jobUpdated(store, makeRun('success'));
+
+            expect(await screen.findByText('The health check results could not be loaded. Reload the page to see them.')).toBeVisible();
+            expect(screen.queryByText('Health findings could not be loaded')).not.toBeInTheDocument();
+            expect(screen.getByText('Stale finding')).toBeInTheDocument();
+            expect(runButton()).toBeEnabled();
+        });
+
+        test('shows an error when the run cannot be started', async () => {
+            const user = setupUser();
+            await renderRunDashboard(stale);
+            jest.spyOn(Client4, 'createJob').mockRejectedValue({status_code: 500, message: 'boom'});
+            const getJob = jest.spyOn(Client4, 'getJob');
+
+            await user.click(runButton());
+
+            expect(await screen.findByText('The health check could not be started. Try again.')).toBeVisible();
+            expect(runButton()).toBeEnabled();
+
+            await backstop();
+            expect(getJob).not.toHaveBeenCalled();
+        });
+
+        test('ignores events for other jobs', async () => {
+            const user = setupUser();
+            const {store} = await renderRunDashboard(stale);
+
+            await startRun(user);
+            await jobUpdated(store, makeRun('success', {id: 'other'}));
+
+            expect(runButton()).toBeDisabled();
+        });
+
+        test('re-reads the run when an event was missed, and keeps waiting when the read fails', async () => {
+            const user = setupUser();
+            await renderRunDashboard(stale);
+            jest.spyOn(Client4, 'getHealthFindings').mockResolvedValue(fresh);
+            const getJob = jest.spyOn(Client4, 'getJob').
+                mockRejectedValueOnce({status_code: 404, message: 'not found'}).
+                mockResolvedValueOnce(makeRun('success'));
+
+            await startRun(user);
+            await backstop();
+            expect(getJob).toHaveBeenCalledWith('run1');
+            expect(runButton()).toBeDisabled();
+            expect(screen.queryByText(/could not be loaded/)).not.toBeInTheDocument();
+
+            await backstop();
+            expect(await screen.findByText('Fresh finding')).toBeInTheDocument();
+            expect(runButton()).toBeEnabled();
+        });
+
+        test('stops following a run whose node stopped responding', async () => {
+            const user = setupUser();
+            await renderRunDashboard(stale);
+            jest.spyOn(Client4, 'getJob').mockResolvedValue(makeRun('in_progress', {last_activity_at: NOW - (2 * hour)}));
+
+            await startRun(user);
+            await backstop();
+
+            expect(await screen.findByText('The health check did not finish.')).toBeVisible();
+            expect(runButton()).toBeEnabled();
+        });
+
+        test('picks up a run already in progress when the page loads', async () => {
+            jest.spyOn(Client4, 'getJobsByType').mockResolvedValue([makeRun('in_progress')]);
+            const {store} = await renderRunDashboard(stale);
+            const getHealthFindings = jest.spyOn(Client4, 'getHealthFindings').mockResolvedValue(fresh);
+            getHealthFindings.mockClear();
+
+            expect(await screen.findByText('Running checks…')).toBeInTheDocument();
+            expect(runButton()).toBeDisabled();
+
+            await jobUpdated(store, makeRun('success'));
+            expect(await screen.findByText('Fresh finding')).toBeInTheDocument();
+            expect(getHealthFindings).toHaveBeenCalledTimes(1);
+            expect(runButton()).toBeEnabled();
+        });
+
+        test('does not follow a run that had already finished when the page loaded', async () => {
+            jest.spyOn(Client4, 'getJobsByType').mockResolvedValue([makeRun('error', {data: {error: 'old failure'}})]);
+            const getJob = jest.spyOn(Client4, 'getJob');
+            await renderRunDashboard(stale);
+
+            await backstop();
+            expect(runButton()).toBeEnabled();
+            expect(getJob).not.toHaveBeenCalled();
+            expect(screen.queryByText(/old failure/)).not.toBeInTheDocument();
+        });
+
+        test('stops re-reading the run when the page is left', async () => {
+            const user = setupUser();
+            const {unmount} = await renderRunDashboard(stale);
+            const getJob = jest.spyOn(Client4, 'getJob').mockResolvedValue(makeRun('in_progress'));
+
+            await startRun(user);
+            await backstop();
+            expect(getJob).toHaveBeenCalledTimes(1);
+
+            unmount();
+            await backstop();
+            await backstop();
+            expect(getJob).toHaveBeenCalledTimes(1);
         });
     });
 });

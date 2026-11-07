@@ -101,8 +101,10 @@ func (s *SqlHealthFindingStore) List(filter model.HealthFindingFilter) ([]*model
 		query = query.Where(sq.Eq{"mutedat": 0})
 	}
 
+	// Read from master: clients reload the findings as soon as a health_check run reports success,
+	// and a lagging replica would show them the previous run's results.
 	var rows []healthFindingRow
-	if err := s.GetReplica().SelectBuilder(&rows, query); err != nil {
+	if err := s.GetMaster().SelectBuilder(&rows, query); err != nil {
 		return nil, errors.Wrap(err, "failed to list health findings")
 	}
 

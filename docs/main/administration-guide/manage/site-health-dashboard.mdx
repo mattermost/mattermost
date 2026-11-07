@@ -69,8 +69,10 @@ Each finding row shows its severity, title, category area, and how long the cond
 
 Checks run automatically about once an hour. In a high availability cluster, one node runs the checks on behalf of the whole cluster.
 
-- After the feature is enabled, the first check runs within an hour. Until then, the dashboard has no findings to show.
-- After you fix the cause of a finding, it moves to **Recently resolved** after the next check run, which can take up to an hour.
+To run the checks now instead of waiting, select **Re-run checks** at the top of the page. The button shows **Running checks…** until the run finishes, usually within a minute or two, and then the findings and **Last evaluated** update. If a run is already in progress, whether you or the hourly schedule started it, the dashboard waits for that run instead of starting another. If the run fails, the dashboard shows the reason and keeps the previous findings.
+
+- After the feature is enabled, the first check runs within an hour. Until then, the dashboard has no findings to show. Select **Re-run checks** to run it straight away.
+- After you fix the cause of a finding, it moves to **Recently resolved** after the next check run. Select **Re-run checks** to confirm the fix without waiting up to an hour.
 - A finding becomes **Unknown** when the information needed to evaluate it isn't available, for example because a service the check depends on can't be reached, or because the check hasn't reported for longer than expected.
 
 ### Filter by tab
@@ -130,7 +132,9 @@ By default, only firing and unknown findings are shown. Use the following flags 
 | --- | --- |
 | `--include-resolved` | Include resolved findings. |
 | `--include-muted` | Include muted findings. |
-| `--packet <file>` | Evaluate a [Support Packet](/administration-guide/manage/admin/generating-support-packet) zip file on your own machine instead of querying a server. No server connection is needed, and findings intended for support engineers are also included. Can't be combined with `--include-muted`, because findings from a Support Packet are never muted. |
+| `--run` | Run the checks now, wait for the run to finish, and then list its findings. If a run is already in progress, wait for that run instead of starting another. |
+| `--timeout <duration>` | How long `--run` waits for the run to finish, for example `10m`. Defaults to 5 minutes. Requires `--run`. |
+| `--packet <file>` | Evaluate a [Support Packet](/administration-guide/manage/admin/generating-support-packet) zip file on your own machine instead of querying a server. No server connection is needed, and findings intended for support engineers are also included. Can't be combined with `--include-muted`, because findings from a Support Packet are never muted, or with `--run`. |
 
 Add `--json` for machine-readable output.
 

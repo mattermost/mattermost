@@ -8,6 +8,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"slices"
 	"strings"
 	"time"
@@ -27,6 +28,10 @@ import (
 // The server evaluates hourly, so results older than two intervals mean evaluation stopped.
 const healthEvaluationStaleAfter = 2 * time.Hour
 
+// healthRunPollInterval is how often --run checks on the run it started. A variable so tests
+// don't wait.
+var healthRunPollInterval = 2 * time.Second
+
 var HealthCmd = &cobra.Command{
 	Use:   "health",
 	Short: "Inspect workspace health findings",
@@ -38,8 +43,9 @@ var HealthCheckCmd = &cobra.Command{
 	Use:   "check",
 	Short: "Report current health findings",
 	Long: "Report the findings of the server's latest health evaluation. By default only firing findings and findings that could not be evaluated are shown.\n\n" +
+		"With --run, run the health check now, wait for it to finish, then report its findings. If a run is already pending or in progress, wait for that one instead of starting another.\n\n" +
 		"With --packet, evaluate a Support Packet on this machine instead. No server connection is needed, and findings meant for support engineers are included.",
-	Example: "  health check\n  health check --include-resolved --include-muted\n  health check --packet mm_support_packet.zip",
+	Example: "  health check\n  health check --include-resolved --include-muted\n  health check --run\n  health check --run --timeout 10m\n  health check --packet mm_support_packet.zip",
 	Args:    cobra.NoArgs,
 	RunE:    healthCheckRunE,
 }
@@ -48,6 +54,8 @@ func init() {
 	HealthCheckCmd.Flags().Bool("include-resolved", false, "Include resolved findings")
 	HealthCheckCmd.Flags().Bool("include-muted", false, "Include muted findings")
 	HealthCheckCmd.Flags().String("packet", "", "Path to a Support Packet zip to evaluate offline, without a server")
+	HealthCheckCmd.Flags().Bool("run", false, "Run the health check now and wait for it to finish before reporting")
+	HealthCheckCmd.Flags().Duration("timeout", 5*time.Minute, "How long --run waits for the run to finish")
 
 	HealthCmd.AddCommand(HealthCheckCmd)
 	RootCmd.AddCommand(HealthCmd)
@@ -56,7 +64,14 @@ func init() {
 // healthCheckRunE dispatches before any client is built: withClient connects eagerly, and
 // --packet must work with no server.
 func healthCheckRunE(cmd *cobra.Command, args []string) error {
+	run, _ := cmd.Flags().GetBool("run")
+	if !run && cmd.Flags().Changed("timeout") {
+		return errors.New("--timeout can only be used with --run")
+	}
 	if packetPath, _ := cmd.Flags().GetString("packet"); packetPath != "" {
+		if run {
+			return errors.New("--run cannot be used with --packet: a Support Packet is evaluated offline")
+		}
 		return healthCheckPacketCmdF(cmd, args)
 	}
 	return withClient(healthCheckCmdF)(cmd, args)
@@ -65,6 +80,13 @@ func healthCheckRunE(cmd *cobra.Command, args []string) error {
 func healthCheckCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	includeResolved, _ := cmd.Flags().GetBool("include-resolved")
 	includeMuted, _ := cmd.Flags().GetBool("include-muted")
+
+	if run, _ := cmd.Flags().GetBool("run"); run {
+		timeout, _ := cmd.Flags().GetDuration("timeout")
+		if err := runHealthCheckAndWait(c, timeout); err != nil {
+			return err
+		}
+	}
 
 	filter := model.HealthFindingFilter{}
 	if includeMuted {
@@ -78,6 +100,54 @@ func healthCheckCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 	printHealthFindings(list, includeResolved, time.Now())
 	return nil
+}
+
+// runHealthCheckAndWait starts a health check run, or joins the one already pending or in
+// progress, and polls its job until it finishes or timeout passes.
+func runHealthCheckAndWait(c client.Client, timeout time.Duration) error {
+	if timeout <= 0 {
+		return errors.New("--timeout must be positive")
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	job, _, err := c.CreateJob(ctx, &model.Job{Type: model.JobTypeHealthCheck})
+	if err != nil {
+		return fmt.Errorf("failed to start a health check run: %w", err)
+	}
+
+	ticker := time.NewTicker(healthRunPollInterval)
+	defer ticker.Stop()
+	for {
+		switch job.Status {
+		case model.JobStatusSuccess, model.JobStatusWarning:
+			return nil
+		case model.JobStatusError:
+			if msg := job.Data["error"]; msg != "" {
+				return fmt.Errorf("health check run %s failed: %s", job.Id, msg)
+			}
+			return fmt.Errorf("health check run %s failed", job.Id)
+		case model.JobStatusCanceled:
+			return fmt.Errorf("health check run %s was canceled", job.Id)
+		}
+
+		select {
+		case <-ctx.Done():
+			return fmt.Errorf("timed out after %s waiting for health check run %s, which is still %s; run `mmctl health check` later to see its findings", timeout, job.Id, job.Status)
+		case <-ticker.C:
+		}
+
+		latest, resp, err := c.GetJob(ctx, job.Id)
+		if err != nil {
+			// Report the timeout, not the request it cut short. A 404 means a lagging read replica
+			// hasn't seen the new job yet.
+			if ctx.Err() != nil || (resp != nil && resp.StatusCode == http.StatusNotFound) {
+				continue
+			}
+			return fmt.Errorf("failed to get the health check run status: %w", err)
+		}
+		job = latest
+	}
 }
 
 // healthCheckPacketCmdF evaluates a Support Packet with the same engine and reconciler the

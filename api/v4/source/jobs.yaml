@@ -80,6 +80,13 @@
         - `create_ldap_sync_job` — `ldap_sync`
         - `manage_jobs` — `migrations`, `plugins`, `product_notices`, `expiry_notify`, `active_users`, `import_process`, `import_delete`, `export_process`, `export_delete`, `cloud`, `extract_content`
         - `access_control_sync` — `manage_system`, or `manage_channel_access_rules` on the channel given in job `data`, or `manage_team_access_rules` on the team in job `data` (see server logic for scoped sync jobs)
+        - `manage_system` — `health_check`
+
+        A `health_check` job runs the Health Dashboard check now instead of waiting for the hourly
+        schedule. It needs the `HealthDashboard` feature flag and an Enterprise license; otherwise the
+        server responds with 501. If a `health_check` run is already pending or in progress, no second
+        run is started and the response is that run. In the rare case that runs keep starting and
+        finishing while the request is handled, the server responds with 409; try again.
       operationId: CreateJob
       requestBody:
         content:
@@ -111,6 +118,18 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "409":
+          description: The job type is `health_check`, and runs kept starting and finishing while the request was handled. Try again.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
+        "501":
+          description: The job type is `health_check`, and the `HealthDashboard` feature flag is off or the server does not have an Enterprise license.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
   "/api/v4/jobs/{job_id}":
     get:
       tags:
