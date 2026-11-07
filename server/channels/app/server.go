@@ -27,6 +27,7 @@ import (
 	"golang.org/x/crypto/acme/autocert"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/pluginapi/cluster"
 	"github.com/mattermost/mattermost/server/public/shared/httpservice"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -719,7 +720,7 @@ func (s *Server) runJobs() {
 
 	s.Go(func() {
 		appInstance := New(ServerConnector(s.Channels()))
-		runLeaderTasks(appInstance)
+		runClusterTasks(appInstance)
 	})
 	s.Go(func() {
 		runSecurityJob(s)
@@ -2028,82 +2029,114 @@ func (s *Server) ReadFile(path string) ([]byte, *model.AppError) {
 	return result, nil
 }
 
-// leaderTask is a recurring task that only runs on the cluster leader.
-type leaderTask struct {
+// serverMutexPluginID owns the server's cluster mutexes in the plugin key value store. It is not a
+// valid plugin ID, so no plugin can collide with it.
+const serverMutexPluginID = "mattermost:server"
+
+// clusterTaskLockTimeout is shorter than cluster.Mutex's first retry wait, so a tick makes a single
+// attempt to take the lock and is skipped if another node holds it.
+const clusterTaskLockTimeout = 500 * time.Millisecond
+
+// serverMutexAPI lets cluster.Mutex keep its lease in the plugin key value store.
+type serverMutexAPI struct {
+	a *App
+}
+
+func (m serverMutexAPI) KVSetWithOptions(key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError) {
+	return m.a.SetPluginKeyWithOptions(serverMutexPluginID, key, value, options)
+}
+
+func (m serverMutexAPI) LogError(msg string, keyValuePairs ...any) {
+	m.a.Log().Sugar().Errorw(msg, keyValuePairs...)
+}
+
+// clusterTask is a recurring task scheduled on every node, where each run takes a cluster-wide
+// mutex so that no two nodes run it at the same time.
+type clusterTask struct {
 	mut     sync.Mutex
 	task    *model.ScheduledTask
 	stopped bool
 }
 
-// update starts or cancels the task to match isLeader. Leader-changed listeners run
-// concurrently, so leadership is read under the lock to let the last one win.
-func (t *leaderTask) update(isLeader func() bool, create func() *model.ScheduledTask) {
+// start schedules fn, guarded by the mutex named key, unless the task has been stopped or started.
+func (t *clusterTask) start(api cluster.MutexPluginAPI, key string, fn func(), schedule func(run func()) *model.ScheduledTask) error {
+	mutex, err := cluster.NewMutex(api, key)
+	if err != nil {
+		return err
+	}
+
 	t.mut.Lock()
 	defer t.mut.Unlock()
-	if t.stopped || !isLeader() {
-		t.cancelLocked()
-		return
+	if t.stopped || t.task != nil {
+		return nil
 	}
-	// The leader-changed listener also fires on a node that is already the leader.
-	if t.task == nil {
-		t.task = create()
-	}
+	t.task = schedule(func() { runLocked(mutex, fn) })
+	return nil
 }
 
-// stop cancels the task for good, so a listener that runs during shutdown cannot restart it.
-func (t *leaderTask) stop() {
+// stop cancels the task for good, waiting for a run in progress to finish.
+func (t *clusterTask) stop() {
 	t.mut.Lock()
 	defer t.mut.Unlock()
 	t.stopped = true
-	t.cancelLocked()
-}
-
-// cancelLocked cancels the running task, if any. The caller must hold t.mut.
-func (t *leaderTask) cancelLocked() {
 	if t.task != nil {
 		t.task.Cancel()
 		t.task = nil
 	}
 }
 
-// runOnLeader keeps the task running only while this node is the cluster leader.
-func (t *leaderTask) runOnLeader(a *App, name string, create func() *model.ScheduledTask) {
-	t.update(a.IsLeader, create)
+// runLocked runs fn if it can take mutex, reporting whether it did.
+func runLocked(mutex *cluster.Mutex, fn func()) bool {
+	ctx, cancel := context.WithTimeout(context.Background(), clusterTaskLockTimeout)
+	defer cancel()
+	if err := mutex.LockWithContext(ctx); err != nil {
+		return false
+	}
+	defer mutex.Unlock()
 
-	a.ch.srv.AddClusterLeaderChangedListener(func() {
-		mlog.Info("Cluster leader changed. Determining if task should be running", mlog.String("task", name), mlog.Bool("is_leader", a.IsLeader()))
-		t.update(a.IsLeader, create)
-	})
+	fn()
+	return true
 }
 
-func runLeaderTasks(a *App) {
+func runClusterTasks(a *App) {
 	rctx := request.EmptyContext(a.Log())
+	api := serverMutexAPI{a: a}
 
-	a.ch.dndTask.runOnLeader(a, "Unset DND Statuses", func() *model.ScheduledTask {
-		return model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, model.DNDExpiryInterval)
+	startTask := func(t *clusterTask, key string, fn func(), schedule func(run func()) *model.ScheduledTask) {
+		if err := t.start(api, key, fn, schedule); err != nil {
+			a.Log().Error("Failed to start cluster task", mlog.String("key", key), mlog.Err(err))
+		}
+	}
+
+	startTask(&a.ch.dndTask, "cluster_task_unset_dnd_statuses", a.UpdateDNDStatusOfUsers, func(run func()) *model.ScheduledTask {
+		return model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", run, model.DNDExpiryInterval)
 	})
 
-	a.ch.postReminderTask.runOnLeader(a, "Check Post reminders", func() *model.ScheduledTask {
-		fn := func() { a.CheckPostReminders(rctx) }
-		return model.CreateRecurringTaskFromNextIntervalTime("Check Post reminders", fn, 5*time.Minute)
+	startTask(&a.ch.postReminderTask, "cluster_task_post_reminders", func() { a.CheckPostReminders(rctx) }, func(run func()) *model.ScheduledTask {
+		return model.CreateRecurringTaskFromNextIntervalTime("Check Post reminders", run, 5*time.Minute)
 	})
 
-	a.ch.scheduledPostTask.runOnLeader(a, "Process Scheduled Posts", func() *model.ScheduledTask {
+	startTask(&a.ch.scheduledPostTask, "cluster_task_scheduled_posts", func() { a.ProcessScheduledPosts(rctx) }, func(run func()) *model.ScheduledTask {
 		jobInterval := scheduledPostJobInterval
 		if *a.Config().ServiceSettings.EnableTesting {
 			jobInterval = debugScheduledPostJobInterval
 		}
-		fn := func() { a.ProcessScheduledPosts(rctx) }
-		return model.CreateRecurringTaskFromNextIntervalTime("Process Scheduled Posts", fn, jobInterval)
+		return model.CreateRecurringTaskFromNextIntervalTime("Process Scheduled Posts", run, jobInterval)
 	})
 
-	a.ch.healthCheckTask.runOnLeader(a, "Health Check", func() *model.ScheduledTask {
-		fn := func() {
-			if err := a.RunHealthCheck(rctx); err != nil {
-				a.Log().Error("Health check failed", mlog.Err(err))
-			}
+	healthCheck := func() {
+		if err := a.RunHealthCheck(rctx); err != nil {
+			a.Log().Error("Health check failed", mlog.Err(err))
 		}
-		return model.CreateRecurringTask("Health Check", fn, healthCheckInterval)
+	}
+	// The health snapshot only carries diagnostics for the local node, so the check stays on the
+	// leader: a run from another node would flip every per-node finding between known and unknown.
+	startTask(&a.ch.healthCheckTask, "cluster_task_health_check", healthCheck, func(run func()) *model.ScheduledTask {
+		return model.CreateRecurringTask("Health Check", func() {
+			if a.IsLeader() {
+				run()
+			}
+		}, healthCheckInterval)
 	})
 }
 
