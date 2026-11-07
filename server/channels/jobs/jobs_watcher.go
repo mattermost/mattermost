@@ -23,6 +23,10 @@ type Watcher struct {
 	stop            chan struct{}
 	stopped         chan struct{}
 	pollingInterval int
+
+	// jobType, when set, limits polling to pending jobs of that type, and skips polling while
+	// that type's worker is disabled.
+	jobType string
 }
 
 func (srv *JobServer) MakeWatcher(workers *Workers, pollingInterval int) *Watcher {
@@ -33,6 +37,14 @@ func (srv *JobServer) MakeWatcher(workers *Workers, pollingInterval int) *Watche
 		workers:         workers,
 		srv:             srv,
 	}
+}
+
+// MakeJobTypeWatcher returns a watcher that polls only pending jobs of jobType, for a worker set
+// that runs that one type.
+func (srv *JobServer) MakeJobTypeWatcher(workers *Workers, pollingInterval int, jobType string) *Watcher {
+	watcher := srv.MakeWatcher(workers, pollingInterval)
+	watcher.jobType = jobType
+	return watcher
 }
 
 func (watcher *Watcher) Start() {
@@ -67,7 +79,20 @@ func (watcher *Watcher) Stop() {
 }
 
 func (watcher *Watcher) PollAndNotify() {
-	jobs, err := watcher.srv.Store.Job().GetAllByStatus(request.EmptyContext(watcher.srv.logger), model.JobStatusPending)
+	rctx := request.EmptyContext(watcher.srv.logger)
+	var (
+		jobs []*model.Job
+		err  error
+	)
+	if watcher.jobType != "" {
+		// Nothing could run the jobs while the worker is disabled, so don't query for them.
+		if worker := watcher.workers.Get(watcher.jobType); worker == nil || !worker.IsEnabled(watcher.srv.Config()) {
+			return
+		}
+		jobs, err = watcher.srv.Store.Job().GetAllByTypeAndStatus(rctx, watcher.jobType, model.JobStatusPending)
+	} else {
+		jobs, err = watcher.srv.Store.Job().GetAllByStatus(rctx, model.JobStatusPending)
+	}
 	if err != nil {
 		mlog.Error("Error occurred getting all pending statuses.", mlog.Err(err))
 		return
