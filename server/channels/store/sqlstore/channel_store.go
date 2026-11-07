@@ -4629,3 +4629,74 @@ func (s SqlChannelStore) IsChannelReadOnlyScheme(schemeID string) (bool, error) 
 	permissionList := strings.Split(permissions, " ")
 	return slices.Index(permissionList, model.PermissionCreatePost.Id) == -1, nil
 }
+
+func (s SqlChannelStore) GetChannelIDsInSessionScope(teamID string, resources *model.SessionScopeResources, publicOnly bool) ([]string, error) {
+	query := sessionScopeChannelIDsQuery(s.getQueryBuilder(), resources).OrderBy("Channels.DisplayName", "Channels.Id")
+	if teamID != "" {
+		query = query.Where(sq.Eq{"Channels.TeamId": teamID})
+	}
+	if publicOnly {
+		query = query.Where(sq.Eq{"Channels.Type": model.ChannelTypeOpen})
+	}
+
+	ids := []string{}
+	if err := s.GetReplica().SelectBuilder(&ids, query); err != nil {
+		return nil, errors.Wrap(err, "failed to get channel ids in session scope")
+	}
+	return ids, nil
+}
+
+func (s SqlChannelStore) SearchInTeamInSessionScope(teamID string, term string, resources *model.SessionScopeResources) (model.ChannelList, error) {
+	scopedSQL, scopedArgs, err := sessionScopeChannelIDsQuery(s.getSubQueryBuilder(), resources).ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "search_in_team_in_session_scope_tosql")
+	}
+
+	query := s.getQueryBuilder().Select(channelSliceColumns(true, "Channels")...).
+		From("Channels").
+		Join("PublicChannels c ON (c.Id = Channels.Id)").
+		Where(sq.Eq{"c.TeamId": teamID}).
+		Where(fmt.Sprintf("Channels.Id IN (%s)", scopedSQL), scopedArgs...).
+		OrderBy("c.DisplayName").
+		Limit(100)
+
+	if term != "" {
+		if searchClause := s.searchClause(term); searchClause != nil {
+			query = query.Where(searchClause)
+		}
+	}
+
+	return s.performSearch(query, term)
+}
+
+func (s SqlChannelStore) AutocompleteInSessionScope(teamID string, term string, resources *model.SessionScopeResources) (model.ChannelListWithTeamData, error) {
+	scopedSQL, scopedArgs, err := sessionScopeChannelIDsQuery(s.getSubQueryBuilder(), resources).ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "autocomplete_in_session_scope_tosql")
+	}
+
+	query := s.getQueryBuilder().
+		Select(channelSliceColumns(true, "c")...).
+		Columns(
+			"t.DisplayName AS TeamDisplayName",
+			"t.Name AS TeamName",
+			"t.UpdateAt AS TeamUpdateAt",
+		).
+		From("Channels c").
+		Join("Teams t ON t.Id = c.TeamId").
+		Where(fmt.Sprintf("c.Id IN (%s)", scopedSQL), scopedArgs...).
+		Limit(model.ChannelSearchDefaultLimit)
+	if teamID != "" {
+		query = query.Where(sq.Eq{"c.TeamId": teamID})
+	}
+	if searchClause := s.searchClause(term); searchClause != nil {
+		query = query.Where(searchClause)
+	}
+	query = orderByDisplayNameMatch(query, term)
+
+	channels := model.ChannelListWithTeamData{}
+	if err := s.GetReplica().SelectBuilder(&channels, query); err != nil {
+		return nil, errors.Wrapf(err, "failed to find channels in session scope with term=%s", trimInput(term))
+	}
+	return channels, nil
+}
