@@ -43,6 +43,10 @@ func (schedulers *Schedulers) AddScheduler(name string, scheduler Scheduler) {
 	schedulers.schedulers[name] = scheduler
 }
 
+func (schedulers *Schedulers) Get(name string) Scheduler {
+	return schedulers.schedulers[name]
+}
+
 // Start starts the schedulers. This call is not safe for concurrent use.
 // Synchronization should be implemented by the caller.
 func (schedulers *Schedulers) Start() {
