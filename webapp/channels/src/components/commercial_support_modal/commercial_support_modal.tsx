@@ -41,7 +41,7 @@ const messages = defineMessages({
     },
     basicContentsDescription: {
         id: 'commercial_support_modal.basic_contents.description',
-        defaultMessage: 'Server version, sanitized configuration, usage counts, job status, permissions, plugin list, and performance profiles. Does not include message content.',
+        defaultMessage: 'Server version, license details, system diagnostics, sanitized configuration, usage counts, job status, permissions, plugin list, database schema, performance profiles, and diagnostic data from installed plugins. Data collected by the server itself does not include message content.',
     },
     whatsIncluded: {
         id: 'commercial_support_modal.basic_contents.whats_included',
@@ -49,7 +49,7 @@ const messages = defineMessages({
     },
     serverLogsDescription: {
         id: 'commercial_support_modal.server_logs.description',
-        defaultMessage: 'Recent server log files. May contain user IDs, IP addresses, and error details.',
+        defaultMessage: 'Recent server log files, including any advanced and audit log files. May contain usernames, email addresses, IP addresses, and error details.',
     },
 });
 
@@ -81,6 +81,10 @@ const basicContentsIncludedItems = defineMessages({
     plugins: {
         id: 'commercial_support_modal.basic_contents.included.plugins',
         defaultMessage: 'Installed plugins and their versions',
+    },
+    pluginData: {
+        id: 'commercial_support_modal.basic_contents.included.plugin_data',
+        defaultMessage: 'Diagnostic data from installed plugins (contents vary by plugin)',
     },
     databaseSchema: {
         id: 'commercial_support_modal.basic_contents.included.database_schema',
@@ -345,6 +349,7 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
                                     >
                                         <div className='CommercialSupportModal__option_header'>
                                             <Checkbox
+                                                className='CommercialSupportModal__option_checkbox'
                                                 id={item.id}
                                                 name={item.id}
                                                 checked={item.selected}

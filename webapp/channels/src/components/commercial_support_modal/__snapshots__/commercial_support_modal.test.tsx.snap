@@ -36,7 +36,7 @@ exports[`components/CommercialSupportModal should match snapshot 1`] = `
               class="CommercialSupportModal__option_header"
             >
               <label
-                class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 CommercialSupportModal__option_checkbox"
                 for="basic.contents"
               >
                 <input
@@ -97,7 +97,7 @@ exports[`components/CommercialSupportModal should match snapshot 1`] = `
                 class="CommercialSupportModal__option_description"
                 id="basic.contents-description"
               >
-                Server version, sanitized configuration, usage counts, job status, permissions, plugin list, and performance profiles. Does not include message content.
+                Server version, license details, system diagnostics, sanitized configuration, usage counts, job status, permissions, plugin list, database schema, performance profiles, and diagnostic data from installed plugins. Data collected by the server itself does not include message content.
               </p>
               <button
                 aria-controls="commercialSupportModalBasicContentsIncluded"
@@ -145,7 +145,7 @@ exports[`components/CommercialSupportModal should match snapshot 1`] = `
               class="CommercialSupportModal__option_header"
             >
               <label
-                class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 CommercialSupportModal__option_checkbox"
                 for="basic.server.logs"
               >
                 <input
@@ -199,7 +199,7 @@ exports[`components/CommercialSupportModal should match snapshot 1`] = `
                 class="CommercialSupportModal__option_description"
                 id="basic.server.logs-description"
               >
-                Recent server log files. May contain user IDs, IP addresses, and error details.
+                Recent server log files, including any advanced and audit log files. May contain usernames, email addresses, IP addresses, and error details.
               </p>
             </div>
           </div>

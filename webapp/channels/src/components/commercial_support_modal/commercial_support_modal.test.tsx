@@ -123,10 +123,10 @@ describe('components/CommercialSupportModal', () => {
         renderWithContext(<CommercialSupportModal {...props}/>);
 
         expect(screen.getByRole('checkbox', {name: 'Basic contents'})).toHaveAccessibleDescription(
-            '(required) Server version, sanitized configuration, usage counts, job status, permissions, plugin list, and performance profiles. Does not include message content.',
+            '(required) Server version, license details, system diagnostics, sanitized configuration, usage counts, job status, permissions, plugin list, database schema, performance profiles, and diagnostic data from installed plugins. Data collected by the server itself does not include message content.',
         );
         expect(screen.getByRole('checkbox', {name: 'Server logs'})).toHaveAccessibleDescription(
-            'Recent server log files. May contain user IDs, IP addresses, and error details.',
+            'Recent server log files, including any advanced and audit log files. May contain usernames, email addresses, IP addresses, and error details.',
         );
         expect(screen.getByRole('checkbox', {name: 'Calls plugin'})).not.toHaveAttribute('aria-describedby');
 
@@ -156,6 +156,7 @@ describe('components/CommercialSupportModal', () => {
             'Background job status',
             'Permission schemes and roles',
             'Installed plugins and their versions',
+            'Diagnostic data from installed plugins (contents vary by plugin)',
             'Database table structure (no data)',
             'Performance profiles (CPU, memory, goroutines)',
         ]);
