@@ -6,7 +6,6 @@ import React from 'react';
 
 import ProfilePopover from 'components/profile_popover';
 import StatusIcon from 'components/status_icon';
-import StatusIconNew from 'components/status_icon_new';
 import Avatar, {getAvatarWidth} from 'components/widgets/users/avatar';
 import type {TAvatarSizeToken} from 'components/widgets/users/avatar';
 
@@ -25,6 +24,7 @@ type Props = {
     username?: string;
     overwriteIcon?: string;
     overwriteName?: string;
+    /** @deprecated Compass StatusBadge is used for all surfaces; prop is ignored. */
     newStatusIcon?: boolean;
     statusClass?: string;
 };
@@ -37,6 +37,8 @@ function ProfilePicture(props: Props) {
     const profileIconClass = `profile-icon ${props.isEmoji ? 'emoji' : ''}`;
 
     const hideStatus = props.isBot || props.fromAutoResponder || props.fromWebhook;
+
+    const statusIconClassName = props.statusClass || undefined;
 
     if (props.userId) {
         return (
@@ -68,7 +70,11 @@ function ProfilePicture(props: Props) {
                             url={props.src}
                         />
                     </span>
-                    <StatusIcon status={props.status}/>
+                    <StatusIcon
+                        button={Boolean(statusIconClassName)}
+                        className={statusIconClassName}
+                        status={props.status}
+                    />
                 </>
             </ProfilePopover>
         );
@@ -87,14 +93,11 @@ function ProfilePicture(props: Props) {
                     url={props.src}
                 />
             </span>
-            {props.newStatusIcon ? (
-                <StatusIconNew
-                    className={props.statusClass}
-                    status={props.status}
-                />
-            ) : (
-                <StatusIcon status={props.status}/>
-            )}
+            <StatusIcon
+                button={Boolean(statusIconClassName)}
+                className={statusIconClassName}
+                status={props.status}
+            />
         </span>
     );
 }
