@@ -18,6 +18,13 @@ func MakeScheduler(jobServer *jobs.JobServer) *jobs.PeriodicScheduler {
 		return featureFlagEnabled && serviceSettingEnabled
 	}
 
-	schedFreq := time.Duration(model.SafeDereference(jobServer.Config().ServiceSettings.BurnOnReadSchedulerFrequencySeconds)) * time.Second
-	return jobs.NewPeriodicScheduler(jobServer, model.JobTypeDeleteExpiredPosts, schedFreq, isEnabled)
+	// FEATURE: Dynamic frequency interval. 
+	// Instead of a static duration, this closure fetches the latest frequency 
+	// from the config every time the scheduler evaluates its next run.
+	getSchedFreq := func(cfg *model.Config) time.Duration {
+		seconds := model.SafeDereference(cfg.ServiceSettings.BurnOnReadSchedulerFrequencySeconds)
+		return time.Duration(seconds) * time.Second
+	}
+
+	return jobs.NewDynamicPeriodicScheduler(jobServer, model.JobTypeDeleteExpiredPosts, getSchedFreq, isEnabled)
 }
