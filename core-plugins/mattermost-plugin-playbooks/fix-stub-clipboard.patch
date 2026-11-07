@@ -1,0 +1,13 @@
+diff --git a/e2e-tests/tests/utils/index.js b/e2e-tests/tests/utils/index.js
+index 1d496ec5..7082757b 100644
+--- a/e2e-tests/tests/utils/index.js
++++ b/e2e-tests/tests/utils/index.js
+@@ -87,7 +87,7 @@ export function stubClipboard() {
+             };
+         }
+ 
+-        cy.stub(win.navigator.clipboard, 'writeText', (link) => {
++        cy.stub(win.navigator.clipboard, 'writeText').callsFake((link) => {
+             clipboard.wasCalled = true;
+             clipboard.contents = link;
+             return Promise.resolve(true);

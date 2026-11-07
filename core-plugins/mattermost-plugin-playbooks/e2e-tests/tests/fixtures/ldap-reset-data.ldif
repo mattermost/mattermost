@@ -1,0 +1,43 @@
+dn: uid=e2etest.one,ou=e2etest,dc=mm,dc=test,dc=com
+changetype: delete
+
+dn: uid=e2etest.two,ou=e2etest,dc=mm,dc=test,dc=com
+changetype: delete
+
+dn: uid=e2etest.three,ou=e2etest,dc=mm,dc=test,dc=com
+changetype: delete
+
+dn: uid=e2etest.four,ou=e2etest,dc=mm,dc=test,dc=com
+changetype: delete
+
+dn: ou=e2etest,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: organizationalunit
+
+# generic test users
+dn: uid=e2etest.one,ou=e2etest,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: iNetOrgPerson
+sn: OneLDAP
+cn: TestLDAP
+uid: e2etest.one
+mail: e2etest.one@mmtest.com
+userPassword: Password1
+
+dn: uid=e2etest.two,ou=e2etest,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: iNetOrgPerson
+sn: TwoLDAP
+cn: TestLDAP
+uid: e2etest.two
+mail: e2etest.two@mmtest.com
+userPassword: Password1
+
+dn: uid=e2etest.three,ou=e2etest,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: iNetOrgPerson
+sn: ThreeLDAP
+cn: TestLDAP
+uid: e2etest.three.ldap
+mail: e2etest.three@mmtest.com
+userPassword: Password1

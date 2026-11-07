@@ -1,0 +1,202 @@
+[
+    {
+        "id": "app.command.execute.error",
+        "translation": "无法执行命令。"
+    },
+    {
+        "id": "app.user.digest.overdue_status_updates.heading",
+        "translation": "逾期状态更新"
+    },
+    {
+        "id": "app.user.digest.overdue_status_updates.num_overdue",
+        "translation": {
+            "other": "您的 {{.Count}} 流程已逾期，无法更新状态："
+        }
+    },
+    {
+        "id": "app.user.digest.overdue_status_updates.zero_overdue",
+        "translation": "您有 0 次流程逾期。"
+    },
+    {
+        "id": "app.user.digest.runs_in_progress.zero_in_progress",
+        "translation": "您目前有 0 个流程正在进行中。"
+    },
+    {
+        "id": "app.user.digest.tasks.all_tasks_command",
+        "translation": "请使用 `/playbook todo` 查看所有任务。"
+    },
+    {
+        "id": "app.user.digest.tasks.due_after_today",
+        "translation": {
+            "other": "您有**{{.Count}}项分配的任务在今天之后到期**。"
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.due_in_x_days",
+        "translation": {
+            "other": "{{.Count}}天后到期"
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.due_today",
+        "translation": "今天到期"
+    },
+    {
+        "id": "app.user.digest.tasks.num_assigned_due_until_today",
+        "translation": {
+            "other": "您有 {{.Count}} 分配的任务，现在到期："
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.zero_assigned",
+        "translation": "您有 0 项指定任务。"
+    },
+    {
+        "id": "app.user.new_run.intro",
+        "translation": "**所有者** {{.Username}}"
+    },
+    {
+        "id": "app.user.new_run.playbook",
+        "translation": "Playbook"
+    },
+    {
+        "id": "app.user.new_run.run_name",
+        "translation": "流程名称"
+    },
+    {
+        "id": "app.user.new_run.submit_label",
+        "translation": "开始流程"
+    },
+    {
+        "id": "app.user.new_run.title",
+        "translation": "流程 Playbook"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.description",
+        "translation": "说明"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.name",
+        "translation": "名称"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.summary",
+        "translation": "摘要"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.summary.help",
+        "translation": "最多 64 个字符"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.summary.placeholder",
+        "translation": "时间轴中显示的简短摘要"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.title",
+        "translation": "添加到流程时间轴"
+    },
+    {
+        "id": "app.user.run.confirm_finish.submit_label",
+        "translation": "完成流程"
+    },
+    {
+        "id": "app.user.run.confirm_finish.num_outstanding",
+        "translation": {
+            "other": "有**{{.Count}}项任务尚未完成**。您确定要完成所有参与者的流程 *{{.RunName}}* 吗？"
+        }
+    },
+    {
+        "id": "app.user.run.confirm_finish.title",
+        "translation": "确认完成流程"
+    },
+    {
+        "id": "app.user.run.status_enable",
+        "translation": "@{{.Username}} 启用 [{{.RunName}}]({{.RunURL}}) 的状态更新"
+    },
+    {
+        "id": "app.user.run.update_status.change_since_last_update",
+        "translation": "自上次更新以来的变化"
+    },
+    {
+        "id": "app.user.run.update_status.finish_run",
+        "translation": "完成流程"
+    },
+    {
+        "id": "app.user.run.update_status.finish_run.placeholder",
+        "translation": "同时将流程标记为已完成"
+    },
+    {
+        "id": "app.user.run.update_status.submit_label",
+        "translation": "更新状态"
+    },
+    {
+        "id": "app.user.digest.runs_in_progress.heading",
+        "translation": "流程进行中"
+    },
+    {
+        "id": "app.user.digest.runs_in_progress.num_in_progress",
+        "translation": {
+            "other": "您当前正在进行 {{.Count}} 流程："
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.due_x_days_ago",
+        "translation": "{{.Count}}天前到期"
+    },
+    {
+        "id": "app.user.digest.tasks.due_yesterday",
+        "translation": "昨天到期"
+    },
+    {
+        "id": "app.user.digest.tasks.heading",
+        "translation": "您的指定任务"
+    },
+    {
+        "id": "app.user.digest.tasks.num_assigned",
+        "translation": {
+            "other": "您共有 {{.Count}} 项已分配任务："
+        }
+    },
+    {
+        "id": "app.user.run.add_checklist_item.submit_label",
+        "translation": "添加任务"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.title",
+        "translation": "添加新任务"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.playbook_run",
+        "translation": "Playbook 流程"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.submit_label",
+        "translation": "添加到流程时间轴"
+    },
+    {
+        "id": "app.user.run.request_join_channel",
+        "translation": "@{{.Name}} 是一名流程参与者，希望加入此频道。频道的任何成员都可以邀请他们。\n"
+    },
+    {
+        "id": "app.user.run.request_update",
+        "translation": "@here - @{{.Name}} 请求更新 [{{.RunName}}]({{.RunURL}}) 的状态。 \n"
+    },
+    {
+        "id": "app.user.run.status_disable",
+        "translation": "@{{.Username}} 禁用了 [{{.RunName}}]({{.RunURL}}) 的状态更新"
+    },
+    {
+        "id": "app.user.run.update_status.num_channel",
+        "translation": {
+            "other": "向利益相关者提供最新信息。本职位将在 {{.Count}} 频道上发布。"
+        }
+    },
+    {
+        "id": "app.user.run.update_status.reminder_for_next_update",
+        "translation": "下次更新提醒"
+    },
+    {
+        "id": "app.user.run.update_status.title",
+        "translation": "状态更新"
+    }
+]

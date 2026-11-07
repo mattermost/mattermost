@@ -1,0 +1,210 @@
+[
+    {
+        "id": "app.user.digest.tasks.num_assigned",
+        "translation": {
+            "one": "Танд {{.Count}}-н хариуцсан даалгавар байна:",
+            "other": "Танд нийт {{.Count}}-н хариуцсан даалгавар байна:"
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.heading",
+        "translation": "Таны хариусан даалгавар"
+    },
+    {
+        "id": "app.user.digest.tasks.due_yesterday",
+        "translation": "Өчигдөр эцсийн хугацаа"
+    },
+    {
+        "id": "app.user.digest.tasks.due_x_days_ago",
+        "translation": "Эцсийн хугацаа {{.Count}} өдрийн өмнө"
+    },
+    {
+        "id": "app.user.digest.tasks.due_today",
+        "translation": "Өнөөдөр эцсийн хугацаа"
+    },
+    {
+        "id": "app.user.digest.tasks.due_in_x_days",
+        "translation": {
+            "one": "Ганц\nЭцсийн хугацаа {{.Count}} хоног",
+            "other": "Олон\nЭцсийн хугацаа {{.Count}} хоногт"
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.due_after_today",
+        "translation": {
+            "one": "Ганц\nТанд **өнөөдрөөс хойш хугацаа хэтрэх томилсон даалгавар {{.Count}} байна**.",
+            "other": "Олон\nТанд **өнөөдрөөс хойш хугацаа хэтрэх томилсон даалгавар {{.Count}} байна**."
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.all_tasks_command",
+        "translation": "'/playbook todo' -г ашиглаж өөрийн бүх таскаа харна уу."
+    },
+    {
+        "id": "app.user.digest.runs_in_progress.zero_in_progress",
+        "translation": "Танд одоогоор боловсруулагдаж байгаа үйлдэл 0 байна."
+    },
+    {
+        "id": "app.user.digest.runs_in_progress.num_in_progress",
+        "translation": {
+            "one": "Ганц үйлдэл\nТаны {{.Count}} үйлдэл процеслогдож байна:",
+            "other": "Олон үйлдэл\nТаны {{.Count}} үйлдэл процеслогдож байна:"
+        }
+    },
+    {
+        "id": "app.user.digest.runs_in_progress.heading",
+        "translation": "Үйлдэл хийгдэж байна"
+    },
+    {
+        "id": "app.user.digest.overdue_status_updates.zero_overdue",
+        "translation": "Танд хугацаа хэтэрсэн шинэчлэл үйлдэл 0 байна."
+    },
+    {
+        "id": "app.user.digest.overdue_status_updates.num_overdue",
+        "translation": {
+            "one": "Ганц тоо\nТанд {{.Count}} төлөвийн шинэчлэлтийн хугацаа хэтэрсэн байна:",
+            "other": "Олон тоо\nТанд {{.Count}} төлөвийн шинэчлэлтийн хугацаа хэтэрсэн байна:"
+        }
+    },
+    {
+        "id": "app.user.digest.overdue_status_updates.heading",
+        "translation": "Хугацаа хэтэрсэн төлөвийн мэдээлэл"
+    },
+    {
+        "id": "app.command.execute.error",
+        "translation": "Командыг биелүүлэх боломжгүй."
+    },
+    {
+        "id": "app.user.digest.tasks.num_assigned_due_until_today",
+        "translation": {
+            "one": "You have {{.Count}} assigned task that is now due:",
+            "other": "You have {{.Count}} assigned tasks that are now due:"
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.zero_assigned",
+        "translation": "You have 0 assigned tasks."
+    },
+    {
+        "id": "app.user.new_run.intro",
+        "translation": "**Owner** {{.Username}}"
+    },
+    {
+        "id": "app.user.new_run.playbook",
+        "translation": "Playbook"
+    },
+    {
+        "id": "app.user.new_run.run_name",
+        "translation": "Run name"
+    },
+    {
+        "id": "app.user.new_run.submit_label",
+        "translation": "Start run"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.playbook_run",
+        "translation": "Playbook Run"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.submit_label",
+        "translation": "Add to run timeline"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.summary",
+        "translation": "Summary"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.summary.help",
+        "translation": "Max 64 chars"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.summary.placeholder",
+        "translation": "Short summary shown in the timeline"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.title",
+        "translation": "Add to run timeline"
+    },
+    {
+        "id": "app.user.run.confirm_finish.num_outstanding",
+        "translation": {
+            "one": "There is **{{.Count}} outstanding task**. Are you sure you want to finish the run *{{.RunName}}* for all participants?",
+            "other": "There are **{{.Count}} outstanding tasks**. Are you sure you want to finish the run *{{.RunName}}* for all participants?"
+        }
+    },
+    {
+        "id": "app.user.run.confirm_finish.submit_label",
+        "translation": "Finish run"
+    },
+    {
+        "id": "app.user.run.confirm_finish.title",
+        "translation": "Confirm finish run"
+    },
+    {
+        "id": "app.user.run.request_update",
+        "translation": "@here — @{{.Name}} requested a status update for [{{.RunName}}]({{.RunURL}}). \n"
+    },
+    {
+        "id": "app.user.run.status_disable",
+        "translation": "@{{.Username}} disabled the status updates for [{{.RunName}}]({{.RunURL}})"
+    },
+    {
+        "id": "app.user.run.status_enable",
+        "translation": "@{{.Username}} enabled the status updates for [{{.RunName}}]({{.RunURL}})"
+    },
+    {
+        "id": "app.user.run.update_status.change_since_last_update",
+        "translation": "Change since last update"
+    },
+    {
+        "id": "app.user.run.update_status.finish_run",
+        "translation": "Finish run"
+    },
+    {
+        "id": "app.user.run.update_status.finish_run.placeholder",
+        "translation": "Also mark the run as finished"
+    },
+    {
+        "id": "app.user.run.update_status.num_channel",
+        "translation": {
+            "one": "Provide an update to the stakeholders. This post will be broadcasted to {{.Count}} channel.",
+            "other": "Provide an update to the stakeholders. This post will be broadcasted to {{.Count}} channels."
+        }
+    },
+    {
+        "id": "app.user.run.update_status.reminder_for_next_update",
+        "translation": "Reminder for next update"
+    },
+    {
+        "id": "app.user.new_run.title",
+        "translation": "Run playbook"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.description",
+        "translation": "Description"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.name",
+        "translation": "Name"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.submit_label",
+        "translation": "Add task"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.title",
+        "translation": "Add new task"
+    },
+    {
+        "id": "app.user.run.request_join_channel",
+        "translation": "@{{.Name}} is a run participant and wants join this channel. Any member of the channel can invite them.\n"
+    },
+    {
+        "id": "app.user.run.update_status.submit_label",
+        "translation": "Update status"
+    },
+    {
+        "id": "app.user.run.update_status.title",
+        "translation": "Status update"
+    }
+]

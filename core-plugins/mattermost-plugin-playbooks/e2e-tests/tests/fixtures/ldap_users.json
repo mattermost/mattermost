@@ -1,0 +1,44 @@
+{
+    "dev-1": {
+        "username": "dev.one",
+        "password": "Password1",
+        "email": "success+devone@simulator.amazonses.com",
+        "userType": "Admin"
+    },
+    "dev-2": {
+        "username": "dev.two",
+        "password": "Password1",
+        "email": "success+devtwo@simulator.amazonses.com",
+        "userType": "Admin"
+    },
+    "test-1": {
+        "username": "test.one",
+        "password": "Password1",
+        "email": "success+testone@simulator.amazonses.com",
+        "userType": ""
+    },
+    "test-2": {
+        "username": "test.two",
+        "password": "Password1",
+        "email": "success+testtwo@simulator.amazonses.com",
+        "userType": ""
+    },
+    "test-3": {
+        "username": "test.three",
+        "password": "Password1",
+        "email": "success+testthree@simulator.amazonses.com",
+        "userType": ""
+    },
+    "board-1": {
+        "username": "board.one",
+        "password": "Password1",
+        "email": "success+boardone@simulator.amazonses.com",
+        "userType": ""
+    },
+    "board-2": {
+        "username": "board.two",
+        "password": "Password1",
+        "email": "success+boardtwo@simulator.amazonses.com",
+        "userType": ""
+    }
+}
