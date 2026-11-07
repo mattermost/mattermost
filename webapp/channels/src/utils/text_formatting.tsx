@@ -761,7 +761,7 @@ export function highlightWithoutNotificationKeywords(
     return output;
 }
 
-const hashtagRegex = /(^|\W)(#\p{L}[\p{L}\d\-_.]*[\p{L}\d])/gu;
+const hashtagRegex = /(^|\W)(#[\p{L}\d][\p{L}\d\-_.]*[\p{L}\d])/gu;
 
 function autolinkHashtags(
     text: string,
