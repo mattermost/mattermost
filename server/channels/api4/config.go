@@ -11,6 +11,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/gorilla/mux"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -38,6 +40,8 @@ func (api *API) InitConfig() {
 	api.BaseRoutes.APIRoot.Handle("/config/reload", api.APISessionRequired(configReload)).Methods(http.MethodPost)
 	api.BaseRoutes.APIRoot.Handle("/config/client", api.APIHandler(getClientConfig)).Methods(http.MethodGet)
 	api.BaseRoutes.APIRoot.Handle("/config/environment", api.APISessionRequired(getEnvironmentConfig)).Methods(http.MethodGet)
+	api.BaseRoutes.APIRoot.Handle("/config/history", api.APISessionRequired(getConfigHistory)).Methods(http.MethodGet)
+	api.BaseRoutes.APIRoot.Handle("/config/history/{config_id:[A-Za-z0-9]+}", api.APISessionRequired(getHistoricalConfig)).Methods(http.MethodGet)
 }
 
 func init() {
@@ -136,9 +140,16 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	appCfg := c.App.Config()
-	if *appCfg.ServiceSettings.SiteURL != "" && *cfg.ServiceSettings.SiteURL == "" {
-		c.Err = model.NewAppError("updateConfig", "api.config.update_config.clear_siteurl.app_error", nil, "", http.StatusBadRequest)
-		return
+
+	// Preserve the existing configs of plugins that getConfig doesn't show, such as those that
+	// aren't installed, or all of them when plugins are disabled, unless they are present.
+	shownCfg := appCfg.Clone()
+	c.App.SanitizedConfig(shownCfg)
+	for id, storedSettings := range appCfg.PluginSettings.Plugins {
+		_, shown := shownCfg.PluginSettings.Plugins[id]
+		if _, present := cfg.PluginSettings.Plugins[id]; !present && !shown {
+			cfg.PluginSettings.Plugins[id] = storedSettings
+		}
 	}
 
 	cfg, err = config.Merge(appCfg, cfg, &utils.MergeConfig{
@@ -148,6 +159,13 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		c.Err = model.NewAppError("updateConfig", "api.config.update_config.restricted_merge.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	// Checked after the merge, which keeps the current Site URL for a user who may not change it,
+	// such as one who can't read it either and so sent none.
+	if *appCfg.ServiceSettings.SiteURL != "" && *cfg.ServiceSettings.SiteURL == "" {
+		c.Err = model.NewAppError("updateConfig", "api.config.update_config.clear_siteurl.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
@@ -406,6 +424,154 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if err := json.NewEncoder(w).Encode(cfg); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+// getConfigHistory lists the saved configurations, newest first, each with the settings
+// that changed from the configuration saved before it. Only settings the session may
+// read are compared, and sensitive values are masked even in local mode.
+func getConfigHistory(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(), model.SysconsoleReadPermissions) {
+		c.SetPermissionError(model.SysconsoleReadPermissions...)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventGetConfigHistory, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+
+	// The oldest entry on the page is compared with the one saved before it, so fetch one more.
+	history, appErr := c.App.GetConfigHistory(c.Params.Page*c.Params.PerPage, c.Params.PerPage+1)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	readableConfig := newReadableConfigFilter(c)
+	sanitize := c.App.ConfigSanitizer()
+	entries := make([]*model.ConfigHistoryEntry, len(history))
+	var newer *model.Config
+	for i, saved := range history {
+		entries[i] = saved.ConfigHistoryEntry
+		if saved.LoadErr != nil {
+			// Listed without its changes, or those of the configuration saved after it.
+			c.Logger.Warn("Failed to load a saved configuration", mlog.String("config_id", saved.Id), mlog.Err(saved.LoadErr))
+			newer = nil
+			continue
+		}
+
+		cfg, appErr := readableConfig(saved.Config)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+
+		if newer != nil {
+			diffs, err := config.SanitizedDiff(cfg, newer, sanitize)
+			if err != nil {
+				c.Err = model.NewAppError("getConfigHistory", "api.config.get_config_history.diff.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+				return
+			}
+			entries[i-1].Changes = diffs.ToConfigChanges()
+		}
+		newer = cfg
+	}
+
+	if len(entries) > c.Params.PerPage {
+		entries = entries[:c.Params.PerPage]
+	}
+
+	auditRec.Success()
+
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	if err := json.NewEncoder(w).Encode(entries); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+// getHistoricalConfig returns a saved configuration filtered the way getConfig filters the
+// active one. Like localGetConfig, local mode returns it unfiltered and unsanitized.
+func getHistoricalConfig(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(), model.SysconsoleReadPermissions) {
+		c.SetPermissionError(model.SysconsoleReadPermissions...)
+		return
+	}
+
+	configID := mux.Vars(r)["config_id"]
+	if !model.IsValidId(configID) {
+		c.SetInvalidURLParam("config_id")
+		return
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventGetHistoricalConfig, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "config_id", configID)
+
+	cfg, appErr := c.App.GetHistoricalConfig(configID)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if !c.AppContext.Session().IsUnrestricted() {
+		c.App.SanitizedConfig(cfg)
+	}
+	cfg, appErr = newReadableConfigFilter(c)(cfg)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	auditRec.Success()
+
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	if err := json.NewEncoder(w).Encode(cfg); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+// newReadableConfigFilter returns a function that copies a config with only the settings the
+// session may read, using the same filters as getConfig. It does not sanitize. readFilter's
+// answer depends only on a field's type and tags, so it is cached across calls: a config has
+// over a thousand settings, and each answer can take several permission checks.
+func newReadableConfigFilter(c *Context) func(*model.Config) (*model.Config, *model.AppError) {
+	type fieldKey struct {
+		typ reflect.Type
+		tag reflect.StructTag
+	}
+	readable := map[fieldKey]bool{}
+	mergeConfig := &utils.MergeConfig{
+		StructFieldFilter: func(structField reflect.StructField, base, patch reflect.Value) bool {
+			key := fieldKey{structField.Type, structField.Tag}
+			allowed, ok := readable[key]
+			if !ok {
+				allowed = readFilter(c, structField)
+				readable[key] = allowed
+			}
+			return allowed
+		},
+	}
+	filterCloudRestricted := !c.AppContext.Session().IsUnrestricted() && c.App.Channels().License().IsCloud()
+
+	return func(cfg *model.Config) (*model.Config, *model.AppError) {
+		filtered, err := config.Merge(&model.Config{}, cfg, mergeConfig)
+		if err != nil {
+			return nil, model.NewAppError("readableConfig", "api.config.get_config.restricted_merge.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+
+		if !filterCloudRestricted {
+			return filtered, nil
+		}
+
+		js, err := filtered.ToJSONFiltered(model.ConfigAccessTagType, model.ConfigAccessTagCloudRestrictable)
+		if err != nil {
+			return nil, model.NewAppError("readableConfig", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		var cloudFiltered *model.Config
+		if err := json.Unmarshal(js, &cloudFiltered); err != nil {
+			return nil, model.NewAppError("readableConfig", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+
+		return cloudFiltered, nil
 	}
 }
 

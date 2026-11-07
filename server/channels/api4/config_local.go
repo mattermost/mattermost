@@ -22,6 +22,8 @@ func (api *API) InitConfigLocal() {
 	api.BaseRoutes.APIRoot.Handle("/config/reload", api.APILocal(configReload)).Methods(http.MethodPost)
 	api.BaseRoutes.APIRoot.Handle("/config/migrate", api.APILocal(localMigrateConfig)).Methods(http.MethodPost)
 	api.BaseRoutes.APIRoot.Handle("/config/client", api.APILocal(localGetClientConfig)).Methods(http.MethodGet)
+	api.BaseRoutes.APIRoot.Handle("/config/history", api.APILocal(getConfigHistory)).Methods(http.MethodGet)
+	api.BaseRoutes.APIRoot.Handle("/config/history/{config_id:[A-Za-z0-9]+}", api.APILocal(getHistoricalConfig)).Methods(http.MethodGet)
 }
 
 func localGetConfig(c *Context, w http.ResponseWriter, r *http.Request) {

@@ -20,6 +20,13 @@ var (
 	// ErrReadOnlyStore is returned when an attempt to modify a read-only
 	// configuration store is made.
 	ErrReadOnlyStore = errors.New("configuration store is read-only")
+
+	// ErrHistoryNotSupported is returned when the configuration history is requested
+	// from a backing store that does not keep one.
+	ErrHistoryNotSupported = errors.New("configuration history is only kept for configurations stored in the database")
+
+	// ErrHistoricalConfigNotFound is returned when no saved configuration has the requested id.
+	ErrHistoricalConfigNotFound = errors.New("saved configuration not found")
 )
 
 // Store is the higher level object that handles storing and retrieval of config data.
@@ -410,4 +417,69 @@ func (s *Store) CleanUp() error {
 	default:
 		return nil
 	}
+}
+
+// HistoryEntry is a configuration saved by a DatabaseStore, as GetHistory lists it.
+type HistoryEntry struct {
+	*model.ConfigHistoryEntry
+	// Config is the saved configuration, loaded as GetHistoricalConfig loads it. It is nil when
+	// the configuration can't be loaded, with the reason in LoadErr.
+	Config  *model.Config
+	LoadErr error
+}
+
+// GetHistory returns the saved configurations, newest first, skipping the first offset. One that
+// can't be loaded is still listed, marked unreadable, so that it doesn't hide the others.
+// Only a DatabaseStore backing store keeps a history.
+func (s *Store) GetHistory(offset, limit int) ([]*HistoryEntry, error) {
+	bs, ok := s.backingStore.(*DatabaseStore)
+	if !ok {
+		return nil, ErrHistoryNotSupported
+	}
+
+	entries, values, err := bs.getHistory(offset, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	history := make([]*HistoryEntry, len(entries))
+	for i, entry := range entries {
+		cfg, loadErr := loadHistoricalConfig(values[i])
+		entry.Unreadable = loadErr != nil
+		history[i] = &HistoryEntry{ConfigHistoryEntry: entry, Config: cfg, LoadErr: loadErr}
+	}
+
+	return history, nil
+}
+
+// GetHistoricalConfig returns the saved configuration with the given id, loaded as Load would
+// load it, so that it is the configuration the server would run with if it were active.
+// Only a DatabaseStore backing store keeps a history.
+func (s *Store) GetHistoricalConfig(id string) (*model.Config, error) {
+	bs, ok := s.backingStore.(*DatabaseStore)
+	if !ok {
+		return nil, ErrHistoryNotSupported
+	}
+
+	configBytes, err := bs.getHistoricalConfig(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return loadHistoricalConfig(configBytes)
+}
+
+// loadHistoricalConfig loads the value of a saved configuration as Load would load it.
+func loadHistoricalConfig(configBytes []byte) (*model.Config, error) {
+	cfg := &model.Config{}
+	if err := json.Unmarshal(configBytes, cfg); err != nil {
+		return nil, utils.HumanizeJSONError(err, configBytes)
+	}
+	// A configuration saved by an older server lacks the settings added since, and may hold
+	// values this server rejects. Saved configurations never include environment overrides.
+	cfg.SetDefaults()
+	cfg = applyEnvironmentMap(cfg, GetEnvironment())
+	fixConfig(cfg)
+
+	return cfg, nil
 }
