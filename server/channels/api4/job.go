@@ -220,12 +220,7 @@ func getJobs(c *Context, w http.ResponseWriter, r *http.Request) {
 		validJobTypes = append(validJobTypes, jobType)
 	} else {
 		for _, jType := range model.AllJobTypes {
-			hasPermission, permissionRequired := c.App.SessionHasPermissionToReadJob(*c.AppContext.Session(), jType)
-			if permissionRequired == nil {
-				c.Logger.Warn("The job types of a job you are trying to retrieve does not contain permissions", mlog.String("job_type", jType))
-				continue
-			}
-			if hasPermission {
+			if hasPermission, _ := c.App.SessionHasPermissionToReadJob(*c.AppContext.Session(), jType); hasPermission {
 				validJobTypes = append(validJobTypes, jType)
 			}
 		}
@@ -392,8 +387,7 @@ func cancelJob(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventPriorState(job)
 	auditRec.AddEventObjectType("job")
 
-	// if permission to create, permission to cancel, same permission
-	hasPermission, permissionRequired := c.App.SessionHasPermissionToCreateJob(*c.AppContext.Session(), job)
+	hasPermission, permissionRequired := c.App.SessionHasPermissionToCancelJob(*c.AppContext.Session(), job)
 	if permissionRequired == nil {
 		c.Err = model.NewAppError("unableToCancelJob", "api.job.unable_to_create_job.incorrect_job_type", nil, "", http.StatusBadRequest)
 		return

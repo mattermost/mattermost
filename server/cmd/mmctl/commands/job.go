@@ -218,7 +218,7 @@ func jobTypeCompletionF(_ *cobra.Command, args []string, _ string) ([]string, co
 	if len(args) > 0 {
 		return nil, cobra.ShellCompDirectiveNoFileComp
 	}
-	return model.AllJobTypes[:], cobra.ShellCompDirectiveNoFileComp
+	return model.CreatableJobTypes[:], cobra.ShellCompDirectiveNoFileComp
 }
 
 func jobCompletionF(ctx context.Context, c client.Client, cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
