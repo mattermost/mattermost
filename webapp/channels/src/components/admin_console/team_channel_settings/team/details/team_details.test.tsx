@@ -3,11 +3,12 @@
 
 import React from 'react';
 
-import type {CELExpressionError} from '@mattermost/types/access_control';
+import type {AccessControlPolicy, CELExpressionError} from '@mattermost/types/access_control';
 
 import {Client4} from 'mattermost-redux/client';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor, within} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import TeamDetails from './team_details';
@@ -126,6 +127,9 @@ jest.mock('utils/browser_history', () => ({
     getHistory: () => ({push: jest.fn()}),
 }));
 
+// A system admin's policy save stores the submitted imports as-is.
+const savePolicyAsSubmitted = () => jest.fn((policy: AccessControlPolicy): Promise<ActionResult> => Promise.resolve({data: policy}));
+
 describe('admin_console/team_channel_settings/team/TeamDetails', () => {
     const groups = [TestHelper.getGroupMock({
         id: '123',
@@ -173,7 +177,7 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
             createAccessControlTeamSyncJob: jest.fn().mockResolvedValue({data: {}}),
             getTeamStats: jest.fn().mockResolvedValue({data: {total_member_count: 5}}),
             getTeamMembers: jest.fn().mockResolvedValue({data: []}),
-            saveTeamAccessPolicy: jest.fn().mockResolvedValue({data: {}}),
+            saveTeamAccessPolicy: savePolicyAsSubmitted(),
             deleteAccessControlPolicy: jest.fn().mockResolvedValue({data: {}}),
             getAccessControlFields: jest.fn().mockResolvedValue({data: []}),
             searchUsersForExpression: jest.fn().mockResolvedValue({data: {users: [], total: 0}}),
@@ -548,13 +552,14 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
         expect(screen.getByTestId('team-level-access-rules')).toBeInTheDocument();
     });
 
-    test('removing the last policy unassigns it and auto-disables enforcement without a manual toggle-off', async () => {
+    test('removing the last policy deletes the team policy and auto-disables enforcement without a manual toggle-off', async () => {
         const getTeamAccessControlPolicy = jest.fn().mockResolvedValue({
             data: {policy: {id: '123', type: 'team', imports: ['parent1'], rules: []}, enforced: true},
         });
         const getAccessControlPolicy = jest.fn().mockResolvedValue({
             data: {id: 'parent1', name: 'Engineering Policy', type: 'parent', rules: []},
         });
+        const deleteAccessControlPolicy = jest.fn().mockResolvedValue({data: {}});
         const unassignTeamsFromAccessControlPolicy = jest.fn().mockResolvedValue({data: {status: 'OK'}});
         const props = {
             ...baseProps,
@@ -564,6 +569,7 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
                 ...baseProps.actions,
                 getTeamAccessControlPolicy,
                 getAccessControlPolicy,
+                deleteAccessControlPolicy,
                 unassignTeamsFromAccessControlPolicy,
                 patchTeam: jest.fn().mockResolvedValue({data: {}}),
             },
@@ -586,9 +592,12 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
         await userEvent.click(screen.getByText('Save'));
 
         expect(screen.queryByText('Apply membership policy')).not.toBeInTheDocument();
+
+        // Deleting the team policy drops its imports with it, in one write.
         await waitFor(() => {
-            expect(unassignTeamsFromAccessControlPolicy).toHaveBeenCalledWith('parent1', ['123']);
+            expect(deleteAccessControlPolicy).toHaveBeenCalledWith('123');
         });
+        expect(unassignTeamsFromAccessControlPolicy).not.toHaveBeenCalled();
     });
 
     test('removing the custom rule then the policy still tears down the child policy (order-independent)', async () => {
@@ -636,11 +645,11 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
 
         await userEvent.click(screen.getByText('Save'));
 
-        // No apply modal (teardown applies no removal criteria), the child policy is
-        // deleted (so the custom rule is gone), and the parent is unassigned.
+        // No apply modal (teardown applies no removal criteria), and the child policy is
+        // deleted, taking the custom rule and the parent link with it.
         expect(screen.queryByText('Apply membership policy')).not.toBeInTheDocument();
         await waitFor(() => expect(deleteAccessControlPolicy).toHaveBeenCalledWith('123'));
-        expect(unassignTeamsFromAccessControlPolicy).toHaveBeenCalledWith('parent1', ['123']);
+        expect(unassignTeamsFromAccessControlPolicy).not.toHaveBeenCalled();
     });
 
     test('removing a policy while an unedited custom rule remains keeps enforcement on and saves without the apply modal', async () => {
@@ -660,6 +669,7 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
             data: {id: 'parent1', name: 'Engineering Policy', type: 'parent', rules: []},
         });
         const unassignTeamsFromAccessControlPolicy = jest.fn().mockResolvedValue({data: {status: 'OK'}});
+        const saveTeamAccessPolicy = savePolicyAsSubmitted();
         const props = {
             ...baseProps,
             abacSupported: true,
@@ -669,7 +679,7 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
                 getTeamAccessControlPolicy,
                 getAccessControlPolicy,
                 unassignTeamsFromAccessControlPolicy,
-                saveTeamAccessPolicy: jest.fn().mockResolvedValue({data: {}}),
+                saveTeamAccessPolicy,
                 patchTeam: jest.fn().mockResolvedValue({data: {}}),
             },
         };
@@ -689,9 +699,16 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
         await userEvent.click(screen.getByText('Save'));
 
         expect(screen.queryByText('Apply membership policy')).not.toBeInTheDocument();
+
+        // The unlink is the policy save itself: same rule, no imports.
         await waitFor(() => {
-            expect(unassignTeamsFromAccessControlPolicy).toHaveBeenCalledWith('parent1', ['123']);
+            expect(saveTeamAccessPolicy).toHaveBeenCalledWith(expect.objectContaining({
+                id: '123',
+                imports: [],
+                rules: [expect.objectContaining({expression: 'user.attributes.office == "Home"'})],
+            }));
         });
+        expect(unassignTeamsFromAccessControlPolicy).not.toHaveBeenCalled();
     });
 
     test('clearing the only custom rule with no policy disables ABAC and saves without the apply modal', async () => {
@@ -716,7 +733,7 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
                 ...baseProps.actions,
                 getTeamAccessControlPolicy,
                 deleteAccessControlPolicy,
-                saveTeamAccessPolicy: jest.fn().mockResolvedValue({data: {}}),
+                saveTeamAccessPolicy: savePolicyAsSubmitted(),
                 patchTeam: jest.fn().mockResolvedValue({data: {}}),
             },
         };
@@ -763,7 +780,7 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
                 ...baseProps.actions,
                 getTeamAccessControlPolicy,
                 deleteAccessControlPolicy,
-                saveTeamAccessPolicy: jest.fn().mockResolvedValue({data: {}}),
+                saveTeamAccessPolicy: savePolicyAsSubmitted(),
                 patchTeam: jest.fn().mockResolvedValue({data: {}}),
             },
         };
@@ -782,84 +799,164 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
         });
     });
 
-    test('surfaces a policy action error on save instead of silently succeeding', async () => {
-        const getTeamAccessControlPolicy = jest.fn().mockResolvedValue({
-            data: {policy: {id: '123', type: 'team', imports: ['parent1'], rules: []}, enforced: true},
-        });
-        const getAccessControlPolicy = jest.fn().mockResolvedValue({
-            data: {id: 'parent1', name: 'Engineering Policy', type: 'parent', rules: []},
-        });
-
-        const unassignTeamsFromAccessControlPolicy = jest.fn().mockResolvedValue({error: {message: 'policy update failed'}});
-        const props = {
-            ...baseProps,
-            abacSupported: true,
-            team: {...baseProps.team, policy_enforced: true},
-            actions: {
+    describe('parent policy link changes', () => {
+        function renderLinkedTeam(actionOverrides: Partial<typeof baseProps.actions> = {}) {
+            const actions = {
                 ...baseProps.actions,
-                getTeamAccessControlPolicy,
-                getAccessControlPolicy,
-                unassignTeamsFromAccessControlPolicy,
+                getTeamAccessControlPolicy: jest.fn().mockResolvedValue({
+                    data: {
+                        policy: {id: '123', type: 'team', imports: ['parent1'], rules: [{actions: ['membership'], expression: 'user.attributes.office == "Home"'}]},
+                        enforced: true,
+                    },
+                }),
+                getAccessControlPolicy: jest.fn().mockResolvedValue({
+                    data: {id: 'parent1', name: 'Engineering Policy', type: 'parent', rules: []},
+                }),
+                searchPolicies: jest.fn().mockResolvedValue({
+                    data: {policies: [{id: 'parent2', name: 'Sales Policy', type: 'parent', rules: [], imports: []}], total: 1},
+                }),
+                assignTeamToAccessControlPolicy: jest.fn().mockResolvedValue({data: {status: 'OK'}}),
+                unassignTeamsFromAccessControlPolicy: jest.fn().mockResolvedValue({data: {status: 'OK'}}),
+                createAccessControlTeamSyncJob: jest.fn().mockResolvedValue({data: {}}),
+                saveTeamAccessPolicy: savePolicyAsSubmitted(),
                 patchTeam: jest.fn().mockResolvedValue({data: {}}),
-            },
-        };
-        renderWithContext(<TeamDetails {...props}/>);
+                ...actionOverrides,
+            };
+            renderWithContext(
+                <TeamDetails
+                    {...baseProps}
+                    abacSupported={true}
+                    team={{...baseProps.team, policy_enforced: true}}
+                    actions={actions}
+                />,
+            );
+            return actions;
+        }
 
-        await waitFor(() => {
-            expect(screen.getByText('Engineering Policy')).toBeInTheDocument();
+        // Unlinks Engineering, links Sales, and confirms the apply-policy dialog.
+        async function swapParentAndSave() {
+            await waitFor(() => expect(screen.getByText('Engineering Policy')).toBeInTheDocument());
+            await userEvent.click(screen.getByLabelText('Remove policy'));
+            await userEvent.click(document.getElementById('confirmModalButton')!);
+            await userEvent.click(screen.getByText('Link to a policy'));
+            await userEvent.click(await screen.findByText('Sales Policy'));
+            await saveAndApply();
+        }
+
+        async function saveAndApply() {
+            await userEvent.click(screen.getByText('Save'));
+            await userEvent.click(await screen.findByText('Apply'));
+        }
+
+        test('a rejected save changes no links and keeps the edits in the form', async () => {
+            const actions = renderLinkedTeam({
+                saveTeamAccessPolicy: jest.fn().mockResolvedValue({error: {server_error_id: 'app.pap.save_policy.self_exclusion', message: 'raw'}}),
+            });
+
+            await swapParentAndSave();
+
+            await waitFor(() => {
+                expect(screen.getByText('You do not satisfy one or more conditions in this policy. Contact a System Admin for assistance.')).toBeInTheDocument();
+            });
+
+            // The rejected policy save was the only write: no link was added or removed.
+            expect(actions.saveTeamAccessPolicy).toHaveBeenCalledTimes(1);
+            expect(actions.saveTeamAccessPolicy).toHaveBeenCalledWith(expect.objectContaining({id: '123', imports: ['parent2']}));
+            expect(actions.assignTeamToAccessControlPolicy).not.toHaveBeenCalled();
+            expect(actions.unassignTeamsFromAccessControlPolicy).not.toHaveBeenCalled();
+            expect(actions.createAccessControlTeamSyncJob).not.toHaveBeenCalled();
+
+            const linkedPolicies = within(document.getElementById('team_access_control_with_policy')!);
+            expect(linkedPolicies.getByText('Sales Policy')).toBeInTheDocument();
+            expect(linkedPolicies.queryByText('Engineering Policy')).not.toBeInTheDocument();
         });
 
-        await userEvent.click(screen.getByLabelText('Remove policy'));
+        test('retrying after a rejected save applies the links with the policy and starts one sync job', async () => {
+            const saveTeamAccessPolicy = savePolicyAsSubmitted().mockResolvedValueOnce({error: {message: 'server exploded'}});
+            const actions = renderLinkedTeam({saveTeamAccessPolicy});
 
-        // Confirm the disconnect dialog. The trash icon shares the "Remove policy"
-        // accessible name, so target the ConfirmModal button by id.
-        await userEvent.click(document.getElementById('confirmModalButton')!);
-        await userEvent.click(screen.getByText('Save'));
+            await swapParentAndSave();
+            await waitFor(() => expect(screen.getByText('server exploded')).toBeInTheDocument());
 
-        await waitFor(() => {
-            expect(screen.getByText('policy update failed')).toBeInTheDocument();
-        });
-    });
+            await saveAndApply();
 
-    test('does not re-assign an already-assigned policy on save', async () => {
-        const getTeamAccessControlPolicy = jest.fn().mockResolvedValue({
-            data: {policy: {id: '123', type: 'team', imports: ['parent1'], rules: []}, enforced: true},
-        });
-        const getAccessControlPolicy = jest.fn().mockResolvedValue({
-            data: {id: 'parent1', name: 'Engineering Policy', type: 'parent', rules: []},
-        });
-        const assignTeamToAccessControlPolicy = jest.fn().mockResolvedValue({data: {status: 'OK'}});
-        const unassignTeamsFromAccessControlPolicy = jest.fn().mockResolvedValue({data: {status: 'OK'}});
-        const props = {
-            ...baseProps,
-            abacSupported: true,
-            team: {...baseProps.team, policy_enforced: true},
-            actions: {
-                ...baseProps.actions,
-                getTeamAccessControlPolicy,
-                getAccessControlPolicy,
-                assignTeamToAccessControlPolicy,
-                unassignTeamsFromAccessControlPolicy,
-                patchTeam: jest.fn().mockResolvedValue({data: {}}),
-            },
-        };
-        renderWithContext(<TeamDetails {...props}/>);
-
-        await waitFor(() => {
-            expect(screen.getByText('Engineering Policy')).toBeInTheDocument();
+            await waitFor(() => expect(actions.createAccessControlTeamSyncJob).toHaveBeenCalledTimes(1));
+            expect(actions.createAccessControlTeamSyncJob).toHaveBeenCalledWith({policy_id: '123'});
+            expect(saveTeamAccessPolicy).toHaveBeenCalledTimes(2);
+            expect(saveTeamAccessPolicy).toHaveBeenLastCalledWith(expect.objectContaining({
+                id: '123',
+                imports: ['parent2'],
+                rules: [expect.objectContaining({expression: 'user.attributes.office == "Home"'})],
+            }));
+            expect(saveTeamAccessPolicy.mock.invocationCallOrder[1]).toBeLessThan(actions.createAccessControlTeamSyncJob.mock.invocationCallOrder[0]);
+            expect(actions.assignTeamToAccessControlPolicy).not.toHaveBeenCalled();
+            expect(actions.unassignTeamsFromAccessControlPolicy).not.toHaveBeenCalled();
+            expect(screen.queryByText('server exploded')).not.toBeInTheDocument();
         });
 
-        await userEvent.click(screen.getByLabelText('Remove policy'));
+        // A non-system-admin's policy save keeps the stored imports.
+        const saveKeepingStoredImports = () => jest.fn((policy: AccessControlPolicy) => Promise.resolve({data: {...policy, imports: ['parent1']}}));
 
-        // Confirm the disconnect dialog. The trash icon shares the "Remove policy"
-        // accessible name, so target the ConfirmModal button by id.
-        await userEvent.click(document.getElementById('confirmModalButton')!);
-        await userEvent.click(screen.getByText('Save'));
+        test('reports link changes the save kept out of the imports instead of dropping them silently', async () => {
+            const actions = renderLinkedTeam({
+                saveTeamAccessPolicy: saveKeepingStoredImports(),
+                unassignTeamsFromAccessControlPolicy: jest.fn().mockResolvedValue({error: {message: 'missing manage_system permission'}}),
+            });
 
-        await waitFor(() => {
-            expect(unassignTeamsFromAccessControlPolicy).toHaveBeenCalledWith('parent1', ['123']);
+            await swapParentAndSave();
+
+            await waitFor(() => expect(screen.getByText('missing manage_system permission')).toBeInTheDocument());
+            expect(actions.assignTeamToAccessControlPolicy).toHaveBeenCalledWith('parent2', '123');
+            expect(actions.unassignTeamsFromAccessControlPolicy).toHaveBeenCalledWith('parent1', ['123']);
+
+            // The rules were saved, so members are still reconciled; the form stays dirty.
+            expect(actions.createAccessControlTeamSyncJob).toHaveBeenCalledTimes(1);
+            expect(within(document.getElementById('team_access_control_with_policy')!).getByText('Sales Policy')).toBeInTheDocument();
+            expect(screen.getByTestId('saveSetting')).toBeEnabled();
         });
-        expect(assignTeamToAccessControlPolicy).not.toHaveBeenCalled();
+
+        test('retries an unlink the save did not apply', async () => {
+            const actions = renderLinkedTeam({
+                saveTeamAccessPolicy: saveKeepingStoredImports(),
+                unassignTeamsFromAccessControlPolicy: jest.fn().
+                    mockResolvedValueOnce({error: {message: 'unassign failed'}}).
+                    mockResolvedValue({data: {status: 'OK'}}),
+            });
+
+            await waitFor(() => expect(screen.getByText('Engineering Policy')).toBeInTheDocument());
+            await userEvent.click(screen.getByLabelText('Remove policy'));
+            await userEvent.click(document.getElementById('confirmModalButton')!);
+            await userEvent.click(screen.getByText('Save'));
+            await waitFor(() => expect(screen.getByText('unassign failed')).toBeInTheDocument());
+
+            // The server still links Engineering, so the retry must try the unlink again.
+            await userEvent.click(screen.getByText('Save'));
+
+            await waitFor(() => expect(actions.unassignTeamsFromAccessControlPolicy).toHaveBeenCalledTimes(2));
+            expect(actions.saveTeamAccessPolicy).toHaveBeenCalledTimes(2);
+            expect(actions.saveTeamAccessPolicy).toHaveBeenLastCalledWith(expect.objectContaining({imports: []}));
+            await waitFor(() => expect(screen.queryByText('unassign failed')).not.toBeInTheDocument());
+        });
+
+        test('a failed delete when unlinking the last parent leaves the link in place', async () => {
+            const actions = renderLinkedTeam({
+                getTeamAccessControlPolicy: jest.fn().mockResolvedValue({
+                    data: {policy: {id: '123', type: 'team', imports: ['parent1'], rules: []}, enforced: true},
+                }),
+                deleteAccessControlPolicy: jest.fn().mockResolvedValue({error: {message: 'server exploded'}}),
+            });
+
+            await waitFor(() => expect(screen.getByText('Engineering Policy')).toBeInTheDocument());
+            await userEvent.click(screen.getByLabelText('Remove policy'));
+            await userEvent.click(document.getElementById('confirmModalButton')!);
+            await userEvent.click(screen.getByText('Save'));
+
+            await waitFor(() => expect(screen.getByText('server exploded')).toBeInTheDocument());
+            expect(actions.deleteAccessControlPolicy).toHaveBeenCalledWith('123');
+            expect(actions.unassignTeamsFromAccessControlPolicy).not.toHaveBeenCalled();
+            expect(actions.saveTeamAccessPolicy).not.toHaveBeenCalled();
+            expect(screen.getByTestId('saveSetting')).toBeEnabled();
+        });
     });
 
     test('shows the auto-add checkbox when a policy is enforced and ABAC is supported', async () => {
@@ -1371,7 +1468,7 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
             data: {id: 'parent1', name: 'Engineering Policy', type: 'parent', rules: []},
         });
         const createAccessControlTeamSyncJob = jest.fn().mockResolvedValue({data: {}});
-        const saveTeamAccessPolicy = jest.fn().mockResolvedValue({data: {}});
+        const saveTeamAccessPolicy = savePolicyAsSubmitted();
         const getTeamStats = jest.fn().mockResolvedValue({data: {total_member_count: 5}});
         const patchTeam = jest.fn().mockResolvedValue({data: {}});
         const props = {
@@ -1423,7 +1520,7 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
         const getAccessControlPolicy = jest.fn().mockResolvedValue({
             data: {id: 'parent1', name: 'Engineering Policy', type: 'parent', rules: []},
         });
-        const saveTeamAccessPolicy = jest.fn().mockResolvedValue({data: {}});
+        const saveTeamAccessPolicy = savePolicyAsSubmitted();
         const patchTeam = jest.fn().mockResolvedValue({data: {}});
         const props = {
             ...baseProps,
@@ -1546,7 +1643,7 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
             const actions = {
                 ...baseProps.actions,
                 getTeamAccessControlPolicy: jest.fn().mockResolvedValue({data: {policy: {id: '123', type: 'team', imports: [], rules}, enforced: true}}),
-                saveTeamAccessPolicy: jest.fn().mockResolvedValue({data: {}}),
+                saveTeamAccessPolicy: savePolicyAsSubmitted(),
                 assignTeamToAccessControlPolicy: jest.fn().mockResolvedValue({data: {status: 'OK'}}),
                 unassignTeamsFromAccessControlPolicy: jest.fn().mockResolvedValue({data: {status: 'OK'}}),
                 searchUsersForExpression: jest.fn().mockResolvedValue({data: {users: [], total: 0}}),

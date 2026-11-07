@@ -104,7 +104,6 @@ type State = {
     showArchiveConfirmModal: boolean;
     policyEnforced: boolean;
     accessControlPolicies: AccessControlPolicy[];
-    accessControlPoliciesToRemove: string[];
 
     // Ids of the policies already assigned on the server when the page loaded.
     originalPolicyIds: string[];
@@ -156,7 +155,6 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             showArchiveConfirmModal: false,
             policyEnforced: Boolean(team?.policy_enforced),
             accessControlPolicies: [],
-            accessControlPoliciesToRemove: [],
             originalPolicyIds: [],
             showAbacSaveConfirm: false,
             abacAffectedCount: null,
@@ -347,10 +345,8 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
     };
 
     onPolicyRemove = (policyId: string) => {
-        const {accessControlPolicies, accessControlPoliciesToRemove} = this.state;
-        const remaining = accessControlPolicies.filter((policy) => policy.id !== policyId);
+        const remaining = this.state.accessControlPolicies.filter((policy) => policy.id !== policyId);
         this.setState({
-            accessControlPoliciesToRemove: [...accessControlPoliciesToRemove, policyId],
             accessControlPolicies: remaining,
             saveNeeded: true,
 
@@ -363,9 +359,7 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
     };
 
     onPolicyRemoveAll = () => {
-        const {accessControlPolicies, accessControlPoliciesToRemove} = this.state;
         this.setState({
-            accessControlPoliciesToRemove: [...accessControlPoliciesToRemove, ...accessControlPolicies.map((p) => p.id)],
             accessControlPolicies: [],
             saveNeeded: true,
             policyEnforced: this.abacRemainsEnforced([]),
@@ -591,7 +585,7 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
         }
 
         if (this.props.abacSupported) {
-            const {policyEnforced, accessControlPolicies, accessControlPoliciesToRemove, teamRulesExpression, teamRulesAutoSync, teamRulesHaveChanges, teamRulesExistingRules} = this.state;
+            const {policyEnforced, accessControlPolicies, teamRulesExpression, teamRulesAutoSync, teamRulesHaveChanges, teamRulesExistingRules} = this.state;
 
             const hasTeamRules = teamRulesExpression && teamRulesExpression.trim().length > 0;
             const hasParentPolicies = accessControlPolicies.length > 0;
@@ -634,38 +628,17 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                 }
             }
 
-            const policiesToAssign = accessControlPolicies.filter((policy) => !this.state.originalPolicyIds.includes(policy.id));
-            if (policiesToAssign.length > 0) {
-                const result = await Promise.all(
-                    policiesToAssign.map((policy) =>
-                        actions.assignTeamToAccessControlPolicy(policy.id, teamID),
-                    ),
-                );
-                const resultWithError = result.find((r) => r.error);
-                if (resultWithError) {
-                    serverError = <FormError error={resultWithError.error?.message}/>;
-                    saveNeeded = true;
-                }
-            }
-
-            if (accessControlPoliciesToRemove.length > 0) {
-                const result = await Promise.all(
-                    accessControlPoliciesToRemove.map((policyId) =>
-                        actions.unassignTeamsFromAccessControlPolicy(policyId, [teamID]),
-                    ),
-                );
-                const resultWithError = result.find((r) => r.error);
-                if (resultWithError) {
-                    serverError = <FormError error={resultWithError.error?.message}/>;
-                    saveNeeded = true;
-                }
-            }
-
             // Auto-add lives on the policy's membership rule, so a toggle-only change
             // is saved through the same policy write as a rule edit.
             const autoSyncChanged = teamRulesAutoSync !== this.state.teamRulesOriginalAutoSync;
 
-            if (!saveNeeded && !isEmptyAbacState && policyEnforced && (teamRulesHaveChanges || hasParentPolicies || autoSyncChanged)) {
+            // Parent links are the team policy's imports, so they are written by the same
+            // save as the rules: a rejected save leaves both untouched.
+            const parentPolicyIds = accessControlPolicies.map((p) => p.id);
+            const {originalPolicyIds} = this.state;
+            const parentLinksChanged = parentPolicyIds.length !== originalPolicyIds.length || parentPolicyIds.some((id) => !originalPolicyIds.includes(id));
+
+            if (!saveNeeded && !isEmptyAbacState && policyEnforced && (teamRulesHaveChanges || hasParentPolicies || autoSyncChanged || parentLinksChanged)) {
                 try {
                     const teamPolicy: AccessControlPolicy = {
                         id: teamID,
@@ -673,7 +646,7 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                         type: 'team',
                         revision: 1,
                         created_at: Date.now(),
-                        imports: accessControlPolicies.map((p) => p.id),
+                        imports: parentPolicyIds,
                         rules: buildRulesWithMembership(teamRulesExistingRules, teamRulesExpression, autoAddModeForToggle(teamRulesAutoSync)),
                     };
 
@@ -682,6 +655,13 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                         serverError = <FormError error={this.teamPolicySaveErrorMessage(policyResult.error)}/>;
                         saveNeeded = true;
                     } else {
+                        const savedPolicyIds = (policyResult.data as AccessControlPolicy | undefined)?.imports ?? [];
+                        const linkError = await this.linkParentsNotSaved(savedPolicyIds, parentPolicyIds);
+                        if (linkError) {
+                            serverError = <FormError error={linkError.message}/>;
+                            saveNeeded = true;
+                        }
+
                         // Reconcile now instead of waiting for the scheduler. A private
                         // team runs the removal pass regardless of auto-add, so any
                         // enforced save (custom rules or a parent policy) must fire a job
@@ -695,7 +675,7 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                             teamRulesOriginalExpression: teamRulesExpression,
                             teamRulesOriginalAutoSync: teamRulesAutoSync,
                             teamRulesHaveChanges: false,
-                            originalPolicyIds: accessControlPolicies.map((p) => p.id),
+                            originalPolicyIds: linkError ? savedPolicyIds : parentPolicyIds,
                         });
                     }
                 } catch (error) {
@@ -711,7 +691,6 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             rolesToUpdate: {},
             usersToAdd: {},
             usersToRemove: {},
-            accessControlPoliciesToRemove: serverError ? this.state.accessControlPoliciesToRemove : [],
             serverError,
             saving: false,
             saveNeeded,
@@ -829,6 +808,17 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
         return combineMembershipExpressions([teamExpression, ...parentExpressions]);
     };
 
+    // A non-system-admin's policy save keeps the stored imports, so links it didn't
+    // apply go through the assign/unassign endpoints, which report the refusal.
+    private linkParentsNotSaved = async (savedIds: string[], wantedIds: string[]): Promise<{message?: string} | undefined> => {
+        const {teamID, actions} = this.props;
+        const results = await Promise.all([
+            ...wantedIds.filter((id) => !savedIds.includes(id)).map((id) => actions.assignTeamToAccessControlPolicy(id, teamID)),
+            ...savedIds.filter((id) => !wantedIds.includes(id)).map((id) => actions.unassignTeamsFromAccessControlPolicy(id, [teamID])),
+        ]);
+        return results.find((r) => r.error)?.error;
+    };
+
     private teamPolicySaveErrorMessage = (error: {server_error_id?: string; message?: string}): React.ReactNode => {
         switch (error.server_error_id) {
         case 'app.pap.save_policy.self_exclusion':
@@ -932,9 +922,8 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             return;
         }
 
-        // Must run before anything is written: handleSubmit links parent policies before
-        // saving the team policy, so a rejection there would half-apply the save. The
-        // editor's own check is debounced and can lag the latest edit.
+        // Must run before anything is written. The editor's own check is debounced and
+        // can lag the latest edit.
         if (this.props.abacSupported && this.state.policyEnforced) {
             this.setState({saving: true});
             const checkedExpression = this.state.teamRulesExpression;
