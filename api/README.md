@@ -1,6 +1,6 @@
 # Mattermost API Documentation
 
-This repository holds the API reference documentation for Mattermost available at [https://developers.mattermost.com/api-reference](https://developers.mattermost.com/api-reference).
+This repository holds the API reference documentation for Mattermost available at [https://developers.mattermost.com/api-documentation/](https://developers.mattermost.com/api-documentation/).
 
 The Mattermost API reference uses the [OpenAPI standard](https://openapis.org/) and the [ReDoc document generator](https://github.com/Rebilly/ReDoc).
 
@@ -25,4 +25,4 @@ To test locally, run `make build`, `make run` and navigate to `http://127.0.0.1:
 
 ## Deployment
 
-Deployment is handled automatically by our Github Actions. When a pull request is merged, it will automatically be deployed to [https://developers.mattermost.com/api-reference](https://developers.mattermost.com/api-reference).
+Deployment is handled automatically by our Github Actions. When a pull request is merged, it will automatically be deployed to [https://developers.mattermost.com/api-documentation/](https://developers.mattermost.com/api-documentation/).
