@@ -30,7 +30,7 @@ import {
 } from 'components/emoji_picker/constants';
 import {NavigationDirection} from 'components/emoji_picker/types';
 import type {CategoryOrEmojiRow, Categories, EmojiCursor, EmojiPosition, EmojiRow} from 'components/emoji_picker/types';
-import {createCategoryAndEmojiRows, getCursorProperties, getUpdatedCategoriesAndAllEmojis} from 'components/emoji_picker/utils';
+import {createCategoryAndEmojiRows, getCursorProperties, getUpdatedCategoriesAndAllEmojis, normalizeEmojiSearchTerm} from 'components/emoji_picker/utils';
 import NoResultsIndicator from 'components/no_results_indicator';
 import {NoResultsVariant} from 'components/no_results_indicator/types';
 
@@ -91,7 +91,9 @@ const EmojiPicker = ({
 
     const throttledSearchCustomEmoji = useRef(throttle((newFilter, customEmojisEnabled) => {
         if (customEmojisEnabled && newFilter && newFilter.trim().length) {
-            searchCustomEmojis(newFilter);
+            // Custom emoji names never contain spaces, so normalize the search term the
+            // same way the client-side filter does before querying the server
+            searchCustomEmojis(normalizeEmojiSearchTerm(newFilter));
         }
     }, CUSTOM_EMOJI_SEARCH_THROTTLE_TIME_MS));
 
