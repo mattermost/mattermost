@@ -1,0 +1,360 @@
+# Rules for the release agent (.github/workflows/release-agent.yml).
+#
+# One entry per release task the agent checks. Validated against rules.schema.json, and
+# every playbook_item must be a checklist item title in playbook-template.yml (see
+# test_rules.py).
+#
+#   task           stable id, used in run.json
+#   title          what the status post calls the check
+#   playbook_item  checklist item title ticked when the check passes (for a report, when the
+#                  post carrying it goes to the run's channel), as it reads on screen
+#                  (see playbook-template.yml), or null when no item is only about this check
+#   due            T-N in working days from Release Day, or a calendar milestone key below
+#                  with an optional working-day offset (code_freeze+1). A failing check only
+#                  needs attention, and a passing one is only ticked, from this day on.
+#   type           the check function (release_agent/checks.py)
+#   source         where the check reads from: jira, github, hub, confluence
+#   query          check-specific parameters; strings are formatted with {version} (v12.2.0),
+#                  {short_version} (v12.2), {major}, {minor}, {branch} (release-12.2),
+#                  {milestone}, {fix_version}, {release_month} (November), {release_year},
+#                  each calendar milestone below as YYYY-MM-DD ({branch_cut}, {final_build}),
+#                  {holidays_page_id} (RELEASE_AGENT_HOLIDAYS_PAGE_ID) and {next_year}
+#   pass_when      what passing means, as the post describes it
+#   on_fail        needs_attention: listed in the post; log_only: run.json and the log only;
+#                  report: report-only tasks, which never fail
+version: 1
+
+calendar:
+  # Calendar event titles are trimmed and matched on these substrings, case-insensitively.
+  # The title must also carry a server version (v12.2 or 12.2). A version right after
+  # "Mobile" or "Desktop" isn't one, so "v12.1 & Mobile v2.46 Code Freeze" is v12.1's and
+  # "Mobile v2.46 Release Day" is ignored. Dot-release events (v12.2.1) are ignored too.
+  milestones:
+    branch_cut: Release Branch Cut
+    feature_complete: Feature Complete
+    code_freeze: Code Freeze
+    final_build: Final Release Build Cut
+    release_day: Release Day
+  holiday_markers:
+    - Holiday
+  # A release stays active from its first milestone until this many days after Release Day.
+  active_days_after_release: 1
+
+# Non-working days that are not on the calendar, as YYYY-MM-DD.
+holidays: []
+# Company holidays also come from the Confluence holidays page
+# (RELEASE_AGENT_HOLIDAYS_PAGE_ID): every M/DD/YYYY date from each of these headings, for
+# this year and next, up to the next one. The page lists the US and Canada days off,
+# including regional ones, and a day off in either is a non-working day.
+holidays_page_heading: "Entity and EOR locations holidays for {year}"
+
+naming:
+  milestone: "v{major}.{minor}.0"
+  # The month and year are Release Day's: "v12.0 (October 2026)".
+  fix_version: "v{major}.{minor} ({release_month} {release_year})"
+  # The release channel's display name; ESRs have their own. Live mode posts in the one
+  # the bot is in, and the release's playbook run is the in-progress run in that channel
+  # (from RELEASE_AGENT_PLAYBOOK_ID when set). If the bot is in neither, the run is found
+  # by name instead.
+  release_channels:
+    - "Release: {short_version}"
+    - "Release: {short_version} (ESR)"
+    - "Release: {short_version} ESR"
+
+# A reaction with this emoji on a status post, by anyone but the bot, marks everything
+# under Needs attention at the time as a false alarm. run.json counts them.
+false_alarm_emoji: no_entry_sign
+
+rules:
+  # The status post is that list, so the item is ticked when the post first carries it in
+  # the run's channel at Feature Complete; the post keeps it up to date every run after.
+  # Each person is @-mentioned once with their tickets. Unassigned tickets and the bot's are
+  # routed to the dev lead of the ticket's Jira Team (RELEASE_AGENT_DEV_LEADS), else listed under
+  # Unassigned. Submitted tickets show their linked PRs. The item's cherry-pick half is done by
+  # release-cherry-pick-labels.yml, which labels mattermost/mattermost PRs as their tickets
+  # reach Submitted, and by the release manager for enterprise PRs (cherry-picks-to-label).
+  - task: open-release-items
+    title: Open release bugs and PRs
+    playbook_item: Post a list of outstanding release bugs and PRs to the release playbook channel. Label approved cherry-pick PRs.
+    # Runs started before the playbook text changed still have this title.
+    former_playbook_items:
+      - Post a list of outstanding release bugs and PRs to the release playbook channel using /release-bugs vX.X in Claude Cowork.
+    due: feature_complete
+    type: open_release_items
+    source: [jira, github]
+    query:
+      jql: 'project = MM AND fixVersion = "{fix_version}" AND issuetype in (Bug, Story, Task, "Sub-task") AND status not in (Resolved, Closed) ORDER BY assignee ASC, priority ASC'
+      repos: [mattermost/mattermost, mattermost/enterprise]
+      # Bot PRs that carry the milestone until Release Day, such as the changelog PR.
+      exclude_authors: [app/changelog-automation-docs]
+      linked_prs_status: Submitted
+      bot_assignees: [Matty Code]
+      # Unassigned and bot tickets go to the dev lead of the ticket's Jira Team, else of one of
+      # its components, else they are listed under Unassigned. The routes are not here: they
+      # are the repository variable RELEASE_AGENT_DEV_LEADS (JSON, see release-agent.yml), so a
+      # team change needs no PR and team names stay out of this public file.
+      dev_leads:
+        match_field: team
+        team_field: customfield_10800  # Jira "Team" (Atlassian team field)
+    pass_when: report_only
+    on_fail: report
+
+  # The "Review new bug tickets daily…" bullet of the same item. Bugs since the cut that are
+  # labelled or titled as regressions, or mention the release as v12.1, 12.1 or
+  # release-12.1 (phrase searches, so the quotes are escaped).
+  # JQL has no comments, and "resolution not in" alone would drop every unresolved bug, so
+  # an empty resolution is allowed explicitly. The check also skips the
+  # excluded_resolutions itself. Only name resolutions that exist on the Jira site (Done,
+  # Duplicate, Won't Do, Cannot Reproduce, Invalid): Jira rejects the whole JQL otherwise.
+  - task: new-regressions
+    title: New regressions have a fix version
+    playbook_item: null
+    due: feature_complete
+    type: new_regressions
+    source: [jira]
+    query:
+      jql: >-
+        project = MM AND issuetype = Bug AND created >= "{branch_cut}"
+        AND (
+          labels in (rc1, rc2, rc3, rc4, rc5, regression)
+          OR summary ~ "Regression"
+          OR text ~ "\"{short_version}\""
+          OR text ~ "\"{major}.{minor}\""
+          OR text ~ "\"{branch}\""
+        )
+        AND (resolution is EMPTY OR resolution not in (Duplicate, "Won't Do", "Cannot Reproduce", Invalid))
+      excluded_resolutions: [Duplicate, "Won't Do", "Cannot Reproduce", Invalid]
+    pass_when: all_have_fix_version
+    on_fail: needs_attention
+
+  # Due at the Final Build rather than with its playbook section (T-16): tickets keep
+  # reaching Resolved through the cycle, and the bot never reopens a ticked item. Ticked
+  # once no ticket with the release's fix version is left in Resolved.
+  - task: resolved-tickets
+    title: Resolved tickets are Closed
+    playbook_item: Ensure that all Resolved tickets for the release get Closed.
+    due: final_build
+    type: resolved_tickets
+    source: [jira]
+    query:
+      jql: 'project = MM AND fixVersion = "{fix_version}" AND status = Resolved ORDER BY key ASC'
+    pass_when: none_missing
+    on_fail: needs_attention
+
+  - task: hub-on-release-branch
+    title: Hub on the release branch
+    playbook_item: Check that Hub was updated to the latest release branch.
+    due: branch_cut
+    type: hub_release_branch
+    source: [hub, github]
+    query:
+      repo: mattermost/mattermost
+    pass_when: versions_match
+    on_fail: needs_attention
+
+  # Every NOTICE.txt bot PR with the release's milestone must be merged and on the release
+  # branch. PRs for later releases, merged to master after the cut, don't count; with none
+  # for this release the check is skipped.
+  - task: notice-txt
+    title: NOTICE.txt on the release branch
+    playbook_item: Ensure that new NOTICE.txt for any new libraries are cherry-picked to the release branch as needed - example PR.
+    due: branch_cut
+    type: notice_txt
+    source: [github]
+    query:
+      repo: mattermost/mattermost
+      author: app/unified-ci-app
+      title: "Update NOTICE.txt file with updated dependencies"
+      milestone: "{milestone}"
+    pass_when: merged_and_on_release_branch
+    on_fail: needs_attention
+
+  # A T-16 item that runs "throughout the release cycle", so it is only ticked at the
+  # final build, when the last cherry-picks are in.
+  - task: cherry-picks
+    title: Cherry-picks on the release branch
+    playbook_item: Throughout the release cycle, check that any recent backports and regression fixes are cherry-picked to the release.
+    due: final_build
+    type: cherry_picks
+    source: [github]
+    query:
+      repos: [mattermost/mattermost, mattermost/enterprise]
+      # The bot swaps Approved for Done once it opens the cherry-pick, so both are checked.
+      labels: [CherryPick/Approved, CherryPick/Done]
+    pass_when: all_on_release_branch
+    on_fail: needs_attention
+
+  # The release manager's part of open-release-items' "Label approved cherry-pick PRs."
+  # release-cherry-pick-labels.yml labels mattermost/mattermost PRs with its GITHUB_TOKEN,
+  # which can't reach enterprise, so Submitted tickets' enterprise PRs without
+  # CherryPick/Approved (or Done) or the milestone are listed here, with links, until done.
+  - task: cherry-picks-to-label
+    title: Enterprise cherry-picks to label by hand
+    playbook_item: null
+    due: branch_cut
+    type: cherry_picks_to_label
+    source: [jira, github]
+    query:
+      jql: 'project = MM AND fixVersion = "{fix_version}" AND status = Submitted'
+      repos: [mattermost/enterprise]
+      # The first is the one to add; either means it's labelled.
+      labels: [CherryPick/Approved, CherryPick/Done]
+      milestone: "{milestone}"
+      base_branch: master
+    pass_when: none_missing
+    on_fail: needs_attention
+
+  # RC-1 is cut at T-15, a working day after Feature Complete.
+  - task: e2e-results
+    title: E2E results for the latest RC
+    # A title that names people is matched without them: "…" matches any text, so a new owner in
+    # the title doesn't stop the tick.
+    playbook_item: "Check with … that mmctl and e2e tests get done…"
+    due: feature_complete+1
+    type: e2e_results
+    source: [hub]
+    query:
+      # Any one of these, in a post or its attachments, since the latest RC was tagged.
+      match_any: ["{rc_tag}", "{branch}"]
+    pass_when: found
+    on_fail: needs_attention
+
+  # Its item, "Cut a Release Candidate… and notify the QA team", is more than a tag.
+  - task: rc-tags
+    title: RC tags in mattermost and enterprise
+    playbook_item: null
+    due: feature_complete+1
+    type: release_tags
+    source: [github]
+    query:
+      repos: [mattermost/mattermost, mattermost/enterprise]
+      tag_prefix: "{version}-rc"
+    pass_when: present
+    on_fail: needs_attention
+
+  - task: final-tags
+    title: Final tags in mattermost and enterprise
+    playbook_item: Verify that the release tags were added to GitHub (mattermost and enterprise repos).
+    due: final_build
+    type: release_tags
+    source: [github]
+    query:
+      repos: [mattermost/mattermost, mattermost/enterprise]
+      tag: "{version}"
+    pass_when: present
+    on_fail: needs_attention
+
+  - task: version-go-prs
+    title: version.go PRs merged
+    playbook_item: Merge the automated PRs to update version.go - example PR.
+    # The bot opens the PRs once the final build is cut.
+    due: final_build
+    type: version_go_prs
+    source: [github]
+    query:
+      repo: mattermost/mattermost
+      author: app/unified-ci-app
+      created_since: "{final_build}"
+    pass_when: merged
+    on_fail: needs_attention
+
+  # The four changelog items are ticked from what the changelog workflow (#39380) leaves
+  # behind: its PR (head branch changelog/vX.Y.0, opened by app/changelog-automation-docs),
+  # the entry in docs/main/product-overview/mattermost-vN-changelog.mdx, and the live docs
+  # page, which is public and read without a token. The first three are due a working day
+  # RC-1, a working day after Feature Complete, when the workflow opens the PR. So the draft
+  # and migrations rules are due a day later than their playbook section (T-16, Feature
+  # Complete); the review item is in the T-15 section already. If a release has several such
+  # PRs, the newest is used and the others are listed.
+  - task: changelog-draft
+    title: Changelog draft PR
+    playbook_item: Run the workflow to create a changelog draft.
+    due: feature_complete+1
+    type: changelog_pr
+    source: [github]
+    query: &changelog_pr
+      state: exists
+      repo: mattermost/mattermost
+      branch: "changelog/{version}"
+      author: app/changelog-automation-docs
+      base_branch: master
+      live_url: "https://docs.mattermost.com/product-overview/mattermost-v{major}-changelog"
+    pass_when: state_reached
+    on_fail: needs_attention
+
+  # New PostgreSQL migrations are the *.up.sql files on the release branch that the previous
+  # release (its vX.Y.0 tag, or its branch until it's tagged) doesn't have. Each must be
+  # named, by number or by the table or column it changes, in the entry's Database Schema
+  # Changes section. Wording is never judged: ones not named are listed, and the check still
+  # passes. It fails only when there's no changelog PR or the entry has no such section.
+  - task: changelog-migrations
+    title: Database migrations in the changelog
+    playbook_item: Check the postgres migrations workflow file for any new Database changes that need to be added to the release notes.
+    due: feature_complete+1
+    type: changelog_migrations
+    source: [github]
+    query:
+      <<: *changelog_pr
+      migrations_path: server/channels/db/migrations/postgres
+    pass_when: described_or_none
+    on_fail: needs_attention
+
+  # Ready means out of draft with a reviewer requested or a review submitted. An entry that
+  # still says "Release day: TBD" is noted in the post, but doesn't fail the check.
+  - task: changelog-review
+    title: Changelog PR ready for review
+    playbook_item: Submit the changelog PR for team review - example draft.
+    due: feature_complete+1
+    type: changelog_pr
+    source: [github]
+    query:
+      <<: *changelog_pr
+      state: ready
+    pass_when: state_reached
+    on_fail: needs_attention
+
+  # Merged, and the entry is on master and on docs.mattermost.com. The item's other half,
+  # submitting a correction docs PR for formatting errors, can't be checked; ticking it once
+  # the entry is live is close enough.
+  - task: changelog-merged
+    title: Changelog merged and live on docs
+    playbook_item: Merge the release docs/changelog to master and verify all changes on docs.mattermost.com. Submit a correction docs PR for any incorrect formatting or other errors.
+    due: release_day
+    type: changelog_pr
+    source: [github, docs]
+    query:
+      <<: *changelog_pr
+      state: merged
+    pass_when: state_reached
+    on_fail: needs_attention
+
+  # No playbook item; changelog labels feed the changelog draft.
+  - task: changelog-labels
+    title: Changelog labels
+    playbook_item: null
+    due: code_freeze
+    type: changelog_labels
+    source: [github]
+    query:
+      repos: [mattermost/mattermost, mattermost/enterprise]
+      labels: [Changelog/Done, Changelog/Not Needed]
+    pass_when: none_missing
+    on_fail: needs_attention
+
+  # A yearly task with no playbook item, checked in October by the first active release
+  # only. It passes once the page has next year's heading and, after it, at least min_dates
+  # dates in next year, like "(1/01/2028)" (a year's list has about 20). The page is
+  # private, so the post links it and the public log has only counts.
+  - task: holidays-page
+    title: Next year's holidays on Confluence
+    playbook_item: null
+    due: branch_cut
+    type: holidays_page
+    source: [confluence]
+    query:
+      page_id: "{holidays_page_id}"
+      month: 10
+      heading: "Entity and EOR locations holidays for {next_year}"
+      min_dates: 8
+    pass_when: next_year_listed
+    on_fail: needs_attention

@@ -1,0 +1,60 @@
+{
+  "_source": "Made-up tickets, laid out like a POST /rest/api/3/search/jql response; customfield_10800 is the Atlassian Team field. Keys, ids and avatar URLs are invented. Reliability is a team with a route in rules.yml; Unrouted Team has none.",
+  "isLast": true,
+  "issues": [
+    {
+      "id": "990001",
+      "key": "MM-90001",
+      "fields": {
+        "summary": "(left out)",
+        "status": {
+          "name": "Open",
+          "id": "1",
+          "statusCategory": {"id": 2, "key": "new", "colorName": "blue-gray", "name": "To Do"}
+        },
+        "assignee": null,
+        "labels": [],
+        "fixVersions": [
+          {"id": "99001", "description": "", "name": "v12.1 (November 2026)", "archived": false, "released": false, "releaseDate": "2026-11-16"}
+        ],
+        "resolution": null,
+        "components": [],
+        "customfield_10800": {
+          "id": "00000000-0000-4000-8000-000000000001",
+          "name": "Reliability",
+          "avatarUrl": "https://example.invalid/avatars/team-1.svg",
+          "isVisible": true,
+          "isVerified": false,
+          "title": "Reliability",
+          "isShared": true
+        }
+      }
+    },
+    {
+      "id": "990002",
+      "key": "MM-90002",
+      "fields": {
+        "summary": "(left out)",
+        "status": {
+          "name": "Open",
+          "id": "1",
+          "statusCategory": {"id": 2, "key": "new", "colorName": "blue-gray", "name": "To Do"}
+        },
+        "assignee": null,
+        "labels": [],
+        "fixVersions": [],
+        "resolution": null,
+        "components": [{"id": "99901", "name": "Example Component"}],
+        "customfield_10800": {
+          "id": "00000000-0000-4000-8000-000000000002",
+          "name": "Unrouted Team",
+          "avatarUrl": "https://example.invalid/avatars/team-2.svg",
+          "isVisible": true,
+          "isVerified": false,
+          "title": "Unrouted Team",
+          "isShared": true
+        }
+      }
+    }
+  ]
+}

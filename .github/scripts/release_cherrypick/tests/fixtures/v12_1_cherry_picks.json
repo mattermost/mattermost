@@ -1,0 +1,547 @@
+[
+ {
+  "base": {
+   "ref": "master"
+  },
+  "head": {
+   "ref": "fix-fips-openssl3-base"
+  },
+  "html_url": "https://github.com/mattermost/mattermost/pull/39418",
+  "labels": [
+   {
+    "name": "Changelog/Done"
+   },
+   {
+    "name": "CherryPick/Done"
+   },
+   {
+    "name": "release-note"
+   }
+  ],
+  "merged_at": "2026-10-26T12:47:46Z",
+  "milestone": {
+   "title": "v12.1.0"
+  },
+  "number": 39418,
+  "state": "closed",
+  "title": "Pin FIPS base images to the newest OpenSSL 3 digests",
+  "repo": "mattermost/mattermost"
+ },
+ {
+  "base": {
+   "ref": "master"
+  },
+  "head": {
+   "ref": "cursor/jira-bug-fix-agent-workflow-478d"
+  },
+  "html_url": "https://github.com/mattermost/mattermost/pull/39358",
+  "labels": [
+   {
+    "name": "4: Reviews Complete"
+   },
+   {
+    "name": "Changelog/Done"
+   },
+   {
+    "name": "Hacktoberfest"
+   },
+   {
+    "name": "CherryPick/Done"
+   },
+   {
+    "name": "release-note"
+   }
+  ],
+  "merged_at": "2026-10-28T12:06:49Z",
+  "milestone": {
+   "title": "v12.1.0"
+  },
+  "number": 39358,
+  "state": "closed",
+  "title": "[MM-71303] Fix empty OpenSearch/Elasticsearch post search when a highlight contains an illegal XML character",
+  "repo": "mattermost/mattermost"
+ },
+ {
+  "base": {
+   "ref": "master"
+  },
+  "head": {
+   "ref": "feat/help-menu-mattermost-documentation"
+  },
+  "html_url": "https://github.com/mattermost/mattermost/pull/39335",
+  "labels": [
+   {
+    "name": "Changelog/Done"
+   },
+   {
+    "name": "CherryPick/Done"
+   },
+   {
+    "name": "kind/feature"
+   },
+   {
+    "name": "release-note"
+   }
+  ],
+  "merged_at": "2026-10-21T20:38:12Z",
+  "milestone": {
+   "title": "v12.1.0"
+  },
+  "number": 39335,
+  "state": "closed",
+  "title": "Point the help menu at bundled documentation",
+  "repo": "mattermost/mattermost"
+ },
+ {
+  "base": {
+   "ref": "master"
+  },
+  "head": {
+   "ref": "mm-68613-revert-message-column-resize"
+  },
+  "html_url": "https://github.com/mattermost/mattermost/pull/39332",
+  "labels": [
+   {
+    "name": "2: Dev Review"
+   },
+   {
+    "name": "Docs/Needed"
+   },
+   {
+    "name": "Changelog/Done"
+   },
+   {
+    "name": "CherryPick/Done"
+   },
+   {
+    "name": "release-note"
+   }
+  ],
+  "merged_at": "2026-10-23T17:33:55Z",
+  "milestone": {
+   "title": "v12.1.0"
+  },
+  "number": 39332,
+  "state": "closed",
+  "title": "MM-68613: resize message columns only on fresh installations",
+  "repo": "mattermost/mattermost"
+ },
+ {
+  "base": {
+   "ref": "master"
+  },
+  "head": {
+   "ref": "MM-71295.fix.db.query.loop"
+  },
+  "html_url": "https://github.com/mattermost/mattermost/pull/39323",
+  "labels": [
+   {
+    "name": "4: Reviews Complete"
+   },
+   {
+    "name": "Changelog/Done"
+   },
+   {
+    "name": "CherryPick/Done"
+   },
+   {
+    "name": "release-note"
+   }
+  ],
+  "merged_at": "2026-10-21T17:01:07Z",
+  "milestone": {
+   "title": "v12.1.0"
+  },
+  "number": 39323,
+  "state": "closed",
+  "title": "MM-71295: Fix endless DB query loop in RemoveNotifications with multiple groups",
+  "repo": "mattermost/mattermost"
+ },
+ {
+  "base": {
+   "ref": "master"
+  },
+  "head": {
+   "ref": "docs/documentation-trailing-slash-redirect"
+  },
+  "html_url": "https://github.com/mattermost/mattermost/pull/39314",
+  "labels": [
+   {
+    "name": "2: Dev Review"
+   },
+   {
+    "name": "Changelog/Not Needed"
+   },
+   {
+    "name": "CherryPick/Done"
+   },
+   {
+    "name": "release-note-none"
+   }
+  ],
+  "merged_at": "2026-10-21T13:40:58Z",
+  "milestone": {
+   "title": "v12.1.0"
+  },
+  "number": 39314,
+  "state": "closed",
+  "title": "docs: redirect /_documentation to /_documentation/",
+  "repo": "mattermost/mattermost"
+ },
+ {
+  "base": {
+   "ref": "master"
+  },
+  "head": {
+   "ref": "cursor/update-post-as-user"
+  },
+  "html_url": "https://github.com/mattermost/mattermost/pull/39282",
+  "labels": [
+   {
+    "name": "Docs/Needed"
+   },
+   {
+    "name": "Changelog/Done"
+   },
+   {
+    "name": "CherryPick/Done"
+   },
+   {
+    "name": "release-note"
+   }
+  ],
+  "merged_at": "2026-10-26T15:44:06Z",
+  "milestone": {
+   "title": "v12.1.0"
+  },
+  "number": 39282,
+  "state": "closed",
+  "title": "Add UpdatePostWithOptions so plugins can pass update options",
+  "repo": "mattermost/mattermost"
+ },
+ {
+  "base": {
+   "ref": "master"
+  },
+  "head": {
+   "ref": "amyblais-patch-firefox121"
+  },
+  "html_url": "https://github.com/mattermost/mattermost/pull/39253",
+  "labels": [
+   {
+    "name": "4: Reviews Complete"
+   },
+   {
+    "name": "Changelog/Done"
+   },
+   {
+    "name": "CherryPick/Done"
+   },
+   {
+    "name": "release-note"
+   },
+   {
+    "name": "2: Editor Review"
+   }
+  ],
+  "merged_at": "2026-10-19T12:45:24Z",
+  "milestone": {
+   "title": "v12.1.0"
+  },
+  "number": 39253,
+  "state": "closed",
+  "title": "Update minimum supported Firefox version",
+  "repo": "mattermost/mattermost"
+ },
+ {
+  "base": {
+   "ref": "master"
+  },
+  "head": {
+   "ref": "MM-70723-prepackage-calls-v1.12.6"
+  },
+  "html_url": "https://github.com/mattermost/mattermost/pull/39219",
+  "labels": [
+   {
+    "name": "4: Reviews Complete"
+   },
+   {
+    "name": "Changelog/Done"
+   },
+   {
+    "name": "CherryPick/Done"
+   },
+   {
+    "name": "release-note"
+   }
+  ],
+  "merged_at": "2026-10-19T05:31:49Z",
+  "milestone": {
+   "title": "v12.1.0"
+  },
+  "number": 39219,
+  "state": "closed",
+  "title": "[MM-70723] Update prepackaged Calls to v1.12.6",
+  "repo": "mattermost/mattermost"
+ },
+ {
+  "base": {
+   "ref": "master"
+  },
+  "head": {
+   "ref": "mm-70268-es-bulk-indexing-stuck"
+  },
+  "html_url": "https://github.com/mattermost/mattermost/pull/39151",
+  "labels": [
+   {
+    "name": "Changelog/Done"
+   },
+   {
+    "name": "CherryPick/Done"
+   },
+   {
+    "name": "release-note"
+   }
+  ],
+  "merged_at": "2026-10-15T12:17:52Z",
+  "milestone": {
+   "title": "v12.1.0"
+  },
+  "number": 39151,
+  "state": "closed",
+  "title": "MM-70268: Time out stalled OpenSearch bulk indexing requests",
+  "repo": "mattermost/mattermost"
+ },
+ {
+  "base": {
+   "ref": "master"
+  },
+  "head": {
+   "ref": "IDEA-001-bot-attributes"
+  },
+  "html_url": "https://github.com/mattermost/mattermost/pull/39121",
+  "labels": [
+   {
+    "name": "4: Reviews Complete"
+   },
+   {
+    "name": "Docs/Done"
+   },
+   {
+    "name": "Changelog/Done"
+   },
+   {
+    "name": "CherryPick/Done"
+   },
+   {
+    "name": "release-note"
+   }
+  ],
+  "merged_at": "2026-10-16T14:18:45Z",
+  "milestone": {
+   "title": "v12.1.0"
+  },
+  "number": 39121,
+  "state": "closed",
+  "title": "Add Attributes to Bot Accounts",
+  "repo": "mattermost/mattermost"
+ },
+ {
+  "base": {
+   "ref": "master"
+  },
+  "head": {
+   "ref": "docs-airgapped-offline-bundle"
+  },
+  "html_url": "https://github.com/mattermost/mattermost/pull/38957",
+  "labels": [
+   {
+    "name": "4: Reviews Complete"
+   },
+   {
+    "name": "Docs/Done"
+   },
+   {
+    "name": "Changelog/Done"
+   },
+   {
+    "name": "CherryPick/Done"
+   },
+   {
+    "name": "release-note"
+   }
+  ],
+  "merged_at": "2026-10-13T18:50:54Z",
+  "milestone": {
+   "title": "v12.1.0"
+  },
+  "number": 38957,
+  "state": "closed",
+  "title": "docs: ship offline documentation in the release tarball",
+  "repo": "mattermost/mattermost"
+ },
+ {
+  "base": {
+   "ref": "master"
+  },
+  "head": {
+   "ref": "oidc-attribute-sync"
+  },
+  "html_url": "https://github.com/mattermost/mattermost/pull/38939",
+  "labels": [
+   {
+    "name": "4: Reviews Complete"
+   },
+   {
+    "name": "Changelog/Done"
+   },
+   {
+    "name": "CherryPick/Done"
+   },
+   {
+    "name": "release-note"
+   },
+   {
+    "name": "2: Editor Review"
+   }
+  ],
+  "merged_at": "2026-10-21T13:41:50Z",
+  "milestone": {
+   "title": "v12.1.0"
+  },
+  "number": 38939,
+  "state": "closed",
+  "title": "Sync user attributes from OpenID Connect claims",
+  "repo": "mattermost/mattermost"
+ },
+ {
+  "base": {
+   "ref": "master"
+  },
+  "head": {
+   "ref": "cursor/jira-bug-fix-agent-workflow-acb8"
+  },
+  "html_url": "https://github.com/mattermost/mattermost/pull/38861",
+  "labels": [
+   {
+    "name": "2: Dev Review"
+   },
+   {
+    "name": "Changelog/Done"
+   },
+   {
+    "name": "CherryPick/Done"
+   },
+   {
+    "name": "release-note"
+   },
+   {
+    "name": "Contributor"
+   },
+   {
+    "name": "AI/babysit"
+   }
+  ],
+  "merged_at": "2026-10-19T12:51:55Z",
+  "milestone": {
+   "title": "v12.1.0"
+  },
+  "number": 38861,
+  "state": "closed",
+  "title": "[MM-69775] Delete the server-side draft when sending from the Drafts panel",
+  "repo": "mattermost/mattermost"
+ },
+ {
+  "base": {
+   "ref": "master"
+  },
+  "head": {
+   "ref": "theme-error-page"
+  },
+  "html_url": "https://github.com/mattermost/mattermost/pull/38812",
+  "labels": [
+   {
+    "name": "2: Dev Review"
+   },
+   {
+    "name": "Changelog/Done"
+   },
+   {
+    "name": "CherryPick/Done"
+   },
+   {
+    "name": "release-note"
+   },
+   {
+    "name": "E2E Tests/verified"
+   }
+  ],
+  "merged_at": "2026-09-29T21:51:14Z",
+  "milestone": {
+   "title": "v12.1.0"
+  },
+  "number": 38812,
+  "state": "closed",
+  "title": "Apply the signed-in user's theme on the full-page error screen",
+  "repo": "mattermost/mattermost"
+ },
+ {
+  "base": {
+   "ref": "master"
+  },
+  "head": {
+   "ref": "fix/flaky-TestPostAcknowledgementsStore-BatchDelete"
+  },
+  "html_url": "https://github.com/mattermost/mattermost/pull/38622",
+  "labels": [
+   {
+    "name": "4: Reviews Complete"
+   },
+   {
+    "name": "Changelog/Not Needed"
+   },
+   {
+    "name": "CherryPick/Done"
+   },
+   {
+    "name": "kind/bug"
+   },
+   {
+    "name": "release-note-none"
+   },
+   {
+    "name": "Contributor"
+   }
+  ],
+  "merged_at": "2026-09-18T10:42:00Z",
+  "milestone": {
+   "title": "v12.1.0"
+  },
+  "number": 38622,
+  "state": "closed",
+  "title": "Fix flaky TestPostAcknowledgementsStore/postgres/BatchDelete/batch_delete_should_update_post's_update_at",
+  "repo": "mattermost/mattermost"
+ },
+ {
+  "number": 2325,
+  "title": "(private repo title left out)",
+  "html_url": "https://github.com/mattermost/enterprise/pull/2325",
+  "state": "closed",
+  "merged_at": "2026-10-21T13:41:51Z",
+  "base": {
+   "ref": "master"
+  },
+  "head": {
+   "ref": "(left out)"
+  },
+  "labels": [
+   {
+    "name": "CherryPick/Done"
+   }
+  ],
+  "milestone": {
+   "title": "v12.1.0"
+  },
+  "repo": "mattermost/enterprise"
+ }
+]
