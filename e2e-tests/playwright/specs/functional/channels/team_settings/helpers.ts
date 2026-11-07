@@ -5,7 +5,7 @@ import type {Locator, Page} from '@playwright/test';
 import {expect} from '@playwright/test';
 import type {Client4} from '@mattermost/client';
 
-import {newTestPassword} from '@mattermost/playwright-lib';
+import {newTestPassword, patchFeatureFlags} from '@mattermost/playwright-lib';
 
 export async function enableABACConfig(client: Client4) {
     await client.patchConfig({
@@ -317,13 +317,11 @@ export async function addAttributeRule(container: Locator, page: Page, value: st
 }
 
 export async function enableTeamMembershipABACConfig(client: Client4) {
+    await patchFeatureFlags(client, {TeamMembershipAccessControl: true});
     await client.patchConfig({
         AccessControlSettings: {
             EnableAttributeBasedAccessControl: true,
             EnableUserManagedAttributes: true,
-        },
-        FeatureFlags: {
-            TeamMembershipAccessControl: true,
         },
     } as any);
 }

@@ -28,6 +28,22 @@ export const MATTERMOST_FIXED_HOST_PORT = 8055;
 export const WEBHOOK_ALIAS = 'webhook';
 export const WEBHOOK_PORT = 3000;
 
+export const SPLIT_MOCK_ALIAS = 'splitmock';
+export const SPLIT_MOCK_CONTROL_PORT = 4000;
+export const SPLIT_MOCK_API_PORT = 443;
+// The hostnames the Split SDK in the server talks to, all answered by the mock through network aliases.
+export const SPLIT_MOCK_HOSTS = [
+    'sdk.split.io',
+    'events.split.io',
+    'auth.split.io',
+    'streaming.split.io',
+    'telemetry.split.io',
+];
+// Any non-empty SplitKey makes the server sync flags from Split; the mock doesn't check it.
+export const SPLIT_MOCK_KEY = 'e2e-split-mock';
+// Where the mock's CA is copied in the server container, and added to Go's certificate search path.
+export const SPLIT_MOCK_CA_DIR = '/e2e-certs';
+
 export const OPENLDAP_ALIAS = 'openldap';
 export const OPENLDAP_PORT = 389;
 export const OPENLDAP_ADMIN_DN = 'cn=admin,dc=mm,dc=test,dc=com';

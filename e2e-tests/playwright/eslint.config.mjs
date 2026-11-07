@@ -15,6 +15,7 @@ export default [
             '**/results',
             '.mattermost_data/**',
             'lib/src/containers/assets/webhook/tests/**',
+            'lib/src/containers/assets/split-mock/**', // Standalone Node script for the mock Split container
         ],
     },
     ...eslintPlugin.configs.base,
