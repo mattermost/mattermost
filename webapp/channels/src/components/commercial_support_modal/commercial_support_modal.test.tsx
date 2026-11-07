@@ -85,6 +85,60 @@ describe('components/CommercialSupportModal', () => {
         expect(serverLogs).toBeChecked();
     });
 
+    test('should describe built-in options and leave plugin options without a description', () => {
+        const props = {
+            ...baseProps,
+            packetContents: [
+                ...baseProps.packetContents,
+                {id: 'com.mattermost.calls', label: 'Calls plugin', selected: false, mandatory: false},
+            ],
+        };
+        renderWithContext(<CommercialSupportModal {...props}/>);
+
+        expect(screen.getByRole('checkbox', {name: 'Basic contents'})).toHaveAccessibleDescription(
+            '(required) Server version, sanitized configuration, usage counts, job status, permissions, plugin list, and performance profiles. Does not include message content.',
+        );
+        expect(screen.getByRole('checkbox', {name: 'Server Logs'})).toHaveAccessibleDescription(
+            'Recent server log files. May contain user IDs, IP addresses, and error details.',
+        );
+        expect(screen.getByRole('checkbox', {name: 'Calls plugin'})).not.toHaveAttribute('aria-describedby');
+
+        expect(screen.getAllByText('(required)')).toHaveLength(1);
+        expect(screen.getByText('Basic contents').closest('.CommercialSupportModal__option')).toContainElement(screen.getByText('(required)'));
+    });
+
+    test('should expand and collapse the list of what Basic contents includes', async () => {
+        renderWithContext(<CommercialSupportModal {...baseProps}/>);
+
+        const user = userEvent.setup();
+        const toggle = screen.getByRole('button', {name: 'What\'s included'});
+
+        expect(toggle).toHaveAttribute('aria-expanded', 'false');
+        expect(screen.queryByRole('list')).not.toBeInTheDocument();
+
+        await user.click(toggle);
+
+        expect(toggle).toHaveAttribute('aria-expanded', 'true');
+        const list = screen.getByRole('list');
+        expect(toggle).toHaveAttribute('aria-controls', list.id);
+        expect(screen.getAllByRole('listitem').map((item) => item.textContent)).toEqual([
+            'Server version, license, and server ID',
+            'System diagnostics: OS, CPU, memory, database, file storage, and connectivity checks',
+            'Configuration with credentials removed',
+            'Usage counts: users, posts, channels, teams',
+            'Background job status',
+            'Permission schemes and roles',
+            'Installed plugins and their versions',
+            'Database table structure (no data)',
+            'Performance profiles (CPU, memory, goroutines)',
+        ]);
+
+        await user.click(toggle);
+
+        expect(toggle).toHaveAttribute('aria-expanded', 'false');
+        expect(screen.queryByRole('list')).not.toBeInTheDocument();
+    });
+
     test('should show error message when download fails', async () => {
         const errorMessage = 'Failed to download';
         const detailedError = 'Permission denied';
