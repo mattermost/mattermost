@@ -32,6 +32,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
+	"github.com/mattermost/mattermost/server/v8/channels/web"
 	einterfacesmocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
@@ -5437,6 +5438,223 @@ func TestGetPostThread(t *testing.T) {
 
 	_, _, err = th.SystemAdminClient.GetPostThread(context.Background(), th.BasicPost.Id, "", false)
 	require.NoError(t, err)
+}
+
+func TestGetPostThreadResultCount(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+
+	createThread := func(t *testing.T, replyCount int) *model.Post {
+		root := th.CreatePost(t)
+
+		replies := make([]*model.Post, 0, replyCount)
+		for i := range replyCount {
+			replies = append(replies, &model.Post{
+				UserId:    th.BasicUser.Id,
+				ChannelId: root.ChannelId,
+				RootId:    root.Id,
+				Message:   fmt.Sprintf("reply %d", i),
+			})
+		}
+
+		_, _, nErr := th.App.Srv().Store().Post().SaveMultiple(th.Context, replies)
+		require.NoError(t, nErr)
+
+		return root
+	}
+
+	readThread := func(t *testing.T, as *model.Client4, postID, query string) (*model.PostList, int) {
+		r, err := as.DoAPIGet(context.Background(), "/posts/"+postID+"/thread"+query, "")
+		if r == nil {
+			// Only a transport-level failure leaves no response to report on.
+			require.NoError(t, err)
+		}
+		if err != nil {
+			return nil, r.StatusCode
+		}
+		defer r.Body.Close()
+
+		var list model.PostList
+		require.NoError(t, json.NewDecoder(r.Body).Decode(&list))
+
+		return &list, r.StatusCode
+	}
+
+	shortThread := createThread(t, 5)
+	longThread := createThread(t, web.PerPageMaximum+50)
+
+	// minOrder and maxOrder bracket the number of entries the response may hold: the
+	// upper bound is a page plus the root post, the lower bound keeps a request that
+	// asks for a full page from being answered with a short one.
+	testCases := []struct {
+		description string
+		as          *model.Client4
+		root        *model.Post
+		query       string
+		statusCode  int
+		minOrder    int
+		maxOrder    int
+	}{
+		{
+			description: "whole thread when it fits in a page",
+			root:        shortThread,
+			statusCode:  http.StatusOK,
+			minOrder:    6,
+			maxOrder:    6,
+		},
+		{
+			description: "whole collapsed thread when it fits in a page",
+			root:        shortThread,
+			query:       "?collapsedThreads=true",
+			statusCode:  http.StatusOK,
+			minOrder:    6,
+			maxOrder:    6,
+		},
+		{
+			description: "no page size given",
+			root:        longThread,
+			statusCode:  http.StatusOK,
+			minOrder:    web.PerPageMaximum,
+			maxOrder:    web.PerPageMaximum + 1,
+		},
+		{
+			description: "no page size given for a collapsed thread",
+			root:        longThread,
+			query:       "?collapsedThreads=true",
+			statusCode:  http.StatusOK,
+			minOrder:    web.PerPageMaximum,
+			maxOrder:    web.PerPageMaximum + 1,
+		},
+		{
+			description: "empty page size",
+			root:        longThread,
+			query:       "?perPage=",
+			statusCode:  http.StatusOK,
+			minOrder:    web.PerPageMaximum,
+			maxOrder:    web.PerPageMaximum + 1,
+		},
+		{
+			description: "page size of zero",
+			root:        longThread,
+			query:       "?perPage=0",
+			statusCode:  http.StatusOK,
+			minOrder:    web.PerPageMaximum,
+			maxOrder:    web.PerPageMaximum + 1,
+		},
+		{
+			description: "page size of zero for a collapsed thread",
+			root:        longThread,
+			query:       "?collapsedThreads=true&perPage=0",
+			statusCode:  http.StatusOK,
+			minOrder:    web.PerPageMaximum,
+			maxOrder:    web.PerPageMaximum + 1,
+		},
+		{
+			description: "page size at the maximum",
+			root:        longThread,
+			query:       fmt.Sprintf("?perPage=%d", web.PerPageMaximum),
+			statusCode:  http.StatusOK,
+			minOrder:    web.PerPageMaximum,
+			maxOrder:    web.PerPageMaximum + 1,
+		},
+		{
+			description: "percent-encoded page size",
+			root:        longThread,
+			query:       "?perPage=%32%30%30",
+			statusCode:  http.StatusOK,
+			minOrder:    web.PerPageMaximum,
+			maxOrder:    web.PerPageMaximum + 1,
+		},
+		{
+			description: "page size repeated in the query string",
+			root:        longThread,
+			query:       "?perPage=2&perPage=5000",
+			statusCode:  http.StatusOK,
+			maxOrder:    3,
+		},
+		{
+			description: "no page size given for a system administrator",
+			as:          th.SystemAdminClient,
+			root:        longThread,
+			statusCode:  http.StatusOK,
+			minOrder:    web.PerPageMaximum,
+			maxOrder:    web.PerPageMaximum + 1,
+		},
+		{
+			description: "page size above the maximum",
+			root:        longThread,
+			query:       "?perPage=5000",
+			statusCode:  http.StatusBadRequest,
+		},
+		{
+			description: "negative page size",
+			root:        longThread,
+			query:       "?perPage=-1",
+			statusCode:  http.StatusBadRequest,
+		},
+		{
+			description: "non-numeric page size",
+			root:        longThread,
+			query:       "?perPage=abc",
+			statusCode:  http.StatusBadRequest,
+		},
+		{
+			description: "page size written with full-width digits",
+			root:        longThread,
+			query:       "?perPage=%EF%BC%92%EF%BC%90%EF%BC%90",
+			statusCode:  http.StatusBadRequest,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.description, func(t *testing.T) {
+			as := testCase.as
+			if as == nil {
+				as = client
+			}
+
+			list, statusCode := readThread(t, as, testCase.root.Id, testCase.query)
+			require.Equal(t, testCase.statusCode, statusCode)
+
+			if testCase.statusCode != http.StatusOK {
+				return
+			}
+
+			require.NotNil(t, list)
+			assert.LessOrEqual(t, len(list.Order), testCase.maxOrder)
+			assert.GreaterOrEqual(t, len(list.Order), testCase.minOrder)
+		})
+	}
+
+	t.Run("returns at most a page of posts for concurrent readers", func(t *testing.T) {
+		root := longThread
+
+		const readers = 20
+
+		counts := make([]int, readers)
+		errs := make([]error, readers)
+
+		var wg sync.WaitGroup
+		for i := range readers {
+			wg.Add(1)
+			go func(i int) {
+				defer wg.Done()
+
+				list, _, err := client.GetPostThread(context.Background(), root.Id, "", false)
+				if err != nil {
+					errs[i] = err
+					return
+				}
+				counts[i] = len(list.Order)
+			}(i)
+		}
+		wg.Wait()
+
+		require.NoError(t, errors.Join(errs...))
+		assert.LessOrEqual(t, slices.Max(counts), web.PerPageMaximum+1, "largest response across concurrent readers")
+	})
 }
 
 func TestSearchPosts(t *testing.T) {
