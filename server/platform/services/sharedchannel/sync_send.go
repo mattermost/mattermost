@@ -618,13 +618,9 @@ func (scs *Service) notifyRemoteOffline(posts []*model.Post, rc *model.RemoteClu
 
 // updateCursorForRemote is conditional so a cursor set during the batch, such as a plugin rewind, is kept.
 func (scs *Service) updateCursorForRemote(sd *syncData) {
-	expected := model.GetPostsSinceForSyncCursor{
-		LastPostUpdateAt: sd.scr.LastPostUpdateAt, LastPostUpdateID: sd.scr.LastPostUpdateID,
-		LastPostCreateAt: sd.scr.LastPostCreateAt, LastPostCreateID: sd.scr.LastPostCreateID,
-	}
 	cursor := sd.resultNextCursor
 
-	updated, err := scs.server.GetStore().SharedChannel().UpdateRemoteCursorIfUnchanged(sd.scr.Id, expected, cursor)
+	updated, err := scs.server.GetStore().SharedChannel().UpdateRemoteCursorIfUnchanged(sd.scr.Id, sd.scr.UpdateAt, cursor)
 	if err != nil {
 		scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "error updating cursor for shared channel remote",
 			mlog.String("remote", sd.rc.DisplayName),

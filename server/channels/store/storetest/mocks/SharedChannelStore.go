@@ -748,9 +748,9 @@ func (_m *SharedChannelStore) UpdateRemoteCursor(id string, cursor model.GetPost
 	return r0
 }
 
-// UpdateRemoteCursorIfUnchanged provides a mock function with given fields: id, expected, next
-func (_m *SharedChannelStore) UpdateRemoteCursorIfUnchanged(id string, expected model.GetPostsSinceForSyncCursor, next model.GetPostsSinceForSyncCursor) (bool, error) {
-	ret := _m.Called(id, expected, next)
+// UpdateRemoteCursorIfUnchanged provides a mock function with given fields: id, expectedUpdateAt, next
+func (_m *SharedChannelStore) UpdateRemoteCursorIfUnchanged(id string, expectedUpdateAt int64, next model.GetPostsSinceForSyncCursor) (bool, error) {
+	ret := _m.Called(id, expectedUpdateAt, next)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UpdateRemoteCursorIfUnchanged")
@@ -758,17 +758,17 @@ func (_m *SharedChannelStore) UpdateRemoteCursorIfUnchanged(id string, expected 
 
 	var r0 bool
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, model.GetPostsSinceForSyncCursor, model.GetPostsSinceForSyncCursor) (bool, error)); ok {
-		return rf(id, expected, next)
+	if rf, ok := ret.Get(0).(func(string, int64, model.GetPostsSinceForSyncCursor) (bool, error)); ok {
+		return rf(id, expectedUpdateAt, next)
 	}
-	if rf, ok := ret.Get(0).(func(string, model.GetPostsSinceForSyncCursor, model.GetPostsSinceForSyncCursor) bool); ok {
-		r0 = rf(id, expected, next)
+	if rf, ok := ret.Get(0).(func(string, int64, model.GetPostsSinceForSyncCursor) bool); ok {
+		r0 = rf(id, expectedUpdateAt, next)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
-	if rf, ok := ret.Get(1).(func(string, model.GetPostsSinceForSyncCursor, model.GetPostsSinceForSyncCursor) error); ok {
-		r1 = rf(id, expected, next)
+	if rf, ok := ret.Get(1).(func(string, int64, model.GetPostsSinceForSyncCursor) error); ok {
+		r1 = rf(id, expectedUpdateAt, next)
 	} else {
 		r1 = ret.Error(1)
 	}

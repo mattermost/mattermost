@@ -15506,11 +15506,11 @@ func (s *RetryLayerSharedChannelStore) UpdateRemoteCursor(id string, cursor mode
 
 }
 
-func (s *RetryLayerSharedChannelStore) UpdateRemoteCursorIfUnchanged(id string, expected model.GetPostsSinceForSyncCursor, next model.GetPostsSinceForSyncCursor) (bool, error) {
+func (s *RetryLayerSharedChannelStore) UpdateRemoteCursorIfUnchanged(id string, expectedUpdateAt int64, next model.GetPostsSinceForSyncCursor) (bool, error) {
 
 	tries := 0
 	for {
-		result, err := s.SharedChannelStore.UpdateRemoteCursorIfUnchanged(id, expected, next)
+		result, err := s.SharedChannelStore.UpdateRemoteCursorIfUnchanged(id, expectedUpdateAt, next)
 		if err == nil {
 			return result, nil
 		}

@@ -12287,10 +12287,10 @@ func (s *TimerLayerSharedChannelStore) UpdateRemoteCursor(id string, cursor mode
 	return err
 }
 
-func (s *TimerLayerSharedChannelStore) UpdateRemoteCursorIfUnchanged(id string, expected model.GetPostsSinceForSyncCursor, next model.GetPostsSinceForSyncCursor) (bool, error) {
+func (s *TimerLayerSharedChannelStore) UpdateRemoteCursorIfUnchanged(id string, expectedUpdateAt int64, next model.GetPostsSinceForSyncCursor) (bool, error) {
 	start := time.Now()
 
-	result, err := s.SharedChannelStore.UpdateRemoteCursorIfUnchanged(id, expected, next)
+	result, err := s.SharedChannelStore.UpdateRemoteCursorIfUnchanged(id, expectedUpdateAt, next)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

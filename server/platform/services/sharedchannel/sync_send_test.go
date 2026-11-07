@@ -537,15 +537,17 @@ func TestUpdateCursorForRemote_KeepsCursorSetDuringBatch(t *testing.T) {
 			LastPostCreateID: start.LastPostCreateID,
 			LastPostUpdateAt: start.LastPostUpdateAt,
 			LastPostUpdateID: start.LastPostUpdateID,
+			UpdateAt:         1,
 		}
 	}
 
-	// The stored cursor is kept in memory; the conditional update mirrors the store's WHERE clause.
-	newService := func(t *testing.T, scr *model.SharedChannelRemote, rewindInHook bool) (*Service, func() model.GetPostsSinceForSyncCursor) {
+	// The stored row is kept in memory; the conditional update mirrors the store's WHERE clause.
+	newService := func(t *testing.T, scr *model.SharedChannelRemote, rewindTo *model.GetPostsSinceForSyncCursor) (*Service, func() model.GetPostsSinceForSyncCursor) {
 		t.Helper()
 
 		var mu sync.Mutex
 		stored := start
+		storedUpdateAt := scr.UpdateAt
 
 		scStore := &mocks.SharedChannelStore{}
 		scStore.On("GetRemoteByIdsFromMaster", channelID, rc.RemoteId).Return(scr, nil)
@@ -553,16 +555,18 @@ func TestUpdateCursorForRemote_KeepsCursorSetDuringBatch(t *testing.T) {
 			mu.Lock()
 			defer mu.Unlock()
 			stored = cursor
+			storedUpdateAt++
 			return nil
 		})
 		scStore.On("UpdateRemoteCursorIfUnchanged", scr.Id, mock.Anything, mock.Anything).Return(
-			func(_ string, expected, cursor model.GetPostsSinceForSyncCursor) (bool, error) {
+			func(_ string, expectedUpdateAt int64, cursor model.GetPostsSinceForSyncCursor) (bool, error) {
 				mu.Lock()
 				defer mu.Unlock()
-				if stored != expected {
+				if storedUpdateAt != expectedUpdateAt {
 					return false, nil
 				}
 				stored = cursor
+				storedUpdateAt++
 				return true, nil
 			})
 
@@ -577,8 +581,8 @@ func TestUpdateCursorForRemote_KeepsCursorSetDuringBatch(t *testing.T) {
 
 		mockApp := &MockAppIface{}
 		mockApp.On("OnSharedChannelsSyncMsg", mock.Anything, rc).Run(func(mock.Arguments) {
-			if rewindInHook {
-				require.NoError(t, scStore.UpdateRemoteCursor(scr.Id, rewind))
+			if rewindTo != nil {
+				require.NoError(t, scStore.UpdateRemoteCursor(scr.Id, *rewindTo))
 			}
 		}).Return(model.SyncResponse{}, nil)
 
@@ -604,7 +608,7 @@ func TestUpdateCursorForRemote_KeepsCursorSetDuringBatch(t *testing.T) {
 
 	t.Run("batch advances the cursor when it was not changed", func(t *testing.T) {
 		scr := newScr()
-		scs, stored := newService(t, scr, false)
+		scs, stored := newService(t, scr, nil)
 
 		require.NoError(t, scs.sendSyncData(newBatch(scr)))
 		assert.Equal(t, next, stored())
@@ -612,15 +616,23 @@ func TestUpdateCursorForRemote_KeepsCursorSetDuringBatch(t *testing.T) {
 
 	t.Run("rewind made by the plugin hook survives the batch write-back", func(t *testing.T) {
 		scr := newScr()
-		scs, stored := newService(t, scr, true)
+		scs, stored := newService(t, scr, &rewind)
 
 		require.NoError(t, scs.sendSyncData(newBatch(scr)))
 		assert.Equal(t, rewind, stored())
 	})
 
+	t.Run("rewind to the batch's starting cursor survives the write-back", func(t *testing.T) {
+		scr := newScr()
+		scs, stored := newService(t, scr, &start)
+
+		require.NoError(t, scs.sendSyncData(newBatch(scr)))
+		assert.Equal(t, start, stored())
+	})
+
 	t.Run("rewind made before a batch with no posts survives the write-back", func(t *testing.T) {
 		scr := newScr()
-		scs, stored := newService(t, scr, false)
+		scs, stored := newService(t, scr, nil)
 		sd := newBatch(scr)
 		sd.posts = nil
 
@@ -631,7 +643,7 @@ func TestUpdateCursorForRemote_KeepsCursorSetDuringBatch(t *testing.T) {
 
 	t.Run("rewind made during a post retry survives the write-back", func(t *testing.T) {
 		scr := newScr()
-		scs, stored := newService(t, scr, true)
+		scs, stored := newService(t, scr, &rewind)
 		retryMsg := model.NewSyncMsg(channelID)
 		retryMsg.Posts = []*model.Post{{Id: model.NewId(), ChannelId: channelID, Message: "hello"}}
 

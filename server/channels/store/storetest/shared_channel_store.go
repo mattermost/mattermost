@@ -1237,111 +1237,102 @@ func testUpdateSharedChannelRemoteCursorIfUnchanged(t *testing.T, rctx request.C
 		}
 	}
 
-	reset := func(t *testing.T) {
+	getUpdateAt := func(t *testing.T) int64 {
+		t.Helper()
+		r, err := ss.SharedChannel().GetRemote(remoteSaved.Id)
+		require.NoError(t, err)
+		return r.UpdateAt
+	}
+
+	reset := func(t *testing.T) int64 {
 		t.Helper()
 		require.NoError(t, ss.SharedChannel().UpdateRemoteCursor(remoteSaved.Id, start))
 		require.Equal(t, start, getCursor(t))
+		return getUpdateAt(t)
 	}
 
-	t.Run("updates when the stored cursor matches", func(t *testing.T) {
-		reset(t)
-		next := model.GetPostsSinceForSyncCursor{
-			LastPostCreateAt: 3000,
-			LastPostCreateID: model.NewId(),
-			LastPostUpdateAt: 4000,
-			LastPostUpdateID: model.NewId(),
-		}
+	next := model.GetPostsSinceForSyncCursor{
+		LastPostCreateAt: 3000,
+		LastPostCreateID: model.NewId(),
+		LastPostUpdateAt: 4000,
+		LastPostUpdateID: model.NewId(),
+	}
 
-		updated, err := ss.SharedChannel().UpdateRemoteCursorIfUnchanged(remoteSaved.Id, start, next)
+	t.Run("updates when the row was not written since it was read", func(t *testing.T) {
+		updateAt := reset(t)
+
+		updated, err := ss.SharedChannel().UpdateRemoteCursorIfUnchanged(remoteSaved.Id, updateAt, next)
 		require.NoError(t, err)
 		require.True(t, updated)
 		require.Equal(t, next, getCursor(t))
+		require.Greater(t, getUpdateAt(t), updateAt)
 	})
 
 	t.Run("keeps a cursor changed since it was read", func(t *testing.T) {
-		reset(t)
+		updateAt := reset(t)
 		rewind := model.GetPostsSinceForSyncCursor{
 			LastPostCreateAt: 1,
 			LastPostUpdateAt: 1,
 		}
 		require.NoError(t, ss.SharedChannel().UpdateRemoteCursor(remoteSaved.Id, rewind))
 
-		next := model.GetPostsSinceForSyncCursor{
-			LastPostCreateAt: 3000,
-			LastPostCreateID: model.NewId(),
-			LastPostUpdateAt: 4000,
-			LastPostUpdateID: model.NewId(),
-		}
-		updated, err := ss.SharedChannel().UpdateRemoteCursorIfUnchanged(remoteSaved.Id, start, next)
+		updated, err := ss.SharedChannel().UpdateRemoteCursorIfUnchanged(remoteSaved.Id, updateAt, next)
 		require.NoError(t, err)
 		require.False(t, updated)
 		require.Equal(t, rewind, getCursor(t))
 	})
 
-	t.Run("each cursor field is compared", func(t *testing.T) {
-		mismatches := map[string]func(c *model.GetPostsSinceForSyncCursor){
-			"LastPostCreateAt": func(c *model.GetPostsSinceForSyncCursor) { c.LastPostCreateAt++ },
-			"LastPostCreateID": func(c *model.GetPostsSinceForSyncCursor) { c.LastPostCreateID = model.NewId() },
-			"LastPostUpdateAt": func(c *model.GetPostsSinceForSyncCursor) { c.LastPostUpdateAt++ },
-			"LastPostUpdateID": func(c *model.GetPostsSinceForSyncCursor) { c.LastPostUpdateID = model.NewId() },
-		}
-		for name, mutate := range mismatches {
-			t.Run(name, func(t *testing.T) {
-				reset(t)
-				expected := start
-				mutate(&expected)
-				next := model.GetPostsSinceForSyncCursor{LastPostCreateAt: 3000, LastPostUpdateAt: 4000}
+	t.Run("keeps a rewind to the cursor that was read", func(t *testing.T) {
+		updateAt := reset(t)
+		require.NoError(t, ss.SharedChannel().UpdateRemoteCursor(remoteSaved.Id, start))
 
-				updated, err := ss.SharedChannel().UpdateRemoteCursorIfUnchanged(remoteSaved.Id, expected, next)
-				require.NoError(t, err)
-				require.False(t, updated)
-				require.Equal(t, start, getCursor(t))
-			})
-		}
+		updated, err := ss.SharedChannel().UpdateRemoteCursorIfUnchanged(remoteSaved.Id, updateAt, next)
+		require.NoError(t, err)
+		require.False(t, updated)
+		require.Equal(t, start, getCursor(t))
 	})
 
-	t.Run("matches empty ids", func(t *testing.T) {
-		reset(t)
-		noIDs := model.GetPostsSinceForSyncCursor{LastPostCreateAt: 1500, LastPostUpdateAt: 2500}
-		require.NoError(t, ss.SharedChannel().UpdateRemoteCursor(remoteSaved.Id, noIDs))
-
-		next := model.GetPostsSinceForSyncCursor{LastPostCreateAt: 3000, LastPostUpdateAt: 4000}
-		updated, err := ss.SharedChannel().UpdateRemoteCursorIfUnchanged(remoteSaved.Id, noIDs, next)
-		require.NoError(t, err)
-		require.True(t, updated)
-		require.Equal(t, next, getCursor(t))
+	t.Run("every cursor write changes UpdateAt", func(t *testing.T) {
+		updateAt := reset(t)
+		for range 5 {
+			require.NoError(t, ss.SharedChannel().UpdateRemoteCursor(remoteSaved.Id, start))
+			got := getUpdateAt(t)
+			require.Greater(t, got, updateAt)
+			updateAt = got
+		}
 	})
 
 	t.Run("only the provided half of the cursor is written", func(t *testing.T) {
-		reset(t)
-		next := model.GetPostsSinceForSyncCursor{
+		updateAt := reset(t)
+		updateOnly := model.GetPostsSinceForSyncCursor{
 			LastPostUpdateAt: 4000,
 			LastPostUpdateID: model.NewId(),
 		}
 
-		updated, err := ss.SharedChannel().UpdateRemoteCursorIfUnchanged(remoteSaved.Id, start, next)
+		updated, err := ss.SharedChannel().UpdateRemoteCursorIfUnchanged(remoteSaved.Id, updateAt, updateOnly)
 		require.NoError(t, err)
 		require.True(t, updated)
 
 		got := getCursor(t)
 		require.Equal(t, start.LastPostCreateAt, got.LastPostCreateAt)
 		require.Equal(t, start.LastPostCreateID, got.LastPostCreateID)
-		require.Equal(t, next.LastPostUpdateAt, got.LastPostUpdateAt)
-		require.Equal(t, next.LastPostUpdateID, got.LastPostUpdateID)
+		require.Equal(t, updateOnly.LastPostUpdateAt, got.LastPostUpdateAt)
+		require.Equal(t, updateOnly.LastPostUpdateID, got.LastPostUpdateID)
 	})
 
 	t.Run("non-existent shared channel remote", func(t *testing.T) {
-		updated, err := ss.SharedChannel().UpdateRemoteCursorIfUnchanged(model.NewId(), start, start)
+		updated, err := ss.SharedChannel().UpdateRemoteCursorIfUnchanged(model.NewId(), 0, start)
 		require.NoError(t, err)
 		require.False(t, updated)
 	})
 
 	t.Run("empty next cursor", func(t *testing.T) {
-		reset(t)
-		updated, err := ss.SharedChannel().UpdateRemoteCursorIfUnchanged(remoteSaved.Id, start, model.GetPostsSinceForSyncCursor{})
+		updateAt := reset(t)
+		updated, err := ss.SharedChannel().UpdateRemoteCursorIfUnchanged(remoteSaved.Id, updateAt, model.GetPostsSinceForSyncCursor{})
 		require.Error(t, err)
 		require.False(t, updated)
 		require.Equal(t, start, getCursor(t))
+		require.Equal(t, updateAt, getUpdateAt(t))
 	})
 }
 

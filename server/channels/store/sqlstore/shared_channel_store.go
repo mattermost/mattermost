@@ -643,19 +643,15 @@ func (s SqlSharedChannelStore) UpdateRemoteCursor(id string, cursor model.GetPos
 }
 
 // UpdateRemoteCursorIfUnchanged updates the cursor for the specified SharedChannelRemote
-// only if its stored cursor still equals expected. It returns false when no row matched,
-// meaning the cursor was changed by someone else or the id was not found.
-func (s SqlSharedChannelStore) UpdateRemoteCursorIfUnchanged(id string, expected, next model.GetPostsSinceForSyncCursor) (bool, error) {
+// only if its UpdateAt still equals expectedUpdateAt. It returns false when no row matched,
+// meaning the row was written by someone else or the id was not found.
+func (s SqlSharedChannelStore) UpdateRemoteCursorIfUnchanged(id string, expectedUpdateAt int64, next model.GetPostsSinceForSyncCursor) (bool, error) {
 	builder, err := s.updateRemoteCursorBuilder(id, next)
 	if err != nil {
 		return false, err
 	}
 
-	builder = builder.
-		Where(sq.Eq{"LastPostCreateAt": expected.LastPostCreateAt}).
-		Where("COALESCE(LastPostCreateId, '') = ?", expected.LastPostCreateID).
-		Where("COALESCE(LastPostUpdateAt, 0) = ?", expected.LastPostUpdateAt).
-		Where("COALESCE(LastPostId, '') = ?", expected.LastPostUpdateID)
+	builder = builder.Where(sq.Eq{"UpdateAt": expectedUpdateAt})
 
 	squery, args, err := builder.ToSql()
 	if err != nil {
@@ -697,6 +693,9 @@ func (s SqlSharedChannelStore) updateRemoteCursorBuilder(id string, cursor model
 		// no new cursor provided.
 		return builder, fmt.Errorf("cursor empty")
 	}
+
+	// Bumped on every write, even within one millisecond, since UpdateRemoteCursorIfUnchanged compares on it.
+	builder = builder.Set("UpdateAt", sq.Expr("GREATEST(COALESCE(UpdateAt, 0) + 1, ?)", model.GetMillis()))
 	return builder, nil
 }
 
