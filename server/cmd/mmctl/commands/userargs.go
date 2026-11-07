@@ -31,11 +31,16 @@ func getUserFromUserArg(c client.Client, userArg string) *model.User {
 	}
 
 	if !checkSlash(userArg) {
+		if user == nil && model.IsValidId(userArg) {
+			// NewId values are lowercase; look up that form when the argument looks like an ID.
+			user, _, _ = c.GetUser(context.TODO(), strings.ToLower(userArg), "")
+		}
+
 		if user == nil {
 			user, _, _ = c.GetUserByUsername(context.TODO(), userArg, "")
 		}
 
-		if user == nil {
+		if user == nil && !model.IsValidId(userArg) {
 			user, _, _ = c.GetUser(context.TODO(), userArg, "")
 		}
 	}
@@ -88,6 +93,19 @@ func getUserFromArg(c client.Client, userArg string) (*model.User, error) {
 	}
 
 	if !checkSlash(userArg) {
+		if user == nil && model.IsValidId(userArg) {
+			// NewId values are lowercase; look up that form when the argument looks like an ID.
+			user, response, err = c.GetUser(context.TODO(), strings.ToLower(userArg), "")
+			if err != nil {
+				nErr := ExtractErrorFromResponse(response, err)
+				var nfErr *NotFoundError
+				var badRequestErr *BadRequestError
+				if !errors.As(nErr, &nfErr) && !errors.As(nErr, &badRequestErr) {
+					return nil, nErr
+				}
+			}
+		}
+
 		if user == nil {
 			user, response, err = c.GetUserByUsername(context.TODO(), userArg, "")
 			if err != nil {
@@ -100,7 +118,7 @@ func getUserFromArg(c client.Client, userArg string) (*model.User, error) {
 			}
 		}
 
-		if user == nil {
+		if user == nil && !model.IsValidId(userArg) {
 			user, response, err = c.GetUser(context.TODO(), userArg, "")
 			if err != nil {
 				nErr := ExtractErrorFromResponse(response, err)
