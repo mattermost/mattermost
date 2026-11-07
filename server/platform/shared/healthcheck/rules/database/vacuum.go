@@ -17,22 +17,22 @@ const (
 	postsVacuumStaleAfter = 7 * 24 * time.Hour
 )
 
-var dbPostsVacuumStale = healthcheck.Rule{
-	Code:     "DB_POSTS_VACUUM_STALE",
+var dbPostsDeadTuples = healthcheck.Rule{
+	Code:     "DB_POSTS_DEAD_TUPLES",
 	Area:     model.AreaDatabase,
 	Severity: healthcheck.SeverityWarning,
 	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.db_posts_vacuum_stale.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.db_posts_vacuum_stale.remediation"),
+		TitleID:       healthcheck.TranslationId("health.rule.db_posts_dead_tuples.title"),
+		RemediationID: healthcheck.TranslationId("health.rule.db_posts_dead_tuples.remediation"),
 		DocsURL:       "https://www.postgresql.org/docs/current/routine-vacuuming.html",
 	},
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityThreshold,
 	Subject:    "Database.PostsDeadTuples",
-	Eval:       healthcheck.Single(evalDBPostsVacuumStale),
+	Eval:       healthcheck.Single(evalDBPostsDeadTuples),
 }
 
-func evalDBPostsVacuumStale(s *healthcheck.Snapshot) healthcheck.Result {
+func evalDBPostsDeadTuples(s *healthcheck.Snapshot) healthcheck.Result {
 	identity, ok := s.LeaderDiag(model.SectionDatabaseIdentity)
 	if !ok || identity.Database.Type == nil {
 		return unknownDiagnostics()
@@ -67,16 +67,22 @@ func evalDBPostsVacuumStale(s *healthcheck.Snapshot) healthcheck.Result {
 		return unknownDiagnostics()
 	}
 	if *diag.Database.PostsVacuumInProgress {
-		return healthcheck.Unknown(healthcheck.TranslationId("health.rule.db_posts_vacuum_stale.in_progress"))
+		return healthcheck.Unknown(healthcheck.TranslationId("health.rule.db_posts_dead_tuples.in_progress"))
 	}
 
-	lastVacuum, vacuumed := postsLastVacuum(diag)
-	if !vacuumed {
-		return healthcheck.Firing(healthcheck.TranslationId("health.rule.db_posts_vacuum_stale.message.never")).
+	// The thresholds track autovacuum's default trigger, so a healthy autovacuum starts a run
+	// within about a minute of crossing them. The last vacuum time only selects the likely cause.
+	firing := func(messageID string) healthcheck.Result {
+		return healthcheck.Firing(messageID).
 			WithDetail("dead_percent", strconv.FormatFloat(100*deadRatio, 'f', 1, 64)).
 			WithDetail("dead_tuples", strconv.FormatInt(dead, 10)).
 			WithDetail("posts", strconv.FormatInt(posts, 10)).
 			WithValue(float64(dead))
+	}
+
+	lastVacuum, vacuumed := postsLastVacuum(diag)
+	if !vacuumed {
+		return firing(healthcheck.TranslationId("health.rule.db_posts_dead_tuples.message.never"))
 	}
 	age, ok := s.Since(lastVacuum)
 	if !ok {
@@ -86,16 +92,14 @@ func evalDBPostsVacuumStale(s *healthcheck.Snapshot) healthcheck.Result {
 		return unknownDiagnostics()
 	}
 	if age <= postsVacuumStaleAfter {
-		return healthcheck.Resolved().WithValue(float64(dead))
+		// Vacuum ran recently but left the dead tuples: something is holding back cleanup.
+		return firing(healthcheck.TranslationId("health.rule.db_posts_dead_tuples.message.blocked")).
+			WithDetail("last_vacuum", lastVacuum.Format(time.RFC3339))
 	}
 
-	return healthcheck.Firing(healthcheck.TranslationId("health.rule.db_posts_vacuum_stale.message")).
+	return firing(healthcheck.TranslationId("health.rule.db_posts_dead_tuples.message.stale")).
 		WithDetail("age_days", strconv.Itoa(int(age.Hours()/24))).
-		WithDetail("dead_percent", strconv.FormatFloat(100*deadRatio, 'f', 1, 64)).
-		WithDetail("dead_tuples", strconv.FormatInt(dead, 10)).
-		WithDetail("last_vacuum", lastVacuum.Format(time.RFC3339)).
-		WithDetail("posts", strconv.FormatInt(posts, 10)).
-		WithValue(float64(dead))
+		WithDetail("last_vacuum", lastVacuum.Format(time.RFC3339))
 }
 
 func postsLastVacuum(diag *model.SupportPacketDiagnostics) (time.Time, bool) {

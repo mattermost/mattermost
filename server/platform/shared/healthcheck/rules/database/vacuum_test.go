@@ -28,12 +28,12 @@ func vacuumSnapshot(dbType *string, dead, posts *int64, manual, auto *time.Time)
 	return s
 }
 
-func TestDBPostsVacuumStale(t *testing.T) {
+func TestDBPostsDeadTuples(t *testing.T) {
 	t.Parallel()
 
 	postgres := model.DatabaseDriverPostgres
 	mysql := "mysql"
-	stale := vacuumCollectedAt.Add(-8 * 24 * time.Hour)
+	old := vacuumCollectedAt.Add(-8 * 24 * time.Hour)
 	exactlySevenDays := vacuumCollectedAt.Add(-7 * 24 * time.Hour)
 	recent := vacuumCollectedAt.Add(-time.Hour)
 	future := vacuumCollectedAt.Add(time.Hour)
@@ -45,46 +45,48 @@ func TestDBPostsVacuumStale(t *testing.T) {
 	exactRatioPosts := int64(1_000_000)
 	zeroPosts := int64(0)
 
-	progressAbsent := vacuumSnapshot(&postgres, &dead, &posts, &stale, nil)
+	progressAbsent := vacuumSnapshot(&postgres, &dead, &posts, &old, nil)
 	progressAbsentDiag, ok := progressAbsent.LeaderDiag(model.SectionDatabaseStats)
 	require.True(t, ok)
 	progressAbsentDiag.Database.PostsVacuumInProgress = nil
-	vacuumRunning := vacuumSnapshot(&postgres, &dead, &posts, &stale, nil)
+	vacuumRunning := vacuumSnapshot(&postgres, &dead, &posts, &old, nil)
 	vacuumRunningDiag, ok := vacuumRunning.LeaderDiag(model.SectionDatabaseStats)
 	require.True(t, ok)
 	vacuumRunningDiag.Database.PostsVacuumInProgress = new(true)
 
-	firing := firingWant("health.rule.db_posts_vacuum_stale.message").withValue(float64(dead))
+	stale := firingWant("health.rule.db_posts_dead_tuples.message.stale").withValue(float64(dead))
+	blocked := firingWant("health.rule.db_posts_dead_tuples.message.blocked").withValue(float64(dead))
 	testCases := []struct {
 		name     string
 		snapshot *healthcheck.Snapshot
 		want     want
 	}{
 		{"leader diagnostics absent", newSnapshot(nil, &model.SupportPacketStats{Posts: &posts}, nil), unknownDiagWant},
-		{"database type absent", vacuumSnapshot(nil, &dead, &posts, &stale, nil), unknownDiagWant},
-		{"identity section failed", failSection(vacuumSnapshot(&postgres, &dead, &posts, &stale, nil), model.SectionDatabaseIdentity), unknownDiagWant},
+		{"database type absent", vacuumSnapshot(nil, &dead, &posts, &old, nil), unknownDiagWant},
+		{"identity section failed", failSection(vacuumSnapshot(&postgres, &dead, &posts, &old, nil), model.SectionDatabaseIdentity), unknownDiagWant},
 		{"non-Postgres database", vacuumSnapshot(&mysql, nil, nil, nil, nil), resolvedWant},
-		{"stats section failed", failSection(vacuumSnapshot(&postgres, &dead, &posts, &stale, nil), model.SectionDatabaseStats), unknownDiagWant},
-		{"dead tuples absent", vacuumSnapshot(&postgres, nil, &posts, &stale, nil), unknownDiagWant},
-		{"negative dead tuples", vacuumSnapshot(&postgres, &negativeDead, &posts, &stale, nil), unknownDiagWant},
-		{"post count absent", vacuumSnapshot(&postgres, &dead, nil, &stale, nil), unknownStatsWant},
-		{"zero post count with high dead tuples", vacuumSnapshot(&postgres, &dead, &zeroPosts, &stale, nil), unknownStatsWant},
-		{"at dead tuple threshold", vacuumSnapshot(&postgres, &lowDead, &positiveRatioPosts, &stale, nil), resolvedWant.withValue(float64(lowDead))},
-		{"at dead tuple ratio", vacuumSnapshot(&postgres, &dead, &exactRatioPosts, &stale, nil), resolvedWant.withValue(float64(dead))},
+		{"stats section failed", failSection(vacuumSnapshot(&postgres, &dead, &posts, &old, nil), model.SectionDatabaseStats), unknownDiagWant},
+		{"dead tuples absent", vacuumSnapshot(&postgres, nil, &posts, &old, nil), unknownDiagWant},
+		{"negative dead tuples", vacuumSnapshot(&postgres, &negativeDead, &posts, &old, nil), unknownDiagWant},
+		{"post count absent", vacuumSnapshot(&postgres, &dead, nil, &old, nil), unknownStatsWant},
+		{"zero post count with high dead tuples", vacuumSnapshot(&postgres, &dead, &zeroPosts, &old, nil), unknownStatsWant},
+		{"at dead tuple threshold", vacuumSnapshot(&postgres, &lowDead, &positiveRatioPosts, &old, nil), resolvedWant.withValue(float64(lowDead))},
+		{"at dead tuple ratio", vacuumSnapshot(&postgres, &dead, &exactRatioPosts, &old, nil), resolvedWant.withValue(float64(dead))},
 		{"vacuum progress absent", progressAbsent, unknownDiagWant},
-		{"vacuum in progress", vacuumRunning, want{state: healthcheck.StateUnknown, messageID: "health.rule.db_posts_vacuum_stale.in_progress"}},
-		{"manual vacuum recent", vacuumSnapshot(&postgres, &dead, &posts, &recent, &stale), resolvedWant.withValue(float64(dead))},
-		{"autovacuum recent", vacuumSnapshot(&postgres, &dead, &posts, &stale, &recent), resolvedWant.withValue(float64(dead))},
-		{"at stale threshold", vacuumSnapshot(&postgres, &dead, &posts, &exactlySevenDays, nil), resolvedWant.withValue(float64(dead))},
-		{"manual vacuum stale", vacuumSnapshot(&postgres, &dead, &posts, &stale, nil), firing},
-		{"autovacuum stale", vacuumSnapshot(&postgres, &dead, &posts, nil, &stale), firing},
-		{"never vacuumed", vacuumSnapshot(&postgres, &dead, &posts, nil, nil), firingWant("health.rule.db_posts_vacuum_stale.message.never").withValue(float64(dead))},
+		{"vacuum in progress", vacuumRunning, want{state: healthcheck.StateUnknown, messageID: "health.rule.db_posts_dead_tuples.in_progress"}},
+		{"manual vacuum recent", vacuumSnapshot(&postgres, &dead, &posts, &recent, &old), blocked},
+		{"autovacuum recent", vacuumSnapshot(&postgres, &dead, &posts, &old, &recent), blocked},
+		{"at stale threshold", vacuumSnapshot(&postgres, &dead, &posts, &exactlySevenDays, nil), blocked},
+		{"manual vacuum stale", vacuumSnapshot(&postgres, &dead, &posts, &old, nil), stale},
+		{"autovacuum stale", vacuumSnapshot(&postgres, &dead, &posts, nil, &old), stale},
+		{"recent vacuum below dead tuple ratio", vacuumSnapshot(&postgres, &dead, &exactRatioPosts, &recent, nil), resolvedWant.withValue(float64(dead))},
+		{"never vacuumed", vacuumSnapshot(&postgres, &dead, &posts, nil, nil), firingWant("health.rule.db_posts_dead_tuples.message.never").withValue(float64(dead))},
 		{"never vacuumed below dead tuple ratio", vacuumSnapshot(&postgres, &dead, &exactRatioPosts, nil, nil), resolvedWant.withValue(float64(dead))},
 		{"vacuum timestamp after collection", vacuumSnapshot(&postgres, &dead, &posts, &future, nil), unknownDiagWant},
 		{
 			"collection time absent",
 			func() *healthcheck.Snapshot {
-				s := vacuumSnapshot(&postgres, &dead, &posts, &stale, nil)
+				s := vacuumSnapshot(&postgres, &dead, &posts, &old, nil)
 				s.CollectedAt = time.Time{}
 				return s
 			}(),
@@ -95,11 +97,11 @@ func TestDBPostsVacuumStale(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			assertResult(t, dbPostsVacuumStale, tc.snapshot, tc.want)
+			assertResult(t, dbPostsDeadTuples, tc.snapshot, tc.want)
 		})
 	}
 
-	results := dbPostsVacuumStale.Eval(vacuumSnapshot(&postgres, &dead, &posts, &stale, nil))
+	results := dbPostsDeadTuples.Eval(vacuumSnapshot(&postgres, &dead, &posts, &old, nil))
 	require.Len(t, results, 1)
 	assert.Equal(t, map[string]string{
 		"age_days":     "8",
@@ -109,7 +111,16 @@ func TestDBPostsVacuumStale(t *testing.T) {
 		"posts":        "500000",
 	}, results[0].Details)
 
-	results = dbPostsVacuumStale.Eval(vacuumSnapshot(&postgres, &dead, &posts, nil, nil))
+	results = dbPostsDeadTuples.Eval(vacuumSnapshot(&postgres, &dead, &posts, &recent, nil))
+	require.Len(t, results, 1)
+	assert.Equal(t, map[string]string{
+		"dead_percent": "40.0",
+		"dead_tuples":  "200000",
+		"last_vacuum":  "2026-11-05T11:00:00Z",
+		"posts":        "500000",
+	}, results[0].Details)
+
+	results = dbPostsDeadTuples.Eval(vacuumSnapshot(&postgres, &dead, &posts, nil, nil))
 	require.Len(t, results, 1)
 	assert.Equal(t, map[string]string{
 		"dead_percent": "40.0",

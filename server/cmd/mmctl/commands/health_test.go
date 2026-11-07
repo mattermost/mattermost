@@ -508,7 +508,7 @@ Version
 		s.Equal([]string{healthPacketDisclaimer}, printer.GetErrorLines())
 	})
 
-	s.Run("renders a stale Posts vacuum finding", func() {
+	s.Run("renders a Posts dead tuples finding after a stale vacuum", func() {
 		printer.Clean()
 		printer.SetFormat(printer.FormatJSON)
 		files := healthTestPacketFiles()
@@ -534,13 +534,41 @@ Version
 		s.Require().True(ok)
 
 		index := slices.IndexFunc(list.Findings, func(f *model.HealthFinding) bool {
-			return f.Code == "DB_POSTS_VACUUM_STALE"
+			return f.Code == "DB_POSTS_DEAD_TUPLES"
 		})
 		s.Require().NotEqual(-1, index)
 		finding := list.Findings[index]
-		s.Equal("Posts table vacuum is stale", finding.Title)
-		s.Equal("The Posts table has 200001 estimated dead tuples (40.0% of 500000 posts), and its most recent vacuum was 15 days ago at 2026-09-10T10:00:00Z. Table and index bloat can degrade query performance and increase disk use.", finding.Message)
+		s.Equal("Posts table has many dead tuples", finding.Title)
+		s.Equal("The Posts table has 200001 estimated dead tuples (40.0% of 500000 posts), and its most recent vacuum was 15 days ago at 2026-09-10T10:00:00Z. Autovacuum does not appear to be keeping up with this table. Table and index bloat can degrade query performance and increase disk use.", finding.Message)
 		s.Contains(finding.Remediation, "verify autovacuum is enabled")
+	})
+
+	s.Run("renders a Posts dead tuples finding after a recent vacuum", func() {
+		printer.Clean()
+		printer.SetFormat(printer.FormatJSON)
+		files := healthTestPacketFiles()
+		files[model.SupportPacketDiagnosticsFileName] = strings.Replace(
+			files[model.SupportPacketDiagnosticsFileName],
+			"  posts_dead_tuples: 0\n",
+			"  posts_dead_tuples: 200001\n",
+			1,
+		)
+		files[model.SupportPacketStatsFileName] = strings.Replace(files[model.SupportPacketStatsFileName], "posts: 1000", "posts: 500000", 1)
+
+		cmd := newTestCmd(s.T(), HealthCheckCmd)
+		s.Require().NoError(cmd.Flags().Set("packet", s.writeHealthTestPacket(files)))
+		s.Require().NoError(healthCheckRunE(cmd, []string{}))
+		s.Require().Len(printer.GetLines(), 1)
+		list, ok := printer.GetLines()[0].(*model.HealthFindingList)
+		s.Require().True(ok)
+
+		index := slices.IndexFunc(list.Findings, func(f *model.HealthFinding) bool {
+			return f.Code == "DB_POSTS_DEAD_TUPLES"
+		})
+		s.Require().NotEqual(-1, index)
+		finding := list.Findings[index]
+		s.Equal("The Posts table has 200001 estimated dead tuples (40.0% of 500000 posts), even though it was last vacuumed at 2026-09-25T09:00:00Z. Vacuum is running but most likely cannot remove them because something is holding back cleanup, such as a long-running or idle-in-transaction session, an inactive replication slot, or an abandoned prepared transaction. Table and index bloat can degrade query performance and increase disk use.", finding.Message)
+		s.Contains(finding.Remediation, "pg_replication_slots")
 	})
 
 	s.Run("audit logging is judged by the server that generated the packet, not this machine", func() {

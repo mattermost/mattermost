@@ -135,7 +135,7 @@ func TestReadGoldenPackets(t *testing.T) {
 			name: "standalone",
 			expected: []finding{
 				{Code: "COMPLIANCE_NO_DIR", State: healthcheck.StateFiring, Subject: complianceDirSubject},
-				{Code: "DB_POSTS_VACUUM_STALE", State: healthcheck.StateFiring, Subject: "Database.PostsDeadTuples"},
+				{Code: "DB_POSTS_DEAD_TUPLES", State: healthcheck.StateFiring, Subject: "Database.PostsDeadTuples"},
 				{Code: "JOB_FAILED", State: healthcheck.StateFiring, Subject: model.JobTypeLdapSync},
 				{Code: "LDAP_PROBE_FAILED", State: healthcheck.StateUnknown, Subject: "LdapSettings.LdapServer"},
 				{Code: "LDAP_RECOMMENDED_AT_SCALE", State: healthcheck.StateFiring, Subject: "LdapSettings.Enable"},
@@ -156,7 +156,7 @@ func TestReadGoldenPackets(t *testing.T) {
 			name: "ha",
 			expected: []finding{
 				{Code: "DB_HA_FAILOVER_STORM_RISK", State: healthcheck.StateFiring, Subject: "SqlSettings.MaxOpenConns"},
-				{Code: "DB_POSTS_VACUUM_STALE", State: healthcheck.StateUnknown, Subject: "Database.PostsDeadTuples"},
+				{Code: "DB_POSTS_DEAD_TUPLES", State: healthcheck.StateUnknown, Subject: "Database.PostsDeadTuples"},
 				{Code: "ES_LIVE_BATCH_SYNC", State: healthcheck.StateFiring, Subject: "ElasticsearchSettings.LiveIndexingBatchSize"},
 				{Code: "EXPORT_GR_TIMEOUT_LOW", State: healthcheck.StateFiring, Subject: globalRelayTimeoutSubject},
 				{Code: "FILESTORE_LOCAL_IN_CLUSTER", State: healthcheck.StateFiring, Subject: "FileSettings.Directory"},
@@ -199,7 +199,7 @@ func TestReadPostsVacuumInProgress(t *testing.T) {
 	assert.True(t, *diag.Database.PostsVacuumInProgress)
 
 	assert.Contains(t, evaluate(t, snapshot), finding{
-		Code:    "DB_POSTS_VACUUM_STALE",
+		Code:    "DB_POSTS_DEAD_TUPLES",
 		State:   healthcheck.StateUnknown,
 		Subject: "Database.PostsDeadTuples",
 	})
