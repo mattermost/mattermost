@@ -38,6 +38,65 @@ describe('components/QuickSwitchModal', () => {
         expect(container).toMatchSnapshot();
     });
 
+    describe('focusPostTextbox', () => {
+        const originalQuerySelector = document.querySelector;
+
+        afterEach(() => {
+            document.querySelector = originalQuerySelector;
+            jest.useRealTimers();
+        });
+
+        it('should focus post textbox when it is available', () => {
+            jest.useFakeTimers();
+
+            const ref = React.createRef<QuickSwitchModalClass>();
+            renderWithContext(
+                <QuickSwitchModalWithRef
+                    {...baseProps}
+                    ref={ref}
+                />,
+            );
+            const instance = ref.current!;
+
+            const mockTextbox = {focus: jest.fn()} as unknown as HTMLElement;
+            document.querySelector = jest.fn().mockReturnValue(mockTextbox);
+
+            instance['focusPostTextbox']();
+            jest.runAllTimers();
+
+            expect(document.querySelector).toHaveBeenCalledWith('#post_textbox');
+            expect(mockTextbox.focus).toHaveBeenCalledTimes(1);
+        });
+
+        it('should keep retrying until the post textbox exists', () => {
+            jest.useFakeTimers();
+
+            const ref = React.createRef<QuickSwitchModalClass>();
+            renderWithContext(
+                <QuickSwitchModalWithRef
+                    {...baseProps}
+                    ref={ref}
+                />,
+            );
+            const instance = ref.current!;
+
+            // Simulate the textbox not being mounted yet (e.g. after a channel
+            // switch from the Threads view) and then appearing.
+            const mockTextbox = {focus: jest.fn()} as unknown as HTMLElement;
+            let queryCount = 0;
+            document.querySelector = jest.fn().mockImplementation(() => {
+                queryCount++;
+                return queryCount < 3 ? null : mockTextbox;
+            });
+
+            instance['focusPostTextbox']();
+            jest.runAllTimers();
+
+            expect(queryCount).toBeGreaterThanOrEqual(3);
+            expect(mockTextbox.focus).toHaveBeenCalledTimes(1);
+        });
+    });
+
     describe('handleSubmit', () => {
         it('should do nothing if nothing selected', () => {
             const props = {...baseProps};
