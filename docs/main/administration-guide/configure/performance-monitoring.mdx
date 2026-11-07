@@ -1,0 +1,29 @@
+---
+title: "Performance monitoring"
+---
+
+From Mattermost v12.2, the metrics plugin (`com.mattermost.mattermost-plugin-metrics`) is enabled by default on servers where Performance Monitoring is enabled.
+
+## Metrics plugin default behaviour
+
+Performance Monitoring is the Mattermost feature that exposes server metrics for collection by external tools such as Prometheus. You can enable it under **System Console \> Environment \> Performance Monitoring**, or via the `MetricsSettings.Enable` [configuration setting](/administration-guide/configure/environment-configuration-settings#performance-monitoring).
+
+The metrics plugin (`com.mattermost.mattermost-plugin-metrics`) collects and stores time-series metrics data locally, making it available for scraping by Prometheus or compatible monitoring systems.
+
+When Performance Monitoring is enabled, the metrics plugin is automatically enabled the first time the server loads its configuration, unless an administrator has already explicitly enabled or disabled the plugin.
+
+The following conditions apply:
+
+- **Existing servers upgrading to v12.2 or later:** If Performance Monitoring is already enabled, the metrics plugin is enabled automatically on upgrade.
+- **New servers:** If Performance Monitoring is enabled before the server first loads, the metrics plugin is enabled automatically.
+- **Enabling Performance Monitoring after first load:** If Performance Monitoring is enabled after the server has already started and persisted its configuration, the metrics plugin is not automatically enabled. An administrator must enable it manually.
+- **Environment variable only (`MM_METRICSSETTINGS_ENABLE`):** Setting this variable does not trigger the automatic default, because configuration defaults are applied before environment overrides.
+- **Explicit administrator choice is preserved:** Once an administrator has explicitly enabled or disabled the metrics plugin, the default no longer applies. The plugin state is not overridden on subsequent restarts.
+
+<Note>
+
+Expected disk usage for the metrics plugin is approximately 15 MB of local disk and 55 MB of file store per 1,000 scraped series at steady state. A server exposing approximately 5,800 series uses around 410 MB after 15 days.
+
+</Note>
+
+To manage the metrics plugin state manually, go to **System Console \> Plugin Management** and enable or disable the plugin named `com.mattermost.mattermost-plugin-metrics`.
