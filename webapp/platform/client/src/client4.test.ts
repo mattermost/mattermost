@@ -432,6 +432,62 @@ describe('Client4', () => {
         });
     });
 
+    describe('getSupportPacket', () => {
+        let client: Client4;
+
+        beforeEach(() => {
+            client = new Client4();
+            client.setUrl('http://mattermost.example.com');
+        });
+
+        test('should request the selected contents and return the zip with its filename', async () => {
+            nock(client.getBaseRoute()).
+                get('/system/support_packet').
+                query((query) => {
+                    expect(query).toEqual({basic_server_logs: 'false', plugin_packets: ['com.mattermost.calls', 'com.mattermost.boards']});
+                    return true;
+                }).
+                reply(200, 'zip-bytes', {
+                    'Content-Type': 'application/zip',
+                    'Content-Disposition': 'attachment; filename="mm_support_packet_2026-11-05T12-00.zip"',
+                });
+
+            const result = await client.getSupportPacket({basicServerLogs: false, pluginPackets: ['com.mattermost.calls', 'com.mattermost.boards']});
+
+            expect(result.filename).toEqual('mm_support_packet_2026-11-05T12-00.zip');
+            expect(await result.blob.text()).toEqual('zip-bytes');
+        });
+
+        test('should fall back to a generated filename when the header is absent', async () => {
+            nock(client.getBaseRoute()).
+                get('/system/support_packet').
+                query({basic_server_logs: 'true'}).
+                reply(200, 'zip-bytes', {'Content-Type': 'application/zip'});
+
+            const result = await client.getSupportPacket({basicServerLogs: true});
+
+            expect(result.filename).toMatch(/^mm_support_packet_\d{4}-\d{2}-\d{2}T\d{2}-\d{2}\.zip$/);
+        });
+
+        test('should surface server errors as ClientError', async () => {
+            nock(client.getBaseRoute()).
+                get('/system/support_packet').
+                query(true).
+                reply(403, {
+                    id: 'api.no_license',
+                    message: 'License required.',
+                    detailed_error: 'no license',
+                    status_code: 403,
+                }, {'Content-Type': 'application/json'});
+
+            await expect(client.getSupportPacket({basicServerLogs: true})).rejects.toMatchObject({
+                message: 'License required.',
+                detailed_error: 'no license',
+                status_code: 403,
+            });
+        });
+    });
+
     describe('team access control routes', () => {
         let client: Client4;
 
