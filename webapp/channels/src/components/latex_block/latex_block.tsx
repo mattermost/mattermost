@@ -21,7 +21,14 @@ const LatexBlock = ({
     const [katex, setKatex] = useState<Katex | undefined>();
 
     useEffect(() => {
-        import('katex').then((katex) => {
+        // issue #34109: load the mhchem extension alongside KaTeX so chemistry
+        // macros like \ce and \pu register on the same module instance the
+        // renderer uses. Without this, `$$\ce{H2O}$$` falls back to KaTeX's
+        // unknown-command path and renders \ce in red with H2O as plain math.
+        Promise.all([
+            import('katex'),
+            import('katex/contrib/mhchem'),
+        ]).then(([katex]) => {
             setKatex(katex.default);
         });
     }, []);
