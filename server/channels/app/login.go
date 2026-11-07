@@ -24,7 +24,11 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
-const cwsTokenEnv = "CWS_CLOUD_TOKEN"
+const (
+	cwsTokenEnv = "CWS_CLOUD_TOKEN"
+	// cwsLoginIDEnv names the only user the CWS token may log in as. CWS login is refused when unset.
+	cwsLoginIDEnv = "CWS_CLOUD_LOGIN_ID"
+)
 
 func (a *App) AuthenticateUserForLogin(rctx request.CTX, id, loginId, password, mfaToken, cwsToken string, ldapOnly bool) (user *model.User, err *model.AppError) {
 	// Do statistics
@@ -38,8 +42,14 @@ func (a *App) AuthenticateUserForLogin(rctx request.CTX, id, loginId, password, 
 		}
 	}()
 
-	if password == "" && !isCWSLogin(a, cwsToken) {
+	cwsLogin := cwsToken != ""
+	if password == "" && !cwsLogin {
 		return nil, model.NewAppError("AuthenticateUserForLogin", "api.user.login.blank_pwd.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if cwsLogin && !a.cwsLoginIDMatches(id, loginId) {
+		return nil, model.NewAppError("AuthenticateUserForLogin",
+			"api.user.login_by_cws.invalid_token.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	// Get the MM user we are trying to login
@@ -49,7 +59,7 @@ func (a *App) AuthenticateUserForLogin(rctx request.CTX, id, loginId, password, 
 
 	// CWS login allow to use the one-time token to login the users when they're redirected to their
 	// installation for the first time
-	if isCWSLogin(a, cwsToken) {
+	if cwsLogin {
 		if err = checkUserNotDisabled(user); err != nil {
 			return nil, err
 		}
@@ -364,6 +374,13 @@ func GetProtocol(r *http.Request) string {
 	return "http"
 }
 
-func isCWSLogin(a *App, token string) bool {
-	return a.License().IsCloud() && token != ""
+// cwsLoginIDMatches reports whether CWS_CLOUD_LOGIN_ID is set and login_id matches it
+// case-insensitively, as GetForLogin does. strings.EqualFold is not used because it folds
+// more than SQL lower() (e.g. σ and ς), so it could accept a login_id resolving to another user.
+func (a *App) cwsLoginIDMatches(id, loginID string) bool {
+	expected := a.Srv().cwsLoginIDOverride
+	if expected == "" {
+		expected = os.Getenv(cwsLoginIDEnv)
+	}
+	return expected != "" && id == "" && strings.ToLower(loginID) == strings.ToLower(expected) //nolint:staticcheck
 }

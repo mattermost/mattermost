@@ -1,13 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Channel} from '@mattermost/types/channels';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import type {GlobalState} from 'types/store';
-import type {ChannelHeaderAction, ChannelSettingsTabComponent, MobileChannelHeaderButtonAction} from 'types/store/plugins';
+import type {ChannelBookmarksMenuAction, ChannelHeaderAction, ChannelInfoMenuAction, ChannelSettingsTabComponent, MobileChannelHeaderButtonAction} from 'types/store/plugins';
 
 import {
+    getChannelBookmarksMenuPluginComponents,
     getChannelHeaderMenuPluginComponents,
+    getChannelInfoMenuPluginComponents,
     getChannelMobileHeaderPluginButtons,
     getChannelSettingsTabs,
     getPluginUserSettings,
@@ -259,6 +262,70 @@ describe('Selectors.Plugins', () => {
             const state = makeState([firstRegistration, secondRegistration, thirdRegistration]);
 
             expect(getChannelSettingsTabs(state)).toEqual([firstRegistration, secondRegistration, thirdRegistration]);
+        });
+    });
+
+    describe('getChannelInfoMenuPluginComponents', () => {
+        const channel = {id: 'channel1'} as Channel;
+
+        function makeState(items: ChannelInfoMenuAction[]): GlobalState {
+            const state: DeepPartial<GlobalState> = {
+                plugins: {
+                    components: {
+                        ChannelInfoMenu: items,
+                    },
+                },
+            };
+            return state as GlobalState;
+        }
+
+        test('filters by shouldRender(state, channel)', () => {
+            const shown = {
+                id: 'shown',
+                shouldRender: (_state: GlobalState, ch: Channel) => ch.id === 'channel1',
+            } as ChannelInfoMenuAction;
+            const hidden = {
+                id: 'hidden',
+                shouldRender: () => false,
+            } as unknown as ChannelInfoMenuAction;
+            const noPredicate = {id: 'always'} as ChannelInfoMenuAction;
+
+            expect(getChannelInfoMenuPluginComponents(makeState([shown, hidden, noPredicate]), channel)).toEqual([
+                shown,
+                noPredicate,
+            ]);
+        });
+    });
+
+    describe('getChannelBookmarksMenuPluginComponents', () => {
+        function makeState(items: ChannelBookmarksMenuAction[]): GlobalState {
+            const state: DeepPartial<GlobalState> = {
+                plugins: {
+                    components: {
+                        ChannelBookmarksMenu: items,
+                    },
+                },
+            };
+            return state as GlobalState;
+        }
+
+        test('filters by shouldRender(state, channelId)', () => {
+            const shown = {
+                id: 'shown',
+                pluginId: 'plugin',
+                shouldRender: (_state: GlobalState, channelId: string): boolean => channelId === 'channel1',
+            } as ChannelBookmarksMenuAction;
+            const hidden = {
+                id: 'hidden',
+                shouldRender: () => false,
+            } as unknown as ChannelBookmarksMenuAction;
+            const noPredicate = {id: 'always'} as ChannelBookmarksMenuAction;
+
+            expect(getChannelBookmarksMenuPluginComponents(makeState([shown, hidden, noPredicate]), 'channel1')).toEqual([
+                shown,
+                noPredicate,
+            ]);
+            expect(getChannelBookmarksMenuPluginComponents(makeState([shown]), 'other')).toEqual([]);
         });
     });
 });
