@@ -11,6 +11,7 @@ const (
 	SectionLicense          NodeSection = "license"
 	SectionServerSoftware   NodeSection = "server_software"
 	SectionServerHost       NodeSection = "server_host"
+	SectionServerMemory     NodeSection = "server_memory"
 	SectionServerFDs        NodeSection = "server_fds"
 	SectionConfigSource     NodeSection = "config_source"
 	SectionDatabaseIdentity NodeSection = "database_identity"
@@ -40,6 +41,7 @@ func AllNodeSections() []NodeSection {
 		SectionLicense,
 		SectionServerSoftware,
 		SectionServerHost,
+		SectionServerMemory,
 		SectionServerFDs,
 		SectionConfigSource,
 		SectionDatabaseIdentity,

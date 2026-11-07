@@ -144,6 +144,10 @@ func TestRegistered(t *testing.T) {
 		{envUnsupportedOS, "ENV_UNSUPPORTED_OS", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityStable, "Server.OS", false, false},
 		{bindPrivilegedPort, "BIND_PRIVILEGED_PORT", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityStable, "ServiceSettings.ListenAddress", false, false},
 		{nodeFDExhaustion, "NODE_FD_EXHAUSTION", healthcheck.SeverityCritical, healthcheck.SurfaceProduct, healthcheck.VolatilityThreshold, "Server.FileDescriptors", false, true},
+		{nodeContainerMemoryPressure, "NODE_CONTAINER_MEMORY_PRESSURE", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityThreshold, "Server.ContainerMemory", false, true},
+		{nodeContainerOOMKills, "NODE_CONTAINER_OOM_KILLS", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityThreshold, "Server.ContainerOOMKills", false, true},
+		{nodeHostMemoryLow, "NODE_HOST_MEMORY_LOW", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityThreshold, "Server.HostMemory", false, true},
+		{nodeGoMemoryLimitAboveContainer, "NODE_GO_MEMORY_LIMIT_ABOVE_CONTAINER", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityStable, "Server.GoMemoryLimit", false, true},
 	}
 
 	registry := healthcheck.Builtin()

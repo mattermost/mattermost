@@ -467,7 +467,11 @@ Version
             Running Mattermost 11.0.4. Support for this release line ended on 2026-01-15. No security patches ship for this release line. Upgrade to the latest release.
             → Plan a staged upgrade to a supported Extended Support Release or the latest release. Supported versions are listed at https://docs.mattermost.com/product-overview/mattermost-server-releases.html.
 
-2 critical`, s.printedHealthFindings())
+Could not evaluate
+  WARNING   Host memory is running low on mm.example.com
+            Server diagnostics unavailable.
+
+2 critical, 1 could not be evaluated`, s.printedHealthFindings())
 	})
 
 	s.Run("plain output localizes a full filestore disk finding", func() {
@@ -536,11 +540,17 @@ Version
 		s.Require().True(ok)
 		s.Equal(int64(healthTestPacketGeneratedAt), list.EvaluatedAt)
 		findings := list.Findings
-		s.Require().Len(findings, 2)
-		s.Equal("VERSION_EOL", findings[0].Code)
-		s.Equal("PUSH_BAD_SCHEME", findings[1].Code)
-		s.Equal("PushNotificationServer does not use https://", findings[1].Title)
-		s.Equal(time.UnixMilli(healthTestPacketGeneratedAt).UnixMilli(), findings[1].FirstSeenAt)
+		s.Require().Len(findings, 3)
+		codes := make([]string, 0, len(findings))
+		for _, finding := range findings {
+			codes = append(codes, finding.Code)
+		}
+		s.ElementsMatch([]string{"VERSION_EOL", "PUSH_BAD_SCHEME", "NODE_HOST_MEMORY_LOW"}, codes)
+
+		pushIndex := slices.IndexFunc(findings, func(finding *model.HealthFinding) bool { return finding.Code == "PUSH_BAD_SCHEME" })
+		s.Require().NotEqual(-1, pushIndex)
+		s.Equal("PushNotificationServer does not use https://", findings[pushIndex].Title)
+		s.Equal(time.UnixMilli(healthTestPacketGeneratedAt).UnixMilli(), findings[pushIndex].FirstSeenAt)
 		s.Equal([]string{healthPacketDisclaimer}, printer.GetErrorLines())
 	})
 
