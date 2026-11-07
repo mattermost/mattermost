@@ -221,6 +221,11 @@ test.describe(
             const pair = await createChannelAttributeField(adminClient, fieldName('list', suffix), {
                 options: ['Value A'],
             });
+
+            // The modal pages 20 channels sorted by name, and channels left by earlier
+            // specs would push this one off the first page, so backfill them first.
+            await backfillChannelAttribute(adminClient, pair.channelField, optionId(pair.templateField, 'Value A'));
+
             const channel = await createComplianceChannel(adminClient, team, suffix, `Missing Value ${suffix}`);
             await adminClient.addToChannel(user.id, channel.id);
             await adminClient.updateChannelMemberSchemeRoles(channel.id, user.id, true, true);
@@ -337,6 +342,10 @@ test.describe(
                 type: 'select',
                 options: ['Value A'],
             });
+
+            // Keeps this channel on the modal's first page; see the View channel list test.
+            await backfillChannelAttribute(adminClient, field, attributeOptionId(field, 'Value A'));
+
             const channel = await createComplianceChannel(adminClient, team, suffix, `Standalone Missing ${suffix}`);
 
             try {
