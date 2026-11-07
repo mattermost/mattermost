@@ -247,8 +247,8 @@ describe('CreateRecapModal', () => {
     test('should show pagination dots', () => {
         renderWithContext(<CreateRecapModal {...defaultProps}/>, initialState);
 
-        const paginationDots = document.querySelectorAll('.pagination-dot');
-        expect(paginationDots.length).toBeGreaterThan(0);
+        expect(screen.getByRole('tablist', {name: 'Pages'})).toBeInTheDocument();
+        expect(screen.getAllByRole('tab').length).toBeGreaterThan(0);
     });
 
     test('should show two visible steps for scheduled all-unreads recaps', async () => {
@@ -263,11 +263,11 @@ describe('CreateRecapModal', () => {
         await userEvent.click(screen.getByRole('button', {name: /next/i}));
 
         await waitFor(() => {
-            const paginationDots = document.querySelectorAll('.pagination-dot');
+            const tabs = screen.getAllByRole('tab');
 
-            expect(paginationDots).toHaveLength(2);
-            expect(paginationDots[0]).not.toHaveClass('active');
-            expect(paginationDots[1]).toHaveClass('active');
+            expect(tabs).toHaveLength(2);
+            expect(tabs[0]).toHaveAttribute('aria-selected', 'false');
+            expect(tabs[1]).toHaveAttribute('aria-selected', 'true');
         });
     });
 

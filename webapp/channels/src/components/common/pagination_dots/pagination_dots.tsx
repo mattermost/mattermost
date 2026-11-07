@@ -3,25 +3,29 @@
 
 import React from 'react';
 
-import './pagination_dots.scss';
+import {PaginationDots as CompassPaginationDots} from '@mattermost/compass-ui/components/pagination-dots';
+import type {PaginationDotsProps as CompassPaginationDotsProps} from '@mattermost/compass-ui/components/pagination-dots';
 
-type Props = {
+type Props = Pick<
+    CompassPaginationDotsProps,
+    'orientation' | 'dotStyle' | 'className' | 'label' | 'formatPageLabel'
+> & {
     totalSteps: number;
     currentStep: number;
 };
 
-const PaginationDots = ({totalSteps, currentStep}: Props) => {
+/**
+ * Adapter for legacy `totalSteps` / `currentStep` callers.
+ * New code should use PaginationDots from '@mattermost/compass-ui/components/pagination-dots' directly.
+ */
+const PaginationDots = ({totalSteps, currentStep, ...compassProps}: Props) => {
     return (
-        <div className='pagination-dots'>
-            {Array.from({length: totalSteps}).map((_, index) => (
-                <div
-                    key={index}
-                    className={`pagination-dot ${index + 1 === currentStep ? 'active' : ''}`}
-                />
-            ))}
-        </div>
+        <CompassPaginationDots
+            pages={totalSteps}
+            activePage={currentStep}
+            {...compassProps}
+        />
     );
 };
 
 export default PaginationDots;
-
