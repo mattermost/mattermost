@@ -1,0 +1,105 @@
+name: Release Docs - Hub and Calendar
+
+# Release comms that post to Hub or write to the Release Dates calendar. Each task works out
+# from the Release Dates calendar (and the holidays page) whether today is its day, and does
+# nothing otherwise. Dry run by default (PHASE3_MODE); reruns find their own earlier posts and
+# events, so nothing is posted or created twice. See release-docs-task.yml for settings.
+#
+#   announcement    T-1: the Announcements post goes to the review channel as a draft for the
+#                   release manager (the release playbook run's owner; with none, nobody is
+#                   mentioned and the post asks for an owner to be set). Their
+#                   :white_check_mark: on a later run schedules the draft's current text in
+#                   Announcements for Release Day. No reaction by Release Day: nothing is
+#                   posted and the thread says it's waiting. Runs hourly on weekdays.
+#   key-dates       T-0: every event of the next two releases that isn't on the Release Dates
+#                   calendar is created. Events people made are never moved; differences go to
+#                   the release manager in Hub. Ticks "Add key dates for the next two releases
+#                   to the Release Dates calendar."
+#   marketing       T-0: the release email (with the Asana form text for the release manager)
+#                   and the social post, in Staff: Marketing. Ticks the social item; "Queue the
+#                   email for the Marketing team" stays with the release manager.
+#   esr-comms       Three months before an ESR goes out of support, and the day it does (or the
+#                   next working day): one draft docs PR. Three months before, also a draft PR in
+#                   mattermost/mattermost-mobile making the new ESR the minimum supported server
+#                   (as mattermost-mobile#9954); when support ends, a Jira ticket for removing
+#                   feature flags. The blog and email section is in the drafts task.
+#   feature-review  The working day after Feature Complete until Release Day: the description of
+#                   the release's "Feature Ready Review" occurrence (after its Feature Complete,
+#                   before its Release Day) on the Release Dates calendar.
+#
+# By hand, leave the version empty to do today's work, or give one to run it for that release
+# now (esr-comms: the ESR, e.g. v11.7, with esr_stage).
+
+on:
+  schedule:
+    - cron: '23 7-22 * * 1-5'  # announcement: hourly on weekdays
+    - cron: '41 12 * * 1-5'    # the others: once each weekday
+  workflow_dispatch:
+    inputs:
+      task:
+        description: 'Which task'
+        required: true
+        type: choice
+        options:
+          - announcement
+          - key-dates
+          - marketing
+          - esr-comms
+          - feature-review
+      version:
+        description: 'Release version, e.g. v12.2.0 (esr-comms: the ESR, e.g. v11.7). Empty: today''s work.'
+        required: false
+        type: string
+      mode:
+        description: 'dry_run or live (default: PHASE3_MODE)'
+        required: false
+        default: default
+        type: choice
+        options:
+          - default
+          - dry_run
+          - live
+      release_date:
+        description: 'Release Day, YYYY-MM-DD, if the calendar does not have it'
+        required: false
+        type: string
+      esr_stage:
+        description: 'esr-comms: before (three months before support ends) or ended'
+        required: false
+        type: string
+
+permissions: {}
+
+concurrency:
+  group: release-docs-hub-${{ inputs.task || github.event.schedule }}
+  cancel-in-progress: false
+
+jobs:
+  announcement:
+    if: github.event.schedule == '23 7-22 * * 1-5' || inputs.task == 'announcement'
+    uses: ./.github/workflows/release-docs-task.yml
+    with:
+      task: announcement
+      version: ${{ inputs.version }}
+      mode: ${{ inputs.mode }}
+      release_date: ${{ inputs.release_date }}
+    secrets: inherit
+    permissions:
+      contents: read
+
+  daily:
+    if: github.event.schedule == '41 12 * * 1-5' || (github.event_name == 'workflow_dispatch' && inputs.task != 'announcement')
+    strategy:
+      fail-fast: false
+      matrix:
+        task: ${{ github.event_name == 'workflow_dispatch' && fromJSON(format('["{0}"]', inputs.task)) || fromJSON('["key-dates","marketing","esr-comms","feature-review"]') }}
+    uses: ./.github/workflows/release-docs-task.yml
+    with:
+      task: ${{ matrix.task }}
+      version: ${{ inputs.version }}
+      mode: ${{ inputs.mode }}
+      release_date: ${{ inputs.release_date }}
+      esr_stage: ${{ inputs.esr_stage }}
+    secrets: inherit
+    permissions:
+      contents: read

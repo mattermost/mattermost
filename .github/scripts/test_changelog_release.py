@@ -182,6 +182,8 @@ class DerivedNotesTest(unittest.TestCase):
     def test_go_version_from_buildenv(self):
         dockerfile = "FROM golang:1.26.10-bookworm@sha256:fe3da92a\nARG NODE_VERSION=24.11.1\n"
         self.assertEqual(cr.go_version_from_buildenv(dockerfile), "go1.26.10")
+        older = "FROM mattermost/golang-bullseye:1.26.7@sha256:725955a6\nARG NODE_VERSION=20.11.1\n"
+        self.assertEqual(cr.go_version_from_buildenv(older), "go1.26.7")
         self.assertIsNone(cr.go_version_from_buildenv("FROM ubuntu:24.04\n"))
         self.assertIsNone(cr.go_version_from_buildenv(None))
 
