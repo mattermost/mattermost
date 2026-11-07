@@ -38,27 +38,12 @@ var mountInfoPathReplacer = strings.NewReplacer(
 	`\134`, `\`,
 )
 
-// getContainerLimits reads container resource limits from cgroups v2.
+// getContainerLimits reads the container CPU limit from cgroups v2.
 // Returns zero values when no limits are detected (bare metal, unlimited, or non-v2 system).
 func getContainerLimits(info cgroupV2Info) (ContainerLimits, error) {
 	var limits ContainerLimits
 	if info.dir == "" {
 		return limits, nil
-	}
-
-	if info.memoryStatsSupported {
-		// Memory limit: "max" means unlimited, otherwise bytes
-		memStr, err := readTrimmed(filepath.Join(info.dir, "memory.max"))
-		if err != nil {
-			return limits, err
-		}
-		if memStr != "max" {
-			memBytes, err := strconv.ParseUint(memStr, 10, 64)
-			if err != nil {
-				return limits, err
-			}
-			limits.MemoryLimitMB = (memBytes + 1024*1024 - 1) / (1024 * 1024)
-		}
 	}
 
 	// CPU limit: format is "quota period"; quota is "max" when unlimited
@@ -296,15 +281,18 @@ func getMemoryDiagnostics(info cgroupV2Info) (memoryDiagnostics, error) {
 		return diagnostics, nil
 	}
 
+	// Memory limit: "max" means unlimited, otherwise bytes.
 	memoryMaxPath := filepath.Join(info.dir, "memory.max")
 	memoryMax, err := readTrimmed(memoryMaxPath)
 	if err != nil {
 		return diagnostics, err
 	}
 	if memoryMax != "max" {
-		if _, err = strconv.ParseUint(memoryMax, 10, 64); err != nil {
-			return diagnostics, fmt.Errorf("parse %s: %w", memoryMaxPath, err)
+		memoryMaxBytes, parseErr := strconv.ParseUint(memoryMax, 10, 64)
+		if parseErr != nil {
+			return diagnostics, fmt.Errorf("parse %s: %w", memoryMaxPath, parseErr)
 		}
+		diagnostics.ContainerMemoryLimitMB = (memoryMaxBytes + 1024*1024 - 1) / (1024 * 1024)
 	}
 
 	current, err := parseUintFile(filepath.Join(info.dir, "memory.current"))
