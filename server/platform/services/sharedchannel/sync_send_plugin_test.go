@@ -79,10 +79,10 @@ func newPluginSyncFixture(t *testing.T, postCount, maxPostsPerSync, reactionsPer
 	rcStore := &mocks.RemoteClusterStore{}
 	rcStore.On("Get", f.remoteID, false).Return(rc, nil)
 
-	f.scStore.On("GetRemoteByIds", f.channelID, f.remoteID).Return(f.scr, nil)
+	f.scStore.On("GetRemoteByIdsFromMaster", f.channelID, f.remoteID).Return(f.scr, nil)
 	f.scStore.On("GetUsersForSync", mock.Anything).Return([]*model.User{}, nil)
 	f.scStore.On("Get", f.channelID).Return(&model.SharedChannel{ChannelId: f.channelID, TeamId: model.NewId()}, nil)
-	f.scStore.On("UpdateRemoteCursor", f.scr.Id, mock.Anything).Return(nil)
+	f.scStore.On("UpdateRemoteCursorIfUnchanged", f.scr.Id, mock.Anything, mock.Anything).Return(true, nil)
 
 	f.postStore.On("GetPostsSinceForSync", mock.MatchedBy(func(o model.GetPostsSinceForSyncOptions) bool { return o.SinceCreateAt }), mock.Anything, mock.Anything).
 		Return(f.posts, f.nextCursor, nil)
@@ -187,7 +187,7 @@ func TestSyncForPluginRemote_Cursor(t *testing.T) {
 		before := time.Now()
 		require.NoError(t, f.scs.processTask(newSyncTask(f.channelID, "", f.remoteID, nil, nil)))
 
-		f.scStore.AssertNotCalled(t, "UpdateRemoteCursor", mock.Anything, mock.Anything)
+		f.scStore.AssertNotCalled(t, "UpdateRemoteCursorIfUnchanged", mock.Anything, mock.Anything, mock.Anything)
 		assert.Equal(t, []string{f.remoteID}, f.rcs.getNotifyCalls())
 
 		tasks := f.queuedTasks()
@@ -204,7 +204,7 @@ func TestSyncForPluginRemote_Cursor(t *testing.T) {
 		require.Len(t, sent, 2)
 		assert.Equal(t, f.postIDs(), sent[0])
 		assert.Equal(t, sent[0], sent[1], "the retry must re-send the same batch")
-		f.scStore.AssertCalled(t, "UpdateRemoteCursor", f.scr.Id, f.nextCursor)
+		f.scStore.AssertCalled(t, "UpdateRemoteCursorIfUnchanged", f.scr.Id, mock.Anything, f.nextCursor)
 	})
 
 	t.Run("success advances the cursor", func(t *testing.T) {
@@ -213,7 +213,7 @@ func TestSyncForPluginRemote_Cursor(t *testing.T) {
 
 		require.NoError(t, f.scs.processTask(newSyncTask(f.channelID, "", f.remoteID, nil, nil)))
 
-		f.scStore.AssertCalled(t, "UpdateRemoteCursor", f.scr.Id, f.nextCursor)
+		f.scStore.AssertCalled(t, "UpdateRemoteCursorIfUnchanged", f.scr.Id, mock.Anything, f.nextCursor)
 		assert.Empty(t, f.rcs.getNotifyCalls())
 		assert.Empty(t, f.queuedTasks())
 	})
@@ -226,7 +226,7 @@ func TestSyncForPluginRemote_Cursor(t *testing.T) {
 
 		require.NoError(t, f.scs.processTask(newSyncTask(f.channelID, "", f.remoteID, nil, nil)))
 
-		f.scStore.AssertCalled(t, "UpdateRemoteCursor", f.scr.Id, f.nextCursor)
+		f.scStore.AssertCalled(t, "UpdateRemoteCursorIfUnchanged", f.scr.Id, mock.Anything, f.nextCursor)
 		assert.Empty(t, f.rcs.getNotifyCalls())
 
 		tasks := f.queuedTasks()
@@ -244,7 +244,7 @@ func TestSyncForPluginRemote_Cursor(t *testing.T) {
 
 		require.NoError(t, f.scs.processTask(newSyncTask(f.channelID, "", f.remoteID, nil, nil)))
 
-		f.scStore.AssertNotCalled(t, "UpdateRemoteCursor", mock.Anything, mock.Anything)
+		f.scStore.AssertNotCalled(t, "UpdateRemoteCursorIfUnchanged", mock.Anything, mock.Anything, mock.Anything)
 		assert.Equal(t, []string{f.remoteID}, f.rcs.getNotifyCalls())
 
 		tasks := f.queuedTasks()

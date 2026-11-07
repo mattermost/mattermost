@@ -616,17 +616,29 @@ func (scs *Service) notifyRemoteOffline(posts []*model.Post, rc *model.RemoteClu
 	}
 }
 
-func (scs *Service) updateCursorForRemote(scrId string, rc *model.RemoteCluster, cursor model.GetPostsSinceForSyncCursor) {
-	if err := scs.server.GetStore().SharedChannel().UpdateRemoteCursor(scrId, cursor); err != nil {
+// updateCursorForRemote is conditional so a cursor set during the batch, such as a plugin rewind, is kept.
+func (scs *Service) updateCursorForRemote(sd *syncData) {
+	cursor := sd.resultNextCursor
+
+	updated, err := scs.server.GetStore().SharedChannel().UpdateRemoteCursorIfUnchanged(sd.scr.Id, sd.scr.UpdateAt, cursor)
+	if err != nil {
 		scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "error updating cursor for shared channel remote",
-			mlog.String("remote", rc.DisplayName),
+			mlog.String("remote", sd.rc.DisplayName),
 			mlog.Err(err),
 		)
 		return
 	}
+	if !updated {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "cursor for remote changed during sync; keeping the stored cursor",
+			mlog.String("remote_id", sd.rc.RemoteId),
+			mlog.String("remote", sd.rc.DisplayName),
+			mlog.String("channel_id", sd.task.channelID),
+		)
+		return
+	}
 	scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "updated cursor for remote",
-		mlog.String("remote_id", rc.RemoteId),
-		mlog.String("remote", rc.DisplayName),
+		mlog.String("remote_id", sd.rc.RemoteId),
+		mlog.String("remote", sd.rc.DisplayName),
 		mlog.Int("last_post_create_at", cursor.LastPostCreateAt),
 		mlog.String("last_post_create_id", cursor.LastPostCreateID),
 		mlog.Int("last_post_update_at", cursor.LastPostUpdateAt),

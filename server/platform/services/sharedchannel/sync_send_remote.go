@@ -114,7 +114,7 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 		}
 	}()
 
-	scr, err := scs.server.GetStore().SharedChannel().GetRemoteByIds(task.channelID, rc.RemoteId)
+	scr, err := scs.server.GetStore().SharedChannel().GetRemoteByIdsFromMaster(task.channelID, rc.RemoteId)
 	if isNotFoundError(err) && rc.IsOptionFlagSet(model.BitflagOptionAutoInvited) {
 		// if SharedChannelRemote not found and remote has autoinvite flag, create a scr for it, thus inviting the remote.
 		scr = &model.SharedChannelRemote{
@@ -222,7 +222,7 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 			mlog.Bool("repeat", sd.resultRepeat),
 		)
 		if sd.isCursorChanged() {
-			scs.updateCursorForRemote(sd.scr.Id, sd.rc, sd.resultNextCursor)
+			scs.updateCursorForRemote(sd)
 		}
 		return nil
 	}
@@ -813,7 +813,7 @@ func (scs *Service) sendSyncData(sd *syncData) error {
 		// A repeat would re-send the held batch at once, bypassing SyncRetryDelay.
 		sd.resultRepeat = false
 	} else if sd.isCursorChanged() {
-		scs.updateCursorForRemote(sd.scr.Id, sd.rc, sd.resultNextCursor)
+		scs.updateCursorForRemote(sd)
 	}
 
 	// send statuses
