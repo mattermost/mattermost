@@ -8,6 +8,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/rules/internal/probes"
 )
 
 func init() {
@@ -121,18 +122,21 @@ func smtpInUse(s *healthcheck.Snapshot) (inUse, ok bool) {
 }
 
 func evalSMTPUnreachable(s *healthcheck.Snapshot) healthcheck.Result {
-	diag, ok := s.LeaderDiag(model.SectionSMTPProbe)
+	return probes.Eval(s, smtpProbe,
+		healthcheck.TranslationId("health.rule.smtp_unreachable.message"),
+		healthcheck.TranslationId("health.rule.smtp_unreachable.message.partial"))
+}
+
+// A disabled status means the node does not use SMTP, so it counts as passing.
+func smtpProbe(n *healthcheck.NodeSnapshot) (status, probeErr string) {
+	diag, ok := n.SectionDiag(model.SectionSMTPProbe)
 	if !ok {
-		return healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)
+		return "", ""
 	}
 
 	email := diag.Notifications.Email
-	switch email.Status {
-	case model.StatusOk, model.StatusDisabled:
-		return healthcheck.Resolved()
-	case model.StatusFail:
-		return healthcheck.Firing(healthcheck.TranslationId("health.rule.smtp_unreachable.message")).WithDetail("error", email.Error)
-	default:
-		return healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)
+	if email.Status == model.StatusDisabled {
+		return model.StatusOk, ""
 	}
+	return email.Status, email.Error
 }
