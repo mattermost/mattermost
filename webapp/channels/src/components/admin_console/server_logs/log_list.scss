@@ -363,10 +363,13 @@
     }
 
     &__timestamp {
+        overflow: hidden;
         width: log_viewer.$timestamp-column-width;
         flex-shrink: 0;
         color: rgba(var(--center-channel-color-rgb), 0.64);
         font-size: 12px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     &__node {

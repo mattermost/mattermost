@@ -5,8 +5,11 @@ import React, {useState} from 'react';
 
 import {LogLevelEnum, LogNodeKey} from '@mattermost/types/admin';
 
+import {Preferences} from 'mattermost-redux/constants';
+
 import {fakeNow} from 'tests/helpers/date';
-import {renderWithContext, fireEvent, screen, waitFor, within} from 'tests/react_testing_utils';
+import {act, renderWithContext, fireEvent, screen, waitFor, within} from 'tests/react_testing_utils';
+import {TestHelper} from 'utils/test_helper';
 
 import LogList, {loadPrefs} from './log_list';
 import type {LogObjectWithAdditionalInfo} from './types';
@@ -95,13 +98,26 @@ function renderList(logs: LogObjectWithAdditionalInfo[]) {
 
 type ListProps = Omit<React.ComponentProps<typeof LogList>, 'enabledLevels' | 'onEnabledLevelsChange'>;
 
-function renderListWith(props: Partial<ListProps>) {
+type AdminSettings = {timezone?: string; militaryTime?: boolean};
+
+// Settings set the admin's timezone and Clock Display, which otherwise default to UTC and the 12-hour clock
+function renderListWith(props: Partial<ListProps>, settings?: AdminSettings) {
+    const {timezone = 'UTC', militaryTime = false} = settings ?? {};
     return renderWithContext(
         <StatefulLogList
             {...baseProps}
             logs={[]}
             {...props}
         />,
+        settings && {entities: {
+            users: {
+                currentUserId: 'user1',
+                profiles: {user1: {id: 'user1', timezone: {useAutomaticTimezone: 'false', automaticTimezone: '', manualTimezone: timezone}}},
+            },
+            preferences: {myPreferences: TestHelper.getPreferencesMock([
+                {category: Preferences.CATEGORY_DISPLAY_SETTINGS, name: Preferences.USE_MILITARY_TIME, value: String(militaryTime)},
+            ], 'user1')},
+        }},
     );
 }
 
@@ -967,16 +983,9 @@ describe('components/admin_console/server_logs/LogList', () => {
         test('should decide on the year in the user\'s timezone', () => {
             // Already 2027 in Tokyo, still 2026 in UTC
             fakeNow('2026-12-31T16:00:00.000Z');
-            renderWithContext(
-                <StatefulLogList
-                    {...baseProps}
-                    logs={[]}
-                    timeRange={{from: Date.parse('2026-12-31T14:00:00.000Z'), to: Date.parse('2026-12-31T14:30:00.000Z')}}
-                />,
-                {entities: {users: {
-                    currentUserId: 'user1',
-                    profiles: {user1: {id: 'user1', timezone: {useAutomaticTimezone: 'false', automaticTimezone: '', manualTimezone: 'Asia/Tokyo'}}},
-                }}},
+            renderListWith(
+                {timeRange: {from: Date.parse('2026-12-31T14:00:00.000Z'), to: Date.parse('2026-12-31T14:30:00.000Z')}},
+                {timezone: 'Asia/Tokyo'},
             );
 
             expect((screen.getByLabelText('Duration') as HTMLInputElement).value.replace(/\s/g, ' ')).toBe('Dec 31, 2026, 11:00 – 11:30 PM');
@@ -1149,6 +1158,14 @@ describe('components/admin_console/server_logs/LogList', () => {
             expect(newEntriesButton()).not.toBeInTheDocument();
         });
 
+        test('should show the latest entry from a node that keeps failing', () => {
+            const {update} = renderUpdatable([makeFailedNodeLog('node-a', '2026-03-12 10:00:01.000 +00:00')]);
+
+            update([makeFailedNodeLog('node-a', '2026-03-12 10:00:09.000 +00:00')]);
+
+            expect(screen.getByTitle('2026-03-12 10:00:09.000 +00:00')).toBeInTheDocument();
+        });
+
         test('should hold entries from a node that had none', () => {
             const {update} = renderUpdatable([makeNodeLog('node-a', 'a1', '2026-03-12T10:00:05.000Z')]);
             fireEvent.click(screen.getByText('a1'));
@@ -1191,6 +1208,79 @@ describe('components/admin_console/server_logs/LogList', () => {
             expect(rowMessages()).toEqual(['msg 5', 'msg 4', 'msg 3', 'msg 2']);
             expect(newRowMessages()).toEqual([]);
             expect(newEntriesButton()).not.toBeInTheDocument();
+        });
+    });
+    describe('row times', () => {
+        beforeEach(() => {
+            pinAscendingSort();
+            fakeNow('2026-03-12T18:00:00.000Z');
+        });
+
+        afterEach(() => {
+            jest.useRealTimers();
+        });
+
+        const rowTimes = () => Array.from(document.querySelectorAll('.LogRow__timestamp')).map((el) => el.textContent);
+        const timeColumnChars = () => (document.querySelector('.LogViewer') as HTMLElement).style.getPropertyValue('--log-timestamp-chars');
+
+        test('should show the times in the admin\'s timezone rather than the server\'s', () => {
+            renderListWith({logs: [
+                makeLog('utc', '2026-03-12 14:30:00.000 +00:00'),
+                makeLog('offset', '2026-03-12 10:45:00.000 -04:00'),
+            ]}, {timezone: 'Europe/Berlin', militaryTime: true});
+
+            expect(rowTimes()).toEqual(['15:30:00.000', '15:45:00.000']);
+        });
+
+        // The formats themselves are covered by the utils tests; this checks they reach the rows and the column
+        test.each([
+            ['24-hour, only today', [first, second], true, ['10:00:01.000', '10:00:02.000'], '12'],
+            ['12-hour, across midnight', [makeLog('a', '2026-03-11T23:59:59.000Z'), makeLog('b', '2026-03-12T00:00:01.000Z')], false, ['2026-03-11 11:59:59.000 PM', '2026-03-12 12:00:01.000 AM'], '26'],
+        ])('should size the time column to the format: %s', (_, logs, militaryTime, times, chars) => {
+            renderListWith({logs}, {militaryTime});
+
+            expect(rowTimes()).toEqual(times);
+            expect(timeColumnChars()).toBe(chars);
+        });
+
+        test('should add the date at midnight when the entries stop being from today', () => {
+            jest.useFakeTimers({now: new Date('2026-03-12T23:59:00.000Z')});
+            renderListWith({logs: [makeLog('late', '2026-03-12T23:58:00.000Z')]}, {militaryTime: true});
+            expect(rowTimes()).toEqual(['23:58:00.000']);
+
+            act(() => {
+                jest.advanceTimersByTime(60 * 1000);
+            });
+
+            expect(rowTimes()).toEqual(['2026-03-12 23:58:00.000']);
+        });
+
+        test('should add the date when the page comes back after midnight before the timer fires', () => {
+            // Only the clock is faked, so the real midnight timer is still a minute away when the page comes back
+            fakeNow('2026-03-12T23:59:00.000Z');
+            renderListWith({logs: [makeLog('late', '2026-03-12T23:58:00.000Z')]}, {militaryTime: true});
+            expect(rowTimes()).toEqual(['23:58:00.000']);
+
+            jest.setSystemTime(new Date('2026-03-13T08:00:00.000Z'));
+            act(() => {
+                document.dispatchEvent(new Event('visibilitychange'));
+            });
+
+            expect(rowTimes()).toEqual(['2026-03-12 23:58:00.000']);
+        });
+
+        test('should show the date on every page when any entry is from another day', () => {
+            localStorage.setItem(PREFS_KEY, JSON.stringify({sortAsc: true, pageSize: 50}));
+            const logs = [
+                makeLog('yesterday', '2026-03-11T23:00:00.000Z'),
+                ...Array.from({length: 60}, (_, i) => makeLog(`msg ${i}`, new Date(Date.UTC(2026, 2, 12, 10, 0, i)).toISOString())),
+            ];
+            renderListWith({logs}, {militaryTime: true});
+
+            fireEvent.click(screen.getByLabelText('Next page'));
+
+            // This page only holds entries from today, yet keeps the date
+            expect(rowTimes()[0]).toBe('2026-03-12 10:00:49.000');
         });
     });
 });

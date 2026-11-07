@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import moment from 'moment-timezone';
+
 import {LogLevelEnum, LogNodeKey} from '@mattermost/types/admin';
 
 import {logEntryTime} from 'mattermost-redux/utils/log_utils';
@@ -56,4 +58,42 @@ export function newestLogTimes(logs: LogObjectWithAdditionalInfo[]): Record<stri
         }
     }
     return newest;
+}
+
+const DAY_FORMAT = 'YYYY-MM-DD';
+
+// The format of a row's time: the admin's clock, with the date when the rows need it
+export function logRowTimeFormat(showDate: boolean, useMilitaryTime: boolean): string {
+    const time = useMilitaryTime ? 'HH:mm:ss.SSS' : 'h:mm:ss.SSS A';
+    return showDate ? `${DAY_FORMAT} ${time}` : time;
+}
+
+// The most characters a time in this format takes: a two-digit hour and "PM" are as long as it gets
+export function logRowTimeLength(format: string): number {
+    return moment.utc('2000-12-31T22:59:59.999Z').format(format).length;
+}
+
+// The entry's time in the admin's timezone. A timestamp that doesn't parse is shown as logged, and cut to the column by CSS
+export function formatLogRowTime(log: LogObjectWithAdditionalInfo, timezone: string, format: string): string {
+    const time = logEntryTime(log);
+    if (Number.isNaN(time)) {
+        return log.timestamp;
+    }
+    return moment.tz(time, timezone).format(format);
+}
+
+// When the admin's day ends, which turns today's bare times into yesterday's
+export function nextDayStart(timezone: string, now = Date.now()): number {
+    return moment.tz(now, timezone).endOf('day').valueOf() + 1;
+}
+
+// A bare time reads as today, so rows need the date as soon as any entry is from another day
+export function logsNeedDate(logs: LogObjectWithAdditionalInfo[], timezone: string, now = Date.now()): boolean {
+    const today = moment.tz(now, timezone);
+    const startOfToday = today.clone().startOf('day').valueOf();
+    const endOfToday = today.endOf('day').valueOf();
+    return logs.some((log) => {
+        const time = logEntryTime(log);
+        return time < startOfToday || time > endOfToday;
+    });
 }
