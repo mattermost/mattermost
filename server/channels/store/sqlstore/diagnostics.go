@@ -161,6 +161,7 @@ WHERE datname = current_database()`
 func collectPGStatUserTablesDiagnostics(ctx context.Context, db *sqlx.DB, diagnostics *store.DatabaseDiagnostics) error {
 	var row struct {
 		NDeadTup         int64        `db:"n_dead_tup"`
+		NLiveTup         int64        `db:"n_live_tup"`
 		VacuumInProgress bool         `db:"vacuum_in_progress"`
 		LastVacuum       sql.NullTime `db:"last_vacuum"`
 		LastAutovacuum   sql.NullTime `db:"last_autovacuum"`
@@ -173,6 +174,7 @@ func collectPGStatUserTablesDiagnostics(ctx context.Context, db *sqlx.DB, diagno
 	const query = `
 SELECT
     stats.n_dead_tup,
+    stats.n_live_tup,
     EXISTS (
         SELECT 1
         FROM (
@@ -210,6 +212,7 @@ LIMIT 1`
 	}
 
 	diagnostics.PostsDeadTuples = &row.NDeadTup
+	diagnostics.PostsLiveTuples = &row.NLiveTup
 	diagnostics.PostsVacuumInProgress = &row.VacuumInProgress
 	if row.LastVacuum.Valid {
 		ts := row.LastVacuum.Time.UTC()

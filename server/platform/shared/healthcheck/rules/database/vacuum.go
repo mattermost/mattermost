@@ -53,10 +53,13 @@ func evalDBPostsDeadTuples(s *healthcheck.Snapshot) healthcheck.Result {
 		return healthcheck.Resolved().WithValue(float64(dead))
 	}
 
-	posts, ok := s.Stat(func(stats *model.SupportPacketStats) *int64 { return stats.Posts })
-	if !ok || posts <= 0 {
-		return unknownStats()
+	// Live tuples come from the same pg_stat_user_tables row as the dead tuples, so both are
+	// sampled together. Like autovacuum's reltuples they are an estimate, which avoids depending
+	// on an exact COUNT(*) of Posts that is slowest on the largest installs.
+	if diag.Database.PostsLiveTuples == nil || *diag.Database.PostsLiveTuples <= 0 {
+		return unknownDiagnostics()
 	}
+	posts := *diag.Database.PostsLiveTuples
 
 	deadRatio := float64(dead) / float64(posts)
 	if deadRatio <= postsVacuumDeadRatio {
@@ -76,7 +79,7 @@ func evalDBPostsDeadTuples(s *healthcheck.Snapshot) healthcheck.Result {
 		return healthcheck.Firing(messageID).
 			WithDetail("dead_percent", strconv.FormatFloat(100*deadRatio, 'f', 1, 64)).
 			WithDetail("dead_tuples", strconv.FormatInt(dead, 10)).
-			WithDetail("posts", strconv.FormatInt(posts, 10)).
+			WithDetail("live_tuples", strconv.FormatInt(posts, 10)).
 			WithValue(float64(dead))
 	}
 

@@ -15,15 +15,17 @@ import (
 
 var vacuumCollectedAt = time.Date(2026, time.November, 5, 12, 0, 0, 0, time.UTC)
 
-func vacuumSnapshot(dbType *string, dead, posts *int64, manual, auto *time.Time) *healthcheck.Snapshot {
+func vacuumSnapshot(dbType *string, dead, live *int64, manual, auto *time.Time) *healthcheck.Snapshot {
 	diag := &model.SupportPacketDiagnostics{}
 	diag.Database.Type = dbType
 	diag.Database.PostsDeadTuples = dead
+	diag.Database.PostsLiveTuples = live
 	diag.Database.PostsVacuumInProgress = new(false)
 	diag.Database.PostsLastVacuum = manual
 	diag.Database.PostsLastAutovacuum = auto
 
-	s := newSnapshot(nil, &model.SupportPacketStats{Posts: posts}, diag)
+	// The exact post count is deliberately absent: the rule must not depend on the Stats section.
+	s := newSnapshot(nil, nil, diag)
 	s.CollectedAt = vacuumCollectedAt
 	return s
 }
@@ -68,8 +70,8 @@ func TestDBPostsDeadTuples(t *testing.T) {
 		{"stats section failed", failSection(vacuumSnapshot(&postgres, &dead, &posts, &old, nil), model.SectionDatabaseStats), unknownDiagWant},
 		{"dead tuples absent", vacuumSnapshot(&postgres, nil, &posts, &old, nil), unknownDiagWant},
 		{"negative dead tuples", vacuumSnapshot(&postgres, &negativeDead, &posts, &old, nil), unknownDiagWant},
-		{"post count absent", vacuumSnapshot(&postgres, &dead, nil, &old, nil), unknownStatsWant},
-		{"zero post count with high dead tuples", vacuumSnapshot(&postgres, &dead, &zeroPosts, &old, nil), unknownStatsWant},
+		{"live tuples absent", vacuumSnapshot(&postgres, &dead, nil, &old, nil), unknownDiagWant},
+		{"zero live tuples with high dead tuples", vacuumSnapshot(&postgres, &dead, &zeroPosts, &old, nil), unknownDiagWant},
 		{"at dead tuple threshold", vacuumSnapshot(&postgres, &lowDead, &positiveRatioPosts, &old, nil), resolvedWant.withValue(float64(lowDead))},
 		{"at dead tuple ratio", vacuumSnapshot(&postgres, &dead, &exactRatioPosts, &old, nil), resolvedWant.withValue(float64(dead))},
 		{"vacuum progress absent", progressAbsent, unknownDiagWant},
@@ -108,7 +110,7 @@ func TestDBPostsDeadTuples(t *testing.T) {
 		"dead_percent": "40.0",
 		"dead_tuples":  "200000",
 		"last_vacuum":  "2026-10-28T12:00:00Z",
-		"posts":        "500000",
+		"live_tuples":  "500000",
 	}, results[0].Details)
 
 	results = dbPostsDeadTuples.Eval(vacuumSnapshot(&postgres, &dead, &posts, &recent, nil))
@@ -117,7 +119,7 @@ func TestDBPostsDeadTuples(t *testing.T) {
 		"dead_percent": "40.0",
 		"dead_tuples":  "200000",
 		"last_vacuum":  "2026-11-05T11:00:00Z",
-		"posts":        "500000",
+		"live_tuples":  "500000",
 	}, results[0].Details)
 
 	results = dbPostsDeadTuples.Eval(vacuumSnapshot(&postgres, &dead, &posts, nil, nil))
@@ -125,6 +127,6 @@ func TestDBPostsDeadTuples(t *testing.T) {
 	assert.Equal(t, map[string]string{
 		"dead_percent": "40.0",
 		"dead_tuples":  "200000",
-		"posts":        "500000",
+		"live_tuples":  "500000",
 	}, results[0].Details)
 }
