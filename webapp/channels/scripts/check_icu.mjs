@@ -223,10 +223,12 @@ if (warnings.length) {
     console.warn(`\n${warnings.length} warning(s)`);
 }
 
+// exitCode rather than exit(): exit() drops whatever a pipe has not yet taken
+// of the warnings, and the errors written after them.
 if (errors.length) {
     console.error(errors.join('\n'));
     console.error(`\n${errors.length} error(s) across ${localeNames.length} locale file(s)`);
-    process.exit(1);
+    process.exitCode = 1;
+} else {
+    console.log(`OK: ${localeNames.length} locale files checked against ${path.join(i18nDir, SOURCE)}`);
 }
-
-console.log(`OK: ${localeNames.length} locale files checked against ${path.join(i18nDir, SOURCE)}`);
