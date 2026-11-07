@@ -6,7 +6,7 @@ import {expect, test} from '@mattermost/playwright-lib';
 /**
  * @objective Verify that hashtag search is not case sensitive and returns all case variants of a hashtag.
  */
-test('MM-T359 returns all case variants when searching a hashtag', {tag: ['@search']}, async ({pw}) => {
+test('MM-T359 returns all case variants when searching a hashtag', {tag: ['@search', '@core']}, async ({pw}) => {
     // # Create and log in as a test user
     const {user, team} = await pw.initSetup();
     const {channelsPage} = await pw.testBrowser.login(user);
@@ -35,7 +35,7 @@ test('MM-T359 returns all case variants when searching a hashtag', {tag: ['@sear
 /**
  * @objective Verify that clicking a hashtag in a Recent Mentions result runs a hashtag search.
  */
-test('MM-T360 searches a hashtag from a recent mention', {tag: '@search'}, async ({pw}) => {
+test('MM-T360 searches a hashtag from a recent mention', {tag: ['@search', '@core']}, async ({pw}) => {
     // # Create the test user plus a second user who will mention them
     const {user, team, adminClient} = await pw.initSetup();
     const [mentioner] = await adminClient.createUsers(team.id, 1, 'mentioner');
@@ -69,7 +69,7 @@ test('MM-T360 searches a hashtag from a recent mention', {tag: '@search'}, async
 /**
  * @objective Verify that clicking a hashtag in a Saved messages result runs a hashtag search.
  */
-test('MM-T361 searches a hashtag from a saved message', {tag: '@search'}, async ({pw}) => {
+test('MM-T361 searches a hashtag from a saved message', {tag: ['@search', '@core']}, async ({pw}) => {
     // # Create and log in as a test user, and post + save a message with a hashtag
     const {user, team, userClient} = await pw.initSetup();
     const hashtag = `#hello${pw.random.id()}`;

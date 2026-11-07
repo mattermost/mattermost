@@ -6,7 +6,7 @@ import {expect, test} from '@mattermost/playwright-lib';
 /**
  * @objective Verify the member list of an archived channel is viewable but read-only (no member management).
  */
-test('MM-T1671 shows a read-only member list for an archived channel', {tag: '@channels'}, async ({pw}) => {
+test('MM-T1671 shows a read-only member list for an archived channel', {tag: ['@channels', '@core']}, async ({pw}) => {
     const {adminClient, adminUser, team, user} = await pw.initSetup();
     const channel = await adminClient.createPublicChannel(team.id, `Archive ${pw.random.id()}`);
     await adminClient.addToChannel(user.id, channel.id);
@@ -35,7 +35,7 @@ test('MM-T1671 shows a read-only member list for an archived channel', {tag: '@c
  * @objective Verify a post from an archived channel can be found in search and its Jump link opens the
  * archived channel in read-only mode.
  */
-test('MM-T1679 opens an archived channel by jumping from search results', {tag: '@channels'}, async ({pw}) => {
+test('MM-T1679 opens an archived channel by jumping from search results', {tag: ['@channels', '@core']}, async ({pw}) => {
     const {adminClient, team, user} = await pw.initSetup();
     const channel = await adminClient.createPublicChannel(team.id, `Archived ${pw.random.id()}`);
     await adminClient.addToChannel(user.id, channel.id);

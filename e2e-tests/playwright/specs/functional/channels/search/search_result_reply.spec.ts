@@ -6,7 +6,7 @@ import {expect, test} from '@mattermost/playwright-lib';
 /**
  * @objective Verify a user can reply to a post from search results and see the reply in the opened thread.
  */
-test('MM-T373 replies to a post from search results', {tag: '@search'}, async ({pw}) => {
+test('MM-T373 replies to a post from search results', {tag: ['@search', '@core']}, async ({pw}) => {
     // # Create a uniquely searchable post and open its channel
     const {user, team, adminClient} = await pw.initSetup();
     const channel = await adminClient.getChannelByName(team.id, 'off-topic');

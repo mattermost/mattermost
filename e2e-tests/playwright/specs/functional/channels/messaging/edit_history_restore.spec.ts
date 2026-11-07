@@ -7,7 +7,7 @@ import {test} from '@mattermost/playwright-lib';
  * @objective Verify a user can view a message's edit history and restore a previous version, and that
  * cancelling the restore confirmation keeps the edited version.
  */
-test('MM-T5537 views message edit history and restores a previous version', {tag: '@messaging'}, async ({pw}) => {
+test('MM-T5537 views message edit history and restores a previous version', {tag: ['@messaging', '@core']}, async ({pw}) => {
     const {user, team} = await pw.initSetup();
     const {channelsPage, page} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, 'town-square');
