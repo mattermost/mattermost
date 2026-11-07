@@ -507,6 +507,151 @@ func TestStripSharedChannelStatePostsForSync(t *testing.T) {
 	assert.Equal(t, model.PostTypeDefault, sd.posts[0].Type)
 }
 
+// TestUpdateCursorForRemote_KeepsCursorSetDuringBatch covers a cursor set with
+// UpdateSharedChannelCursor while a batch is in flight: the batch's write-back must not
+// overwrite it.
+func TestUpdateCursorForRemote_KeepsCursorSetDuringBatch(t *testing.T) {
+	channelID := model.NewId()
+	rc := &model.RemoteCluster{
+		RemoteId:    model.NewId(),
+		DisplayName: "plugin-remote",
+		PluginID:    "com.example.plugin",
+		LastPingAt:  model.GetMillis(),
+	}
+	start := model.GetPostsSinceForSyncCursor{
+		LastPostCreateAt: 1000, LastPostCreateID: model.NewId(),
+		LastPostUpdateAt: 2000, LastPostUpdateID: model.NewId(),
+	}
+	next := model.GetPostsSinceForSyncCursor{
+		LastPostCreateAt: 3000, LastPostCreateID: model.NewId(),
+		LastPostUpdateAt: 4000, LastPostUpdateID: model.NewId(),
+	}
+	rewind := model.GetPostsSinceForSyncCursor{LastPostCreateAt: 1, LastPostUpdateAt: 1}
+
+	newScr := func() *model.SharedChannelRemote {
+		return &model.SharedChannelRemote{
+			Id:               model.NewId(),
+			ChannelId:        channelID,
+			RemoteId:         rc.RemoteId,
+			LastPostCreateAt: start.LastPostCreateAt,
+			LastPostCreateID: start.LastPostCreateID,
+			LastPostUpdateAt: start.LastPostUpdateAt,
+			LastPostUpdateID: start.LastPostUpdateID,
+			UpdateAt:         1,
+		}
+	}
+
+	// The stored row is kept in memory; the conditional update mirrors the store's WHERE clause.
+	newService := func(t *testing.T, scr *model.SharedChannelRemote, rewindTo *model.GetPostsSinceForSyncCursor) (*Service, func() model.GetPostsSinceForSyncCursor) {
+		t.Helper()
+
+		var mu sync.Mutex
+		stored := start
+		storedUpdateAt := scr.UpdateAt
+
+		scStore := &mocks.SharedChannelStore{}
+		scStore.On("GetRemoteByIdsFromMaster", channelID, rc.RemoteId).Return(scr, nil)
+		scStore.On("UpdateRemoteCursor", scr.Id, mock.Anything).Return(func(_ string, cursor model.GetPostsSinceForSyncCursor) error {
+			mu.Lock()
+			defer mu.Unlock()
+			stored = cursor
+			storedUpdateAt++
+			return nil
+		})
+		scStore.On("UpdateRemoteCursorIfUnchanged", scr.Id, mock.Anything, mock.Anything).Return(
+			func(_ string, expectedUpdateAt int64, cursor model.GetPostsSinceForSyncCursor) (bool, error) {
+				mu.Lock()
+				defer mu.Unlock()
+				if storedUpdateAt != expectedUpdateAt {
+					return false, nil
+				}
+				stored = cursor
+				storedUpdateAt++
+				return true, nil
+			})
+
+		mockStore := &mocks.Store{}
+		mockStore.On("SharedChannel").Return(scStore)
+
+		mockServer := &MockServerIface{}
+		mockServer.On("GetStore").Return(mockStore)
+		mockServer.On("GetMetrics").Return(nil)
+		mockServer.On("GetRemoteClusterService").Return(&mockRCSForSync{})
+		mockServer.On("Log").Return(mlog.CreateConsoleTestLogger(t))
+
+		mockApp := &MockAppIface{}
+		mockApp.On("OnSharedChannelsSyncMsg", mock.Anything, rc).Run(func(mock.Arguments) {
+			if rewindTo != nil {
+				require.NoError(t, scStore.UpdateRemoteCursor(scr.Id, *rewindTo))
+			}
+		}).Return(model.SyncResponse{}, nil)
+
+		scs := &Service{
+			server:       mockServer,
+			app:          mockApp,
+			changeSignal: make(chan struct{}, 1),
+			tasks:        make(map[string]syncTask),
+		}
+		return scs, func() model.GetPostsSinceForSyncCursor {
+			mu.Lock()
+			defer mu.Unlock()
+			return stored
+		}
+	}
+
+	newBatch := func(scr *model.SharedChannelRemote) *syncData {
+		sd := newSyncData(newSyncTask(channelID, "", rc.RemoteId, nil, nil), rc, scr)
+		sd.posts = []*model.Post{{Id: model.NewId(), ChannelId: channelID, Message: "hello"}}
+		sd.resultNextCursor = next
+		return sd
+	}
+
+	t.Run("batch advances the cursor when it was not changed", func(t *testing.T) {
+		scr := newScr()
+		scs, stored := newService(t, scr, nil)
+
+		require.NoError(t, scs.sendSyncData(newBatch(scr)))
+		assert.Equal(t, next, stored())
+	})
+
+	t.Run("rewind made by the plugin hook survives the batch write-back", func(t *testing.T) {
+		scr := newScr()
+		scs, stored := newService(t, scr, &rewind)
+
+		require.NoError(t, scs.sendSyncData(newBatch(scr)))
+		assert.Equal(t, rewind, stored())
+	})
+
+	t.Run("rewind to the batch's starting cursor survives the write-back", func(t *testing.T) {
+		scr := newScr()
+		scs, stored := newService(t, scr, &start)
+
+		require.NoError(t, scs.sendSyncData(newBatch(scr)))
+		assert.Equal(t, start, stored())
+	})
+
+	t.Run("rewind made before a batch with no posts survives the write-back", func(t *testing.T) {
+		scr := newScr()
+		scs, stored := newService(t, scr, nil)
+		sd := newBatch(scr)
+		sd.posts = nil
+
+		require.NoError(t, scs.server.GetStore().SharedChannel().UpdateRemoteCursor(scr.Id, rewind))
+		require.NoError(t, scs.sendSyncData(sd))
+		assert.Equal(t, rewind, stored())
+	})
+
+	t.Run("rewind made during a post retry survives the write-back", func(t *testing.T) {
+		scr := newScr()
+		scs, stored := newService(t, scr, &rewind)
+		retryMsg := model.NewSyncMsg(channelID)
+		retryMsg.Posts = []*model.Post{{Id: model.NewId(), ChannelId: channelID, Message: "hello"}}
+
+		require.NoError(t, scs.syncForRemote(newSyncTask(channelID, "", rc.RemoteId, nil, retryMsg), rc))
+		assert.Equal(t, rewind, stored())
+	})
+}
+
 func TestFilterPostsForSync(t *testing.T) {
 	mockServer := &MockServerIface{}
 	mockServer.On("Log").Return(mlog.CreateConsoleTestLogger(t))
