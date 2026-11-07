@@ -3040,12 +3040,18 @@ func (a *App) postRemoveFromChannelMessage(rctx request.CTX, removerUserId strin
 // removeChannelMembership strips a user's channel membership and the associated
 // thread memberships. Keeping these together ensures channel access cannot be
 // revoked without also dropping the thread state that depends on it.
+//
+// The thread memberships are dropped first on purpose: the two writes are not
+// transactional, so if the second one fails we want the user to still be a
+// channel member (a consistent, retryable state) rather than a non-member who
+// keeps following threads in a channel they can no longer read. A retry of the
+// removal then goes through the normal path again.
 func (a *App) removeChannelMembership(rctx request.CTX, userID, channelID, caller string) *model.AppError {
-	if err := a.Srv().Store().Channel().RemoveMember(rctx, channelID, userID); err != nil {
-		return model.NewAppError(caller, "app.channel.remove_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
 	if err := a.Srv().Store().Thread().DeleteMembershipsForChannel(userID, channelID); err != nil {
 		return model.NewAppError(caller, model.NoTranslation, nil, "failed to delete threadmemberships upon leaving channel", http.StatusInternalServerError).Wrap(err)
+	}
+	if err := a.Srv().Store().Channel().RemoveMember(rctx, channelID, userID); err != nil {
+		return model.NewAppError(caller, "app.channel.remove_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return nil
 }
@@ -3081,6 +3087,19 @@ func (a *App) removeUserFromChannel(rctx request.CTX, userIDToRemove string, rem
 
 	cm, err := a.GetChannelMember(rctx, channel.Id, userIDToRemove)
 	if err != nil {
+		if err.StatusCode == http.StatusNotFound {
+			// The user is already gone from the channel (e.g. a repeated removal or a
+			// retry after a partial failure). Keep the public "not a member" result,
+			// but make sure no thread state survives for a channel the user cannot
+			// read anymore, so the thread/unread paths agree with channel access.
+			if nErr := a.Srv().Store().Thread().DeleteMembershipsForChannel(userIDToRemove, channel.Id); nErr != nil {
+				rctx.Logger().Warn("Failed to clean up thread memberships for non-member",
+					mlog.String("user_id", userIDToRemove),
+					mlog.String("channel_id", channel.Id),
+					mlog.Err(nErr),
+				)
+			}
+		}
 		return err
 	}
 
