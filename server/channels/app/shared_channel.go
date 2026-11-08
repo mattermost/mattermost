@@ -235,6 +235,10 @@ func (a *App) GetSharedChannelCursor(pluginID, channelID, remoteID string) (mode
 	if src.DeleteAt != 0 {
 		return model.GetPostsSinceForSyncCursor{}, fmt.Errorf("cursor fetch failed - channel %s is no longer shared with remote %s", channelID, remoteID)
 	}
+	// Confirming the invite resets the cursor to now, overwriting any rewind made before it.
+	if !src.IsInviteConfirmed {
+		return model.GetPostsSinceForSyncCursor{}, fmt.Errorf("cursor fetch failed - invite of remote %s to channel %s is not yet confirmed", remoteID, channelID)
+	}
 	return model.GetPostsSinceForSyncCursor{
 		LastPostUpdateAt: src.LastPostUpdateAt,
 		LastPostUpdateID: src.LastPostUpdateID,

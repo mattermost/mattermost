@@ -1378,6 +1378,17 @@ func TestPluginAPIGetSharedChannelCursor(t *testing.T) {
 
 	api := NewPluginAPI(th.App, th.Context, &model.Manifest{Id: pluginID})
 
+	// The plugin remote is never pinged in tests, so its invites stay pending until confirmed here.
+	confirmInvite := func(t *testing.T, channelID string) {
+		t.Helper()
+		src, err := th.App.Srv().Store().SharedChannel().GetRemoteByIds(channelID, rc.RemoteId)
+		require.NoError(t, err)
+		src.IsInviteConfirmed = true
+		_, err = th.App.Srv().Store().SharedChannel().UpdateRemote(src)
+		require.NoError(t, err)
+	}
+	confirmInvite(t, channel.Id)
+
 	t.Run("reads back the cursor written by UpdateSharedChannelCursor", func(t *testing.T) {
 		cursor := model.GetPostsSinceForSyncCursor{
 			LastPostUpdateAt: 1000,
@@ -1438,6 +1449,28 @@ func TestPluginAPIGetSharedChannelCursor(t *testing.T) {
 		assert.Contains(t, err.Error(), "no longer shared")
 	})
 
+	t.Run("unconfirmed invite returns error until confirmed", func(t *testing.T) {
+		pendingChannel := th.CreateChannel(t, th.BasicTeam)
+		registerPluginRemoteForTest(t, th, pluginID, pendingChannel)
+
+		_, err := api.GetSharedChannelCursor(pendingChannel.Id, rc.RemoteId)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "not yet confirmed")
+
+		confirmInvite(t, pendingChannel.Id)
+		cursor := model.GetPostsSinceForSyncCursor{
+			LastPostUpdateAt: 5000,
+			LastPostUpdateID: model.NewId(),
+			LastPostCreateAt: 6000,
+			LastPostCreateID: model.NewId(),
+		}
+		require.NoError(t, api.UpdateSharedChannelCursor(pendingChannel.Id, rc.RemoteId, cursor))
+
+		got, err := api.GetSharedChannelCursor(pendingChannel.Id, rc.RemoteId)
+		require.NoError(t, err)
+		assert.Equal(t, cursor, got)
+	})
+
 	t.Run("permanently deleted channel returns error", func(t *testing.T) {
 		deletedChannel := th.CreateChannel(t, th.BasicTeam)
 		registerPluginRemoteForTest(t, th, pluginID, deletedChannel)
@@ -1451,6 +1484,7 @@ func TestPluginAPIGetSharedChannelCursor(t *testing.T) {
 	t.Run("archived channel returns cursor", func(t *testing.T) {
 		archivedChannel := th.CreateChannel(t, th.BasicTeam)
 		registerPluginRemoteForTest(t, th, pluginID, archivedChannel)
+		confirmInvite(t, archivedChannel.Id)
 
 		cursor := model.GetPostsSinceForSyncCursor{
 			LastPostUpdateAt: 3000,
