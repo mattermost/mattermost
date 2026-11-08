@@ -10,6 +10,7 @@ on:
       - "E2E Tests (pull request)"
       - "E2E Tests (master/release - merge)"
       - "E2E Tests (release cut)"
+      - "E2E Tests - Playwright Rolling Upgrades"
     types: [completed]
 
 permissions: {}
