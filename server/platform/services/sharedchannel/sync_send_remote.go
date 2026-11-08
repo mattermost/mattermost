@@ -85,6 +85,30 @@ func (sd *syncData) setDataFromMsg(msg *model.SyncMsg) {
 	sd.statuses = msg.Statuses
 }
 
+// withStoredStatuses returns msg with each status replaced by the user's status in the store.
+// Status tasks queued on different nodes merge in the order they reach the leader, not the order
+// the statuses changed, so the status in the task can be older than the stored one.
+func (scs *Service) withStoredStatuses(msg *model.SyncMsg) *model.SyncMsg {
+	if len(msg.Statuses) == 0 {
+		return msg
+	}
+
+	stored := *msg
+	stored.Statuses = make([]*model.Status, 0, len(msg.Statuses))
+	for _, status := range msg.Statuses {
+		latest, err := scs.server.GetStore().Status().Get(status.UserId)
+		if err != nil {
+			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "Failed to fetch status for sync, sending the queued status",
+				mlog.String("user_id", status.UserId),
+				mlog.Err(err),
+			)
+			latest = status
+		}
+		stored.Statuses = append(stored.Statuses, latest)
+	}
+	return &stored
+}
+
 // syncForRemote updates a remote cluster with any new posts/reactions for a specific
 // channel. If many changes are found, only the oldest X changes are sent and the channel
 // is re-added to the task map. This ensures no channels are starved for updates even if some
@@ -152,7 +176,7 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 
 	// if this has an already existing msg, just send it right away
 	if task.existingMsg != nil {
-		sd.setDataFromMsg(task.existingMsg)
+		sd.setDataFromMsg(scs.withStoredStatuses(task.existingMsg))
 		return scs.sendSyncData(sd)
 	}
 

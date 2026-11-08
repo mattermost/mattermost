@@ -221,6 +221,8 @@ type mockRCSForSync struct {
 	cbErr        error
 
 	enqueueErr error // when set, SendMsg returns this WITHOUT invoking the callback
+
+	sent []model.RemoteClusterMsg
 }
 
 func (m *mockRCSForSync) NotifySyncFailed(remoteId string) {
@@ -240,6 +242,9 @@ func (m *mockRCSForSync) AddConnectionStateListener(listener remotecluster.Conne
 }
 func (m *mockRCSForSync) RemoveConnectionStateListener(listenerId string) {}
 func (m *mockRCSForSync) SendMsg(_ context.Context, msg model.RemoteClusterMsg, rc *model.RemoteCluster, f remotecluster.SendMsgResultFunc) error {
+	m.mu.Lock()
+	m.sent = append(m.sent, msg)
+	m.mu.Unlock()
 	// Simulate an enqueue failure (e.g. BufferFullError): the callback never runs.
 	if m.enqueueErr != nil {
 		return m.enqueueErr

@@ -5,6 +5,7 @@ package sharedchannel
 
 import (
 	"encoding/json"
+	"errors"
 	"maps"
 	"slices"
 	"sync"
@@ -25,8 +26,10 @@ import (
 type clusterTestNode struct {
 	scs      *Service
 	isLeader *atomic.Bool
+	store    *mocks.Store
 	rcStore  *mocks.RemoteClusterStore
 	scStore  *mocks.SharedChannelStore
+	rcs      *mockRCSForSync
 
 	mu   sync.Mutex
 	sent []*model.ClusterMessage
@@ -79,14 +82,15 @@ func newClusterTestNode(t *testing.T, leader bool) *clusterTestNode {
 
 	node := &clusterTestNode{
 		isLeader: &atomic.Bool{},
+		store:    &mocks.Store{},
 		rcStore:  &mocks.RemoteClusterStore{},
 		scStore:  &mocks.SharedChannelStore{},
+		rcs:      &mockRCSForSync{},
 	}
 	node.isLeader.Store(leader)
 
-	mockStore := &mocks.Store{}
-	mockStore.On("RemoteCluster").Return(node.rcStore)
-	mockStore.On("SharedChannel").Return(node.scStore)
+	node.store.On("RemoteCluster").Return(node.rcStore)
+	node.store.On("SharedChannel").Return(node.scStore)
 
 	cluster := &einterfacesmocks.ClusterInterface{}
 	cluster.On("SendClusterMessage", mock.Anything).Run(func(args mock.Arguments) {
@@ -97,8 +101,8 @@ func newClusterTestNode(t *testing.T, leader bool) *clusterTestNode {
 
 	mockServer := &MockServerIface{}
 	mockServer.On("Config").Return(cfg)
-	mockServer.On("GetStore").Return(mockStore)
-	mockServer.On("GetRemoteClusterService").Return(&mockRCSForSync{})
+	mockServer.On("GetStore").Return(node.store)
+	mockServer.On("GetRemoteClusterService").Return(node.rcs)
 	mockServer.On("GetCluster").Return(cluster)
 	mockServer.On("GetMetrics").Return(nil)
 	mockServer.On("IsLeader").Return(node.isLeader.Load)
@@ -488,4 +492,66 @@ func TestHandleClusterSyncTask_AfterShutdown(t *testing.T) {
 	leader.scs.HandleClusterSyncTask(clusterTaskMessage(t, handoff))
 	assert.Len(t, leader.sentMessages(), 1, "a handoff is never sent again")
 	assert.Empty(t, leader.queued())
+}
+
+func TestDoSync_LeaderSendsStoredStatus(t *testing.T) {
+	channelID := model.NewId()
+	remoteID := model.NewId()
+	userID := model.NewId()
+	online := &model.Status{UserId: userID, Status: model.StatusOnline}
+	away := &model.Status{UserId: userID, Status: model.StatusAway}
+
+	newLeader := func(t *testing.T) (*clusterTestNode, *mocks.StatusStore) {
+		leader := newClusterTestNode(t, true)
+		leader.rcStore.On("Get", remoteID, false).Return(&model.RemoteCluster{RemoteId: remoteID, DisplayName: "remote", LastPingAt: model.GetMillis()}, nil)
+		leader.scStore.On("GetRemoteByIds", channelID, remoteID).Return(&model.SharedChannelRemote{Id: model.NewId(), ChannelId: channelID, RemoteId: remoteID}, nil)
+		statusStore := &mocks.StatusStore{}
+		leader.store.On("Status").Return(statusStore)
+		return leader, statusStore
+	}
+
+	sentStatuses := func(t *testing.T, leader *clusterTestNode) []*model.Status {
+		t.Helper()
+		leader.rcs.mu.Lock()
+		defer leader.rcs.mu.Unlock()
+		require.Len(t, leader.rcs.sent, 1)
+		var msg model.SyncMsg
+		require.NoError(t, json.Unmarshal(leader.rcs.sent[0].Payload, &msg))
+		return msg.Statuses
+	}
+
+	t.Run("older status forwarded by a follower does not replace the stored status", func(t *testing.T) {
+		leader, statusStore := newLeader(t)
+		statusStore.On("Get", userID).Return(online, nil)
+
+		task := newSyncTask(channelID, userID, remoteID, &model.SyncMsg{Statuses: []*model.Status{online}}, nil)
+		leader.scs.addTask(task)
+		leader.scs.HandleClusterSyncTask(clusterTaskMessage(t, clusterSyncTask{
+			ID:          task.id,
+			ChannelID:   channelID,
+			UserID:      userID,
+			RemoteID:    remoteID,
+			ExistingMsg: &model.SyncMsg{Statuses: []*model.Status{away}},
+		}))
+		require.Equal(t, model.StatusAway, leader.queued()[task.id].existingMsg.Statuses[0].Status)
+
+		leader.makeDue()
+		leader.scs.doSync(nil)
+
+		statuses := sentStatuses(t, leader)
+		require.Len(t, statuses, 1)
+		assert.Equal(t, model.StatusOnline, statuses[0].Status)
+	})
+
+	t.Run("queued status is sent when the store read fails", func(t *testing.T) {
+		leader, statusStore := newLeader(t)
+		statusStore.On("Get", userID).Return(nil, errors.New("db down"))
+
+		leader.scs.addTask(newSyncTask(channelID, userID, remoteID, &model.SyncMsg{Statuses: []*model.Status{away}}, nil))
+		leader.scs.doSync(nil)
+
+		statuses := sentStatuses(t, leader)
+		require.Len(t, statuses, 1)
+		assert.Equal(t, model.StatusAway, statuses[0].Status)
+	})
 }
