@@ -345,8 +345,12 @@ jobs:
           gh-job-name: rolling-upgrade-${{ inputs.upgrade_from_context_label }}-${{ matrix.worker_index }}
           playwright-retries: ${{ inputs.playwright_retries }}
           playwright-project: ${{ inputs.playwright_project }}
+          # Stop taking specs after 40 minutes so the worker uploads what it ran inside its 60-minute job.
+          deadline-minutes: "40"
       - name: ci/upload-debug-artifacts
         if: always()
+        # Debug files only: a failed upload must not fail a worker whose tests all ran.
+        continue-on-error: true
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           # Includes logs/upgrade/{from,to}-mattermost.log (+ highlights, postgres, from-baseline.json)
@@ -360,6 +364,12 @@ jobs:
           if-no-files-found: ignore
 
   report:
+    # Triage and the aggregate refresh below write commit statuses: like every status writer, hold the
+    # SHA-scoped publication lock (see e2e-tests-lane-result.yml); queued publishers are never discarded.
+    concurrency:
+      group: e2e-status-publish-${{ inputs.commit_sha }}
+      cancel-in-progress: false
+      queue: max
     runs-on: ubuntu-24.04
     needs: [prepare-run, dispatch-begin, workers]
     if: always()
@@ -367,6 +377,9 @@ jobs:
       contents: read
       id-token: write
       statuses: write
+      # Triage reads the PR's changed files and the run's failed jobs.
+      pull-requests: read
+      actions: read
     outputs:
       commit_status_description: ${{ steps.summary.outputs.commit_status_description }}
       webhook_payload: ${{ steps.summary.outputs.webhook_payload }}
@@ -391,6 +404,58 @@ jobs:
           ref-branch: ${{ inputs.ref_branch }}
           commit-status-context: ${{ inputs.context_name }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
+      # The lane list and the reader come from this workflow's own ref (github.sha), as in e2e-tests-lane-result.yml.
+      - name: ci/checkout-trusted-lanes
+        if: ${{ !cancelled() }}
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+          sparse-checkout: .github
+          path: .e2e-trusted
+          fetch-depth: 1
+      - name: ci/status-lanes
+        id: lanes
+        if: ${{ !cancelled() }}
+        uses: ./.e2e-trusted/.github/actions/e2e-status-lanes
+        with:
+          context-name: ${{ inputs.context_name }}
+      # The summary above wrote the lane's status. Triage gives a red one its verdict, as on the other
+      # lanes (see e2e-tests-lane-result.yml): each failed test judged, or the lane judged as a whole when
+      # it is red outside its tests (a spec that never finished, a dead worker).
+      - name: ci/e2e-triage
+        id: triage
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-test-triage@main # actions/e2e-test-triage
+        with:
+          composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
+          status-context: ${{ inputs.context_name }}
+          # Upgrade contexts are not in e2e-status-lanes.json (the from-versions change with each release), so
+          # these come back empty and triage keeps its own per-lane check, as master contexts do.
+          triage-status-context: ${{ steps.lanes.outputs.triage-context }}
+          triage-lanes: ${{ steps.lanes.outputs.triage-lanes }}
+          test-root: e2e-tests/playwright/specs
+          # No history-lane: the lane's own history is the base branch's upgrade lane from the same version
+          # ("…-upgrade-from-release-11.11-master"), where an upgrade-only failure shows up too.
+          support-paths: e2e-tests/playwright/lib
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          mode: ${{ vars.E2E_TRIAGE_MODE || 'enforce' }}
+          use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
+          rerun-attempts: "1"
+          lane-start-job: prepare-run
+      # The PR-wide triage check names this lane's verdict (see laneSummary): refresh it now that triage wrote it.
+      - name: ci/refresh-lane-summary
+        if: ${{ !cancelled() && steps.lanes.outputs.aggregate != '' }}
+        continue-on-error: true
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-test-status@main  # actions/e2e-test-status
+        with:
+          composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
+          status-context: ${{ inputs.context_name }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          operation: summarize
+          triage-status-context: ${{ steps.lanes.outputs.aggregate }}
+          triage-lanes: ${{ steps.lanes.outputs.lanes }}
       - name: ci/publish-webhook
         if: inputs.enable_reporting && env.REPORT_WEBHOOK_URL != ''
         env:
