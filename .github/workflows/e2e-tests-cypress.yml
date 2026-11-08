@@ -201,7 +201,7 @@ jobs:
         id: lanes
         uses: ./.e2e-trusted/.github/actions/e2e-status-lanes
       - name: ci/post-skip-status
-        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-test-status@d0a48f4c6c8e8e10e850b32926392e76f4fdf012  # actions/e2e-test-status
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-test-status@b9da38835a75e5994cd6dd274bd56f81e1b23c7b  # actions/e2e-test-status
         with:
           composite-identity: >-
             {"repository":"${{ github.repository }}","commit_sha":"${{ inputs.commit_sha }}","gh_run_id":"${{ github.run_id }}","gh_run_attempt":"${{ github.run_attempt }}"}
