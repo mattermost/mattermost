@@ -142,7 +142,7 @@ jobs:
       # Verification keeps the original run's URL/owner and never overrides
       # pending. Refresh its factual projection while still holding the SHA lock.
       - name: ci/refresh-verified-summary
-        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-test-status@a10d23dc2d8cf571f30d31298f7824251bf73c10  # actions/e2e-test-status
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-test-status@ad665a2ba58aec478e5e8cf327f06cb546ec57be  # actions/e2e-test-status
         with:
           composite-identity: >-
             {"repository":"${{ github.repository }}","commit_sha":"${{ github.event.pull_request.head.sha }}","gh_run_id":"${{ github.run_id }}","gh_run_attempt":"${{ github.run_attempt }}"}
