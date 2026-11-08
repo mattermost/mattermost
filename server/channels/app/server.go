@@ -51,10 +51,8 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/export_process"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/export_users_to_csv"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/extract_content"
-	"github.com/mattermost/mattermost/server/v8/channels/jobs/hosted_purchase_screening"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/import_delete"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/import_process"
-	"github.com/mattermost/mattermost/server/v8/channels/jobs/last_accessible_file"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/last_accessible_post"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/migrations"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/mobile_session_metadata"
@@ -164,6 +162,9 @@ type Server struct {
 	// cwsTokenOverride overrides CWS_CLOUD_TOKEN for CWS login authentication.
 	cwsTokenOverride string
 
+	// cwsLoginIDOverride overrides CWS_CLOUD_LOGIN_ID for CWS login authentication.
+	cwsLoginIDOverride string
+
 	// notifyAdminCoolOffDaysOverride overrides MM_NOTIFY_ADMIN_COOL_OFF_DAYS.
 	notifyAdminCoolOffDaysOverride string
 }
@@ -171,6 +172,11 @@ type Server struct {
 // SetCWSTokenOverride sets the CWS token override for CWS login authentication.
 func (s *Server) SetCWSTokenOverride(v string) {
 	s.cwsTokenOverride = v
+}
+
+// SetCWSLoginIDOverride sets the CWS login ID override for CWS login authentication.
+func (s *Server) SetCWSLoginIDOverride(v string) {
+	s.cwsLoginIDOverride = v
 }
 
 // SetNotifyAdminCoolOffDaysOverride sets the cool-off period override for admin notifications.
@@ -1069,7 +1075,7 @@ func (s *Server) Start() error {
 	}
 
 	if s.MailServiceConfig().SendEmailNotifications {
-		if err := mail.TestConnection(s.MailServiceConfig()); err != nil {
+		if err := mail.TestConnection(context.Background(), s.MailServiceConfig()); err != nil {
 			mlog.Error("Mail server connection test failed", mlog.Err(err))
 		}
 	}
@@ -1823,12 +1829,6 @@ func (s *Server) initJobs() {
 	)
 
 	s.Jobs.RegisterJobType(
-		model.JobTypeLastAccessibleFile,
-		last_accessible_file.MakeWorker(s.Jobs, s.License(), New(ServerConnector(s.Channels()))),
-		last_accessible_file.MakeScheduler(s.Jobs, s.License()),
-	)
-
-	s.Jobs.RegisterJobType(
 		model.JobTypeUpgradeNotifyAdmin,
 		notify_admin.MakeUpgradeNotifyWorker(s.Jobs, s.License(), New(ServerConnector(s.Channels()))),
 		notify_admin.MakeScheduler(s.Jobs, s.License(), model.JobTypeUpgradeNotifyAdmin),
@@ -1850,12 +1850,6 @@ func (s *Server) initJobs() {
 		model.JobTypeInstallPluginNotifyAdmin,
 		notify_admin.MakeInstallPluginNotifyWorker(s.Jobs, New(ServerConnector(s.Channels()))),
 		notify_admin.MakeInstallPluginScheduler(s.Jobs, s.License(), model.JobTypeInstallPluginNotifyAdmin),
-	)
-
-	s.Jobs.RegisterJobType(
-		model.JobTypeHostedPurchaseScreening,
-		hosted_purchase_screening.MakeWorker(s.Jobs, s.License(), s.Store().System()),
-		hosted_purchase_screening.MakeScheduler(s.Jobs, s.License()),
 	)
 
 	s.Jobs.RegisterJobType(

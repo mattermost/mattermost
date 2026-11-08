@@ -6,7 +6,8 @@ import React from 'react';
 import type {Channel} from '@mattermost/types/channels';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {renderWithContext, screen, fireEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, fireEvent, userEvent, waitFor} from 'tests/react_testing_utils';
+import {boardChannelsState} from 'utils/channel_kind_test_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -167,5 +168,41 @@ describe('channel_info_rhs/about_area_channel', () => {
         const editButtons = screen.getAllByLabelText('Edit');
         fireEvent.click(editButtons[0]);
         expect(props.actions.editChannelName).toHaveBeenCalled();
+    });
+
+    test('should say board for a board', async () => {
+        const props = {
+            ...defaultProps,
+            channel: {
+                ...defaultProps.channel,
+                purpose: '',
+                header: '',
+            },
+        };
+
+        renderWithContext(
+            <AboutAreaChannel
+                {...props}
+            />,
+            {...initialState, ...boardChannelsState('test-c-id')},
+        );
+
+        expect(screen.getByText('Board Purpose')).toBeInTheDocument();
+        expect(screen.getByText('Add a board purpose')).toBeInTheDocument();
+        expect(screen.getByText('Board Header')).toBeInTheDocument();
+        expect(screen.getByText('Add a board header')).toBeInTheDocument();
+        expect(screen.getByText('Board handle:', {exact: false})).toBeInTheDocument();
+
+        expect(screen.queryByText('Channel Purpose')).not.toBeInTheDocument();
+        expect(screen.queryByText('Add a channel purpose')).not.toBeInTheDocument();
+        expect(screen.queryByText('Channel Header')).not.toBeInTheDocument();
+        expect(screen.queryByText('Add a channel header')).not.toBeInTheDocument();
+        expect(screen.queryByText('Channel handle:', {exact: false})).not.toBeInTheDocument();
+
+        await userEvent.hover(screen.getAllByLabelText('Edit')[0]);
+        await waitFor(() => {
+            expect(screen.getByText('Rename board')).toBeInTheDocument();
+        });
+        expect(screen.queryByText('Rename channel')).not.toBeInTheDocument();
     });
 });

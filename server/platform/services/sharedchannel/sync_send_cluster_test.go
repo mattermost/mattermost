@@ -504,7 +504,7 @@ func TestDoSync_LeaderSendsStoredStatus(t *testing.T) {
 	newLeader := func(t *testing.T) (*clusterTestNode, *mocks.StatusStore) {
 		leader := newClusterTestNode(t, true)
 		leader.rcStore.On("Get", remoteID, false).Return(&model.RemoteCluster{RemoteId: remoteID, DisplayName: "remote", LastPingAt: model.GetMillis()}, nil)
-		leader.scStore.On("GetRemoteByIds", channelID, remoteID).Return(&model.SharedChannelRemote{Id: model.NewId(), ChannelId: channelID, RemoteId: remoteID}, nil)
+		leader.scStore.On("GetRemoteByIdsFromMaster", channelID, remoteID).Return(&model.SharedChannelRemote{Id: model.NewId(), ChannelId: channelID, RemoteId: remoteID}, nil)
 		statusStore := &mocks.StatusStore{}
 		leader.store.On("Status").Return(statusStore)
 		return leader, statusStore

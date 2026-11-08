@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Channel} from '@mattermost/types/channels';
+
 import {Preferences} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {appBarEnabled, getAppBarAppBindings} from 'mattermost-redux/selectors/entities/apps';
@@ -9,6 +11,7 @@ import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {createShallowSelector} from 'mattermost-redux/utils/helpers';
 
 import type {GlobalState} from 'types/store';
+import type {ChannelBookmarksMenuAction} from 'types/store/plugins';
 
 export const getPluginUserSettings = createSelector(
     'getPluginUserSettings',
@@ -71,6 +74,57 @@ export const getChannelHeaderMenuPluginComponents = createShallowSelector(
     (state: GlobalState) => state.plugins.components.ChannelHeader,
     (componentShouldRender = [], channelHeaderMenuComponents = []) => {
         return channelHeaderMenuComponents.filter((component, idx) => componentShouldRender[idx]);
+    },
+);
+
+const getChannelInfoMenuPluginComponentsShouldRender = createSelector(
+    'getChannelInfoMenuPluginComponentsShouldRender',
+    (state: GlobalState) => state,
+    (state: GlobalState) => state.plugins.components.ChannelInfoMenu,
+    (_state: GlobalState, channel: Channel) => channel,
+    (state, channelInfoMenuComponents = [], channel) => {
+        return channelInfoMenuComponents.map((component) => {
+            if (typeof component.shouldRender === 'function') {
+                return component.shouldRender(state, channel);
+            }
+
+            return true;
+        });
+    },
+);
+
+/** Channel Info RHS plugin menu items that pass shouldRender(state, channel). */
+export const getChannelInfoMenuPluginComponents = createShallowSelector(
+    'getChannelInfoMenuPluginComponents',
+    getChannelInfoMenuPluginComponentsShouldRender,
+    (state: GlobalState) => state.plugins.components.ChannelInfoMenu,
+    (componentShouldRender = [], channelInfoMenuComponents = []) => {
+        return channelInfoMenuComponents.filter((component, idx) => componentShouldRender[idx]);
+    },
+);
+
+const getChannelBookmarksMenuPluginComponentsShouldRender = createSelector(
+    'getChannelBookmarksMenuPluginComponentsShouldRender',
+    (state: GlobalState) => state,
+    (state: GlobalState) => state.plugins.components.ChannelBookmarksMenu,
+    (_state: GlobalState, channelId: string) => channelId,
+    (state, components = [], channelId) => {
+        return components.map((component) => {
+            if (typeof component.shouldRender === 'function') {
+                return component.shouldRender(state, channelId);
+            }
+            return true;
+        });
+    },
+);
+
+/** Bookmarks "+" / header submenu plugin items that pass shouldRender. */
+export const getChannelBookmarksMenuPluginComponents = createShallowSelector(
+    'getChannelBookmarksMenuPluginComponents',
+    getChannelBookmarksMenuPluginComponentsShouldRender,
+    (state: GlobalState) => state.plugins.components.ChannelBookmarksMenu,
+    (componentShouldRender = [], components = []): ChannelBookmarksMenuAction[] => {
+        return components.filter((component, idx) => componentShouldRender[idx]);
     },
 );
 

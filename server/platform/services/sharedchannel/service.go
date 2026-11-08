@@ -112,6 +112,7 @@ type Service struct {
 	connectionStateListenerId string
 	done                      chan struct{}
 	loopStopped               chan struct{}
+	catchUpDone               chan struct{}
 	stopped                   bool
 	tasks                     map[string]syncTask
 	handoffTasks              map[string]syncTask
@@ -266,9 +267,11 @@ func (scs *Service) resume() {
 	}
 
 	scs.active = true
+	catchUpDone := make(chan struct{})
+	scs.catchUpDone = catchUpDone
 	scs.mux.Unlock()
 
-	go scs.catchUpRemotes()
+	go scs.catchUpRemotes(catchUpDone)
 
 	scs.server.Log().Debug("Shared Channel Service active")
 }
@@ -278,7 +281,8 @@ func (scs *Service) resume() {
 // Offline remotes are synced by onConnectionStateChange when they come back online.
 // Like onConnectionStateChange, this only covers channels that already have a SharedChannelRemote
 // row; auto-invited remotes get theirs on the next channel event.
-func (scs *Service) catchUpRemotes() {
+// It stops once done is closed, so a node that loses leadership stops sending invites and queuing tasks.
+func (scs *Service) catchUpRemotes(done <-chan struct{}) {
 	filter := model.RemoteClusterQueryFilter{
 		OnlyConfirmed:  true,
 		ExcludeOffline: true,
@@ -292,6 +296,12 @@ func (scs *Service) catchUpRemotes() {
 	}
 
 	for _, rc := range remotes {
+		select {
+		case <-done:
+			return
+		default:
+		}
+
 		scs.SendPendingInvitesForRemote(rc)
 		scs.forceSyncForRemote(rc, true)
 		scs.scheduleGlobalUserSync(rc)
@@ -312,6 +322,10 @@ func (scs *Service) pause() {
 	}
 
 	scs.active = false
+	if scs.catchUpDone != nil {
+		close(scs.catchUpDone)
+		scs.catchUpDone = nil
+	}
 
 	scs.server.Log().Debug("Shared Channel Service inactive")
 }

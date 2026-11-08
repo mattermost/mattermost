@@ -98,7 +98,7 @@ func TestOnClusterLeaderChange_QueuesCatchUpForOnlineRemotes(t *testing.T) {
 		pending.RemoteId: {"channel-4"},
 	}
 
-	newService := func(t *testing.T, cfg *model.Config) (*Service, *mocks.SharedChannelStore) {
+	newService := func(t *testing.T, cfg *model.Config, onPendingInvites func(remoteID string)) (*Service, *mocks.SharedChannelStore) {
 		t.Helper()
 
 		rcStore := &mocks.RemoteClusterStore{}
@@ -120,6 +120,9 @@ func TestOnClusterLeaderChange_QueuesCatchUpForOnlineRemotes(t *testing.T) {
 		scStore := &mocks.SharedChannelStore{}
 		scStore.On("GetRemotes", 0, 999999, mock.Anything).Return(func(_, _ int, opts model.SharedChannelRemoteFilterOpts) ([]*model.SharedChannelRemote, error) {
 			if opts.ExcludeConfirmed {
+				if onPendingInvites != nil {
+					onPendingInvites(opts.RemoteId)
+				}
 				return nil, nil // no pending invites
 			}
 			var scrs []*model.SharedChannelRemote
@@ -170,9 +173,9 @@ func TestOnClusterLeaderChange_QueuesCatchUpForOnlineRemotes(t *testing.T) {
 	}
 
 	t.Run("one task per shared channel of each online confirmed remote", func(t *testing.T) {
-		scs, scStore := newService(t, defaultConfig())
+		scs, scStore := newService(t, defaultConfig(), nil)
 
-		scs.catchUpRemotes()
+		scs.catchUpRemotes(make(chan struct{}))
 
 		assertCatchUpTasks(t, scs)
 		for _, rc := range []*model.RemoteCluster{online1, online2} {
@@ -184,7 +187,7 @@ func TestOnClusterLeaderChange_QueuesCatchUpForOnlineRemotes(t *testing.T) {
 	})
 
 	t.Run("becoming leader starts the catch-up", func(t *testing.T) {
-		scs, _ := newService(t, defaultConfig())
+		scs, _ := newService(t, defaultConfig(), nil)
 
 		scs.onClusterLeaderChange()
 		defer scs.pause()
@@ -200,9 +203,9 @@ func TestOnClusterLeaderChange_QueuesCatchUpForOnlineRemotes(t *testing.T) {
 	t.Run("global user sync is scheduled for each online confirmed remote", func(t *testing.T) {
 		cfg := defaultConfig()
 		cfg.ConnectedWorkspacesSettings.SyncUsersOnConnectionOpen = model.NewPointer(true)
-		scs, _ := newService(t, cfg)
+		scs, _ := newService(t, cfg, nil)
 
-		scs.catchUpRemotes()
+		scs.catchUpRemotes(make(chan struct{}))
 
 		require.Eventually(t, func() bool {
 			scs.mux.RLock()
@@ -219,6 +222,37 @@ func TestOnClusterLeaderChange_QueuesCatchUpForOnlineRemotes(t *testing.T) {
 			}
 		}
 		assert.Equal(t, map[string]bool{online1.RemoteId: true, online2.RemoteId: true}, globalSyncRemotes)
+	})
+
+	t.Run("does nothing once the service is paused", func(t *testing.T) {
+		scs, scStore := newService(t, defaultConfig(), nil)
+		done := make(chan struct{})
+		close(done)
+
+		scs.catchUpRemotes(done)
+
+		scs.mux.RLock()
+		defer scs.mux.RUnlock()
+		assert.Empty(t, scs.tasks)
+		scStore.AssertNotCalled(t, "GetRemotes", mock.Anything, mock.Anything, mock.Anything)
+	})
+
+	t.Run("stops at the next remote when paused mid-loop", func(t *testing.T) {
+		done := make(chan struct{})
+		var invited []string
+		scs, _ := newService(t, defaultConfig(), func(remoteID string) {
+			invited = append(invited, remoteID)
+			close(done)
+		})
+
+		scs.catchUpRemotes(done)
+
+		assert.Equal(t, []string{online1.RemoteId}, invited)
+		scs.mux.RLock()
+		defer scs.mux.RUnlock()
+		for _, task := range scs.tasks {
+			assert.Equal(t, online1.RemoteId, task.remoteID, "no task should be queued for remotes after the pause")
+		}
 	})
 }
 

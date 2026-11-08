@@ -7,6 +7,7 @@ import {FormattedMessage} from 'react-intl';
 import {CheckIcon, ExclamationThickIcon} from '@mattermost/compass-icons/components';
 
 import CircularChart from 'components/common/circular_chart/circular_chart';
+import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
 import './dashboard.scss';
 
@@ -72,7 +73,10 @@ const OverallScore = ({
         break;
     }
     return (
-        <div className='OverallScore'>
+        <AdminPanel
+            id='overall_score'
+            className='OverallScore'
+        >
             <div className='OverallScore__scoreEllipseSvg'>
                 {scoreGraph}
             </div>
@@ -87,7 +91,7 @@ const OverallScore = ({
                     {chips}
                 </div>
             </div>
-        </div>
+        </AdminPanel>
     );
 };
 

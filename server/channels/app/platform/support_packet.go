@@ -5,14 +5,17 @@ package platform
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"encoding/json"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"net/url"
 	"os"
 	"runtime"
+	"runtime/debug"
 	rpprof "runtime/pprof"
 	"strings"
 	"time"
@@ -40,17 +43,32 @@ const (
 // cumulative-vs-point-in-time semantics visible at a glance.
 var diagnosticsYAMLComments = yaml.CommentMap{
 	// server: — grouped into Machine / Capacity / Process lifecycle / Software
-	"$.server.os":                        {yaml.HeadComment(" Machine")},
-	"$.server.cpu_cores":                 {yaml.HeadComment(" Capacity (hardware → effective quota)"), yaml.LineComment(" logical CPUs visible to the OS")},
-	"$.server.total_memory_mb":           {yaml.LineComment(" host/VM total RAM; may exceed container limit")},
-	"$.server.container_cpu_limit":       {yaml.LineComment(" cgroup v2 CPU quota in CPUs; Linux only, omitted if no limit set")},
-	"$.server.container_memory_limit_mb": {yaml.LineComment(" cgroup v2 memory quota in MB; Linux only, omitted if no limit set")},
-	"$.server.process_id":                {yaml.HeadComment(" Process lifecycle")},
-	"$.server.started_at":                {yaml.LineComment(" when Mattermost process started")},
-	"$.server.host_started_at":           {yaml.LineComment(" when the host OS booted; omitted if unavailable")},
-	"$.server.open_file_descriptors":     {yaml.LineComment(" current open FDs for this process")},
-	"$.server.max_file_descriptors":      {yaml.LineComment(" system limit (ulimit -n)")},
-	"$.server.version":                   {yaml.HeadComment(" Software")},
+	"$.server.os":                              {yaml.HeadComment(" Machine")},
+	"$.server.cpu_cores":                       {yaml.HeadComment(" Capacity (hardware → effective quota)"), yaml.LineComment(" logical CPUs visible to the OS")},
+	"$.server.total_memory_mb":                 {yaml.LineComment(" host/VM total RAM; may exceed container limit")},
+	"$.server.available_memory_mb":             {yaml.LineComment(" host/VM MemAvailable from /proc/meminfo; Linux only")},
+	"$.server.swap_total_mb":                   {yaml.LineComment(" host/VM total swap; Linux only")},
+	"$.server.swap_used_mb":                    {yaml.LineComment(" host/VM used swap; Linux only")},
+	"$.server.container_cpu_limit":             {yaml.LineComment(" cgroup v2 CPU quota in CPUs; Linux only, omitted if no limit set")},
+	"$.server.container_memory_limit_mb":       {yaml.LineComment(" cgroup v2 memory quota in MB; Linux only, omitted if no limit set")},
+	"$.server.container_memory_usage_mb":       {yaml.LineComment(" cgroup v2 memory.current in MB, including page cache; Linux only")},
+	"$.server.container_memory_working_set_mb": {yaml.LineComment(" cgroup v2 memory.current minus inactive file cache in MB; Linux only")},
+	"$.server.container_oom_kills":             {yaml.LineComment(" cgroup v2 OOM kills since the cgroup was created; Linux only")},
+	"$.server.load_average_1m":                 {yaml.LineComment(" host-wide runnable and uninterruptible tasks averaged over 1 minute; Linux only")},
+	"$.server.load_average_5m":                 {yaml.LineComment(" host-wide runnable and uninterruptible tasks averaged over 5 minutes; Linux only")},
+	"$.server.load_average_15m":                {yaml.LineComment(" host-wide runnable and uninterruptible tasks averaged over 15 minutes; Linux only")},
+	"$.server.container_cpu_periods":           {yaml.LineComment(" cgroup v2 CPU scheduling periods since the cgroup was created; Linux only")},
+	"$.server.container_cpu_throttled_periods": {yaml.LineComment(" throttled periods divided by total periods is the CPU throttling ratio")},
+	"$.server.container_cpu_throttled_seconds": {yaml.LineComment(" total cgroup v2 CPU throttling time since the cgroup was created")},
+	"$.server.go_max_procs":                    {yaml.LineComment(" maximum CPUs Go can execute simultaneously")},
+	"$.server.process_id":                      {yaml.HeadComment(" Process lifecycle")},
+	"$.server.started_at":                      {yaml.LineComment(" when Mattermost process started")},
+	"$.server.host_started_at":                 {yaml.LineComment(" when the host OS booted; omitted if unavailable")},
+	"$.server.process_rss_mb":                  {yaml.LineComment(" resident memory of the Mattermost process only; excludes plugin child processes")},
+	"$.server.go_memory_limit_mb":              {yaml.LineComment(" Go runtime memory limit in MB; omitted when no limit is set")},
+	"$.server.open_file_descriptors":           {yaml.LineComment(" current open FDs for this process")},
+	"$.server.max_file_descriptors":            {yaml.LineComment(" system limit (ulimit -n)")},
+	"$.server.version":                         {yaml.HeadComment(" Software")},
 
 	"$.config.audit_logging_configured": {yaml.LineComment(" this server's audit check of its current config and license; offline health checks use it")},
 
@@ -170,6 +188,8 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 		rErr = multierror.Append(rErr, failure)
 		sectionErrors[section] = multierror.Append(sectionErrors[section], failure)
 	}
+	// Start the network probes first so that they overlap with the local collection below.
+	collectProbes := startNetworkProbes(rctx.Context(), ps.networkProbes(rctx, &d), fail)
 
 	d.Version = model.CurrentSupportPacketVersion
 
@@ -194,18 +214,53 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 	// Note: These values represent the host machine's resources, not any
 	// container limits (e.g., Docker or Kubernetes) that may be in effect.
 	d.Server.CPUCores = runtime.NumCPU()
+	d.Server.GoMaxProcs = new(runtime.GOMAXPROCS(0))
 	totalMemoryBytes, err := getTotalMemory()
 	if err != nil {
 		fail(model.SectionServerHost, errors.Wrap(err, "error while getting total memory"))
 	} else {
 		d.Server.TotalMemoryMB = new(totalMemoryBytes / 1024 / 1024)
 	}
-	containerLimits, err := getContainerLimits()
+	cgroupV2, err := getCgroupV2Info()
 	if err != nil {
-		rctx.Logger().Debug("Failed to get container limits for Support Packet", mlog.Err(err))
+		err = errors.Wrap(err, "error while resolving cgroup v2")
+		fail(model.SectionServerMemory, err)
+		fail(model.SectionServerCPU, err)
+	}
+	containerLimits, err := getContainerLimits(cgroupV2)
+	d.Server.ContainerCPULimit = containerLimits.CPULimit
+	if err != nil {
+		fail(model.SectionServerCPU, errors.Wrap(err, "error while getting container limits"))
+	}
+	memory, memoryErr := getMemoryDiagnostics(cgroupV2)
+	if memoryErr != nil {
+		fail(model.SectionServerMemory, errors.Wrap(memoryErr, "error while getting memory diagnostics"))
+	}
+	d.Server.AvailableMemoryMB = memory.AvailableMemoryMB
+	d.Server.SwapTotalMB = memory.SwapTotalMB
+	d.Server.SwapUsedMB = memory.SwapUsedMB
+	d.Server.ProcessRSSMB = memory.ProcessRSSMB
+	d.Server.ContainerMemoryLimitMB = memory.ContainerMemoryLimitMB
+	d.Server.ContainerMemoryUsageMB = memory.ContainerMemoryUsageMB
+	d.Server.ContainerMemoryWorkingSetMB = memory.ContainerMemoryWorkingSetMB
+	d.Server.ContainerOOMKills = memory.ContainerOOMKills
+	if goMemoryLimit := debug.SetMemoryLimit(-1); goMemoryLimit != math.MaxInt64 {
+		goMemoryLimitMB := uint64(0)
+		if goMemoryLimit > 0 {
+			goMemoryLimitMB = uint64((goMemoryLimit-1)/(1024*1024) + 1)
+		}
+		d.Server.GoMemoryLimitMB = &goMemoryLimitMB
+	}
+	cpuStats, err := getCPUStats(cgroupV2)
+	if err != nil {
+		fail(model.SectionServerCPU, errors.Wrap(err, "error while getting CPU statistics"))
 	} else {
-		d.Server.ContainerCPULimit = containerLimits.CPULimit
-		d.Server.ContainerMemoryLimitMB = containerLimits.MemoryLimitMB
+		d.Server.LoadAverage1m = cpuStats.LoadAverage1m
+		d.Server.LoadAverage5m = cpuStats.LoadAverage5m
+		d.Server.LoadAverage15m = cpuStats.LoadAverage15m
+		d.Server.ContainerCPUPeriods = cpuStats.ContainerCPUPeriods
+		d.Server.ContainerCPUThrottledPeriods = cpuStats.ContainerCPUThrottledPeriods
+		d.Server.ContainerCPUThrottledSeconds = cpuStats.ContainerCPUThrottledSeconds
 	}
 	serverHostname, err := os.Hostname()
 	if err != nil {
@@ -271,12 +326,6 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 	}
 
 	/* File store */
-	d.FileStore.Status = model.StatusOk
-	err = ps.FileBackend().TestConnection()
-	if err != nil {
-		d.FileStore.Status = model.StatusFail
-		d.FileStore.Error = err.Error()
-	}
 	d.FileStore.Driver = ps.FileBackend().DriverName()
 	if d.FileStore.Driver == model.ImageDriverLocal {
 		dir := model.SafeDereference(ps.Config().FileSettings.Directory)
@@ -312,36 +361,6 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 		d.Cluster.NumberOfConnectedNodes = new(1)
 	}
 
-	/* LDAP */
-	if ldap := ps.LdapDiagnostic(); ldap != nil && (*ps.Config().LdapSettings.Enable || *ps.Config().LdapSettings.EnableSync) {
-		d.LDAP.Status = model.StatusOk
-		appErr := ldap.RunTest(rctx)
-		if appErr != nil {
-			d.LDAP.Status = model.StatusFail
-			d.LDAP.Error = appErr.Error()
-		}
-
-		severName, serverVersion := unknownDataPoint, unknownDataPoint
-		// Only if the LDAP test was successful, try to get the LDAP server info
-		if d.LDAP.Status == model.StatusOk {
-			severName, serverVersion, err = ldap.GetVendorNameAndVendorVersion(rctx)
-			if err != nil {
-				fail(model.SectionLDAPProbe, errors.Wrap(err, "error while getting LDAP vendor info"))
-			}
-
-			if severName == "" {
-				severName = unknownDataPoint
-			}
-			if serverVersion == "" {
-				serverVersion = unknownDataPoint
-			}
-		}
-		d.LDAP.ServerName = severName
-		d.LDAP.ServerVersion = serverVersion
-	} else {
-		d.LDAP.Status = model.StatusDisabled
-	}
-
 	/* SAML */
 	if idpDescriptorURL := model.SafeDereference(ps.Config().SamlSettings.IdpDescriptorURL); idpDescriptorURL != "" {
 		d.SAML.ProviderType = detectSAMLProviderType(idpDescriptorURL)
@@ -362,76 +381,200 @@ func (ps *PlatformService) GetSupportPacketDiagnostics(rctx request.CTX) (*model
 		d.ElasticSearch.Backend = *ps.Config().ElasticsearchSettings.Backend
 		d.ElasticSearch.ServerVersion = se.GetFullVersion()
 		d.ElasticSearch.ServerPlugins = se.GetPlugins()
-		if *ps.Config().ElasticsearchSettings.EnableIndexing {
-			appErr := se.TestConfig(rctx, ps.Config())
-			if appErr != nil {
-				d.ElasticSearch.Status = model.StatusFail
-				d.ElasticSearch.Error = appErr.Error()
-			} else {
-				d.ElasticSearch.Status = model.StatusOk
-			}
-		} else {
-			d.ElasticSearch.Status = model.StatusDisabled
-		}
-	} else {
-		d.ElasticSearch.Status = model.StatusDisabled
 	}
 
-	/* Email Notifications */
-	// Invitations, verification and password reset emails go through SMTP even with notification emails off.
-	if model.SafeDereference(ps.Config().EmailSettings.SendEmailNotifications) ||
-		model.SafeDereference(ps.Config().EmailSettings.RequireEmailVerification) ||
-		model.SafeDereference(ps.Config().ServiceSettings.EnableEmailInvitations) ||
-		model.SafeDereference(ps.Config().EmailSettings.EnableSignInWithEmail) ||
-		model.SafeDereference(ps.Config().EmailSettings.EnableSignInWithUsername) {
-		emailSettings := ps.Config().EmailSettings
-		hostname := utils.GetHostnameFromSiteURL(model.SafeDereference(ps.Config().ServiceSettings.SiteURL))
-		mailCfg := &mail.SMTPConfig{
-			Hostname:                          hostname,
-			ConnectionSecurity:                model.SafeDereference(emailSettings.ConnectionSecurity),
-			SkipServerCertificateVerification: model.SafeDereference(emailSettings.SkipServerCertificateVerification),
-			ServerName:                        model.SafeDereference(emailSettings.SMTPServer),
-			Server:                            model.SafeDereference(emailSettings.SMTPServer),
-			Port:                              model.SafeDereference(emailSettings.SMTPPort),
-			ServerTimeout:                     model.SafeDereference(emailSettings.SMTPServerTimeout),
-			Username:                          model.SafeDereference(emailSettings.SMTPUsername),
-			Password:                          model.SafeDereference(emailSettings.SMTPPassword),
-			EnableSMTPAuth:                    model.SafeDereference(emailSettings.EnableSMTPAuth),
-			SendEmailNotifications:            true,
-			FeedbackName:                      model.SafeDereference(emailSettings.FeedbackName),
-			FeedbackEmail:                     model.SafeDereference(emailSettings.FeedbackEmail),
-			ReplyToAddress:                    model.SafeDereference(emailSettings.ReplyToAddress),
-		}
-		if smtpErr := mail.TestConnection(mailCfg); smtpErr != nil {
-			d.Notifications.Email.Status = model.StatusFail
-			d.Notifications.Email.Error = smtpErr.Error()
-		} else {
-			d.Notifications.Email.Status = model.StatusOk
-		}
-	} else {
-		d.Notifications.Email.Status = model.StatusDisabled
-	}
-
-	/* OAuth2 / OpenID Connect Providers */
-	d.OAuthProviders.GitLab = probeOAuthProvider(rctx.Context(), &ps.Config().GitLabSettings)
-	d.OAuthProviders.Google = probeOAuthProvider(rctx.Context(), &ps.Config().GoogleSettings)
-	d.OAuthProviders.Office365 = probeOAuthProvider(rctx.Context(), ps.Config().Office365Settings.SSOSettings())
-	d.OAuthProviders.OpenID = probeOAuthProvider(rctx.Context(), &ps.Config().OpenIdSettings)
-
-	/* Push Notifications */
-	if model.SafeDereference(ps.Config().EmailSettings.SendPushNotifications) {
-		pushServerURL := model.SafeDereference(ps.Config().EmailSettings.PushNotificationServer)
-		if pushErr := ps.testPushProxyConnection(rctx.Context(), pushServerURL); pushErr != nil {
-			d.Notifications.Push.Status = model.StatusFail
-			d.Notifications.Push.Error = pushErr.Error()
-		} else {
-			d.Notifications.Push.Status = model.StatusOk
-		}
-	} else {
-		d.Notifications.Push.Status = model.StatusDisabled
-	}
+	collectProbes()
 
 	return &model.NodeDiagnostics{Diagnostics: &d, Errors: sectionErrors}, rErr.ErrorOrNil()
+}
+
+// networkProbe checks one external service on its own goroutine, so that a service that doesn't answer
+// can't hold up the collection.
+type networkProbe struct {
+	name    string
+	section model.NodeSection
+	// status and errMsg receive the result, which is OK, or Fail with the service's error.
+	status, errMsg *string
+	// run checks the service and returns its error, or nil if it is reachable.
+	run func(ctx context.Context) error
+	// record, if set, stores further results once run has returned, and returns an error that fails
+	// the section. It runs on the collecting goroutine, so it can read what run left in its closure.
+	record func() error
+}
+
+// networkProbes returns the enabled probes, and marks the disabled ones in d.
+func (ps *PlatformService) networkProbes(rctx request.CTX, d *model.SupportPacketDiagnostics) []networkProbe {
+	cfg := ps.Config()
+	var probes []networkProbe
+	add := func(enabled bool, probe networkProbe) {
+		if !enabled {
+			*probe.status = model.StatusDisabled
+			return
+		}
+		probes = append(probes, probe)
+	}
+
+	// Takes no context; S3 and Azure are bounded by their own request timeout.
+	fileBackend := ps.FileBackend()
+	add(true, networkProbe{
+		name: "file store", section: model.SectionFilestoreConn, status: &d.FileStore.Status, errMsg: &d.FileStore.Error,
+		run: func(context.Context) error { return fileBackend.TestConnection() },
+	})
+
+	// Takes no context; LdapSettings.QueryTimeout bounds each LDAP request.
+	ldap := ps.LdapDiagnostic()
+	var serverName, serverVersion string
+	var vendorErr error
+	add(ldap != nil && (model.SafeDereference(cfg.LdapSettings.Enable) || model.SafeDereference(cfg.LdapSettings.EnableSync)), networkProbe{
+		name: "ldap", section: model.SectionLDAPProbe, status: &d.LDAP.Status, errMsg: &d.LDAP.Error,
+		run: func(context.Context) error {
+			if appErr := ldap.RunTest(rctx); appErr != nil {
+				return appErr
+			}
+			// Only if the LDAP test was successful, try to get the LDAP server info
+			serverName, serverVersion, vendorErr = ldap.GetVendorNameAndVendorVersion(rctx)
+			return nil
+		},
+		record: func() error {
+			d.LDAP.ServerName = cmp.Or(serverName, unknownDataPoint)
+			d.LDAP.ServerVersion = cmp.Or(serverVersion, unknownDataPoint)
+			return errors.Wrap(vendorErr, "error while getting LDAP vendor info")
+		},
+	})
+
+	se := ps.SearchEngine.ElasticsearchEngine
+	add(se != nil && model.SafeDereference(cfg.ElasticsearchSettings.EnableIndexing), networkProbe{
+		name: "search", section: model.SectionSearchProbe, status: &d.ElasticSearch.Status, errMsg: &d.ElasticSearch.Error,
+		run: func(context.Context) error {
+			if appErr := se.TestConfig(rctx, cfg); appErr != nil {
+				return appErr
+			}
+			return nil
+		},
+	})
+
+	// Invitations, verification and password reset emails go through SMTP even with notification emails off.
+	mailCfg := supportPacketSMTPConfig(cfg)
+	add(model.SafeDereference(cfg.EmailSettings.SendEmailNotifications) ||
+		model.SafeDereference(cfg.EmailSettings.RequireEmailVerification) ||
+		model.SafeDereference(cfg.ServiceSettings.EnableEmailInvitations) ||
+		model.SafeDereference(cfg.EmailSettings.EnableSignInWithEmail) ||
+		model.SafeDereference(cfg.EmailSettings.EnableSignInWithUsername), networkProbe{
+		name: "smtp", section: model.SectionSMTPProbe, status: &d.Notifications.Email.Status, errMsg: &d.Notifications.Email.Error,
+		run: func(ctx context.Context) error { return mail.TestConnection(ctx, mailCfg) },
+	})
+
+	for _, provider := range []struct {
+		name   string
+		sso    *model.SSOSettings
+		status *model.OAuthProviderStatus
+	}{
+		{"gitlab", &cfg.GitLabSettings, &d.OAuthProviders.GitLab},
+		{"google", &cfg.GoogleSettings, &d.OAuthProviders.Google},
+		{"office365", cfg.Office365Settings.SSOSettings(), &d.OAuthProviders.Office365},
+		{"openid", &cfg.OpenIdSettings, &d.OAuthProviders.OpenID},
+	} {
+		add(model.SafeDereference(provider.sso.Enable), networkProbe{
+			name: provider.name, section: model.SectionOAuthProbes, status: &provider.status.Status, errMsg: &provider.status.Error,
+			run: func(ctx context.Context) error { return probeOAuthProvider(ctx, provider.sso) },
+		})
+	}
+
+	pushServerURL := model.SafeDereference(cfg.EmailSettings.PushNotificationServer)
+	add(model.SafeDereference(cfg.EmailSettings.SendPushNotifications), networkProbe{
+		name: "push", section: model.SectionPushProbe, status: &d.Notifications.Push.Status, errMsg: &d.Notifications.Push.Error,
+		run: func(ctx context.Context) error { return ps.testPushProxyConnection(ctx, pushServerURL) },
+	})
+
+	return probes
+}
+
+// startNetworkProbes runs the probes concurrently and returns a function that records their results. It
+// stops waiting when ctx ends: a probe still running then fails its section and keeps an empty status, so
+// readers treat it as unknown rather than failed. The abandoned probe must stop on its own.
+func startNetworkProbes(ctx context.Context, probes []networkProbe, fail func(model.NodeSection, error)) (collect func()) {
+	type result struct {
+		i   int
+		err error
+		// panicked is set when run panicked instead of returning.
+		panicked error
+	}
+	// Buffered so that an abandoned probe can still send its result and exit.
+	results := make(chan result, len(probes))
+	for i, probe := range probes {
+		go func() {
+			defer func() {
+				if r := recover(); r != nil {
+					results <- result{i: i, panicked: fmt.Errorf("probe panicked: %v", r)}
+				}
+			}()
+			results <- result{i: i, err: probe.run(ctx)}
+		}()
+	}
+
+	notCompleted := func(probe networkProbe, err error) {
+		err = errors.Wrap(err, probe.name)
+		fail(probe.section, err)
+		*probe.errMsg = err.Error()
+	}
+	return func() {
+		finished := make([]bool, len(probes))
+		record := func(r result) {
+			finished[r.i] = true
+			probe := probes[r.i]
+			if r.panicked != nil {
+				notCompleted(probe, r.panicked)
+				return
+			}
+			*probe.status = model.StatusOk
+			if r.err != nil {
+				*probe.status, *probe.errMsg = model.StatusFail, r.err.Error()
+			}
+			if probe.record != nil {
+				if err := probe.record(); err != nil {
+					fail(probe.section, err)
+				}
+			}
+		}
+		for range probes {
+			select {
+			case r := <-results:
+				record(r)
+			case <-ctx.Done():
+				// select picks at random between ready cases, so results may still be waiting, for example
+				// when the local collection used up the deadline after every probe had finished.
+				for len(results) > 0 {
+					record(<-results)
+				}
+				for i, probe := range probes {
+					if !finished[i] {
+						notCompleted(probe, errors.Wrap(context.Cause(ctx), "probe did not complete"))
+					}
+				}
+				return
+			}
+		}
+	}
+}
+
+func supportPacketSMTPConfig(cfg *model.Config) *mail.SMTPConfig {
+	emailSettings := cfg.EmailSettings
+	return &mail.SMTPConfig{
+		Hostname:                          utils.GetHostnameFromSiteURL(model.SafeDereference(cfg.ServiceSettings.SiteURL)),
+		ConnectionSecurity:                model.SafeDereference(emailSettings.ConnectionSecurity),
+		SkipServerCertificateVerification: model.SafeDereference(emailSettings.SkipServerCertificateVerification),
+		ServerName:                        model.SafeDereference(emailSettings.SMTPServer),
+		Server:                            model.SafeDereference(emailSettings.SMTPServer),
+		Port:                              model.SafeDereference(emailSettings.SMTPPort),
+		ServerTimeout:                     model.SafeDereference(emailSettings.SMTPServerTimeout),
+		Username:                          model.SafeDereference(emailSettings.SMTPUsername),
+		Password:                          model.SafeDereference(emailSettings.SMTPPassword),
+		EnableSMTPAuth:                    model.SafeDereference(emailSettings.EnableSMTPAuth),
+		SendEmailNotifications:            true,
+		FeedbackName:                      model.SafeDereference(emailSettings.FeedbackName),
+		FeedbackEmail:                     model.SafeDereference(emailSettings.FeedbackEmail),
+		ReplyToAddress:                    model.SafeDereference(emailSettings.ReplyToAddress),
+	}
 }
 
 func (ps *PlatformService) applyStoreDiagnostics(rctx request.CTX, diagnostics *model.SupportPacketDiagnostics) error {
@@ -479,29 +622,18 @@ func (ps *PlatformService) applyStoreDiagnostics(rctx request.CTX, diagnostics *
 // that URL and verifies the response is a valid OIDC discovery document.
 // Otherwise it probes the TokenEndpoint host: any HTTP response (including
 // 4xx/5xx) is treated as reachable, since token endpoints typically reject GETs.
-func probeOAuthProvider(ctx context.Context, sso *model.SSOSettings) model.OAuthProviderStatus {
-	if !model.SafeDereference(sso.Enable) {
-		return model.OAuthProviderStatus{Status: model.StatusDisabled}
-	}
-
+// Callers only probe enabled providers.
+func probeOAuthProvider(ctx context.Context, sso *model.SSOSettings) error {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
 	if discoveryEndpoint := model.SafeDereference(sso.DiscoveryEndpoint); discoveryEndpoint != "" {
-		if err := probeOIDCDiscovery(ctx, discoveryEndpoint); err != nil {
-			return model.OAuthProviderStatus{Status: model.StatusFail, Error: err.Error()}
-		}
-		return model.OAuthProviderStatus{Status: model.StatusOk}
+		return probeOIDCDiscovery(ctx, discoveryEndpoint)
 	}
-
 	if tokenEndpoint := model.SafeDereference(sso.TokenEndpoint); tokenEndpoint != "" {
-		if err := probeOAuthTokenEndpoint(ctx, tokenEndpoint); err != nil {
-			return model.OAuthProviderStatus{Status: model.StatusFail, Error: err.Error()}
-		}
-		return model.OAuthProviderStatus{Status: model.StatusOk}
+		return probeOAuthTokenEndpoint(ctx, tokenEndpoint)
 	}
-
-	return model.OAuthProviderStatus{Status: model.StatusFail, Error: "no discovery or token endpoint configured"}
+	return errors.New("no discovery or token endpoint configured")
 }
 
 func probeOIDCDiscovery(ctx context.Context, discoveryURL string) error {
