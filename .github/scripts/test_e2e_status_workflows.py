@@ -190,8 +190,10 @@ class StatusPublicationContract(unittest.TestCase):
         self.assertEqual(result['with']['target-url'], '${{ inputs.report_url }}')
         triage = step(lane, 'ci/e2e-triage')
         self.assertEqual(result['with']['use-staging'], triage['with']['use-staging'])
-        self.assertIn('inputs.execution_success', triage['with']['mode'])
-        self.assertIn("steps.result.outputs.reports-complete == 'true'", triage['with']['mode'])
+        # Triage enforces on every red lane, also one red outside its tests: assert-results lets such a lane
+        # pass only on an orchestration-based verdict (see test_result_assertion_cannot_clear_upstream_or_report_failures).
+        self.assertNotIn('inputs.execution_success', triage['with']['mode'])
+        self.assertNotIn('reports-complete', triage['with']['mode'])
         # A re-run that kept the first attempt's identity never enforces (see the comment on mode).
         self.assertIn('fromJSON(inputs.composite_identity_json).gh_run_attempt == github.run_attempt', triage['with']['mode'])
         self.assertTrue(triage['with']['mode'].endswith("|| 'report-only' }}"))
@@ -215,6 +217,7 @@ class StatusPublicationContract(unittest.TestCase):
         self.assertEqual(assertion['env']['TRIAGE_OUTCOME'], '${{ steps.triage.outcome }}')
         self.assertEqual(assertion['env']['TRIAGE_PUBLISHED'], '${{ steps.triage.outputs.published }}')
         self.assertEqual(assertion['env']['TRIAGE_VERDICT'], '${{ steps.triage.outputs.verdict }}')
+        self.assertEqual(assertion['env']['TRIAGE_BASIS'], '${{ steps.triage.outputs.basis }}')
         cases = [
             # Even a green orchestration result and AI verdict cannot clear upload failures.
             ('false', 'false', 'success', 'enforce', 'SUCCESS', False),
@@ -234,6 +237,26 @@ class StatusPublicationContract(unittest.TestCase):
                 result = subprocess.run(['bash', '-e', '-c', assertion['run']], env={
                     'EXECUTION_SUCCESS': execution, 'REPORTS_COMPLETE': complete,
                     'RAW_STATE': state, 'TRIAGE_MODE': mode, 'TRIAGE_VERDICT': verdict,
+                    'TRIAGE_OUTCOME': 'success', 'TRIAGE_PUBLISHED': 'true',
+                }, capture_output=True)
+                self.assertEqual(result.returncode == 0, passes, result.stderr)
+        # A lane red outside its tests passes only when triage's green rests on TSIO's orchestration: every
+        # dispatched spec ran and passed there. A verdict from the tests or the lane's jobs never clears it.
+        outside = [
+            ('false', 'true', 'orchestration', 'enforce', 'SUCCESS', True),
+            ('true', 'false', 'orchestration', 'enforce', 'SUCCESS', True),
+            ('false', 'false', 'orchestration', 'enforce', 'SUCCESS', True),
+            ('false', 'true', 'orchestration', 'report-only', 'SUCCESS', False),
+            ('false', 'true', 'orchestration', 'enforce', 'FAILURE', False),
+            ('false', 'true', 'tests', 'enforce', 'SUCCESS', False),
+            ('false', 'true', 'lane', 'enforce', 'SUCCESS', False),
+            ('false', 'true', '', 'enforce', 'SUCCESS', False),
+        ]
+        for execution, complete, basis, mode, verdict, passes in outside:
+            with self.subTest(execution=execution, complete=complete, basis=basis, mode=mode, verdict=verdict):
+                result = subprocess.run(['bash', '-e', '-c', assertion['run']], env={
+                    'EXECUTION_SUCCESS': execution, 'REPORTS_COMPLETE': complete, 'RAW_STATE': 'failure',
+                    'TRIAGE_MODE': mode, 'TRIAGE_VERDICT': verdict, 'TRIAGE_BASIS': basis,
                     'TRIAGE_OUTCOME': 'success', 'TRIAGE_PUBLISHED': 'true',
                 }, capture_output=True)
                 self.assertEqual(result.returncode == 0, passes, result.stderr)

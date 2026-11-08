@@ -440,7 +440,8 @@ jobs:
           # ("…-upgrade-from-release-11.11-master"), where an upgrade-only failure shows up too.
           support-paths: e2e-tests/playwright/lib
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          mode: ${{ vars.E2E_TRIAGE_MODE || 'enforce' }}
+          # A manual re-run of failed jobs reads the first attempt's TSIO run: report-only, as in e2e-tests-lane-result.yml.
+          mode: ${{ fromJSON(needs.prepare-run.outputs.composite-identity-json).gh_run_attempt == github.run_attempt && (vars.E2E_TRIAGE_MODE || 'enforce') || 'report-only' }}
           use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
           rerun-attempts: "1"
           lane-start-job: prepare-run

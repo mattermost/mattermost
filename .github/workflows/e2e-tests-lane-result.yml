@@ -177,7 +177,12 @@ jobs:
           # green only when TSIO's orchestration shows every dispatched spec ran and passed (a no-work exit
           # cannot stand in for a spec there), otherwise red with whose fault it is and what to do.
           # E2E_TRIAGE_MODE=report-only turns enforcement off without a code change.
-          mode: ${{ vars.E2E_TRIAGE_MODE || 'enforce' }}
+          # A manual re-run of failed jobs keeps prepare-run's identity, so the lane reads the first attempt's TSIO
+          # run. A retried worker that finds no work records a no-work exit, so that run can read complete with a
+          # report still missing. That attempt is report-only: triage still writes its verdict on the red check,
+          # but the lane passes only on the raw result. A re-run triage asks for starts from prepare-run, so it
+          # has an identity of its own and enforces.
+          mode: ${{ fromJSON(inputs.composite_identity_json).gh_run_attempt == github.run_attempt && (vars.E2E_TRIAGE_MODE || 'enforce') || 'report-only' }}
           use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
           answers-cache: e2e-triage-answers.json
           # A lane red only on a machine failure asks for one automatic re-run; e2e-tests-rerun.yml carries
