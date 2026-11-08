@@ -94,7 +94,7 @@ fi
 mme2e_dump_unhealthy() {
   local service="$1"
   mme2e_log "----- ${service} state -----"
-  docker inspect --format '{{json .State}}' "$(${MME2E_DC_SERVER} ps -q -- "${service}" 2>/dev/null)" 2>&1 | head -c 2000 || true
+  docker inspect --format '{{json .State}}' "$(${MME2E_DC_SERVER} ps -aq -- "${service}" 2>/dev/null)" 2>&1 | head -c 2000 || true
   mme2e_log "----- ${service} log (last 200) -----"
   ${MME2E_DC_SERVER} logs --no-log-prefix --tail=200 -- "${service}" 2>&1 || true
   mme2e_log "----- end ${service} -----"

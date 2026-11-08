@@ -104,11 +104,14 @@ permissions:
 
 env:
   SERVER_IMAGE: "${{ inputs.server_image_repo }}/${{ inputs.server_edition == 'fips' && 'mattermost-enterprise-fips-edition' || inputs.server_edition == 'team' && 'mattermost-team-edition' || 'mattermost-enterprise-edition' }}:${{ inputs.server_image_tag }}"
-  # Job/workflow-level so ci/publish-webhook's `if` can see it (step env is applied after `if`).
-  REPORT_WEBHOOK_URL: ${{ secrets.REPORT_WEBHOOK_URL }}
 
 jobs:
   prepare-run:
+    # Commit statuses are SHA-scoped: the claim below holds the same lock as every other status publisher.
+    concurrency:
+      group: e2e-status-publish-${{ inputs.commit_sha }}
+      cancel-in-progress: false
+      queue: max
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -169,6 +172,33 @@ jobs:
         run: |
           echo "workers=$(jq -nc --argjson n "${INPUT_WORKERS}" '[range(1; $n+1)]')" >> "$GITHUB_OUTPUT"
           echo "start_time=$(date +%s)" >> "$GITHUB_OUTPUT"
+      # The lane result publishes only over a status this run owns, so the run claims it here, before
+      # anything can fail, as the other templates do. The lane list and its reader come from this
+      # workflow's own ref (github.sha), never from the tested commit.
+      - name: ci/checkout-trusted-lanes
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+          sparse-checkout: .github
+          path: .e2e-trusted
+          fetch-depth: 1
+      - name: ci/status-lanes
+        id: lanes
+        uses: ./.e2e-trusted/.github/actions/e2e-status-lanes
+        with:
+          context-name: ${{ inputs.context_name }}
+      - name: ci/claim-status
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-test-status@2a78b66988b08ea5599fb806a3d796efdf0f333d  # actions/e2e-test-status
+        with:
+          composite-identity: ${{ steps.composite-identity.outputs.composite-identity-json }}
+          status-context: ${{ inputs.context_name }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          operation: claim
+          state: pending
+          description: E2E tests queued or running
+          triage-status-context: ${{ steps.lanes.outputs.aggregate }}
+          triage-lanes: ${{ steps.lanes.outputs.lanes }}
 
   # Install webapp node_modules once via the shared webapp-setup action, then
   # workers restore the same stable cache. The node_modules cache is keyed only
@@ -243,6 +273,7 @@ jobs:
           playwright-project: ${{ inputs.playwright_project }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           commit-status-context: ${{ inputs.context_name }}
+          post-pending-commit-status: "false"
           image-tag: ${{ inputs.server_image_tag }}
           image-aliases: ${{ inputs.server_image_aliases }}
 
@@ -364,31 +395,25 @@ jobs:
           if-no-files-found: ignore
 
   report:
-    # Triage and the aggregate refresh below write commit statuses: like every status writer, hold the
-    # SHA-scoped publication lock (see e2e-tests-lane-result.yml); queued publishers are never discarded.
-    concurrency:
-      group: e2e-status-publish-${{ inputs.commit_sha }}
-      cancel-in-progress: false
-      queue: max
     runs-on: ubuntu-24.04
     needs: [prepare-run, dispatch-begin, workers]
     if: always()
     permissions:
       contents: read
       id-token: write
-      statuses: write
-      # Triage reads the PR's changed files and the run's failed jobs.
       pull-requests: read
-      actions: read
     outputs:
       commit_status_description: ${{ steps.summary.outputs.commit_status_description }}
       webhook_payload: ${{ steps.summary.outputs.webhook_payload }}
+      report_url: ${{ steps.summary.outputs.report_url }}
+      summary_ok: ${{ steps.summary.outcome == 'success' }}
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
       - name: ci/run-summary
+        if: always()
         id: summary
         continue-on-error: true
         uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-summary@ae9d4a79623ba776abe044a8f0282827dfaea39a # 2026-11-08
@@ -403,68 +428,35 @@ jobs:
           pr-number: ${{ inputs.pr_number }}
           ref-branch: ${{ inputs.ref_branch }}
           commit-status-context: ${{ inputs.context_name }}
+          update-commit-status: "false"
           github-token: ${{ secrets.GITHUB_TOKEN }}
-      # The lane list and the reader come from this workflow's own ref (github.sha), as in e2e-tests-lane-result.yml.
-      - name: ci/checkout-trusted-lanes
-        if: ${{ !cancelled() }}
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          persist-credentials: false
-          ref: ${{ github.sha }}
-          sparse-checkout: .github
-          path: .e2e-trusted
-          fetch-depth: 1
-      - name: ci/status-lanes
-        id: lanes
-        if: ${{ !cancelled() }}
-        uses: ./.e2e-trusted/.github/actions/e2e-status-lanes
-        with:
-          context-name: ${{ inputs.context_name }}
-      # The summary above wrote the lane's status. Triage gives a red one its verdict, as on the other
-      # lanes (see e2e-tests-lane-result.yml): each failed test judged, or the lane judged as a whole when
-      # it is red outside its tests (a spec that never finished, a dead worker).
-      - name: ci/e2e-triage
-        id: triage
-        if: ${{ !cancelled() }}
-        continue-on-error: true
-        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-test-triage@2a78b66988b08ea5599fb806a3d796efdf0f333d # actions/e2e-test-triage
-        with:
-          composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
-          status-context: ${{ inputs.context_name }}
-          # Upgrade contexts are not in e2e-status-lanes.json (the from-versions change with each release), so
-          # these come back empty and triage keeps its own per-lane check, as master contexts do.
-          triage-status-context: ${{ steps.lanes.outputs.triage-context }}
-          triage-lanes: ${{ steps.lanes.outputs.triage-lanes }}
-          test-root: e2e-tests/playwright/specs
-          # No history-lane: the lane's own history is the base branch's upgrade lane from the same version
-          # ("…-upgrade-from-release-11.11-master"), where an upgrade-only failure shows up too.
-          support-paths: e2e-tests/playwright/lib
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          # A manual re-run of failed jobs reads the first attempt's TSIO run: report-only, as in e2e-tests-lane-result.yml.
-          mode: ${{ fromJSON(needs.prepare-run.outputs.composite-identity-json).gh_run_attempt == github.run_attempt && (vars.E2E_TRIAGE_MODE || 'enforce') || 'report-only' }}
-          use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
-          rerun-attempts: "1"
-          lane-start-job: prepare-run
-      # The PR-wide triage check names this lane's verdict (see laneSummary): refresh it now that triage wrote it.
-      - name: ci/refresh-lane-summary
-        if: ${{ !cancelled() && steps.lanes.outputs.aggregate != '' }}
-        continue-on-error: true
-        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-test-status@2a78b66988b08ea5599fb806a3d796efdf0f333d  # actions/e2e-test-status
-        with:
-          composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
-          status-context: ${{ inputs.context_name }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          operation: summarize
-          triage-status-context: ${{ steps.lanes.outputs.aggregate }}
-          triage-lanes: ${{ steps.lanes.outputs.lanes }}
-      - name: ci/publish-webhook
-        if: inputs.enable_reporting && env.REPORT_WEBHOOK_URL != ''
-        env:
-          PAYLOAD: ${{ steps.summary.outputs.webhook_payload }}
-        run: |
-          curl -X POST -H "Content-Type: application/json" -d "$PAYLOAD" "$REPORT_WEBHOOK_URL"
-      - name: ci/assert-results
-        env:
-          SUMMARY_OUTCOME: ${{ steps.summary.outcome }}
-        run: |
-          [ "$SUMMARY_OUTCOME" = "success" ]
+
+  # Status, triage, webhook and the pass/fail gate, as on the other lanes: see e2e-tests-lane-result.yml.
+  # The status there is verified against the reports that arrived, so a re-run whose workers found no work
+  # cannot publish success with a report missing. Upgrade contexts are not in e2e-status-lanes.json, so
+  # triage keeps its own per-lane check, as master contexts do.
+  lane-result:
+    needs: [prepare-run, dispatch-begin, workers, report]
+    if: ${{ !cancelled() && needs.workers.result != 'cancelled' && needs.dispatch-begin.result != 'cancelled' }}
+    permissions:
+      actions: read
+      contents: read
+      statuses: write
+      pull-requests: read
+    uses: ./.github/workflows/e2e-tests-lane-result.yml
+    with:
+      composite_identity_json: ${{ needs.prepare-run.outputs.composite-identity-json }}
+      context_name: ${{ inputs.context_name }}
+      commit_sha: ${{ inputs.commit_sha }}
+      execution_success: ${{ needs.prepare-run.result == 'success' && needs.dispatch-begin.result == 'success' && needs.workers.result == 'success' }}
+      summary_ok: ${{ needs.report.outputs.summary_ok == 'true' }}
+      description: ${{ needs.report.outputs.commit_status_description }}
+      report_url: ${{ needs.report.outputs.report_url }}
+      test_root: e2e-tests/playwright/specs
+      # No history_lane: the lane's own history is the base branch's upgrade lane from the same version
+      # ("…-upgrade-from-release-11.11-master"), where an upgrade-only failure shows up too.
+      support_paths: e2e-tests/playwright/lib
+      enable_reporting: ${{ inputs.enable_reporting }}
+      webhook_payload: ${{ needs.report.outputs.webhook_payload }}
+    secrets:
+      REPORT_WEBHOOK_URL: ${{ secrets.REPORT_WEBHOOK_URL }}
