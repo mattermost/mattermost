@@ -7,7 +7,7 @@ import type {CustomEmoji} from '@mattermost/types/emojis';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {fireEvent, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {act, fireEvent, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import EmojiMap from 'utils/emoji_map';
 import {TestHelper} from 'utils/test_helper';
 
@@ -209,6 +209,81 @@ describe('components/emoji/components/AddEmoji', () => {
         });
         expect(selectButton).toBeEnabled();
         expect(screen.getByText('failed to save')).toBeInTheDocument();
+    });
+
+    describe('image reads that finish late', () => {
+        type DeferredReader = {
+            onload: (() => void) | null;
+            result: string | null;
+            readAsDataURL: jest.Mock;
+            file?: File;
+        };
+
+        let readers: DeferredReader[];
+
+        beforeEach(() => {
+            readers = [];
+            Object.defineProperty(global, 'FileReader', {
+                writable: true,
+                value: jest.fn().mockImplementation(() => {
+                    const reader: DeferredReader = {
+                        onload: null,
+                        result: null,
+                        readAsDataURL: jest.fn((file: File) => {
+                            reader.file = file;
+                        }),
+                    };
+                    readers.push(reader);
+                    return reader;
+                }),
+            });
+        });
+
+        const finishRead = (reader: DeferredReader, result: string) => {
+            reader.result = result;
+            act(() => {
+                reader.onload?.();
+            });
+        };
+
+        test('should upload the image selected last even if its preview is still loading', async () => {
+            const {container} = renderWithContext(<AddEmoji {...baseProps}/>);
+
+            const fileInput = container.querySelector('#select-emoji') as HTMLInputElement;
+            const first = new File([image], 'first.png', {type: 'image/png'});
+            const second = new File([image], 'second.png', {type: 'image/png'});
+
+            await userEvent.type(screen.getByRole('textbox'), 'emojiName');
+            await userEvent.upload(fileInput, first);
+            finishRead(readers[0], image);
+            await userEvent.upload(fileInput, second);
+
+            // The second image is selected but its preview has not been read yet
+            expect(screen.getByText('second.png')).toBeInTheDocument();
+            expect(screen.queryByText('Preview')).not.toBeInTheDocument();
+
+            await userEvent.click(screen.getByTestId('save-button'));
+
+            expect(baseProps.actions.createCustomEmoji).toHaveBeenCalledWith(expect.anything(), second);
+        });
+
+        test('should ignore a preview read that finishes after another image was selected', async () => {
+            const {container} = renderWithContext(<AddEmoji {...baseProps}/>);
+
+            const fileInput = container.querySelector('#select-emoji') as HTMLInputElement;
+            const first = new File([image], 'first.png', {type: 'image/png'});
+            const second = new File([image], 'second.png', {type: 'image/png'});
+
+            await userEvent.upload(fileInput, first);
+            await userEvent.upload(fileInput, second);
+
+            finishRead(readers[1], 'data:image/png;base64,second');
+            finishRead(readers[0], 'data:image/png;base64,first');
+
+            expect(screen.getByText('second.png')).toBeInTheDocument();
+            const preview = container.querySelector('.add-emoji__preview .emoticon') as HTMLElement;
+            expect(preview.style.backgroundImage).toContain('second');
+        });
     });
 
     test('should show error if emoji name unset', async () => {
