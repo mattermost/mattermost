@@ -12,6 +12,9 @@
     .enterprise-license-text {
         max-height: 200px;
 
+        // Keep the text clear of overlay scrollbars
+        padding-right: 12px;
+
         // The modal has no footer, so the body needs its own bottom spacing
         margin-bottom: 32px;
         background: white;
