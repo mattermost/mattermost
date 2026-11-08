@@ -23,7 +23,7 @@ jobs:
       actions: write
     steps:
       - name: ci/e2e-rerun
-        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-test-rerun@main # actions/e2e-test-rerun
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-test-rerun@2a78b66988b08ea5599fb806a3d796efdf0f333d # actions/e2e-test-rerun
         with:
           github-token: ${{ github.token }}
           run-id: ${{ github.event.workflow_run.id }}

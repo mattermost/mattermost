@@ -47,7 +47,7 @@ jobs:
     steps:
       - name: ci/e2e-autofix-plan
         id: plan
-        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-test-watch@main # actions/e2e-test-watch
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-test-watch@2a78b66988b08ea5599fb806a3d796efdf0f333d # actions/e2e-test-watch
         with:
           repository: ${{ github.repository }}
           gh-run-id: ${{ github.event.workflow_run.id }}
@@ -133,6 +133,6 @@ jobs:
       # Runs on every trunk run, even one that sent nothing, to keep the record of sent requests alive.
       - name: ci/e2e-autofix-record
         if: always() && steps.plan.outcome == 'success'
-        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-test-watch/record@main # actions/e2e-test-watch/record
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-test-watch/record@2a78b66988b08ea5599fb806a3d796efdf0f333d # actions/e2e-test-watch/record
         with:
           results: ${{ steps.send.outputs.results || '[]' }}
