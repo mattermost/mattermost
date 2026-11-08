@@ -273,6 +273,40 @@ func TestIncomingWebhookRequestFromJSONNullCharacters(t *testing.T) {
 		assert.Equal(t, "line one\nline two", iwr.Text)
 	})
 
+	t.Run("resolves keys that collide after removing NULL characters deterministically", func(t *testing.T) {
+		payload := `{"text": "hello", "props": {"a\u0000b": "with null", "ab": "without null", "c\u0000d": "first", "cd\u0000": "second"}}`
+
+		for range 20 {
+			iwr, err := IncomingWebhookRequestFromJSON(strings.NewReader(payload))
+			require.Nil(t, err)
+			require.NotNil(t, iwr)
+			assert.Equal(t, "without null", iwr.Props["ab"])
+			assert.Equal(t, "first", iwr.Props["cd"])
+			assert.Len(t, iwr.Props, 2)
+		}
+	})
+
+	t.Run("does not change which key is decoded into a field", func(t *testing.T) {
+		// encoding/json matches field names case-insensitively and the last match wins.
+		// Removing NULL characters must not change that.
+		payload := `{"text": "literal \\u0000", "TEXT": "intended"}`
+
+		iwr, err := IncomingWebhookRequestFromJSON(strings.NewReader(payload))
+		require.Nil(t, err)
+		require.NotNil(t, iwr)
+		assert.Equal(t, "intended", iwr.Text)
+	})
+
+	t.Run("ignores unknown keys that would match a field once NULL characters are removed", func(t *testing.T) {
+		payload := `{"text": "a\u0000b", "sil\u0000ent": "bad"}`
+
+		iwr, err := IncomingWebhookRequestFromJSON(strings.NewReader(payload))
+		require.Nil(t, err)
+		require.NotNil(t, iwr)
+		assert.Equal(t, "ab", iwr.Text)
+		assert.False(t, iwr.Silent)
+	})
+
 	t.Run("keeps an escaped backslash followed by u0000", func(t *testing.T) {
 		payload := `{"text": "literal \\u0000 text"}`
 
