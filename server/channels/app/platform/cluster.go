@@ -193,7 +193,7 @@ func (ps *PlatformService) Publish(message *model.WebSocketEvent) {
 
 	ps.PublishSkipClusterSend(message)
 
-	if ps.clusterIFace != nil {
+	if cluster := ps.clusterIFace; cluster != nil {
 		data, err := message.ToJSON()
 		if err != nil {
 			mlog.Warn("Failed to encode message to JSON", mlog.Err(err))
@@ -213,7 +213,7 @@ func (ps *PlatformService) Publish(message *model.WebSocketEvent) {
 			cm.SendType = model.ClusterSendReliable
 		}
 
-		ps.clusterIFace.SendClusterMessage(cm)
+		cluster.SendClusterMessage(cm)
 	}
 }
 
@@ -234,7 +234,11 @@ func (ps *PlatformService) PublishSkipClusterSend(event *model.WebSocketEvent) {
 }
 
 func (ps *PlatformService) ListPluginKeys(pluginID string, page, perPage int) ([]string, *model.AppError) {
-	data, err := ps.Store.Plugin().List(pluginID, page*perPage, perPage)
+	return ps.ListPluginKeysWithOptions(pluginID, model.PluginKVListOptions{}, page, perPage)
+}
+
+func (ps *PlatformService) ListPluginKeysWithOptions(pluginID string, options model.PluginKVListOptions, page, perPage int) ([]string, *model.AppError) {
+	data, err := ps.Store.Plugin().ListWithOptions(pluginID, options, page*perPage, perPage)
 	if err != nil {
 		mlog.Error("Failed to list plugin key values", mlog.Int("page", page), mlog.Int("per_page", perPage), mlog.Err(err))
 		return nil, model.NewAppError("ListPluginKeys", "app.plugin_store.list.app_error", nil, "", http.StatusInternalServerError).Wrap(err)

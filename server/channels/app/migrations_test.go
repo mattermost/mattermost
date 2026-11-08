@@ -12,7 +12,9 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -1507,6 +1509,67 @@ func (s *lockToMasterSpyStore) UnlockFromMaster() {
 func (s *lockToMasterSpyStore) System() store.SystemStore {
 	s.record("system")
 	return s.Store.System()
+}
+
+func TestDoRestrictUnauthenticatedWebappPluginsConfigMigration(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	setup := func(t *testing.T, migrationDone bool, userCount int64) (*TestHelper, *mocks.SystemStore) {
+		th := SetupWithStoreMock(t)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.RestrictUnauthenticatedWebappPlugins = true
+		})
+
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockSystemStore := mocks.SystemStore{}
+		if migrationDone {
+			mockSystemStore.On("GetByName", restrictUnauthenticatedWebappPluginsMigrationKey).Return(&model.System{Name: restrictUnauthenticatedWebappPluginsMigrationKey, Value: "true"}, nil)
+		} else {
+			mockSystemStore.On("GetByName", restrictUnauthenticatedWebappPluginsMigrationKey).Return(nil, store.NewErrNotFound("System", restrictUnauthenticatedWebappPluginsMigrationKey))
+			mockSystemStore.On("SaveOrUpdate", &model.System{Name: restrictUnauthenticatedWebappPluginsMigrationKey, Value: "true"}).Return(nil)
+		}
+		mockUserStore := mocks.UserStore{}
+		mockUserStore.On("Count", model.UserCountOptions{IncludeDeleted: true, IncludeBotAccounts: true}).Return(userCount, nil)
+		mockStore.On("System").Return(&mockSystemStore)
+		mockStore.On("User").Return(&mockUserStore)
+
+		// Config listeners triggered by the config update compute the client config.
+		mockUserStore.On("Count", mock.Anything).Return(userCount, nil).Maybe()
+		mockPostStore := mocks.PostStore{}
+		mockPostStore.On("GetMaxPostSize").Return(model.PostMessageMaxBytesV2, nil).Maybe()
+		mockStore.On("Post").Return(&mockPostStore).Maybe()
+		mockSystemStore.On("GetByName", mock.Anything).Return(&model.System{Value: "10"}, nil).Maybe()
+		mockStore.On("GetDBSchemaVersion").Return(1, nil).Maybe()
+
+		return th, &mockSystemStore
+	}
+
+	t.Run("new installation keeps the restriction enabled", func(t *testing.T) {
+		th, mockSystemStore := setup(t, false, 0)
+
+		require.NoError(t, th.App.Srv().doRestrictUnauthenticatedWebappPluginsConfigMigration())
+
+		assert.True(t, *th.App.Config().PluginSettings.RestrictUnauthenticatedWebappPlugins)
+		mockSystemStore.AssertCalled(t, "SaveOrUpdate", mock.Anything)
+	})
+
+	t.Run("existing installation disables the restriction", func(t *testing.T) {
+		th, mockSystemStore := setup(t, false, 5)
+
+		require.NoError(t, th.App.Srv().doRestrictUnauthenticatedWebappPluginsConfigMigration())
+
+		assert.False(t, *th.App.Config().PluginSettings.RestrictUnauthenticatedWebappPlugins)
+		mockSystemStore.AssertCalled(t, "SaveOrUpdate", mock.Anything)
+	})
+
+	t.Run("completed migration does not override the admin's choice", func(t *testing.T) {
+		th, mockSystemStore := setup(t, true, 5)
+
+		require.NoError(t, th.App.Srv().doRestrictUnauthenticatedWebappPluginsConfigMigration())
+
+		assert.True(t, *th.App.Config().PluginSettings.RestrictUnauthenticatedWebappPlugins)
+		mockSystemStore.AssertNotCalled(t, "SaveOrUpdate", mock.Anything)
+	})
 }
 
 // Guard, not a reproduction: storetest configures no replicas, so GetReplica already

@@ -4,7 +4,7 @@
 import React from 'react';
 import {defineMessage, type MessageDescriptor} from 'react-intl';
 
-import type {CloudState, Product} from '@mattermost/types/cloud';
+import type {CloudState} from '@mattermost/types/cloud';
 import type {AdminConfig, ClientConfig, ClientLicense} from '@mattermost/types/config';
 
 import {getConfig as getClientConfig} from 'mattermost-redux/selectors/entities/general';
@@ -13,7 +13,7 @@ import store from 'stores/redux_store';
 
 import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_indicator';
 
-import {CloudProducts, getLicenseTier, LicenseSkus} from 'utils/constants';
+import {getLicenseTier, LicenseSkus} from 'utils/constants';
 import {isCloudLicense} from 'utils/license_utils';
 
 import type {Check, ConsoleAccess} from './types';
@@ -59,7 +59,6 @@ export const it = {
     licensedForFeature: (feature: string) => (config: Partial<AdminConfig>, state: any, license?: ClientLicense) => Boolean(license?.IsLicensed && license[feature] === 'true'),
     licensedForSku: (skuName: string) => (config: Partial<AdminConfig>, state: any, license?: ClientLicense) => Boolean(license?.IsLicensed && license.SkuShortName === skuName),
     minLicenseTier: (skuName: string) => (config: Partial<AdminConfig>, state: any, license?: ClientLicense) => Boolean(license?.IsLicensed && getLicenseTier(license.SkuShortName) >= getLicenseTier(skuName)),
-    licensedForCloudStarter: (config: Partial<AdminConfig>, state: any, license?: ClientLicense) => Boolean(license?.IsLicensed && isCloudLicense(license) && license.SkuShortName === LicenseSkus.Starter),
     hidePaymentInfo: (config: Partial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess, cloud?: CloudState) => {
         if (!cloud) {
             return true;
@@ -126,5 +125,5 @@ export const getRestrictedIndicator = (displayBlocked = false, minimumPlanRequir
             })}
         />
     ),
-    shouldDisplay: (license: ClientLicense, subscriptionProduct: Product | undefined) => displayBlocked || (isCloudLicense(license) && subscriptionProduct?.sku === CloudProducts.STARTER),
+    shouldDisplay: () => displayBlocked,
 });

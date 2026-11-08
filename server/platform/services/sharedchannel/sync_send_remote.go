@@ -114,7 +114,7 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 		}
 	}()
 
-	scr, err := scs.server.GetStore().SharedChannel().GetRemoteByIds(task.channelID, rc.RemoteId)
+	scr, err := scs.server.GetStore().SharedChannel().GetRemoteByIdsFromMaster(task.channelID, rc.RemoteId)
 	if isNotFoundError(err) && rc.IsOptionFlagSet(model.BitflagOptionAutoInvited) {
 		// if SharedChannelRemote not found and remote has autoinvite flag, create a scr for it, thus inviting the remote.
 		scr = &model.SharedChannelRemote{
@@ -224,7 +224,7 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 			mlog.Bool("repeat", sd.resultRepeat),
 		)
 		if sd.isCursorChanged() {
-			scs.updateCursorForRemote(sd.scr.Id, sd.rc, sd.resultNextCursor)
+			scs.updateCursorForRemote(sd)
 		}
 		return nil
 	}
@@ -543,7 +543,7 @@ func containsPost(posts []*model.Post, post *model.Post) bool {
 	return false
 }
 
-// fetchReactionsForSync populates the sync data with any new reactions since the last sync.
+// fetchReactionsForSync populates the sync data with all reactions of each post, removed ones included.
 func (scs *Service) fetchReactionsForSync(sd *syncData) error {
 	start := time.Now()
 	defer func() {
@@ -555,7 +555,7 @@ func (scs *Service) fetchReactionsForSync(sd *syncData) error {
 	merr := merror.New()
 	for _, post := range sd.posts {
 		// any reactions originating from the remote cluster are filtered out
-		reactions, err := scs.server.GetStore().Reaction().GetForPostSince(post.Id, sd.scr.LastPostUpdateAt, sd.rc.RemoteId, true)
+		reactions, err := scs.server.GetStore().Reaction().GetForPostSince(post.Id, 0, sd.rc.RemoteId, true)
 		if err != nil {
 			merr.Append(fmt.Errorf("could not get reactions for post %s: %w", post.Id, err))
 			continue
@@ -565,7 +565,7 @@ func (scs *Service) fetchReactionsForSync(sd *syncData) error {
 	return merr.ErrorOrNil()
 }
 
-// fetchAcknowledgementsForSync populates the sync data with any new acknowledgements since the last sync.
+// fetchAcknowledgementsForSync populates the sync data with all acknowledgements of each post, removed ones included.
 func (scs *Service) fetchAcknowledgementsForSync(sd *syncData) error {
 	start := time.Now()
 	defer func() {
@@ -577,7 +577,7 @@ func (scs *Service) fetchAcknowledgementsForSync(sd *syncData) error {
 	merr := merror.New()
 	for _, post := range sd.posts {
 		// any acknowledgements originating from the remote cluster are filtered out
-		acknowledgements, err := scs.server.GetStore().PostAcknowledgement().GetForPostSince(post.Id, sd.scr.LastPostUpdateAt, sd.rc.RemoteId, true)
+		acknowledgements, err := scs.server.GetStore().PostAcknowledgement().GetForPostSince(post.Id, 0, sd.rc.RemoteId, true)
 		if err != nil {
 			merr.Append(fmt.Errorf("could not get acknowledgements for post %s: %w", post.Id, err))
 			continue
@@ -729,17 +729,6 @@ func (scs *Service) filterPostsForSync(sd *syncData) {
 	filtered := make([]*model.Post, 0, len(sd.posts))
 
 	for _, p := range sd.posts {
-		// Don't resend an existing post where only the reactions changed.
-		// Posts we must send:
-		//   - new posts (EditAt == 0)
-		//   - edited posts (EditAt >= LastPostUpdateAt)
-		//   - deleted posts (DeleteAt > 0)
-		//   - posts with metadata changes (acknowledgements/priority)
-		hasMetadataChanges := p.Metadata != nil && (p.Metadata.Acknowledgements != nil || p.Metadata.Priority != nil)
-		if p.EditAt > 0 && p.EditAt < sd.scr.LastPostUpdateAt && p.DeleteAt == 0 && !hasMetadataChanges {
-			continue
-		}
-
 		// Don't send a deleted post if it is just the original copy from an edit.
 		if p.DeleteAt > 0 && p.OriginalId != "" {
 			continue
@@ -792,27 +781,41 @@ func (scs *Service) sendSyncData(sd *syncData) error {
 		scs.sendAttachmentSyncData(sd)
 	}
 
+	// The post cursor also covers the reactions and acknowledgements fetched for the batch.
+	cursorDelivered := true
+
 	// send posts
 	if len(sd.posts) != 0 {
-		if err := scs.sendPostSyncData(sd); err != nil {
+		delivered, err := scs.sendPostSyncData(sd)
+		if err != nil {
 			merr.Append(fmt.Errorf("cannot send post sync data: %w", err))
 		}
-	} else if sd.isCursorChanged() {
-		scs.updateCursorForRemote(sd.scr.Id, sd.rc, sd.resultNextCursor)
+		cursorDelivered = cursorDelivered && delivered
 	}
 
 	// send acknowledgements
 	if len(sd.acknowledgements) != 0 {
-		if err := scs.sendAcknowledgementSyncData(sd); err != nil {
+		delivered, err := scs.sendAcknowledgementSyncData(sd)
+		if err != nil {
 			merr.Append(fmt.Errorf("cannot send acknowledgement sync data: %w", err))
 		}
+		cursorDelivered = cursorDelivered && delivered
 	}
 
 	// send reactions
 	if len(sd.reactions) != 0 {
-		if err := scs.sendReactionSyncData(sd); err != nil {
+		delivered, err := scs.sendReactionSyncData(sd)
+		if err != nil {
 			merr.Append(fmt.Errorf("cannot send reaction sync data: %w", err))
 		}
+		cursorDelivered = cursorDelivered && delivered
+	}
+
+	if !cursorDelivered {
+		// A repeat would re-send the held batch at once, bypassing SyncRetryDelay.
+		sd.resultRepeat = false
+	} else if sd.isCursorChanged() {
+		scs.updateCursorForRemote(sd)
 	}
 
 	// send statuses
@@ -884,8 +887,9 @@ func (scs *Service) sendAttachmentSyncData(sd *syncData) {
 	}
 }
 
-// sendPostSyncData sends the collected post updates to the remote cluster.
-func (scs *Service) sendPostSyncData(sd *syncData) error {
+// sendPostSyncData sends the collected post updates to the remote cluster and reports whether
+// the remote confirmed delivery.
+func (scs *Service) sendPostSyncData(sd *syncData) (bool, error) {
 	start := time.Now()
 	defer func() {
 		if metrics := scs.server.GetMetrics(); metrics != nil {
@@ -897,7 +901,9 @@ func (scs *Service) sendPostSyncData(sd *syncData) error {
 	msg.Posts = sd.posts
 	msg.MentionTransforms = sd.mentionTransforms
 
-	return scs.sendSyncMsgToRemote(msg, sd.rc, func(syncResp model.SyncResponse, errResp error) {
+	var delivered bool
+	err := scs.sendSyncMsgToRemote(msg, sd.rc, func(syncResp model.SyncResponse, errResp error) {
+		delivered = true
 		if len(syncResp.PostErrors) != 0 {
 			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "Response indicates error for post(s) sync",
 				mlog.String("channel_id", sd.task.channelID),
@@ -909,12 +915,13 @@ func (scs *Service) sendPostSyncData(sd *syncData) error {
 				scs.handlePostError(postID, sd.task, sd.rc)
 			}
 		}
-		scs.updateCursorForRemote(sd.scr.Id, sd.rc, sd.resultNextCursor)
 	})
+	return delivered, err
 }
 
-// sendReactionSyncData sends the collected reaction updates to the remote cluster.
-func (scs *Service) sendReactionSyncData(sd *syncData) error {
+// sendReactionSyncData sends the collected reaction updates to the remote cluster and reports
+// whether the remote confirmed delivery.
+func (scs *Service) sendReactionSyncData(sd *syncData) (bool, error) {
 	start := time.Now()
 	defer func() {
 		if metrics := scs.server.GetMetrics(); metrics != nil {
@@ -925,7 +932,9 @@ func (scs *Service) sendReactionSyncData(sd *syncData) error {
 	msg := model.NewSyncMsg(sd.task.channelID)
 	msg.Reactions = sd.reactions
 
-	return scs.sendSyncMsgToRemote(msg, sd.rc, func(syncResp model.SyncResponse, errResp error) {
+	var delivered bool
+	err := scs.sendSyncMsgToRemote(msg, sd.rc, func(syncResp model.SyncResponse, errResp error) {
+		delivered = true
 		if len(syncResp.ReactionErrors) != 0 {
 			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "Response indicates error for reactions(s) sync",
 				mlog.String("channel_id", sd.task.channelID),
@@ -934,10 +943,12 @@ func (scs *Service) sendReactionSyncData(sd *syncData) error {
 			)
 		}
 	})
+	return delivered, err
 }
 
-// sendAcknowledgementSyncData sends the collected acknowledgement updates to the remote cluster.
-func (scs *Service) sendAcknowledgementSyncData(sd *syncData) error {
+// sendAcknowledgementSyncData sends the collected acknowledgement updates to the remote cluster
+// and reports whether the remote confirmed delivery.
+func (scs *Service) sendAcknowledgementSyncData(sd *syncData) (bool, error) {
 	start := time.Now()
 	defer func() {
 		if metrics := scs.server.GetMetrics(); metrics != nil {
@@ -948,7 +959,9 @@ func (scs *Service) sendAcknowledgementSyncData(sd *syncData) error {
 	msg := model.NewSyncMsg(sd.task.channelID)
 	msg.Acknowledgements = sd.acknowledgements
 
-	return scs.sendSyncMsgToRemote(msg, sd.rc, func(syncResp model.SyncResponse, errResp error) {
+	var delivered bool
+	err := scs.sendSyncMsgToRemote(msg, sd.rc, func(syncResp model.SyncResponse, errResp error) {
+		delivered = true
 		if len(syncResp.AcknowledgementErrors) != 0 {
 			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "Response indicates error for acknowledgement(s) sync",
 				mlog.String("channel_id", sd.task.channelID),
@@ -957,6 +970,7 @@ func (scs *Service) sendAcknowledgementSyncData(sd *syncData) error {
 			)
 		}
 	})
+	return delivered, err
 }
 
 // sendStatusSyncData sends the collected status updates to the remote cluster.
@@ -1288,12 +1302,15 @@ func (scs *Service) notifyRemoteSyncFailed(rc *model.RemoteCluster) {
 // sendSyncMsgToRemote synchronously sends the sync message to a plugin.
 func (scs *Service) sendSyncMsgToPlugin(msg *model.SyncMsg, rc *model.RemoteCluster, f sendSyncMsgResultFunc) error {
 	syncResp, errResp := scs.app.OnSharedChannelsSyncMsg(msg, rc)
-
-	if f != nil {
-		f(syncResp, errResp)
+	if errResp != nil {
+		scs.notifyRemoteSyncFailed(rc)
+		return errResp
 	}
 
-	return errResp
+	if f != nil {
+		f(syncResp, nil)
+	}
+	return nil
 }
 
 func sanitizeSyncData(sd *syncData) {

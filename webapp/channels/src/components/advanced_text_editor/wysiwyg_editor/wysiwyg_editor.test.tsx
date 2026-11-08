@@ -30,6 +30,7 @@ jest.mock('@tiptap/react', () => {
                 isActive: () => false,
                 commands: {
                     clearContent: () => undefined,
+                    command: () => true,
                     focus: () => undefined,
                     blur: () => undefined,
                     insertContent: (content: unknown) => {

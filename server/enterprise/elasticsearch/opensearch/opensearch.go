@@ -154,9 +154,6 @@ func (os *OpensearchInterfaceImpl) Start(ctx context.Context) *model.AppError {
 	defer os.mutex.Unlock()
 
 	if os.ready.Load() != 0 {
-		// Elasticsearch is already started. We don't return an error
-		// because "Test Connection" already re-initializes the client. So this
-		// can be a valid scenario.
 		return nil
 	}
 
@@ -1711,18 +1708,13 @@ func (os *OpensearchInterfaceImpl) TestConfig(rctx request.CTX, cfg *model.Confi
 		return appErr
 	}
 
-	if appErr = os.fetchServerInfo(context.Background(), client); appErr != nil {
-		return appErr
-	}
+	defer func() { _ = client.Close() }()
 
-	// Resetting the state.
-	if os.ready.CompareAndSwap(0, 1) {
-		// Re-assign the client.
-		// This is necessary in case opensearch was started
-		// after server start.
-		os.mutex.Lock()
-		os.client = client
-		os.mutex.Unlock()
+	// TestConfig only checks the connection: it must not change the running
+	// engine, since cfg may be an unsaved candidate config. Starting an engine
+	// that became reachable after server start is the search engine watcher's job.
+	if _, _, appErr = checkVersion(rctx.Context(), client, rctx.Logger()); appErr != nil {
+		return appErr
 	}
 
 	return nil

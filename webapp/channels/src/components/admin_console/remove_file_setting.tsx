@@ -56,13 +56,9 @@ const RemoveFileSetting: FC<Props> = ({
                     destructive={true}
                     onClick={handleRemove}
                     disabled={disabled}
+                    loading={removing}
                 >
-                    {removing && (
-                        <>
-                            <span className='glyphicon glyphicon-refresh glyphicon-refresh-animate'/>
-                            {removingText}
-                        </>)}
-                    {!removing && removeButtonText}
+                    {removing ? removingText : removeButtonText}
                 </Button>
             </div>
         </Setting>

@@ -39,6 +39,7 @@ const (
 	HeaderRequestedWith             = "X-Requested-With"
 	HeaderRequestedWithXML          = "XMLHttpRequest"
 	HeaderFirstInaccessiblePostTime = "First-Inaccessible-Post-Time"
+	// Deprecated: the server no longer sets this header.
 	HeaderFirstInaccessibleFileTime = "First-Inaccessible-File-Time"
 	HeaderRange                     = "Range"
 	HeaderRejectReason              = "X-Reject-Reason"
@@ -4451,7 +4452,7 @@ func (c *Client4) GenerateSupportPacket(ctx context.Context) (io.ReadCloser, str
 		return nil, "", BuildResponse(r), fmt.Errorf("could not parse Content-Disposition header: %w", err)
 	}
 
-	return r.Body, params["filename"], BuildResponse(r), nil
+	return r.Body, SanitizeFilename(params["filename"]), BuildResponse(r), nil
 }
 
 // GetPing will return ok if the running goRoutines are below the threshold and unhealthy for above.
@@ -6782,6 +6783,66 @@ func (c *Client4) RemovePlugin(ctx context.Context, id string) (*Response, error
 	return BuildResponse(r), nil
 }
 
+// GetPluginPublicKeys returns the names of the configured plugin signature public keys.
+// Only available in local mode.
+func (c *Client4) GetPluginPublicKeys(ctx context.Context) ([]string, *Response, error) {
+	r, err := c.doAPIGet(ctx, c.pluginsRoute().Join("public_keys"), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]string](r)
+}
+
+// GetPluginPublicKey returns the contents of a configured plugin signature public key.
+// Only available in local mode.
+func (c *Client4) GetPluginPublicKey(ctx context.Context, name string) ([]byte, *Response, error) {
+	r, err := c.doAPIGet(ctx, c.pluginsRoute().Join("public_keys", name), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return ReadBytesFromResponse(r)
+}
+
+// AddPluginPublicKey adds a plugin signature public key with the given name.
+// Only available in local mode.
+func (c *Client4) AddPluginPublicKey(ctx context.Context, name string, key io.Reader) (*Response, error) {
+	body := new(bytes.Buffer)
+	writer := multipart.NewWriter(body)
+
+	part, err := writer.CreateFormFile("public_key", name)
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err = io.Copy(part, key); err != nil {
+		return nil, err
+	}
+
+	if err = writer.Close(); err != nil {
+		return nil, err
+	}
+
+	r, err := c.doAPIRequestReaderRoute(ctx, http.MethodPost, c.pluginsRoute().Join("public_keys"), writer.FormDataContentType(), body, nil)
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+// DeletePluginPublicKey removes a configured plugin signature public key.
+// Only available in local mode.
+func (c *Client4) DeletePluginPublicKey(ctx context.Context, name string) (*Response, error) {
+	r, err := c.doAPIDelete(ctx, c.pluginsRoute().Join("public_keys", name))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
 // GetWebappPlugins will return a list of plugins that the webapp should download.
 func (c *Client4) GetWebappPlugins(ctx context.Context) ([]*Manifest, *Response, error) {
 	r, err := c.doAPIGet(ctx, c.pluginsRoute().Join("webapp"), "")
@@ -7370,15 +7431,6 @@ func (c *Client4) GetCloudProducts(ctx context.Context) ([]*Product, *Response, 
 	return DecodeJSONFromResponse[[]*Product](r)
 }
 
-func (c *Client4) GetSelfHostedProducts(ctx context.Context) ([]*Product, *Response, error) {
-	r, err := c.doAPIGet(ctx, c.cloudRoute().Join("products", "selfhosted"), "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return DecodeJSONFromResponse[[]*Product](r)
-}
-
 func (c *Client4) GetProductLimits(ctx context.Context) (*ProductLimits, *Response, error) {
 	r, err := c.doAPIGet(ctx, c.cloudRoute().Join("limits"), "")
 	if err != nil {
@@ -7476,33 +7528,6 @@ func (c *Client4) GetSubscription(ctx context.Context) (*Subscription, *Response
 	}
 	defer closeBody(r)
 	return DecodeJSONFromResponse[*Subscription](r)
-}
-
-func (c *Client4) GetInvoicesForSubscription(ctx context.Context) ([]*Invoice, *Response, error) {
-	r, err := c.doAPIGet(ctx, c.cloudRoute().Join("subscription", "invoices"), "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return DecodeJSONFromResponse[[]*Invoice](r)
-}
-
-func (c *Client4) UpdateCloudCustomer(ctx context.Context, customerInfo *CloudCustomerInfo) (*CloudCustomer, *Response, error) {
-	r, err := c.doAPIPutJSON(ctx, c.cloudRoute().Join("customer"), customerInfo)
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return DecodeJSONFromResponse[*CloudCustomer](r)
-}
-
-func (c *Client4) UpdateCloudCustomerAddress(ctx context.Context, address *Address) (*CloudCustomer, *Response, error) {
-	r, err := c.doAPIPutJSON(ctx, c.cloudRoute().Join("customer", "address"), address)
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return DecodeJSONFromResponse[*CloudCustomer](r)
 }
 
 func (c *Client4) ListImports(ctx context.Context) ([]string, *Response, error) {
@@ -7621,9 +7646,7 @@ func (c *Client4) DownloadComplianceExport(ctx context.Context, jobId string, wr
 	if cd := r.Header.Get("Content-Disposition"); cd != "" {
 		var params map[string]string
 		if _, params, err = mime.ParseMediaType(cd); err == nil {
-			if params["filename"] != "" {
-				filename = params["filename"]
-			}
+			filename = SanitizeFilename(params["filename"])
 		}
 	}
 
@@ -8476,11 +8499,23 @@ func (c *Client4) DeleteAccessControlPolicy(ctx context.Context, id string) (*Re
 }
 
 func (c *Client4) CheckExpression(ctx context.Context, expression string, channelId ...string) ([]CELExpressionError, *Response, error) {
+	return c.checkExpression(ctx, expression, false, channelId...)
+}
+
+// CheckMembershipExpression is CheckExpression for a membership rule: it also
+// rejects what the membership sync can't evaluate.
+func (c *Client4) CheckMembershipExpression(ctx context.Context, expression string, channelId ...string) ([]CELExpressionError, *Response, error) {
+	return c.checkExpression(ctx, expression, true, channelId...)
+}
+
+func (c *Client4) checkExpression(ctx context.Context, expression string, membership bool, channelId ...string) ([]CELExpressionError, *Response, error) {
 	checkExpressionRequest := struct {
 		Expression string `json:"expression"`
 		ChannelId  string `json:"channelId,omitempty"`
+		Membership bool   `json:"membership,omitempty"`
 	}{
 		Expression: expression,
+		Membership: membership,
 	}
 	if len(channelId) > 0 && channelId[0] != "" {
 		checkExpressionRequest.ChannelId = channelId[0]

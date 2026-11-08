@@ -777,41 +777,6 @@ func (fs SqlFileInfoStore) GetStorageUsage(_, includeDeleted bool) (int64, error
 	return size, nil
 }
 
-// GetUptoNSizeFileTime returns the CreateAt time of the last accessible file with a running-total size upto n bytes.
-func (fs *SqlFileInfoStore) GetUptoNSizeFileTime(n int64) (int64, error) {
-	if n <= 0 {
-		return 0, errors.New("n can't be less than 1")
-	}
-
-	sizeSubQuery := sq.
-		Select("SUM(fi.Size) OVER(ORDER BY CreateAt DESC, fi.Id) RunningTotal", "fi.CreateAt").
-		From("FileInfo fi").
-		Where(sq.Eq{"fi.DeleteAt": 0})
-
-	builder := fs.getQueryBuilder().
-		Select("fi2.CreateAt").
-		FromSelect(sizeSubQuery, "fi2").
-		Where(sq.LtOrEq{"fi2.RunningTotal": n}).
-		OrderBy("fi2.CreateAt").
-		Limit(1)
-
-	query, queryArgs, err := builder.ToSql()
-	if err != nil {
-		return 0, errors.Wrap(err, "GetUptoNSizeFileTime_tosql")
-	}
-
-	var createAt int64
-	if err := fs.GetReplica().Get(&createAt, query, queryArgs...); err != nil {
-		if err == sql.ErrNoRows {
-			return 0, store.NewErrNotFound("File", "none")
-		}
-
-		return 0, errors.Wrapf(err, "failed to get the File for size upto=%d", n)
-	}
-
-	return createAt, nil
-}
-
 func (fs SqlFileInfoStore) RestoreForPostByIds(rctx request.CTX, postId string, fileIDs []string) error {
 	query := fs.getQueryBuilder().
 		Update("FileInfo").
