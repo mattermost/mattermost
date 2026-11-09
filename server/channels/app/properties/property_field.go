@@ -735,6 +735,13 @@ func (ps *PropertyService) enforceParentField(rctx request.CTX, caller string, f
 // level below field's object type, carries a parent rule, so field is the
 // parent-side field that rule reads from.
 func (ps *PropertyService) childFieldHasParentRule(rctx request.CTX, field *model.PropertyField) (bool, error) {
+	children, err := ps.childFieldsWithParentRule(rctx, field)
+	return len(children) > 0, err
+}
+
+// childFieldsWithParentRule returns the fields on field's template, one level
+// below field's object type, that carry a parent rule.
+func (ps *PropertyService) childFieldsWithParentRule(rctx request.CTX, field *model.PropertyField) ([]*model.PropertyField, error) {
 	var childTypes []string
 	for _, t := range []string{model.PropertyFieldObjectTypePost, model.PropertyFieldObjectTypeChannel, model.PropertyFieldObjectTypeUser} {
 		if model.PropertyFieldParentObjectType(t) == field.ObjectType {
@@ -742,7 +749,7 @@ func (ps *PropertyService) childFieldHasParentRule(rctx request.CTX, field *mode
 		}
 	}
 	if field.LinkSourceID() == "" || len(childTypes) == 0 {
-		return false, nil
+		return nil, nil
 	}
 
 	// Capped at one page: a template with more than 100 child fields could slip past this guard,
@@ -753,10 +760,10 @@ func (ps *PropertyService) childFieldHasParentRule(rctx request.CTX, field *mode
 		PerPage:       100,
 	})
 	if err != nil {
-		return false, err
+		return nil, err
 	}
-	return slices.ContainsFunc(children, func(c *model.PropertyField) bool {
-		return slices.ContainsFunc(c.Bounds, func(r model.PropertyBoundsRule) bool {
+	return slices.DeleteFunc(children, func(c *model.PropertyField) bool {
+		return !slices.ContainsFunc(c.Bounds, func(r model.PropertyBoundsRule) bool {
 			return r.Reference == model.PropertyBoundsReferenceParent
 		})
 	}), nil
@@ -1248,7 +1255,7 @@ func (ps *PropertyService) updatePropertyFieldsIfUnchanged(rctx request.CTX, gro
 		}
 	}
 	// A value written after this check and before the store write below can still land out of bounds; no locks across objects.
-	if err := ps.refuseRulesBrokenByStoredValues(rctx, fields, existingByID); err != nil {
+	if err := ps.refuseRulesBrokenByStoredValues(rctx, fields, existingByID, incoming); err != nil {
 		return nil, nil, nil, err
 	}
 
