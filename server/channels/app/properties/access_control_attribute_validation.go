@@ -1498,16 +1498,14 @@ func refuseSetOnCreate(field *model.PropertyField) error {
 }
 
 // validateBoundsChange refuses a new bounds rule, or a mutability that newly
-// becomes write_once, while the PropertyFieldBounds flag is off. Rules and locks
-// already on the field ride along, and removing them is always allowed. Unstated
-// bounds (nil) and mutability ("") add nothing; the update path fills them in from
-// the stored field. This hook manages only the access_control group, the one v3 group
-// that can carry bounds, so every field that can gain them passes through here.
+// becomes write_once. With the PropertyFieldBounds flag off it is refused whatever
+// the license; with the flag on it is refused unless the server is licensed for
+// Enterprise Advanced. Rules and locks already on the field ride along, and
+// removing them is always allowed. Unstated bounds (nil) and mutability ("") add
+// nothing; the update path fills them in from the stored field. This hook manages
+// only the access_control group, the one v3 group that can carry bounds, so every
+// field that can gain them passes through here.
 func (h *AccessControlAttributeValidationHook) validateBoundsChange(field, existing *model.PropertyField) error {
-	if h.propertyFieldBoundsEnabled() {
-		return nil
-	}
-
 	var prevBounds model.PropertyBounds
 	prevMutability := model.PropertyFieldMutabilityMutable
 	if existing != nil {
@@ -1515,15 +1513,27 @@ func (h *AccessControlAttributeValidationHook) validateBoundsChange(field, exist
 		prevMutability = existing.Mutability.OrMutable()
 	}
 
+	var adding string
 	for _, rule := range field.Bounds {
 		if !slices.Contains(prevBounds, rule) {
-			details := fmt.Sprintf("field %s: cannot add the bounds rule %s %s while the PropertyFieldBounds feature flag is off", field.ID, rule.Operator, rule.Reference)
-			return model.NewAppError("UpsertPropertyField", "app.property_field.bounds_disabled.app_error", nil, details, http.StatusBadRequest)
+			adding = fmt.Sprintf("add the bounds rule %s %s", rule.Operator, rule.Reference)
+			break
 		}
 	}
-	if field.Mutability == model.PropertyFieldMutabilityWriteOnce && prevMutability != field.Mutability {
-		details := fmt.Sprintf("field %s: cannot make the field %s while the PropertyFieldBounds feature flag is off", field.ID, field.Mutability)
+	if adding == "" && field.Mutability == model.PropertyFieldMutabilityWriteOnce && prevMutability != field.Mutability {
+		adding = fmt.Sprintf("make the field %s", field.Mutability)
+	}
+	if adding == "" {
+		return nil
+	}
+
+	if !h.propertyFieldBoundsEnabled() {
+		details := fmt.Sprintf("field %s: cannot %s while the PropertyFieldBounds feature flag is off", field.ID, adding)
 		return model.NewAppError("UpsertPropertyField", "app.property_field.bounds_disabled.app_error", nil, details, http.StatusBadRequest)
+	}
+	if !h.propertyService.boundsEnforced() {
+		details := fmt.Sprintf("field %s: cannot %s without an Enterprise Advanced license", field.ID, adding)
+		return model.NewAppError("UpsertPropertyField", "app.property_field.bounds_license.app_error", nil, details, http.StatusNotImplemented)
 	}
 	return nil
 }
