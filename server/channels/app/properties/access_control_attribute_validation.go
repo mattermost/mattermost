@@ -1160,6 +1160,37 @@ func (h *AccessControlAttributeValidationHook) refuseDirectChannelValueWrite(rct
 	return nil
 }
 
+// refuseMisaddressedUpdate refuses an update whose ID names a row of another field or target
+// than the value states. The store matches rows by ID alone, while every check here reads the
+// stated field's rules, so a plugin could otherwise overwrite a write-once value by naming a
+// mutable field. An ID with no row is left to the store, which fails it as not found.
+func (h *AccessControlAttributeValidationHook) refuseMisaddressedUpdate(rctx request.CTX, groupID string, values []*model.PropertyValue) error {
+	// An empty ID list would search the whole group.
+	if len(values) == 0 || !h.isGroupManaged(groupID) {
+		return nil
+	}
+
+	ids := make([]string, 0, len(values))
+	for _, v := range values {
+		ids = append(ids, v.ID)
+	}
+	rows, err := h.propertyService.searchPropertyValues(store.RequestContextWithMaster(rctx), groupID, model.PropertyValueSearchOpts{IDs: ids, IncludeDeleted: true, PerPage: len(ids)})
+	if err != nil {
+		return fmt.Errorf("failed to read the rows named by the update: %w", err)
+	}
+	rowByID := make(map[string]*model.PropertyValue, len(rows))
+	for _, row := range rows {
+		rowByID[row.ID] = row
+	}
+	for _, v := range values {
+		row, ok := rowByID[v.ID]
+		if ok && (row.FieldID != v.FieldID || row.TargetID != v.TargetID || row.TargetType != v.TargetType) {
+			return fmt.Errorf("value %s: names a row of another field or target: %w", v.ID, ErrInvalidValue)
+		}
+	}
+	return nil
+}
+
 func (h *AccessControlAttributeValidationHook) validateValues(rctx request.CTX, values []*model.PropertyValue) error {
 	if len(values) == 0 {
 		return nil
@@ -1569,14 +1600,20 @@ func (h *AccessControlAttributeValidationHook) PreCreatePropertyValues(rctx requ
 	return values, nil
 }
 
-func (h *AccessControlAttributeValidationHook) PreUpdatePropertyValue(rctx request.CTX, _ string, value *model.PropertyValue) (*model.PropertyValue, error) {
+func (h *AccessControlAttributeValidationHook) PreUpdatePropertyValue(rctx request.CTX, groupID string, value *model.PropertyValue) (*model.PropertyValue, error) {
+	if err := h.refuseMisaddressedUpdate(rctx, groupID, []*model.PropertyValue{value}); err != nil {
+		return nil, err
+	}
 	if err := h.validateValues(rctx, []*model.PropertyValue{value}); err != nil {
 		return nil, err
 	}
 	return value, nil
 }
 
-func (h *AccessControlAttributeValidationHook) PreUpdatePropertyValues(rctx request.CTX, _ string, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+func (h *AccessControlAttributeValidationHook) PreUpdatePropertyValues(rctx request.CTX, groupID string, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	if err := h.refuseMisaddressedUpdate(rctx, groupID, values); err != nil {
+		return nil, err
+	}
 	if err := h.validateValues(rctx, values); err != nil {
 		return nil, err
 	}

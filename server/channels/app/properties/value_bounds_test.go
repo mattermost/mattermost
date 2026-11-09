@@ -1036,3 +1036,84 @@ func TestRefuseLockedDeletes(t *testing.T) {
 		assert.Equal(t, "", stored(parentOnlyChannel, target))
 	})
 }
+
+func TestRefuseMisaddressedUpdate(t *testing.T) {
+	th := Setup(t)
+	rctx := th.Context
+	groupID, create, _ := boundsSetup(t, th, rctx)
+	// Made before the hook is registered: it would refuse this fixture's name.
+	create(model.PropertyFieldObjectTypeSystem, nil)
+	th.service.AddHook(NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{PropertyFieldBounds: func() bool { return true }}, groupID))
+
+	newField := func(mutability model.PropertyFieldMutability) *model.PropertyField {
+		return th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    groupID,
+			ObjectType: model.PropertyFieldObjectTypeChannel,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeText,
+			Name:       "f " + model.NewId(),
+			Mutability: mutability,
+		})
+	}
+	// seed writes straight to the store, past the hooks.
+	seed := func(f *model.PropertyField, targetID, raw string) *model.PropertyValue {
+		created, err := th.dbStore.PropertyValue().Create(&model.PropertyValue{GroupID: groupID, FieldID: f.ID, TargetID: targetID, TargetType: model.PropertyValueTargetTypeChannel, Value: json.RawMessage(raw)})
+		require.NoError(t, err)
+		return created
+	}
+	stored := func(row *model.PropertyValue) string {
+		vals, err := th.dbStore.PropertyValue().SearchPropertyValues(rctx, model.PropertyValueSearchOpts{GroupID: groupID, IDs: []string{row.ID}, PerPage: 1})
+		require.NoError(t, err)
+		require.Len(t, vals, 1)
+		return string(vals[0].Value)
+	}
+	// stated is row with its field, target and value as an update states them.
+	stated := func(row *model.PropertyValue, fieldID, targetID, raw string) *model.PropertyValue {
+		v := *row
+		v.FieldID, v.TargetID, v.Value = fieldID, targetID, json.RawMessage(raw)
+		return &v
+	}
+
+	writeOnce, mutable := newField(model.PropertyFieldMutabilityWriteOnce), newField("")
+
+	t.Run("an update stating another field is refused", func(t *testing.T) {
+		targetA := model.NewId()
+		w := seed(writeOnce, targetA, `"locked"`)
+
+		_, err := th.service.UpdatePropertyValue(rctx, groupID, stated(w, mutable.ID, targetA, `"changed"`))
+		require.ErrorIs(t, err, ErrInvalidValue)
+		assert.Equal(t, `"locked"`, stored(w))
+	})
+
+	t.Run("an update stating another target is refused", func(t *testing.T) {
+		targetA, targetB := model.NewId(), model.NewId()
+		w := seed(writeOnce, targetA, `"locked"`)
+
+		_, err := th.service.UpdatePropertyValue(rctx, groupID, stated(w, writeOnce.ID, targetB, `"changed"`))
+		require.ErrorIs(t, err, ErrInvalidValue)
+		assert.Equal(t, `"locked"`, stored(w))
+	})
+
+	t.Run("one misaddressed value refuses the whole batch", func(t *testing.T) {
+		targetA, targetB := model.NewId(), model.NewId()
+		good := seed(mutable, targetA, `"old"`)
+		w := seed(writeOnce, targetB, `"locked"`)
+
+		_, err := th.service.UpdatePropertyValues(rctx, groupID, []*model.PropertyValue{
+			stated(good, mutable.ID, targetA, `"new"`),
+			stated(w, mutable.ID, targetB, `"changed"`),
+		})
+		require.ErrorIs(t, err, ErrInvalidValue)
+		assert.Equal(t, `"old"`, stored(good))
+		assert.Equal(t, `"locked"`, stored(w))
+	})
+
+	t.Run("a correctly addressed update is allowed", func(t *testing.T) {
+		targetA := model.NewId()
+		m := seed(mutable, targetA, `"old"`)
+
+		_, err := th.service.UpdatePropertyValue(rctx, groupID, stated(m, mutable.ID, targetA, `"new"`))
+		require.NoError(t, err)
+		assert.Equal(t, `"new"`, stored(m))
+	})
+}
