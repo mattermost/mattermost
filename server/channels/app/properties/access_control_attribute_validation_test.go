@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
@@ -279,10 +280,11 @@ func TestAccessControlAttributeValidationHook(t *testing.T) {
 		assert.Contains(t, updateErr.Error(), "editable")
 	})
 
-	// The keys describe a binding, not a value, so they are object-type-agnostic
-	// like every other attr. A user-object field accepting them is the evidence
-	// that no channel-only branch crept into the pipeline.
-	t.Run("required and editable are accepted on other object types", func(t *testing.T) {
+	// required describes a binding, not a value, so it is object-type-agnostic
+	// like every other attr. editable=false locks only a channel field, so on
+	// any other object type it is dropped; editable=true means the same as absent
+	// and is kept.
+	t.Run("required is accepted on other object types, editable false is dropped", func(t *testing.T) {
 		created, createErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
 			GroupID:    group.ID,
 			Name:       "field_" + model.NewId(),
@@ -296,7 +298,18 @@ func TestAccessControlAttributeValidationHook(t *testing.T) {
 		})
 		require.NoError(t, createErr)
 		assert.Equal(t, true, created.Attrs[model.PropertyFieldAttrRequired])
-		assert.Equal(t, false, created.Attrs[model.PropertyFieldAttrEditable])
+		assert.NotContains(t, created.Attrs, model.PropertyFieldAttrEditable)
+
+		editable, createErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs:      model.StringInterface{model.PropertyFieldAttrEditable: true},
+		})
+		require.NoError(t, createErr)
+		assert.Equal(t, true, editable.Attrs[model.PropertyFieldAttrEditable])
 	})
 
 	// A bad boolean must not be smuggled past validation by riding along with
@@ -4443,10 +4456,60 @@ func TestAccessControlAttributeValidationHookChangePolicyTranslation(t *testing.
 		assert.Equal(t, model.PropertyFieldMutability(""), stored(t, locked.ID).Mutability)
 	})
 
-	t.Run("a non-channel field keeps change_policy as it was", func(t *testing.T) {
-		f := create(t, newField(model.PropertyFieldTypeText, model.PropertyFieldObjectTypeUser, model.StringInterface{model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyNever}))
+	t.Run("a non-channel field is saved without change_policy and editable false", func(t *testing.T) {
+		for _, objectType := range []string{model.PropertyFieldObjectTypeUser, model.PropertyFieldObjectTypeTemplate} {
+			f := create(t, newField(model.PropertyFieldTypeText, objectType, model.StringInterface{
+				model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyNever,
+				model.PropertyFieldAttrEditable:     false,
+			}))
+			assert.Equal(t, model.PropertyFieldMutability(""), f.Mutability, objectType)
+			assert.NotContains(t, f.Attrs, model.PropertyFieldAttrChangePolicy, objectType)
+			assert.NotContains(t, f.Attrs, model.PropertyFieldAttrEditable, objectType)
+		}
+	})
+
+	t.Run("raise_only on a non-rank channel field is saved without it", func(t *testing.T) {
+		f := create(t, newField(model.PropertyFieldTypeText, model.PropertyFieldObjectTypeChannel, model.StringInterface{model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyRaiseOnly}))
 		assert.Equal(t, model.PropertyFieldMutability(""), f.Mutability)
-		assert.Equal(t, model.PropertyFieldChangePolicyNever, f.Attrs[model.PropertyFieldAttrChangePolicy])
+		assert.Empty(t, f.Bounds)
+		assert.NotContains(t, f.Attrs, model.PropertyFieldAttrChangePolicy)
+	})
+
+	t.Run("every write of the old keys is logged once with the caller, an echo is not", func(t *testing.T) {
+		buffer := captureMaskingFailureLog(t, th)
+		warnings := func() int {
+			require.NoError(t, th.Context.Logger().(*mlog.Logger).Flush())
+			return strings.Count(buffer.String(), changePolicyDeprecatedMessage)
+		}
+		callerID := model.NewId()
+		rctx := RequestContextWithCallerID(th.Context, callerID)
+
+		// An old-format write on a channel field.
+		created, createErr := th.service.CreatePropertyField(rctx, newField(model.PropertyFieldTypeText, model.PropertyFieldObjectTypeChannel, model.StringInterface{model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyNever}))
+		require.NoError(t, createErr)
+		require.Equal(t, 1, warnings())
+		assert.Contains(t, buffer.String(), callerID)
+		assert.Contains(t, buffer.String(), model.PropertyFieldAttrChangePolicy)
+
+		// Sending back what the field already says is not a write.
+		echo := stored(t, created.ID)
+		echo.Name = "renamed_" + model.NewId()
+		_, _, updateErr := th.service.UpdatePropertyField(rctx, group.ID, echo)
+		require.NoError(t, updateErr)
+		assert.Equal(t, 1, warnings())
+
+		// A drop is logged too, whatever the object type.
+		_, createErr = th.service.CreatePropertyField(rctx, newField(model.PropertyFieldTypeText, model.PropertyFieldObjectTypeUser, model.StringInterface{model.PropertyFieldAttrEditable: false}))
+		require.NoError(t, createErr)
+		assert.Equal(t, 2, warnings())
+		_, createErr = th.service.CreatePropertyField(rctx, newField(model.PropertyFieldTypeText, model.PropertyFieldObjectTypeChannel, model.StringInterface{model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyRaiseOnly}))
+		require.NoError(t, createErr)
+		assert.Equal(t, 3, warnings())
+
+		// A write that touches neither key logs nothing.
+		_, createErr = th.service.CreatePropertyField(rctx, newField(model.PropertyFieldTypeText, model.PropertyFieldObjectTypeChannel, nil))
+		require.NoError(t, createErr)
+		assert.Equal(t, 3, warnings())
 	})
 
 	t.Run("a field the old format can't describe refuses an old-format write", func(t *testing.T) {

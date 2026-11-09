@@ -20,30 +20,43 @@ import (
 // compatible. It returns an error if the field is PSAv1 on a PSAv2 group or
 // vice versa, or if it carries bounds or a lock in a group that isn't PSAv3.
 // The lookup uses GroupByID which checks the cache first and falls back to the
-// database.
-func (ps *PropertyService) enforceFieldGroupVersionMatch(caller string, groupID string, field *model.PropertyField) error {
+// database. It returns the group so a caller doesn't look it up again.
+func (ps *PropertyService) enforceFieldGroupVersionMatch(caller string, groupID string, field *model.PropertyField) (*model.PropertyGroup, error) {
 	group, err := ps.GroupByID(groupID)
 	if err != nil {
-		return fmt.Errorf("%s: failed to look up group for version check: %w", caller, err)
+		return nil, fmt.Errorf("%s: failed to look up group for version check: %w", caller, err)
 	}
 
 	// mutable and unset ask for nothing the group can't hold, so a v1/v2 caller
 	// stating them keeps working.
 	if !group.IsPSAv3() && (len(field.Bounds) > 0 ||
 		field.Mutability == model.PropertyFieldMutabilityWriteOnce || field.Mutability == model.PropertyFieldMutabilitySetOnCreate) {
-		return model.NewAppError(caller, "app.property_field.bounds_requires_v3_group.app_error", nil,
+		return nil, model.NewAppError(caller, "app.property_field.bounds_requires_v3_group.app_error", nil,
 			"field carries bounds or a mutability other than mutable in a group that is not version 3", http.StatusBadRequest)
 	}
 
 	if group.IsPSAv1() && field.IsPSAv1() {
-		return nil
+		return group, nil
 	}
 	if (group.IsPSAv2() || group.IsPSAv3()) && field.IsPSAv2() {
-		return nil
+		return group, nil
 	}
 
-	return model.NewAppError(caller, "app.property_field.version_mismatch.app_error", nil,
+	return nil, model.NewAppError(caller, "app.property_field.version_mismatch.app_error", nil,
 		"field and group version mismatch", http.StatusBadRequest)
+}
+
+// dropOldPolicyKeysFromV2Field drops change_policy and editable=false from a field
+// in a version 2 group, where the server never enforced them, and logs the write.
+// The access_control group is version 3 and its hook does the same for itself;
+// version 1 groups belong to plugins and are left alone.
+func (ps *PropertyService) dropOldPolicyKeysFromV2Field(rctx request.CTX, group *model.PropertyGroup, field, existing *model.PropertyField) {
+	if !group.IsPSAv2() {
+		return
+	}
+	keys := oldPolicyKeysWritten(field, existing)
+	dropOldPolicyKeys(field)
+	ps.warnOldPolicyKeys(rctx, field, keys)
 }
 
 // Private implementation methods (database access)
@@ -57,9 +70,11 @@ func (ps *PropertyService) createPropertyField(rctx request.CTX, field *model.Pr
 	suppliedOptions := model.PropertyFieldSuppliesOptions(field.Attrs)
 
 	// Enforce version match between field and group
-	if err := ps.enforceFieldGroupVersionMatch("CreatePropertyField", field.GroupID, field); err != nil {
-		return nil, err
+	group, groupErr := ps.enforceFieldGroupVersionMatch("CreatePropertyField", field.GroupID, field)
+	if groupErr != nil {
+		return nil, groupErr
 	}
+	ps.dropOldPolicyKeysFromV2Field(rctx, group, field, nil)
 
 	// Legacy properties (PSAv1) skip the conflict check.
 	if field.IsPSAv1() {
@@ -929,9 +944,11 @@ func (ps *PropertyService) updatePropertyFieldsIfUnchanged(rctx request.CTX, gro
 
 	// Enforce version match between field and group for each field
 	for _, field := range fields {
-		if err := ps.enforceFieldGroupVersionMatch("UpdatePropertyFields", groupID, field); err != nil {
+		group, err := ps.enforceFieldGroupVersionMatch("UpdatePropertyFields", groupID, field)
+		if err != nil {
 			return nil, nil, nil, err
 		}
+		ps.dropOldPolicyKeysFromV2Field(rctx, group, field, existingByID[field.ID])
 	}
 
 	// Stored templates, by ID. A template updated in this same call starts as

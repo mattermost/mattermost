@@ -217,6 +217,51 @@ func TestCreatePropertyField(t *testing.T) {
 		assert.Equal(t, "Legacy Property", result.Name)
 	})
 
+	t.Run("a version 2 group drops change_policy and editable false, keeps editable true", func(t *testing.T) {
+		group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
+		newField := func(attrs model.StringInterface) *model.PropertyField {
+			return &model.PropertyField{
+				ObjectType: "channel",
+				GroupID:    group.ID,
+				TargetType: string(model.PropertyFieldTargetLevelSystem),
+				Type:       model.PropertyFieldTypeText,
+				Name:       "Field " + model.NewId(),
+				Attrs:      attrs,
+			}
+		}
+
+		dropped, err := th.service.CreatePropertyField(rctx, newField(model.StringInterface{
+			model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyNever,
+			model.PropertyFieldAttrEditable:     false,
+			"keep":                              "me",
+		}))
+		require.NoError(t, err)
+		assert.NotContains(t, dropped.Attrs, model.PropertyFieldAttrChangePolicy)
+		assert.NotContains(t, dropped.Attrs, model.PropertyFieldAttrEditable)
+		assert.Equal(t, "me", dropped.Attrs["keep"])
+
+		kept, err := th.service.CreatePropertyField(rctx, newField(model.StringInterface{model.PropertyFieldAttrEditable: true}))
+		require.NoError(t, err)
+		assert.Equal(t, true, kept.Attrs[model.PropertyFieldAttrEditable])
+	})
+
+	t.Run("a version 1 group keeps change_policy and editable as written", func(t *testing.T) {
+		group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV1)
+		result, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:    group.ID,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeText,
+			Name:       "Legacy " + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyNever,
+				model.PropertyFieldAttrEditable:     false,
+			},
+		})
+		require.NoError(t, err)
+		assert.Equal(t, model.PropertyFieldChangePolicyNever, result.Attrs[model.PropertyFieldAttrChangePolicy])
+		assert.Equal(t, false, result.Attrs[model.PropertyFieldAttrEditable])
+	})
+
 	t.Run("system-level property with no conflict should create successfully", func(t *testing.T) {
 		group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
 		field := &model.PropertyField{
@@ -1562,6 +1607,27 @@ func TestUpdatePropertyField(t *testing.T) {
 		result, _, err := th.service.UpdatePropertyField(rctx, groupID, field)
 		require.NoError(t, err)
 		assert.Equal(t, "updated", result.Attrs["key"])
+	})
+
+	t.Run("a version 2 group drops a change_policy added by an update", func(t *testing.T) {
+		groupID := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2).ID
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			Permissions: openPermissions(),
+			ObjectType:  "channel",
+			GroupID:     groupID,
+			TargetType:  string(model.PropertyFieldTargetLevelSystem),
+			Type:        model.PropertyFieldTypeText,
+			Name:        "DropsChangePolicy",
+		})
+
+		field.Attrs = model.StringInterface{
+			model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyNever,
+			model.PropertyFieldAttrEditable:     true,
+		}
+		result, _, err := th.service.UpdatePropertyField(rctx, groupID, field)
+		require.NoError(t, err)
+		assert.NotContains(t, result.Attrs, model.PropertyFieldAttrChangePolicy)
+		assert.Equal(t, true, result.Attrs[model.PropertyFieldAttrEditable])
 	})
 
 	t.Run("updating name to non-conflicting value should succeed", func(t *testing.T) {

@@ -11,11 +11,13 @@ import (
 	"maps"
 	"math"
 	"net/http"
+	"reflect"
 	"slices"
 	"strings"
 	"unicode/utf8"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
@@ -201,7 +203,7 @@ func (h *AccessControlAttributeValidationHook) propertyFieldBoundsEnabled() bool
 // creation of a new field (or when an update targets a field that does not
 // exist, which the store reports later): every rule then treats the field as
 // brand new, with nothing to grandfather.
-func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(field, existing *model.PropertyField) error {
+func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(rctx request.CTX, field, existing *model.PropertyField) error {
 	// Access policies and the attribute views they read have no notion of a
 	// number or a boolean, so those types are refused here, whether a field is
 	// created with one or changed to one, rather than stored and then ignored or
@@ -261,6 +263,19 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(fie
 	if err := refuseSetOnCreate(field); err != nil {
 		return err
 	}
+	// change_policy only ever meant something on a channel field, so elsewhere it
+	// is dropped before validation rather than refused: an integration still
+	// sending it is warned instead of broken. A raise/lower policy on a field
+	// that isn't a rank is stripped by the validation below; read it first so
+	// that is logged too.
+	oldKeys := oldPolicyKeysWritten(field, existing)
+	loggable := false
+	if field.ObjectType != model.PropertyFieldObjectTypeChannel {
+		dropOldPolicyKeys(field)
+		loggable = true
+	} else if p, _ := field.Attrs[model.PropertyFieldAttrChangePolicy].(string); model.IsOrderedPropertyFieldChangePolicy(p) && field.Type != model.PropertyFieldTypeRank {
+		loggable = true
+	}
 	// Both old keys are validated first: the translation below reads them.
 	for _, key := range boolFieldAttrKeys {
 		if err := model.SanitizeAndValidatePropertyFieldBoolAttr(field, key); err != nil {
@@ -273,6 +288,13 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(fie
 	oldFormatWrite, err := translateChangePolicy(field, existing)
 	if err != nil {
 		return err
+	}
+	if oldFormatWrite && len(oldKeys) == 0 {
+		// Unlocking by leaving the keys out names none of them.
+		oldKeys = []string{model.PropertyFieldAttrChangePolicy}
+	}
+	if oldFormatWrite || loggable {
+		h.propertyService.warnOldPolicyKeys(rctx, field, oldKeys)
 	}
 	if err := h.validateBoundsChange(field, existing, oldFormatWrite); err != nil {
 		return err
@@ -773,7 +795,7 @@ func (h *AccessControlAttributeValidationHook) PreCreatePropertyField(rctx reque
 	// repaired, actions get the strict check with nothing to grandfather, and a
 	// required=true channel field is rejected outright if the kill switch is on
 	// (there is nothing to grandfather on a brand new field).
-	if err := h.sanitizeAndValidateFieldAttrs(field, nil); err != nil {
+	if err := h.sanitizeAndValidateFieldAttrs(rctx, field, nil); err != nil {
 		return nil, err
 	}
 
@@ -798,7 +820,7 @@ func (h *AccessControlAttributeValidationHook) PreUpdatePropertyField(rctx reque
 		}
 	}
 
-	if err := h.sanitizeAndValidateFieldAttrs(field, existing); err != nil {
+	if err := h.sanitizeAndValidateFieldAttrs(rctx, field, existing); err != nil {
 		return nil, err
 	}
 	if err := h.validateSyncedOptionsOwnership(rctx, existing, field); err != nil {
@@ -840,7 +862,7 @@ func (h *AccessControlAttributeValidationHook) PreUpdatePropertyFields(rctx requ
 		// not-found error later): strict rank validation is the safe default
 		// for that path, and a required channel field is rejected outright
 		// rather than grandfathered.
-		if err := h.sanitizeAndValidateFieldAttrs(field, existing); err != nil {
+		if err := h.sanitizeAndValidateFieldAttrs(rctx, field, existing); err != nil {
 			return nil, fmt.Errorf("field %s: %w", field.ID, err)
 		}
 		if existing != nil {
@@ -1506,6 +1528,51 @@ func refuseSetOnCreate(field *model.PropertyField) error {
 	}
 	details := fmt.Sprintf("field %s: set_on_create mutability is not supported yet", field.ID)
 	return model.NewAppError("UpsertPropertyField", "app.property_field.set_on_create_unsupported.app_error", nil, details, http.StatusBadRequest)
+}
+
+// changePolicyDeprecatedMessage is logged for every write of the old keys.
+const changePolicyDeprecatedMessage = "change_policy and editable are deprecated; set mutability and bounds instead"
+
+// oldPolicyKeysWritten lists the old keys field carries that differ from the
+// stored field's, so a save echoing what it was shown writes none. change_policy
+// "any" and editable=true mean the same as absent and don't count.
+func oldPolicyKeysWritten(field, existing *model.PropertyField) []string {
+	changed := func(key string) bool {
+		return existing == nil || !reflect.DeepEqual(field.Attrs[key], existing.Attrs[key])
+	}
+	var keys []string
+	if p := field.Attrs[model.PropertyFieldAttrChangePolicy]; p != nil && p != "" && p != model.PropertyFieldChangePolicyAny &&
+		changed(model.PropertyFieldAttrChangePolicy) {
+		keys = append(keys, model.PropertyFieldAttrChangePolicy)
+	}
+	if field.Attrs[model.PropertyFieldAttrEditable] == false && changed(model.PropertyFieldAttrEditable) {
+		keys = append(keys, model.PropertyFieldAttrEditable)
+	}
+	return keys
+}
+
+// dropOldPolicyKeys removes change_policy and editable=false from a field they
+// don't apply to. editable=true stays: it means the same as absent, and content
+// flagging sets it on its own fields.
+func dropOldPolicyKeys(field *model.PropertyField) {
+	delete(field.Attrs, model.PropertyFieldAttrChangePolicy)
+	if editable, ok := field.Attrs[model.PropertyFieldAttrEditable].(bool); ok && !editable {
+		delete(field.Attrs, model.PropertyFieldAttrEditable)
+	}
+}
+
+// warnOldPolicyKeys logs a write of the old keys, so integrations still using
+// them can be found before they are removed. Nothing is logged for no keys.
+func (ps *PropertyService) warnOldPolicyKeys(rctx request.CTX, field *model.PropertyField, keys []string) {
+	if len(keys) == 0 {
+		return
+	}
+	rctx.Logger().Warn(changePolicyDeprecatedMessage,
+		mlog.String("caller_id", ps.extractCallerID(rctx)),
+		mlog.String("field_id", field.ID),
+		mlog.String("group_id", field.GroupID),
+		mlog.String("keys", strings.Join(keys, ",")),
+	)
 }
 
 // changePolicyBaseline returns the mutability and bounds a save is judged
