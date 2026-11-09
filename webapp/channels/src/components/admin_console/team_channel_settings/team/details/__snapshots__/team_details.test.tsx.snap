@@ -178,6 +178,11 @@ exports[`admin_console/team_channel_settings/team/TeamDetails should match snaps
         </section>
         <div>
           TeamMembers
+          <button
+            data-testid="remove-member"
+          >
+            remove-member
+          </button>
         </div>
       </div>
     </div>

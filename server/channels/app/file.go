@@ -9,6 +9,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"image"
 	"io"
@@ -36,7 +37,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/services/docextractor"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 
-	"github.com/pkg/errors"
+	pkgerrors "github.com/pkg/errors"
 )
 
 const (
@@ -86,19 +87,17 @@ func (a *App) CheckMandatoryAzureFields(settings *model.FileSettings) *model.App
 }
 
 func connectionTestErrorToAppError(connTestErr error) *model.AppError {
-	// errors.As (rather than a type switch) so that future wrapping of
+	// errors.AsType (rather than a type switch) so that future wrapping of
 	// the backend's typed errors does not silently fall through to the
 	// generic "test_connection" message.
-	var authErr *filestore.FileBackendAuthError
-	if errors.As(connTestErr, &authErr) {
+	if authErr, ok := errors.AsType[*filestore.FileBackendAuthError](connTestErr); ok {
 		// Carry the underlying SDK detail (S3 InvalidAccessKeyId,
 		// Azure AuthenticationFailed, clock-skew, etc.) into the
 		// AppError's detail string so the Test Connection toast
 		// shows admins what actually failed.
 		return model.NewAppError("TestConnection", "api.file.test_connection_auth.app_error", nil, authErr.Error(), http.StatusInternalServerError).Wrap(authErr)
 	}
-	var noBucketErr *filestore.FileBackendNoBucketError
-	if errors.As(connTestErr, &noBucketErr) {
+	if noBucketErr, ok := errors.AsType[*filestore.FileBackendNoBucketError](connTestErr); ok {
 		return model.NewAppError("TestConnection", "api.file.test_connection_no_bucket.app_error", nil, noBucketErr.Error(), http.StatusInternalServerError).Wrap(noBucketErr)
 	}
 	return model.NewAppError("TestConnection", "api.file.test_connection.app_error", nil, connTestErr.Error(), http.StatusInternalServerError).Wrap(connTestErr)
@@ -867,13 +866,10 @@ func (a *App) UploadFileX(rctx request.CTX, channelID, name string, input io.Rea
 	}
 
 	if _, err := t.saveToDatabase(rctx, t.fileinfo); err != nil {
-		var appErr *model.AppError
-		switch {
-		case errors.As(err, &appErr):
+		if appErr, ok := errors.AsType[*model.AppError](err); ok {
 			return nil, appErr
-		default:
-			return nil, model.NewAppError("UploadFileX", "app.file_info.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("UploadFileX", "app.file_info.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if *a.Config().FileSettings.ExtractContent && t.ExtractContent {
@@ -1133,13 +1129,10 @@ func (a *App) DoUploadFileExpectModification(rctx request.CTX, now time.Time, ra
 	}
 
 	if _, err := a.Srv().Store().FileInfo().Save(rctx, info); err != nil {
-		var appErr *model.AppError
-		switch {
-		case errors.As(err, &appErr):
+		if appErr, ok := errors.AsType[*model.AppError](err); ok {
 			return nil, data, appErr
-		default:
-			return nil, data, model.NewAppError("DoUploadFileExpectModification", "app.file_info.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, data, model.NewAppError("DoUploadFileExpectModification", "app.file_info.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	// The extra boolean extractContent is used to turn off extraction
@@ -1298,13 +1291,10 @@ func (a *App) generateMiniPreviewForInfos(rctx request.CTX, fileInfos []*model.F
 func (s *Server) getFileInfo(fileID string) (*model.FileInfo, *model.AppError) {
 	fileInfo, err := s.Store().FileInfo().Get(fileID)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("GetFileInfo", "app.file_info.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("GetFileInfo", "app.file_info.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("GetFileInfo", "app.file_info.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return fileInfo, nil
 }
@@ -1327,13 +1317,10 @@ func (a *App) SetFileSearchableContent(rctx request.CTX, fileID string, data str
 
 	err := a.Srv().Store().FileInfo().SetContent(rctx, fileInfo.Id, data)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return model.NewAppError("SetFileSearchableContent", "app.file_info.set_searchable_content.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return model.NewAppError("SetFileSearchableContent", "app.file_info.set_searchable_content.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return model.NewAppError("SetFileSearchableContent", "app.file_info.set_searchable_content.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil
@@ -1342,16 +1329,12 @@ func (a *App) SetFileSearchableContent(rctx request.CTX, fileID string, data str
 func (a *App) GetFileInfos(rctx request.CTX, page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
 	fileInfos, err := a.Srv().Store().FileInfo().GetWithOptions(page, perPage, opt)
 	if err != nil {
-		var invErr *store.ErrInvalidInput
-		var ltErr *store.ErrLimitExceeded
-		switch {
-		case errors.As(err, &invErr):
+		if _, ok := errors.AsType[*store.ErrInvalidInput](err); ok {
 			return nil, model.NewAppError("GetFileInfos", "app.file_info.get_with_options.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		case errors.As(err, &ltErr):
+		} else if _, ok := errors.AsType[*store.ErrLimitExceeded](err); ok {
 			return nil, model.NewAppError("GetFileInfos", "app.file_info.get_with_options.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		default:
-			return nil, model.NewAppError("GetFileInfos", "app.file_info.get_with_options.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("GetFileInfos", "app.file_info.get_with_options.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	a.generateMiniPreviewForInfos(rctx, fileInfos)
@@ -1381,13 +1364,10 @@ func (a *App) CopyFileInfos(rctx request.CTX, userID string, fileIDs []string) (
 	for _, fileID := range fileIDs {
 		fileInfo, err := a.Srv().Store().FileInfo().Get(fileID)
 		if err != nil {
-			var nfErr *store.ErrNotFound
-			switch {
-			case errors.As(err, &nfErr):
+			if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 				return nil, model.NewAppError("CopyFileInfos", "app.file_info.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
-			default:
-				return nil, model.NewAppError("CopyFileInfos", "app.file_info.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
+			return nil, model.NewAppError("CopyFileInfos", "app.file_info.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
 		fileInfo.Id = model.NewId()
@@ -1398,13 +1378,10 @@ func (a *App) CopyFileInfos(rctx request.CTX, userID string, fileIDs []string) (
 		fileInfo.ChannelId = ""
 
 		if _, err := a.Srv().Store().FileInfo().Save(rctx, fileInfo); err != nil {
-			var appErr *model.AppError
-			switch {
-			case errors.As(err, &appErr):
+			if appErr, ok := errors.AsType[*model.AppError](err); ok {
 				return nil, appErr
-			default:
-				return nil, model.NewAppError("CopyFileInfos", "app.file_info.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
+			return nil, model.NewAppError("CopyFileInfos", "app.file_info.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
 		newFileIds = append(newFileIds, fileInfo.Id)
@@ -1519,13 +1496,10 @@ func (a *App) SearchFilesInTeamForUser(rctx request.CTX, terms string, userId st
 func (a *App) searchFilesInTeamForUserPage(rctx request.CTX, finalParamsList []*model.SearchParams, userId, teamId string, page, perPage int) (results *model.FileInfoList, rawLen int, allFilesHaveMembership bool, appErr *model.AppError) {
 	fileInfoSearchResults, nErr := a.Srv().Store().FileInfo().Search(rctx, finalParamsList, userId, teamId, page, perPage)
 	if nErr != nil {
-		var nAppErr *model.AppError
-		switch {
-		case errors.As(nErr, &nAppErr):
+		if nAppErr, ok := errors.AsType[*model.AppError](nErr); ok {
 			return nil, 0, false, nAppErr
-		default:
-			return nil, 0, false, model.NewAppError("SearchFilesInTeamForUser", "app.post.search.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
+		return nil, 0, false, model.NewAppError("SearchFilesInTeamForUser", "app.post.search.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	rawLen = len(fileInfoSearchResults.Order)
@@ -1738,7 +1712,7 @@ func (a *App) ExtractContentFromFileInfo(rctx request.CTX, fileInfo *model.FileI
 
 	file, aerr := a.FileReader(fileInfo.Path)
 	if aerr != nil {
-		return errors.Wrap(aerr, "failed to open file for extract file content")
+		return pkgerrors.Wrap(aerr, "failed to open file for extract file content")
 	}
 	// Ownership of closing the file is handed to docextractor.Extract via
 	// ReaderCloser: with a timeout configured, extraction may continue on a
@@ -1752,14 +1726,14 @@ func (a *App) ExtractContentFromFileInfo(rctx request.CTX, fileInfo *model.FileI
 		ReaderCloser:     file,
 	})
 	if err != nil {
-		return errors.Wrap(err, "failed to extract file content")
+		return pkgerrors.Wrap(err, "failed to extract file content")
 	}
 	if text != "" {
 		if len(text) > maxContentExtractionSize {
 			text = text[0:maxContentExtractionSize]
 		}
 		if storeErr := a.Srv().Store().FileInfo().SetContent(rctx, fileInfo.Id, text); storeErr != nil {
-			return errors.Wrap(storeErr, "failed to save the extracted file content")
+			return pkgerrors.Wrap(storeErr, "failed to save the extracted file content")
 		}
 		reloadFileInfo, storeErr := a.Srv().Store().FileInfo().Get(fileInfo.Id)
 		if storeErr != nil {
