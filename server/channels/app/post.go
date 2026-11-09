@@ -1096,9 +1096,16 @@ func (a *App) sessionMayUpdateMmBlocksActions(rctx request.CTX, oldPost *model.P
 }
 
 func (a *App) publishWebsocketEventForPost(rctx request.CTX, post *model.Post, message *model.WebSocketEvent) *model.AppError {
+	// The author copy is built from this post after the broadcast payload is serialized.
+	var burnOnReadHashtags string
 	if post.Type == model.PostTypeBurnOnRead {
+		burnOnReadHashtags = post.Hashtags
 		post.Message = ""
 		post.FileIds = []string{}
+		post.Hashtags = ""
+		defer func() {
+			post.Hashtags = burnOnReadHashtags
+		}()
 	}
 
 	// Extract metadata that needs per-recipient filtering before serialization
@@ -1141,6 +1148,7 @@ func (a *App) publishWebsocketEventForPost(rctx request.CTX, post *model.Post, m
 	}
 
 	if post.Type == model.PostTypeBurnOnRead {
+		post.Hashtags = burnOnReadHashtags
 		appErr = a.processBroadcastHookForBurnOnRead(rctx, postJSON, post, message)
 		if appErr != nil {
 			return appErr
@@ -1262,12 +1270,25 @@ func (a *App) setupBroadcastHookForChannelMentions(rctx request.CTX, post *model
 func (a *App) processBroadcastHookForBurnOnRead(rctx request.CTX, postJSON string, post *model.Post, message *model.WebSocketEvent) *model.AppError {
 	tmpPost, appErr := a.getBurnOnReadPost(rctx, post)
 	if appErr != nil {
+		var nfErr *store.ErrNotFound
+		if message.EventType() == model.WebsocketEventPostDeleted && errors.As(appErr, &nfErr) {
+			return nil
+		}
 		return appErr
 	}
 
 	// Use master context to avoid replica lag when fetching priority for newly created posts
 	masterCtx := sqlstore.RequestContextWithMaster(rctx)
 	tmpPost = a.PreparePostForClient(masterCtx, tmpPost, &model.PreparePostForClientOpts{IncludePriority: true, RetainContent: true})
+
+	// Deleted-event author copies keep hashtags and channel mentions, and leave message and file ids empty.
+	if message.EventType() == model.WebsocketEventPostDeleted {
+		tmpPost.Message = ""
+		tmpPost.FileIds = []string{}
+		if tmpPost.Metadata != nil {
+			tmpPost.Metadata.Files = nil
+		}
+	}
 
 	revealedPostJSON, err := tmpPost.ToJSON()
 	if err != nil {
@@ -2789,6 +2810,63 @@ func (a *App) GetPostsByIds(postIDs []string) ([]*model.Post, int64, *model.AppE
 	return posts, firstInaccessiblePostTime, nil
 }
 
+// GetPostsByIdsForUser returns posts for the given IDs for userID.
+// Burn-on-read posts are handled the same way as other post reads.
+func (a *App) GetPostsByIdsForUser(rctx request.CTX, userID string, postIDs []string) ([]*model.Post, int64, *model.AppError) {
+	posts, firstInaccessiblePostTime, appErr := a.GetPostsByIds(postIDs)
+	if appErr != nil {
+		return nil, 0, appErr
+	}
+
+	posts, appErr = a.prepareBurnOnReadPostsForUser(rctx, posts, userID)
+	if appErr != nil {
+		return nil, 0, appErr
+	}
+
+	return posts, firstInaccessiblePostTime, nil
+}
+
+// prepareBurnOnReadPostsForUser applies the same per-reader burn-on-read handling
+// used by other post reads. Posts removed by that handling are omitted.
+func (a *App) prepareBurnOnReadPostsForUser(rctx request.CTX, posts []*model.Post, userID string) ([]*model.Post, *model.AppError) {
+	if len(posts) == 0 || !a.isBurnOnReadEnabled() {
+		return posts, nil
+	}
+
+	list := model.NewPostList()
+	for _, post := range posts {
+		if post != nil && post.Type == model.PostTypeBurnOnRead {
+			list.AddPost(post)
+		}
+	}
+	if len(list.BurnOnReadPosts) == 0 {
+		return posts, nil
+	}
+
+	list, appErr := a.revealBurnOnReadPostsForUser(rctx, list, userID)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	prepared := make([]*model.Post, 0, len(posts))
+	for _, post := range posts {
+		if post == nil {
+			continue
+		}
+		if post.Type != model.PostTypeBurnOnRead {
+			prepared = append(prepared, post)
+			continue
+		}
+		updated, ok := list.Posts[post.Id]
+		if !ok {
+			continue
+		}
+		prepared = append(prepared, updated)
+	}
+
+	return prepared, nil
+}
+
 // GetEditHistoryForPost returns the historical versions of a post, redacting attachments the
 // requesting user is not allowed to download.
 func (a *App) GetEditHistoryForPost(rctx request.CTX, postID string) ([]*model.Post, *model.AppError) {
@@ -3400,7 +3478,18 @@ func (a *App) CleanUpAfterPostDeletion(rctx request.CTX, post *model.Post, delet
 		return model.NewAppError("DeletePost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	sanitizedPostJSON, jsonErr := post.ToJSON()
+	// The author copy is built from this post after the broadcast payload is serialized.
+	broadcastPost := post
+	if post.Type == model.PostTypeBurnOnRead {
+		broadcastPost = post.Clone()
+		a.ensurePostMetadata(broadcastPost)
+		broadcastPost.Message = ""
+		broadcastPost.FileIds = []string{}
+		broadcastPost.Hashtags = ""
+		broadcastPost.DelProp(model.PostPropsChannelMentions)
+	}
+
+	sanitizedPostJSON, jsonErr := broadcastPost.ToJSON()
 	if jsonErr != nil {
 		return model.NewAppError("DeletePost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
@@ -3408,12 +3497,28 @@ func (a *App) CleanUpAfterPostDeletion(rctx request.CTX, post *model.Post, delet
 	userMessage := model.NewWebSocketEvent(model.WebsocketEventPostDeleted, "", post.ChannelId, "", nil, "")
 	userMessage.Add("post", sanitizedPostJSON)
 	userMessage.GetBroadcast().ContainsSanitizedData = true
+	if post.Type == model.PostTypeBurnOnRead {
+		if appErr = a.processBroadcastHookForBurnOnRead(rctx, sanitizedPostJSON, post, userMessage); appErr != nil {
+			return appErr
+		}
+	}
 	a.Publish(userMessage)
 
+	// Burn-on-read uses the same cleared payload. The hook above restores the author copy.
+	adminPostJSON := string(postJSON)
+	if post.Type == model.PostTypeBurnOnRead {
+		adminPostJSON = sanitizedPostJSON
+	}
+
 	adminMessage := model.NewWebSocketEvent(model.WebsocketEventPostDeleted, "", post.ChannelId, "", nil, "")
-	adminMessage.Add("post", string(postJSON))
+	adminMessage.Add("post", adminPostJSON)
 	adminMessage.Add("delete_by", deleteByID)
 	adminMessage.GetBroadcast().ContainsSensitiveData = true
+	if post.Type == model.PostTypeBurnOnRead {
+		if appErr = a.processBroadcastHookForBurnOnRead(rctx, sanitizedPostJSON, post, adminMessage); appErr != nil {
+			return appErr
+		}
+	}
 	a.Publish(adminMessage)
 
 	a.Srv().Go(func() {
@@ -4112,6 +4217,8 @@ func (a *App) setUnrevealedPost(postList *model.PostList, postID string) {
 	unrevealedPost.Metadata.Images = map[string]*model.PostImage{}
 	unrevealedPost.Metadata.Acknowledgements = []*model.PostAcknowledgement{}
 	unrevealedPost.Message = ""
+	unrevealedPost.Hashtags = ""
+	unrevealedPost.DelProp(model.PostPropsChannelMentions)
 	postList.Posts[postID] = unrevealedPost
 }
 
