@@ -5,7 +5,6 @@ package search
 
 import (
 	"net/url"
-	"regexp"
 	"slices"
 	"strconv"
 	"strings"
@@ -13,6 +12,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/rules/internal/hosts"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/rules/internal/probes"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/rules/internal/versions"
 )
 
@@ -51,8 +51,6 @@ var supportedMajors = map[string]struct{ min, max int }{
 }
 
 var icuPlugins = []string{"analysis-icu", "opensearch-analysis-icu"}
-
-var urlCredentials = regexp.MustCompile(`([A-Za-z][A-Za-z0-9+.-]*://)[^\s/]+@`)
 
 var esLocalhostURL = healthcheck.Rule{
 	Code:     "ES_LOCALHOST_URL",
@@ -243,10 +241,6 @@ func connectionURL(s *healthcheck.Snapshot) (string, bool) {
 	return s.ConfigString(func(cfg *model.Config) *string { return cfg.ElasticsearchSettings.ConnectionURL })
 }
 
-func maskURLCredentials(s string) string {
-	return urlCredentials.ReplaceAllString(s, "${1}****@")
-}
-
 func evalESLocalhostURL(s *healthcheck.Snapshot) healthcheck.Result {
 	clustered, ok := s.ClusterEnabled()
 	if !ok {
@@ -278,19 +272,20 @@ func evalESLocalhostURL(s *healthcheck.Snapshot) healthcheck.Result {
 }
 
 func evalESServerError(s *healthcheck.Snapshot) healthcheck.Result {
-	diag, ok := s.LeaderDiag(model.SectionSearchProbe)
+	return probes.Eval(s, esProbe, esServerErrorMessage(s), healthcheck.TranslationId("health.rule.es_server_error.message.partial"))
+}
+
+// A disabled status means the node does not use the search engine, so it counts as passing.
+func esProbe(n *healthcheck.NodeSnapshot) (status, probeErr string) {
+	diag, ok := n.SectionDiag(model.SectionSearchProbe)
 	if !ok {
-		return unknownDiag()
+		return "", ""
 	}
 
-	switch diag.ElasticSearch.Status {
-	case model.StatusFail:
-		return healthcheck.Firing(esServerErrorMessage(s)).WithDetail("error", maskURLCredentials(diag.ElasticSearch.Error))
-	case model.StatusOk, model.StatusDisabled:
-		return healthcheck.Resolved()
-	default:
-		return unknownDiag()
+	if diag.ElasticSearch.Status == model.StatusDisabled {
+		return model.StatusOk, ""
 	}
+	return diag.ElasticSearch.Status, probes.MaskURLCredentials(diag.ElasticSearch.Error)
 }
 
 // esServerErrorMessage says search is fully down when Elasticsearch serves search and there is no database fallback.

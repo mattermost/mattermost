@@ -1,3 +1,17 @@
+// Schema section stacks live inside a single form child of admin-console__content,
+// so content-level flex gap never reaches adjacent AdminSectionPanels / config
+// sections. Mirror admin-console__content spacing here.
+.admin-console__schema-sections {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xl);
+
+    // Legacy config-section used margin-top for separation; gap owns spacing now.
+    .config-section {
+        margin-top: 0;
+    }
+}
+
 .config-section {
     border-radius: 4px;
     margin-top: 20px;

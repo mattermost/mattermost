@@ -228,6 +228,7 @@ jobs:
       - generate-build-variables
     if: inputs.should_run != 'false'
     permissions:
+      actions: read
       contents: read
       statuses: write
       id-token: write
@@ -270,6 +271,7 @@ jobs:
       statuses: write
       id-token: write
       pull-requests: write
+      actions: read
     uses: ./.github/workflows/e2e-tests-playwright-rolling-upgrades.yml
     with:
       commit_sha: ${{ inputs.commit_sha }}

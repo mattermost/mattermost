@@ -145,7 +145,8 @@ const (
 	ServiceSettingsMaxUniqueReactionsPerPost     = 500
 
 	TeamSettingsDefaultSiteName              = "Mattermost"
-	TeamSettingsDefaultMaxUsersPerTeam       = 50
+	TeamSettingsDefaultMaxUsersPerTeam       = 0
+	TeamSettingsDefaultMaxChannelsPerTeam    = 0
 	TeamSettingsDefaultCustomBrandText       = ""
 	TeamSettingsDefaultCustomDescriptionText = ""
 	TeamSettingsDefaultUserStatusAwayTimeout = 300
@@ -2695,7 +2696,7 @@ func (s *ThemeSettings) SetDefaults() {
 
 type TeamSettings struct {
 	SiteName                        *string `access:"site_customization"`
-	MaxUsersPerTeam                 *int    `access:"site_users_and_teams"`
+	MaxUsersPerTeam                 *int    `access:"site_users_and_teams"` // 0 means no limit
 	EnableJoinLeaveMessageByDefault *bool   `access:"site_users_and_teams"`
 	EnableUserCreation              *bool   `access:"authentication_signup"`
 	EnableOpenServer                *bool   `access:"authentication_signup"`
@@ -2709,7 +2710,7 @@ type TeamSettings struct {
 	EnableLastActiveTime            *bool   `access:"site_users_and_teams"`
 	// In seconds.
 	UserStatusAwayTimeout               *int64   `access:"site_users_and_teams"`
-	MaxChannelsPerTeam                  *int64   `access:"site_users_and_teams"`
+	MaxChannelsPerTeam                  *int64   `access:"site_users_and_teams"` // 0 means no limit
 	EnableChannelCategorySorting        *bool    `access:"site_users_and_teams"`
 	MaxNotificationsPerChannel          *int64   `access:"environment_push_notification_server"`
 	EnableConfirmNotificationsToChannel *bool    `access:"site_notifications"`
@@ -2779,7 +2780,7 @@ func (s *TeamSettings) SetDefaults() {
 	}
 
 	if s.MaxChannelsPerTeam == nil {
-		s.MaxChannelsPerTeam = new(int64(2000))
+		s.MaxChannelsPerTeam = new(int64(TeamSettingsDefaultMaxChannelsPerTeam))
 	}
 
 	if s.EnableChannelCategorySorting == nil {
@@ -3741,6 +3742,9 @@ type PluginSettings struct {
 	RequirePluginSignature      *bool                     `access:"plugins,write_restrictable,cloud_restrictable"`
 	MarketplaceURL              *string                   `access:"plugins,write_restrictable,cloud_restrictable"`
 	SignaturePublicKeyFiles     []string                  `access:"plugins,write_restrictable,cloud_restrictable"`
+	// RestrictUnauthenticatedWebappPlugins limits the webapp plugins exposed to clients without a
+	// session to those whose manifest sets webapp.pre_auth.
+	RestrictUnauthenticatedWebappPlugins *bool `access:"plugins,write_restrictable,cloud_restrictable"`
 }
 
 func (s *PluginSettings) SetDefaults(ls LogSettings, ms MetricsSettings) {
@@ -3823,6 +3827,11 @@ func (s *PluginSettings) SetDefaults(ls LogSettings, ms MetricsSettings) {
 
 	if s.SignaturePublicKeyFiles == nil {
 		s.SignaturePublicKeyFiles = []string{}
+	}
+
+	// Existing installations are reset to false by an app migration on upgrade.
+	if s.RestrictUnauthenticatedWebappPlugins == nil {
+		s.RestrictUnauthenticatedWebappPlugins = new(true)
 	}
 }
 
@@ -4710,11 +4719,11 @@ func (o *Config) IsValid() *AppError {
 }
 
 func (s *TeamSettings) isValid() *AppError {
-	if *s.MaxUsersPerTeam <= 0 {
+	if *s.MaxUsersPerTeam < 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.max_users.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if *s.MaxChannelsPerTeam <= 0 {
+	if *s.MaxChannelsPerTeam < 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.max_channels.app_error", nil, "", http.StatusBadRequest)
 	}
 

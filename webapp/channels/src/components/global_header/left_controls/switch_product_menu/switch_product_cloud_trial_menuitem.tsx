@@ -8,10 +8,7 @@ import {useDispatch, useSelector} from 'react-redux';
 
 import {ArrowUpBoldCircleOutlineIcon} from '@mattermost/compass-icons/components';
 
-import {
-    getCloudSubscription,
-    getSubscriptionProduct,
-} from 'mattermost-redux/selectors/entities/cloud';
+import {getCloudSubscription} from 'mattermost-redux/selectors/entities/cloud';
 
 import {openModal} from 'actions/views/modals';
 
@@ -19,7 +16,7 @@ import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 import * as Menu from 'components/menu';
 import TrialBenefitsModal from 'components/trial_benefits_modal/trial_benefits_modal';
 
-import {ModalIdentifiers, CloudProducts} from 'utils/constants';
+import {ModalIdentifiers} from 'utils/constants';
 
 interface Props {
     isUserAdmin: boolean;
@@ -31,23 +28,10 @@ export default function ProductSwitcherCloudTrialMenuItem(props: Props) {
     const dispatch = useDispatch();
 
     const subscription = useSelector(getCloudSubscription);
-    const subscriptionProduct = useSelector(getSubscriptionProduct);
-    const isStarter = subscriptionProduct?.sku === CloudProducts.STARTER;
 
     const {openPricingModal, isAirGapped} = useOpenPricingModal();
 
-    // Don't show if not cloud
-    if (!props.isCloudLicensed) {
-        return null;
-    }
-
-    // Don't show if not on starter/trial
-    if (!isStarter && !props.isFreeTrialSubscription) {
-        return null;
-    }
-
-    // For end users only display the trial information
-    if (!props.isUserAdmin && !props.isFreeTrialSubscription) {
+    if (!props.isCloudLicensed || !props.isFreeTrialSubscription) {
         return null;
     }
 
@@ -69,58 +53,33 @@ export default function ProductSwitcherCloudTrialMenuItem(props: Props) {
         }
     }
 
-    function handleSeePlansClick() {
-        openPricingModal();
-    }
-
-    if (props.isFreeTrialSubscription) {
-        return (
-            <Menu.Item
-                className='globalHeader-leftControls-productSwitcherMenu-trialMenuItem'
-                leadingElement={<ArrowUpBoldCircleOutlineIcon size={18}/>}
-                labels={
-                    <>
-                        <FormattedMessage
-                            id='globalHeader.productSwitcherMenu.trialMenuItem.isFreeTrial.primaryLabel'
-                            defaultMessage='Enterprise Advanced Trial'
-                        />
-                        <FormattedMessage
-                            id='globalHeader.productSwitcherMenu.trialMenuItem.isFreeTrial.secondaryLabel'
-                            defaultMessage='Your trial is active until {trialEndDay}. Discover our top Enterprise features.'
-                            values={{
-                                trialEndDay: (
-                                    <FormattedDate
-                                        value={moment(subscription?.trial_end_at).toDate()}
-                                        year='numeric'
-                                        month='long'
-                                        day='2-digit'
-                                    />
-                                ),
-                            }}
-                        />
-                    </>
-                }
-                onClick={handleDiscoverEnterpriseFeaturesClick}
-            />
-        );
-    }
-
     return (
         <Menu.Item
             className='globalHeader-leftControls-productSwitcherMenu-trialMenuItem'
+            leadingElement={<ArrowUpBoldCircleOutlineIcon size={18}/>}
             labels={
                 <>
                     <FormattedMessage
-                        id='globalHeader.productSwitcherMenu.trialMenuItem.noFreeTrial.primaryLabel'
-                        defaultMessage='Interested in a limitless plan with high-security features?'
+                        id='globalHeader.productSwitcherMenu.trialMenuItem.isFreeTrial.primaryLabel'
+                        defaultMessage='Enterprise Advanced Trial'
                     />
                     <FormattedMessage
-                        id='globalHeader.productSwitcherMenu.trialMenuItem.noFreeTrial.secondaryLabel'
-                        defaultMessage='See plans'
+                        id='globalHeader.productSwitcherMenu.trialMenuItem.isFreeTrial.secondaryLabel'
+                        defaultMessage='Your trial is active until {trialEndDay}. Discover our top Enterprise features.'
+                        values={{
+                            trialEndDay: (
+                                <FormattedDate
+                                    value={moment(subscription?.trial_end_at).toDate()}
+                                    year='numeric'
+                                    month='long'
+                                    day='2-digit'
+                                />
+                            ),
+                        }}
                     />
                 </>
             }
-            onClick={handleSeePlansClick}
+            onClick={handleDiscoverEnterpriseFeaturesClick}
         />
     );
 }
