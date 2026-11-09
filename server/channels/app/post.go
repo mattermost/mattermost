@@ -220,6 +220,12 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 	if len(post.Metadata.GetPropertyValues()) > 0 && !a.Config().FeatureFlags.PostAttributes {
 		return nil, false, model.NewAppError("CreatePost", "api.post.create_post.attributes_feature_disabled.app_error", nil, "", http.StatusBadRequest)
 	}
+	// Callers other than the API and the plugin API reach this without
+	// PreparePostPropertyValuesForCreate, and a nil value would only be caught after the post
+	// is saved, by a dereference.
+	if slices.Contains(post.Metadata.GetPropertyValues(), nil) {
+		return nil, false, model.NewAppError("CreatePost", "api.post.create_post.invalid_attribute.app_error", nil, "nil value", http.StatusBadRequest)
+	}
 
 	if flags.SilentNotification {
 		if persistentNotification := post.GetPersistentNotification(); persistentNotification != nil && *persistentNotification {

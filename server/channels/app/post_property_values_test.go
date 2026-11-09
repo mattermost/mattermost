@@ -756,6 +756,37 @@ func TestCreatePostPropertyValues(t *testing.T) {
 		assert.Empty(t, th.storedValueFieldIDs(t, root.Id))
 	})
 
+	// Callers such as the /test json command reach CreatePost without the prepare step, so a
+	// nil value has to be refused before the save rather than dereferenced after it.
+	t.Run("a nil value is refused before the post is saved", func(t *testing.T) {
+		th := setupPropertyValuesCreateTest(t, true)
+		th.asUser(t, th.BasicUser.Id)
+		field := th.createField(t, string(model.PropertyFieldTargetLevelChannel), th.BasicChannel.Id, "sensitivity")
+
+		before, appErr := th.App.GetPosts(th.Context, th.BasicChannel.Id, 0, 100)
+		require.Nil(t, appErr)
+
+		var created *model.Post
+		require.NotPanics(t, func() {
+			created, _, appErr = th.App.CreatePost(th.Context, &model.Post{
+				ChannelId: th.BasicChannel.Id,
+				UserId:    th.BasicUser.Id,
+				Message:   "nil attribute",
+				Metadata: &model.PostMetadata{
+					PropertyValues: []*model.PropertyValue{th.staged(field, `"x"`), nil},
+				},
+			}, th.BasicChannel, model.CreatePostFlags{})
+		})
+		require.NotNil(t, appErr)
+		assert.Equal(t, "api.post.create_post.invalid_attribute.app_error", appErr.Id)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Nil(t, created)
+
+		after, appErr := th.App.GetPosts(th.Context, th.BasicChannel.Id, 0, 100)
+		require.Nil(t, appErr)
+		assert.Len(t, after.Order, len(before.Order), "no post may be saved")
+	})
+
 	// Every existing caller leaves Metadata nil or without PropertyValues, and must
 	// keep behaving exactly as it did.
 	t.Run("no staged values writes nothing", func(t *testing.T) {
