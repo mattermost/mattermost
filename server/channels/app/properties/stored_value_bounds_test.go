@@ -1036,6 +1036,126 @@ func TestRefuseDeletingHeldOptions(t *testing.T) {
 			})
 		}
 	})
+
+	// Container cases: a rank template's option held by the system's or a channel's value while a
+	// child field's parent rule compares against that value.
+	const containerRefusedID = "app.property_field.option_delete_container_values.app_error"
+	belowParent := model.PropertyBounds{{Operator: model.PropertyBoundsOperatorAtOrBelow, Reference: model.PropertyBoundsReferenceParent}}
+	requireContainerRefused := func(t *testing.T, err error, count string, examples ...string) {
+		t.Helper()
+		requireAppErrorID(t, err, containerRefusedID, http.StatusConflict)
+		assert.Contains(t, err.Error(), count+" values")
+		assert.Equal(t, examples, examplesOf(err))
+		assert.NotContains(t, err.Error(), "optmid")
+	}
+	// dropMid saves the template of f without optmid.
+	dropMid := func(t *testing.T, f *model.PropertyField) error {
+		t.Helper()
+		template, err := th.service.GetPropertyField(rctx, f.GroupID, *f.LinkedFieldID)
+		require.NoError(t, err)
+		return save(freshWithout(template, "optmid"))
+	}
+
+	t.Run("a system value held by a field a channel rule compares against refuses the deletion", func(t *testing.T) {
+		_, create, _ := boundsSetup(t, th, rctx)
+		system := create(model.PropertyFieldObjectTypeSystem, nil)
+		seed(system, model.PropertyValueTargetTypeSystem, model.PropertyValueSystemTargetID, `"optmid"`)
+		create(model.PropertyFieldObjectTypeChannel, belowParent)
+		requireContainerRefused(t, dropMid(t, system), "1", model.PropertyValueSystemTargetID)
+	})
+
+	t.Run("a system value nothing compares against doesn't block the deletion", func(t *testing.T) {
+		_, create, _ := boundsSetup(t, th, rctx)
+		system := create(model.PropertyFieldObjectTypeSystem, nil)
+		seed(system, model.PropertyValueTargetTypeSystem, model.PropertyValueSystemTargetID, `"optmid"`)
+		create(model.PropertyFieldObjectTypeChannel, nil)
+		require.NoError(t, dropMid(t, system))
+	})
+
+	t.Run("a user field's rule reads the system value too", func(t *testing.T) {
+		_, create, _ := boundsSetup(t, th, rctx)
+		system := create(model.PropertyFieldObjectTypeSystem, nil)
+		seed(system, model.PropertyValueTargetTypeSystem, model.PropertyValueSystemTargetID, `"optmid"`)
+		create(model.PropertyFieldObjectTypeUser, belowParent)
+		requireContainerRefused(t, dropMid(t, system), "1", model.PropertyValueSystemTargetID)
+	})
+
+	t.Run("a channel value read by a post rule refuses the deletion", func(t *testing.T) {
+		_, create, _ := boundsSetup(t, th, rctx)
+		channelField := create(model.PropertyFieldObjectTypeChannel, nil)
+		channelID := model.NewId()
+		seed(channelField, model.PropertyValueTargetTypeChannel, channelID, `"optmid"`)
+
+		postField := create(model.PropertyFieldObjectTypePost, belowParent)
+		requireContainerRefused(t, dropMid(t, channelField), "1", channelID)
+
+		// Without the rule the same deletion goes through.
+		postField.Bounds = model.PropertyBounds{} // nil would leave the rule as stored
+		require.NoError(t, save(postField))
+		require.NoError(t, dropMid(t, channelField))
+	})
+
+	t.Run("a rule changed in the same call is judged by its copy there", func(t *testing.T) {
+		for _, tc := range []struct {
+			name    string
+			start   model.PropertyBounds
+			callSet model.PropertyBounds
+			refused bool
+		}{
+			{"rule removed in the call", belowParent, model.PropertyBounds{}, false},
+			{"rule added in the call", nil, belowParent, true},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				_, create, _ := boundsSetup(t, th, rctx)
+				system := create(model.PropertyFieldObjectTypeSystem, nil)
+				seed(system, model.PropertyValueTargetTypeSystem, model.PropertyValueSystemTargetID, `"optmid"`)
+				child := create(model.PropertyFieldObjectTypeChannel, tc.start)
+				template, err := th.service.GetPropertyField(rctx, system.GroupID, *system.LinkedFieldID)
+				require.NoError(t, err)
+
+				inCall, err := th.service.GetPropertyField(rctx, child.GroupID, child.ID)
+				require.NoError(t, err)
+				inCall.Bounds = tc.callSet
+				_, _, _, err = th.service.UpdatePropertyFields(rctx, child.GroupID, []*model.PropertyField{freshWithout(template, "optmid"), inCall})
+				if tc.refused {
+					requireContainerRefused(t, err, "1", model.PropertyValueSystemTargetID)
+				} else {
+					require.NoError(t, err)
+				}
+			})
+		}
+	})
+
+	t.Run("the locked-values error wins when both refuse", func(t *testing.T) {
+		_, create, _ := boundsSetup(t, th, rctx)
+		channelField := create(model.PropertyFieldObjectTypeChannel, nil)
+		create(model.PropertyFieldObjectTypePost, belowParent)
+		setMutability(channelField, once)
+		channelID := model.NewId()
+		seed(channelField, model.PropertyValueTargetTypeChannel, channelID, `"optmid"`)
+		err := dropMid(t, channelField)
+		requireAppErrorID(t, err, refusedID, http.StatusConflict)
+		assert.Equal(t, []string{channelID}, examplesOf(err))
+	})
+
+	t.Run("a capped value naming a deleted option is not a container case", func(t *testing.T) {
+		_, create, _ := boundsSetup(t, th, rctx)
+		create(model.PropertyFieldObjectTypeSystem, nil)
+		capped := create(model.PropertyFieldObjectTypeChannel, belowParent)
+		seed(capped, model.PropertyValueTargetTypeChannel, model.NewId(), `"optmid"`)
+		require.NoError(t, dropMid(t, capped))
+	})
+
+	t.Run("a container deletion is allowed unless the license is Enterprise Advanced", func(t *testing.T) {
+		_, create, _ := boundsSetup(t, th, rctx)
+		system := create(model.PropertyFieldObjectTypeSystem, nil)
+		seed(system, model.PropertyValueTargetTypeSystem, model.PropertyValueSystemTargetID, `"optmid"`)
+		create(model.PropertyFieldObjectTypeChannel, belowParent)
+		prev := th.service.licenseProvider
+		t.Cleanup(func() { th.service.licenseProvider = prev })
+		th.service.licenseProvider = func() *model.License { return nil }
+		require.NoError(t, dropMid(t, system))
+	})
 }
 
 func TestDroppedOptionIDs(t *testing.T) {

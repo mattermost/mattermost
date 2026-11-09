@@ -11336,6 +11336,11 @@
     "description": "API error (400) when an admin links a custom attribute to an OpenID Connect claim, or changes the claim, while the OpenIdAttributeSync feature flag is off. 'OpenID Connect' is a product name and should stay as-is."
   },
   {
+    "id": "app.property_field.option_delete_container_values.app_error",
+    "translation": "{{.Count}} values that other values are checked against hold the options being deleted, for example on {{.Examples}}. Change those values, or remove the parent rule, before deleting these options.",
+    "description": "API error (409) when deleting options of a property field while a system or channel value of it, or of a field linked to it, holds one of them and a child field's parent bounds rule compares against that value; Examples lists up to five target IDs."
+  },
+  {
     "id": "app.property_field.option_delete_locked_values.app_error",
     "translation": "{{.Count}} values that can't be changed hold the options being deleted, for example on {{.Examples}}. Make the field mutable before deleting these options.",
     "description": "API error (409) when deleting options of a property field while write_once or set_on_create values of it, or of a field linked to it, hold one of them; Examples lists up to five target IDs."

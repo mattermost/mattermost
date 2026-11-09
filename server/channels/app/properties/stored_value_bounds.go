@@ -6,6 +6,7 @@ package properties
 import (
 	"errors"
 	"fmt"
+	"maps"
 	"net/http"
 	"slices"
 	"strings"
@@ -283,6 +284,10 @@ func (ps *PropertyService) deletedOptionBreaches(existing *model.PropertyField) 
 // its copy there; owner is passed as it will be stored. Without Enterprise Advanced nothing is
 // checked, because mutability isn't enforced then. A value written between this check and the
 // delete can still land on the option; there are no locks across objects.
+//
+// It also refuses while the system's or a channel's value of one of those fields holds an option
+// and a child field's parent rule compares against that value: every capped write below it would
+// then be refused as broken data. A lock refusal wins over this one.
 func (ps *PropertyService) refuseDeletingHeldOptions(rctx request.CTX, caller string, owner *model.PropertyField, optionIDs []string, incoming map[string]*model.PropertyField) error {
 	if !ps.boundsEnforced() || len(optionIDs) == 0 {
 		return nil
@@ -292,13 +297,32 @@ func (ps *PropertyService) refuseDeletingHeldOptions(rctx request.CTX, caller st
 	if err != nil {
 		return fmt.Errorf("field %s: failed to look up the fields linked to it: %w", owner.ID, err)
 	}
-	var locked storedValueBreaches
-	firstID := ""
+	var locked, held storedValueBreaches
+	firstID, heldID := "", ""
 	for _, field := range append([]*model.PropertyField{owner}, linked...) {
 		if inc, ok := incoming[field.ID]; ok && field.ID != owner.ID {
 			field = inc
 		}
-		if field.IsPSAv1() || field.Mutability.OrMutable() == model.PropertyFieldMutabilityMutable {
+		if field.IsPSAv1() {
+			continue
+		}
+		if field.ObjectType == model.PropertyFieldObjectTypeSystem || field.ObjectType == model.PropertyFieldObjectTypeChannel {
+			read, err := ps.parentRuleReadsField(rctx, field, incoming)
+			if err != nil {
+				return fmt.Errorf("field %s: failed to look up the child fields of field %s: %w", owner.ID, field.ID, err)
+			}
+			if read {
+				count, examples, err := ps.valueStore.CountValuesHoldingOptions(field.GroupID, field.ID, optionIDs, nil, storedValueExamples)
+				if err != nil {
+					return fmt.Errorf("field %s: failed to count the values of field %s that hold the options: %w", owner.ID, field.ID, err)
+				}
+				if count > 0 && heldID == "" {
+					heldID = field.ID
+				}
+				held.add(count, examples)
+			}
+		}
+		if field.Mutability.OrMutable() == model.PropertyFieldMutabilityMutable {
 			continue
 		}
 		var scope *store.PostValueScope
@@ -322,7 +346,40 @@ func (ps *PropertyService) refuseDeletingHeldOptions(rctx request.CTX, caller st
 			fmt.Sprintf("field %s: deleting options: %d locked values of field %s hold them, e.g. %s", owner.ID, locked.Count, firstID, examples),
 			http.StatusConflict)
 	}
+	if held.Count > 0 {
+		examples := strings.Join(held.Examples, ", ")
+		return model.NewAppError(caller, "app.property_field.option_delete_container_values.app_error",
+			map[string]any{"Count": held.Count, "Examples": examples},
+			fmt.Sprintf("field %s: deleting options: %d values of field %s are compared against by a parent rule, e.g. %s", owner.ID, held.Count, heldID, examples),
+			http.StatusConflict)
+	}
 	return nil
+}
+
+// parentRuleReadsField reports whether a child field's parent rule compares against field's
+// values. Stored children are judged by their copy in incoming when they have one, and a field in
+// incoming that is one object type below field on the same template counts if it carries the rule.
+// Store errors are returned unwrapped.
+func (ps *PropertyService) parentRuleReadsField(rctx request.CTX, field *model.PropertyField, incoming map[string]*model.PropertyField) (bool, error) {
+	hasRule := func(c *model.PropertyField) bool {
+		return slices.ContainsFunc(c.Bounds, func(r model.PropertyBoundsRule) bool {
+			return r.Reference == model.PropertyBoundsReferenceParent
+		})
+	}
+	children, err := ps.childFieldsWithParentRule(rctx, field)
+	if err != nil {
+		return false, err
+	}
+	if slices.ContainsFunc(children, func(c *model.PropertyField) bool {
+		inc, ok := incoming[c.ID]
+		return !ok || hasRule(inc)
+	}) {
+		return true, nil
+	}
+	return field.LinkSourceID() != "" && slices.ContainsFunc(slices.Collect(maps.Values(incoming)), func(c *model.PropertyField) bool {
+		return model.PropertyFieldParentObjectType(c.ObjectType) == field.ObjectType &&
+			c.LinkSourceID() == field.LinkSourceID() && hasRule(c)
+	}), nil
 }
 
 // optionRanksChange reports whether saving field over existing changes the rank of an option both
