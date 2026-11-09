@@ -25,6 +25,12 @@ For Mattermost Cloud deployments, no setup is required. See the [usage](#usage) 
 
 For a self-hosted Mattermost deployment, a Mattermost system admin must perform the following steps in Mattermost.
 
+<Tip>
+
+From Mattermost v12.2, the Metrics plugin is enabled automatically when you enable Performance Monitoring in step 5, so you can usually skip steps 2 and 3. See [Metrics plugin enabled by default](#metrics-plugin-enabled-by-default) for details.
+
+</Tip>
+
 1.  Log in to your Mattermost [workspace](/end-user-guide/end-user-guide-index) as a system admin.
 2.  From Mattermost v10.1, you can install the Metrics plugin from the in-product Mattermost Marketplace by selecting the **Product** <img src={useBaseUrl('/img/ui/products_E82F.svg')} alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" /> icon and selecting **App Marketplace**. Search for **Metrics** and select **Install**.
 3.  Go to **System Console \> Plugins \> Plugin Management**. In the **Installed Plugins** section, scroll to **Mattermost Metrics Plugin**, and select **Enable Plugin**.
@@ -38,6 +44,9 @@ For Mattermost deployments prior to v10.1, you must download the latest version 
 
 </Note>
 
+### Metrics plugin enabled by default
+
+From Mattermost v12.2, the Metrics plugin is enabled automatically when Performance Monitoring is enabled, including on upgrade, unless a system admin has already enabled or disabled the plugin. Enabling Performance Monitoring only through the `MM_METRICSSETTINGS_ENABLE` environment variable doesn't enable the plugin. In that case, enable it manually in **System Console \> Plugins \> Plugin Management**.
 ## Upgrade
 
 We recommend upgrading this feature as new versions are released. Generally, updates are seamless and don't interrupt the user experience in Mattermost. Visit the [Releases page](https://github.com/mattermost/mattermost-plugin-metrics/releases) for the latest release, available releases, and compatibiilty considerations.
