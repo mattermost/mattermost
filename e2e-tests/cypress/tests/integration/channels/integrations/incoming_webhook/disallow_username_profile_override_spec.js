@@ -51,7 +51,9 @@ describe('Incoming webhook', () => {
         cy.apiAdminLogin();
         enableUsernameAndIconOverride(true);
 
-        // # Store the icon on the hook now that override is allowed.
+        // # Store the icon on the hook now that override is allowed. Payload
+        // icon_url is still sent below; hook-level URL is what MM-T620 uses
+        // when the payload field does not stick.
         cy.apiGetIncomingWebhook(incomingWebhook.id).then(({webhook}) => {
             cy.getCookie('MMCSRF').then((csrfCookie) => {
                 const headers = {'X-Requested-With': 'XMLHttpRequest'};
