@@ -952,6 +952,34 @@ func convertChangePolicy(field *model.PropertyField) (removed []removedOldKey, c
 	return removed, changed
 }
 
+// fieldWriteFailure is a field the store refused to write, with why.
+type fieldWriteFailure struct {
+	field *model.PropertyField
+	err   error
+}
+
+// writeFieldsIfUnchanged writes batch to one group, each field only if its row
+// still carries the UpdateAt in readUpdateAts. The batch is all or nothing, so
+// when it fails the fields are written one at a time to find the one the store
+// refuses. It returns the fields written, and the rest split into those that
+// changed since they were read (conflicts) and those that failed otherwise.
+func (ps *PropertyService) writeFieldsIfUnchanged(groupID string, batch []*model.PropertyField, readUpdateAts map[string]int64) (written []*model.PropertyField, conflicts, failures []fieldWriteFailure) {
+	if _, err := ps.fieldStore.Update(groupID, batch, readUpdateAts); err == nil {
+		return batch, nil, nil
+	}
+	for _, field := range batch {
+		_, err := ps.fieldStore.Update(groupID, []*model.PropertyField{field}, map[string]int64{field.ID: readUpdateAts[field.ID]})
+		if err == nil {
+			written = append(written, field)
+		} else if _, ok := errors.AsType[*store.ErrConflict](err); ok {
+			conflicts = append(conflicts, fieldWriteFailure{field, err})
+		} else {
+			failures = append(failures, fieldWriteFailure{field, err})
+		}
+	}
+	return written, conflicts, failures
+}
+
 // MigrateChangePolicyToBounds converts every access_control field's old
 // change_policy / editable keys into mutability and bounds (see
 // convertChangePolicy). It runs on every startup and writes only fields it
@@ -1014,30 +1042,20 @@ func (ps *PropertyService) MigrateChangePolicyToBounds(rctx request.CTX) (conver
 					mlog.String("key", r.key), mlog.Any("value", r.value))
 			}
 		}
-		if _, updateErr := ps.fieldStore.Update(groupID, batch, readUpdateAts); updateErr == nil {
-			converted += len(batch)
-			for _, field := range batch {
-				logRemovals(field)
-			}
-		} else {
-			// The batch is all or nothing, so one field the store refuses holds
-			// back the rest. Write them one at a time to find it.
-			for _, field := range batch {
-				if _, oneErr := ps.fieldStore.Update(groupID, []*model.PropertyField{field}, map[string]int64{field.ID: readUpdateAts[field.ID]}); oneErr != nil {
-					if _, ok := errors.AsType[*store.ErrConflict](oneErr); ok {
-						rctx.Logger().Warn("Change policy conversion: field changed since it was read and will be retried on a later restart",
-							mlog.String("field_id", field.ID), mlog.Err(oneErr))
-						continue
-					}
-					rctx.Logger().Error("Change policy conversion failed for a field; it is retried on the next startup",
-						mlog.String("field_id", field.ID), mlog.Err(oneErr))
-					failed++
-					continue
-				}
-				converted++
-				logRemovals(field)
-			}
+		written, conflicts, failures := ps.writeFieldsIfUnchanged(groupID, batch, readUpdateAts)
+		converted += len(written)
+		for _, field := range written {
+			logRemovals(field)
 		}
+		for _, c := range conflicts {
+			rctx.Logger().Warn("Change policy conversion: field changed since it was read and will be retried on a later restart",
+				mlog.String("field_id", c.field.ID), mlog.Err(c.err))
+		}
+		for _, f := range failures {
+			rctx.Logger().Error("Change policy conversion failed for a field; it is retried on the next startup",
+				mlog.String("field_id", f.field.ID), mlog.Err(f.err))
+		}
+		failed += len(failures)
 
 		if len(fields) < propertyPermissionsBackfillPageSize {
 			break
@@ -1113,29 +1131,19 @@ func (ps *PropertyService) MigrateRemoveUnenforcedChangePolicy(rctx request.CTX)
 			}
 		}
 		for groupID, batch := range byGroup {
-			if _, updateErr := ps.fieldStore.Update(groupID, batch, readUpdateAts); updateErr == nil {
-				removed += len(batch)
-				for _, field := range batch {
-					logRemovals(field)
-				}
-				continue
-			}
-			// The batch is all or nothing, so one field the store refuses holds
-			// back the rest. Write them one at a time to find it.
-			for _, field := range batch {
-				if _, oneErr := ps.fieldStore.Update(groupID, []*model.PropertyField{field}, map[string]int64{field.ID: readUpdateAts[field.ID]}); oneErr != nil {
-					if _, ok := errors.AsType[*store.ErrConflict](oneErr); ok {
-						rctx.Logger().Warn("Old change_policy removal: field changed since it was read and will be retried on a later restart",
-							mlog.String("field_id", field.ID), mlog.Err(oneErr))
-						retryable++
-						continue
-					}
-					rctx.Logger().Error("Old change_policy removal failed for a field",
-						mlog.String("field_id", field.ID), mlog.Err(oneErr))
-					continue
-				}
-				removed++
+			written, conflicts, failures := ps.writeFieldsIfUnchanged(groupID, batch, readUpdateAts)
+			removed += len(written)
+			for _, field := range written {
 				logRemovals(field)
+			}
+			for _, c := range conflicts {
+				rctx.Logger().Warn("Old change_policy removal: field changed since it was read and will be retried on a later restart",
+					mlog.String("field_id", c.field.ID), mlog.Err(c.err))
+			}
+			retryable += len(conflicts)
+			for _, f := range failures {
+				rctx.Logger().Error("Old change_policy removal failed for a field",
+					mlog.String("field_id", f.field.ID), mlog.Err(f.err))
 			}
 		}
 
