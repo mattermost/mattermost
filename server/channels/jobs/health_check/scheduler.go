@@ -16,9 +16,13 @@ import (
 
 const schedFreq = time.Hour
 
-// A run takes minutes at most, so an older in-progress job belongs to a node that died
-// mid-run. It is closed as failed so it neither blocks new runs nor shows as running for ever.
-const staleInProgressAfter = time.Hour
+// A run can't hang: collecting diagnostics is capped by healthCollectTimeout (3 minutes, in the
+// app package), and every later step is a database query bounded by SqlSettings.QueryTimeout, or
+// in-memory work. A run therefore ends within a few minutes, and an in-progress job older than this
+// belongs to a node that died mid-run. It is closed as failed so it neither blocks new runs nor
+// shows as running for ever. Keep this well above healthCollectTimeout if that is raised: closing a
+// run that is still going would let a second run start alongside it.
+const staleInProgressAfter = 15 * time.Minute
 
 func isEnabled(cfg *model.Config) bool {
 	return cfg.FeatureFlags.HealthDashboard

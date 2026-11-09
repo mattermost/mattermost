@@ -15,7 +15,7 @@ import (
 
 // healthCollectTimeout bounds how long a run waits for the other nodes' diagnostics. It must
 // cover the probes' own timeouts: OAuth and push are 10 s each, the pg_stat queries 10 s each,
-// plus SMTP, LDAP, Elasticsearch and S3.
+// plus SMTP, LDAP, Elasticsearch and S3. health_check.staleInProgressAfter must stay well above it.
 const healthCollectTimeout = 3 * time.Minute
 
 // BuildHealthSnapshot assembles a health snapshot from live server state, with every connected
