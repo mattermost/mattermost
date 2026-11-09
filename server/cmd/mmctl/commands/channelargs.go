@@ -34,6 +34,12 @@ func parseChannelArg(channelArg string) (string, string) {
 	return result[0], result[1]
 }
 
+// channelInOtherTeam reports whether channel belongs to a team other than teamID. A channel with no team
+// (for example a DM or GM) is not in another team, so it is not rejected for a team prefix.
+func channelInOtherTeam(channel *model.Channel, teamID string) bool {
+	return channel.TeamId != "" && channel.TeamId != teamID
+}
+
 func getChannelFromChannelArg(c client.Client, channelArg string) *model.Channel {
 	teamArg, channelPart := parseChannelArg(channelArg)
 	if teamArg == "" && channelPart == "" {
@@ -53,7 +59,7 @@ func getChannelFromChannelArg(c client.Client, channelArg string) *model.Channel
 
 		if model.IsValidId(channelPart) {
 			channel, _, _ = c.GetChannel(context.TODO(), strings.ToLower(channelPart))
-			if channel != nil && channel.TeamId != team.Id {
+			if channel != nil && channelInOtherTeam(channel, team.Id) {
 				channel = nil
 			}
 		}
@@ -126,7 +132,7 @@ func getChannelFromArg(c client.Client, arg string) (*model.Channel, error) {
 					return nil, nErr
 				}
 			}
-			if channel != nil && channel.TeamId != team.Id {
+			if channel != nil && channelInOtherTeam(channel, team.Id) {
 				crossTeamID = true
 				channel = nil
 			}

@@ -349,6 +349,29 @@ func (s *MmctlUnitTestSuite) TestGetChannelFromArg_PrefersIdWhenChannelPartLooks
 	})
 
 	for _, resolver := range resolvers {
+		s.Run(resolver.name+" returns a teamless channel when team prefix is given and the id is valid", func() {
+			teamID := model.NewId()
+			channelID := model.NewId()
+			team := &model.Team{Id: teamID}
+			teamlessChannel := &model.Channel{Id: channelID, Name: "dm-like-channel"}
+
+			s.client.
+				EXPECT().
+				GetTeam(context.TODO(), teamID, "").
+				Return(team, &model.Response{StatusCode: http.StatusOK}, nil).
+				Times(1)
+			s.client.
+				EXPECT().
+				GetChannel(context.TODO(), channelID).
+				Return(teamlessChannel, &model.Response{StatusCode: http.StatusOK}, nil).
+				Times(1)
+
+			channel, err := resolver.call(fmt.Sprintf("%s:%s", teamID, channelID))
+			s.Require().NoError(err)
+			s.Require().NotNil(channel)
+			s.Require().Equal(channelID, channel.Id)
+		})
+
 		s.Run(resolver.name+" returns nil when team prefix is given but channel belongs to different team", func() {
 			teamAID := model.NewId()
 			teamBID := model.NewId()
