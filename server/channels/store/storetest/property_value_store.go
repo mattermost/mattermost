@@ -6,6 +6,7 @@ package storetest
 import (
 	"encoding/json"
 	"fmt"
+	"sort"
 	"sync"
 	"testing"
 	"time"
@@ -34,6 +35,7 @@ func TestPropertyValueStore(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 	t.Run("UpsertIfUnchanged", func(t *testing.T) { testUpsertIfUnchanged(t, rctx, ss) })
 	t.Run("UpdateIfUnchanged", func(t *testing.T) { testUpdateIfUnchanged(t, rctx, ss) })
 	t.Run("GetReferencedOptionIDs", func(t *testing.T) { testGetReferencedOptionIDs(t, rctx, ss) })
+	t.Run("CountValuesOutsideOptions", func(t *testing.T) { testCountValuesOutsideOptions(t, rctx, ss) })
 }
 
 func testCreatePropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
@@ -2230,6 +2232,167 @@ func testGetReferencedOptionIDs(t *testing.T, _ request.CTX, ss store.Store) {
 		ids, err := ss.PropertyValue().GetReferencedOptionIDs("", []string{fieldID})
 		require.NoError(t, err)
 		require.ElementsMatch(t, []string{optA, optB, optD}, ids)
+	})
+}
+
+func testCountValuesOutsideOptions(t *testing.T, rctx request.CTX, ss store.Store) {
+	groupID := model.NewId()
+	fieldID := model.NewId()
+	optA, optB, optC := model.NewId(), model.NewId(), model.NewId()
+	allowed := []string{optA, optB}
+
+	put := func(t *testing.T, gID, fID, targetType, targetID, raw string) *model.PropertyValue {
+		t.Helper()
+		value, err := ss.PropertyValue().Create(&model.PropertyValue{
+			TargetID:   targetID,
+			TargetType: targetType,
+			GroupID:    gID,
+			FieldID:    fID,
+			Value:      json.RawMessage(raw),
+		})
+		require.NoError(t, err)
+		return value
+	}
+	count := func(t *testing.T, optionIDs []string, scope *store.PostValueScope, examples int) (int64, []string) {
+		t.Helper()
+		n, targets, err := ss.PropertyValue().CountValuesOutsideOptions(groupID, fieldID, optionIDs, scope, examples)
+		require.NoError(t, err)
+		return n, targets
+	}
+
+	t.Run("should fail on input that cannot be counted", func(t *testing.T) {
+		var invalidErr *store.ErrInvalidInput
+
+		_, _, err := ss.PropertyValue().CountValuesOutsideOptions(groupID, "", allowed, nil, 1)
+		require.ErrorAs(t, err, &invalidErr)
+
+		_, _, err = ss.PropertyValue().CountValuesOutsideOptions(groupID, fieldID, allowed, nil, -1)
+		require.ErrorAs(t, err, &invalidErr)
+
+		_, _, err = ss.PropertyValue().CountValuesOutsideOptions(groupID, fieldID, allowed, &store.PostValueScope{ChannelValue: optA}, 1)
+		require.ErrorAs(t, err, &invalidErr)
+	})
+
+	t.Run("should count only non-empty values that name an option outside the set", func(t *testing.T) {
+		raws := []string{`"` + optA + `"`, `"` + optB + `"`, `"` + optC + `"`, `["` + optA + `","` + optB + `"]`, `["` + optA + `","` + optC + `"]`, `null`, `""`, `[]`}
+		targets := make([]string, len(raws))
+		for i, raw := range raws {
+			targets[i] = model.NewId()
+			put(t, groupID, fieldID, "test_type", targets[i], raw)
+		}
+
+		n, examples := count(t, allowed, nil, 10)
+		require.EqualValues(t, 2, n)
+		require.ElementsMatch(t, []string{targets[2], targets[4]}, examples)
+		require.True(t, sort.StringsAreSorted(examples))
+
+		n, examples = count(t, allowed, nil, 0)
+		require.EqualValues(t, 2, n)
+		require.Empty(t, examples)
+	})
+
+	t.Run("should count a number or an object and ignore other fields, groups and soft-deleted rows", func(t *testing.T) {
+		before, _ := count(t, allowed, nil, 0)
+
+		deleted := put(t, groupID, fieldID, "test_type", model.NewId(), `"`+optC+`"`)
+		require.NoError(t, ss.PropertyValue().Delete(groupID, deleted.ID))
+		put(t, groupID, model.NewId(), "test_type", model.NewId(), `"`+optC+`"`)
+		put(t, model.NewId(), fieldID, "test_type", model.NewId(), `"`+optC+`"`)
+		after, _ := count(t, allowed, nil, 0)
+		require.Equal(t, before, after)
+
+		put(t, groupID, fieldID, "test_type", model.NewId(), `{"x":1}`)
+		put(t, groupID, fieldID, "test_type", model.NewId(), `5`)
+		after, _ = count(t, allowed, nil, 0)
+		require.Equal(t, before+2, after)
+	})
+
+	t.Run("should count every non-empty value when no option is allowed", func(t *testing.T) {
+		n, _ := count(t, nil, nil, 0)
+		inSet, _ := count(t, allowed, nil, 0)
+		require.Greater(t, n, inSet)
+		// the live non-empty values: "a", "b", "c", two arrays, {"x":1}, 5
+		require.EqualValues(t, 7, n)
+	})
+
+	t.Run("should return the lowest target IDs as examples", func(t *testing.T) {
+		g, f := model.NewId(), model.NewId()
+		ids := []string{model.NewId(), model.NewId(), model.NewId()}
+		for _, id := range ids {
+			put(t, g, f, "test_type", id, `"`+optC+`"`)
+		}
+		sort.Strings(ids)
+
+		n, examples, err := ss.PropertyValue().CountValuesOutsideOptions(g, f, allowed, nil, 1)
+		require.NoError(t, err)
+		require.EqualValues(t, 3, n)
+		require.Equal(t, ids[:1], examples)
+	})
+
+	t.Run("with a scope", func(t *testing.T) {
+		g, f, k := model.NewId(), model.NewId(), model.NewId()
+		c1, c2 := model.NewId(), model.NewId()
+		post := func(channelID string) *model.Post {
+			p, err := ss.Post().Save(rctx, &model.Post{ChannelId: channelID, UserId: model.NewId(), Message: NewTestID()})
+			require.NoError(t, err)
+			put(t, g, f, model.PropertyValueTargetTypePost, p.Id, `"`+optC+`"`)
+			return p
+		}
+		p1, p2, p3, p4 := post(c1), post(c1), post(c2), post(c1)
+		require.NoError(t, ss.Post().Delete(rctx, p4.Id, model.GetMillis(), model.NewId()))
+		channelValue := put(t, g, f, model.PropertyValueTargetTypeChannel, c1, `"`+optC+`"`)
+		put(t, g, k, model.PropertyValueTargetTypeChannel, c1, `"`+optA+`"`)
+
+		countScope := func(t *testing.T, scope *store.PostValueScope) (int64, []string) {
+			t.Helper()
+			n, targets, err := ss.PropertyValue().CountValuesOutsideOptions(g, f, allowed, scope, 10)
+			require.NoError(t, err)
+			return n, targets
+		}
+
+		t.Run("should count the value on a channel only without a scope", func(t *testing.T) {
+			n, targets := countScope(t, nil)
+			require.EqualValues(t, 5, n)
+			require.Contains(t, targets, channelValue.TargetID)
+
+			n, targets = countScope(t, &store.PostValueScope{})
+			require.EqualValues(t, 3, n)
+			require.ElementsMatch(t, []string{p1.Id, p2.Id, p3.Id}, targets)
+		})
+
+		t.Run("should keep posts of the given channel", func(t *testing.T) {
+			n, targets := countScope(t, &store.PostValueScope{ChannelID: c1})
+			require.EqualValues(t, 2, n)
+			require.ElementsMatch(t, []string{p1.Id, p2.Id}, targets)
+		})
+
+		t.Run("should keep posts by the value their channel holds", func(t *testing.T) {
+			n, targets := countScope(t, &store.PostValueScope{ChannelFieldID: k, ChannelValue: optA})
+			require.EqualValues(t, 2, n)
+			require.ElementsMatch(t, []string{p1.Id, p2.Id}, targets)
+
+			n, targets = countScope(t, &store.PostValueScope{ChannelFieldID: k})
+			require.EqualValues(t, 1, n)
+			require.Equal(t, []string{p3.Id}, targets)
+
+			n, _ = countScope(t, &store.PostValueScope{ChannelID: c2, ChannelFieldID: k, ChannelValue: optA})
+			require.EqualValues(t, 0, n)
+		})
+
+		t.Run("should treat a soft-deleted or empty channel value as no value", func(t *testing.T) {
+			old := put(t, g, k, model.PropertyValueTargetTypeChannel, c2, `"`+optA+`"`)
+			require.NoError(t, ss.PropertyValue().Delete(g, old.ID))
+			n, targets := countScope(t, &store.PostValueScope{ChannelFieldID: k})
+			require.EqualValues(t, 1, n)
+			require.Equal(t, []string{p3.Id}, targets)
+
+			put(t, g, k, model.PropertyValueTargetTypeChannel, c2, `null`)
+			n, targets = countScope(t, &store.PostValueScope{ChannelFieldID: k})
+			require.EqualValues(t, 1, n)
+			require.Equal(t, []string{p3.Id}, targets)
+			n, _ = countScope(t, &store.PostValueScope{ChannelFieldID: k, ChannelValue: optA})
+			require.EqualValues(t, 2, n)
+		})
 	})
 }
 

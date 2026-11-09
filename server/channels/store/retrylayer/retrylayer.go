@@ -11904,6 +11904,27 @@ func (s *RetryLayerPropertyGroupStore) SetVersion(name string, version int) erro
 
 }
 
+func (s *RetryLayerPropertyValueStore) CountValuesOutsideOptions(groupID string, fieldID string, optionIDs []string, scope *store.PostValueScope, examples int) (int64, []string, error) {
+
+	tries := 0
+	for {
+		result, resultVar1, err := s.PropertyValueStore.CountValuesOutsideOptions(groupID, fieldID, optionIDs, scope, examples)
+		if err == nil {
+			return result, resultVar1, nil
+		}
+		if !isRepeatableError(err) {
+			return result, resultVar1, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, resultVar1, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPropertyValueStore) Create(value *model.PropertyValue) (*model.PropertyValue, error) {
 
 	tries := 0
