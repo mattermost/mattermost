@@ -12,6 +12,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -856,5 +857,182 @@ func TestEnforceParentRules(t *testing.T) {
 			assert.Empty(t, c.read)
 		}
 		require.NoError(t, write(channelField, model.PropertyValueTargetTypeChannel, target, opt("optlow")))
+	})
+}
+
+func TestClearRefusal(t *testing.T) {
+	self := model.PropertyBoundsRule{Operator: model.PropertyBoundsOperatorAtOrAbove, Reference: model.PropertyBoundsReferenceSelf}
+	parent := model.PropertyBoundsRule{Operator: model.PropertyBoundsOperatorAtOrBelow, Reference: model.PropertyBoundsReferenceParent}
+	cases := map[string]struct {
+		mutability model.PropertyFieldMutability
+		bounds     model.PropertyBounds
+		wantID     string
+	}{
+		"nothing":               {},
+		"mutable":               {mutability: model.PropertyFieldMutabilityMutable},
+		"parent rule only":      {bounds: model.PropertyBounds{parent}},
+		"write-once":            {mutability: model.PropertyFieldMutabilityWriteOnce, wantID: "app.property_value.write_once.app_error"},
+		"set-on-create":         {mutability: model.PropertyFieldMutabilitySetOnCreate, wantID: "app.property_value.set_on_create.app_error"},
+		"unrecognised":          {mutability: "frozen", wantID: "app.property_value.set_on_create.app_error"},
+		"self rule":             {bounds: model.PropertyBounds{self}, wantID: "app.property_value.bounds_violated.app_error"},
+		"self and parent rules": {bounds: model.PropertyBounds{parent, self}, wantID: "app.property_value.bounds_violated.app_error"},
+		"write-once, self rule": {mutability: model.PropertyFieldMutabilityWriteOnce, bounds: model.PropertyBounds{self}, wantID: "app.property_value.write_once.app_error"},
+	}
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			field := &model.PropertyField{ID: model.NewId(), Mutability: tc.mutability, Bounds: tc.bounds}
+			err := clearRefusal(field)
+			// A clear is refused exactly when the write path compares with the stored value.
+			assert.Equal(t, storedValueMatters(field), err != nil)
+			if tc.wantID == "" {
+				require.NoError(t, err)
+				return
+			}
+			requireAppErrorID(t, err, tc.wantID, http.StatusForbidden)
+		})
+	}
+}
+
+// deleteInjectingHook runs inject inside the pre-hook of a delete of everything on a target, standing
+// in for a first write that lands between the check and the delete.
+type deleteInjectingHook struct {
+	BasePropertyHook
+	inject func()
+}
+
+func (h *deleteInjectingHook) PreDeletePropertyValuesForTarget(request.CTX, string, string, string) error {
+	if h.inject != nil {
+		h.inject()
+	}
+	return nil
+}
+
+func TestRefuseLockedDeletes(t *testing.T) {
+	th := Setup(t)
+	rctx := th.Context
+	groupID, create, createDirect := boundsSetup(t, th, rctx)
+	selfRule := model.PropertyBounds{{Operator: model.PropertyBoundsOperatorAtOrAbove, Reference: model.PropertyBoundsReferenceSelf}}
+	parentRule := model.PropertyBounds{{Operator: model.PropertyBoundsOperatorAtOrBelow, Reference: model.PropertyBoundsReferenceParent}}
+	// Made before the hook is registered: it would refuse these fixtures' names.
+	create(model.PropertyFieldObjectTypeSystem, nil)
+	raiseOnlyUser := create(model.PropertyFieldObjectTypeUser, selfRule)
+	parentOnlyUser := create(model.PropertyFieldObjectTypeUser, parentRule)
+	parentOnlyChannel := create(model.PropertyFieldObjectTypeChannel, parentRule)
+	mutableChannel := createDirect(model.PropertyFieldObjectTypeChannel)
+	th.service.AddHook(NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{PropertyFieldBounds: func() bool { return true }}, groupID))
+	// Registered after the validation hook, so it runs once the hook has judged the delete.
+	injector := &deleteInjectingHook{}
+	th.service.AddHook(injector)
+
+	newWriteOnce := func() *model.PropertyField {
+		return th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    groupID,
+			ObjectType: model.PropertyFieldObjectTypeChannel,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeText,
+			Name:       "f " + model.NewId(),
+			Mutability: model.PropertyFieldMutabilityWriteOnce,
+		})
+	}
+	// seed writes straight to the store, past the hooks.
+	seed := func(f *model.PropertyField, targetType, targetID, raw string) *model.PropertyValue {
+		created, err := th.dbStore.PropertyValue().Create(&model.PropertyValue{GroupID: groupID, FieldID: f.ID, TargetType: targetType, TargetID: targetID, Value: json.RawMessage(raw)})
+		require.NoError(t, err)
+		return created
+	}
+	stored := func(f *model.PropertyField, targetID string) string {
+		vals, err := th.dbStore.PropertyValue().SearchPropertyValues(rctx, model.PropertyValueSearchOpts{GroupID: groupID, FieldID: f.ID, TargetIDs: []string{targetID}, PerPage: 10})
+		require.NoError(t, err)
+		if len(vals) == 0 {
+			return ""
+		}
+		return string(vals[0].Value)
+	}
+	const writeOnceID = "app.property_value.write_once.app_error"
+	const violatedID = "app.property_value.bounds_violated.app_error"
+	channel, user := model.PropertyValueTargetTypeChannel, model.PropertyValueTargetTypeUser
+
+	t.Run("a write-once row is not deleted, set or not", func(t *testing.T) {
+		f, target := newWriteOnce(), model.NewId()
+		set := seed(f, channel, target, `"a"`)
+		requireAppErrorID(t, th.service.DeletePropertyValue(rctx, groupID, set.ID), writeOnceID, http.StatusForbidden)
+		assert.Equal(t, `"a"`, stored(f, target))
+
+		other, otherTarget := newWriteOnce(), model.NewId()
+		null := seed(other, channel, otherTarget, `null`)
+		requireAppErrorID(t, th.service.DeletePropertyValue(rctx, groupID, null.ID), writeOnceID, http.StatusForbidden)
+		assert.Equal(t, `null`, stored(other, otherTarget))
+	})
+
+	t.Run("a row of a field with only a parent rule is deleted", func(t *testing.T) {
+		target := model.NewId()
+		row := seed(parentOnlyChannel, channel, target, `"optlow"`)
+		require.NoError(t, th.service.DeletePropertyValue(rctx, groupID, row.ID))
+		assert.Equal(t, "", stored(parentOnlyChannel, target))
+	})
+
+	t.Run("a row that is already gone is left to the store", func(t *testing.T) {
+		err := th.service.DeletePropertyValue(rctx, groupID, model.NewId())
+		require.Error(t, err)
+		assert.True(t, store.IsErrNotFound(err), "got %v", err)
+	})
+
+	t.Run("a raise-only user's values are not cleared in bulk", func(t *testing.T) {
+		target := model.NewId()
+		seed(raiseOnlyUser, user, target, `"optmid"`)
+		err := th.service.DeletePropertyValuesForTarget(rctx, groupID, user, target)
+		requireAppErrorID(t, err, violatedID, http.StatusForbidden)
+		assert.Equal(t, `"optmid"`, stored(raiseOnlyUser, target))
+	})
+
+	t.Run("a user's values under only a parent rule are cleared in bulk", func(t *testing.T) {
+		target := model.NewId()
+		seed(parentOnlyUser, user, target, `"optlow"`)
+		require.NoError(t, th.service.DeletePropertyValuesForTarget(rctx, groupID, user, target))
+		assert.Equal(t, "", stored(parentOnlyUser, target))
+	})
+
+	t.Run("a set write-once value on a channel refuses the whole bulk delete", func(t *testing.T) {
+		f, target := newWriteOnce(), model.NewId()
+		seed(f, channel, target, `"a"`)
+		seed(mutableChannel, channel, target, `"m"`)
+
+		err := th.service.DeletePropertyValuesForTarget(rctx, groupID, channel, target)
+		requireAppErrorID(t, err, writeOnceID, http.StatusForbidden)
+		assert.Equal(t, `"a"`, stored(f, target))
+		assert.Equal(t, `"m"`, stored(mutableChannel, target))
+	})
+
+	t.Run("a null write-once row stays and the rest goes", func(t *testing.T) {
+		f, target := newWriteOnce(), model.NewId()
+		seed(f, channel, target, `null`)
+		seed(mutableChannel, channel, target, `"m"`)
+
+		require.NoError(t, th.service.DeletePropertyValuesForTarget(rctx, groupID, channel, target))
+		assert.Equal(t, "", stored(mutableChannel, target))
+		assert.Equal(t, `null`, stored(f, target))
+	})
+
+	t.Run("a first write landing before the delete keeps its value", func(t *testing.T) {
+		f, target := newWriteOnce(), model.NewId()
+		seed(mutableChannel, channel, target, `"m"`)
+		injector.inject = func() { seed(f, channel, target, `"first"`) }
+		t.Cleanup(func() { injector.inject = nil })
+
+		require.NoError(t, th.service.DeletePropertyValuesForTarget(rctx, groupID, channel, target))
+		assert.Equal(t, `"first"`, stored(f, target))
+		assert.Equal(t, "", stored(mutableChannel, target))
+	})
+
+	t.Run("every value of a write-once field is not deleted, set or not", func(t *testing.T) {
+		f := newWriteOnce()
+		requireAppErrorID(t, th.service.DeletePropertyValuesForField(rctx, groupID, f.ID), writeOnceID, http.StatusForbidden)
+	})
+
+	t.Run("every value of a field with only a parent rule is deleted", func(t *testing.T) {
+		target := model.NewId()
+		seed(parentOnlyChannel, channel, target, `"optlow"`)
+		require.NoError(t, th.service.DeletePropertyValuesForField(rctx, groupID, parentOnlyChannel.ID))
+		assert.Equal(t, "", stored(parentOnlyChannel, target))
 	})
 }

@@ -17,6 +17,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 var (
@@ -1602,14 +1603,33 @@ func (h *AccessControlAttributeValidationHook) PreDeletePropertyValue(rctx reque
 	if dcErr := h.refuseDirectChannelValueWrite(rctx, []*model.PropertyValue{value}); dcErr != nil {
 		return dcErr
 	}
-	return h.refuseGovernedDelete(rctx, groupID, []*model.PropertyValue{value})
+	if err := h.refuseGovernedDelete(rctx, groupID, []*model.PropertyValue{value}); err != nil {
+		return err
+	}
+	return h.refuseLockedRowDelete(rctx, groupID, id)
+}
+
+// PreDeletePropertyValuesForField refuses wiping every value of a field that refuses clears. It
+// is a bulk clear that can't be made conditional on each value, so it is refused whether or not
+// any value is set.
+func (h *AccessControlAttributeValidationHook) PreDeletePropertyValuesForField(rctx request.CTX, groupID string, fieldID string) error {
+	if !h.isGroupManaged(groupID) {
+		return nil
+	}
+	return h.refuseLockedFieldClear(store.RequestContextWithMaster(rctx), groupID, fieldID)
 }
 
 // PreDeletePropertyValuesForTarget covers the same gap for a target-wide delete
-// (e.g. via the plugin API). Other target types are untouched -- see
-// validateChangePolicy for why enforcement is scoped to channels.
+// (e.g. via the plugin API). Locked values are protected for every target type; the
+// required and change_policy checks stay channel-only -- see validateChangePolicy for why.
 func (h *AccessControlAttributeValidationHook) PreDeletePropertyValuesForTarget(rctx request.CTX, groupID string, targetType string, targetID string) error {
-	if targetType != model.PropertyValueTargetTypeChannel || !h.isGroupManaged(groupID) {
+	if !h.isGroupManaged(groupID) {
+		return nil
+	}
+	if err := h.refuseLockedTargetDelete(rctx, groupID, targetType, targetID); err != nil {
+		return err
+	}
+	if targetType != model.PropertyValueTargetTypeChannel {
 		return nil
 	}
 	// Checked against a synthetic value so a refusal costs no value load; the

@@ -312,3 +312,87 @@ func newMutabilityError(field *model.PropertyField) error {
 	}
 	return model.NewAppError("UpsertPropertyValues", "app.property_value.set_on_create.app_error", nil, details, http.StatusForbidden)
 }
+
+// clearRefusal returns the refusal for clearing a set value of field, or nil when clears are
+// allowed. It is non-nil exactly when storedValueMatters: a clear is judged by the same rules as
+// any other change to a stored value. Same errors as the write path, so a refused clear tells the
+// caller nothing about the value.
+func clearRefusal(field *model.PropertyField) error {
+	if field.Mutability.OrMutable() != model.PropertyFieldMutabilityMutable {
+		return newMutabilityError(field)
+	}
+	if slices.ContainsFunc(field.Bounds, func(r model.PropertyBoundsRule) bool { return r.Reference == model.PropertyBoundsReferenceSelf }) {
+		return boundsRefusal(fmt.Errorf("field %s: a value can't be cleared: %w", field.ID, errBoundsViolated))
+	}
+	return nil
+}
+
+// refuseLockedRowDelete refuses deleting the value row id when its field refuses clears. A null
+// row is refused too: a by-ID delete can't be made conditional on the value, so letting a null
+// row go would let it race a first write and make a second "first" write possible.
+func (h *AccessControlAttributeValidationHook) refuseLockedRowDelete(rctx request.CTX, groupID, id string) error {
+	master := store.RequestContextWithMaster(rctx)
+	rows, err := h.propertyService.searchPropertyValues(master, groupID, model.PropertyValueSearchOpts{IDs: []string{id}, PerPage: 1})
+	if err != nil {
+		return fmt.Errorf("failed to read value %s before deleting it: %w", id, err)
+	}
+	// No live row: the store answers the delete as it always has.
+	if len(rows) == 0 {
+		return nil
+	}
+	return h.refuseLockedFieldClear(master, groupID, rows[0].FieldID)
+}
+
+// refuseLockedFieldClear returns the field's clearRefusal, reading the field from master.
+func (h *AccessControlAttributeValidationHook) refuseLockedFieldClear(master request.CTX, groupID, fieldID string) error {
+	fields, err := h.propertyService.getPropertyFields(master, groupID, []string{fieldID})
+	if errors.Is(err, ErrFieldNotFound) {
+		return nil
+	}
+	if err != nil {
+		return fmt.Errorf("failed to read field %s before clearing its values: %w", fieldID, err)
+	}
+	return clearRefusal(fields[0])
+}
+
+// refuseLockedTargetDelete refuses deleting everything on a target when it holds a set value of a
+// field that refuses clears, and otherwise tells the delete to leave those fields' rows alone. A
+// first write that lands between this read and the delete keeps its value, the same outcome as
+// the delete having run first.
+func (h *AccessControlAttributeValidationHook) refuseLockedTargetDelete(rctx request.CTX, groupID, targetType, targetID string) error {
+	master := store.RequestContextWithMaster(rctx)
+	// Loads every live field of the group with its options on each call; target-wide deletes are
+	// rare and plugin-only, so there's no cache.
+	fields, err := h.propertyService.fieldStore.GetForGroup(master, groupID)
+	if err != nil {
+		return fmt.Errorf("failed to read the group's fields before deleting values: %w", err)
+	}
+	locked := make(map[string]*model.PropertyField)
+	for _, f := range fields {
+		if clearRefusal(f) != nil {
+			locked[f.ID] = f
+		}
+	}
+	if len(locked) == 0 {
+		return nil
+	}
+
+	values, err := h.getValuesForTarget(master, groupID, targetType, targetID)
+	if err != nil {
+		return err
+	}
+	for _, v := range values {
+		if f, ok := locked[v.FieldID]; ok && !model.IsEmptyPropertyValue(v.Value) {
+			return clearRefusal(f)
+		}
+	}
+
+	conditions := valueWriteConditionsFrom(rctx)
+	if conditions == nil {
+		return errors.New("no write conditions on the request")
+	}
+	for id := range locked {
+		conditions.keepField(id)
+	}
+	return nil
+}
