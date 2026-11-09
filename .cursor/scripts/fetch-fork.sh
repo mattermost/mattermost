@@ -264,8 +264,11 @@ wire_go_workspace() {
   fi
 
   if [ ! -f "$ROOT/server/go.work" ]; then
-    log "server/go.work is missing; run 'make setup-go-work' in server/ first, then re-run this script."
-    return 1
+    log "server/go.work is missing; creating it with 'make setup-go-work'."
+    if ! make -C "$ROOT/server" setup-go-work; then
+      log "'make setup-go-work' failed; fix that in server/ first, then re-run this script."
+      return 1
+    fi
   fi
 
   (
