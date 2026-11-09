@@ -5,10 +5,15 @@ package app
 
 import (
 	"bytes"
+	"crypto"
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
+	"github.com/ProtonMail/go-crypto/openpgp"
+	"github.com/ProtonMail/go-crypto/openpgp/packet"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
@@ -208,5 +213,47 @@ func TestVerifyPluginMFIFeatureFlag(t *testing.T) {
 
 		pluginFile, signatureFile := openPluginAndSignature(t, "testplugin-mfi.tar.gz", "testplugin-mfi.tar.gz.asc")
 		require.Nil(t, th.App.ch.verifyPlugin(logger, pluginFile, signatureFile))
+	})
+}
+
+func TestVerifyBinarySignatureRejectsWeakHash(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	entity, err := openpgp.NewEntity("test", "", "test@example.com", &packet.Config{Algorithm: packet.PubKeyAlgoEdDSA})
+	require.NoError(t, err)
+
+	var publicKey bytes.Buffer
+	require.NoError(t, entity.Serialize(&publicKey))
+
+	data := []byte("plugin bundle")
+
+	sign := func(t *testing.T, hash crypto.Hash) []byte {
+		t.Helper()
+		sig := &packet.Signature{
+			Version:      4,
+			SigType:      packet.SigTypeBinary,
+			PubKeyAlgo:   entity.PrimaryKey.PubKeyAlgo,
+			Hash:         hash,
+			CreationTime: time.Now(),
+			IssuerKeyId:  &entity.PrimaryKey.KeyId,
+		}
+		h := hash.New()
+		h.Write(data)
+		require.NoError(t, sig.Sign(h, entity.PrivateKey, &packet.Config{NonDeterministicSignaturesViaNotation: model.NewPointer(false)}))
+		var signature bytes.Buffer
+		require.NoError(t, sig.Serialize(&signature))
+		return signature.Bytes()
+	}
+
+	t.Run("SHA-256 is accepted", func(t *testing.T) {
+		signature := sign(t, crypto.SHA256)
+		require.NoError(t, verifyBinarySignature(bytes.NewReader(publicKey.Bytes()), bytes.NewReader(data), bytes.NewReader(signature)))
+	})
+
+	t.Run("SHA-1 is rejected", func(t *testing.T) {
+		signature := sign(t, crypto.SHA1)
+		err := verifyBinarySignature(bytes.NewReader(publicKey.Bytes()), bytes.NewReader(data), bytes.NewReader(signature))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "insecure message hash algorithm")
 	})
 }
