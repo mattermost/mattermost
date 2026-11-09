@@ -16,6 +16,8 @@ Visit the [Plugins](/developers/integrate/plugins) section to learn more about [
       - [`formatText(text, options)`](#formattexttext-options)
       - [`messageHtmlToComponent(html, isRHS, options)`](#messagehtmltocomponenthtml-isrhs-options)
       - [Usage Example](#usage-example)
+- [WebappUtils](#webapputils)
+    + [isolatedFrames](#isolatedframes)
 
 ## PluginClass
 
@@ -205,6 +207,71 @@ export default class PostTypeFormatted extends React.PureComponent {
                 {PostUtils.messageHtmlToComponent(formattedText)} // convert the html to components
             </div>
         );
+    }
+}
+```
+
+## WebappUtils
+
+`window.WebappUtils` exposes plugin utilities that go beyond the registry API.
+
+### isolatedFrames
+
+From Mattermost [NOT PRESENT — REQUIRES HUMAN JUDGMENT], `window.WebappUtils.isolatedFrames` lets a plugin register a sandboxed iframe so that `message` events posted by that frame — or by any frame nested inside it — are delivered only to the plugin's handler. No other `message` listener on the page receives them.
+
+This is the correct way to frame untrusted content (for example, a sandboxed iframe rendering generated HTML) when that content may post `message` events to the parent window.
+
+#### `register(frame, handler)`
+
+Registers `frame` as an isolated frame and routes its messages to `handler`.
+
+* `frame` — The `HTMLIFrameElement` to isolate. Must be an iframe element; passing any other element throws a `TypeError` synchronously.
+* `handler` — A function with the signature `(event: MessageEvent) \=> void` that receives every message from `frame` or its descendants. Must be a function; passing any other value throws a `TypeError` synchronously.
+
+Returns a cleanup function. Call it when the frame is removed to stop routing messages to `handler`.
+
+Messages are matched by the frame's position in the frame tree, not by origin, so routing continues even if the frame navigates to a different URL.
+
+#### Usage example
+
+```javascript
+class PluginClass {
+    initialize(registry, store) {
+        this.unregisterFrame = null;
+    }
+
+    mountArtifactFrame(containerEl) {
+        const frame = document.createElement('iframe');
+        frame.sandbox = 'allow-scripts';
+        frame.src = 'about:blank';
+        containerEl.appendChild(frame);
+
+        try {
+            this.unregisterFrame = window.WebappUtils.isolatedFrames.register(
+                frame,
+                (event) => {
+                    // Only this handler receives messages from frame or its children.
+                    this.handleArtifactMessage(event);
+                },
+            );
+        } catch (e) {
+            // register throws TypeError synchronously if frame or handler is invalid.
+            console.error('Failed to register isolated frame:', e);
+        }
+    }
+
+    removeArtifactFrame(containerEl) {
+        if (this.unregisterFrame) {
+            this.unregisterFrame();
+            this.unregisterFrame = null;
+        }
+        containerEl.innerHTML = '';
+    }
+
+    uninitialize() {
+        if (this.unregisterFrame) {
+            this.unregisterFrame();
+        }
     }
 }
 ```
