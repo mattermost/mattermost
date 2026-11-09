@@ -16,6 +16,7 @@ import {
     DotsVerticalIcon,
     ExitToAppIcon,
 } from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {isChannelInManagedCategory} from 'mattermost-redux/selectors/entities/channel_categories';
@@ -24,6 +25,7 @@ import MenuItemOpenInNewWindow from 'components/channel_header_menu/menu_items/o
 import ChannelInviteModal from 'components/channel_invite_modal';
 import ChannelMoveToSubmenu from 'components/channel_move_to_sub_menu';
 import * as Menu from 'components/menu';
+import {SidebarMenuTrigger} from 'components/sidebar/sidebar_menu_trigger';
 
 import {useChannelKind} from 'hooks/useChannelKind';
 import type {KindMessages} from 'utils/channel_kind';
@@ -292,9 +294,10 @@ const SidebarChannelMenu = ({
         <Menu.Container
             menuButton={{
                 id: `SidebarChannelMenu-Button-${channel.id}`,
+                as: SidebarMenuTrigger,
                 class: 'SidebarMenu_menuButton',
                 'aria-label': formatMessage(messages.optionsAriaLabel[channelKind], {channelName: channel.name}),
-                children: <DotsVerticalIcon size={16}/>,
+                children: <Icon glyph={<DotsVerticalIcon/>}/>,
             }}
             menuButtonTooltip={{
                 class: 'hidden-xs',

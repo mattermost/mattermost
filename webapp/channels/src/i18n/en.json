@@ -1111,6 +1111,10 @@
     "defaultMessage": "Common Expression Language (CEL)",
     "description": "Title of the help modal explaining Common Expression Language; CEL is a technology name and should stay as-is."
   },
+  "admin.access_control.cel.editor_aria_label": {
+    "defaultMessage": "CEL expression editor",
+    "description": "Accessible name read by screen readers for the code editor where admins type a CEL access rule expression (advanced mode of the access policy editors in the System Console)."
+  },
   "admin.access_control.cel.help_text": {
     "defaultMessage": "Write rules like `user.attributes.{lessThan}attribute{greaterThan} == {lessSign}value{greaterSign}`. Use `&&` / `||` (and/or) for multiple conditions. Group conditions with `()`.",
     "description": "Help text (markdown) under the advanced CEL expression editor for access policies; the placeholders all resolve to literal angle-bracket characters, and backticked fragments are code."
@@ -2115,6 +2119,18 @@
     "defaultMessage": "Enforce device ID consistency",
     "description": "Label of a true/false toggle in System Console > System Attributes > Attribute-Based Access > Session Attributes. 'Enforce' is a verb; 'device ID' is the session attribute being checked."
   },
+  "admin.accesscontrol.sections.session_attributes.description": {
+    "defaultMessage": "Configure how device identity is trusted and validated for session attributes.",
+    "description": "Subtitle under the Session Attributes AdminPanel on System Console > System Attributes > Attribute-Based Access."
+  },
+  "admin.accesscontrol.sections.settings.description": {
+    "defaultMessage": "Enable attribute-based access control and related membership policy settings.",
+    "description": "Subtitle under the Access Control AdminPanel on System Console > System Attributes > Attribute-Based Access."
+  },
+  "admin.accesscontrol.sections.settings.title": {
+    "defaultMessage": "Access Control",
+    "description": "Title of the Access Control AdminPanel on System Console > System Attributes > Attribute-Based Access, grouping the ABAC enable, audit logging, and channel indicator toggles."
+  },
   "admin.accesscontrol.session_attributes": {
     "defaultMessage": "Session Attributes",
     "description": "Heading of the 'Session Attributes' subsection in System Console > System Attributes > Attribute-Based Access. Groups the settings that control device-identity session attributes."
@@ -2142,14 +2158,6 @@
   "admin.accessibility.delete_orphaned_field": {
     "defaultMessage": "Delete orphaned field",
     "description": "Accessible label for the delete button on a user attribute whose owning plugin has been uninstalled. \"Field\" is the attribute: use the same word as in Attribute Management. \"Orphaned\" means its plugin is no longer installed, as the neighbouring orphaned-attribute strings say; prefer that meaning over a literal calque."
-  },
-  "admin.accessibility.next_page": {
-    "defaultMessage": "Next page",
-    "description": "Accessible label for the next-page button in the reusable System Console data grid."
-  },
-  "admin.accessibility.previous_page": {
-    "defaultMessage": "Previous page",
-    "description": "Accessible label for the previous-page button in the reusable System Console data grid."
   },
   "admin.advance.cluster": {
     "defaultMessage": "High Availability",
@@ -4426,6 +4434,10 @@
   "admin.data_retention.jobTimePM": {
     "defaultMessage": "{time} PM (UTC)",
     "description": "Displays the daily deletion job start time in the afternoon/evening; {time} is an hour:minute value, UTC timezone noted."
+  },
+  "admin.data_retention.policyActionsMenu": {
+    "defaultMessage": "Policy actions menu",
+    "description": "Accessible name and tooltip for the row actions menu button in the global and custom data retention policy tables."
   },
   "admin.data_retention.retention_days": {
     "defaultMessage": "{count} {count, plural, one {day} other {days}}",
@@ -6743,6 +6755,58 @@
     "defaultMessage": "Remove {resources}?",
     "description": "Title of the confirmation dialog shown from the attribute details page in System Console > System Attributes > Attribute Management before removing an attribute from resources. {resources} is a list of resource names."
   },
+  "admin.global_attributes.filter.resource_type": {
+    "defaultMessage": "Resource type",
+    "description": "Label of the Resource type filter beside the Source filter above the attributes table in System Console > System Attributes > Attribute Management. The filter narrows the table to attributes that apply to one kind of resource (users, channels or posts)."
+  },
+  "admin.global_attributes.filter.resource_type.all": {
+    "defaultMessage": "All",
+    "description": "Option of the Resource type filter in System Console > Attribute Management that shows attributes for every resource type. The default."
+  },
+  "admin.global_attributes.filter.resource_type.menuAriaLabel": {
+    "defaultMessage": "Resource type menu",
+    "description": "Screen-reader label of the open Resource type filter menu in System Console > Attribute Management."
+  },
+  "admin.global_attributes.filter.resource_type.menuButtonAriaLabel": {
+    "defaultMessage": "Filter attributes by resource type",
+    "description": "Screen-reader label of the Resource type filter control in System Console > Attribute Management, which opens a menu of resource types (users, channels, posts)."
+  },
+  "admin.global_attributes.filter.source": {
+    "defaultMessage": "Source",
+    "description": "Label of the Source filter beside the search field above the attributes table in System Console > System Attributes > Attribute Management. The filter narrows the table to attributes from one source."
+  },
+  "admin.global_attributes.filter.source.all": {
+    "defaultMessage": "All",
+    "description": "Option of the Source filter in System Console > Attribute Management that shows attributes from every source. The default."
+  },
+  "admin.global_attributes.filter.source.ldap": {
+    "defaultMessage": "AD/LDAP",
+    "description": "Option of the Source filter in System Console > Attribute Management that shows only attributes synced from LDAP. Product name; usually left untranslated."
+  },
+  "admin.global_attributes.filter.source.managed": {
+    "defaultMessage": "Managed here",
+    "description": "Option of the Source filter in System Console > Attribute Management that shows only attributes defined in Mattermost itself: not synced from an identity provider and not created or owned by a plugin or service."
+  },
+  "admin.global_attributes.filter.source.menuAriaLabel": {
+    "defaultMessage": "Source menu",
+    "description": "Screen-reader label of the open Source filter menu in System Console > Attribute Management."
+  },
+  "admin.global_attributes.filter.source.menuButtonAriaLabel": {
+    "defaultMessage": "Filter attributes by source",
+    "description": "Screen-reader label of the Source filter control in System Console > Attribute Management, which opens a menu of attribute sources."
+  },
+  "admin.global_attributes.filter.source.openid": {
+    "defaultMessage": "OpenID Connect",
+    "description": "Option of the Source filter in System Console > Attribute Management that shows only attributes synced from OpenID Connect. Product name; usually left untranslated."
+  },
+  "admin.global_attributes.filter.source.plugin": {
+    "defaultMessage": "Plugin",
+    "description": "Option of the Source filter in System Console > Attribute Management that shows only attributes created or owned by a plugin."
+  },
+  "admin.global_attributes.filter.source.saml": {
+    "defaultMessage": "SAML",
+    "description": "Option of the Source filter in System Console > Attribute Management that shows only attributes synced from SAML. Product name; usually left untranslated."
+  },
   "admin.global_attributes.name_conflict.details_notice": {
     "defaultMessage": "Another attribute already uses this name.",
     "description": "Name-conflict notice shown on the attribute details page in System Console > System Attributes > Attribute Management when another attribute already uses this name. Shown as a danger notice when the match is exact (Users would be blocked) and a warning notice otherwise."
@@ -6819,9 +6883,17 @@
     "defaultMessage": "Definition is read-only",
     "description": "Small subtitle shown under the name in the attributes table for the built-in Classification Markings row, indicating it cannot be edited from this screen."
   },
+  "admin.global_attributes.table.clear_filters": {
+    "defaultMessage": "Clear filters",
+    "description": "Button in the attributes table empty state in System Console > Attribute Management that clears the search text and resets every filter to All."
+  },
   "admin.global_attributes.table.empty": {
     "defaultMessage": "No attributes yet. Click \"New attribute\" to create one.",
     "description": "Empty-state message shown in place of the attributes table when no attributes exist. The quoted \"New attribute\" refers to the button above the table and should match that button's translation."
+  },
+  "admin.global_attributes.table.empty_filtered": {
+    "defaultMessage": "No attributes match your search or filters.",
+    "description": "Empty-state message in the attributes table in System Console > Attribute Management, shown when the search text and the selected filters together match no attributes."
   },
   "admin.global_attributes.table.empty_search": {
     "defaultMessage": "No attributes match your search.",
@@ -8126,6 +8198,14 @@
   "admin.ip_filtering.no_filters_added": {
     "defaultMessage": "Are you sure you want to apply these IP filter changes? There are currently no filters added, so <strong>all IP addresses will have access to the workspace.</strong>",
     "description": "Body of the confirmation modal when applying IP filtering with no rules defined; <strong> wraps the warning that all IPs will be allowed."
+  },
+  "admin.ip_filtering.off": {
+    "defaultMessage": "Off",
+    "description": ""
+  },
+  "admin.ip_filtering.on": {
+    "defaultMessage": "On",
+    "description": ""
   },
   "admin.ip_filtering.rule_name_placeholder": {
     "defaultMessage": "Enter a name for this rule",
@@ -10531,6 +10611,18 @@
     "defaultMessage": "Convert to OpenID Connect",
     "description": "Button in the System Console that converts the existing OAuth 2.0 configuration to OpenID Connect."
   },
+  "admin.panel.collapse": {
+    "defaultMessage": "Collapse section",
+    "description": "Accessible label for the control that collapses an expandable System Console admin settings panel."
+  },
+  "admin.panel.expand": {
+    "defaultMessage": "Expand section",
+    "description": "Accessible label for the control that expands a collapsed System Console admin settings panel."
+  },
+  "admin.panel.untitled": {
+    "defaultMessage": "Settings",
+    "description": ""
+  },
   "admin.password.enableForgotLink.description": {
     "defaultMessage": "When true, “Forgot password” link appears on the Mattermost login page, which allows users to reset their password. When false, the link is hidden from users. This link can be customized to redirect to a URL of your choice from <a>Site Configuration > Customization.</a>",
     "description": "Admin console help text for the Enable Forgot Password Link toggle; <a></a> wraps a link to the Site Configuration > Customization page."
@@ -12811,6 +12903,14 @@
     "defaultMessage": "When true, uploading plugins is disabled and may only be installed through the Marketplace. Plugins are always verified during Mattermost server startup and initialization. See <link>documentation</link> to learn more.",
     "description": "Help text for the Require Plugin Signature setting in System Console Plugin Management; <link> wraps a documentation link."
   },
+  "admin.plugins.settings.restrictUnauthenticatedWebappPlugins": {
+    "defaultMessage": "Restrict Plugins Available Before Login:",
+    "description": "Label for a true/false setting in System Console Plugin Management that limits which plugins are sent to visitors who are not logged in."
+  },
+  "admin.plugins.settings.restrictUnauthenticatedWebappPluginsDesc": {
+    "defaultMessage": "When true, only plugins that declare <code>webapp.pre_auth</code> in their manifest are listed and loaded for visitors who are not logged in, such as on the login page. All other plugins load after the user logs in. When false, all enabled plugins are listed to visitors who are not logged in.",
+    "description": "Help text for the Restrict Plugins Available Before Login setting in System Console Plugin Management; <code> wraps the manifest field name webapp.pre_auth, which should not be translated."
+  },
   "admin.posts.burnOnRead.duration.10min": {
     "defaultMessage": "10 minutes",
     "description": "Dropdown option for the Burn-on-Read Duration setting in the admin console; a time duration in a compact list."
@@ -14815,6 +14915,10 @@
     "defaultMessage": "Disable attribute",
     "description": "Title of the confirmation modal for disabling a session attribute in the System Console."
   },
+  "admin.session_attributes.dotmenu.button.aria_label": {
+    "defaultMessage": "Attribute actions",
+    "description": "Accessibility label and tooltip for the per-row '...' actions menu button in the session attributes table."
+  },
   "admin.session_attributes.dotmenu.disable.label": {
     "defaultMessage": "Disable",
     "description": "Menu item in a session attribute row's '...' menu; disables the attribute."
@@ -16683,6 +16787,26 @@
     "defaultMessage": "Remove policy",
     "description": "Accessibility label for the trash icon button on a policy row; opens a confirmation to unlink the policy from the team."
   },
+  "admin.team_settings.team_detail.rules.advanced_locked": {
+    "defaultMessage": "These rules use advanced logic. Only a System Admin can change them.",
+    "description": "Notice above a read-only Advanced (CEL) editor on a team's page in the System Console, shown to admins who are not System Admins (for example a System Manager) when the team's membership rule uses logic the simple rule table can't display. Only System Admins can edit such rules."
+  },
+  "admin.team_settings.team_detail.rules.error.invalid_expression": {
+    "defaultMessage": "Fix the errors in the team-specific membership rules before saving.",
+    "description": "Error shown in the save bar of the System Console per-team page when Save is clicked while the Team-specific membership rules expression is invalid or can't be saved; nothing is saved."
+  },
+  "admin.team_settings.team_detail.rules.error.parent_resource_attributes": {
+    "defaultMessage": "A linked membership policy references resource attributes, which team membership rules can't use.",
+    "description": "Save bar error on the System Console per-team page when the server rejects the save because a parent membership policy linked to the team references resource.attributes.*; team membership rules can't use those."
+  },
+  "admin.team_settings.team_detail.rules.error.resource_attributes": {
+    "defaultMessage": "Team membership rules can't reference resource attributes.",
+    "description": "Error on the System Console per-team page, shown inline under the Team-specific membership rules editor and in the save bar when the server rejects the save, because the rule references resource.attributes.*, which team membership rules can't use."
+  },
+  "admin.team_settings.team_detail.rules.error.session_attributes": {
+    "defaultMessage": "Team membership rules can't reference session attributes.",
+    "description": "Error in the save bar on the System Console per-team page when the server rejects the save because the team membership rule references user.session.* attributes, which team membership rules can't use."
+  },
   "admin.team_settings.team_detail.rules.subtitle": {
     "defaultMessage": "User attributes and values as additional rules to restrict team membership",
     "description": "Subtitle of the Custom access rules panel on the admin console team configuration page (attribute-based membership)."
@@ -16980,12 +17104,12 @@
     "description": "Help text for a System Console user management setting that locks profile fields for email/password accounts; 'Invite Users' is a permission name."
   },
   "admin.team.maxChannelsDescription": {
-    "defaultMessage": "Maximum total number of channels per team, including both active and archived channels.",
+    "defaultMessage": "Maximum total number of channels per team, including both active and archived channels. Set to 0 for no limit.",
     "description": "Admin console help text for the 'Max Channels Per Team' number setting."
   },
   "admin.team.maxChannelsExample": {
-    "defaultMessage": "E.g.: \"100\"",
-    "description": "Placeholder text in the 'Max Channels Per Team' number input showing an example value."
+    "defaultMessage": "E.g.: \"100\", or \"0\" for no limit",
+    "description": "Placeholder text in the 'Max Channels Per Team' number input showing an example value; 0 is a literal value meaning no limit."
   },
   "admin.team.maxChannelsTitle": {
     "defaultMessage": "Max Channels Per Team:",
@@ -17004,12 +17128,12 @@
     "description": "Field label on the Push Notification Server admin page for the mention/typing-indicator user limit; ends with a colon."
   },
   "admin.team.maxUsersDescription": {
-    "defaultMessage": "Maximum number of active users per team. Deactivated users are not counted toward this limit.",
+    "defaultMessage": "Maximum number of active users per team. Deactivated users are not counted toward this limit. Set to 0 for no limit.",
     "description": "Admin console help text for the 'Max Users Per Team' number setting."
   },
   "admin.team.maxUsersExample": {
-    "defaultMessage": "E.g.: \"25\"",
-    "description": "Placeholder text in the 'Max Users Per Team' number input showing an example value."
+    "defaultMessage": "E.g.: \"25\", or \"0\" for no limit",
+    "description": "Placeholder text in the 'Max Users Per Team' number input showing an example value; 0 is a literal value meaning no limit."
   },
   "admin.team.maxUsersTitle": {
     "defaultMessage": "Max Users Per Team:",
@@ -17267,10 +17391,6 @@
     "defaultMessage": "Member",
     "description": "Role label shown in the Role column of admin console member lists for regular (non-admin) members."
   },
-  "admin.user_item.menuAriaLabel": {
-    "defaultMessage": "User Actions Menu",
-    "description": "Accessibility label for the per-row '...' actions menu; reused here for retention policy rows in the Data Retention tables despite the 'User' wording."
-  },
   "admin.user_item.remoteUser": {
     "defaultMessage": "Remote user",
     "description": "Indicator label on a user row for a user from a remote server via shared channels."
@@ -17344,7 +17464,7 @@
     "description": "Error text shown in place of the Membership Policies table rows when fetching or searching policies fails."
   },
   "admin.user.selectOptions": {
-    "defaultMessage": "Select options...",
+    "defaultMessage": "Select options",
     "description": "Placeholder text in the multi-select input for a custom profile attribute on the admin user configuration page."
   },
   "admin.userDetail.saveChangesModal.authDataChange": {
@@ -17491,10 +17611,6 @@
     "defaultMessage": "MFA",
     "description": "Acronym for multi-factor authentication, appended to the authentication method value on the admin user configuration page when MFA is active."
   },
-  "admin.userManagement.userDetail.noOptions": {
-    "defaultMessage": "No options available",
-    "description": "Message shown in the multiselect dropdown for a custom profile attribute when there are no options to choose from; admin user configuration page."
-  },
   "admin.userManagement.userDetail.notFound": {
     "defaultMessage": "User not found",
     "description": "Placeholder message on the admin user detail card when the requested user does not exist."
@@ -17628,12 +17744,12 @@
     "description": "Empty-state text shown inside admin console tables when there are no rows to display."
   },
   "adminConsole.list.table.pagination.next": {
-    "defaultMessage": "Go to next page",
-    "description": "Accessibility label for the next-page arrow button below admin console tables."
+    "defaultMessage": "Next page",
+    "description": "Accessibility label and tooltip for the next-page arrow in shared list pagination controls (admin console and backstage lists)."
   },
   "adminConsole.list.table.pagination.previous": {
-    "defaultMessage": "Go to previous page",
-    "description": "Accessibility label for the previous-page arrow button below admin console tables."
+    "defaultMessage": "Previous page",
+    "description": "Accessibility label and tooltip for the previous-page arrow in shared list pagination controls (admin console and backstage lists)."
   },
   "adminConsole.list.table.rowCount.label": {
     "defaultMessage": "Show {count} rows per page",
@@ -18723,17 +18839,9 @@
     "defaultMessage": "{overflowUnnamedCount, plural, =0 {{names}} =1 {{names} and one other} other {{names} and # others}}",
     "description": "Tooltip for the overflow indicator on a stack of user avatars; {names} is a list of usernames and {overflowUnnamedCount} the count of further unnamed people."
   },
-  "backstage_list.nextButton.ariaLabel": {
-    "defaultMessage": "Next",
-    "description": "Aria-label of the icon-only next-page button in the pagination footer of backstage lists (integrations, emoji)."
-  },
   "backstage_list.paginatorCount": {
     "defaultMessage": "{startCount, number} - {endCount, number} of {total, number}",
     "description": "Pagination range indicator in the footer of backstage lists; {startCount} and {endCount} are the first/last visible item numbers, {total} is the total item count."
-  },
-  "backstage_list.previousButton.ariaLabel": {
-    "defaultMessage": "Previous",
-    "description": "Aria-label of the icon-only previous-page button in the pagination footer of backstage lists."
   },
   "backstage_list.search": {
     "defaultMessage": "Search",
@@ -19362,10 +19470,6 @@
   "channel_attributes.labels.overflow": {
     "defaultMessage": "+{count}",
     "description": "Compact button after the row of channel attribute chips in the channel header and thread headers, when some chips do not fit. {count} is the number of hidden chips. Opens a popover that lists them."
-  },
-  "channel_attributes.labels.overflow_aria": {
-    "defaultMessage": "{count, plural, one {# more attribute} other {# more attributes}}",
-    "description": "Screen-reader label for the '+N' button after the channel attribute chips in the channel header. # is the number of attributes hidden from the row."
   },
   "channel_attributes.labels.view_all": {
     "defaultMessage": "View all attributes",
@@ -20602,6 +20706,14 @@
   "channel_settings_modal.purpose.placeholder.board": {
     "defaultMessage": "Enter a purpose for this board (optional)",
     "description": "Placeholder of the channel purpose text area on the Info tab of Channel Settings. This is the wording used when the channel is a board."
+  },
+  "channel_settings.access_rules.advanced_rules_locked": {
+    "defaultMessage": "These rules use advanced logic and can't be edited here. Contact a System Admin to change them.",
+    "description": "Notice on the Access Rules tab of Channel Settings, shown to channel admins above a read-only copy of the channel's membership rule when it uses logic (such as OR across attributes or grouping) that this tab's simple rule table can't display or edit. Only a System Admin can change such a rule."
+  },
+  "channel_settings.access_rules.advanced_rules_locked_admin": {
+    "defaultMessage": "These rules use advanced logic and can't be edited here.",
+    "description": "Notice on the Access Rules tab of Channel Settings, shown to System Admins above a read-only copy of the channel's membership rule when it uses logic (such as OR across attributes or grouping) that this tab's simple rule table can't display or edit."
   },
   "channel_settings.access_rules.auto_sync": {
     "defaultMessage": "Auto-add members based on access rules",
@@ -24191,6 +24303,10 @@
     "defaultMessage": "Cancel",
     "description": "Default cancel button label of the shared generic modal component used across the app."
   },
+  "generic_modal.close": {
+    "defaultMessage": "Close",
+    "description": ""
+  },
   "generic_modal.confirm": {
     "defaultMessage": "Confirm",
     "description": "Default confirm button label of the shared generic modal component used across the app."
@@ -24214,6 +24330,10 @@
   "generic.enterprise_feature": {
     "defaultMessage": "Enterprise Feature",
     "description": "Tooltip title shown over buttons for features locked behind an Enterprise license (e.g. the disabled Manage User Settings button)."
+  },
+  "generic.more_attributes": {
+    "defaultMessage": "{count, plural, one {# more attribute} other {# more attributes}}",
+    "description": "Accessible label (screen readers only) on the overflow badge that stands in for attribute chips that do not fit, shown on channel attribute labels and on post attribute chips. {count} is the number of hidden attributes."
   },
   "generic.next": {
     "defaultMessage": "Next",
@@ -26679,6 +26799,18 @@
     "defaultMessage": "Click to call {phoneNumber}",
     "description": "Tooltip shown when hovering a phone number link in a message."
   },
+  "markdown_view_toggle.group": {
+    "defaultMessage": "Markdown view",
+    "description": "Accessible name of the segmented control that switches Markdown content between rendered output and raw source."
+  },
+  "markdown_view_toggle.raw": {
+    "defaultMessage": "Code",
+    "description": "Label and tooltip of the segment that shows Markdown content as raw source text."
+  },
+  "markdown_view_toggle.rendered": {
+    "defaultMessage": "Preview",
+    "description": "Label and tooltip of the segment that shows Markdown content as rendered output."
+  },
   "marketplace_command.disabled": {
     "defaultMessage": "The marketplace is disabled. Please contact your System Administrator for details.",
     "description": "Error returned when a user runs the /marketplace slash command but the marketplace feature is turned off."
@@ -28127,6 +28259,66 @@
     "defaultMessage": "Open in new window",
     "description": "Menu item that opens the current view in a separate popped-out window."
   },
+  "post_attributes.card.edit": {
+    "defaultMessage": "Edit",
+    "description": "Button in the hover card on the attribute chips of a post. Opens the modal for editing the attributes of that post. Verb."
+  },
+  "post_attributes.card.title": {
+    "defaultMessage": "Attributes",
+    "description": "Heading of the hover card that appears over the attribute chips of a post, above the list of attribute names and values. Plural noun."
+  },
+  "post_attributes.chips.overflow": {
+    "defaultMessage": "+{count, number}",
+    "description": "Visible text of the overflow badge after the attribute chips under a post, for chips that do not fit. {count} is the number of hidden attributes."
+  },
+  "post_attributes.chips.unavailable": {
+    "defaultMessage": "Attributes unavailable",
+    "description": "Message shown in place of the attribute chips under a post when the attributes could not be loaded."
+  },
+  "post_attributes.composer.add": {
+    "defaultMessage": "Add attributes",
+    "description": "Tooltip and accessible label of the button in the message composer formatting bar that opens the modal for adding attributes to the message being written. Plural noun after a verb."
+  },
+  "post_attributes.dot_menu.attributes": {
+    "defaultMessage": "Attributes",
+    "description": "Item in the three-dot (More actions) menu of a post that opens the modal for viewing and editing the attributes of that post. Plural noun."
+  },
+  "post_attributes.modal.add": {
+    "defaultMessage": "Add attribute",
+    "description": "Button text (after a + icon) at the bottom of the post attributes modal. It opens a menu listing the attributes that can be added to the post. Verb."
+  },
+  "post_attributes.modal.clear": {
+    "defaultMessage": "Clear {attribute}",
+    "description": "Accessible label (screen readers only) of the button that clears the value of one attribute in the post attributes modal. {attribute} is the display name of that attribute."
+  },
+  "post_attributes.modal.empty": {
+    "defaultMessage": "There are no attributes on this post that you can view or add.",
+    "description": "Shown in the post attributes modal when the post has no attributes this user can see and there is none they are allowed to add."
+  },
+  "post_attributes.modal.error.forbidden": {
+    "defaultMessage": "You do not have permission to change this attribute",
+    "description": "Error shown in the post attributes modal when the server refuses to save a change to an attribute because the user lacks permission."
+  },
+  "post_attributes.modal.error.generic": {
+    "defaultMessage": "Could not update this attribute. Please try again.",
+    "description": "Error shown in the post attributes modal when saving a change to an attribute fails for any reason other than missing permission."
+  },
+  "post_attributes.modal.locked": {
+    "defaultMessage": "You don't have permission to modify this attribute.",
+    "description": "Tooltip on an attribute row in the post attributes modal that is read-only for the current user, explaining that they cannot change it."
+  },
+  "post_attributes.modal.picker.label": {
+    "defaultMessage": "Add an attribute",
+    "description": "Accessible label (screen readers only) of the menu, opened by the add attribute button in the post attributes modal, that lists attributes which can be added to the post."
+  },
+  "post_attributes.modal.subtitle": {
+    "defaultMessage": "{author} · {channel}",
+    "description": "Subtitle under the title of the post attributes modal, identifying the post. {author} is the name of the post author and {channel} is the name of the channel it was posted in; the dot between them is a separator."
+  },
+  "post_attributes.modal.title": {
+    "defaultMessage": "Post attributes",
+    "description": "Title of the modal where users view and edit the attributes (structured metadata fields) attached to a post."
+  },
   "post_body.check_for_out_of_channel_groups_mentions.message": {
     "defaultMessage": "did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups.",
     "description": "Ephemeral notice shown after mentioning group members who are not in the channel; concatenated after the list of mentioned usernames (e.g. '@user did not get notified...'); channel membership is controlled by linked LDAP groups."
@@ -28858,6 +29050,26 @@
   "property_card.field.team.label": {
     "defaultMessage": "Team",
     "description": "Field label in the flagged-message review card for the team the message belongs to."
+  },
+  "property_fields.attribute_combobox.clear": {
+    "defaultMessage": "Clear {label}",
+    "description": "Accessible name of the button that clears a single-value attribute. {label} is the attribute name."
+  },
+  "property_fields.attribute_combobox.empty": {
+    "defaultMessage": "No results",
+    "description": "Shown in an attribute dropdown when no option matches the typed text."
+  },
+  "property_fields.attribute_combobox.listbox": {
+    "defaultMessage": "Options",
+    "description": "Accessible name of an attribute dropdown's option list when no field name is available."
+  },
+  "property_fields.attribute_combobox.loading": {
+    "defaultMessage": "Loading…",
+    "description": "Shown in an attribute dropdown while options load."
+  },
+  "property_fields.attribute_combobox.selections": {
+    "defaultMessage": "{label} selections",
+    "description": "Accessible name of the group of selected-value chips in a multi-value attribute. {label} is the attribute name."
   },
   "property_fields.hierarchical_value_menu.also_under": {
     "defaultMessage": "Also under {names}",
@@ -29847,6 +30059,10 @@
     "defaultMessage": "Undo",
     "description": "Button in the unsaved-changes panel at the bottom of settings screens that reverts the pending changes; 'Undo' is a verb."
   },
+  "saveChangesPanel.dismiss": {
+    "defaultMessage": "Dismiss",
+    "description": ""
+  },
   "saveChangesPanel.error": {
     "defaultMessage": "There was an error saving your settings",
     "description": "Error text in the unsaved-changes panel when saving settings fails."
@@ -30056,11 +30272,11 @@
     "description": "Accessibility label for the search box popup panel; not visible text."
   },
   "search_bar.search_files": {
-    "defaultMessage": "Search files",
+    "defaultMessage": "Search files by keyword",
     "description": "Label for the file search mode/option in the search box."
   },
   "search_bar.search_messages": {
-    "defaultMessage": "Search messages",
+    "defaultMessage": "Search messages by keyword",
     "description": "Label for the message search mode/option in the search box."
   },
   "search_bar.search_types.files": {
@@ -31267,10 +31483,6 @@
     "defaultMessage": "Manually",
     "description": "Sorting option label meaning channels in a sidebar category are ordered manually by the user (drag and drop); adverb."
   },
-  "sidebar.team_menu.button.plusIcon": {
-    "defaultMessage": "Plus Icon",
-    "description": "Accessible label of the plus icon on the team sidebar button for joining or creating teams."
-  },
   "sidebar.team_menu.button.teamImage": {
     "defaultMessage": "{teamName} Team Image",
     "description": "Alt text for a team's icon image in the team sidebar; {teamName} is the team's display name."
@@ -31995,6 +32207,14 @@
     "defaultMessage": "Discoverability",
     "description": "Section title in team settings for choosing whether the team is public or private."
   },
+  "team_settings.membership_tab.advanced_rules_locked": {
+    "defaultMessage": "These rules use advanced logic and can only be edited in the System Console. Contact a System Admin to change them.",
+    "description": "Notice on the Team Membership tab of Team Settings, shown above a read-only copy of the team's membership rule when a System Admin wrote it in the System Console's Advanced (CEL) editor, which this tab's simple rule table can't display or edit."
+  },
+  "team_settings.membership_tab.advanced_rules_locked_admin": {
+    "defaultMessage": "These rules use advanced logic and can only be edited in the <link>System Console</link>.",
+    "description": "Notice on the Team Membership tab of Team Settings, shown to System Admins above a read-only copy of a membership rule written in the System Console's Advanced (CEL) editor. <link> wraps \"System Console\" and opens that team's page in the System Console, where the rule can be edited."
+  },
   "team_settings.membership_tab.auto_add": {
     "defaultMessage": "Auto-add members based on access rules",
     "description": "Checkbox label enabling automatic addition of users who match the team's access rules; appears in team settings and in the admin console team configuration."
@@ -32686,6 +32906,10 @@
   "trial_benefits.modal.useSsoTitle": {
     "defaultMessage": "Use SSO (with OpenID, SAML, Google, O365)",
     "description": "Carousel slide title in the trial benefits modal; SSO means single sign-on."
+  },
+  "tutorial_tip.close": {
+    "defaultMessage": "Close",
+    "description": "Accessible name and tooltip for the dismiss control on an in-app tour tip."
   },
   "tutorial_tip.done": {
     "defaultMessage": "Done",
@@ -33382,6 +33606,14 @@
   "user.settings.display.clockDisplay": {
     "defaultMessage": "Clock Display",
     "description": "Setting title in Settings > Display choosing between 12-hour and 24-hour time format."
+  },
+  "user.settings.display.collapseCategoryWithUnreadsDescription": {
+    "defaultMessage": "When enabled, collapsing a sidebar category hides all of its channels, including unread channels and channels with mentions. The channel you are viewing stays visible.",
+    "description": "Help text for the Settings > Display option that lets a collapsed left-sidebar channel category also hide its unread and muted-with-mention channels."
+  },
+  "user.settings.display.collapseCategoryWithUnreadsTitle": {
+    "defaultMessage": "Collapse category with unread channels",
+    "description": "Setting title in Settings > Display, with On/Off options, for whether collapsing a left-sidebar channel category also hides its unread channels."
   },
   "user.settings.display.collapseDesc": {
     "defaultMessage": "Set whether previews of image links and image attachment thumbnails show as expanded or collapsed by default. This setting can also be controlled using the slash commands /expand and /collapse.",

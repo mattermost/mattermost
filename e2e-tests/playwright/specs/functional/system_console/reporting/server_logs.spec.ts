@@ -293,6 +293,75 @@ test.describe('System Console - Reporting - Server Logs', () => {
     );
 
     /**
+     * @objective Verify a link with filters in its query string opens the viewer with those
+     * filters applied, and that the URL keeps following the filters so a reload keeps them.
+     */
+    test(
+        'opens a shared link with its filters applied and keeps them in the URL',
+        {tag: ['@system_console', '@server_logs']},
+        async ({pw}) => {
+            const {adminUser, adminClient} = await pw.initSetup();
+            const marker = `pw-log-${pw.random.id()}`;
+
+            // # Write a uniquely identifiable entry to the server log
+            await writeServerLogEntry(adminClient, marker);
+
+            // # Log in as admin and wait for the entry to reach the server logs page
+            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+            await systemConsolePage.gotoServerLogs();
+            const serverLogs = systemConsolePage.serverLogs;
+            await serverLogs.toBeVisible();
+            await expect(async () => {
+                await serverLogs.reloadButton.click();
+                await expect(serverLogs.row(marker)).toBeVisible({timeout: 2000});
+            }).toPass({timeout: 30000});
+
+            // # Open a link to the entry's errors in the last hour
+            const page = systemConsolePage.page;
+            const queryRequest = page.waitForRequest(
+                (request) => request.url().includes('/api/v4/logs/query') && request.method() === 'POST',
+            );
+            await systemConsolePage.gotoServerLogs(`?search=${marker}&levels=error&range=60`);
+            await serverLogs.toBeVisible();
+
+            // * Verify the first query asks for the link's filters
+            const body = (await queryRequest).postDataJSON();
+            expect(body.search).toBe(marker);
+            expect(body.log_levels).toEqual(['panic', 'fatal', 'critical', 'error']);
+            expect(body.date_from).toMatch(FILTER_DATE_LAYOUT);
+
+            // * Verify the filter row shows them and only the entry is listed
+            await expect(serverLogs.searchInput).toHaveValue(marker);
+            await expect(serverLogs.levelsValue).toHaveValue('1 selected');
+            await expect(serverLogs.durationValue).toHaveValue('Last hour');
+            await expect(serverLogs.rows).toHaveCount(1);
+            await expect(serverLogs.row(marker)).toBeVisible();
+
+            // # Widen the time range
+            await serverLogs.selectDuration('Last 24 hours');
+
+            // * Verify the URL follows the change and keeps the other filters
+            await expect
+                .poll(() => Object.fromEntries(new URL(page.url()).searchParams))
+                .toEqual({
+                    search: marker,
+                    levels: 'error',
+                    range: '1440',
+                });
+
+            // # Reload the page
+            await page.reload();
+            await serverLogs.toBeVisible();
+
+            // * Verify the filters survive the reload
+            await expect(serverLogs.searchInput).toHaveValue(marker);
+            await expect(serverLogs.levelsValue).toHaveValue('1 selected');
+            await expect(serverLogs.durationValue).toHaveValue('Last 24 hours');
+            await expect(serverLogs.row(marker)).toBeVisible();
+        },
+    );
+
+    /**
      * @objective Verify the selected log format is remembered across a page reload.
      */
     test(
