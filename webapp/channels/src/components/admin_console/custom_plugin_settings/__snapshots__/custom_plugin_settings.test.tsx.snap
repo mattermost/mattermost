@@ -13,7 +13,9 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
       <div
         class="admin-console__header-left"
       >
-        testplugin
+        <span>
+          testplugin
+        </span>
       </div>
     </div>
     <div
@@ -479,7 +481,9 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
       <div
         class="admin-console__header-left"
       >
-        testplugin
+        <span>
+          testplugin
+        </span>
       </div>
     </div>
     <div
@@ -532,7 +536,9 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
       <div
         class="admin-console__header-left"
       >
-        testplugin
+        <span>
+          testplugin
+        </span>
       </div>
     </div>
     <div
