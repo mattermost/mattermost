@@ -45,8 +45,6 @@ Each attribute has two timers that control how fresh its value must be:
 
 Defaults vary by attribute; see the [Session attribute reference](#session-attribute-reference). Both timers offer presets of 1 minute, 5 minutes, 1 hour, and 24 hours, with a minimum value of 1 minute for both. Server-derived attributes aren't affected by these timers, because Mattermost measures them on every request.
 
-From Mattermost [NOT PRESENT — REQUIRES HUMAN JUDGMENT], a one-time startup migration raises any session attribute with a TTL or grace period below 1 minute to 1 minute. TTL and grace period are checked and raised independently.
-
 <Tip>
 
 Grace periods absorb brief network interruptions. A very short grace period can intermittently deny users on unstable connections while their client catches up.
