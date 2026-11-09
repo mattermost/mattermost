@@ -258,8 +258,8 @@ func (h *AccessControlAttributeValidationHook) refuseContainedValuesOutOfBounds(
 			continue
 		}
 
-		// Records nothing for the conditional write: a value beneath written between this read and
-		// the container's write can land out of bounds, and no lock spans the two objects.
+		// A value beneath written between this read and the container's write can still land out of
+		// bounds; no lock spans the two objects.
 		rows, err := h.propertyService.searchPropertyValues(store.RequestContextWithMaster(rctx), field.GroupID, model.PropertyValueSearchOpts{
 			FieldID:   field.ID,
 			TargetIDs: []string{v.TargetID},

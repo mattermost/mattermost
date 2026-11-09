@@ -1254,7 +1254,6 @@ func (ps *PropertyService) updatePropertyFieldsIfUnchanged(rctx request.CTX, gro
 			return nil, nil, nil, err
 		}
 	}
-	// A value written after this check and before the store write below can still land out of bounds; no locks across objects.
 	if err := ps.refuseRulesBrokenByStoredValues(rctx, fields, existingByID, incoming); err != nil {
 		return nil, nil, nil, err
 	}

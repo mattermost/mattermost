@@ -131,8 +131,8 @@ func (ps *PropertyService) parentRuleBreaches(rctx request.CTX, child *model.Pro
 		return breaches, nil
 	}
 
-	// Posts in a channel with no value of child already hold the same rule as child's own: they
-	// had no limit before, and now the system's value caps them.
+	// Posts in a channel with no value of child fall back to the system's value, but only when
+	// their post field carries the same rule as child, so those posts are capped by it too.
 	postFields, err := ps.childFieldsWithParentRule(rctx, child)
 	if err != nil {
 		return breaches, fmt.Errorf("field %s: failed to look up the post fields: %w", child.ID, err)
@@ -310,8 +310,9 @@ func (ps *PropertyService) rankChangeBreaches(rctx request.CTX, template *model.
 // values name a deleted option: they would be stuck, since the lock refuses the replacement value.
 // It also refuses a change to the rank of an option that would put a stored value outside the
 // parent rules of the fields linked to it. Removing or keeping a rule is never checked, a self rule
-// can't be broken by a value that is already stored, and no other mutability change depends on stored values. fields hold the rules
-// and mutability about to be stored; a field missing from existingByID, or a PSAv1 field, is skipped.
+// can't be broken by a value that is already stored, and no other mutability change depends on
+// stored values. fields hold the rules and mutability about to be stored; a field missing from
+// existingByID, or a PSAv1 field, is skipped.
 //
 // A value written between this check and the field's write can still land out of bounds; the
 // field's own write stays conditional on its UpdateAt, and there are no locks across objects.

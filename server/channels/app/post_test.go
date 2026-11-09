@@ -5807,8 +5807,8 @@ func TestMoveThreadUploadFileAttachmentABACEnforcement(t *testing.T) {
 }
 
 // Moving a thread copies its posts into the destination with new IDs and no
-// property values. These tests pin that, so a move that later carries values
-// has to check them against the destination's limit.
+// property values. These tests pin that, so a move that starts carrying
+// values has to check them against the destination's limit.
 func TestMoveThreadPropertyBounds(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
