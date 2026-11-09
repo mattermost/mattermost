@@ -5527,14 +5527,6 @@
     "defaultMessage": "User's Status and Profile Fetching Poll Interval:",
     "description": "Admin console field label on the Experimental Features page for the poll interval (milliseconds) used to fetch user statuses and profiles."
   },
-  "admin.experimental.youtubeReferrerPolicy.desc": {
-    "defaultMessage": "When true, the referrer policy for embedded YouTube videos will be set to \"strict-origin-when-cross-origin\" which resolves issues where YouTube video previews display as unavailable, while balancing the need to protect user privacy with some degree of referral data to support web functionalities, like analytics, logging, and third-party integrations. When false, the referrer policy will be set to \"no-referrer\" which enhances user privacy by not disclosing the source URL, but limits the ability to track user engagement and traffic sources in analytics tools.",
-    "description": "Admin console help text under the YouTube Referrer Policy toggle on the Experimental Features page; strict-origin-when-cross-origin and no-referrer are literal HTTP referrer policy values and must not be translated."
-  },
-  "admin.experimental.youtubeReferrerPolicy.title": {
-    "defaultMessage": "YouTube Referrer Policy:",
-    "description": "Setting label (toggle) on the Experimental Features admin page controlling the referrer policy of embedded YouTube previews; ends with a colon."
-  },
   "admin.false": {
     "defaultMessage": "False",
     "description": "Radio button label for the 'false' choice of boolean settings throughout the System Console."
