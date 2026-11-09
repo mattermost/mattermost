@@ -960,8 +960,8 @@ func convertChangePolicy(field *model.PropertyField) (removed []removedOldKey, c
 //
 // Reads and writes bypass the hooks, like the other migrations here. Writing
 // through updatePropertyFieldsIfUnchanged would refuse making a field
-// write_once while one of its values names a deleted option, and a never field
-// would then be left with neither rule once the old enforcement is gone.
+// write_once while one of its values names a deleted option, which would leave
+// a field whose change_policy is "never" with no lock at all.
 //
 // A field that changed between read and write is left for the next startup;
 // any other write failure is logged by field ID. Only a failure to read a page
