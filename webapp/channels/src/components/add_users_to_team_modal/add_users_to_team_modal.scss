@@ -1,4 +1,9 @@
 #addUsersToTeamModal {
+    .react-select__control.react-select-auto {
+        overflow: auto;
+        max-height: 125px;
+    }
+
     .more-modal__row--disabled {
         cursor: not-allowed;
         opacity: 0.5;
