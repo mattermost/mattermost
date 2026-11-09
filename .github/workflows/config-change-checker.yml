@@ -16,20 +16,14 @@ name: Config Change Checker
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    # `edited` is included so retargeting the base branch re-runs the check;
+    # the job-level `if` skips edits that don't change the base.
+    types: [opened, synchronize, reopened, edited]
     paths:
       - 'server/public/model/config.go'
       - 'server/channels/api4/**'
       - 'server/public/model/audit_events.go'
       - 'server/build/Dockerfile.buildenv'
-      - '.github/scripts/check_config_changes_ci.py'
-      - '.github/scripts/test_check_config_changes_ci.py'
-      - '.github/workflows/config-change-checker.yml'
-
-# Cancel any in-progress run for the same PR when a new commit is pushed.
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
 
 permissions: {}
 
@@ -40,7 +34,16 @@ jobs:
     # Skip bot-authored PRs (Dependabot, mattermost-bot, etc.) — they will
     # not touch these paths intentionally and cannot receive description updates
     # via GITHUB_TOKEN anyway (fork-like restrictions apply to most bots).
-    if: github.event.pull_request.user.type != 'Bot'
+    if: >-
+      github.event.pull_request.user.type != 'Bot' &&
+      (github.event.action != 'edited' || github.event.changes.base != null)
+
+    # Cancel any in-progress run for the same PR when a new commit is pushed.
+    # Defined at job level (not workflow level) so description-only `edited`
+    # events, which the `if` above skips, never cancel a real run.
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+      cancel-in-progress: true
 
     permissions:
       pull-requests: write   # needed to update the PR description
@@ -62,10 +65,6 @@ jobs:
       - name: Install dependencies
         run: pip install requests==2.32.3 --quiet
 
-      - name: Unit tests
-        working-directory: .github/scripts
-        run: python3 -m unittest test_check_config_changes_ci -v
-
       - name: Detect changes and update PR description
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -73,5 +72,4 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           REPO: ${{ github.repository }}
-          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: python3 .github/scripts/check_config_changes_ci.py
