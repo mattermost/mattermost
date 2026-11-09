@@ -899,6 +899,19 @@ type removedOldKey struct {
 	value any
 }
 
+// takeOldPolicyKeys drops change_policy (any value) and editable=false from a
+// field and returns what it dropped, for the log.
+func takeOldPolicyKeys(field *model.PropertyField) (removed []removedOldKey) {
+	if v, ok := field.Attrs[model.PropertyFieldAttrChangePolicy]; ok {
+		removed = append(removed, removedOldKey{model.PropertyFieldAttrChangePolicy, v})
+	}
+	if v, ok := field.Attrs[model.PropertyFieldAttrEditable].(bool); ok && !v {
+		removed = append(removed, removedOldKey{model.PropertyFieldAttrEditable, v})
+	}
+	dropOldPolicyKeys(field)
+	return removed
+}
+
 // convertChangePolicy rewrites one access_control field from its old
 // change_policy / editable keys into mutability and bounds, in place, and
 // reports the keys it dropped and whether anything changed. Only channel fields
@@ -910,13 +923,7 @@ type removedOldKey struct {
 // locked by the old keys alone is judged by them.
 func convertChangePolicy(field *model.PropertyField) (removed []removedOldKey, changed bool) {
 	if field.ObjectType != model.PropertyFieldObjectTypeChannel {
-		if v, ok := field.Attrs[model.PropertyFieldAttrChangePolicy]; ok {
-			removed = append(removed, removedOldKey{model.PropertyFieldAttrChangePolicy, v})
-		}
-		if v, ok := field.Attrs[model.PropertyFieldAttrEditable].(bool); ok && !v {
-			removed = append(removed, removedOldKey{model.PropertyFieldAttrEditable, v})
-		}
-		dropOldPolicyKeys(field)
+		removed = takeOldPolicyKeys(field)
 		return removed, len(removed) > 0
 	}
 
@@ -1038,4 +1045,104 @@ func (ps *PropertyService) MigrateChangePolicyToBounds(rctx request.CTX) (conver
 	}
 
 	return converted, failed, nil
+}
+
+// MigrateRemoveUnenforcedChangePolicy removes change_policy and editable=false
+// from every field in a version 2 group other than access_control, where the
+// server never enforced them. Clients already read a missing setting as "any",
+// which is how those fields have always behaved. Version 1 groups belong to
+// plugins and are left alone; access_control is version 3 and is converted by
+// MigrateChangePolicyToBounds.
+//
+// Reads and writes bypass the hooks, like the other migrations here, and only
+// fields that carry one of the keys are written. A field that changed between
+// read and write is counted in retryable, so the caller can leave its done
+// marker unset; any other write failure is logged by field ID and doesn't stop
+// the run. Only a failure to read a page fails the method.
+func (ps *PropertyService) MigrateRemoveUnenforcedChangePolicy(rctx request.CTX) (removed, retryable int, err error) {
+	isV2Group := map[string]bool{}
+
+	var cursor model.PropertyFieldSearchCursor
+	for {
+		fields, searchErr := ps.fieldStore.SearchPropertyFields(store.RequestContextWithMaster(rctx), model.PropertyFieldSearchOpts{
+			PerPage: propertyPermissionsBackfillPageSize,
+			Cursor:  cursor,
+		})
+		if searchErr != nil {
+			return removed, retryable, fmt.Errorf("MigrateRemoveUnenforcedChangePolicy: failed to search fields: %w", searchErr)
+		}
+		if len(fields) == 0 {
+			break
+		}
+		last := fields[len(fields)-1]
+		cursor = model.PropertyFieldSearchCursor{PropertyFieldID: last.ID, CreateAt: last.CreateAt}
+
+		readUpdateAts := map[string]int64{}
+		dropped := map[string][]removedOldKey{}
+		byGroup := map[string][]*model.PropertyField{}
+		for _, field := range fields {
+			v2, seen := isV2Group[field.GroupID]
+			if !seen {
+				group, groupErr := ps.GroupByID(field.GroupID)
+				if groupErr != nil {
+					rctx.Logger().Error("Old change_policy removal: could not look up a field's group; the field is left alone",
+						mlog.String("field_id", field.ID), mlog.String("group_id", field.GroupID), mlog.Err(groupErr))
+					continue
+				}
+				v2 = group.IsPSAv2()
+				isV2Group[field.GroupID] = v2
+			}
+			if !v2 {
+				continue
+			}
+			readUpdateAt := field.UpdateAt
+			keys := takeOldPolicyKeys(field)
+			if len(keys) == 0 {
+				continue
+			}
+			readUpdateAts[field.ID] = readUpdateAt
+			dropped[field.ID] = keys
+			byGroup[field.GroupID] = append(byGroup[field.GroupID], field)
+		}
+
+		logRemovals := func(field *model.PropertyField) {
+			for _, k := range dropped[field.ID] {
+				rctx.Logger().Warn("Removed a change_policy setting that was never enforced",
+					mlog.String("field_id", field.ID), mlog.String("group_id", field.GroupID),
+					mlog.String("key", k.key), mlog.Any("value", k.value))
+			}
+		}
+		for groupID, batch := range byGroup {
+			if _, updateErr := ps.fieldStore.Update(groupID, batch, readUpdateAts); updateErr == nil {
+				removed += len(batch)
+				for _, field := range batch {
+					logRemovals(field)
+				}
+				continue
+			}
+			// The batch is all or nothing, so one field the store refuses holds
+			// back the rest. Write them one at a time to find it.
+			for _, field := range batch {
+				if _, oneErr := ps.fieldStore.Update(groupID, []*model.PropertyField{field}, map[string]int64{field.ID: readUpdateAts[field.ID]}); oneErr != nil {
+					if _, ok := errors.AsType[*store.ErrConflict](oneErr); ok {
+						rctx.Logger().Warn("Old change_policy removal: field changed since it was read and will be retried on a later restart",
+							mlog.String("field_id", field.ID), mlog.Err(oneErr))
+						retryable++
+						continue
+					}
+					rctx.Logger().Error("Old change_policy removal failed for a field",
+						mlog.String("field_id", field.ID), mlog.Err(oneErr))
+					continue
+				}
+				removed++
+				logRemovals(field)
+			}
+		}
+
+		if len(fields) < propertyPermissionsBackfillPageSize {
+			break
+		}
+	}
+
+	return removed, retryable, nil
 }

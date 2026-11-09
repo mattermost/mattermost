@@ -39,6 +39,7 @@ const (
 	boardsPropertyMigrationVersion                   = "v2"
 	cpaDisplayNameBackfillKey                        = "cpa_display_name_backfill_done"
 	cpaToGlobalAttributesMigrationKey                = "cpa_to_global_attributes_migration_done"
+	changePolicyRemovalKey                           = "change_policy_unenforced_removal_done"
 
 	contentFlaggingPropertyNameFlaggedPostId       = "flagged_post_id"
 	ContentFlaggingPropertyNameStatus              = "status"
@@ -1355,6 +1356,41 @@ func (s *Server) doSetupChangePolicyConversion(rctx request.CTX) error {
 	return nil
 }
 
+// doSetupChangePolicyRemoval runs once, on upgrade, behind a System key:
+// nothing reads change_policy outside access_control and writes of it are
+// dropped, so one pass removes what was stored. No license check, since it
+// removes settings that never did anything. The key is written only once no
+// field needs a retry.
+func (s *Server) doSetupChangePolicyRemoval(rctx request.CTX) error {
+	if _, err := s.Store().System().GetByName(changePolicyRemovalKey); err == nil {
+		return nil
+	} else if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
+		return fmt.Errorf("could not query change_policy removal: %w", err)
+	}
+
+	removed, retryable, err := s.propertyService.MigrateRemoveUnenforcedChangePolicy(rctx)
+	if err != nil {
+		return fmt.Errorf("failed to remove unenforced change_policy: %w", err)
+	}
+
+	if retryable > 0 {
+		mlog.Warn("Removal of unenforced change_policy incomplete: some fields will be retried on a later restart",
+			mlog.Int("removed", removed), mlog.Int("retryable", retryable))
+		return nil
+	}
+
+	mlog.Info("Removed unenforced change_policy from property fields", mlog.Int("removed", removed))
+
+	if err := s.Store().System().SaveOrUpdate(&model.System{
+		Name:  changePolicyRemovalKey,
+		Value: "true",
+	}); err != nil {
+		return fmt.Errorf("failed to mark change_policy removal as complete: %w", err)
+	}
+
+	return nil
+}
+
 func (s *Server) cacheManagedCategoryIDs() error {
 	group, err := s.propertyService.GetPropertyGroup(model.ManagedCategoryPropertyGroupName)
 	if err != nil {
@@ -1594,6 +1630,7 @@ func (s *Server) doAppMigrations() {
 		{"CPA To Global Attributes Migration", s.doSetupCPAToGlobalAttributesMigration},
 		{"Property Permissions Backfill", s.doSetupPropertyPermissionsBackfill},
 		{"Change Policy Conversion", s.doSetupChangePolicyConversion},
+		{"Change Policy Removal", s.doSetupChangePolicyRemoval},
 	}
 
 	for i := range m2 {

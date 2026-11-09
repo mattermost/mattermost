@@ -2302,3 +2302,114 @@ func TestMigrateChangePolicyToBounds_IdempotentAndPaged(t *testing.T) {
 		assert.Equal(t, at, stored.UpdateAt, "the second run must not write")
 	}
 }
+
+func TestMigrateRemoveUnenforcedChangePolicy(t *testing.T) {
+	th := Setup(t)
+	v2 := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
+	v1 := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV1)
+	// Production's access_control group is version 3 (the test helper registers
+	// it as version 2, so it can't stand in).
+	v3 := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV3)
+
+	seed := func(groupID, objectType string, attrs model.StringInterface) *model.PropertyField {
+		return th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID: groupID, Name: "f" + model.NewId()[:8], Type: model.PropertyFieldTypeText,
+			ObjectType: objectType, TargetType: string(model.PropertyFieldTargetLevelSystem), Attrs: attrs,
+		})
+	}
+	stored := func(f *model.PropertyField) *model.PropertyField {
+		got, err := th.dbStore.PropertyField().Get(th.Context, f.GroupID, f.ID)
+		require.NoError(t, err)
+		return got
+	}
+
+	locked := seed(v2.ID, model.PropertyFieldObjectTypeChannel, model.StringInterface{
+		model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyNever,
+		model.PropertyFieldAttrEditable:     false,
+		model.PropertyFieldAttrRequired:     true,
+	})
+	editableTrue := seed(v2.ID, model.PropertyFieldObjectTypeChannel, model.StringInterface{model.PropertyFieldAttrEditable: true})
+	plain := seed(v2.ID, model.PropertyFieldObjectTypeChannel, model.StringInterface{model.PropertyFieldAttrRequired: true})
+	v1Field := seed(v1.ID, "", model.StringInterface{model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyNever})
+	accessControl := seed(v3.ID, model.PropertyFieldObjectTypeChannel, model.StringInterface{model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyNever})
+	buffer := captureMaskingFailureLog(t, th)
+
+	removed, retryable, err := th.service.MigrateRemoveUnenforcedChangePolicy(th.Context)
+	require.NoError(t, err)
+	assert.Equal(t, 1, removed)
+	assert.Equal(t, 0, retryable)
+
+	got := stored(locked)
+	assert.NotContains(t, got.Attrs, model.PropertyFieldAttrChangePolicy)
+	assert.NotContains(t, got.Attrs, model.PropertyFieldAttrEditable)
+	assert.Equal(t, true, got.Attrs[model.PropertyFieldAttrRequired])
+	requireWarnLogged(t, th, buffer, "Removed a change_policy setting that was never enforced")
+
+	assert.Equal(t, true, stored(editableTrue).Attrs[model.PropertyFieldAttrEditable], "editable: true is left alone")
+	assert.Equal(t, plain.UpdateAt, stored(plain).UpdateAt, "a field with neither key is not written")
+	assert.Equal(t, model.PropertyFieldChangePolicyNever, stored(v1Field).Attrs[model.PropertyFieldAttrChangePolicy], "version 1 groups are plugins' own")
+	assert.Equal(t, accessControl.UpdateAt, stored(accessControl).UpdateAt, "access_control is converted by MigrateChangePolicyToBounds")
+}
+
+func TestMigrateRemoveUnenforcedChangePolicy_Paged(t *testing.T) {
+	th := Setup(t)
+	orig := propertyPermissionsBackfillPageSize
+	propertyPermissionsBackfillPageSize = 2
+	t.Cleanup(func() { propertyPermissionsBackfillPageSize = orig })
+
+	groups := []*model.PropertyGroup{
+		th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2),
+		th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2),
+	}
+	var fields []*model.PropertyField
+	for i := range 5 {
+		fields = append(fields, th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID: groups[i%2].ID, Name: "f" + model.NewId()[:8], Type: model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeChannel, TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyNever},
+		}))
+	}
+
+	removed, retryable, err := th.service.MigrateRemoveUnenforcedChangePolicy(th.Context)
+	require.NoError(t, err)
+	assert.Equal(t, 5, removed)
+	assert.Equal(t, 0, retryable)
+
+	for _, f := range fields {
+		got, getErr := th.dbStore.PropertyField().Get(th.Context, f.GroupID, f.ID)
+		require.NoError(t, getErr)
+		assert.NotContains(t, got.Attrs, model.PropertyFieldAttrChangePolicy)
+	}
+}
+
+// conflictStore refuses every Update with a conflict, as if the field changed
+// between the read and the write.
+type conflictStore struct {
+	store.PropertyFieldStore
+}
+
+func (s *conflictStore) Update(string, []*model.PropertyField, map[string]int64) ([]*model.PropertyField, error) {
+	return nil, store.NewErrConflict("PropertyField", errors.New("changed"), "")
+}
+
+func TestMigrateRemoveUnenforcedChangePolicy_ConflictIsRetryable(t *testing.T) {
+	th := Setup(t)
+	group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
+	field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+		GroupID: group.ID, Name: "f" + model.NewId()[:8], Type: model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeChannel, TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs: model.StringInterface{model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyNever},
+	})
+	realStore := th.service.fieldStore
+	th.service.fieldStore = &conflictStore{realStore}
+	t.Cleanup(func() { th.service.fieldStore = realStore })
+
+	removed, retryable, err := th.service.MigrateRemoveUnenforcedChangePolicy(th.Context)
+	require.NoError(t, err)
+	assert.Equal(t, 0, removed)
+	assert.Equal(t, 1, retryable)
+
+	got, getErr := th.dbStore.PropertyField().Get(th.Context, field.GroupID, field.ID)
+	require.NoError(t, getErr)
+	assert.Equal(t, model.PropertyFieldChangePolicyNever, got.Attrs[model.PropertyFieldAttrChangePolicy])
+}
