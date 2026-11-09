@@ -480,6 +480,8 @@ def strip_old_note(body: str) -> str:
     cleaned = _GENERATED_RE.sub("", body or "")
 
     def restore_placeholder(match: re.Match) -> str:
+        # Cleanup must leave NONE when the last generated entry is removed:
+        # changelog tooling treats an empty fence as a missing release note.
         if not match.group(2).strip():
             return match.group(1) + "\nNONE\n" + match.group(3)
         return match.group(0)
