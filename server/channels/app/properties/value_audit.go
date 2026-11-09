@@ -18,12 +18,33 @@ const (
 	ValueAuditActionDelete          = "delete"
 	ValueAuditActionDeleteForTarget = "delete_for_target"
 	ValueAuditActionDeleteForField  = "delete_for_field"
+
+	// ValueAuditActionBoundsRefused records a write a bounds rule or mutability
+	// refused.
+	ValueAuditActionBoundsRefused = "bounds_refused"
+	// ValueAuditActionBoundsNotEnforced records a write that would have been
+	// refused and went ahead because the license lacks Enterprise Advanced.
+	ValueAuditActionBoundsNotEnforced = "bounds_not_enforced"
 )
 
-// ValueAuditEvent describes one successful property value change passed to a
-// group's ValueAuditSink. Prev and Current are nil for bulk-delete actions
-// (delete_for_target, delete_for_field). Each group decides which fields to
-// include in its audit record.
+// Why a bounds rule refused, or would have refused, a write.
+const (
+	// ValueAuditBoundsReasonViolated: the value broke the rule.
+	ValueAuditBoundsReasonViolated = "violated"
+	// ValueAuditBoundsReasonCheckFailed: the rule could not be checked, for
+	// example a missing parent object, an ambiguous matching field or an
+	// unrankable value.
+	ValueAuditBoundsReasonCheckFailed = "check_failed"
+)
+
+// ValueAuditEvent describes one property value change passed to a group's
+// ValueAuditSink: a successful write, or, for the bounds_refused and
+// bounds_not_enforced actions, a write a bounds rule refused or would have
+// refused. Prev and Current are nil for bulk-delete actions
+// (delete_for_target, delete_for_field). For the bounds actions Current is the
+// value the write tried to store (nil for a clear or delete) and the Bounds*
+// fields say which rule broke; they are empty on every other action. Each group
+// decides which fields to include in its audit record.
 type ValueAuditEvent struct {
 	Action     string
 	TargetType string
@@ -32,6 +53,19 @@ type ValueAuditEvent struct {
 	ValueID    string
 	Prev       *model.PropertyValue
 	Current    *model.PropertyValue
+
+	// BoundsRule is what refused the write: a mutability as stored
+	// ("write_once", "set_on_create", or an unrecognised label verbatim), a
+	// rule written "<operator> <reference>" ("at_or_below parent"), or
+	// "contained_values" for a container change that would put values beneath
+	// it out of bounds.
+	BoundsRule string
+	// BoundsReason is ValueAuditBoundsReasonViolated or
+	// ValueAuditBoundsReasonCheckFailed.
+	BoundsReason string
+	// BoundsAffected is, for contained_values, how many objects beneath would
+	// have been out of bounds.
+	BoundsAffected int64
 }
 
 // ValueAuditSink emits one audit record for a successful property value change.

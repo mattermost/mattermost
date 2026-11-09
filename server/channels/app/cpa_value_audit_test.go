@@ -224,6 +224,87 @@ func TestBuildCPAValueAuditRecord(t *testing.T) {
 		}
 	})
 
+	t.Run("bounds_refused fails the record with the rule and reason, and no basis", func(t *testing.T) {
+		field := createField(t, &model.PropertyField{
+			Name:       "bounds refused",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Value: model.ReadWrite{Write: model.PermissionLevelEveryone},
+				},
+			},
+		})
+
+		rctx := RequestContextWithCallerID(th.Context, th.BasicUser.Id)
+		rec := th.App.buildCPAValueAuditRecord(rctx, properties.ValueAuditEvent{
+			Action:       properties.ValueAuditActionBoundsRefused,
+			TargetType:   model.PropertyFieldObjectTypeUser,
+			TargetID:     th.BasicUser.Id,
+			FieldID:      field.ID,
+			Current:      &model.PropertyValue{Value: []byte(`"v"`)},
+			BoundsRule:   "at_or_below parent",
+			BoundsReason: properties.ValueAuditBoundsReasonViolated,
+		})
+
+		assert.Equal(t, model.AuditStatusFail, rec.Status)
+		assert.Equal(t, properties.ValueAuditActionBoundsRefused, rec.Meta["action"])
+		assert.Equal(t, "at_or_below parent", rec.Meta["bounds_rule"])
+		assert.Equal(t, properties.ValueAuditBoundsReasonViolated, rec.Meta["bounds_reason"])
+		assert.Equal(t, field.ID, rec.Meta["field_id"])
+		assert.Equal(t, th.BasicUser.Id, rec.Meta["target_id"])
+		assert.Equal(t, th.BasicUser.Id, rec.Meta["caller_id"])
+		assert.Equal(t, `"v"`, rec.Meta["new_value"])
+		for _, key := range []string{
+			"basis_tier", "basis_grant_id", "basis_grant_scope", "basis_grant_wildcard",
+			"basis_unrestricted", "basis_holdings_change",
+		} {
+			assert.NotContains(t, rec.Meta, key)
+		}
+	})
+
+	t.Run("bounds_not_enforced succeeds with the same bounds meta", func(t *testing.T) {
+		fieldID := model.NewId()
+		rctx := RequestContextWithCallerID(th.Context, th.BasicUser.Id)
+		rec := th.App.buildCPAValueAuditRecord(rctx, properties.ValueAuditEvent{
+			Action:       properties.ValueAuditActionBoundsNotEnforced,
+			TargetType:   model.PropertyFieldObjectTypeUser,
+			TargetID:     th.BasicUser.Id,
+			FieldID:      fieldID,
+			Current:      &model.PropertyValue{Value: []byte(`"v"`)},
+			BoundsRule:   "write_once",
+			BoundsReason: properties.ValueAuditBoundsReasonCheckFailed,
+		})
+
+		assert.Equal(t, model.AuditStatusSuccess, rec.Status)
+		assert.Equal(t, properties.ValueAuditActionBoundsNotEnforced, rec.Meta["action"])
+		assert.Equal(t, "write_once", rec.Meta["bounds_rule"])
+		assert.Equal(t, properties.ValueAuditBoundsReasonCheckFailed, rec.Meta["bounds_reason"])
+		assert.Equal(t, fieldID, rec.Meta["field_id"])
+		assert.Equal(t, `"v"`, rec.Meta["new_value"])
+		assert.NotContains(t, rec.Meta, "basis_tier")
+	})
+
+	t.Run("bounds_affected is recorded only when positive", func(t *testing.T) {
+		rctx := RequestContextWithCallerID(th.Context, th.BasicUser.Id)
+		event := properties.ValueAuditEvent{
+			Action:         properties.ValueAuditActionBoundsRefused,
+			TargetType:     model.PropertyFieldObjectTypeChannel,
+			TargetID:       th.BasicChannel.Id,
+			FieldID:        model.NewId(),
+			BoundsRule:     "contained_values",
+			BoundsReason:   properties.ValueAuditBoundsReasonViolated,
+			BoundsAffected: 3,
+		}
+		rec := th.App.buildCPAValueAuditRecord(rctx, event)
+		assert.EqualValues(t, 3, rec.Meta["bounds_affected"])
+
+		event.BoundsAffected = 0
+		rec = th.App.buildCPAValueAuditRecord(rctx, event)
+		assert.NotContains(t, rec.Meta, "bounds_affected")
+	})
+
 	t.Run("an event naming a field that does not exist still emits a record carrying the caller identity", func(t *testing.T) {
 		rctx := RequestContextWithCallerID(th.Context, th.BasicUser.Id)
 		rec := th.App.buildCPAValueAuditRecord(rctx, properties.ValueAuditEvent{
