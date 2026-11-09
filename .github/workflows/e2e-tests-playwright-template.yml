@@ -320,6 +320,11 @@ jobs:
       # stop the server that ci/dispatch-run needs next. ci/testcontainers-teardown does the final
       # teardown once the whole queue is done.
       PW_TESTCONTAINERS_REUSE: "true"
+      # Every stack container is withReuse(), so once ci/prepare-playwright exits, Ryuk only
+      # tries to remove the in-use session network and then exits. That exit lands ~19 s after
+      # setup and lines up with net::ERR_NETWORK_CHANGED failures on a worker's first spec. The
+      # runner is ephemeral, so nothing needs Ryuk's cleanup.
+      TESTCONTAINERS_RYUK_DISABLED: "true"
       PW_SERVER_DEPLOY: "${{ inputs.server_deploy }}"
     steps:
       - name: ci/checkout-actions
