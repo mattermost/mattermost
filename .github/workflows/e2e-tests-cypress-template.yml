@@ -223,7 +223,7 @@ jobs:
         with:
           context-name: ${{ inputs.context_name }}
       - name: ci/claim-status
-        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-test-status@388cfc8f012e82ef34bcfc08e2c048e05ff23a5f  # actions/e2e-test-status
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-test-status@cd8d161bde14ebe0573bd7fc759b73101cfeec43  # actions/e2e-test-status
         with:
           composite-identity: ${{ steps.composite-identity.outputs.composite-identity-json }}
           status-context: ${{ inputs.context_name }}
@@ -317,7 +317,7 @@ jobs:
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 1
       - name: ci/dispatch-begin
-        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-dispatch-begin@dce01bf4f653b52482b423f114c67b6f0120170b # 2026-11-08
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-dispatch-begin@c31c00f723b0b1c3e1d6b45a50b938d5afae729f # 2026-11-09 (#132)
         with:
           use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
           framework: cypress
@@ -417,7 +417,7 @@ jobs:
         run: make start-server
       - name: ci/dispatch-run
         timeout-minutes: 25
-        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-dispatch-run@dce01bf4f653b52482b423f114c67b6f0120170b # 2026-11-08
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-dispatch-run@c31c00f723b0b1c3e1d6b45a50b938d5afae729f # 2026-11-09 (#132)
         with:
           use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
           framework: cypress
@@ -470,7 +470,7 @@ jobs:
         if: always()
         id: summary
         continue-on-error: true
-        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-summary@dce01bf4f653b52482b423f114c67b6f0120170b # 2026-11-08
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-summary@c31c00f723b0b1c3e1d6b45a50b938d5afae729f # 2026-11-09 (#132)
         with:
           use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
           composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
