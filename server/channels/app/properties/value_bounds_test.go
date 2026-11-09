@@ -1767,6 +1767,9 @@ func TestBoundsEnforcementByLicense(t *testing.T) {
 				// Refused whole, on the first locked value.
 				require.Len(t, *f.events, 1)
 				assert.Equal(t, ValueAuditActionBoundsRefused, (*f.events)[0].Action)
+				require.NotNil(t, (*f.events)[0].Prev)
+				assert.NotEmpty(t, (*f.events)[0].ValueID)
+				assert.Equal(t, (*f.events)[0].Prev.ID, (*f.events)[0].ValueID)
 				assert.Equal(t, opt("optlow"), stored(f.below, target))
 				return
 			}
@@ -1778,6 +1781,8 @@ func TestBoundsEnforcementByLicense(t *testing.T) {
 				assert.Equal(t, ValueAuditBoundsReasonViolated, e.BoundsReason)
 				assert.Equal(t, target, e.TargetID)
 				require.NotNil(t, e.Prev)
+				assert.NotEmpty(t, e.ValueID)
+				assert.Equal(t, e.Prev.ID, e.ValueID)
 				rules[e.FieldID] = e.BoundsRule
 			}
 			assert.Equal(t, map[string]string{f.locked.ID: "write_once", f.raise.ID: "at_or_above self"}, rules)

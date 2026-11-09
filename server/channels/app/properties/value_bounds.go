@@ -557,7 +557,7 @@ func (h *AccessControlAttributeValidationHook) refuseLockedTargetDelete(rctx req
 		}
 		rule, refusal := clearRefusal(f)
 		// Without Enterprise Advanced this audits every locked value and returns nil.
-		if err := h.boundsBreak(master, groupID, ValueAuditEvent{TargetType: v.TargetType, TargetID: v.TargetID, FieldID: v.FieldID, Prev: v, BoundsRule: rule}, refusal); err != nil {
+		if err := h.boundsBreak(master, groupID, ValueAuditEvent{TargetType: v.TargetType, TargetID: v.TargetID, ValueID: v.ID, FieldID: v.FieldID, Prev: v, BoundsRule: rule}, refusal); err != nil {
 			return err
 		}
 	}
