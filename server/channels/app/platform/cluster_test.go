@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
@@ -59,4 +60,36 @@ func TestIsLeader(t *testing.T) {
 
 		assert.True(t, th.Service.IsLeader())
 	})
+}
+
+// swapOnEncode runs while Publish encodes the event, which is after it has checked for a
+// cluster and before it sends to one.
+type swapOnEncode func()
+
+func (f swapOnEncode) MarshalJSON() ([]byte, error) {
+	f()
+	return []byte(`{}`), nil
+}
+
+// Publish must not crash if the cluster is unset after its nil check.
+func TestPublishWhileClusterIsUnset(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := SetupWithStoreMock(t)
+
+	// The hubs encode every event on their own goroutines; detached, the only encode
+	// is the one inside Publish.
+	hubs := th.Service.hubs
+	th.Service.hubs = nil
+	t.Cleanup(func() { th.Service.hubs = hubs })
+
+	cluster := &testlib.FakeClusterInterface{}
+	th.Service.SetCluster(cluster)
+
+	event := model.NewWebSocketEvent(model.WebsocketEventConfigChanged, "", "", "", nil, "")
+	event.Add("config", swapOnEncode(func() { th.Service.SetCluster(nil) }))
+
+	require.NotPanics(t, func() { th.Service.Publish(event) })
+	require.Nil(t, th.Service.Cluster())
+	require.Len(t, cluster.GetMessages(), 1, "the swap must land between Publish's nil check and its send")
 }

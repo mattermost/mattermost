@@ -4,8 +4,11 @@
 package api4
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
+	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -921,4 +924,79 @@ func TestDeleteRemoteClusterKeepsSharedChannelWhenOtherRemoteRemains(t *testing.
 	chAfter, appErr := th.App.GetChannel(th.Context, channel.Id)
 	require.Nil(t, appErr)
 	require.True(t, chAfter.IsShared())
+}
+
+func TestUploadRemoteData(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupForSharedChannels(t).InitBasic(t)
+
+	rc, appErr := th.App.AddRemoteCluster(&model.RemoteCluster{
+		RemoteId:  model.NewId(),
+		Name:      "remote_upload",
+		SiteURL:   "http://example-upload.com",
+		CreatorId: th.SystemAdminUser.Id,
+		Token:     model.NewId(),
+	})
+	require.Nil(t, appErr)
+
+	data := []byte("contents of a file sent by a remote")
+
+	saveSession := func(t *testing.T, offset int64) *model.UploadSession {
+		t.Helper()
+		id := model.NewId()
+		us, err := th.App.Srv().Store().UploadSession().Save(&model.UploadSession{
+			Id:         id,
+			Type:       model.UploadTypeAttachment,
+			UserId:     th.BasicUser.Id,
+			ChannelId:  th.BasicChannel.Id,
+			Filename:   "remote.txt",
+			Path:       "remote_upload_test/" + id + "/remote.txt",
+			FileSize:   int64(len(data)),
+			FileOffset: offset,
+			RemoteId:   rc.RemoteId,
+		})
+		require.NoError(t, err)
+		if offset > 0 {
+			_, appErr := th.App.WriteFile(bytes.NewReader(data[:offset]), us.Path)
+			require.Nil(t, appErr)
+		}
+		return us
+	}
+
+	upload := func(t *testing.T, us *model.UploadSession) *http.Response {
+		t.Helper()
+		// An unknown length, like the file reader sendFileToRemote sends, so the Content-Length check is skipped.
+		body := io.MultiReader(bytes.NewReader(data))
+		req, err := http.NewRequest(http.MethodPost, th.Client.APIURL+"/remotecluster/upload/"+us.Id, body)
+		require.NoError(t, err)
+		req.Header.Set(model.HeaderRemoteclusterId, rc.RemoteId)
+		req.Header.Set(model.HeaderRemoteclusterToken, rc.Token)
+		resp, err := http.DefaultClient.Do(req)
+		require.NoError(t, err)
+		t.Cleanup(func() { resp.Body.Close() })
+		return resp
+	}
+
+	t.Run("a new upload completes", func(t *testing.T) {
+		us := saveSession(t, 0)
+
+		resp := upload(t, us)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var info model.FileInfo
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&info))
+		require.Equal(t, int64(len(data)), info.Size)
+	})
+
+	t.Run("an upload that already received data is rejected", func(t *testing.T) {
+		us := saveSession(t, 10)
+
+		resp := upload(t, us)
+		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		CheckErrorID(t, model.AppErrorFromJSON(resp.Body), "api.remote_cluster.upload_resume_not_allowed.app_error")
+
+		stored, err := th.App.Srv().Store().UploadSession().Get(th.Context, us.Id)
+		require.NoError(t, err)
+		require.Equal(t, int64(10), stored.FileOffset)
+	})
 }

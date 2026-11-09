@@ -35,6 +35,7 @@ import {clearComposerPlaceholderErrors} from 'components/advanced_text_editor/co
 import {compassIconForName} from 'components/channel_type_icon';
 import {clearLoggedMatcherErrors} from 'components/channel_type_icon/channel_icon_override';
 
+import {clearLoggedChannelKindErrors} from 'utils/channel_kind';
 import {ActionTypes} from 'utils/constants';
 import {reArg} from 'utils/func';
 import {registerRHSPluginPopoutListener, type PopoutListeners} from 'utils/popouts/popout_windows';
@@ -49,6 +50,8 @@ import type {
     PostDropdownMenuAction,
     ChannelHeaderAction,
     ChannelHeaderButtonAction,
+    ChannelInfoMenuAction,
+    ChannelBookmarksMenuAction,
     RightHandSidebarComponent,
     AppBarAction,
     FileUploadMethodAction,
@@ -78,11 +81,13 @@ import type {
     AIActionMenuItemComponent,
     ChannelTypeOptionComponent,
     ChannelIconOverrideRegistration,
+    ChannelKindRegistration,
     ChannelIntroRegistration,
     ChannelViewRegistration,
     ComposerPlaceholderRegistration,
     ProductSwitcherMenuItemRegistration,
 } from 'types/store/plugins';
+import {CHANNEL_KINDS} from 'types/store/plugins';
 
 const defaultShouldRender = () => true;
 
@@ -558,6 +563,95 @@ export default class PluginRegistry {
             text: resolveReactElement(text),
             action,
             shouldRender,
+        });
+
+        return id;
+    });
+
+    /**
+     * Register an item in the channel bookmarks "+" / header Bookmarks Bar menus
+     * (alongside Add a link / Attach a file).
+     * Accepts the following:
+     * - icon - A React element for the leading icon
+     * - text - A string or React element to display
+     * - action - A function that receives the channelId when the item is clicked
+     * - shouldRender - Optional. (state, channelId) => boolean for conditional display
+     * Returns a unique identifier.
+     */
+    registerChannelBookmarksMenuAction = reArg([
+        'icon',
+        'text',
+        'action',
+        'shouldRender',
+    ], ({
+        icon,
+        text,
+        action,
+        shouldRender = defaultShouldRender,
+    }: {
+        icon: ReactResolvable;
+        text: ChannelBookmarksMenuAction['text'];
+        action: ChannelBookmarksMenuAction['action'];
+        shouldRender?: ChannelBookmarksMenuAction['shouldRender'];
+    }) => {
+        const id = generateId();
+
+        this.dispatchPluginComponentWithData('ChannelBookmarksMenu', {
+            id,
+            pluginId: this.id,
+            icon: resolveReactElement(icon),
+            text: resolveReactElement(text),
+            action,
+            shouldRender,
+        });
+
+        return id;
+    });
+
+    /**
+     * Register a Channel Info RHS menu item (below Files / Pinned messages).
+     * Accepts the following:
+     * - icon - A React element for the leading icon
+     * - text - A string or React element to display
+     * - action - A function that receives the channelId when the item is clicked
+     * - shouldRender - Optional. (state, channel) => boolean for conditional display
+     * - badge - Optional. Count or React node shown on the trailing edge
+     * - opensSubpanel - Optional. Show a chevron (default false)
+     * Returns a unique identifier.
+     */
+    registerChannelInfoMenuAction = reArg([
+        'icon',
+        'text',
+        'action',
+        'shouldRender',
+        'badge',
+        'opensSubpanel',
+    ], ({
+        icon,
+        text,
+        action,
+        shouldRender = defaultShouldRender,
+        badge,
+        opensSubpanel = false,
+    }: {
+        icon: ReactResolvable;
+        text: ChannelInfoMenuAction['text'];
+        action: ChannelInfoMenuAction['action'];
+        shouldRender?: ChannelInfoMenuAction['shouldRender'];
+        badge?: ChannelInfoMenuAction['badge'];
+        opensSubpanel?: boolean;
+    }) => {
+        const id = generateId();
+
+        this.dispatchPluginComponentWithData('ChannelInfoMenu', {
+            id,
+            pluginId: this.id,
+            icon: resolveReactElement(icon),
+            text: resolveReactElement(text),
+            action,
+            shouldRender,
+            badge: badge === undefined || badge === null ? badge : resolveReactElement(badge as ReactResolvable),
+            opensSubpanel,
         });
 
         return id;
@@ -1518,6 +1612,41 @@ export default class PluginRegistry {
             pluginId: this.id,
             matcher,
             iconName,
+        });
+        return id;
+    });
+
+    /**
+     * Register a kind for matching channels, which the webapp then names with that kind's own
+     * words: a 'board' is a board everywhere the webapp would say channel ("Board Settings",
+     * "Leave Board", "Add a board header", "joined the board"). Each such string is its own
+     * translated message beside the channel one.
+     *
+     * `matcher` receives the full GlobalState and a Channel, as for registerChannelIconOverride;
+     * throws are caught and treated as no-match, and the first match wins. Its answer is kept until
+     * the channel or the registrations change, so it should decide from the channel. `kind` must be one the
+     * webapp knows: 'board'. Registrations are cleaned up automatically when the plugin is removed.
+     *
+     * @returns Auto-generated unique id for this registration.
+     */
+    registerChannelKind = reArg(['matcher', 'kind'], ({matcher, kind}: {
+        matcher: ChannelKindRegistration['matcher'];
+        kind: ChannelKindRegistration['kind'];
+    }) => {
+        if (!(CHANNEL_KINDS as readonly string[]).includes(kind)) {
+            // eslint-disable-next-line no-console
+            console.error(`ChannelKind: plugin '${this.id}' supplied unknown kind '${kind}' — registration ignored.`);
+            return generateId();
+        }
+        if (this.isActive()) {
+            clearLoggedChannelKindErrors(this.id);
+        }
+        const id = generateId();
+        this.dispatchPluginComponentWithData('ChannelKind', {
+            id,
+            pluginId: this.id,
+            matcher,
+            kind,
         });
         return id;
     });

@@ -1,13 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React, {PureComponent} from 'react';
 import type {ChangeEvent, DragEvent, MouseEvent, TouchEvent, RefObject} from 'react';
 import {defineMessages, FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 
 import {PaperclipIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {ServerError} from '@mattermost/types/errors';
 import type {FileInfo, FileUploadResponse} from '@mattermost/types/files';
@@ -648,28 +649,34 @@ export class FileUpload extends PureComponent<Props, State> {
             />
         );
 
-        // aria-disabled, not the disabled attribute: a disabled button emits no pointer or focus
-        // events, so WithTooltip could never show the tooltip explaining the denial — the whole
-        // reason the control stays visible. Every upload entry point checks disabledByPolicy.
+        // asChild + disabled: IconButton applies aria-disabled and the disabled class (not the
+        // native disabled attribute), so WithTooltip can still explain policy denial / show the
+        // shortcut. Every upload entry point also checks disabledByPolicy.
         const attachmentButton = (onActivate?: (e: MouseEvent<HTMLButtonElement | HTMLAnchorElement> | TouchEvent) => void) => (
             <WithTooltip title={uploadTooltip}>
-                <button
-                    type='button'
-                    id='fileUploadButton'
+                <IconButton
+                    asChild={true}
+                    size='small'
+                    disabled={dimmed}
+                    icon={
+                        <Icon
+                            glyph={
+                                <PaperclipIcon
+                                    color='currentColor'
+                                    aria-label={iconAriaLabel}
+                                />
+                            }
+                        />
+                    }
                     aria-label={buttonAriaLabel}
-                    aria-disabled={disabledByPolicy}
-                    className={classNames('style--none AdvancedTextEditor__action-button', {
-                        disabled: dimmed,
-                    })}
-                    onClick={onActivate}
-                    onTouchEnd={onActivate}
                 >
-                    <PaperclipIcon
-                        size={18}
-                        color={'currentColor'}
-                        aria-label={iconAriaLabel}
+                    <button
+                        id='fileUploadButton'
+                        type='button'
+                        onClick={onActivate}
+                        onTouchEnd={onActivate}
                     />
-                </button>
+                </IconButton>
             </WithTooltip>
         );
 
@@ -683,6 +690,7 @@ export class FileUpload extends PureComponent<Props, State> {
                     {attachmentButton(this.simulateInputClick)}
                     <input
                         id='fileUploadInput'
+                        className='file-attachment-menu-item-input'
                         tabIndex={-1}
                         aria-label={formatMessage(holders.uploadFile)}
                         ref={this.fileInput}
@@ -762,7 +770,7 @@ export class FileUpload extends PureComponent<Props, State> {
         }
 
         return (
-            <div className={dimmed ? ' style--none btn-file__disabled' : 'style--none'}>
+            <div className='style--none'>
                 {bodyAction}
             </div>
         );
