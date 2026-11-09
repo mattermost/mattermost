@@ -25,6 +25,52 @@ var errBoundsCheckFailed = errors.New("bounds check failed")
 // errBoundsViolated marks a value that breaks a bounds rule.
 var errBoundsViolated = errors.New("bounds violated")
 
+// boundsRuleContainedValues is the audited rule for a container value whose change would put the
+// values beneath it out of bounds.
+const boundsRuleContainedValues = "contained_values"
+
+// isBoundsRefusal reports whether err says a rule was broken or couldn't be checked, as opposed to
+// a store or lookup failure, which fails the write under any license.
+func isBoundsRefusal(err error) bool {
+	return errors.Is(err, errBoundsViolated) || errors.Is(err, errBoundsCheckFailed)
+}
+
+// boundsEvent starts the audit event for a value that broke rule. written is the value as the
+// writer sent it, with a nil Value for a clear.
+func boundsEvent(written *model.PropertyValue, rule string, affected int64) ValueAuditEvent {
+	return ValueAuditEvent{
+		TargetType:     written.TargetType,
+		TargetID:       written.TargetID,
+		FieldID:        written.FieldID,
+		Current:        written,
+		BoundsRule:     rule,
+		BoundsAffected: affected,
+	}
+}
+
+// boundsBreak handles a write that breaks a rule or mutability, err being the refusal. It audits
+// the break once, as refused or, without Enterprise Advanced, as not enforced, and returns err to
+// refuse the write, or nil to let it go ahead. e carries what the call site knows; the action and
+// the reason are set here.
+func (h *AccessControlAttributeValidationHook) boundsBreak(rctx request.CTX, groupID string, e ValueAuditEvent, err error) error {
+	enforced := h.propertyService.boundsEnforced()
+	e.Action = ValueAuditActionBoundsNotEnforced
+	if enforced {
+		e.Action = ValueAuditActionBoundsRefused
+	}
+	e.BoundsReason = ValueAuditBoundsReasonViolated
+	if errors.Is(err, errBoundsCheckFailed) {
+		e.BoundsReason = ValueAuditBoundsReasonCheckFailed
+	}
+	if h.valueAudit != nil {
+		h.valueAudit.emit(rctx, groupID, e)
+	}
+	if !enforced {
+		return nil
+	}
+	return boundsRefusal(err)
+}
+
 // compareByRank checks next against ref by option rank under op. Which value
 // ref is (the parent's or the object's own) is the caller's to resolve, and
 // empty values are the caller's to handle: an empty one fails the check.
@@ -146,12 +192,14 @@ func storedValueMatters(field *model.PropertyField) bool {
 		slices.ContainsFunc(field.Bounds, func(r model.PropertyBoundsRule) bool { return r.Reference == model.PropertyBoundsReferenceSelf })
 }
 
-// enforceBounds is the one entry point for the bounds and mutability checks on a value write. The
-// request is refused whole on the first value that breaks a rule.
+// enforceBounds is the one entry point for the bounds and mutability checks on a value write. With
+// Enterprise Advanced the request is refused whole on the first value that breaks a rule. Without
+// it every break is audited and the write goes ahead.
 //
-// Stored values are read from master and recorded on the request, so the write lands only if each
-// row is still what the check judged against. That is what stops two simultaneous first writes
-// both passing write-once.
+// Stored values are read from master and, when enforced, recorded on the request, so the write
+// lands only if each row is still what the check judged against. That is what stops two
+// simultaneous first writes both passing write-once. Without enforcement nothing is recorded: a
+// write that can't be refused must not fail because a stored value moved.
 func (h *AccessControlAttributeValidationHook) enforceBounds(rctx request.CTX, values []*model.PropertyValue, fieldMap map[string]*model.PropertyField) error {
 	var governed []*model.PropertyValue
 	seen := make(map[store.PropertyValueKey]struct{})
@@ -173,7 +221,7 @@ func (h *AccessControlAttributeValidationHook) enforceBounds(rctx request.CTX, v
 	}
 
 	var conditions *valueWriteConditions
-	if len(targetsByField) > 0 {
+	if len(targetsByField) > 0 && h.propertyService.boundsEnforced() {
 		// Only the service's write methods attach a record, and hooks run only inside them, so this
 		// guards against a caller outside those methods rather than a path users reach.
 		if conditions = valueWriteConditionsFrom(rctx); conditions == nil {
@@ -195,6 +243,9 @@ func (h *AccessControlAttributeValidationHook) enforceBounds(rctx request.CTX, v
 		for _, row := range rows {
 			stored[store.PropertyValueKey{FieldID: fieldID, TargetID: row.TargetID}] = row
 		}
+		if conditions == nil {
+			continue
+		}
 		for _, targetID := range targetIDs {
 			conditions.expectStored(fieldID, targetID, stored[store.PropertyValueKey{FieldID: fieldID, TargetID: targetID}])
 		}
@@ -206,13 +257,16 @@ func (h *AccessControlAttributeValidationHook) enforceBounds(rctx request.CTX, v
 			storedValue = row.Value
 		}
 		// A soft delete is a clear.
-		next := v.Value
+		checked := *v
 		if v.DeleteAt != 0 {
-			next = nil
+			checked.Value = nil
 		}
+		next := checked.Value
 		field := fieldMap[v.FieldID]
 		if err := checkMutability(field, storedValue, next); err != nil {
-			return err
+			if refusal := h.boundsBreak(rctx, field.GroupID, boundsEvent(&checked, string(field.Mutability.OrMutable()), 0), err); refusal != nil {
+				return refusal
+			}
 		}
 		for _, rule := range field.Bounds {
 			var err error
@@ -222,15 +276,19 @@ func (h *AccessControlAttributeValidationHook) enforceBounds(rctx request.CTX, v
 			case model.PropertyBoundsReferenceParent:
 				// Records no read: the container is another object whose value can change between this read
 				// and the write, and that takes two writes within milliseconds, one an admin's.
-				checked := *v
-				checked.Value = next
 				err = h.checkParentRule(store.RequestContextWithMaster(rctx), field, rule, &checked)
 			default:
 				// Save refuses unknown references, so this is bad data; skipping would quietly stop the rule applying.
 				err = fmt.Errorf("field %s: unknown reference %q: %w", field.ID, rule.Reference, errBoundsCheckFailed)
 			}
-			if err != nil {
-				return boundsRefusal(err)
+			if err == nil {
+				continue
+			}
+			if !isBoundsRefusal(err) {
+				return err
+			}
+			if refusal := h.boundsBreak(rctx, field.GroupID, boundsEvent(&checked, string(rule.Operator)+" "+string(rule.Reference), 0), err); refusal != nil {
+				return refusal
 			}
 		}
 	}
@@ -245,6 +303,7 @@ func (h *AccessControlAttributeValidationHook) enforceBounds(rctx request.CTX, v
 // neither is writing the stored value again, so re-saving a form doesn't fail on values the writer
 // didn't touch.
 func (h *AccessControlAttributeValidationHook) refuseContainedValuesOutOfBounds(rctx request.CTX, values []*model.PropertyValue, fieldMap map[string]*model.PropertyField) error {
+nextValue:
 	for _, v := range values {
 		field, ok := fieldMap[v.FieldID]
 		if !ok || (field.ObjectType != model.PropertyFieldObjectTypeChannel && field.ObjectType != model.PropertyFieldObjectTypeSystem) ||
@@ -276,7 +335,10 @@ func (h *AccessControlAttributeValidationHook) refuseContainedValuesOutOfBounds(
 		ranks := buildOptionRankMap(field)
 		newRank, ok := singleOptionRank(field.Type, v.Value, ranks)
 		if !ok {
-			return boundsRefusal(fmt.Errorf("field %s: target %s: the new value can't be ranked: %w", field.ID, v.TargetID, errBoundsCheckFailed))
+			if err := h.boundsBreak(rctx, field.GroupID, boundsEvent(v, boundsRuleContainedValues, 0), fmt.Errorf("field %s: target %s: the new value can't be ranked: %w", field.ID, v.TargetID, errBoundsCheckFailed)); err != nil {
+				return err
+			}
+			continue nextValue
 		}
 		var breaches storedValueBreaches
 		var breachedFieldID string
@@ -287,7 +349,13 @@ func (h *AccessControlAttributeValidationHook) refuseContainedValuesOutOfBounds(
 				}
 				allowed, err := allowedByRule(ranks, rule.Operator, newRank)
 				if err != nil {
-					return boundsRefusal(fmt.Errorf("field %s: %w", child.ID, err))
+					if !isBoundsRefusal(err) {
+						return err
+					}
+					if refusal := h.boundsBreak(rctx, field.GroupID, boundsEvent(v, boundsRuleContainedValues, 0), fmt.Errorf("field %s: %w", child.ID, err)); refusal != nil {
+						return refusal
+					}
+					continue nextValue
 				}
 				// A channel's posts are those in the channel; every channel and user is held to the server.
 				var scope *store.PostValueScope
@@ -312,7 +380,13 @@ func (h *AccessControlAttributeValidationHook) refuseContainedValuesOutOfBounds(
 				return allowedByRule(ranks, rule.Operator, newRank)
 			}, nil)
 			if err != nil {
-				return boundsRefusal(err)
+				if !isBoundsRefusal(err) {
+					return err
+				}
+				if refusal := h.boundsBreak(rctx, field.GroupID, boundsEvent(v, boundsRuleContainedValues, 0), err); refusal != nil {
+					return refusal
+				}
+				continue nextValue
 			}
 			if found.Count > 0 && breachedFieldID == "" {
 				breachedFieldID = firstID
@@ -321,10 +395,13 @@ func (h *AccessControlAttributeValidationHook) refuseContainedValuesOutOfBounds(
 		}
 		if breaches.Count > 0 {
 			examples := strings.Join(breaches.Examples, ", ")
-			return model.NewAppError("UpsertPropertyValues", "app.property_value.bounds_contained_values.app_error",
+			err := model.NewAppError("UpsertPropertyValues", "app.property_value.bounds_contained_values.app_error",
 				map[string]any{"Count": breaches.Count, "Examples": examples},
 				fmt.Sprintf("field %s: target %s: %d contained values of field %s out of bounds, e.g. %s", field.ID, v.TargetID, breaches.Count, breachedFieldID, examples),
 				http.StatusConflict)
+			if err := h.boundsBreak(rctx, field.GroupID, boundsEvent(v, boundsRuleContainedValues, breaches.Count), err); err != nil {
+				return err
+			}
 		}
 	}
 	return nil

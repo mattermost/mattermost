@@ -1477,3 +1477,209 @@ func TestRefuseContainedValuesOutOfBounds(t *testing.T) {
 		require.NoError(t, systemWrite(f, `"optmid"`))
 	})
 }
+
+func TestBoundsEnforcementByLicense(t *testing.T) {
+	th := Setup(t)
+	rctx := th.Context
+	team := th.CreateTeam(t)
+	opt := func(id string) string { return `"` + id + `"` }
+	channelType := model.PropertyValueTargetTypeChannel
+
+	type fixture struct {
+		groupID                      string
+		system, below, raise, locked *model.PropertyField
+		events                       *[]ValueAuditEvent
+		recorded                     *int
+	}
+	// setup gives each subtest its own group, whose validation hook audits into f.events.
+	setup := func(t *testing.T, provider LicenseProvider) fixture {
+		t.Helper()
+		groupID, create, _ := boundsSetup(t, th, rctx)
+		f := fixture{groupID: groupID, events: &[]ValueAuditEvent{}, recorded: new(int)}
+		f.system = create(model.PropertyFieldObjectTypeSystem, nil)
+		f.below = create(model.PropertyFieldObjectTypeChannel, model.PropertyBounds{{Operator: model.PropertyBoundsOperatorAtOrBelow, Reference: model.PropertyBoundsReferenceParent}})
+		f.raise = create(model.PropertyFieldObjectTypeChannel, model.PropertyBounds{{Operator: model.PropertyBoundsOperatorAtOrAbove, Reference: model.PropertyBoundsReferenceSelf}})
+		f.locked = th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    groupID,
+			ObjectType: model.PropertyFieldObjectTypeChannel,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeText,
+			Name:       "f " + model.NewId(),
+			Mutability: model.PropertyFieldMutabilityWriteOnce,
+		})
+
+		audit := NewPropertyValueAuditHook()
+		audit.RegisterGroup(groupID, func(_ request.CTX, e ValueAuditEvent) { *f.events = append(*f.events, e) })
+		th.service.AddHook(NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{
+			PropertyFieldBounds: func() bool { return true },
+			ValueAudit:          audit,
+		}, groupID))
+		// Registered after the validation hook, so it sees what the hook recorded.
+		th.service.AddHook(&recordingHook{record: func(c *valueWriteConditions) { *f.recorded += len(c.read) }})
+
+		prev := th.service.licenseProvider
+		th.service.licenseProvider = provider
+		t.Cleanup(func() { th.service.licenseProvider = prev })
+		return f
+	}
+	// seed writes straight to the store, past the hooks.
+	seed := func(field *model.PropertyField, targetType, targetID, raw string) {
+		t.Helper()
+		_, err := th.dbStore.PropertyValue().Upsert([]*model.PropertyValue{{GroupID: field.GroupID, FieldID: field.ID, TargetType: targetType, TargetID: targetID, Value: json.RawMessage(raw)}})
+		require.NoError(t, err)
+	}
+	pv := func(field *model.PropertyField, targetType, targetID, raw string) *model.PropertyValue {
+		return &model.PropertyValue{GroupID: field.GroupID, FieldID: field.ID, TargetType: targetType, TargetID: targetID, Value: json.RawMessage(raw)}
+	}
+	stored := func(field *model.PropertyField, targetID string) string {
+		t.Helper()
+		vals, err := th.dbStore.PropertyValue().SearchPropertyValues(rctx, model.PropertyValueSearchOpts{GroupID: field.GroupID, FieldID: field.ID, TargetIDs: []string{targetID}, PerPage: 10})
+		require.NoError(t, err)
+		if len(vals) == 0 {
+			return ""
+		}
+		return string(vals[0].Value)
+	}
+
+	enterprise := func() *model.License { return model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise) }
+	licenses := []struct {
+		name     string
+		provider LicenseProvider
+		enforced bool
+	}{
+		{"no provider", nil, true},
+		{"Enterprise", enterprise, false},
+	}
+
+	// A case seeds what its break needs and returns the write that breaks, with the value stored
+	// before it and the audit event expected for it.
+	type breakCase struct {
+		name  string
+		build func(f fixture) (write *model.PropertyValue, before string, want ValueAuditEvent)
+	}
+	cases := []breakCase{
+		{"write-once overwrite", func(f fixture) (*model.PropertyValue, string, ValueAuditEvent) {
+			target := model.NewId()
+			seed(f.locked, channelType, target, `"a"`)
+			return pv(f.locked, channelType, target, `"b"`), `"a"`,
+				ValueAuditEvent{BoundsRule: "write_once", BoundsReason: ValueAuditBoundsReasonViolated}
+		}},
+		{"lowering a raise-only value", func(f fixture) (*model.PropertyValue, string, ValueAuditEvent) {
+			target := model.NewId()
+			seed(f.raise, channelType, target, opt("optmid"))
+			return pv(f.raise, channelType, target, opt("optlow")), opt("optmid"),
+				ValueAuditEvent{BoundsRule: "at_or_above self", BoundsReason: ValueAuditBoundsReasonViolated}
+		}},
+		{"above the system's value", func(f fixture) (*model.PropertyValue, string, ValueAuditEvent) {
+			seed(f.system, model.PropertyValueTargetTypeSystem, model.PropertyValueSystemTargetID, opt("optmid"))
+			return pv(f.below, channelType, model.NewId(), opt("opthigh")), "",
+				ValueAuditEvent{BoundsRule: "at_or_below parent", BoundsReason: ValueAuditBoundsReasonViolated}
+		}},
+		{"an unrankable parent value", func(f fixture) (*model.PropertyValue, string, ValueAuditEvent) {
+			seed(f.system, model.PropertyValueTargetTypeSystem, model.PropertyValueSystemTargetID, opt("optgone"))
+			return pv(f.below, channelType, model.NewId(), opt("optlow")), "",
+				ValueAuditEvent{BoundsRule: "at_or_below parent", BoundsReason: ValueAuditBoundsReasonCheckFailed}
+		}},
+		{"a server value that would strand a channel", func(f fixture) (*model.PropertyValue, string, ValueAuditEvent) {
+			seed(f.system, model.PropertyValueTargetTypeSystem, model.PropertyValueSystemTargetID, opt("opthigh"))
+			seed(f.below, channelType, th.CreateChannel(t, team.Id).Id, opt("optmid"))
+			return pv(f.system, model.PropertyValueTargetTypeSystem, model.PropertyValueSystemTargetID, opt("optlow")), opt("opthigh"),
+				ValueAuditEvent{BoundsRule: "contained_values", BoundsReason: ValueAuditBoundsReasonViolated, BoundsAffected: 1}
+		}},
+	}
+
+	for _, l := range licenses {
+		for _, c := range cases {
+			t.Run(l.name+"/"+c.name, func(t *testing.T) {
+				f := setup(t, l.provider)
+				write, before, want := c.build(f)
+				fieldByID := map[string]*model.PropertyField{f.locked.ID: f.locked, f.raise.ID: f.raise, f.below.ID: f.below, f.system.ID: f.system}
+				field := fieldByID[write.FieldID]
+
+				_, err := th.service.UpsertPropertyValue(rctx, write)
+
+				want.TargetType, want.TargetID, want.FieldID = write.TargetType, write.TargetID, write.FieldID
+				want.Action = ValueAuditActionBoundsNotEnforced
+				after := string(write.Value)
+				if l.enforced {
+					require.Error(t, err)
+					want.Action = ValueAuditActionBoundsRefused
+					after = before
+				} else {
+					require.NoError(t, err)
+				}
+				assert.Equal(t, after, stored(field, write.TargetID))
+
+				require.Len(t, *f.events, 1)
+				got := (*f.events)[0]
+				require.NotNil(t, got.Current)
+				assert.Equal(t, write.Value, got.Current.Value)
+				got.Current = nil
+				assert.Equal(t, want, got)
+			})
+		}
+	}
+
+	t.Run("a lapse audits every broken rule of every value and writes no condition", func(t *testing.T) {
+		f := setup(t, enterprise)
+		a, b := model.NewId(), model.NewId()
+		seed(f.locked, channelType, a, `"a"`)
+		seed(f.raise, channelType, b, opt("optmid"))
+
+		_, err := th.service.UpsertPropertyValues(rctx, []*model.PropertyValue{
+			pv(f.locked, channelType, a, `"b"`),
+			pv(f.raise, channelType, b, opt("optlow")),
+		})
+		require.NoError(t, err)
+		assert.Equal(t, `"b"`, stored(f.locked, a))
+		assert.Equal(t, opt("optlow"), stored(f.raise, b))
+		require.Len(t, *f.events, 2)
+		assert.Equal(t, "write_once", (*f.events)[0].BoundsRule)
+		assert.Equal(t, "at_or_above self", (*f.events)[1].BoundsRule)
+		assert.Zero(t, *f.recorded)
+	})
+
+	t.Run("an enforced request stops at the first break", func(t *testing.T) {
+		f := setup(t, nil)
+		a, b := model.NewId(), model.NewId()
+		seed(f.locked, channelType, a, `"a"`)
+		seed(f.raise, channelType, b, opt("optmid"))
+
+		_, err := th.service.UpsertPropertyValues(rctx, []*model.PropertyValue{
+			pv(f.locked, channelType, a, `"b"`),
+			pv(f.raise, channelType, b, opt("optlow")),
+		})
+		require.Error(t, err)
+		require.Len(t, *f.events, 1)
+	})
+
+	t.Run("an enforced write that breaks nothing records its conditions", func(t *testing.T) {
+		f := setup(t, nil)
+		target := model.NewId()
+		seed(f.raise, channelType, target, opt("optmid"))
+		_, err := th.service.UpsertPropertyValue(rctx, pv(f.raise, channelType, target, opt("opthigh")))
+		require.NoError(t, err)
+		assert.Positive(t, *f.recorded)
+	})
+
+	t.Run("a write that breaks nothing is not audited", func(t *testing.T) {
+		for _, l := range licenses {
+			f := setup(t, l.provider)
+			target := model.NewId()
+			seed(f.raise, channelType, target, opt("optmid"))
+			_, err := th.service.UpsertPropertyValue(rctx, pv(f.raise, channelType, target, opt("opthigh")))
+			require.NoError(t, err, l.name)
+			_, err = th.service.UpsertPropertyValue(rctx, pv(f.locked, channelType, model.NewId(), `"first"`))
+			require.NoError(t, err, l.name)
+			assert.Empty(t, *f.events, l.name)
+		}
+	})
+
+	t.Run("an error that is not a refusal is not audited", func(t *testing.T) {
+		f := setup(t, enterprise)
+		v := pv(f.locked, channelType, model.NewId(), `"x"`)
+		_, err := th.service.UpsertPropertyValues(rctx, []*model.PropertyValue{v, v})
+		require.Error(t, err)
+		assert.Empty(t, *f.events)
+	})
+}

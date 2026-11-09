@@ -102,6 +102,7 @@ type AccessControlAttributeValidationHook struct {
 	requiredAttributeEnforcement RequiredAttributeEnforcementProvider
 	openIDAttributeSync          OpenIDAttributeSyncProvider
 	propertyFieldBounds          PropertyFieldBoundsProvider
+	valueAudit                   *PropertyValueAuditHook
 }
 
 var _ PropertyHook = (*AccessControlAttributeValidationHook)(nil)
@@ -140,6 +141,10 @@ type AccessControlAttributeValidationHookConfig struct {
 	// PropertyFieldBounds reports whether a field may gain a bounds rule or a
 	// write_once lock. A nil provider defaults to off.
 	PropertyFieldBounds PropertyFieldBoundsProvider
+	// ValueAudit receives a record for each value write a bounds rule or
+	// mutability refuses, or would refuse without Enterprise Advanced. Without
+	// it nothing is audited.
+	ValueAudit *PropertyValueAuditHook
 }
 
 // NewAccessControlAttributeValidationHook creates a hook that validates field attributes and
@@ -159,6 +164,7 @@ func NewAccessControlAttributeValidationHook(ps *PropertyService, cfg AccessCont
 		requiredAttributeEnforcement: cfg.RequiredAttributeEnforcement,
 		openIDAttributeSync:          cfg.OpenIDAttributeSync,
 		propertyFieldBounds:          cfg.PropertyFieldBounds,
+		valueAudit:                   cfg.ValueAudit,
 	}
 }
 

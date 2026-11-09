@@ -402,6 +402,13 @@ func NewServer(options ...Option) (*Server, error) {
 		return post.ChannelId, nil
 	}
 
+	// Generic property value audit hook — groups opt in with RegisterGroup.
+	// The CPA group registers a content-level audit sink here. Built ahead of
+	// the validation hook, which audits the bounds breaks it finds through it;
+	// it is added after, so its write records follow the validation.
+	valueAuditHook := properties.NewPropertyValueAuditHook()
+	valueAuditHook.RegisterGroup(cpaGroup.ID, app.auditCPAValueChange)
+
 	attrValidationHook := properties.NewAccessControlAttributeValidationHook(s.propertyService,
 		properties.AccessControlAttributeValidationHookConfig{
 			PermissionChecker:    permChecker,
@@ -417,13 +424,9 @@ func NewServer(options ...Option) (*Server, error) {
 			PropertyFieldBounds: func() bool {
 				return s.Config().FeatureFlags.PropertyFieldBounds
 			},
+			ValueAudit: valueAuditHook,
 		}, cpaGroup.ID)
 	s.propertyService.AddHook(attrValidationHook)
-
-	// Generic property value audit hook — groups opt in with RegisterGroup.
-	// The CPA group registers a content-level audit sink here.
-	valueAuditHook := properties.NewPropertyValueAuditHook()
-	valueAuditHook.RegisterGroup(cpaGroup.ID, app.auditCPAValueChange)
 	s.propertyService.AddHook(valueAuditHook)
 
 	// Field limit hook — enforces per-object-type and global field limits.
