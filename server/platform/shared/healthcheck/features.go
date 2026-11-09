@@ -11,11 +11,13 @@ func FeatureCluster(f *model.Features) *bool         { return f.Cluster }
 func FeatureCompliance(f *model.Features) *bool      { return f.Compliance }
 func FeatureDataRetention(f *model.Features) *bool   { return f.DataRetention }
 func FeatureElasticsearch(f *model.Features) *bool   { return f.Elasticsearch }
+func FeatureGoogleOAuth(f *model.Features) *bool     { return f.GoogleOAuth }
 func FeatureIDLoaded(f *model.Features) *bool        { return f.IDLoadedPushNotifications }
 func FeatureLDAP(f *model.Features) *bool            { return f.LDAP }
 func FeatureMessageExport(f *model.Features) *bool   { return f.MessageExport }
 func FeatureMetrics(f *model.Features) *bool         { return f.Metrics }
 func FeatureMHPNS(f *model.Features) *bool           { return f.MHPNS }
+func FeatureOffice365OAuth(f *model.Features) *bool  { return f.Office365OAuth }
 func FeatureOpenID(f *model.Features) *bool          { return f.OpenId }
 func FeatureSAML(f *model.Features) *bool            { return f.SAML }
 

@@ -4,6 +4,7 @@
 import {dropTargetForElements} from '@atlaskit/pragmatic-drag-and-drop/element/adapter';
 import React, {memo, useCallback, useEffect, useRef} from 'react';
 import {useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 import styled from 'styled-components';
 
 import {
@@ -15,7 +16,11 @@ import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
+import {getChannelBookmarksMenuPluginComponents} from 'selectors/plugins';
+
 import * as Menu from 'components/menu';
+
+import type {GlobalState} from 'types/store';
 
 import {useBookmarkAddActions} from './channel_bookmarks_menu';
 import OverflowBookmarkItem from './overflow_bookmark_item';
@@ -59,6 +64,7 @@ function BookmarksBarMenu({
     const {formatMessage} = useIntl();
     const triggerRef = useRef<HTMLDivElement>(null);
     const {handleCreateLink, handleCreateFile} = useBookmarkAddActions(channelId);
+    const pluginItems = useSelector((state: GlobalState) => getChannelBookmarksMenuPluginComponents(state, channelId));
 
     const hasOverflow = overflowItems.length > 0;
 
@@ -194,6 +200,28 @@ function BookmarksBarMenu({
                 />,
             );
         }
+        pluginItems.forEach((item) => {
+            const pluginLabels = limitReached ? (
+                <>
+                    <span>{item.text}</span>
+                    <span>{limitReachedLabel}</span>
+                </>
+            ) : <span>{item.text}</span>;
+            menuItems.push(
+                <Menu.Item
+                    key={`channelBookmarksPlugin_${item.id}`}
+                    id={`channelBookmarksPlugin_${item.id}`}
+                    onClick={() => {
+                        if (!limitReached) {
+                            item.action(channelId);
+                        }
+                    }}
+                    disabled={limitReached}
+                    leadingElement={item.icon}
+                    labels={pluginLabels}
+                />,
+            );
+        });
     }
 
     let overflowLabel = '';
