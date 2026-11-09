@@ -387,10 +387,11 @@ func TestProcessSessionAttributesRequest(t *testing.T) {
 		r := newSessionAttributesRequest(t, testUserAgentDesktop, "192.0.2.10:1234")
 		r.Header.Set(model.SessionAttributeHeaderProxyDeviceID, "proxy-device-id")
 
-		th.App.ProcessSessionAttributesRequest(rctx, r)
+		requestCtx := th.App.ProcessSessionAttributesRequest(rctx, r)
 
 		values := sessionAttributeValuesByFieldName(t, th, session.Id)
 		assert.NotContains(t, values, model.SessionAttributesPropertyFieldTLSDDeviceID)
+		assert.Empty(t, ProxyDeviceID(requestCtx))
 	})
 
 	t.Run("accepts proxy device ID header when TrustProxyDeviceIdentityHeader is enabled", func(t *testing.T) {
@@ -406,10 +407,29 @@ func TestProcessSessionAttributesRequest(t *testing.T) {
 		r := newSessionAttributesRequest(t, testUserAgentDesktop, "192.0.2.10:1234")
 		r.Header.Set(model.SessionAttributeHeaderProxyDeviceID, "proxy-device-id")
 
-		th.App.ProcessSessionAttributesRequest(rctx, r)
+		requestCtx := th.App.ProcessSessionAttributesRequest(rctx, r)
 
 		values := sessionAttributeValuesByFieldName(t, th, session.Id)
 		assert.Equal(t, "proxy-device-id", values[model.SessionAttributesPropertyFieldTLSDDeviceID])
+		assert.Equal(t, "proxy-device-id", ProxyDeviceID(requestCtx))
+	})
+
+	t.Run("ignores proxy device ID header when tls_device_id is not enabled", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		enableSessionAttributesCollection(t, th)
+		setSessionAttributesAccessControlSettings(t, th, true, false)
+
+		session, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
+		require.Nil(t, appErr)
+		rctx := th.Context.WithSession(session)
+
+		r := newSessionAttributesRequest(t, testUserAgentDesktop, "192.0.2.10:1234")
+		r.Header.Set(model.SessionAttributeHeaderProxyDeviceID, "proxy-device-id")
+
+		requestCtx := th.App.ProcessSessionAttributesRequest(rctx, r)
+
+		assert.NotContains(t, sessionAttributeValuesByFieldName(t, th, session.Id), model.SessionAttributesPropertyFieldTLSDDeviceID)
+		assert.Empty(t, ProxyDeviceID(requestCtx))
 	})
 
 	t.Run("revokes session on device ID mismatch when EnforceDeviceIDConsistency is enabled", func(t *testing.T) {

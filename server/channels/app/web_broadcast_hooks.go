@@ -211,7 +211,7 @@ func (h *permalinkBroadcastHook) Process(msg *platform.HookedWebSocketEvent, web
 		session := webConn.GetSession()
 		stripFiles := true
 		if session != nil {
-			rctxWithSession := rctx.WithSession(session)
+			rctxWithSession := WithProxyDeviceID(rctx.WithSession(session), webConn.ProxyDeviceID)
 			stripFiles = !webConn.Suite.HasPermissionToChannelAction(rctxWithSession, webConn.UserId, session.Roles, permalinkPreviewedPost.Post.ChannelId, model.AccessControlPolicyActionDownloadFileAttachment)
 		}
 		if stripFiles {
@@ -461,7 +461,7 @@ func (h *abacFilesBroadcastHook) Process(msg *platform.HookedWebSocketEvent, web
 	// Fail-secure: if the session is nil we cannot evaluate permissions, so strip files.
 	session := webConn.GetSession()
 	if session != nil {
-		rctx := request.EmptyContext(webConn.Platform.Log()).WithSession(session)
+		rctx := WithProxyDeviceID(request.EmptyContext(webConn.Platform.Log()).WithSession(session), webConn.ProxyDeviceID)
 		if webConn.Suite.HasPermissionToChannelAction(rctx, webConn.UserId, session.Roles, channelID, model.AccessControlPolicyActionDownloadFileAttachment) {
 			return nil
 		}
@@ -583,7 +583,7 @@ func (h *abacBookmarksBroadcastHook) Process(msg *platform.HookedWebSocketEvent,
 	// Fail-secure: if the session is nil we cannot evaluate permissions, so strip file info.
 	session := webConn.GetSession()
 	if session != nil {
-		rctx := request.EmptyContext(webConn.Platform.Log()).WithSession(session)
+		rctx := WithProxyDeviceID(request.EmptyContext(webConn.Platform.Log()).WithSession(session), webConn.ProxyDeviceID)
 		if webConn.Suite.HasPermissionToChannelAction(rctx, webConn.UserId, session.Roles, channelID, model.AccessControlPolicyActionDownloadFileAttachment) {
 			return nil
 		}

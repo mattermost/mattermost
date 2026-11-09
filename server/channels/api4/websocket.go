@@ -11,6 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 	"github.com/mattermost/mattermost/server/v8/channels/web"
 )
@@ -81,6 +82,7 @@ func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 		PostedAck:     r.URL.Query().Get(postedAckParam) == "true",
 		RemoteAddress: c.AppContext.IPAddress(),
 		XForwardedFor: c.AppContext.XForwardedFor(),
+		ProxyDeviceID: app.ProxyDeviceID(c.AppContext),
 	}
 
 	disconnectErrCode := r.URL.Query().Get(disconnectErrCodeParam)

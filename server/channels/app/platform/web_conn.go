@@ -93,6 +93,7 @@ type WebConnConfig struct {
 	RemoteAddress     string
 	XForwardedFor     string
 	DisconnectErrCode string
+	ProxyDeviceID     string
 
 	// These aren't necessary to be exported to api layer.
 	sequence         int64
@@ -116,6 +117,8 @@ type WebConn struct {
 	UserId            string
 	PostedAck         bool
 	DisconnectErrCode string
+	// ProxyDeviceID is the tls_device_id proven by the websocket upgrade request.
+	ProxyDeviceID string
 
 	allChannelMembers         channelSet
 	lastAllChannelMembersTime int64
@@ -276,6 +279,7 @@ func (ps *PlatformService) NewWebConn(cfg *WebConnConfig, suite SuiteIFace, runn
 		Locale:             cfg.Locale,
 		PostedAck:          cfg.PostedAck,
 		DisconnectErrCode:  cfg.DisconnectErrCode,
+		ProxyDeviceID:      cfg.ProxyDeviceID,
 		reuseCount:         cfg.ReuseCount,
 		endWritePump:       make(chan struct{}),
 		pumpFinished:       make(chan struct{}),

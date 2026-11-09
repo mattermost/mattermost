@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 	platform_mocks "github.com/mattermost/mattermost/server/v8/channels/app/platform/mocks"
 	"github.com/stretchr/testify/assert"
@@ -743,6 +744,39 @@ func TestPermalinkBroadcastHook_AbacFileStripping(t *testing.T) {
 		require.NoError(t, err)
 		return &gotPost
 	}
+
+	t.Run("evaluates download access with the connection's proxy device ID", func(t *testing.T) {
+		mockSuite := &platform_mocks.SuiteIFace{}
+		mockSuite.On("HasPermissionToReadChannel", mock.Anything, userID, previewChannel).Return(true, true)
+		mockSuite.On("HasPermissionToChannelAction", mock.Anything, userID, mock.AnythingOfType("string"), refChannelID, model.AccessControlPolicyActionDownloadFileAttachment).
+			Return(func(rctx request.CTX, _, _, _, _ string) bool { return ProxyDeviceID(rctx) == "managed-device" })
+		mockSuite.On("MakeAuditRecord", mock.Anything, mock.Anything, mock.Anything).Return(&model.AuditRecord{})
+		mockSuite.On("LogAuditRec", mock.Anything, mock.Anything, mock.Anything).Return()
+		wc := &platform.WebConn{
+			UserId:        userID,
+			Platform:      &platform.PlatformService{},
+			Suite:         mockSuite,
+			ProxyDeviceID: "managed-device",
+		}
+		wc.SetSession(&model.Session{UserId: userID, Roles: model.SystemUserRoleId})
+
+		fileID := model.NewId()
+		previewPost := makeRefPost(
+			model.StringArray{fileID},
+			[]*model.FileInfo{{Id: fileID, Name: "photo.png", Extension: "png"}},
+		)
+		msg := makeMessage(makeOuterPostJSON(t))
+
+		err := hook.Process(msg, wc, map[string]any{
+			"preview_channel":          previewChannel,
+			"permalink_previewed_post": previewPost,
+			"preview_prop":             previewPost.PostID,
+		})
+		require.NoError(t, err)
+
+		gotJSON, _ := msg.Get("post").(string)
+		assert.Contains(t, gotJSON, fileID, "file ID should be present for the managed device")
+	})
 
 	t.Run("files stripped from embed when user denied download", func(t *testing.T) {
 		postJSON := makeOuterPostJSON(t)

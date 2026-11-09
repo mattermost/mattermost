@@ -14,6 +14,8 @@ import (
 	"io"
 	"maps"
 	"net/http"
+	"net/http/httptest"
+	"net/http/httputil"
 	"net/url"
 	"os"
 	"regexp"
@@ -22,6 +24,7 @@ import (
 	"time"
 
 	"github.com/dgryski/dgoogauth"
+	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -12429,4 +12432,181 @@ func TestSessionAttributesDeviceMismatchRejectsSubsequentRequest(t *testing.T) {
 	_, resp, err := th.Client.GetMe(context.Background(), "")
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
+}
+
+func TestSessionAttributesProxyDeviceIDIsRequestScoped(t *testing.T) {
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PermissionPolicies = true
+		cfg.FeatureFlags.SessionAttributes = true
+	}).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+		*cfg.AccessControlSettings.TrustProxyDeviceIdentityHeader = true
+	})
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.SessionAttributesPropertyGroupName)
+	require.Nil(t, appErr)
+	fields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{
+		ObjectType: model.PropertyFieldObjectTypeSession,
+		PerPage:    100,
+	})
+	require.Nil(t, appErr)
+	var deviceIDField *model.PropertyField
+	for _, field := range fields {
+		if field.Name == model.SessionAttributesPropertyFieldTLSDDeviceID {
+			deviceIDField = field
+			break
+		}
+	}
+	require.NotNil(t, deviceIDField)
+	deviceIDField.Attrs["enabled"] = true
+	_, _, appErr = th.App.UpdatePropertyFields(th.Context, group.ID, []*model.PropertyField{deviceIDField}, true, "")
+	require.Nil(t, appErr)
+
+	const managedDeviceID = "managed-device"
+
+	// Stands in for a policy that grants downloads only to the managed device.
+	mockACS := &mocks.AccessControlServiceInterface{}
+	original := th.App.Srv().Channels().AccessControl
+	th.App.Srv().Channels().AccessControl = mockACS
+	t.Cleanup(func() { th.App.Srv().Channels().AccessControl = original })
+	mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+		return req.Action == model.AccessControlPolicyActionDownloadFileAttachment
+	})).Return(func(_ request.CTX, req model.AccessRequest) (model.AccessDecision, *model.AppError) {
+		return model.AccessDecision{Decision: req.Subject.Session[model.SessionAttributesPropertyFieldTLSDDeviceID] == managedDeviceID}, nil
+	})
+	mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+		Return(model.AccessDecision{Decision: true}, (*model.AppError)(nil)).Maybe()
+
+	// The managed device reaches the server through the mTLS proxy, which adds
+	// the device header. The same session token used directly carries none.
+	serverURL, err := url.Parse(th.Client.URL)
+	require.NoError(t, err)
+	reverseProxy := httputil.NewSingleHostReverseProxy(serverURL)
+	direct := reverseProxy.Director
+	reverseProxy.Director = func(r *http.Request) {
+		direct(r)
+		r.Header.Set(model.SessionAttributeHeaderProxyDeviceID, managedDeviceID)
+	}
+	proxyServer := httptest.NewServer(reverseProxy)
+	t.Cleanup(proxyServer.Close)
+
+	managedClient := model.NewAPIv4Client(proxyServer.URL)
+	managedClient.SetToken(th.Client.AuthToken)
+
+	uploadFile := func(t *testing.T) *model.FileInfo {
+		t.Helper()
+		fileResponse, _, err := managedClient.UploadFile(context.Background(), []byte("managed devices only"), th.BasicChannel.Id, "report.txt")
+		require.NoError(t, err)
+		require.Len(t, fileResponse.FileInfos, 1)
+		return fileResponse.FileInfos[0]
+	}
+
+	t.Run("HTTP requests without the device header are evaluated without a device ID", func(t *testing.T) {
+		fileInfo := uploadFile(t)
+
+		_, _, err := managedClient.GetFile(context.Background(), fileInfo.Id)
+		require.NoError(t, err)
+
+		_, resp, err := th.Client.GetFile(context.Background(), fileInfo.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		_, _, err = managedClient.GetFile(context.Background(), fileInfo.Id)
+		require.NoError(t, err)
+	})
+
+	t.Run("websocket connections keep the device ID of their upgrade request", func(t *testing.T) {
+		connect := func(t *testing.T, baseURL string) *model.WebSocketClient {
+			t.Helper()
+			wsURL := "ws" + strings.TrimPrefix(baseURL, "http")
+			client, err := model.NewReliableWebSocketClientWithDialer(websocket.DefaultDialer, wsURL, th.Client.AuthToken, "", 0, true)
+			require.NoError(t, err)
+			t.Cleanup(client.Close)
+			client.Listen()
+			awaitWebSocketEvent(t, client, model.WebsocketEventHello)
+			return client
+		}
+		managedWS := connect(t, proxyServer.URL)
+		directWS := connect(t, th.Client.URL)
+
+		// Authenticating after the upgrade leaves the upgrade request without a
+		// session, so the connection never gets a device ID even through the proxy.
+		challengeWS, err := model.NewWebSocketClient4("ws"+strings.TrimPrefix(proxyServer.URL, "http"), th.Client.AuthToken)
+		require.NoError(t, err)
+		t.Cleanup(challengeWS.Close)
+		challengeWS.Listen()
+		awaitWebSocketEvent(t, challengeWS, model.WebsocketEventHello)
+
+		post := th.CreatePostInChannelWithFiles(t, th.BasicChannel, uploadFile(t))
+
+		postedOn := func(t *testing.T, client *model.WebSocketClient) *model.Post {
+			t.Helper()
+			for {
+				event := awaitWebSocketEvent(t, client, model.WebsocketEventPosted)
+				var received model.Post
+				require.NoError(t, json.Unmarshal([]byte(event.GetData()["post"].(string)), &received))
+				if received.Id == post.Id {
+					return &received
+				}
+			}
+		}
+
+		managedPost := postedOn(t, managedWS)
+		assert.Len(t, managedPost.FileIds, 1)
+
+		for _, client := range []*model.WebSocketClient{directWS, challengeWS} {
+			deniedPost := postedOn(t, client)
+			assert.Empty(t, deniedPost.FileIds)
+			require.NotNil(t, deniedPost.Metadata)
+			assert.Equal(t, 1, deniedPost.Metadata.RedactedFileCount)
+		}
+
+		bookmarkFile, err := th.App.Srv().Store().FileInfo().Save(th.Context, &model.FileInfo{
+			Id:        model.NewId(),
+			ChannelId: th.BasicChannel.Id,
+			CreatorId: model.BookmarkFileOwner,
+			Path:      "report.txt",
+			Name:      "report.txt",
+		})
+		require.NoError(t, err)
+		bookmark, appErr := th.App.CreateChannelBookmark(th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id}), &model.ChannelBookmark{
+			ChannelId:   th.BasicChannel.Id,
+			DisplayName: "report",
+			Type:        model.ChannelBookmarkFile,
+			FileId:      bookmarkFile.Id,
+		}, "")
+		require.Nil(t, appErr)
+
+		bookmarkCreatedOn := func(t *testing.T, client *model.WebSocketClient) *model.ChannelBookmarkWithFileInfo {
+			t.Helper()
+			for {
+				event := awaitWebSocketEvent(t, client, model.WebsocketEventChannelBookmarkCreated)
+				var received model.ChannelBookmarkWithFileInfo
+				require.NoError(t, json.Unmarshal([]byte(event.GetData()["bookmark"].(string)), &received))
+				if received.Id == bookmark.Id {
+					return &received
+				}
+			}
+		}
+
+		assert.NotNil(t, bookmarkCreatedOn(t, managedWS).FileInfo)
+		assert.Nil(t, bookmarkCreatedOn(t, directWS).FileInfo)
+	})
+}
+
+func awaitWebSocketEvent(t *testing.T, client *model.WebSocketClient, eventType model.WebsocketEventType) *model.WebSocketEvent {
+	t.Helper()
+	timeout := time.After(5 * time.Second)
+	for {
+		select {
+		case event := <-client.EventChannel:
+			if event.EventType() == eventType {
+				return event
+			}
+		case <-timeout:
+			require.FailNow(t, "timed out waiting for websocket event", eventType)
+		}
+	}
 }
