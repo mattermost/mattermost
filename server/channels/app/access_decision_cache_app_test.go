@@ -107,15 +107,23 @@ func TestAccessDecisionCacheChannelReadAccess(t *testing.T) {
 		require.Equal(t, 2, h.evaluations())
 	})
 
-	t.Run("a session without an ID is not cached", func(t *testing.T) {
+	t.Run("a session without an ID is cached as the user", func(t *testing.T) {
 		h := setupAccessDecisionCacheTest(t)
 		decides(h.acs, true)
 
-		standIn := &model.Session{UserId: h.th.BasicUser.Id, Roles: model.SystemUserRoleId}
+		// Background jobs such as recaps build a stand-in with only the user ID.
+		standIn := &model.Session{UserId: h.th.BasicUser.Id}
 		rctx := h.th.Context.WithSession(standIn)
+		require.Equal(t, accessSubjectRef{kind: accessSubjectUser, subjectID: h.th.BasicUser.Id, userID: h.th.BasicUser.Id},
+			accessSubjectRefFor(rctx, h.th.BasicUser.Id))
 		require.True(t, h.th.App.HasChannelReadAccess(rctx, h.th.BasicUser.Id, h.th.BasicChannel))
 		require.True(t, h.th.App.HasChannelReadAccess(rctx, h.th.BasicUser.Id, h.th.BasicChannel))
-		require.Equal(t, 2, h.evaluations())
+		require.Equal(t, 1, h.evaluations())
+
+		// The same entry serves a check made on the user's behalf by someone else.
+		other := h.th.Context.WithSession(&model.Session{Id: model.NewId(), UserId: h.th.BasicUser2.Id})
+		require.True(t, h.th.App.HasChannelReadAccess(other, h.th.BasicUser.Id, h.th.BasicChannel))
+		require.Equal(t, 1, h.evaluations())
 	})
 
 	t.Run("write access is not cached yet", func(t *testing.T) {
@@ -125,8 +133,9 @@ func TestAccessDecisionCacheChannelReadAccess(t *testing.T) {
 		decides(h.acs, true)
 
 		rctx := h.th.Context.WithSession(h.session)
-		require.True(t, h.th.App.evaluateChannelAccess(rctx, h.th.BasicUser.Id, h.th.BasicChannel, model.AccessControlPolicyActionChannelWriteAccess))
-		require.True(t, h.th.App.evaluateChannelAccess(rctx, h.th.BasicUser.Id, h.th.BasicChannel, model.AccessControlPolicyActionChannelWriteAccess))
+		ref := accessSubjectRefFor(rctx, h.th.BasicUser.Id)
+		require.True(t, h.th.App.evaluateChannelAccess(rctx, ref, h.th.BasicChannel, model.AccessControlPolicyActionChannelWriteAccess))
+		require.True(t, h.th.App.evaluateChannelAccess(rctx, ref, h.th.BasicChannel, model.AccessControlPolicyActionChannelWriteAccess))
 		require.Equal(t, 2, h.evaluations())
 	})
 }
@@ -310,4 +319,79 @@ func TestEvaluateAccessCachedBuildError(t *testing.T) {
 	require.Nil(t, appErr)
 	require.True(t, decision.Decision)
 	require.Equal(t, 1, h.evaluations(), "a failed build left nothing in the cache")
+}
+
+func TestAccessDecisionCachePrepareSkipsCachedChannels(t *testing.T) {
+	h := setupAccessDecisionCacheTest(t)
+	decides(h.acs, false)
+	userID := h.th.BasicUser.Id
+	channel := h.th.CreateChannel(t, h.th.BasicTeam)
+	channel.PolicyEnforced = true
+	channelPolicyGoverns(h.acs, channel.Id, true)
+	roleKey := channelRoleKey{userID: userID, channelID: channel.Id}
+
+	cold := WithChannelAccessMemo(h.th.Context.WithSession(h.session))
+	h.th.App.PrepareChannelReadAccess(cold, userID, []*model.Channel{channel})
+	_, fetched := getChannelAccessMemo(cold).getChannelRole(roleKey)
+	require.True(t, fetched, "a cold cache fetches the role")
+	require.Zero(t, h.th.App.ch.accessDecisions.stats().misses, "a peek doesn't count a miss")
+	require.False(t, h.th.App.HasChannelReadAccess(cold, userID, channel))
+	require.Equal(t, 1, h.evaluations())
+
+	warm := WithChannelAccessMemo(h.th.Context.WithSession(h.session))
+	h.th.App.PrepareChannelReadAccess(warm, userID, []*model.Channel{channel})
+	memo := getChannelAccessMemo(warm)
+	_, fetched = memo.getChannelRole(roleKey)
+	require.False(t, fetched, "a cached decision needs no role")
+	allowed, decided := memo.get(channelAccessKey{
+		subject:   accessSubjectRefFor(warm, userID),
+		channelID: channel.Id,
+		action:    model.AccessControlPolicyActionChannelReadAccess,
+	})
+	require.True(t, decided)
+	require.False(t, allowed)
+	require.False(t, h.th.App.HasChannelReadAccess(warm, userID, channel))
+	require.Equal(t, 1, h.evaluations())
+}
+
+func TestChannelAccessMemoIsKeyedBySubject(t *testing.T) {
+	h := setupAccessDecisionCacheTest(t)
+	decides(h.acs, true)
+	userID := h.th.BasicUser.Id
+
+	rctx := WithChannelAccessMemo(h.th.Context.WithSession(h.session))
+	require.True(t, h.th.App.HasChannelReadAccess(rctx, userID, h.th.BasicChannel))
+
+	// The memo outlives a session switch. The stand-in is the user kind, a different subject,
+	// so the session's memoised answer and subject must not serve it.
+	switched := rctx.WithSession(&model.Session{UserId: userID})
+	require.Same(t, getChannelAccessMemo(rctx), getChannelAccessMemo(switched))
+	require.True(t, h.th.App.HasChannelReadAccess(switched, userID, h.th.BasicChannel))
+	require.Equal(t, 2, h.evaluations())
+
+	memo := getChannelAccessMemo(rctx)
+	require.NotNil(t, memo.getSubject(accessSubjectRefFor(rctx, userID)))
+	require.NotNil(t, memo.getSubject(accessSubjectRefFor(switched, userID)))
+}
+
+func TestHasPermissionToChannelActionReadAccess(t *testing.T) {
+	h := setupAccessDecisionCacheTest(t)
+	decides(h.acs, false)
+	userID := h.th.BasicUser.Id
+	rctx := h.th.Context.WithSession(h.session)
+	check := func(channelID string) bool {
+		return h.th.App.HasPermissionToChannelAction(rctx, userID, h.session.Roles, channelID, model.AccessControlPolicyActionChannelReadAccess)
+	}
+
+	dm := h.th.CreateDmChannel(t, h.th.BasicUser2)
+	require.True(t, check(dm.Id), "DMs are exempt, as in enforcement")
+	require.Zero(t, h.evaluations())
+
+	require.False(t, check(h.th.BasicChannel.Id))
+	require.False(t, check(h.th.BasicChannel.Id))
+	require.Equal(t, 1, h.evaluations(), "the second check is served from the cache")
+
+	h.th.App.invalidateAccessDecisionsForSession(h.session.Id)
+	require.False(t, check(h.th.BasicChannel.Id))
+	require.Equal(t, 2, h.evaluations())
 }

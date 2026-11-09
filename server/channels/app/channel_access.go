@@ -16,8 +16,10 @@ import (
 
 type channelAccessMemoKey struct{}
 
+// channelAccessKey is keyed by subject, not user: a request can switch sessions (WithSession)
+// and keep its memo, and the two subjects can decide differently.
 type channelAccessKey struct {
-	userID    string
+	subject   accessSubjectRef
 	channelID string
 	action    string
 }
@@ -53,10 +55,10 @@ type channelAccessMemo struct {
 	decisions      map[channelAccessKey]bool
 	actionGoverned map[channelActionGovernedKey]channelGovernance
 
-	// subjects holds each user's subject without a channel role. Only that role
-	// differs between a user's channels, so a request builds the rest once and
-	// copies it per channel.
-	subjects map[string]*model.Subject
+	// subjects holds each subject without a channel role. Only that role differs
+	// between a user's channels, so a request builds the rest once and copies it
+	// per channel.
+	subjects map[accessSubjectRef]*model.Subject
 
 	// channelRoles holds roles prepareChannelAccess fetched for a whole page in
 	// one query, so evaluating each channel does not read its member row again.
@@ -98,19 +100,19 @@ func (m *channelAccessMemo) setActionGoverned(channelID, action string, governan
 	m.actionGoverned[channelActionGovernedKey{channelID: channelID, action: action}] = governance
 }
 
-func (m *channelAccessMemo) getSubject(userID string) *model.Subject {
+func (m *channelAccessMemo) getSubject(ref accessSubjectRef) *model.Subject {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	return m.subjects[userID]
+	return m.subjects[ref]
 }
 
-func (m *channelAccessMemo) setSubject(userID string, subject *model.Subject) {
+func (m *channelAccessMemo) setSubject(ref accessSubjectRef, subject *model.Subject) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	if m.subjects == nil {
-		m.subjects = map[string]*model.Subject{}
+		m.subjects = map[accessSubjectRef]*model.Subject{}
 	}
-	m.subjects[userID] = subject
+	m.subjects[ref] = subject
 }
 
 func (m *channelAccessMemo) getChannelRole(key channelRoleKey) (role string, ok bool) {
@@ -504,39 +506,35 @@ func (a *App) hasChannelAccess(rctx request.CTX, userID string, channel *model.C
 		return true
 	}
 
+	ref := accessSubjectRefFor(rctx, userID)
 	memo := getChannelAccessMemo(rctx)
-	key := channelAccessKey{userID: userID, channelID: channel.Id, action: action}
+	key := channelAccessKey{subject: ref, channelID: channel.Id, action: action}
 	if memo != nil {
 		if allowed, ok := memo.get(key); ok {
 			return allowed
 		}
 	}
 
-	allowed := a.evaluateChannelAccess(rctx, userID, channel, action)
+	allowed := a.evaluateChannelAccess(rctx, ref, channel, action)
 	if memo != nil {
 		memo.set(key, allowed)
 	}
 	return allowed
 }
 
-func (a *App) evaluateChannelAccess(rctx request.CTX, userID string, channel *model.Channel, action string) bool {
+func (a *App) evaluateChannelAccess(rctx request.CTX, ref accessSubjectRef, channel *model.Channel, action string) bool {
 	governed, byChannelPolicy := a.channelAccessGoverned(rctx, channel, action)
 	if !governed {
 		return true
 	}
 
-	// Only read access, the hottest check, is cached so far.
-	var ref accessSubjectRef
-	if action == model.AccessControlPolicyActionChannelReadAccess {
-		ref = accessSubjectRefFor(rctx, userID)
-	}
-
+	userID := ref.userID
 	var buildErr *model.AppError
-	decision, evalErr := a.evaluateAccessCached(rctx, ref,
+	decision, evalErr := a.evaluateAccessCached(rctx, channelAccessCacheRef(ref, action),
 		model.Resource{Type: model.AccessControlPolicyTypeChannel, ID: channel.Id},
 		action,
 		func() (model.Subject, *model.AppError) {
-			subject, appErr := a.channelAccessSubject(rctx, userID, channel.Id, byChannelPolicy)
+			subject, appErr := a.channelAccessSubject(rctx, ref, channel.Id, byChannelPolicy)
 			buildErr = appErr
 			return subject, appErr
 		},
@@ -563,12 +561,13 @@ func (a *App) evaluateChannelAccess(rctx request.CTX, userID string, channel *mo
 	return decision.Decision
 }
 
-// channelAccessSubject returns the subject to evaluate userID against in one channel.
+// channelAccessSubject returns the subject to evaluate ref against in one channel.
 // The base subject comes from channelAccessBaseSubject; withChannelRole adds the user's
 // role in the channel, taken from the roles prepareChannelAccess fetched for the page
 // when it has one, and read from the member row otherwise.
-func (a *App) channelAccessSubject(rctx request.CTX, userID, channelID string, withChannelRole bool) (model.Subject, *model.AppError) {
-	base, appErr := a.channelAccessBaseSubject(rctx, userID)
+func (a *App) channelAccessSubject(rctx request.CTX, ref accessSubjectRef, channelID string, withChannelRole bool) (model.Subject, *model.AppError) {
+	userID := ref.userID
+	base, appErr := a.channelAccessBaseSubject(rctx, ref)
 	if appErr != nil {
 		return model.Subject{}, appErr
 	}
@@ -589,39 +588,36 @@ func (a *App) channelAccessSubject(rctx request.CTX, userID, channelID string, w
 	return a.attachChannelScopedRole(rctx, subject, userID, channelID)
 }
 
-// channelAccessBaseSubject returns userID's subject without a channel role. Nothing
-// else in it depends on the channel, so a request with a memo builds it once per user
-// rather than once per channel.
-func (a *App) channelAccessBaseSubject(rctx request.CTX, userID string) (*model.Subject, *model.AppError) {
+// channelAccessBaseSubject returns ref's subject without a channel role. Nothing else
+// in it depends on the channel, so a request with a memo builds it once per subject
+// rather than once per channel. ref's kind picks the build, so the subject always
+// matches the cache key it is stored under (see accessSubjectRefFor).
+func (a *App) channelAccessBaseSubject(rctx request.CTX, ref accessSubjectRef) (*model.Subject, *model.AppError) {
 	memo := getChannelAccessMemo(rctx)
 	if memo != nil {
-		if subject := memo.getSubject(userID); subject != nil {
+		if subject := memo.getSubject(ref); subject != nil {
 			return subject, nil
 		}
 	}
 
 	var subject *model.Subject
 	var appErr *model.AppError
-	// Only a real session (one with an ID) speaks for the user's roles and session
-	// attributes. A stand-in that carries only the user ID, as background jobs such as
-	// recaps build, has no roles, and would evaluate a guest or an admin as system_user;
-	// such a request is evaluated on the user's stored roles instead.
-	if s := rctx.Session(); s.UserId == userID && s.Id != "" {
+	if ref.kind == accessSubjectSession {
 		subject, appErr = a.BuildAccessControlSubjectForSession(rctx, "")
 	} else {
 		var user *model.User
-		user, appErr = a.GetUser(rctx, userID)
+		user, appErr = a.GetUser(rctx, ref.userID)
 		if appErr != nil {
 			return nil, appErr
 		}
-		subject, appErr = a.BuildAccessControlSubject(rctx, userID, user.Roles, "")
+		subject, appErr = a.BuildAccessControlSubject(rctx, ref.userID, user.Roles, "")
 	}
 	if appErr != nil {
 		return nil, appErr
 	}
 
 	if memo != nil {
-		memo.setSubject(userID, subject)
+		memo.setSubject(ref, subject)
 	}
 	return subject, nil
 }
@@ -646,20 +642,30 @@ func (a *App) prepareChannelAccess(rctx request.CTX, userID string, channels []*
 		return
 	}
 
+	ref := accessSubjectRefFor(rctx, userID)
+	cacheRef := channelAccessCacheRef(ref, action)
 	var channelIDs []string
 	for _, channel := range channels {
 		if channel == nil || channelAccessExempt(channel) {
 			continue
 		}
-		if _, decided := memo.get(channelAccessKey{userID: userID, channelID: channel.Id, action: action}); decided {
+		key := channelAccessKey{subject: ref, channelID: channel.Id, action: action}
+		if _, decided := memo.get(key); decided {
 			continue
 		}
 		if _, fetched := memo.getChannelRole(channelRoleKey{userID: userID, channelID: channel.Id}); fetched {
 			continue
 		}
-		if _, byChannelPolicy := a.channelAccessGoverned(rctx, channel, action); byChannelPolicy {
-			channelIDs = append(channelIDs, channel.Id)
+		if _, byChannelPolicy := a.channelAccessGoverned(rctx, channel, action); !byChannelPolicy {
+			continue
 		}
+		// A cached decision needs no subject, so its role isn't fetched. byChannelPolicy
+		// implies governed, so this is the answer hasChannelAccess would reach.
+		if allowed, hit := a.peekAccessDecision(cacheRef, model.AccessControlPolicyTypeChannel, channel.Id, action); hit {
+			memo.set(key, allowed)
+			continue
+		}
+		channelIDs = append(channelIDs, channel.Id)
 	}
 	if len(channelIDs) == 0 {
 		return

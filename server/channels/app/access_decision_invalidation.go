@@ -468,15 +468,36 @@ type accessSubjectRef struct {
 	userID    string
 }
 
-// accessSubjectRefFor mirrors channelAccessBaseSubject: the session when userID is its user,
-// otherwise the user's stored roles. A session without an ID (background jobs) isn't cached.
+// accessSubjectRefFor picks the subject channelAccessBaseSubject builds: the session when
+// userID is its user and it has an ID, otherwise the user's stored roles. A stand-in session
+// without an ID (background jobs such as recaps) has no roles of its own, so it is evaluated,
+// and cached, as the user.
 func accessSubjectRefFor(rctx request.CTX, userID string) accessSubjectRef {
-	session := rctx.Session()
-	if session.UserId != userID {
-		return accessSubjectRef{kind: accessSubjectUser, subjectID: userID, userID: userID}
+	if session := rctx.Session(); session.UserId == userID && session.Id != "" {
+		return accessSubjectRef{kind: accessSubjectSession, subjectID: session.Id, userID: userID}
 	}
-	if session.Id == "" {
+	return accessSubjectRef{kind: accessSubjectUser, subjectID: userID, userID: userID}
+}
+
+// channelAccessCacheRef returns ref for the channel actions the cache holds, and a zero ref
+// (bypass) otherwise. Only read access, the hottest check, is cached so far.
+func channelAccessCacheRef(ref accessSubjectRef, action string) accessSubjectRef {
+	if action != model.AccessControlPolicyActionChannelReadAccess {
 		return accessSubjectRef{}
 	}
-	return accessSubjectRef{kind: accessSubjectSession, subjectID: session.Id, userID: userID}
+	return ref
+}
+
+// peekAccessDecision returns a current cached decision without evaluating on a miss, and
+// without counting one: the caller evaluates later and that miss is counted then.
+func (a *App) peekAccessDecision(ref accessSubjectRef, resourceType, resourceID, action string) (allowed bool, hit bool) {
+	c := a.ch.accessDecisions
+	if c == nil || ref.kind == 0 {
+		return false, false
+	}
+	lookup, cacheable := c.prepare(ref.kind, ref.subjectID, ref.userID, resourceType, resourceID, action)
+	if !cacheable {
+		return false, false
+	}
+	return c.peek(&lookup)
 }

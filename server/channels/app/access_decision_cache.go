@@ -377,6 +377,15 @@ func (c *accessDecisionCache) prepare(kind accessSubjectKind, subjectID, userID,
 // get captures the clock and current versions into l, then returns the stored decision if it was
 // stored under exactly those versions and hasn't expired. On a miss, l is ready for put.
 func (c *accessDecisionCache) get(l *accessDecisionLookup) (allowed bool, hit bool) {
+	return c.lookup(l, true)
+}
+
+// peek is get without counting a miss.
+func (c *accessDecisionCache) peek(l *accessDecisionLookup) (allowed bool, hit bool) {
+	return c.lookup(l, false)
+}
+
+func (c *accessDecisionCache) lookup(l *accessDecisionLookup, countMiss bool) (allowed bool, hit bool) {
 	// The clock is read before the versions; see bump.
 	l.capturedAt = c.now()
 	l.versions.global = c.global.Load()
@@ -399,7 +408,9 @@ func (c *accessDecisionCache) get(l *accessDecisionLookup) (allowed bool, hit bo
 			return allowed, true
 		}
 	}
-	s.misses++
+	if countMiss {
+		s.misses++
+	}
 	s.mu.Unlock()
 	return false, false
 }
