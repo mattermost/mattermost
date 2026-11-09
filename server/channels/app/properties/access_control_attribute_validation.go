@@ -1425,7 +1425,7 @@ func dropOldPolicyKeys(field *model.PropertyField) {
 }
 
 // warnOldPolicyKeys logs a write of the old keys, so integrations still using
-// them can be found before they are removed. Nothing is logged for no keys.
+// them can be found. Nothing is logged for no keys.
 func (ps *PropertyService) warnOldPolicyKeys(rctx request.CTX, field *model.PropertyField, keys []string) {
 	if len(keys) == 0 {
 		return
@@ -1544,7 +1544,7 @@ func selfRules(bounds model.PropertyBounds) model.PropertyBounds {
 // validateBoundsChange refuses a new bounds rule, or a mutability that newly
 // becomes write_once, judged against changePolicyBaseline. With the
 // PropertyFieldBounds flag off it is refused whatever the license, except what an
-// old-format write adds: that carries the shipped change_policy feature over and
+// old-format write adds: that carries the existing change_policy feature over and
 // needs only the license. With the flag on it is refused unless the server is
 // licensed for Enterprise Advanced. Rules and locks already on the field ride
 // along, and removing them is always allowed. Unstated bounds (nil) and mutability
@@ -1738,7 +1738,8 @@ func (h *AccessControlAttributeValidationHook) PreDeletePropertyValuesForField(r
 
 // PreDeletePropertyValuesForTarget covers the same gap for a target-wide delete
 // (e.g. via the plugin API). Locked values are protected for every target type; the
-// required check follows the value write path.
+// required check applies as it does on the value write path.
+//
 // With no group named, every managed group is checked, since the delete reaches all of them.
 func (h *AccessControlAttributeValidationHook) PreDeletePropertyValuesForTarget(rctx request.CTX, groupID string, targetType string, targetID string) error {
 	if groupID != "" {
