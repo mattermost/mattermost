@@ -657,7 +657,7 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	postsList, firstInaccessiblePostTime, appErr := c.App.GetPostsByIds(postIDs)
+	postsList, firstInaccessiblePostTime, appErr := c.App.GetPostsByIdsForUser(c.AppContext, c.AppContext.Session().UserId, postIDs)
 	if appErr != nil {
 		c.Err = appErr
 		return
