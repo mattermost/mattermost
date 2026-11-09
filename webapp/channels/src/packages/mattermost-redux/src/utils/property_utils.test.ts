@@ -5,15 +5,17 @@ import type {PropertyField} from '@mattermost/types/properties';
 
 import {
     canMoveToOption,
+    formatPropertyFieldLabel,
     getOptionRank,
     getPropertyFieldChangePolicy,
     getPropertyFieldLabel,
+    getPropertyFieldOptions,
     getPropertyFieldSyncSources,
-    isPropertyFieldSynced,
-    isPropertyFieldSyncedForAuthService,
     isPropertyFieldEditable,
     isPropertyFieldRequired,
     isPropertyFieldSourceManaged,
+    isPropertyFieldSynced,
+    isPropertyFieldSyncedForAuthService,
     isPropertyValueSet,
     isPSAv1PropertyField,
 } from './property_utils';
@@ -200,6 +202,38 @@ describe('getPropertyFieldLabel', () => {
         expect(getPropertyFieldLabel(makeField({name: 'classification'}))).toBe('Classification');
         expect(getPropertyFieldLabel(makeField({name: 'classification', attrs: {display_name: ''}}))).toBe('Classification');
         expect(getPropertyFieldLabel(makeField({name: 'classification', attrs: {display_name: 'Classification'}}))).toBe('Classification');
+    });
+});
+
+// Also the Manage Attributes page heading, which renders a field's slug directly.
+describe('formatPropertyFieldLabel', () => {
+    test('title-cases the first letter so internal names read as headings', () => {
+        expect(formatPropertyFieldLabel('classification')).toBe('Classification');
+        expect(formatPropertyFieldLabel('  department')).toBe('Department');
+    });
+
+    test('leaves an already-capitalized display name unchanged', () => {
+        expect(formatPropertyFieldLabel('Test Attribute')).toBe('Test Attribute');
+    });
+
+    test('returns an empty string when the name is blank', () => {
+        expect(formatPropertyFieldLabel('   ')).toBe('');
+        expect(formatPropertyFieldLabel('')).toBe('');
+    });
+});
+
+describe('getPropertyFieldOptions', () => {
+    test('returns the field\'s options', () => {
+        const options = [{id: 'a', name: 'A'}];
+        expect(getPropertyFieldOptions(makeField({attrs: {options}}))).toBe(options);
+    });
+
+    // An absent list and an empty one are not distinguishable on the wire, so
+    // both read as empty rather than as undefined.
+    test('returns an empty array when the field declares no options', () => {
+        expect(getPropertyFieldOptions(makeField())).toEqual([]);
+        expect(getPropertyFieldOptions(makeField({attrs: {}}))).toEqual([]);
+        expect(getPropertyFieldOptions(makeField({attrs: {options: []}}))).toEqual([]);
     });
 });
 

@@ -6,14 +6,14 @@ import React, {type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {ChevronRightIcon} from '@mattermost/compass-icons/components';
+import {AdminPanel as CompassAdminPanel} from '@mattermost/compass-ui/components/admin-panel';
 import {Button} from '@mattermost/compass-ui/components/button';
 import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {Job, JobType} from '@mattermost/types/jobs';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import NextIcon from 'components/widgets/icons/fa_next_icon';
-import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
+import PaginationButtons from 'components/common/pagination_buttons';
 
 import {JobTypes} from 'utils/constants';
 
@@ -200,24 +200,14 @@ class JobTable extends React.PureComponent<Props, State> {
                                     total: this.props.jobs.length,
                                 }}
                             />
-                            <button
-                                type='button'
-                                className={'btn btn-quaternary btn-icon btn-sm ml-2 prev ' + (firstPage ? 'disabled' : '')}
-                                onClick={this.handlePrevPage}
-                                disabled={firstPage}
-                                aria-label={'Previous page'}
-                            >
-                                <PreviousIcon/>
-                            </button>
-                            <button
-                                type='button'
-                                className={'btn btn-quaternary btn-icon btn-sm next ' + (lastPage ? 'disabled' : '')}
-                                onClick={this.handleNextPage}
-                                disabled={lastPage}
-                                aria-label={'Next page'}
-                            >
-                                <NextIcon/>
-                            </button>
+                            <PaginationButtons
+                                onPrevious={this.handlePrevPage}
+                                onNext={this.handleNextPage}
+                                disablePrevious={firstPage}
+                                disableNext={lastPage}
+                                previousButtonClassName='ml-2 prev'
+                                nextButtonClassName='next'
+                            />
                         </div>
                     </div>
                 );
@@ -226,83 +216,96 @@ class JobTable extends React.PureComponent<Props, State> {
             return footer;
         };
 
-        return (
-            <div className={classNames('JobTable', 'job-table__panel', this.props.className)}>
-                <div className='job-table__create-button'>
-                    {
-                        !this.props.hideJobCreateButton &&
-                        <div>
-                            <Button
-                                type='button'
-                                emphasis='tertiary'
-                                onClick={this.handleCreateJob}
-                                disabled={this.props.disabled}
-                            >
-                                {this.props.createJobButtonText}
-                            </Button>
-                        </div>
-                    }
-                    <div className='help-text'>
-                        {this.props.createJobHelpText}
-                    </div>
-                </div>
-                {
-                    !this.props.hideTable &&
-                    <div className='job-table__table'>
-                        <table
-                            className='table'
-                            data-testid='jobTable'
-                        >
-                            <thead>
-                                <tr>
-                                    <th>
-                                        <FormattedMessage
-                                            id='admin.jobTable.headerStatus'
-                                            defaultMessage='Status'
-                                        />
-                                    </th>
-                                    <th>
-                                        <FormattedMessage
-                                            id='admin.jobTable.headerFinishAt'
-                                            defaultMessage='Finish Time'
-                                        />
-                                    </th>
-                                    <th>
-                                        <FormattedMessage
-                                            id='admin.jobTable.headerRunTime'
-                                            defaultMessage='Run Time'
-                                        />
-                                    </th>
-                                    {showFilesColumn &&
-                                    <th>
-                                        <FormattedMessage
-                                            id='admin.jobTable.headerFiles'
-                                            defaultMessage='Files'
-                                        />
-                                    </th>
-                                    }
-                                    {!hideDetailsColumn && (
-                                        <th colSpan={3}>
-                                            <FormattedMessage
-                                                id='admin.jobTable.headerExtraInfo'
-                                                defaultMessage='Details'
-                                            />
-                                        </th>
-                                    )}
-                                    {this.props.onRowClick && <th className='view-details-field'/>}
-                                    <th className='cancel-button-field'/>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {items}
-                            </tbody>
-                        </table>
-                        {perPage && this.props.jobs.length > 0 && (
-                            renderFooter()
-                        )}
-                    </div>
-                }
+        const table = !this.props.hideTable && (
+            <div className='job-table__table'>
+                <table
+                    className='table'
+                    data-testid='jobTable'
+                >
+                    <thead>
+                        <tr>
+                            <th>
+                                <FormattedMessage
+                                    id='admin.jobTable.headerStatus'
+                                    defaultMessage='Status'
+                                />
+                            </th>
+                            <th>
+                                <FormattedMessage
+                                    id='admin.jobTable.headerFinishAt'
+                                    defaultMessage='Finish Time'
+                                />
+                            </th>
+                            <th>
+                                <FormattedMessage
+                                    id='admin.jobTable.headerRunTime'
+                                    defaultMessage='Run Time'
+                                />
+                            </th>
+                            {showFilesColumn &&
+                            <th>
+                                <FormattedMessage
+                                    id='admin.jobTable.headerFiles'
+                                    defaultMessage='Files'
+                                />
+                            </th>
+                            }
+                            {!hideDetailsColumn && (
+                                <th colSpan={3}>
+                                    <FormattedMessage
+                                        id='admin.jobTable.headerExtraInfo'
+                                        defaultMessage='Details'
+                                    />
+                                </th>
+                            )}
+                            {this.props.onRowClick && <th className='view-details-field'/>}
+                            <th className='cancel-button-field'/>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {items}
+                    </tbody>
+                </table>
+                {perPage && this.props.jobs.length > 0 && (
+                    renderFooter()
+                )}
             </div>
+        );
+
+        // Embedded in a parent AdminPanel (e.g. Data Retention): keep help + table only.
+        if (this.props.hideJobCreateButton) {
+            return (
+                <div className={classNames('JobTable', 'job-table__panel', this.props.className)}>
+                    <div className='job-table__create-button'>
+                        <div className='help-text'>
+                            {this.props.createJobHelpText}
+                        </div>
+                    </div>
+                    {table}
+                </div>
+            );
+        }
+
+        const panelTitle = this.props.createJobButtonText == null ? ' ' : this.props.createJobButtonText;
+
+        return (
+            <CompassAdminPanel
+                className={classNames('AdminPanel', 'JobTable', 'job-table__panel', this.props.className)}
+                title={panelTitle}
+                subtitle={this.props.createJobHelpText}
+                headerActions={
+                    <Button
+                        type='button'
+                        emphasis='primary'
+                        onClick={this.handleCreateJob}
+                        disabled={this.props.disabled}
+                    >
+                        {this.props.createJobButtonText}
+                    </Button>
+                }
+            >
+                {table}
+            </CompassAdminPanel>
         );
     }
 }

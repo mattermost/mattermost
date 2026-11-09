@@ -138,19 +138,21 @@ describe('Channel sidebar', () => {
             cy.postMessageAs({sender: sysadmin, message: 'Test', channelId: channel.id});
 
             // * Verify that CHANNELS starts expanded
-            cy.get('.SidebarChannelGroupHeader:contains(CHANNELS) i').should('not.have.class', 'icon-rotate-minus-90');
+            cy.get('.SidebarChannelGroupHeader:contains(CHANNELS) button.SidebarChannelGroupHeader_groupButton').
+                should('have.attr', 'aria-expanded', 'true');
 
             // * Verify that all categories are visible
             cy.get('.SidebarChannelGroupHeader:contains(CHANNELS)').should('be.visible');
-            cy.get('.SidebarChannelGroupHeader:contains(CHANNELS) i').should('be.visible').should('not.have.class', 'icon-rotate-minus-90');
             cy.get('.SidebarChannelGroupHeader:contains(DIRECT MESSAGES)').should('be.visible');
-            cy.get('.SidebarChannelGroupHeader:contains(DIRECT MESSAGES) i').should('be.visible').should('not.have.class', 'icon-rotate-minus-90');
+            cy.get('.SidebarChannelGroupHeader:contains(DIRECT MESSAGES) button.SidebarChannelGroupHeader_groupButton').
+                should('have.attr', 'aria-expanded', 'true');
 
             // # Collapse CHANNELS
             cy.get('.SidebarChannelGroupHeader:contains(CHANNELS)').click();
 
             // * Verify that CHANNELS is collapsed
-            cy.get('.SidebarChannelGroupHeader:contains(CHANNELS) i').should('have.class', 'icon-rotate-minus-90');
+            cy.get('.SidebarChannelGroupHeader:contains(CHANNELS) button.SidebarChannelGroupHeader_groupButton').
+                should('have.attr', 'aria-expanded', 'false');
 
             // # Enable the unread filter
             cy.get('.SidebarFilters_filterButton').click();
@@ -162,8 +164,10 @@ describe('Channel sidebar', () => {
             cy.get('.SidebarFilters_filterButton').click();
 
             // * Verify that DIRECT MESSAGES is not collapsed but CHANNELS still is
-            cy.get('.SidebarChannelGroupHeader:contains(CHANNELS) i').should('be.visible').should('have.class', 'icon-rotate-minus-90');
-            cy.get('.SidebarChannelGroupHeader:contains(DIRECT MESSAGES) i').should('be.visible').should('not.have.class', 'icon-rotate-minus-90');
+            cy.get('.SidebarChannelGroupHeader:contains(CHANNELS) button.SidebarChannelGroupHeader_groupButton').
+                should('have.attr', 'aria-expanded', 'false');
+            cy.get('.SidebarChannelGroupHeader:contains(DIRECT MESSAGES) button.SidebarChannelGroupHeader_groupButton').
+                should('have.attr', 'aria-expanded', 'true');
         });
     });
 });

@@ -3,6 +3,20 @@
 
 import {defineMessage} from 'react-intl';
 
+import {
+    AccountOutlineIcon,
+    AirplaneVariantIcon,
+    BasketballIcon,
+    ClockOutlineIcon,
+    EmoticonCustomOutlineIcon,
+    EmoticonHappyOutlineIcon,
+    FlagOutlineIcon,
+    FoodAppleIcon,
+    HeartOutlineIcon,
+    LeafOutlineIcon,
+    LightbulbOutlineIcon,
+    MagnifyIcon,
+} from '@mattermost/compass-icons/components';
 import type {EmojiCategory} from '@mattermost/types/emojis';
 
 import type {Categories} from '../types';
@@ -19,7 +33,7 @@ export const EMOJI_CATEGORIES: Categories = {
             id: 'emoji_picker.recent',
             defaultMessage: 'Recently Used',
         }),
-        iconClassName: 'icon-clock-outline',
+        icon: ClockOutlineIcon,
     },
     searchResults: {
         name: 'searchResults',
@@ -27,7 +41,7 @@ export const EMOJI_CATEGORIES: Categories = {
             id: 'emoji_picker.searchResults',
             defaultMessage: 'Search Results',
         }),
-        iconClassName: '',
+        icon: MagnifyIcon,
     },
     'smileys-emotion': {
         name: 'smileys-emotion',
@@ -35,7 +49,7 @@ export const EMOJI_CATEGORIES: Categories = {
             id: 'emoji_picker.smileys-emotion',
             defaultMessage: 'Smileys & Emotion',
         }),
-        iconClassName: 'icon-emoticon-happy-outline',
+        icon: EmoticonHappyOutlineIcon,
     },
     'people-body': {
         name: 'people-body',
@@ -43,7 +57,7 @@ export const EMOJI_CATEGORIES: Categories = {
             id: 'emoji_picker.people-body',
             defaultMessage: 'People & Body',
         }),
-        iconClassName: 'icon-account-outline',
+        icon: AccountOutlineIcon,
     },
     'animals-nature': {
         name: 'animals-nature',
@@ -51,7 +65,7 @@ export const EMOJI_CATEGORIES: Categories = {
             id: 'emoji_picker.animals-nature',
             defaultMessage: 'Animals & Nature',
         }),
-        iconClassName: 'icon-leaf-outline',
+        icon: LeafOutlineIcon,
     },
     'food-drink': {
         name: 'food-drink',
@@ -59,7 +73,7 @@ export const EMOJI_CATEGORIES: Categories = {
             id: 'emoji_picker.food-drink',
             defaultMessage: 'Food & Drink',
         }),
-        iconClassName: 'icon-food-apple',
+        icon: FoodAppleIcon,
     },
     'travel-places': {
         name: 'travel-places',
@@ -67,7 +81,7 @@ export const EMOJI_CATEGORIES: Categories = {
             id: 'emoji_picker.travel-places',
             defaultMessage: 'Travel & Places',
         }),
-        iconClassName: 'icon-airplane-variant',
+        icon: AirplaneVariantIcon,
     },
     activities: {
         name: 'activities',
@@ -75,7 +89,7 @@ export const EMOJI_CATEGORIES: Categories = {
             id: 'emoji_picker.activities',
             defaultMessage: 'Activities',
         }),
-        iconClassName: 'icon-basketball',
+        icon: BasketballIcon,
     },
     objects: {
         name: 'objects',
@@ -83,7 +97,7 @@ export const EMOJI_CATEGORIES: Categories = {
             id: 'emoji_picker.objects',
             defaultMessage: 'Objects',
         }),
-        iconClassName: 'icon-lightbulb-outline',
+        icon: LightbulbOutlineIcon,
     },
     symbols: {
         name: 'symbols',
@@ -91,7 +105,7 @@ export const EMOJI_CATEGORIES: Categories = {
             id: 'emoji_picker.symbols',
             defaultMessage: 'Symbols',
         }),
-        iconClassName: 'icon-heart-outline',
+        icon: HeartOutlineIcon,
     },
     flags: {
         name: 'flags',
@@ -99,7 +113,7 @@ export const EMOJI_CATEGORIES: Categories = {
             id: 'emoji_picker.flags',
             defaultMessage: 'Flags',
         }),
-        iconClassName: 'icon-flag-outline',
+        icon: FlagOutlineIcon,
     },
     custom: {
         name: 'custom',
@@ -107,7 +121,7 @@ export const EMOJI_CATEGORIES: Categories = {
             id: 'emoji_picker.custom',
             defaultMessage: 'Custom',
         }),
-        iconClassName: 'icon-emoticon-custom-outline',
+        icon: EmoticonCustomOutlineIcon,
     },
 } as const;
 
