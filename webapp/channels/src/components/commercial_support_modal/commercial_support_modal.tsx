@@ -63,7 +63,9 @@ function getDownloadError(err: unknown): string | true {
 }
 
 export default class CommercialSupportModal extends React.PureComponent<Props, State> {
-    private abortController?: AbortController;
+    // The download keeps going after the modal closes, so the file is still saved.
+    // Once unmounted, only the state updates are skipped.
+    private unmounted = false;
 
     constructor(props: Props) {
         super(props);
@@ -76,7 +78,7 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
     }
 
     componentWillUnmount() {
-        this.abortController?.abort();
+        this.unmounted = true;
     }
 
     componentDidUpdate = (prevProps: Props) => {
@@ -86,8 +88,6 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
     };
 
     doHide = () => {
-        // Cancel now rather than on unmount, which only happens after the close transition.
-        this.abortController?.abort();
         this.setState({show: false});
     };
 
@@ -118,26 +118,19 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
     };
 
     downloadSupportPacket = async () => {
-        this.abortController?.abort();
-        const abortController = new AbortController();
-        this.abortController = abortController;
-
         this.setState({loading: true, error: undefined});
 
         let packet: {blob: Blob; filename: string} | undefined;
         let error: State['error'];
         try {
-            packet = await Client4.getSupportPacket(this.getSupportPacketOptions(), abortController.signal);
+            packet = await Client4.getSupportPacket(this.getSupportPacketOptions());
         } catch (err) {
             error = getDownloadError(err);
         }
 
-        // The modal was closed or a new download started; there is nothing to report.
-        if (abortController.signal.aborted) {
-            return;
+        if (!this.unmounted) {
+            this.setState({loading: false, error});
         }
-
-        this.setState({loading: false, error});
         if (!packet) {
             return;
         }

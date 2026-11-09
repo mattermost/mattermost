@@ -458,6 +458,22 @@ describe('Client4', () => {
             expect(result.filename).toMatch(/^mm_support_packet_\d{4}-\d{2}-\d{2}T\d{2}-\d{2}\.zip$/);
         });
 
+        test.each([
+            'application/zip; charset=binary',
+            'Application/Zip',
+            'application/octet-stream',
+        ])('should return the zip unchanged when the Content-Type is %s', async (contentType) => {
+            const zipBytes = Buffer.from([0x50, 0x4b, 0x03, 0x04, 0xff, 0xfe, 0x00, 0x80]);
+            nock(client.getBaseRoute()).
+                get('/system/support_packet').
+                query(true).
+                reply(200, zipBytes, {'Content-Type': contentType});
+
+            const result = await client.getSupportPacket({basicServerLogs: true});
+
+            expect(Buffer.from(await result.blob.arrayBuffer())).toEqual(zipBytes);
+        });
+
         test('should surface server errors as ClientError', async () => {
             nock(client.getBaseRoute()).
                 get('/system/support_packet').

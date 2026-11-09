@@ -129,7 +129,7 @@ describe('components/CommercialSupportModal', () => {
             await user.click(screen.getByRole('checkbox', {name: 'Calls'}));
             await user.click(screen.getByRole('button', {name: 'Download Support Packet'}));
 
-            expect(getSupportPacket).toHaveBeenCalledWith({basicServerLogs: false, pluginPackets: ['com.mattermost.calls']}, expect.any(AbortSignal));
+            expect(getSupportPacket).toHaveBeenCalledWith({basicServerLogs: false, pluginPackets: ['com.mattermost.calls']});
         });
 
         test.each([
@@ -179,8 +179,11 @@ describe('components/CommercialSupportModal', () => {
             expect(window.URL.revokeObjectURL).toHaveBeenCalledWith('mock-url');
         });
 
-        test('should abort the download as soon as the modal is closed', async () => {
-            getSupportPacket.mockReturnValue(new Promise(() => {})); // never resolves
+        test('should still save the file when the modal is closed during the download', async () => {
+            let resolve: (packet: {blob: Blob; filename: string}) => void = () => {};
+            getSupportPacket.mockReturnValue(new Promise((r) => {
+                resolve = r;
+            }));
 
             const ref = React.createRef<CommercialSupportModal>();
             const user = userEvent.setup();
@@ -191,26 +194,34 @@ describe('components/CommercialSupportModal', () => {
                 />,
             );
             await user.click(screen.getByRole('button', {name: 'Download Support Packet'}));
-            const signal: AbortSignal = getSupportPacket.mock.calls[0][1];
 
             act(() => {
                 ref.current?.doHide();
             });
+            await act(async () => {
+                resolve({blob: new Blob(), filename: 'packet.zip'});
+            });
 
-            expect(signal.aborted).toBe(true);
-            expect(baseProps.onExited).not.toHaveBeenCalled();
+            expect(window.URL.createObjectURL).toHaveBeenCalled();
         });
 
-        test('should abort the download when the modal unmounts', async () => {
-            getSupportPacket.mockReturnValue(new Promise(() => {})); // never resolves
+        test('should still save the file when the modal unmounts during the download', async () => {
+            let resolve: (packet: {blob: Blob; filename: string}) => void = () => {};
+            getSupportPacket.mockReturnValue(new Promise((r) => {
+                resolve = r;
+            }));
+            const click = jest.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function(this: HTMLAnchorElement) {
+                expect(this.getAttribute('download')).toBe('packet.zip');
+            });
 
             const {unmount} = await renderAndDownload();
-            const signal: AbortSignal = getSupportPacket.mock.calls[0][1];
-            expect(signal.aborted).toBe(false);
-
             unmount();
+            await act(async () => {
+                resolve({blob: new Blob(), filename: 'packet.zip'});
+            });
 
-            expect(signal.aborted).toBe(true);
+            expect(click).toHaveBeenCalledTimes(1);
+            click.mockRestore();
         });
     });
 
