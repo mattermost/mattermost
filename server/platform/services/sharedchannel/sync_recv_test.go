@@ -377,6 +377,35 @@ func TestUpsertSyncPost(t *testing.T) {
 		mockApp.AssertCalled(t, "UpdatePost", mock.Anything, mock.Anything, allowsMmBlocks)
 	})
 
+	// UpdatePost takes the incoming metadata as is, so values a remote sends with an edit would
+	// otherwise go out in post_edited without being saved, the same as they are dropped on create.
+	t.Run("drops property values from an edit", func(t *testing.T) {
+		postID := model.NewId()
+		existing := &model.Post{Id: postID, ChannelId: channelID, Message: "original", RemoteId: new(remoteID)}
+
+		scs, mockApp, _ := setup(t, existing)
+		var passed *model.Post
+		capture := mock.MatchedBy(func(p *model.Post) bool {
+			passed = p
+			return true
+		})
+		updated := &model.Post{Id: postID, ChannelId: channelID, Message: "updated"}
+		mockApp.On("UpdatePost", mock.Anything, capture, mock.Anything).Return(updated, false, (*model.AppError)(nil))
+
+		edited := &model.Post{Id: postID, ChannelId: channelID, Message: "updated", Metadata: &model.PostMetadata{
+			PropertyValues: []*model.PropertyValue{
+				{GroupID: model.NewId(), FieldID: model.NewId(), Value: []byte(`"value"`)},
+			},
+		}}
+		_, err := scs.upsertSyncPost(edited, channel, rc, nil)
+
+		require.NoError(t, err)
+		require.NotNil(t, passed, "the edit must reach UpdatePost")
+		require.NotNil(t, passed.Metadata)
+		assert.Nil(t, passed.Metadata.PropertyValues)
+		assert.Equal(t, "updated", passed.Message)
+	})
+
 	t.Run("create", func(t *testing.T) {
 		userID := model.NewId()
 

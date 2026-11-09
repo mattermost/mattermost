@@ -580,6 +580,12 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 		// The sender re-sends each post on every sync, so only a content change
 		// updates the post; an update bumps UpdateAt and echoes the post back.
 		if contentChanged {
+			// Post attribute values don't sync between servers yet, as on create: UpdatePost
+			// takes the incoming metadata as is, so the remote's values would otherwise go out
+			// in `post_edited` without being saved.
+			if post.Metadata != nil {
+				post.Metadata.PropertyValues = nil
+			}
 			// The post is federated and remote-owned (verified above); the origin
 			// cluster already enforced both mm_blocks_actions and integration-prop
 			// authority, so allow the synced values through the UpdatePost freeze —
