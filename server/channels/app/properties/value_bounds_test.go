@@ -1116,4 +1116,47 @@ func TestRefuseMisaddressedUpdate(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, `"new"`, stored(m))
 	})
+
+	const writeOnceID = "app.property_value.write_once.app_error"
+	otherGroupID := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV3).ID
+	inGroup := func(v *model.PropertyValue, group string) *model.PropertyValue {
+		v.GroupID = group
+		return v
+	}
+
+	t.Run("an update stating an unmanaged group is refused", func(t *testing.T) {
+		targetA := model.NewId()
+		w := seed(writeOnce, targetA, `"locked"`)
+
+		_, err := th.service.UpdatePropertyValue(rctx, groupID, inGroup(stated(w, writeOnce.ID, targetA, `"changed"`), otherGroupID))
+		require.ErrorIs(t, err, ErrInvalidValue)
+		assert.Equal(t, `"locked"`, stored(w))
+	})
+
+	t.Run("an update with no group stating an unmanaged group is refused", func(t *testing.T) {
+		targetA := model.NewId()
+		w := seed(writeOnce, targetA, `"locked"`)
+
+		_, err := th.service.UpdatePropertyValue(rctx, "", inGroup(stated(w, writeOnce.ID, targetA, `"changed"`), otherGroupID))
+		require.ErrorIs(t, err, ErrInvalidValue)
+		assert.Equal(t, `"locked"`, stored(w))
+	})
+
+	t.Run("an update with no group still enforces write-once", func(t *testing.T) {
+		targetA := model.NewId()
+		w := seed(writeOnce, targetA, `"locked"`)
+
+		_, err := th.service.UpdatePropertyValue(rctx, "", stated(w, writeOnce.ID, targetA, `"changed"`))
+		requireAppErrorID(t, err, writeOnceID, http.StatusForbidden)
+		assert.Equal(t, `"locked"`, stored(w))
+	})
+
+	t.Run("a correctly addressed update with no group is allowed", func(t *testing.T) {
+		targetA := model.NewId()
+		m := seed(mutable, targetA, `"old"`)
+
+		_, err := th.service.UpdatePropertyValue(rctx, "", stated(m, mutable.ID, targetA, `"new"`))
+		require.NoError(t, err)
+		assert.Equal(t, `"new"`, stored(m))
+	})
 }

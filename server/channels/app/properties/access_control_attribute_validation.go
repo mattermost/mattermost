@@ -1160,13 +1160,15 @@ func (h *AccessControlAttributeValidationHook) refuseDirectChannelValueWrite(rct
 	return nil
 }
 
-// refuseMisaddressedUpdate refuses an update whose ID names a row of another field or target
-// than the value states. The store matches rows by ID alone, while every check here reads the
-// stated field's rules, so a plugin could otherwise overwrite a write-once value by naming a
-// mutable field. An ID with no row is left to the store, which fails it as not found.
+// refuseMisaddressedUpdate refuses an update whose ID names a row of another group, field or
+// target than the value states. The store matches rows by ID alone, while every check here reads
+// the stated field's rules, so a plugin could otherwise overwrite a write-once value by naming a
+// mutable field, or by stating an unmanaged group that validateValues then skips. An empty
+// groupID is covered too: the store's update drops its group filter then, so it can reach a row
+// of any group. An ID with no row is left to the store, which fails it as not found.
 func (h *AccessControlAttributeValidationHook) refuseMisaddressedUpdate(rctx request.CTX, groupID string, values []*model.PropertyValue) error {
 	// An empty ID list would search the whole group.
-	if len(values) == 0 || !h.isGroupManaged(groupID) {
+	if len(values) == 0 || (groupID != "" && !h.isGroupManaged(groupID)) {
 		return nil
 	}
 
@@ -1184,8 +1186,8 @@ func (h *AccessControlAttributeValidationHook) refuseMisaddressedUpdate(rctx req
 	}
 	for _, v := range values {
 		row, ok := rowByID[v.ID]
-		if ok && (row.FieldID != v.FieldID || row.TargetID != v.TargetID || row.TargetType != v.TargetType) {
-			return fmt.Errorf("value %s: names a row of another field or target: %w", v.ID, ErrInvalidValue)
+		if ok && (row.GroupID != v.GroupID || row.FieldID != v.FieldID || row.TargetID != v.TargetID || row.TargetType != v.TargetType) {
+			return fmt.Errorf("value %s: names a row of another group, field or target: %w", v.ID, ErrInvalidValue)
 		}
 	}
 	return nil
