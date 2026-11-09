@@ -871,7 +871,10 @@ func TestClearRefusal(t *testing.T) {
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
 			field := &model.PropertyField{ID: model.NewId(), Mutability: tc.mutability, Bounds: tc.bounds}
-			err := clearRefusal(field)
+			_, err := clearRefusal(field)
+			if err != nil {
+				err = boundsRefusal(err)
+			}
 			// A clear is refused exactly when the write path compares with the stored value.
 			assert.Equal(t, storedValueMatters(field), err != nil)
 			if tc.wantID == "" {
@@ -1682,4 +1685,112 @@ func TestBoundsEnforcementByLicense(t *testing.T) {
 		require.Error(t, err)
 		assert.Empty(t, *f.events)
 	})
+
+	// The deletes of a set locked value, by license: each is refused and audited once with no
+	// provider, and goes ahead and is audited as not enforced during a lapse.
+	rowOf := func(field *model.PropertyField, targetID string) *model.PropertyValue {
+		t.Helper()
+		vals, err := th.dbStore.PropertyValue().SearchPropertyValues(rctx, model.PropertyValueSearchOpts{GroupID: field.GroupID, FieldID: field.ID, TargetIDs: []string{targetID}, PerPage: 10})
+		require.NoError(t, err)
+		require.Len(t, vals, 1)
+		return vals[0]
+	}
+	for _, l := range licenses {
+		wantAction := ValueAuditActionBoundsNotEnforced
+		if l.enforced {
+			wantAction = ValueAuditActionBoundsRefused
+		}
+		// gone is what a delete leaves of a row it was asked to delete.
+		gone := func(field *model.PropertyField, targetID, before string) {
+			t.Helper()
+			if l.enforced {
+				assert.Equal(t, before, stored(field, targetID), l.name)
+			} else {
+				assert.Equal(t, "", stored(field, targetID), l.name)
+			}
+		}
+
+		t.Run(l.name+"/a delete by ID", func(t *testing.T) {
+			f := setup(t, l.provider)
+			target := model.NewId()
+			seed(f.locked, channelType, target, `"a"`)
+			row := rowOf(f.locked, target)
+
+			err := th.service.DeletePropertyValue(rctx, f.groupID, row.ID)
+			assert.Equal(t, l.enforced, err != nil)
+			gone(f.locked, target, `"a"`)
+			require.Len(t, *f.events, 1)
+			got := (*f.events)[0]
+			require.NotNil(t, got.Prev)
+			assert.Equal(t, row.ID, got.Prev.ID)
+			got.Prev = nil
+			assert.Equal(t, ValueAuditEvent{Action: wantAction, TargetType: channelType, TargetID: target, FieldID: f.locked.ID, ValueID: row.ID, BoundsRule: "write_once", BoundsReason: ValueAuditBoundsReasonViolated}, got)
+		})
+
+		t.Run(l.name+"/a delete by ID of a field with only a self rule", func(t *testing.T) {
+			f := setup(t, l.provider)
+			target := model.NewId()
+			seed(f.raise, channelType, target, opt("optmid"))
+
+			err := th.service.DeletePropertyValue(rctx, f.groupID, rowOf(f.raise, target).ID)
+			assert.Equal(t, l.enforced, err != nil)
+			gone(f.raise, target, opt("optmid"))
+			require.Len(t, *f.events, 1)
+			assert.Equal(t, wantAction, (*f.events)[0].Action)
+			assert.Equal(t, "at_or_above self", (*f.events)[0].BoundsRule)
+		})
+
+		t.Run(l.name+"/every value of a field", func(t *testing.T) {
+			f := setup(t, l.provider)
+			target := model.NewId()
+			seed(f.locked, channelType, target, `"a"`)
+
+			err := th.service.DeletePropertyValuesForField(rctx, f.groupID, f.locked.ID)
+			assert.Equal(t, l.enforced, err != nil)
+			gone(f.locked, target, `"a"`)
+			require.Len(t, *f.events, 1)
+			assert.Equal(t, ValueAuditEvent{Action: wantAction, FieldID: f.locked.ID, BoundsRule: "write_once", BoundsReason: ValueAuditBoundsReasonViolated}, (*f.events)[0])
+		})
+
+		t.Run(l.name+"/every value on a target", func(t *testing.T) {
+			f := setup(t, l.provider)
+			target := model.NewId()
+			seed(f.locked, channelType, target, `"a"`)
+			seed(f.raise, channelType, target, opt("optmid"))
+			seed(f.below, channelType, target, opt("optlow"))
+
+			err := th.service.DeletePropertyValuesForTarget(rctx, f.groupID, channelType, target)
+			assert.Equal(t, l.enforced, err != nil)
+			gone(f.locked, target, `"a"`)
+			gone(f.raise, target, opt("optmid"))
+			if l.enforced {
+				// Refused whole, on the first locked value.
+				require.Len(t, *f.events, 1)
+				assert.Equal(t, ValueAuditActionBoundsRefused, (*f.events)[0].Action)
+				assert.Equal(t, opt("optlow"), stored(f.below, target))
+				return
+			}
+			assert.Equal(t, "", stored(f.below, target))
+			require.Len(t, *f.events, 2)
+			rules := map[string]string{}
+			for _, e := range *f.events {
+				assert.Equal(t, ValueAuditActionBoundsNotEnforced, e.Action)
+				assert.Equal(t, ValueAuditBoundsReasonViolated, e.BoundsReason)
+				assert.Equal(t, target, e.TargetID)
+				require.NotNil(t, e.Prev)
+				rules[e.FieldID] = e.BoundsRule
+			}
+			assert.Equal(t, map[string]string{f.locked.ID: "write_once", f.raise.ID: "at_or_above self"}, rules)
+		})
+
+		t.Run(l.name+"/a delete of an unlocked value is not audited", func(t *testing.T) {
+			f := setup(t, l.provider)
+			target := model.NewId()
+			seed(f.below, channelType, target, opt("optlow"))
+
+			require.NoError(t, th.service.DeletePropertyValue(rctx, f.groupID, rowOf(f.below, target).ID))
+			assert.Equal(t, "", stored(f.below, target))
+			assert.Empty(t, *f.events)
+		})
+	}
 }

@@ -1668,7 +1668,7 @@ func (h *AccessControlAttributeValidationHook) PreDeletePropertyValue(rctx reque
 
 	// A null row is refused too: a by-ID delete can't be made conditional on the value, so
 	// letting a null row go would let it race a first write and make a second "first" write possible.
-	if err := h.refuseLockedFieldClear(master, groupID, value.FieldID); err != nil {
+	if err := h.refuseLockedFieldClear(master, groupID, value.FieldID, value); err != nil {
 		return err
 	}
 	// A delete is a clear, so a participant must not be able to use it to strip
@@ -1697,7 +1697,7 @@ func (h *AccessControlAttributeValidationHook) PreDeletePropertyValuesForField(r
 	if !h.isGroupManaged(groupID) {
 		return nil
 	}
-	return h.refuseLockedFieldClear(master, groupID, fieldID)
+	return h.refuseLockedFieldClear(master, groupID, fieldID, nil)
 }
 
 // PreDeletePropertyValuesForTarget covers the same gap for a target-wide delete

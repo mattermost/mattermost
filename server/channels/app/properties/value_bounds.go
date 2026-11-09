@@ -483,22 +483,26 @@ func newMutabilityError(field *model.PropertyField) error {
 	return model.NewAppError("UpsertPropertyValues", "app.property_value.set_on_create.app_error", nil, details, http.StatusForbidden)
 }
 
-// clearRefusal returns the refusal for clearing a set value of field, or nil when clears are
-// allowed. It is non-nil exactly when storedValueMatters: a clear is judged by the same rules as
-// any other change to a stored value. Same errors as the write path, so a refused clear tells the
-// caller nothing about the value.
-func clearRefusal(field *model.PropertyField) error {
+// clearRefusal returns the refusal for clearing a set value of field and the audited rule that
+// refuses it, or a nil error when clears are allowed. It is non-nil exactly when storedValueMatters:
+// a clear is judged by the same rules as any other change to a stored value. Same errors as the
+// write path, so a refused clear tells the caller nothing about the value. The self-rule error is
+// not yet an AppError: boundsBreak turns it into one.
+func clearRefusal(field *model.PropertyField) (rule string, err error) {
 	if field.Mutability.OrMutable() != model.PropertyFieldMutabilityMutable {
-		return newMutabilityError(field)
+		return string(field.Mutability.OrMutable()), newMutabilityError(field)
 	}
-	if slices.ContainsFunc(field.Bounds, func(r model.PropertyBoundsRule) bool { return r.Reference == model.PropertyBoundsReferenceSelf }) {
-		return boundsRefusal(fmt.Errorf("field %s: a value can't be cleared: %w", field.ID, errBoundsViolated))
+	if i := slices.IndexFunc(field.Bounds, func(r model.PropertyBoundsRule) bool { return r.Reference == model.PropertyBoundsReferenceSelf }); i >= 0 {
+		r := field.Bounds[i]
+		return string(r.Operator) + " " + string(r.Reference), fmt.Errorf("field %s: a value can't be cleared: %w", field.ID, errBoundsViolated)
 	}
-	return nil
+	return "", nil
 }
 
-// refuseLockedFieldClear returns the field's clearRefusal, reading the field from master.
-func (h *AccessControlAttributeValidationHook) refuseLockedFieldClear(master request.CTX, groupID, fieldID string) error {
+// refuseLockedFieldClear audits and refuses the field's clearRefusal, reading the field from master,
+// or lets the delete go ahead without Enterprise Advanced. value is the row being deleted, nil when
+// every value of the field goes.
+func (h *AccessControlAttributeValidationHook) refuseLockedFieldClear(master request.CTX, groupID, fieldID string, value *model.PropertyValue) error {
 	fields, err := h.propertyService.getPropertyFields(master, groupID, []string{fieldID})
 	if errors.Is(err, ErrFieldNotFound) {
 		return nil
@@ -506,7 +510,15 @@ func (h *AccessControlAttributeValidationHook) refuseLockedFieldClear(master req
 	if err != nil {
 		return fmt.Errorf("failed to read field %s before clearing its values: %w", fieldID, err)
 	}
-	return clearRefusal(fields[0])
+	rule, err := clearRefusal(fields[0])
+	if err == nil {
+		return nil
+	}
+	e := ValueAuditEvent{FieldID: fieldID, BoundsRule: rule}
+	if value != nil {
+		e.TargetType, e.TargetID, e.ValueID, e.Prev = value.TargetType, value.TargetID, value.ID, value
+	}
+	return h.boundsBreak(master, groupID, e, err)
 }
 
 // refuseLockedTargetDelete refuses deleting everything on a target when it holds a set value of a
@@ -523,7 +535,7 @@ func (h *AccessControlAttributeValidationHook) refuseLockedTargetDelete(rctx req
 	}
 	locked := make(map[string]*model.PropertyField)
 	for _, f := range fields {
-		if clearRefusal(f) != nil {
+		if _, refusal := clearRefusal(f); refusal != nil {
 			locked[f.ID] = f
 		}
 	}
@@ -535,10 +547,20 @@ func (h *AccessControlAttributeValidationHook) refuseLockedTargetDelete(rctx req
 	if err != nil {
 		return err
 	}
+	enforced := h.propertyService.boundsEnforced()
 	for _, v := range values {
-		if f, ok := locked[v.FieldID]; ok && !model.IsEmptyPropertyValue(v.Value) {
-			return clearRefusal(f)
+		f, ok := locked[v.FieldID]
+		if !ok || model.IsEmptyPropertyValue(v.Value) {
+			continue
 		}
+		rule, refusal := clearRefusal(f)
+		// Without Enterprise Advanced this audits every locked value and returns nil.
+		if err := h.boundsBreak(master, groupID, ValueAuditEvent{TargetType: v.TargetType, TargetID: v.TargetID, FieldID: v.FieldID, Prev: v, BoundsRule: rule}, refusal); err != nil {
+			return err
+		}
+	}
+	if !enforced {
+		return nil
 	}
 
 	conditions := valueWriteConditionsFrom(rctx)
