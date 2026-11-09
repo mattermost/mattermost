@@ -1544,32 +1544,48 @@ func selfRules(bounds model.PropertyBounds) model.PropertyBounds {
 // validateBoundsChange refuses a new bounds rule, or a mutability that newly
 // becomes write_once, judged against changePolicyBaseline. With the
 // PropertyFieldBounds flag off it is refused whatever the license, except what an
-// old-format write adds: that carries the existing change_policy feature over and
-// needs only the license. With the flag on it is refused unless the server is
-// licensed for Enterprise Advanced. Rules and locks already on the field ride
-// along, and removing them is always allowed. Unstated bounds (nil) and mutability
-// ("") add nothing; the update path fills them in from the stored field. This hook
-// manages only the access_control group, the one v3 group that can carry bounds,
-// so every field that can gain them passes through here.
+// old-format write's translation adds (a self rule or write_once): that carries
+// the existing change_policy feature over and needs only the license. A parent
+// rule saved beside change_policy is still refused. With the flag on it is
+// refused unless the server is licensed for Enterprise Advanced. Rules and locks
+// already on the field ride along, and removing them is always allowed. Unstated
+// bounds (nil) and mutability ("") add nothing; the update path fills them in
+// from the stored field. This hook manages only the access_control group, the one
+// v3 group that can carry bounds, so every field that can gain them passes
+// through here.
 func (h *AccessControlAttributeValidationHook) validateBoundsChange(field, existing *model.PropertyField, oldFormatWrite bool) error {
 	prevMutability, prevBounds := changePolicyBaseline(existing)
 
-	var adding string
+	// adding is anything new, for the license; flagGated is what the flag also
+	// covers, which skips what an old-format write's translation can add.
+	var adding, flagGated string
 	for _, rule := range field.Bounds {
-		if !slices.Contains(prevBounds, rule) {
-			adding = fmt.Sprintf("add the bounds rule %s %s", rule.Operator, rule.Reference)
-			break
+		if slices.Contains(prevBounds, rule) {
+			continue
+		}
+		desc := fmt.Sprintf("add the bounds rule %s %s", rule.Operator, rule.Reference)
+		if adding == "" {
+			adding = desc
+		}
+		if flagGated == "" && (!oldFormatWrite || rule.Reference != model.PropertyBoundsReferenceSelf) {
+			flagGated = desc
 		}
 	}
-	if adding == "" && field.Mutability == model.PropertyFieldMutabilityWriteOnce && prevMutability != field.Mutability {
-		adding = fmt.Sprintf("make the field %s", field.Mutability)
+	if field.Mutability == model.PropertyFieldMutabilityWriteOnce && prevMutability != field.Mutability {
+		desc := fmt.Sprintf("make the field %s", field.Mutability)
+		if adding == "" {
+			adding = desc
+		}
+		if flagGated == "" && !oldFormatWrite {
+			flagGated = desc
+		}
 	}
 	if adding == "" {
 		return nil
 	}
 
-	if !oldFormatWrite && !h.propertyFieldBoundsEnabled() {
-		details := fmt.Sprintf("field %s: cannot %s while the PropertyFieldBounds feature flag is off", field.ID, adding)
+	if flagGated != "" && !h.propertyFieldBoundsEnabled() {
+		details := fmt.Sprintf("field %s: cannot %s while the PropertyFieldBounds feature flag is off", field.ID, flagGated)
 		return model.NewAppError("UpsertPropertyField", "app.property_field.bounds_disabled.app_error", nil, details, http.StatusBadRequest)
 	}
 	if !h.propertyService.boundsEnforced() {

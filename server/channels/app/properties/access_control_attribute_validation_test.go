@@ -4614,4 +4614,106 @@ func TestAccessControlAttributeValidationHookChangePolicyTranslation(t *testing.
 		requireAppErrorID(t, updateErr, "app.property_field.change_policy_conflict.app_error", http.StatusBadRequest)
 		assert.Equal(t, model.PropertyBounds{raiseOnly}, stored(t, f.ID).Bounds)
 	})
+
+	t.Run("a parent rule saved beside change_policy stays behind the flag", func(t *testing.T) {
+		// A rank template with valid option IDs, so a linked field can be updated, and a
+		// system field on it to be the channel fields' parent. The system field is created
+		// before the hook is added because its name wouldn't pass the charset check.
+		groupID := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV3).ID
+		template := newField(model.PropertyFieldTypeRank, model.PropertyFieldObjectTypeTemplate, nil)
+		template.GroupID = groupID
+		// The hook's option sanitizing adds color "", and an update that differs from the
+		// stored linked field's options in it is refused.
+		for _, opt := range template.Attrs[model.PropertyFieldAttributeOptions].([]any) {
+			opt.(map[string]any)["color"] = ""
+		}
+		template.Permissions = openPermissions()
+		template = th.CreatePropertyFieldDirect(t, template)
+		_, systemErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:       groupID,
+			ObjectType:    model.PropertyFieldObjectTypeSystem,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "system_" + model.NewId(),
+			LinkedFieldID: &template.ID,
+		})
+		require.NoError(t, systemErr)
+		flagOn := false
+		th.service.AddHook(NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{
+			PropertyFieldBounds: func() bool { return flagOn },
+		}, groupID))
+		belowParent := model.PropertyBounds{{Operator: model.PropertyBoundsOperatorAtOrBelow, Reference: model.PropertyBoundsReferenceParent}}
+
+		channelField := func(policy string, bounds model.PropertyBounds) *model.PropertyField {
+			f := &model.PropertyField{
+				GroupID:       groupID,
+				ObjectType:    model.PropertyFieldObjectTypeChannel,
+				TargetType:    string(model.PropertyFieldTargetLevelSystem),
+				Name:          "channel_" + model.NewId(),
+				Type:          model.PropertyFieldTypeRank,
+				LinkedFieldID: &template.ID,
+				Bounds:        bounds,
+			}
+			if policy != "" {
+				f.Attrs = model.StringInterface{model.PropertyFieldAttrChangePolicy: policy}
+			}
+			return f
+		}
+		storedIn := func(id string) *model.PropertyField {
+			f, getErr := th.service.fieldStore.Get(th.Context, groupID, id)
+			require.NoError(t, getErr)
+			return f
+		}
+		fieldCount := func() int {
+			fields, searchErr := th.service.fieldStore.SearchPropertyFields(th.Context, model.PropertyFieldSearchOpts{GroupID: groupID, PerPage: 100})
+			require.NoError(t, searchErr)
+			return len(fields)
+		}
+
+		t.Run("create is refused flag off, accepted flag on", func(t *testing.T) {
+			before := fieldCount()
+			_, createErr := th.service.CreatePropertyField(th.Context, channelField(model.PropertyFieldChangePolicyRaiseOnly, belowParent))
+			requireAppErrorID(t, createErr, "app.property_field.bounds_disabled.app_error", http.StatusBadRequest)
+			assert.Equal(t, before, fieldCount())
+
+			flagOn = true
+			t.Cleanup(func() { flagOn = false })
+			created, createErr := th.service.CreatePropertyField(th.Context, channelField(model.PropertyFieldChangePolicyRaiseOnly, belowParent))
+			require.NoError(t, createErr)
+			assert.Equal(t, model.PropertyBounds{belowParent[0], raiseOnly}, storedIn(created.ID).Bounds)
+		})
+
+		t.Run("update adding a parent rule is refused flag off", func(t *testing.T) {
+			created, createErr := th.service.CreatePropertyField(th.Context, channelField(model.PropertyFieldChangePolicyRaiseOnly, nil))
+			require.NoError(t, createErr)
+			f := storedIn(created.ID)
+			f.Bounds = belowParent
+			f.Attrs[model.PropertyFieldAttrChangePolicy] = model.PropertyFieldChangePolicyAny
+			_, _, updateErr := th.service.UpdatePropertyField(th.Context, groupID, f)
+			requireAppErrorID(t, updateErr, "app.property_field.bounds_disabled.app_error", http.StatusBadRequest)
+			assert.Equal(t, model.PropertyBounds{raiseOnly}, storedIn(f.ID).Bounds)
+		})
+
+		t.Run("an old-format write keeping a parent rule the field has is saved flag off", func(t *testing.T) {
+			flagOn = true
+			f, createErr := th.service.CreatePropertyField(th.Context, channelField("", belowParent))
+			flagOn = false
+			require.NoError(t, createErr)
+
+			f = storedIn(f.ID)
+			f.Attrs[model.PropertyFieldAttrChangePolicy] = model.PropertyFieldChangePolicyRaiseOnly
+			_, _, updateErr := th.service.UpdatePropertyField(th.Context, groupID, f)
+			require.NoError(t, updateErr)
+			assert.Equal(t, model.PropertyBounds{belowParent[0], raiseOnly}, storedIn(f.ID).Bounds)
+		})
+
+		t.Run("change_policy alone still translates flag off", func(t *testing.T) {
+			created, createErr := th.service.CreatePropertyField(th.Context, channelField(model.PropertyFieldChangePolicyRaiseOnly, nil))
+			require.NoError(t, createErr)
+			assert.Equal(t, model.PropertyBounds{raiseOnly}, storedIn(created.ID).Bounds)
+
+			created, createErr = th.service.CreatePropertyField(th.Context, channelField(model.PropertyFieldChangePolicyNever, nil))
+			require.NoError(t, createErr)
+			assert.Equal(t, model.PropertyFieldMutabilityWriteOnce, storedIn(created.ID).Mutability)
+		})
+	})
 }
