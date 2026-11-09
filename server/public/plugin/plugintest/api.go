@@ -3530,6 +3530,34 @@ func (_m *API) GetSession(sessionID string) (*model.Session, *model.AppError) {
 	return r0, r1
 }
 
+// GetSharedChannelCursor provides a mock function with given fields: channelID, remoteID
+func (_m *API) GetSharedChannelCursor(channelID string, remoteID string) (model.GetPostsSinceForSyncCursor, error) {
+	ret := _m.Called(channelID, remoteID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetSharedChannelCursor")
+	}
+
+	var r0 model.GetPostsSinceForSyncCursor
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string) (model.GetPostsSinceForSyncCursor, error)); ok {
+		return rf(channelID, remoteID)
+	}
+	if rf, ok := ret.Get(0).(func(string, string) model.GetPostsSinceForSyncCursor); ok {
+		r0 = rf(channelID, remoteID)
+	} else {
+		r0 = ret.Get(0).(model.GetPostsSinceForSyncCursor)
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(channelID, remoteID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetSystemInstallDate provides a mock function with no fields
 func (_m *API) GetSystemInstallDate() (int64, *model.AppError) {
 	ret := _m.Called()

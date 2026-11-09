@@ -18,6 +18,26 @@ type ClusterInterface struct {
 	mock.Mock
 }
 
+// CollectHealthDiagnostics provides a mock function with given fields: rctx
+func (_m *ClusterInterface) CollectHealthDiagnostics(rctx request.CTX) map[string]*model.NodeDiagnostics {
+	ret := _m.Called(rctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CollectHealthDiagnostics")
+	}
+
+	var r0 map[string]*model.NodeDiagnostics
+	if rf, ok := ret.Get(0).(func(request.CTX) map[string]*model.NodeDiagnostics); ok {
+		r0 = rf(rctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]*model.NodeDiagnostics)
+		}
+	}
+
+	return r0
+}
+
 // ConfigChanged provides a mock function with given fields: previousConfig, newConfig, sendToOtherServer
 func (_m *ClusterInterface) ConfigChanged(previousConfig *model.Config, newConfig *model.Config, sendToOtherServer bool) *model.AppError {
 	ret := _m.Called(previousConfig, newConfig, sendToOtherServer)
