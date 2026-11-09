@@ -959,7 +959,6 @@ func TestRefuseDeletingHeldOptions(t *testing.T) {
 		_, _, err := th.service.UpdatePropertyField(rctx, c.GroupID, c)
 		return err
 	}
-	// setMutability saves a fresh copy of f with the mutability changed.
 	setMutability := func(f *model.PropertyField, m model.PropertyFieldMutability) {
 		t.Helper()
 		c, err := th.service.GetPropertyField(rctx, f.GroupID, f.ID)
@@ -1048,7 +1047,6 @@ func TestRefuseDeletingHeldOptions(t *testing.T) {
 		assert.Equal(t, examples, examplesOf(err))
 		assert.NotContains(t, err.Error(), "optmid")
 	}
-	// dropMid saves the template of f without optmid.
 	dropMid := func(t *testing.T, f *model.PropertyField) error {
 		t.Helper()
 		template, err := th.service.GetPropertyField(rctx, f.GroupID, *f.LinkedFieldID)

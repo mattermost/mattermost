@@ -359,7 +359,6 @@ func (ps *PropertyService) refuseDeletingHeldOptions(rctx request.CTX, caller st
 // parentRuleReadsField reports whether a child field's parent rule compares against field's
 // values. Stored children are judged by their copy in incoming when they have one, and a field in
 // incoming that is one object type below field on the same template counts if it carries the rule.
-// Store errors are returned unwrapped.
 func (ps *PropertyService) parentRuleReadsField(rctx request.CTX, field *model.PropertyField, incoming map[string]*model.PropertyField) (bool, error) {
 	hasRule := func(c *model.PropertyField) bool {
 		return slices.ContainsFunc(c.Bounds, func(r model.PropertyBoundsRule) bool {
