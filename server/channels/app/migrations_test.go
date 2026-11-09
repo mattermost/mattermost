@@ -888,6 +888,34 @@ func TestPropertyPermissionsBackfill_Idempotent(t *testing.T) {
 	require.Equal(t, firstUpdateAt, unchanged.UpdateAt, "second run must not re-write the field row")
 }
 
+func TestChangePolicyConversion_Idempotent(t *testing.T) {
+	th := Setup(t)
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	// Past the hooks: an upgraded database holds change_policy and no mutability.
+	seeded, storeErr := th.Store.PropertyField().Create(&model.PropertyField{
+		GroupID:    group.ID,
+		Name:       "locked_" + model.NewId()[:8],
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeChannel,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs:      model.StringInterface{model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyNever},
+	})
+	require.NoError(t, storeErr)
+
+	require.NoError(t, th.Server.doSetupChangePolicyConversion(th.Context))
+	stored, storeErr := th.Store.PropertyField().Get(th.Context, group.ID, seeded.ID)
+	require.NoError(t, storeErr)
+	require.Equal(t, model.PropertyFieldMutabilityWriteOnce, stored.Mutability)
+
+	require.NoError(t, th.Server.doSetupChangePolicyConversion(th.Context))
+	again, storeErr := th.Store.PropertyField().Get(th.Context, group.ID, seeded.ID)
+	require.NoError(t, storeErr)
+	require.Equal(t, stored.UpdateAt, again.UpdateAt, "second run must not re-write the field row")
+}
+
 func TestPropertyPermissionsBackfillStoredColumns(t *testing.T) {
 	th := Setup(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))

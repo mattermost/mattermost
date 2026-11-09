@@ -4,6 +4,7 @@
 package properties
 
 import (
+	"encoding/json"
 	"fmt"
 	"maps"
 	"slices"
@@ -2111,4 +2112,193 @@ func TestMigrateBackfillPropertyPermissions_ConcurrentLegacyEditIsNotOverwritten
 	require.NoError(t, err)
 	assert.Equal(t, "raced_renamed_by_old_node", stored.Name)
 	assert.NotNil(t, stored.Permissions)
+}
+
+// seedChangePolicyField writes an access_control field the way an upgraded
+// database holds one: straight to the store, with change_policy in its attrs
+// and no mutability or bounds.
+func seedChangePolicyField(t *testing.T, th *TestHelper, objectType string, fieldType model.PropertyFieldType, attrs model.StringInterface) *model.PropertyField {
+	t.Helper()
+	if fieldType == model.PropertyFieldTypeRank {
+		attrs[model.PropertyFieldAttributeOptions] = []any{
+			map[string]any{"id": "optlow", "name": "LOW", "rank": 1},
+			map[string]any{"id": "opthigh", "name": "HIGH", "rank": 2},
+		}
+	}
+	return th.CreatePropertyFieldDirect(t, &model.PropertyField{
+		GroupID:    th.CPAGroupID,
+		Name:       strings.ToLower(objectType) + model.NewId()[:8],
+		Type:       fieldType,
+		ObjectType: objectType,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs:      attrs,
+	})
+}
+
+func TestMigrateChangePolicyToBounds(t *testing.T) {
+	selfAbove := model.PropertyBounds{{Operator: model.PropertyBoundsOperatorAtOrAbove, Reference: model.PropertyBoundsReferenceSelf}}
+	selfBelow := model.PropertyBounds{{Operator: model.PropertyBoundsOperatorAtOrBelow, Reference: model.PropertyBoundsReferenceSelf}}
+	never := model.StringInterface{model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyNever, model.PropertyFieldAttrEditable: false}
+
+	tests := []struct {
+		name       string
+		objectType string
+		fieldType  model.PropertyFieldType
+		attrs      model.StringInterface
+		mutability model.PropertyFieldMutability
+		wantMut    model.PropertyFieldMutability
+		wantBounds model.PropertyBounds
+		wantAttrs  model.StringInterface
+	}{
+		{"rank raise_only", model.PropertyFieldObjectTypeChannel, model.PropertyFieldTypeRank,
+			model.StringInterface{model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyRaiseOnly},
+			"", "", selfAbove, model.StringInterface{model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyRaiseOnly}},
+		{"rank lower_only", model.PropertyFieldObjectTypeChannel, model.PropertyFieldTypeRank,
+			model.StringInterface{model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyLowerOnly},
+			"", "", selfBelow, model.StringInterface{model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyLowerOnly}},
+		{"text never", model.PropertyFieldObjectTypeChannel, model.PropertyFieldTypeText,
+			model.StringInterface{model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyNever, model.PropertyFieldAttrEditable: false},
+			"", model.PropertyFieldMutabilityWriteOnce, nil, never},
+		{"text editable false only", model.PropertyFieldObjectTypeChannel, model.PropertyFieldTypeText,
+			model.StringInterface{model.PropertyFieldAttrEditable: false},
+			"", model.PropertyFieldMutabilityWriteOnce, nil, never},
+		{"write_once with a stale raise_only", model.PropertyFieldObjectTypeChannel, model.PropertyFieldTypeRank,
+			model.StringInterface{model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyRaiseOnly},
+			model.PropertyFieldMutabilityWriteOnce, model.PropertyFieldMutabilityWriteOnce, nil, never},
+		{"raise_only on a text field was never enforced", model.PropertyFieldObjectTypeChannel, model.PropertyFieldTypeText,
+			model.StringInterface{model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyRaiseOnly},
+			"", "", nil, model.StringInterface{}},
+		{"user field never is dropped", model.PropertyFieldObjectTypeUser, model.PropertyFieldTypeText,
+			model.StringInterface{model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyNever, model.PropertyFieldAttrEditable: false},
+			"", "", nil, model.StringInterface{}},
+		{"template never is dropped, other attrs stay", model.PropertyFieldObjectTypeTemplate, model.PropertyFieldTypeText,
+			model.StringInterface{model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyNever, model.PropertyFieldAttrEditable: true, model.PropertyFieldAttrRequired: true},
+			"", "", nil, model.StringInterface{model.PropertyFieldAttrEditable: true, model.PropertyFieldAttrRequired: true}},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			th := Setup(t).RegisterCPAPropertyGroup(t)
+			field := seedChangePolicyField(t, th, tc.objectType, tc.fieldType, tc.attrs)
+			if tc.mutability != "" {
+				field.Mutability = tc.mutability
+				_, err := th.service.fieldStore.Update(th.CPAGroupID, []*model.PropertyField{field}, nil)
+				require.NoError(t, err)
+			}
+			buffer := captureMaskingFailureLog(t, th)
+
+			converted, failed, err := th.service.MigrateChangePolicyToBounds(th.Context)
+			require.NoError(t, err)
+			assert.Equal(t, 1, converted)
+			assert.Equal(t, 0, failed)
+
+			stored, err := th.dbStore.PropertyField().Get(th.Context, th.CPAGroupID, field.ID)
+			require.NoError(t, err)
+			assert.Equal(t, tc.wantMut, stored.Mutability)
+			assert.True(t, model.PropertyBoundsEqual(tc.wantBounds, stored.Bounds), "got %v want %v", stored.Bounds, tc.wantBounds)
+			for _, key := range []string{model.PropertyFieldAttrChangePolicy, model.PropertyFieldAttrEditable, model.PropertyFieldAttrRequired} {
+				assert.Equal(t, tc.wantAttrs[key], stored.Attrs[key], key)
+			}
+			if tc.objectType != model.PropertyFieldObjectTypeChannel || tc.name == "raise_only on a text field was never enforced" {
+				requireWarnLogged(t, th, buffer, "Removed an old change_policy setting")
+			}
+		})
+	}
+}
+
+func TestMigrateChangePolicyToBounds_DeletedOption(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	field := seedChangePolicyField(t, th, model.PropertyFieldObjectTypeChannel, model.PropertyFieldTypeRank,
+		model.StringInterface{model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyNever, model.PropertyFieldAttrEditable: false})
+	_, err := th.dbStore.PropertyValue().Upsert([]*model.PropertyValue{{
+		GroupID: th.CPAGroupID, FieldID: field.ID, TargetType: model.PropertyValueTargetTypeChannel, TargetID: model.NewId(), Value: json.RawMessage(`"opthigh"`),
+	}})
+	require.NoError(t, err)
+	require.NoError(t, th.dbStore.PropertyField().DeleteOptions(th.CPAGroupID, field.ID, 0, []string{"opthigh"}))
+
+	converted, failed, err := th.service.MigrateChangePolicyToBounds(th.Context)
+	require.NoError(t, err)
+	assert.Equal(t, 1, converted)
+	assert.Equal(t, 0, failed)
+
+	stored, err := th.dbStore.PropertyField().Get(th.Context, th.CPAGroupID, field.ID)
+	require.NoError(t, err)
+	assert.Equal(t, model.PropertyFieldMutabilityWriteOnce, stored.Mutability)
+}
+
+func TestMigrateChangePolicyToBounds_LinkedFieldKeepsOptions(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	template := seedChangePolicyField(t, th, model.PropertyFieldObjectTypeTemplate, model.PropertyFieldTypeRank, model.StringInterface{})
+	linked := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+		GroupID:       th.CPAGroupID,
+		Name:          "linked" + model.NewId()[:8],
+		Type:          model.PropertyFieldTypeRank,
+		ObjectType:    model.PropertyFieldObjectTypeChannel,
+		TargetType:    string(model.PropertyFieldTargetLevelSystem),
+		LinkedFieldID: &template.ID,
+		Attrs:         model.StringInterface{model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyRaiseOnly},
+	})
+	optionIDs := func() []string {
+		field, err := th.dbStore.PropertyField().Get(th.Context, th.CPAGroupID, linked.ID)
+		require.NoError(t, err)
+		page, err := th.dbStore.PropertyField().GetFieldOptions(field, 0, "", 100, nil)
+		require.NoError(t, err)
+		var ids []string
+		for _, o := range page.Options {
+			ids = append(ids, o.ID)
+		}
+		return ids
+	}
+	before := optionIDs()
+	require.Len(t, before, 2)
+
+	converted, failed, err := th.service.MigrateChangePolicyToBounds(th.Context)
+	require.NoError(t, err)
+	assert.Equal(t, 1, converted)
+	assert.Equal(t, 0, failed)
+
+	stored, err := th.dbStore.PropertyField().Get(th.Context, th.CPAGroupID, linked.ID)
+	require.NoError(t, err)
+	require.Len(t, stored.Bounds, 1)
+	assert.ElementsMatch(t, before, optionIDs())
+}
+
+func TestMigrateChangePolicyToBounds_IdempotentAndPaged(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	orig := propertyPermissionsBackfillPageSize
+	propertyPermissionsBackfillPageSize = 2
+	t.Cleanup(func() { propertyPermissionsBackfillPageSize = orig })
+
+	var fields []*model.PropertyField
+	for range 5 {
+		fields = append(fields, seedChangePolicyField(t, th, model.PropertyFieldObjectTypeChannel, model.PropertyFieldTypeText,
+			model.StringInterface{model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyNever, model.PropertyFieldAttrEditable: false}))
+	}
+	// Already new-format and consistent: never read as a change.
+	untouched := seedChangePolicyField(t, th, model.PropertyFieldObjectTypeChannel, model.PropertyFieldTypeText, model.StringInterface{})
+
+	converted, failed, err := th.service.MigrateChangePolicyToBounds(th.Context)
+	require.NoError(t, err)
+	assert.Equal(t, 5, converted)
+	assert.Equal(t, 0, failed)
+
+	updateAts := map[string]int64{}
+	for _, f := range append(fields, untouched) {
+		stored, getErr := th.dbStore.PropertyField().Get(th.Context, th.CPAGroupID, f.ID)
+		require.NoError(t, getErr)
+		updateAts[f.ID] = stored.UpdateAt
+		if f.ID != untouched.ID {
+			assert.Equal(t, model.PropertyFieldMutabilityWriteOnce, stored.Mutability)
+		}
+	}
+	assert.Equal(t, untouched.UpdateAt, updateAts[untouched.ID], "a field with nothing to convert is not written")
+
+	converted, failed, err = th.service.MigrateChangePolicyToBounds(th.Context)
+	require.NoError(t, err)
+	assert.Equal(t, 0, converted)
+	assert.Equal(t, 0, failed)
+	for id, at := range updateAts {
+		stored, getErr := th.dbStore.PropertyField().Get(th.Context, th.CPAGroupID, id)
+		require.NoError(t, getErr)
+		assert.Equal(t, at, stored.UpdateAt, "the second run must not write")
+	}
 }

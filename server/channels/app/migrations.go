@@ -1328,6 +1328,33 @@ func (s *Server) doSetupPropertyPermissionsBackfill(rctx request.CTX) error {
 	return nil
 }
 
+// doSetupChangePolicyConversion turns access_control fields' change_policy and
+// editable=false into mutability and bounds. Like the permissions backfill it
+// runs on every startup and ignores the PropertyFieldBounds flag and the
+// license: it carries an enforced setting over, so a field is never left with
+// neither the old lock nor the new one. A node on an older release can write
+// change_policy during a rolling upgrade or after a rollback, and the next
+// startup converts that too.
+//
+// A field that fails to convert doesn't stop the server: it is logged by ID
+// and retried on the next startup.
+func (s *Server) doSetupChangePolicyConversion(rctx request.CTX) error {
+	converted, failed, err := s.propertyService.MigrateChangePolicyToBounds(rctx)
+	if err != nil {
+		return fmt.Errorf("failed to convert change_policy to bounds: %w", err)
+	}
+
+	if converted > 0 {
+		mlog.Info("Converted change_policy on property fields to mutability and bounds", mlog.Int("converted", converted))
+	}
+	if failed > 0 {
+		mlog.Error("Some property fields could not be converted from change_policy; each is logged by ID and retried on the next startup",
+			mlog.Int("failed", failed))
+	}
+
+	return nil
+}
+
 func (s *Server) cacheManagedCategoryIDs() error {
 	group, err := s.propertyService.GetPropertyGroup(model.ManagedCategoryPropertyGroupName)
 	if err != nil {
@@ -1566,6 +1593,7 @@ func (s *Server) doAppMigrations() {
 		{"CPA DisplayName Backfill", s.doSetupCPADisplayNameBackfill},
 		{"CPA To Global Attributes Migration", s.doSetupCPAToGlobalAttributesMigration},
 		{"Property Permissions Backfill", s.doSetupPropertyPermissionsBackfill},
+		{"Change Policy Conversion", s.doSetupChangePolicyConversion},
 	}
 
 	for i := range m2 {
