@@ -326,9 +326,10 @@ func clearRefusal(field *model.PropertyField) error {
 	return nil
 }
 
-// refuseLockedFieldClear returns the field's clearRefusal, reading the field from master.
-func (h *AccessControlAttributeValidationHook) refuseLockedFieldClear(master request.CTX, groupID, fieldID string) error {
-	fields, err := h.propertyService.getPropertyFields(master, groupID, []string{fieldID})
+// refuseLockedFieldClear returns the field's clearRefusal. Callers pass a master rctx so the
+// field read sees the latest definition.
+func (h *AccessControlAttributeValidationHook) refuseLockedFieldClear(rctx request.CTX, groupID, fieldID string) error {
+	fields, err := h.propertyService.getPropertyFields(rctx, groupID, []string{fieldID})
 	if errors.Is(err, ErrFieldNotFound) {
 		return nil
 	}
