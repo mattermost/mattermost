@@ -6,6 +6,7 @@ package commands
 import (
 	"context"
 	"errors"
+	"net/http"
 	"net/url"
 	"strings"
 
@@ -32,8 +33,11 @@ func getUserFromUserArg(c client.Client, userArg string) *model.User {
 
 	if !checkSlash(userArg) {
 		if user == nil && model.IsValidId(userArg) {
-			// NewId values are lowercase; look up that form when the argument looks like an ID.
-			user, _, _ = c.GetUser(context.TODO(), strings.ToLower(userArg), "")
+			user, _, _ = c.GetUser(context.TODO(), userArg, "")
+			if user == nil && strings.ToLower(userArg) != userArg {
+				// IDs are stored as given, so try the lowercase form only after the exact one misses.
+				user, _, _ = c.GetUser(context.TODO(), strings.ToLower(userArg), "")
+			}
 		}
 
 		if user == nil {
@@ -92,17 +96,16 @@ func getUserFromArg(c client.Client, userArg string) (*model.User, error) {
 		}
 	}
 
+	var forbiddenErr error
 	if !checkSlash(userArg) {
 		if user == nil && model.IsValidId(userArg) {
-			// NewId values are lowercase; look up that form when the argument looks like an ID.
-			user, response, err = c.GetUser(context.TODO(), strings.ToLower(userArg), "")
+			user, response, err = getUserByIDArg(c, userArg)
 			if err != nil {
-				nErr := ExtractErrorFromResponse(response, err)
-				var nfErr *NotFoundError
-				var badRequestErr *BadRequestError
-				if !errors.As(nErr, &nfErr) && !errors.As(nErr, &badRequestErr) {
-					return nil, nErr
+				// A forbidden ID may still be a visible username, so keep the error for the fallback below.
+				if response == nil || response.StatusCode != http.StatusForbidden {
+					return nil, err
 				}
+				forbiddenErr = err
 			}
 		}
 
@@ -132,8 +135,41 @@ func getUserFromArg(c client.Client, userArg string) (*model.User, error) {
 	}
 
 	if user == nil {
+		if forbiddenErr != nil {
+			return nil, forbiddenErr
+		}
 		return nil, ErrEntityNotFound{Type: "user", ID: userArg}
 	}
 
 	return user, nil
+}
+
+// getUserByIDArg looks up an ID-shaped argument as given, then in lowercase if that differs.
+// Not-found and bad-request responses are treated as misses; any other failure is returned,
+// together with its response so the caller can inspect the status code.
+func getUserByIDArg(c client.Client, userArg string) (*model.User, *model.Response, error) {
+	candidates := []string{userArg}
+	if lower := strings.ToLower(userArg); lower != userArg {
+		candidates = append(candidates, lower)
+	}
+
+	var response *model.Response
+	for _, id := range candidates {
+		var user *model.User
+		var err error
+		user, response, err = c.GetUser(context.TODO(), id, "")
+		if err == nil && user != nil {
+			return user, response, nil
+		}
+		if err != nil {
+			nErr := ExtractErrorFromResponse(response, err)
+			var nfErr *NotFoundError
+			var badRequestErr *BadRequestError
+			if !errors.As(nErr, &nfErr) && !errors.As(nErr, &badRequestErr) {
+				return nil, response, nErr
+			}
+		}
+	}
+
+	return nil, response, nil
 }

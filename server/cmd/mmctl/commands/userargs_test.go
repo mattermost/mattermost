@@ -290,18 +290,97 @@ func (s *MmctlUnitTestSuite) TestGetUserFromArg_PrefersIdWhenArgLooksLikeId() {
 		})
 	}
 
-	s.Run("getUserFromArg returns an error when the id lookup is forbidden", func() {
+	s.Run("getUserFromArg returns the forbidden error when the id lookup is forbidden and no username matches", func() {
 		targetID := model.NewId()
 		forbiddenErr := errors.New("forbidden")
+		notFoundErr := errors.New("user not found")
 
 		s.client.
 			EXPECT().
 			GetUser(context.TODO(), targetID, "").
 			Return(nil, &model.Response{StatusCode: http.StatusForbidden}, forbiddenErr).
 			Times(1)
+		s.client.
+			EXPECT().
+			GetUserByUsername(context.TODO(), targetID, "").
+			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, notFoundErr).
+			Times(1)
 
 		user, err := getUserFromArg(s.client, targetID)
 		s.Require().Nil(user)
 		s.Require().EqualError(err, "forbidden")
 	})
+
+	s.Run("getUserFromArg falls back to username lookup when the id lookup is forbidden", func() {
+		targetID := model.NewId()
+		namedUser := &model.User{Id: model.NewId(), Username: targetID}
+
+		s.client.
+			EXPECT().
+			GetUser(context.TODO(), targetID, "").
+			Return(nil, &model.Response{StatusCode: http.StatusForbidden}, errors.New("forbidden")).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetUserByUsername(context.TODO(), targetID, "").
+			Return(namedUser, &model.Response{StatusCode: http.StatusOK}, nil).
+			Times(1)
+
+		user, err := getUserFromArg(s.client, targetID)
+		s.Require().NoError(err)
+		s.Require().NotNil(user)
+		s.Require().Equal(namedUser.Id, user.Id)
+	})
+
+	for _, resolver := range resolvers {
+		s.Run(resolver.name+" tries the id as given before its lowercase form", func() {
+			lowerID := model.NewId()
+			mixedCaseID := strings.ToUpper(lowerID)
+			exactUser := &model.User{Id: mixedCaseID, Username: "mixed-case-user"}
+
+			s.client.
+				EXPECT().
+				GetUserByUsername(context.TODO(), mixedCaseID, "").
+				Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("user not found")).
+				AnyTimes()
+			s.client.
+				EXPECT().
+				GetUser(context.TODO(), mixedCaseID, "").
+				Return(exactUser, &model.Response{StatusCode: http.StatusOK}, nil).
+				Times(1)
+			// No lowercase lookup expected once the exact-case lookup has matched.
+
+			user, err := resolver.call(mixedCaseID)
+			s.Require().NoError(err)
+			s.Require().NotNil(user)
+			s.Require().Equal(mixedCaseID, user.Id)
+		})
+
+		s.Run(resolver.name+" tries the lowercase id when the exact-case id is not found", func() {
+			lowerID := model.NewId()
+			mixedCaseID := strings.ToUpper(lowerID)
+			lowerUser := &model.User{Id: lowerID, Username: "lower-case-user"}
+
+			s.client.
+				EXPECT().
+				GetUserByUsername(context.TODO(), mixedCaseID, "").
+				Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("user not found")).
+				AnyTimes()
+			s.client.
+				EXPECT().
+				GetUser(context.TODO(), mixedCaseID, "").
+				Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("user not found")).
+				Times(1)
+			s.client.
+				EXPECT().
+				GetUser(context.TODO(), lowerID, "").
+				Return(lowerUser, &model.Response{StatusCode: http.StatusOK}, nil).
+				Times(1)
+
+			user, err := resolver.call(mixedCaseID)
+			s.Require().NoError(err)
+			s.Require().NotNil(user)
+			s.Require().Equal(lowerID, user.Id)
+		})
+	}
 }
