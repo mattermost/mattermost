@@ -5806,6 +5806,125 @@ func TestMoveThreadUploadFileAttachmentABACEnforcement(t *testing.T) {
 	})
 }
 
+// Moving a thread copies its posts into the destination with new IDs and no
+// property values. These tests pin that, so a move that later carries values
+// has to check them against the destination's limit.
+func TestMoveThreadPropertyBounds(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PropertyFieldPermissionsV3 = true
+		cfg.FeatureFlags.PropertyFieldBounds = true
+		cfg.FeatureFlags.PropertyFieldRank = true
+		cfg.WranglerSettings.MoveThreadMaxCount = new(int64(100))
+	}).InitBasic(t)
+	// Enterprise Advanced also satisfies the Enterprise gate on access_control writes.
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+
+	rctx := RequestContextWithCallerID(request.TestContext(t), th.SystemAdminUser.Id)
+	group, groupErr := th.App.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	require.Nil(t, groupErr)
+
+	optLow, optMid, optHigh := model.NewId(), model.NewId(), model.NewId()
+	template, appErr := th.App.CreatePropertyField(rctx, &model.PropertyField{
+		GroupID:    group.ID,
+		Name:       "classification_" + model.NewId(),
+		Type:       model.PropertyFieldTypeRank,
+		ObjectType: model.PropertyFieldObjectTypeTemplate,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs: model.StringInterface{
+			model.PropertyFieldAttributeOptions: []map[string]any{
+				{"id": optLow, "name": "LOW", "rank": 1},
+				{"id": optMid, "name": "MID", "rank": 2},
+				{"id": optHigh, "name": "HIGH", "rank": 3},
+			},
+		},
+	}, false, "")
+	require.Nil(t, appErr)
+
+	linked := func(objectType string, bounds model.PropertyBounds) *model.PropertyField {
+		field, createErr := th.App.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			Name:          objectType + "_" + model.NewId(),
+			ObjectType:    objectType,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &template.ID,
+			Bounds:        bounds,
+		}, false, "")
+		require.Nil(t, createErr)
+		return field
+	}
+	linked(model.PropertyFieldObjectTypeSystem, nil)
+	channelField := linked(model.PropertyFieldObjectTypeChannel, nil)
+	postField := linked(model.PropertyFieldObjectTypePost, model.PropertyBounds{{
+		Operator:  model.PropertyBoundsOperatorAtOrBelow,
+		Reference: model.PropertyBoundsReferenceParent,
+	}})
+
+	write := func(field *model.PropertyField, objectType, targetID, optionID string) *model.AppError {
+		_, upsertErr := th.App.UpsertPropertyValues(rctx, []*model.PropertyValue{{
+			TargetID:   targetID,
+			TargetType: objectType,
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			Value:      json.RawMessage(`"` + optionID + `"`),
+		}}, objectType, targetID, "")
+		return upsertErr
+	}
+
+	destination := th.CreateChannel(t, th.BasicTeam)
+	require.Nil(t, write(channelField, model.PropertyFieldObjectTypeChannel, th.BasicChannel.Id, optHigh))
+	require.Nil(t, write(channelField, model.PropertyFieldObjectTypeChannel, destination.Id, optLow))
+
+	root, _, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, Message: "root"}, th.BasicChannel, model.CreatePostFlags{})
+	require.Nil(t, appErr)
+	reply, _, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, RootId: root.Id, Message: "reply"}, th.BasicChannel, model.CreatePostFlags{})
+	require.Nil(t, appErr)
+	require.Nil(t, write(postField, model.PropertyFieldObjectTypePost, root.Id, optHigh))
+
+	require.Nil(t, th.App.MoveThread(th.Context, root.Id, th.BasicChannel.Id, destination.Id, th.BasicUser))
+
+	// The wrangler notice is a reply to the copied root, so its RootId finds it.
+	posts, appErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{ChannelId: destination.Id, Page: 0, PerPage: 100})
+	require.Nil(t, appErr)
+	var copiedRootID, copiedReplyID string
+	for _, p := range posts.Posts {
+		if p.RootId != "" && p.Type == model.PostTypeWrangler {
+			copiedRootID = p.RootId
+		}
+	}
+	require.NotEmpty(t, copiedRootID, "the moved root was not found in the destination")
+	for _, p := range posts.Posts {
+		if p.RootId == copiedRootID && p.Message == reply.Message {
+			copiedReplyID = p.Id
+		}
+	}
+	require.NotEmpty(t, copiedReplyID, "the moved reply was not found in the destination")
+
+	t.Run("the copies hold no value of the post field", func(t *testing.T) {
+		values, searchErr := th.App.SearchPropertyValues(rctx, group.ID, model.PropertyValueSearchOpts{
+			FieldID:   postField.ID,
+			TargetIDs: []string{copiedRootID, copiedReplyID},
+			PerPage:   10,
+		})
+		require.Nil(t, searchErr)
+		require.Empty(t, values, "a move that carries property values onto the copies must check them against the destination's limit before it is allowed")
+	})
+
+	t.Run("a later write to a copy is checked against the destination", func(t *testing.T) {
+		writeErr := write(postField, model.PropertyFieldObjectTypePost, copiedRootID, optHigh)
+		require.NotNil(t, writeErr)
+		require.Equal(t, "app.property_value.bounds_violated.app_error", writeErr.Id)
+		require.Equal(t, http.StatusForbidden, writeErr.StatusCode)
+
+		require.Nil(t, write(postField, model.PropertyFieldObjectTypePost, copiedRootID, optLow))
+	})
+
+	t.Run("the original root is deleted, so its value no longer belongs to a live post", func(t *testing.T) {
+		_, getErr := th.App.GetSinglePost(th.Context, root.Id, false)
+		require.NotNil(t, getErr)
+	})
+}
+
 func TestPermanentDeletePost(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
