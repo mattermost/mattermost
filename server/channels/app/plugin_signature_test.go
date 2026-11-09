@@ -6,6 +6,8 @@ package app
 import (
 	"bytes"
 	"crypto"
+	"crypto/dsa" //nolint:staticcheck // DSA keys are generated only to verify they are rejected
+	"crypto/rand"
 	"os"
 	"path/filepath"
 	"testing"
@@ -216,44 +218,103 @@ func TestVerifyPluginMFIFeatureFlag(t *testing.T) {
 	})
 }
 
+func signDetached(t *testing.T, entity *openpgp.Entity, hash crypto.Hash, created time.Time, data []byte) []byte {
+	t.Helper()
+	sig := &packet.Signature{
+		Version:      4,
+		SigType:      packet.SigTypeBinary,
+		PubKeyAlgo:   entity.PrimaryKey.PubKeyAlgo,
+		Hash:         hash,
+		CreationTime: created,
+		IssuerKeyId:  &entity.PrimaryKey.KeyId,
+	}
+	h := hash.New()
+	h.Write(data)
+	require.NoError(t, sig.Sign(h, entity.PrivateKey, &packet.Config{NonDeterministicSignaturesViaNotation: model.NewPointer(false)}))
+	var signature bytes.Buffer
+	require.NoError(t, sig.Serialize(&signature))
+	return signature.Bytes()
+}
+
+func serializePublicKey(t *testing.T, entity *openpgp.Entity) []byte {
+	t.Helper()
+	var publicKey bytes.Buffer
+	require.NoError(t, entity.Serialize(&publicKey))
+	return publicKey.Bytes()
+}
+
 func TestVerifyBinarySignatureRejectsWeakHash(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	entity, err := openpgp.NewEntity("test", "", "test@example.com", &packet.Config{Algorithm: packet.PubKeyAlgoEdDSA})
 	require.NoError(t, err)
-
-	var publicKey bytes.Buffer
-	require.NoError(t, entity.Serialize(&publicKey))
-
+	publicKey := serializePublicKey(t, entity)
 	data := []byte("plugin bundle")
 
-	sign := func(t *testing.T, hash crypto.Hash) []byte {
-		t.Helper()
-		sig := &packet.Signature{
-			Version:      4,
-			SigType:      packet.SigTypeBinary,
-			PubKeyAlgo:   entity.PrimaryKey.PubKeyAlgo,
-			Hash:         hash,
-			CreationTime: time.Now(),
-			IssuerKeyId:  &entity.PrimaryKey.KeyId,
-		}
-		h := hash.New()
-		h.Write(data)
-		require.NoError(t, sig.Sign(h, entity.PrivateKey, &packet.Config{NonDeterministicSignaturesViaNotation: model.NewPointer(false)}))
-		var signature bytes.Buffer
-		require.NoError(t, sig.Serialize(&signature))
-		return signature.Bytes()
-	}
-
 	t.Run("SHA-256 is accepted", func(t *testing.T) {
-		signature := sign(t, crypto.SHA256)
-		require.NoError(t, verifyBinarySignature(bytes.NewReader(publicKey.Bytes()), bytes.NewReader(data), bytes.NewReader(signature)))
+		signature := signDetached(t, entity, crypto.SHA256, time.Now(), data)
+		require.NoError(t, verifyBinarySignature(bytes.NewReader(publicKey), bytes.NewReader(data), bytes.NewReader(signature)))
 	})
 
 	t.Run("SHA-1 is rejected", func(t *testing.T) {
-		signature := sign(t, crypto.SHA1)
-		err := verifyBinarySignature(bytes.NewReader(publicKey.Bytes()), bytes.NewReader(data), bytes.NewReader(signature))
+		signature := signDetached(t, entity, crypto.SHA1, time.Now(), data)
+		err := verifyBinarySignature(bytes.NewReader(publicKey), bytes.NewReader(data), bytes.NewReader(signature))
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "insecure message hash algorithm")
+	})
+}
+
+func TestVerifyBinarySignatureRejectsRetiredKey(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	now := time.Now()
+	entity, err := openpgp.NewEntity("test", "", "test@example.com", &packet.Config{
+		Algorithm: packet.PubKeyAlgoEdDSA,
+		Time:      func() time.Time { return now.Add(-2 * time.Hour) },
+	})
+	require.NoError(t, err)
+	data := []byte("plugin bundle")
+	backdatedSignature := signDetached(t, entity, crypto.SHA256, now.Add(-time.Hour), data)
+
+	require.NoError(t, verifyBinarySignature(bytes.NewReader(serializePublicKey(t, entity)), bytes.NewReader(data), bytes.NewReader(backdatedSignature)))
+
+	require.NoError(t, entity.RevokeKey(packet.KeyRetired, "retired", &packet.Config{Time: func() time.Time { return now }}))
+
+	err = verifyBinarySignature(bytes.NewReader(serializePublicKey(t, entity)), bytes.NewReader(data), bytes.NewReader(backdatedSignature))
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "revoked")
+}
+
+func TestVerifyBinarySignatureRejectsWeakKeys(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	data := []byte("plugin bundle")
+
+	t.Run("RSA 1024 is rejected", func(t *testing.T) {
+		entity, err := openpgp.NewEntity("test", "", "test@example.com", &packet.Config{Algorithm: packet.PubKeyAlgoRSA, RSABits: 1024})
+		require.NoError(t, err)
+		signature := signDetached(t, entity, crypto.SHA256, time.Now(), data)
+
+		err = verifyBinarySignature(bytes.NewReader(serializePublicKey(t, entity)), bytes.NewReader(data), bytes.NewReader(signature))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "minimum rsa length is 2047 got 1024")
+	})
+
+	t.Run("DSA is rejected", func(t *testing.T) {
+		var dsaKey dsa.PrivateKey
+		require.NoError(t, dsa.GenerateParameters(&dsaKey.Parameters, rand.Reader, dsa.L2048N256))
+		require.NoError(t, dsa.GenerateKey(&dsaKey, rand.Reader))
+		privateKey := packet.NewDSAPrivateKey(time.Now(), &dsaKey)
+		entity := &openpgp.Entity{
+			PrimaryKey: &privateKey.PublicKey,
+			PrivateKey: privateKey,
+			Identities: map[string]*openpgp.Identity{},
+		}
+		require.NoError(t, entity.AddUserId("test", "", "test@example.com", nil))
+		signature := signDetached(t, entity, crypto.SHA256, time.Now(), data)
+
+		err := verifyBinarySignature(bytes.NewReader(serializePublicKey(t, entity)), bytes.NewReader(data), bytes.NewReader(signature))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "public key algorithm")
 	})
 }
