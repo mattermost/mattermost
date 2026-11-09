@@ -11641,6 +11641,11 @@
     "description": "Validation error when a value supplied for a custom property field doesn't satisfy the field's rules."
   },
   {
+    "id": "app.property_value.write_conflict.app_error",
+    "translation": "This value was changed while your change was being saved. Reload it and try again.",
+    "description": "API error (409) when a property value changed between the moment its rules were checked and the moment the write was saved, so the write was refused instead of overwriting the other change."
+  },
+  {
     "id": "app.reaction.delete_all_with_emoji_name.get_reactions.app_error",
     "translation": "Unable to get all reactions with this emoji name.",
     "description": "API error returned when the server cannot list the reactions using a given emoji while deleting a custom emoji and its reactions."
