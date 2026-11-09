@@ -585,6 +585,19 @@ func TestGetSessionAttributeDeadlines(t *testing.T) {
 		require.Nil(t, appErr)
 		assert.Nil(t, deadlines)
 	})
+
+	t.Run("returns nothing with the feature flag off despite the license", func(t *testing.T) {
+		th.ConfigStore.SetReadOnlyFF(false)
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.SessionAttributes = false })
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.SessionAttributes = true })
+			th.ConfigStore.SetReadOnlyFF(true)
+		})
+
+		deadlines, appErr := th.App.GetSessionAttributeDeadlines(th.Context, sessionID)
+		require.Nil(t, appErr)
+		assert.Nil(t, deadlines)
+	})
 }
 
 func TestRevokeAllSessionsInvalidatesSessionAttributes(t *testing.T) {

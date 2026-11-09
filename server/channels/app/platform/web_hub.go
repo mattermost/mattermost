@@ -360,8 +360,7 @@ func (ps *PlatformService) CheckWebConn(userID, connectionID string, seqNum int6
 
 		connRes.ActiveQueue = aq
 		connRes.ReuseCount = queues.ReuseCount
-		connRes.SessionAttributesEpoch = queues.SessionAttributesEpoch
-		connRes.SessionAttributesExpireAt = queues.SessionAttributesExpireAt
+		connRes.SessionAttributes = queues.SessionAttributes
 
 		// parse the deadq
 		if queues.DeadQ != nil {
@@ -664,8 +663,7 @@ func (h *Hub) Start() {
 						DeadQueuePointer: conn.deadQueuePointer,
 						ReuseCount:       conn.reuseCount + 1,
 
-						SessionAttributesEpoch:    conn.sessionAttributesEpoch,
-						SessionAttributesExpireAt: conn.sessionAttributesExpireAt,
+						SessionAttributes: conn.sessionAttributes,
 					}
 				} else if conn := connIndex.ForConnection(req.connectionID); conn != nil && conn.UserId == req.userID {
 					res.active = conn.Active.Load()

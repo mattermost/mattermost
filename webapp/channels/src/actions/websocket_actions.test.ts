@@ -2362,21 +2362,23 @@ describe('handleSessionAttributesExpired', () => {
 
     afterEach(() => {
         window.desktopAPI = originalDesktopAPI;
+        jest.restoreAllMocks();
         nock.cleanAll();
     });
 
     test('has the Desktop App resend its session attributes on a request it then makes', async () => {
         TestHelper.initBasic(Client4);
-        const resendSessionAttributes = jest.fn();
-        window.desktopAPI = {resendSessionAttributes} as Partial<DesktopAPI> as DesktopAPI;
+        const fetchSpy = jest.spyOn(global, 'fetch');
+        let requestsBeforeResend: number | undefined;
+        window.desktopAPI = {
+            resendSessionAttributes: () => {
+                requestsBeforeResend = fetchSpy.mock.calls.length;
+            },
+        } as Partial<DesktopAPI> as DesktopAPI;
 
-        let resendRequestedBeforeRequest = false;
         const refresh = nock(Client4.getBaseRoute()).
             get('/users/sessions/attributes/manifest').
-            reply(() => {
-                resendRequestedBeforeRequest = resendSessionAttributes.mock.calls.length === 1;
-                return [200, []];
-            });
+            reply(200, []);
 
         handleEvent(wsMessage<WebSocketMessages.SessionAttributesExpired>({
             event: WebSocketEvents.SessionAttributesExpired,
@@ -2384,6 +2386,6 @@ describe('handleSessionAttributesExpired', () => {
         }));
 
         await waitFor(() => expect(refresh.isDone()).toBe(true));
-        expect(resendRequestedBeforeRequest).toBe(true);
+        expect(requestsBeforeResend).toBe(0);
     });
 });

@@ -117,23 +117,37 @@ func postedEventPost(t *testing.T, event *model.WebSocketEvent) *model.Post {
 	return &post
 }
 
-func waitForPosted(t *testing.T, events <-chan *model.WebSocketEvent, postID string) *model.Post {
+// eventsUntilPosted returns the post of the posted event for postID and every event before it.
+func eventsUntilPosted(t *testing.T, events <-chan *model.WebSocketEvent, postID string) ([]*model.WebSocketEvent, *model.Post) {
 	t.Helper()
 
+	var before []*model.WebSocketEvent
 	timeout := time.After(10 * time.Second)
 	for {
 		select {
 		case event := <-events:
-			if event.EventType() != model.WebsocketEventPosted {
-				continue
+			if event.EventType() == model.WebsocketEventPosted {
+				if post := postedEventPost(t, event); post.Id == postID {
+					return before, post
+				}
 			}
-			if post := postedEventPost(t, event); post.Id == postID {
-				return post
-			}
+			before = append(before, event)
 		case <-timeout:
 			require.FailNow(t, "timed out waiting for the posted event", postID)
 		}
 	}
+}
+
+func requireIPAddressPrompt(t *testing.T, event *model.WebSocketEvent) {
+	t.Helper()
+
+	require.Equal(t, model.WebsocketEventSessionAttributesExpired, event.EventType())
+	require.Equal(t, []any{model.SessionAttributesPropertyFieldIPAddress}, event.GetData()["attributes"])
+}
+
+type timedEvent struct {
+	at    time.Time
+	event *model.WebSocketEvent
 }
 
 func TestWebSocketKeepsIdleClientSessionAttributesFresh(t *testing.T) {
@@ -143,6 +157,7 @@ func TestWebSocketKeepsIdleClientSessionAttributesFresh(t *testing.T) {
 	allowFileDownloadsWhen(t, th, func(ip any) bool { return ip != nil })
 
 	// Alice's client answers the prompt the way the webapp does; Bob's ignores it.
+	dialedAt := time.Now()
 	aliceWS := dialWebSocket(t, th, th.Client.AuthToken, "", "", 0)
 	defer aliceWS.conn.Close()
 
@@ -151,26 +166,19 @@ func TestWebSocketKeepsIdleClientSessionAttributesFresh(t *testing.T) {
 	bobWS := dialWebSocket(t, th, bobClient.AuthToken, "", "", 0)
 	defer bobWS.conn.Close()
 
+	alicePrompts := make(chan timedEvent, 100)
 	alicePosted := make(chan *model.WebSocketEvent, 100)
-	alicePrompts := make(chan []any, 100)
 	go func() {
 		for event := range aliceWS.events {
 			switch event.EventType() {
 			case model.WebsocketEventSessionAttributesExpired:
-				alicePrompts <- event.GetData()["attributes"].([]any)
+				alicePrompts <- timedEvent{time.Now(), event}
 				_, _, _ = th.Client.GetSessionAttributesManifest(context.Background())
 			case model.WebsocketEventPosted:
 				alicePosted <- event
 			}
 		}
 	}()
-
-	select {
-	case attributes := <-alicePrompts:
-		require.Equal(t, []any{model.SessionAttributesPropertyFieldIPAddress}, attributes)
-	case <-time.After(10 * time.Second):
-		require.FailNow(t, "alice was never told her session attributes expired")
-	}
 
 	bobSession, appErr := th.App.GetSession(bobClient.AuthToken)
 	require.Nil(t, appErr)
@@ -181,12 +189,61 @@ func TestWebSocketKeepsIdleClientSessionAttributesFresh(t *testing.T) {
 
 	post := postWithFile(t, th, "sent once both clients have been idle past the grace period")
 
-	alicePost := waitForPosted(t, alicePosted, post.Id)
+	_, alicePost := eventsUntilPosted(t, alicePosted, post.Id)
 	require.Len(t, alicePost.Metadata.Files, 1, "alice refreshed her attributes when prompted, so she keeps receiving files")
 
-	bobPost := waitForPosted(t, bobWS.events, post.Id)
+	bobEvents, bobPost := eventsUntilPosted(t, bobWS.events, post.Id)
 	require.Empty(t, bobPost.Metadata.Files)
 	require.Equal(t, 1, bobPost.Metadata.RedactedFileCount)
+
+	var prompts []timedEvent
+	for len(alicePrompts) > 0 {
+		prompts = append(prompts, <-alicePrompts)
+	}
+	require.GreaterOrEqual(t, len(prompts), 2, "alice is prompted again each time her refreshed attribute's TTL runs out")
+	require.Less(t, prompts[0].at.Sub(dialedAt), 3*time.Second, "the prompt comes as the TTL runs out, while the grace period still covers the attribute")
+	for _, prompt := range prompts {
+		requireIPAddressPrompt(t, prompt.event)
+	}
+
+	var bobPrompts []*model.WebSocketEvent
+	for _, event := range bobEvents {
+		if event.EventType() == model.WebsocketEventSessionAttributesExpired {
+			bobPrompts = append(bobPrompts, event)
+		}
+	}
+	require.Len(t, bobPrompts, 1, "a client that never refreshes is not prompted again for the same lapse")
+	requireIPAddressPrompt(t, bobPrompts[0])
+}
+
+func TestWebSocketPromptsChallengeAuthenticatedClient(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupSessionAttributesWebSocketTest(t)
+	setIPAddressAttributeDuration(t, th, 1, 8)
+
+	_, _, err := th.Client.GetMe(context.Background(), "")
+	require.NoError(t, err)
+	refreshedAt := time.Now()
+
+	// The model client authenticates with a challenge once connected, so the connection
+	// starts without a session and its first look at the attributes finds nothing.
+	ws, err := th.CreateWebSocketClient()
+	require.NoError(t, err)
+	defer ws.Close()
+	ws.Listen()
+
+	graceEnds := time.After(time.Until(refreshedAt.Add(9 * time.Second)))
+	for {
+		select {
+		case event := <-ws.EventChannel:
+			if event.EventType() == model.WebsocketEventSessionAttributesExpired {
+				requireIPAddressPrompt(t, event)
+				return
+			}
+		case <-graceEnds:
+			require.FailNow(t, "the client was not prompted before its attribute's grace period ended")
+		}
+	}
 }
 
 // rawWebSocket authenticates the upgrade request itself, as the webapp does with its cookie,
@@ -340,7 +397,7 @@ func TestWebSocketResumeRechecksSessionAttributes(t *testing.T) {
 	})
 
 	t.Run("does not replay queued events once the attributes expired while offline", func(t *testing.T) {
-		setIPAddressAttributeDuration(t, th, 1, 1)
+		setIPAddressAttributeDuration(t, th, 1, 3)
 
 		session, appErr := th.App.GetSession(token)
 		require.Nil(t, appErr)
@@ -354,6 +411,28 @@ func TestWebSocketResumeRechecksSessionAttributes(t *testing.T) {
 			return appErr == nil && attrs == nil
 		}, 10*time.Second, 100*time.Millisecond)
 		queued := postWithFile(t, th, "posted after alice's attributes expired")
+
+		reconnected := dialWebSocket(t, th, token, officeIP, connectionID, ws.lastSeq+1)
+		defer reconnected.conn.Close()
+		require.NotEqual(t, connectionID, reconnected.hello(t))
+		require.Nil(t, findPosted(t, reconnected.eventsUntilSentinel(t, th), queued.Id))
+	})
+
+	t.Run("does not replay queued events once the attributes lapsed before the connection dropped", func(t *testing.T) {
+		setIPAddressAttributeDuration(t, th, 1, 2)
+
+		session, appErr := th.App.GetSession(token)
+		require.Nil(t, appErr)
+
+		ws := dialWebSocket(t, th, token, officeIP, "", 0)
+		connectionID := ws.hello(t)
+		require.Eventually(t, func() bool {
+			attrs, appErr := th.App.GetSessionAttributes(th.Context, session.Id)
+			return appErr == nil && attrs == nil
+		}, 10*time.Second, 100*time.Millisecond)
+		ws.disconnect(t, th, userID)
+
+		queued := postWithFile(t, th, "posted while alice's attributes had lapsed")
 
 		reconnected := dialWebSocket(t, th, token, officeIP, connectionID, ws.lastSeq+1)
 		defer reconnected.conn.Close()

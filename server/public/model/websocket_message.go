@@ -150,8 +150,7 @@ type WSQueues struct {
 	ReuseCount int               `json:"reuse_count"`
 	Status     WSQueuesStatus    `json:"status,omitempty"`
 
-	SessionAttributesEpoch    string `json:"session_attributes_epoch,omitempty"`
-	SessionAttributesExpireAt int64  `json:"session_attributes_expire_at,omitempty"`
+	SessionAttributes *SessionAttributesRecord `json:"session_attributes,omitempty"`
 }
 
 type WebSocketMessage interface {

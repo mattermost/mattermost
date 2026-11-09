@@ -171,8 +171,7 @@ type WebConn struct {
 	lastLogTimeFull time.Time
 
 	// Set by recordSessionAttributes when the connection goes inactive.
-	sessionAttributesEpoch    string
-	sessionAttributesExpireAt int64
+	sessionAttributes *model.SessionAttributesRecord
 }
 
 // CheckConnResult indicates whether a connectionID was present in the hub or not.
@@ -185,8 +184,7 @@ type CheckConnResult struct {
 	DeadQueuePointer int
 	ReuseCount       int
 
-	SessionAttributesEpoch    string
-	SessionAttributesExpireAt int64
+	SessionAttributes *model.SessionAttributesRecord
 }
 
 // PopulateWebConnConfig checks if the connection id already exists in the hub,
@@ -208,7 +206,7 @@ func (ps *PlatformService) PopulateWebConnConfig(s *model.Session, cfg *WebConnC
 	}
 
 	res, reason, isRemote := ps.CheckWebConn(s.UserId, cfg.ConnectionID, seqNum)
-	if res != nil && ps.sessionAttributesChangedSince(s.Id, res) {
+	if res != nil && ps.sessionAttributesChangedSince(s.Id, res.SessionAttributes) {
 		res, reason = nil, reconnectFailureSessionAttributesChanged
 	}
 	if res == nil {
