@@ -8349,7 +8349,7 @@ func TestPatchPropertyValuesChangePolicy(t *testing.T) {
 		resp, err = patch(t, field, `"OTHER"`)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
-		CheckErrorID(t, err, "app.property_value.change_policy.never.app_error")
+		CheckErrorID(t, err, "app.property_value.write_once.app_error")
 	})
 
 	t.Run("raise_only: down is forbidden and up is allowed", func(t *testing.T) {
@@ -8379,7 +8379,7 @@ func TestPatchPropertyValuesChangePolicy(t *testing.T) {
 		resp, err = patch(t, field, fmt.Sprintf("%q", optionID(0)))
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
-		CheckErrorID(t, err, "app.property_value.change_policy.raise_only.app_error")
+		CheckErrorID(t, err, "app.property_value.bounds_violated.app_error")
 
 		resp, err = patch(t, field, fmt.Sprintf("%q", optionID(2)))
 		require.NoError(t, err)
@@ -8428,8 +8428,7 @@ func TestPatchPropertyValuesWriteOnce(t *testing.T) {
 	resp, err = patch(`"second"`)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
-	// The field also carries change_policy=never, which the old enforcement checks first.
-	CheckErrorID(t, err, "app.property_value.change_policy.never.app_error")
+	CheckErrorID(t, err, "app.property_value.write_once.app_error")
 }
 
 // End-to-end proof of the DM/GM rule against the REAL access_control group,

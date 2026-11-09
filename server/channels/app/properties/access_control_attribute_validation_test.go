@@ -3164,19 +3164,25 @@ func TestAccessControlAttributeValidationHookChangePolicy(t *testing.T) {
 		return write(field, channelID, model.PropertyValueTargetTypeChannel, raw)
 	}
 
-	requireRefused := func(t *testing.T, err error, wantID string) {
+	requireRefusedWithStatus := func(t *testing.T, err error, wantID string, wantStatus int) {
 		t.Helper()
 		require.Error(t, err)
 		var appErr *model.AppError
 		require.ErrorAs(t, err, &appErr)
 		assert.Equal(t, wantID, appErr.Id)
-		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		assert.Equal(t, wantStatus, appErr.StatusCode)
+	}
+	requireRefused := func(t *testing.T, err error, wantID string) {
+		t.Helper()
+		requireRefusedWithStatus(t, err, wantID, http.StatusForbidden)
 	}
 
+	// A change_policy is translated to mutability and bounds on save, so these are the
+	// ids of the checks that enforce them.
 	const (
-		neverErrorID     = "app.property_value.change_policy.never.app_error"
-		raiseOnlyErrorID = "app.property_value.change_policy.raise_only.app_error"
-		lowerOnlyErrorID = "app.property_value.change_policy.lower_only.app_error"
+		neverErrorID  = "app.property_value.write_once.app_error"
+		boundsErrorID = "app.property_value.bounds_violated.app_error"
+		checkFailedID = "app.property_value.bounds_check_failed.app_error"
 	)
 
 	t.Run("never: the first write is allowed and every later one is refused", func(t *testing.T) {
@@ -3189,7 +3195,6 @@ func TestAccessControlAttributeValidationHookChangePolicy(t *testing.T) {
 
 		for name, raw := range map[string]string{
 			"a different value": `"OTHER"`,
-			"the same value":    `"SECRET"`,
 			"an explicit null":  `null`,
 			"an empty string":   `""`,
 		} {
@@ -3197,6 +3202,7 @@ func TestAccessControlAttributeValidationHookChangePolicy(t *testing.T) {
 				requireRefused(t, writeChannel(field, channelID, raw), neverErrorID)
 			})
 		}
+		require.NoError(t, writeChannel(field, channelID, `"SECRET"`), "saving the same value again changes nothing")
 	})
 
 	t.Run("never: a legacy editable=false field locks without change_policy", func(t *testing.T) {
@@ -3215,9 +3221,9 @@ func TestAccessControlAttributeValidationHookChangePolicy(t *testing.T) {
 		channelID := model.NewId()
 
 		require.NoError(t, writeChannel(field, channelID, fmt.Sprintf("%q", mid)), "any rung may be picked first")
-		requireRefused(t, writeChannel(field, channelID, fmt.Sprintf("%q", low)), raiseOnlyErrorID)
-		requireRefused(t, writeChannel(field, channelID, fmt.Sprintf("%q", mid)), raiseOnlyErrorID)
-		requireRefused(t, writeChannel(field, channelID, `null`), raiseOnlyErrorID)
+		requireRefused(t, writeChannel(field, channelID, fmt.Sprintf("%q", low)), boundsErrorID)
+		requireRefused(t, writeChannel(field, channelID, `null`), boundsErrorID)
+		require.NoError(t, writeChannel(field, channelID, fmt.Sprintf("%q", mid)), "saving the stored value again is accepted")
 		require.NoError(t, writeChannel(field, channelID, fmt.Sprintf("%q", high)))
 	})
 
@@ -3227,9 +3233,9 @@ func TestAccessControlAttributeValidationHookChangePolicy(t *testing.T) {
 		channelID := model.NewId()
 
 		require.NoError(t, writeChannel(field, channelID, fmt.Sprintf("%q", mid)))
-		requireRefused(t, writeChannel(field, channelID, fmt.Sprintf("%q", high)), lowerOnlyErrorID)
-		requireRefused(t, writeChannel(field, channelID, fmt.Sprintf("%q", mid)), lowerOnlyErrorID)
-		requireRefused(t, writeChannel(field, channelID, `null`), lowerOnlyErrorID)
+		requireRefused(t, writeChannel(field, channelID, fmt.Sprintf("%q", high)), boundsErrorID)
+		requireRefused(t, writeChannel(field, channelID, `null`), boundsErrorID)
+		require.NoError(t, writeChannel(field, channelID, fmt.Sprintf("%q", mid)), "saving the stored value again is accepted")
 		require.NoError(t, writeChannel(field, channelID, fmt.Sprintf("%q", low)))
 	})
 
@@ -3248,8 +3254,9 @@ func TestAccessControlAttributeValidationHookChangePolicy(t *testing.T) {
 		})
 		channelID := model.NewId()
 
-		// A user-initiated clear leaves a null-valued row rather than deleting
-		// it; written through the store so the policy does not refuse the clear.
+		// A user-initiated clear of a never-set value leaves a null-valued row
+		// rather than deleting it; written through the store so no rule has to
+		// allow the clear. The row counts as no value.
 		_, createErr := th.dbStore.PropertyValue().Create(&model.PropertyValue{
 			GroupID:    group.ID,
 			FieldID:    field.ID,
@@ -3277,7 +3284,7 @@ func TestAccessControlAttributeValidationHookChangePolicy(t *testing.T) {
 		})
 		require.NoError(t, createErr)
 
-		requireRefused(t, writeChannel(field, channelID, fmt.Sprintf("%q", options[2])), raiseOnlyErrorID)
+		requireRefusedWithStatus(t, writeChannel(field, channelID, fmt.Sprintf("%q", options[2])), checkFailedID, http.StatusConflict)
 	})
 
 	t.Run("user targets are untouched, so directory sync keeps working", func(t *testing.T) {
@@ -3286,8 +3293,23 @@ func TestAccessControlAttributeValidationHookChangePolicy(t *testing.T) {
 		})
 		userID := model.NewId()
 
+		assert.NotContains(t, field.Attrs, model.PropertyFieldAttrChangePolicy, "a user field's change_policy is dropped at save")
 		require.NoError(t, write(field, userID, model.PropertyValueTargetTypeUser, `"first"`))
 		require.NoError(t, write(field, userID, model.PropertyValueTargetTypeUser, `"second"`))
+	})
+
+	t.Run("without Enterprise Advanced a converted field's second write goes through", func(t *testing.T) {
+		field := newTextField(t, model.PropertyFieldObjectTypeChannel, model.StringInterface{
+			model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyNever,
+		})
+		channelID := model.NewId()
+		require.NoError(t, writeChannel(field, channelID, `"SECRET"`))
+
+		prev := th.service.licenseProvider
+		th.service.licenseProvider = func() *model.License { return model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise) }
+		t.Cleanup(func() { th.service.licenseProvider = prev })
+
+		require.NoError(t, writeChannel(field, channelID, `"OTHER"`))
 	})
 
 	t.Run("one refused value rejects the whole batch", func(t *testing.T) {

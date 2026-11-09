@@ -11561,21 +11561,6 @@
     "description": "API error (403) when a property value write breaks one of the field's bounds rules, such as lowering a raise-only value; the message never says what the limit is."
   },
   {
-    "id": "app.property_value.change_policy.lower_only.app_error",
-    "translation": "This attribute can only be lowered, never raised.",
-    "description": "API error (403) when a user tries to set a ranked attribute (e.g. a classification level) to a higher value, but the field only allows lowering it."
-  },
-  {
-    "id": "app.property_value.change_policy.never.app_error",
-    "translation": "This attribute cannot be changed after it is set.",
-    "description": "API error (403) when a user tries to change an attribute value whose field locks it once it has been set."
-  },
-  {
-    "id": "app.property_value.change_policy.raise_only.app_error",
-    "translation": "This attribute can only be raised, never lowered.",
-    "description": "API error (403) when a user tries to set a ranked attribute (e.g. a classification level) to a lower value, but the field only allows raising it."
-  },
-  {
     "id": "app.property_value.create.app_error",
     "translation": "Unable to create property value.",
     "description": "API error returned when storing a new property value (the value assigned to a custom attribute field) fails."

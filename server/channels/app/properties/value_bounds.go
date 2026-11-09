@@ -71,6 +71,21 @@ func (h *AccessControlAttributeValidationHook) boundsBreak(rctx request.CTX, gro
 	return boundsRefusal(err)
 }
 
+// singleOptionRank resolves the rank of the one option a rank value carries. A
+// rank field is select-shaped, so anything other than exactly one known option
+// is unresolvable.
+func singleOptionRank(fieldType model.PropertyFieldType, raw json.RawMessage, ranks map[string]int) (int, bool) {
+	optionIDs, err := extractOptionIDsFromValue(fieldType, raw)
+	if err != nil || len(optionIDs) != 1 {
+		return 0, false
+	}
+	for optionID := range optionIDs {
+		rank, ok := ranks[optionID]
+		return rank, ok
+	}
+	return 0, false
+}
+
 // compareByRank checks next against ref by option rank under op. Which value
 // ref is (the parent's or the object's own) is the caller's to resolve, and
 // empty values are the caller's to handle: an empty one fails the check.
@@ -471,8 +486,8 @@ func samePropertyValue(a, b json.RawMessage) bool {
 	return reflect.DeepEqual(x, y)
 }
 
-// newMutabilityError returns the refusal for a write a field's mutability forbids, written like
-// newChangePolicyError. Details name the field only, never a value or option.
+// newMutabilityError returns the refusal for a write a field's mutability forbids. Details name the
+// field only, never a value or option.
 //
 // Each key is written inline: i18n-extract only sees IDs passed literally to NewAppError.
 func newMutabilityError(field *model.PropertyField) error {
