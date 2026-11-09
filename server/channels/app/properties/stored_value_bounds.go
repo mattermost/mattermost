@@ -313,8 +313,8 @@ func (ps *PropertyService) rankChangeBreaches(rctx request.CTX, template *model.
 			if rule.Reference != model.PropertyBoundsReferenceParent {
 				continue
 			}
-			// Not counting the fallback posts: each post field carrying the rule is linked to this
-			// template too, so it is in linked and its own check counts them.
+			// Fallback posts are left out: a post field carrying the rule is linked to this template
+			// too, so it is one of linked and counts its own posts.
 			found, err := ps.parentRuleBreaches(rctx, child, rule, ranks, incoming, false)
 			if err != nil {
 				return breaches, "", err
