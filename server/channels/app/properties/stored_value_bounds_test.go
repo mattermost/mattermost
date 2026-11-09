@@ -939,4 +939,129 @@ func TestRefuseDeletingHeldOptions(t *testing.T) {
 		th.service.licenseProvider = func() *model.License { return nil }
 		require.NoError(t, deleteOptions(f, "o2"))
 	})
+
+	// freshWithout reads f back and drops the given options from its list, the way a client
+	// saving the field with an edited list does.
+	freshWithout := func(f *model.PropertyField, drop ...string) *model.PropertyField {
+		t.Helper()
+		c, err := th.service.GetPropertyField(rctx, f.GroupID, f.ID)
+		require.NoError(t, err)
+		var kept []any
+		for _, o := range asOptionSlice(c.Attrs) {
+			if id, _ := o["id"].(string); !slices.Contains(drop, id) {
+				kept = append(kept, o)
+			}
+		}
+		c.Attrs = model.StringInterface{model.PropertyFieldAttributeOptions: kept}
+		return c
+	}
+	save := func(c *model.PropertyField) error {
+		_, _, err := th.service.UpdatePropertyField(rctx, c.GroupID, c)
+		return err
+	}
+	// setMutability saves a fresh copy of f with the mutability changed.
+	setMutability := func(f *model.PropertyField, m model.PropertyFieldMutability) {
+		t.Helper()
+		c, err := th.service.GetPropertyField(rctx, f.GroupID, f.ID)
+		require.NoError(t, err)
+		c.Mutability = m
+		require.NoError(t, save(c))
+	}
+
+	t.Run("a save that drops a held option is refused", func(t *testing.T) {
+		f := selectField(t, model.PropertyFieldTypeSelect, model.PropertyFieldObjectTypeChannel, once)
+		target := model.NewId()
+		seed(f, model.PropertyValueTargetTypeChannel, target, `"o2"`)
+
+		requireRefused(t, save(freshWithout(f, "o2")), "1", target)
+		assert.Equal(t, []string{"o1", "o2"}, liveOptions(f))
+
+		require.NoError(t, save(freshWithout(f, "o1")))
+		assert.Equal(t, []string{"o2"}, liveOptions(f))
+	})
+
+	t.Run("a save that drops no option passes whatever is held", func(t *testing.T) {
+		f := selectField(t, model.PropertyFieldTypeSelect, model.PropertyFieldObjectTypeChannel, once)
+		seed(f, model.PropertyValueTargetTypeChannel, model.NewId(), `"o2"`)
+		c := freshWithout(f)
+		c.Name = "Renamed " + model.NewId()
+		require.NoError(t, save(c))
+	})
+
+	t.Run("a rank template's option held by a locked linked field can't be dropped", func(t *testing.T) {
+		_, _, createDirect := boundsSetup(t, th, rctx)
+		linked := createDirect(model.PropertyFieldObjectTypeChannel)
+		template, err := th.service.GetPropertyField(rctx, linked.GroupID, *linked.LinkedFieldID)
+		require.NoError(t, err)
+		setMutability(linked, once)
+		target := model.NewId()
+		seed(linked, model.PropertyValueTargetTypeChannel, target, `"optmid"`)
+
+		err = save(freshWithout(template, "optmid"))
+		requireAppErrorID(t, err, refusedID, http.StatusConflict)
+		assert.Equal(t, []string{target}, examplesOf(err))
+
+		// Once the linked field is mutable the same save goes through.
+		setMutability(linked, mutable)
+		require.NoError(t, save(freshWithout(template, "optmid")))
+	})
+
+	t.Run("a linked field in the same call is judged by its copy there", func(t *testing.T) {
+		for _, tc := range []struct {
+			name     string
+			start    model.PropertyFieldMutability
+			callSets model.PropertyFieldMutability
+			refused  bool
+		}{
+			{"locked field unlocked in the call", once, mutable, false},
+			{"mutable field locked in the call", mutable, once, true},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				_, _, createDirect := boundsSetup(t, th, rctx)
+				linked := createDirect(model.PropertyFieldObjectTypeChannel)
+				template, err := th.service.GetPropertyField(rctx, linked.GroupID, *linked.LinkedFieldID)
+				require.NoError(t, err)
+				setMutability(linked, tc.start)
+				seed(linked, model.PropertyValueTargetTypeChannel, model.NewId(), `"optmid"`)
+
+				inCall, err := th.service.GetPropertyField(rctx, linked.GroupID, linked.ID)
+				require.NoError(t, err)
+				inCall.Mutability = tc.callSets
+				_, _, _, err = th.service.UpdatePropertyFields(rctx, linked.GroupID, []*model.PropertyField{freshWithout(template, "optmid"), inCall})
+				if tc.refused {
+					requireAppErrorID(t, err, refusedID, http.StatusConflict)
+				} else {
+					require.NoError(t, err)
+				}
+			})
+		}
+	})
+}
+
+func TestDroppedOptionIDs(t *testing.T) {
+	opts := func(ids ...string) model.StringInterface {
+		var list []any
+		for _, id := range ids {
+			list = append(list, map[string]any{"id": id, "name": id})
+		}
+		return model.StringInterface{model.PropertyFieldAttributeOptions: list}
+	}
+	stored := &model.PropertyField{Type: model.PropertyFieldTypeSelect, Attrs: opts("o1", "o2")}
+
+	omitted := opts()
+	omitted[model.PropertyFieldAttributeOptionsOmitted] = true
+
+	for name, tc := range map[string]struct {
+		submitted *model.PropertyField
+		want      []string
+	}{
+		"options omitted":      {&model.PropertyField{Type: model.PropertyFieldTypeSelect, Attrs: omitted}, nil},
+		"type without options": {&model.PropertyField{Type: model.PropertyFieldTypeText, Attrs: opts()}, nil},
+		"one option missing":   {&model.PropertyField{Type: model.PropertyFieldTypeSelect, Attrs: opts("o1")}, []string{"o2"}},
+		"one option added":     {&model.PropertyField{Type: model.PropertyFieldTypeSelect, Attrs: opts("o1", "o2", "o3")}, nil},
+	} {
+		t.Run(name, func(t *testing.T) {
+			assert.Equal(t, tc.want, droppedOptionIDs(tc.submitted, stored))
+		})
+	}
 }

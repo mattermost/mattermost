@@ -1275,6 +1275,20 @@ func (ps *PropertyService) updatePropertyFieldsIfUnchanged(rctx request.CTX, gro
 		return nil, nil, nil, err
 	}
 
+	// A field write states the option list in full, so an option left out is an option
+	// deleted. A linked field's list is its template's, so it deletes nothing.
+	for _, field := range fields {
+		existing, ok := existingByID[field.ID]
+		if !ok || field.IsPSAv1() || existing.LinkSourceID() != "" {
+			continue
+		}
+		if dropped := droppedOptionIDs(field, existing); len(dropped) > 0 {
+			if err := ps.refuseDeletingHeldOptions(rctx, "UpdatePropertyFields", field, dropped, incoming); err != nil {
+				return nil, nil, nil, err
+			}
+		}
+	}
+
 	// A field left with no Permissions by translateLegacyPermissionKeys above
 	// (nothing legacy changed, so nothing was reconverted) still must not
 	// reach the store nil: there is no legitimate "clear the permissions"
