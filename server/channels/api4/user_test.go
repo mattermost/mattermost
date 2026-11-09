@@ -378,6 +378,96 @@ func TestUserLoginAudit(t *testing.T) {
 	assert.Equal(t, sess[0].Id, entry.SessionID)
 }
 
+func TestLoginCWSAudit(t *testing.T) {
+	logFile, err := os.CreateTemp("", "cws_login_audit.log")
+	require.NoError(t, err)
+	defer os.Remove(logFile.Name())
+
+	options := []app.Option{app.WithLicense(model.NewTestLicense("advanced_logging"))}
+	th := SetupWithServerOptionsAndConfig(t, options, func(cfg *model.Config) {
+		cfg.ExperimentalAuditSettings.FileEnabled = new(true)
+		cfg.ExperimentalAuditSettings.FileName = new(logFile.Name())
+	})
+	client := th.CreateClient()
+	client.HTTPClient.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		return http.ErrUseLastResponse
+	}
+
+	testCases := []struct {
+		name           string
+		validToken     bool
+		expectSession  bool
+		expectedStatus string
+	}{
+		{
+			name:           "successful login is audited as success",
+			validToken:     true,
+			expectSession:  true,
+			expectedStatus: model.AuditStatusSuccess,
+		},
+		{
+			name:           "rejected login is audited as fail",
+			expectedStatus: model.AuditStatusFail,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			require.NoError(t, logFile.Truncate(0))
+			_, err := logFile.Seek(0, 0)
+			require.NoError(t, err)
+
+			token := model.NewRandomString(64)
+			user := th.CreateUser(t)
+			th.App.Srv().SetCWSTokenOverride(token)
+			th.App.Srv().SetCWSLoginIDOverride(user.Username)
+			t.Cleanup(func() {
+				th.App.Srv().SetCWSTokenOverride("")
+				th.App.Srv().SetCWSLoginIDOverride("")
+			})
+
+			sentToken := token
+			if !tc.validToken {
+				sentToken = model.NewRandomString(64)
+			}
+			form := url.Values{}
+			form.Add("login_id", user.Username)
+			form.Add("cws_token", sentToken)
+			r, _ := client.DoAPIRequestWithHeaders(context.Background(),
+				http.MethodPost,
+				"/users/login/cws",
+				form.Encode(),
+				map[string]string{
+					"Content-Type": "application/x-www-form-urlencoded",
+				},
+			)
+			require.NotNil(t, r)
+			defer closeBody(r)
+			require.Equal(t, http.StatusFound, r.StatusCode)
+
+			hasSession := false
+			for _, cookie := range r.Cookies() {
+				if cookie.Name == model.SessionCookieToken && cookie.Value != "" {
+					hasSession = true
+				}
+			}
+			require.Equal(t, tc.expectSession, hasSession)
+
+			require.NoError(t, th.Server.Audit.Flush())
+			require.NoError(t, logFile.Sync())
+			data, err := io.ReadAll(logFile)
+			require.NoError(t, err)
+
+			entry := FindAuditEntry(string(data), model.AuditEventLogin, "")
+			require.NotNil(t, entry, "should find a login audit entry")
+			assert.Equal(t, tc.expectedStatus, entry.Status)
+			if tc.expectSession {
+				assert.Equal(t, user.Id, entry.UserID)
+			}
+		})
+	}
+}
+
 func TestLogoutAuditAuthStatus(t *testing.T) {
 	logFile, err := os.CreateTemp("", "logout_audit.log")
 	require.NoError(t, err)
