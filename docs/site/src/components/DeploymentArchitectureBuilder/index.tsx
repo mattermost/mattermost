@@ -48,6 +48,7 @@ function HFlow({direction, port}: {direction: 'left' | 'right'; port: string}) {
   return (
     <div className={styles.hFlow} aria-hidden>
       <span className={styles.hArrow}>{arrow}</span>
+      <span className={styles.vArrow}>↓</span>
       <span className={styles.hFlowPorts}>{port}</span>
     </div>
   );

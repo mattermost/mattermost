@@ -9,6 +9,9 @@
   overflow: hidden;
   background: var(--mm-color-white);
   box-shadow: 0 4px 18px -14px rgba(30, 50, 92, 0.4);
+  /* Layout breakpoints track the builder's width, not the viewport: the docs
+   * sidebar and TOC leave far less room than the viewport width suggests. */
+  container-type: inline-size;
 }
 
 [data-theme='dark'] .builder {
@@ -28,11 +31,11 @@
   align-items: end;
 }
 
-@media (max-width: 1100px) {
+@container (max-width: 980px) {
   .controls { grid-template-columns: 1fr 1fr; }
 }
 
-@media (max-width: 720px) {
+@container (max-width: 560px) {
   .controls { grid-template-columns: 1fr; }
 }
 
@@ -318,11 +321,16 @@
   background: rgba(255, 255, 255, 0.04);
 }
 
-.hArrow {
+.hArrow,
+.vArrow {
   color: var(--mm-color-marigold, #FFBC1F);
   font-weight: 700;
   font-size: 0.9rem;
   line-height: 1;
+}
+
+.vArrow {
+  display: none;
 }
 
 .hFlowText {
@@ -572,7 +580,7 @@
 .boxPushManaged {
   border: 1.5px dashed var(--mm-color-marigold, #FFBC1F);
   background: rgba(255, 188, 31, 0.06);
-  min-width: 18rem;
+  min-width: 12rem;
   min-height: 4rem;
 }
 
@@ -756,6 +764,29 @@
   margin-top: 0.1rem;
   color: var(--mm-text-secondary, var(--mm-text-primary));
   opacity: 0.75;
+}
+
+/* Too narrow for the 3-column app row: RTCD and Push drop into their own row
+ * beneath Mattermost, with connectors pointing down instead of sideways. */
+@container (max-width: 1240px) {
+  .diagram { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .gridCenter { grid-column: 1 / -1; }
+  .gridLeft { justify-self: end; align-self: end; order: 1; }
+  .gridRight { grid-column: 1 / -1; justify-self: center; align-self: end; order: 1; }
+  .gridLeft ~ .gridRight { grid-column: 2; justify-self: start; }
+  .rowData { order: 2; }
+  .sideGroup { flex-direction: column; gap: 0.35rem; }
+  .gridLeft .sideGroup { flex-direction: column-reverse; }
+  .rtcdWrap { display: flex; flex-direction: column; align-items: center; gap: 0.35rem; }
+  .flowDirectAbove { position: static; transform: none; }
+  .hArrow { display: none; }
+  .vArrow { display: inline; }
+}
+
+@container (max-width: 480px) {
+  .gridLeft,
+  .gridLeft ~ .gridRight { grid-column: 1 / -1; justify-self: center; }
+  .clientsRow { flex-wrap: wrap; }
 }
 
 /* ============================ Bill of materials ============================ */
