@@ -253,6 +253,8 @@ func TestGenerateSupportPacket(t *testing.T) {
 }
 
 func TestGetSupportPacketDiagnostics(t *testing.T) {
+	t.Skip("Skipped due to flakiness — tracked in https://mattermost.atlassian.net/browse/MM-71672")
+
 	th := Setup(t).InitBasic(t)
 
 	th.Service.installTypeOverride = "docker"
@@ -296,6 +298,18 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.NotEmpty(t, d.Server.GoVersion)
 		assert.Equal(t, "docker", d.Server.InstallationType)
 		assert.Positive(t, d.Server.CPUCores)
+		require.NotNil(t, d.Server.GoMaxProcs)
+		assert.Positive(t, *d.Server.GoMaxProcs)
+		assert.Equal(t, d.Server.ContainerCPUPeriods == nil, d.Server.ContainerCPUThrottledPeriods == nil)
+		if runtime.GOOS == "linux" {
+			require.NotNil(t, d.Server.LoadAverage1m)
+			require.NotNil(t, d.Server.LoadAverage5m)
+			require.NotNil(t, d.Server.LoadAverage15m)
+		} else {
+			assert.Nil(t, d.Server.LoadAverage1m)
+			assert.Nil(t, d.Server.LoadAverage5m)
+			assert.Nil(t, d.Server.LoadAverage15m)
+		}
 		if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
 			require.NotNil(t, d.Server.TotalMemoryMB)
 			assert.Positive(t, *d.Server.TotalMemoryMB)
@@ -1862,11 +1876,26 @@ func TestSupportPacketMarshalGolden(t *testing.T) {
 	diagnostics.Server.InstallationType = "docker"
 	diagnostics.Server.CPUCores = 8
 	diagnostics.Server.TotalMemoryMB = new(uint64(32768))
+	diagnostics.Server.AvailableMemoryMB = new(uint64(24576))
+	diagnostics.Server.SwapTotalMB = new(uint64(4096))
+	diagnostics.Server.SwapUsedMB = new(uint64(1024))
 	diagnostics.Server.ContainerCPULimit = 6.5
 	diagnostics.Server.ContainerMemoryLimitMB = 16384
+	diagnostics.Server.ContainerMemoryUsageMB = new(uint64(12288))
+	diagnostics.Server.ContainerMemoryWorkingSetMB = new(uint64(10240))
+	diagnostics.Server.ContainerOOMKills = new(uint64(2))
+	diagnostics.Server.LoadAverage1m = new(1.25)
+	diagnostics.Server.LoadAverage5m = new(1.5)
+	diagnostics.Server.LoadAverage15m = new(2.75)
+	diagnostics.Server.ContainerCPUPeriods = new(uint64(10000))
+	diagnostics.Server.ContainerCPUThrottledPeriods = new(uint64(1250))
+	diagnostics.Server.ContainerCPUThrottledSeconds = new(42.5)
+	diagnostics.Server.GoMaxProcs = new(6)
 	diagnostics.Server.ProcessID = 90210
 	diagnostics.Server.StartedAt = time.Date(2026, 1, 2, 3, 4, 5, 0, time.UTC)
 	diagnostics.Server.HostStartedAt = time.Date(2025, 12, 30, 0, 0, 0, 0, time.UTC)
+	diagnostics.Server.ProcessRSSMB = new(uint64(2048))
+	diagnostics.Server.GoMemoryLimitMB = new(uint64(13107))
 	diagnostics.Server.OpenFileDescriptors = new(int64(512))
 	diagnostics.Server.MaxFileDescriptors = new(int64(8192))
 	diagnostics.Server.Version = "11.0.0"

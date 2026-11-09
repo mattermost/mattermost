@@ -30272,11 +30272,11 @@
     "description": "Accessibility label for the search box popup panel; not visible text."
   },
   "search_bar.search_files": {
-    "defaultMessage": "Search files",
+    "defaultMessage": "Search files by keyword",
     "description": "Label for the file search mode/option in the search box."
   },
   "search_bar.search_messages": {
-    "defaultMessage": "Search messages",
+    "defaultMessage": "Search messages by keyword",
     "description": "Label for the message search mode/option in the search box."
   },
   "search_bar.search_types.files": {

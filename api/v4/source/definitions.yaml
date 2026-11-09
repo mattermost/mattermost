@@ -4928,11 +4928,13 @@ components:
           type: array
           items:
             type: string
-            enum: [membership, upload_file_attachment, download_file_attachment]
+            enum: [membership, upload_file_attachment, download_file_attachment, create_burn_on_read_post]
           description: >
             The actions the rule governs: `membership` (who can be a member;
             alone in its rule in a `channel` policy), or
-            `upload_file_attachment` and `download_file_attachment`.
+            `upload_file_attachment`, `download_file_attachment`, and
+            `create_burn_on_read_post` (who can send burn-on-read posts;
+            requires server version 12.1 or later).
         expression:
           type: string
           description: >
@@ -4986,8 +4988,11 @@ components:
           type: array
           items:
             type: string
-            enum: [membership, upload_file_attachment, download_file_attachment]
-          description: Returns only policies with a rule for at least one of these actions.
+            enum: [membership, upload_file_attachment, download_file_attachment, create_burn_on_read_post]
+          description: >
+            Returns only policies with a rule for at least one of these
+            actions. `create_burn_on_read_post` requires server version 12.1
+            or later.
         team_id:
           type: string
           description: >
@@ -5924,11 +5929,12 @@ components:
           description: >
             Actions to evaluate, at most 16. Leave empty or omit for discovery
             mode, which returns the permitted set of all registered actions for
-            the resource type. An unregistered action returns 400.
+            the resource type. An unregistered action returns 400, including
+            `create_burn_on_read_post` on servers earlier than 12.1.
           maxItems: 16
           items:
             type: string
-            enum: [upload_file_attachment, download_file_attachment]
+            enum: [upload_file_attachment, download_file_attachment, create_burn_on_read_post]
         subject:
           $ref: "#/components/schemas/ActionSearchSubject"
         page:

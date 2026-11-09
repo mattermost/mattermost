@@ -2402,6 +2402,7 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.AppContext = c.AppContext.WithSession(session)
 	c.LogAuditWithUserId(user.Id, "success")
 	c.App.AttachSessionCookies(c.AppContext, w, r)
+	auditRec.Success()
 
 	redirectURL := *c.App.Config().ServiceSettings.SiteURL
 	if campaign != "" {
