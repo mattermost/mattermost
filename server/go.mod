@@ -5,6 +5,7 @@ go 1.26.10
 require (
 	code.sajari.com/docconv/v2 v2.0.0-pre.4
 	github.com/Masterminds/semver/v3 v3.5.0
+	github.com/ProtonMail/go-crypto v1.5.2
 	github.com/avct/uasurfer v0.0.0-20250915105040-a942f6fb6edc
 	github.com/aws/aws-sdk-go-v2 v1.43.7
 	github.com/aws/aws-sdk-go-v2/config v1.32.38
@@ -110,6 +111,7 @@ require (
 	github.com/bodgit/windows v1.0.1 // indirect
 	github.com/clipperhouse/displaywidth v0.11.0 // indirect
 	github.com/clipperhouse/uax29/v2 v2.7.0 // indirect
+	github.com/cloudflare/circl v1.6.3 // indirect
 	github.com/corpix/uarand v0.2.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.7 // indirect
 	github.com/dsnet/compress v0.0.2-0.20230904184137-39efe44ab707 // indirect
