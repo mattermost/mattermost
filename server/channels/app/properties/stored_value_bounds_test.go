@@ -641,6 +641,19 @@ func TestRefuseRankChangeBreakingStoredValues(t *testing.T) {
 		assert.Equal(t, original, storedRanks(f))
 	})
 
+	t.Run("a post falling back to the system through two fields with the same rule counts once", func(t *testing.T) {
+		f := setup(t, below, below)
+		seedSystem(f, "optmid")
+		z := channel(f, "")
+		zPost := post(f, z, "optlow")
+
+		err := saveOptions(f, options(3, 2, 1, nil))
+		requireAppErrorID(t, err, ranksID, http.StatusConflict)
+		assert.Contains(t, err.Error(), "1 stored values")
+		assert.Equal(t, []string{zPost}, examplesOf(err))
+		assert.Equal(t, original, storedRanks(f))
+	})
+
 	t.Run("a system with no value sets no limit", func(t *testing.T) {
 		f := setup(t, below, nil)
 		channel(f, "optlow")

@@ -96,11 +96,11 @@ func (ps *PropertyService) onlyParentField(rctx request.CTX, child *model.Proper
 
 // parentRuleBreaches counts the stored values that break a parent rule child gains, judged against
 // the parent's value as it is now: child's own, plus, for a channel field, the posts whose post
-// field already carries the same rule and that would start falling back through it. A rule that
-// can't be evaluated wraps errBoundsCheckFailed; a store error is returned wrapped. Messages name
-// IDs, never a value. incoming holds every field of the update call, whose copies replace the
-// stored ones.
-func (ps *PropertyService) parentRuleBreaches(rctx request.CTX, child *model.PropertyField, rule model.PropertyBoundsRule, ranks map[string]int, incoming map[string]*model.PropertyField) (storedValueBreaches, error) {
+// field already carries the same rule and that would start falling back through it, unless
+// withFallback is false. A rule that can't be evaluated wraps errBoundsCheckFailed; a store error is
+// returned wrapped. Messages name IDs, never a value. incoming holds every field of the update call,
+// whose copies replace the stored ones.
+func (ps *PropertyService) parentRuleBreaches(rctx request.CTX, child *model.PropertyField, rule model.PropertyBoundsRule, ranks map[string]int, incoming map[string]*model.PropertyField, withFallback bool) (storedValueBreaches, error) {
 	var breaches storedValueBreaches
 	switch child.ObjectType {
 	case model.PropertyFieldObjectTypePost:
@@ -127,30 +127,51 @@ func (ps *PropertyService) parentRuleBreaches(rctx request.CTX, child *model.Pro
 		return breaches, fmt.Errorf("field %s: failed to count the stored values: %w", child.ID, err)
 	}
 	breaches.add(count, examples)
-	if child.ObjectType != model.PropertyFieldObjectTypeChannel {
+	if child.ObjectType != model.PropertyFieldObjectTypeChannel || !withFallback {
 		return breaches, nil
 	}
-
-	// Posts in a channel with no value of child fall back to the system's value, but only when
-	// their post field carries the same rule as child, so those posts are capped by it too.
-	postFields, err := ps.childFieldsWithParentRule(rctx, child)
+	found, _, err := ps.fallbackPostBreaches(rctx, child, child.Bounds, &rule, func(model.PropertyBoundsRule) ([]string, error) { return allowed, nil }, incoming)
 	if err != nil {
-		return breaches, fmt.Errorf("field %s: failed to look up the post fields: %w", child.ID, err)
+		return breaches, err
+	}
+	breaches.add(found.Count, found.Examples)
+	return breaches, nil
+}
+
+// fallbackPostBreaches counts the stored values of the post fields whose parent is channelField
+// that fall outside what allowedFor says a rule permits. Posts in a channel with no value of
+// channelField fall back to the system's value, but only when their post field carries the same
+// rule as channelBounds, so only those rules are counted; only, when set, narrows that to one rule.
+// incoming's copies replace the stored post fields, and may be nil. It also returns the ID of the
+// first post field with a breach.
+func (ps *PropertyService) fallbackPostBreaches(rctx request.CTX, channelField *model.PropertyField, channelBounds model.PropertyBounds, only *model.PropertyBoundsRule, allowedFor func(model.PropertyBoundsRule) ([]string, error), incoming map[string]*model.PropertyField) (breaches storedValueBreaches, firstFieldID string, err error) {
+	postFields, err := ps.childFieldsWithParentRule(rctx, channelField)
+	if err != nil {
+		return breaches, "", fmt.Errorf("field %s: failed to look up the post fields: %w", channelField.ID, err)
 	}
 	for _, postField := range postFields {
 		if inc, ok := incoming[postField.ID]; ok {
 			postField = inc
 		}
-		if !slices.Contains(postField.Bounds, rule) {
-			continue
+		for _, rule := range postField.Bounds {
+			if rule.Reference != model.PropertyBoundsReferenceParent || !slices.Contains(channelBounds, rule) || (only != nil && rule != *only) {
+				continue
+			}
+			allowed, err := allowedFor(rule)
+			if err != nil {
+				return breaches, "", fmt.Errorf("field %s: %w", postField.ID, err)
+			}
+			count, examples, err := ps.valueStore.CountValuesOutsideOptions(postField.GroupID, postField.ID, allowed, &store.PostValueScope{ChannelFieldID: channelField.ID}, storedValueExamples)
+			if err != nil {
+				return breaches, "", fmt.Errorf("field %s: failed to count the stored values of post field %s: %w", channelField.ID, postField.ID, err)
+			}
+			if count > 0 && firstFieldID == "" {
+				firstFieldID = postField.ID
+			}
+			breaches.add(count, examples)
 		}
-		count, examples, err := ps.valueStore.CountValuesOutsideOptions(postField.GroupID, postField.ID, allowed, &store.PostValueScope{ChannelFieldID: child.ID}, storedValueExamples)
-		if err != nil {
-			return breaches, fmt.Errorf("field %s: failed to count the stored values of post field %s: %w", child.ID, postField.ID, err)
-		}
-		breaches.add(count, examples)
 	}
-	return breaches, nil
+	return breaches, firstFieldID, nil
 }
 
 // postRuleBreaches counts the stored values of a post field that break a parent rule it gains. A
@@ -292,7 +313,9 @@ func (ps *PropertyService) rankChangeBreaches(rctx request.CTX, template *model.
 			if rule.Reference != model.PropertyBoundsReferenceParent {
 				continue
 			}
-			found, err := ps.parentRuleBreaches(rctx, child, rule, ranks, incoming)
+			// Not counting the fallback posts: each post field carrying the rule is linked to this
+			// template too, so it is in linked and its own check counts them.
+			found, err := ps.parentRuleBreaches(rctx, child, rule, ranks, incoming, false)
 			if err != nil {
 				return breaches, "", err
 			}
@@ -351,7 +374,7 @@ func (ps *PropertyService) refuseRulesBrokenByStoredValues(rctx request.CTX, fie
 			if rule.Reference != model.PropertyBoundsReferenceParent || slices.Contains(existing.Bounds, rule) || checked[field.ID] {
 				continue
 			}
-			breaches, err := ps.parentRuleBreaches(rctx, field, rule, ranks, incoming)
+			breaches, err := ps.parentRuleBreaches(rctx, field, rule, ranks, incoming, true)
 			if errors.Is(err, errBoundsCheckFailed) {
 				return model.NewAppError("UpdatePropertyFields", "app.property_field.bounds_check_failed.app_error", nil, err.Error(), http.StatusConflict).Wrap(err)
 			}

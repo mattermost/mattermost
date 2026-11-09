@@ -239,8 +239,9 @@ func (h *AccessControlAttributeValidationHook) enforceBounds(rctx request.CTX, v
 
 // refuseContainedValuesOutOfBounds refuses a request that sets a channel's or the server's value
 // when the objects beneath would end up out of bounds under a child field's parent rule. Only
-// linked channel and system fields that some child field's parent rule reads from are looked at, so
-// other writes pay nothing. Clearing is never refused (what's beneath only gets a looser limit), and
+// linked channel and system fields are looked at, and each pays one search for the child fields
+// whose parent rule reads from it, even when there are none; unlinked fields and other object types
+// pay nothing. Clearing is never refused (what's beneath only gets a looser limit), and
 // neither is writing the stored value again, so re-saving a form doesn't fail on values the writer
 // didn't touch.
 func (h *AccessControlAttributeValidationHook) refuseContainedValuesOutOfBounds(rctx request.CTX, values []*model.PropertyValue, fieldMap map[string]*model.PropertyField) error {
@@ -279,54 +280,44 @@ func (h *AccessControlAttributeValidationHook) refuseContainedValuesOutOfBounds(
 		}
 		var breaches storedValueBreaches
 		var breachedFieldID string
-		count := func(child *model.PropertyField, rule model.PropertyBoundsRule, scope *store.PostValueScope) error {
-			allowed, err := allowedByRule(ranks, rule.Operator, newRank)
-			if err != nil {
-				return boundsRefusal(fmt.Errorf("field %s: %w", child.ID, err))
-			}
-			n, examples, err := h.propertyService.valueStore.CountValuesOutsideOptions(child.GroupID, child.ID, allowed, scope, storedValueExamples)
-			if err != nil {
-				return fmt.Errorf("field %s: failed to count the values of field %s: %w", field.ID, child.ID, err)
-			}
-			if n > 0 && breachedFieldID == "" {
-				breachedFieldID = child.ID
-			}
-			breaches.add(n, examples)
-			return nil
-		}
 		for _, child := range children {
 			for _, rule := range child.Bounds {
 				if rule.Reference != model.PropertyBoundsReferenceParent {
 					continue
+				}
+				allowed, err := allowedByRule(ranks, rule.Operator, newRank)
+				if err != nil {
+					return boundsRefusal(fmt.Errorf("field %s: %w", child.ID, err))
 				}
 				// A channel's posts are those in the channel; every channel and user is held to the server.
 				var scope *store.PostValueScope
 				if field.ObjectType == model.PropertyFieldObjectTypeChannel {
 					scope = &store.PostValueScope{ChannelID: v.TargetID}
 				}
-				if err := count(child, rule, scope); err != nil {
-					return err
+				n, examples, err := h.propertyService.valueStore.CountValuesOutsideOptions(child.GroupID, child.ID, allowed, scope, storedValueExamples)
+				if err != nil {
+					return fmt.Errorf("field %s: failed to count the values of field %s: %w", field.ID, child.ID, err)
 				}
+				if n > 0 && breachedFieldID == "" {
+					breachedFieldID = child.ID
+				}
+				breaches.add(n, examples)
 			}
 			if field.ObjectType != model.PropertyFieldObjectTypeSystem || child.ObjectType != model.PropertyFieldObjectTypeChannel {
 				continue
 			}
 			// Posts in channels with no value fall back to the server, but only through a channel
 			// field that carries the same rule as the post field.
-			postFields, err := h.propertyService.childFieldsWithParentRule(rctx, child)
+			found, firstID, err := h.propertyService.fallbackPostBreaches(rctx, child, child.Bounds, nil, func(rule model.PropertyBoundsRule) ([]string, error) {
+				return allowedByRule(ranks, rule.Operator, newRank)
+			}, nil)
 			if err != nil {
-				return fmt.Errorf("field %s: failed to look up the post fields: %w", child.ID, err)
+				return boundsRefusal(err)
 			}
-			for _, postField := range postFields {
-				for _, rule := range postField.Bounds {
-					if rule.Reference != model.PropertyBoundsReferenceParent || !slices.Contains(child.Bounds, rule) {
-						continue
-					}
-					if err := count(postField, rule, &store.PostValueScope{ChannelFieldID: child.ID}); err != nil {
-						return err
-					}
-				}
+			if found.Count > 0 && breachedFieldID == "" {
+				breachedFieldID = firstID
 			}
+			breaches.add(found.Count, found.Examples)
 		}
 		if breaches.Count > 0 {
 			examples := strings.Join(breaches.Examples, ", ")
