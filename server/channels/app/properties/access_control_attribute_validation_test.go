@@ -4448,4 +4448,85 @@ func TestAccessControlAttributeValidationHookChangePolicyTranslation(t *testing.
 		assert.Equal(t, model.PropertyFieldMutability(""), f.Mutability)
 		assert.Equal(t, model.PropertyFieldChangePolicyNever, f.Attrs[model.PropertyFieldAttrChangePolicy])
 	})
+
+	t.Run("a field the old format can't describe refuses an old-format write", func(t *testing.T) {
+		boundsEnabled = true
+		t.Cleanup(func() { boundsEnabled = false })
+		both := newField(model.PropertyFieldTypeRank, model.PropertyFieldObjectTypeChannel, nil)
+		both.Bounds = model.PropertyBounds{raiseOnly, lowerOnly}
+		f := create(t, both)
+		require.Equal(t, model.PropertyFieldChangePolicyNever, f.Attrs[model.PropertyFieldAttrChangePolicy])
+
+		// A client sending back what it was shown is not writing the old format.
+		f.Name = "renamed_" + model.NewId()
+		_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, f)
+		require.NoError(t, updateErr)
+		assert.Equal(t, model.PropertyBounds{raiseOnly, lowerOnly}, stored(t, f.ID).Bounds)
+
+		// An old-format client unlocks by sending change_policy any and no editable.
+		f = stored(t, f.ID)
+		f.Attrs[model.PropertyFieldAttrChangePolicy] = model.PropertyFieldChangePolicyAny
+		delete(f.Attrs, model.PropertyFieldAttrEditable)
+		_, _, updateErr = th.service.UpdatePropertyField(th.Context, group.ID, f)
+		requireAppErrorID(t, updateErr, "app.property_field.change_policy_unsupported.app_error", http.StatusBadRequest)
+		assert.Equal(t, model.PropertyBounds{raiseOnly, lowerOnly}, stored(t, f.ID).Bounds)
+	})
+
+	t.Run("a set_on_create field refuses an old-format write", func(t *testing.T) {
+		f := create(t, newField(model.PropertyFieldTypeRank, model.PropertyFieldObjectTypeChannel, nil))
+		f.Mutability = model.PropertyFieldMutabilitySetOnCreate
+		_, storeErr := th.service.fieldStore.Update(group.ID, []*model.PropertyField{f}, nil)
+		require.NoError(t, storeErr)
+
+		f = stored(t, f.ID)
+		f.Mutability = ""
+		f.Attrs[model.PropertyFieldAttrChangePolicy] = model.PropertyFieldChangePolicyRaiseOnly
+		_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, f)
+		requireAppErrorID(t, updateErr, "app.property_field.change_policy_unsupported.app_error", http.StatusBadRequest)
+		assert.Equal(t, model.PropertyFieldMutabilitySetOnCreate, stored(t, f.ID).Mutability)
+	})
+
+	t.Run("create: change_policy with bounds that disagree is refused, that agree is saved", func(t *testing.T) {
+		boundsEnabled = true
+		t.Cleanup(func() { boundsEnabled = false })
+		attrs := func() model.StringInterface {
+			return model.StringInterface{model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyRaiseOnly}
+		}
+
+		disagree := newField(model.PropertyFieldTypeRank, model.PropertyFieldObjectTypeChannel, attrs())
+		disagree.Bounds = model.PropertyBounds{lowerOnly}
+		_, createErr := th.service.CreatePropertyField(th.Context, disagree)
+		requireAppErrorID(t, createErr, "app.property_field.change_policy_conflict.app_error", http.StatusBadRequest)
+
+		agree := newField(model.PropertyFieldTypeRank, model.PropertyFieldObjectTypeChannel, attrs())
+		agree.Bounds = model.PropertyBounds{raiseOnly}
+		assert.Equal(t, model.PropertyBounds{raiseOnly}, create(t, agree).Bounds)
+	})
+
+	t.Run("update: an unchanged setting beside change_policy is not a conflict", func(t *testing.T) {
+		boundsEnabled = true
+		t.Cleanup(func() { boundsEnabled = false })
+		field := newField(model.PropertyFieldTypeRank, model.PropertyFieldObjectTypeChannel, nil)
+		field.Mutability = model.PropertyFieldMutabilityWriteOnce
+		f := create(t, field)
+
+		f.Attrs[model.PropertyFieldAttrChangePolicy] = model.PropertyFieldChangePolicyRaiseOnly
+		_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, f)
+		require.NoError(t, updateErr)
+		f = stored(t, f.ID)
+		assert.Equal(t, model.PropertyFieldMutability(""), f.Mutability)
+		assert.Equal(t, model.PropertyBounds{raiseOnly}, f.Bounds)
+	})
+
+	t.Run("update: a changed mutability that the policy contradicts is refused", func(t *testing.T) {
+		boundsEnabled = true
+		t.Cleanup(func() { boundsEnabled = false })
+		f := create(t, newField(model.PropertyFieldTypeRank, model.PropertyFieldObjectTypeChannel, model.StringInterface{model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyRaiseOnly}))
+
+		f.Attrs[model.PropertyFieldAttrChangePolicy] = model.PropertyFieldChangePolicyLowerOnly
+		f.Mutability = model.PropertyFieldMutabilityWriteOnce
+		_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, f)
+		requireAppErrorID(t, updateErr, "app.property_field.change_policy_conflict.app_error", http.StatusBadRequest)
+		assert.Equal(t, model.PropertyBounds{raiseOnly}, stored(t, f.ID).Bounds)
+	})
 }

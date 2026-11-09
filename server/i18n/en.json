@@ -11151,6 +11151,16 @@
     "description": "API error (409) when a parent bounds rule is added to a property field while stored values of that field already break it; Examples lists up to five target IDs."
   },
   {
+    "id": "app.property_field.change_policy_conflict.app_error",
+    "translation": "change_policy disagrees with the mutability or bounds in the same request. Send only mutability and bounds.",
+    "description": "API error (400) when a channel field is saved with a change_policy and a changed mutability or bounds rule that the policy does not translate to."
+  },
+  {
+    "id": "app.property_field.change_policy_unsupported.app_error",
+    "translation": "This field's rules can't be expressed with change_policy. Set mutability and bounds instead.",
+    "description": "API error (400) when change_policy is written on a channel field whose mutability or bounds the old format can't describe."
+  },
+  {
     "id": "app.property_field.count_for_group.app_error",
     "translation": "Unable to count property fields for group.",
     "description": "Internal error when counting the property fields defined in a group fails; developer/log-facing."

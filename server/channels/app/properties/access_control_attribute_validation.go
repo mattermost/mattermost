@@ -1554,9 +1554,17 @@ func translateChangePolicy(field, existing *model.PropertyField) (bool, error) {
 		bounds = baseBounds
 	}
 	if oldFormatWrite {
+		if !model.PropertyFieldChangePolicyDescribes(baseMutability, baseBounds) {
+			details := fmt.Sprintf("field %s: its rules can't be expressed with change_policy", field.ID)
+			return false, model.NewAppError("UpsertPropertyField", "app.property_field.change_policy_unsupported.app_error", nil, details, http.StatusBadRequest)
+		}
 		var err error
 		if mutability, bounds, err = model.PropertyFieldSettingsFromChangePolicy(policy, bounds); err != nil {
 			return false, fmt.Errorf("%s: %w", err.Error(), ErrInvalidFieldAttrs)
+		}
+		if changePolicyConflicts(field, existing, mutability, bounds) {
+			details := fmt.Sprintf("field %s: change_policy disagrees with the mutability or bounds in the same request", field.ID)
+			return false, model.NewAppError("UpsertPropertyField", "app.property_field.change_policy_conflict.app_error", nil, details, http.StatusBadRequest)
 		}
 	}
 
@@ -1570,6 +1578,37 @@ func translateChangePolicy(field, existing *model.PropertyField) (bool, error) {
 	}
 	field.Attrs = model.SetPropertyFieldChangePolicyAttrs(field.Attrs, model.PropertyFieldChangePolicyFromSettings(mutability, bounds))
 	return oldFormatWrite, nil
+}
+
+// changePolicyConflicts reports whether an old-format write also changes
+// mutability or the self rules to something its change_policy doesn't translate
+// to. Changed is judged against the stored field, so an echo of it is not a
+// change; on create anything stated is.
+func changePolicyConflicts(field, existing *model.PropertyField, translatedMutability model.PropertyFieldMutability, translatedBounds model.PropertyBounds) bool {
+	var storedBounds model.PropertyBounds
+	storedMutability := model.PropertyFieldMutabilityMutable
+	if existing != nil {
+		storedMutability, storedBounds = existing.Mutability.OrMutable(), existing.Bounds
+	}
+	changesMutability := field.Mutability != "" &&
+		(existing == nil || field.Mutability.OrMutable() != storedMutability)
+	if changesMutability && field.Mutability.OrMutable() != translatedMutability {
+		return true
+	}
+	if field.Bounds != nil && !model.PropertyBoundsEqual(selfRules(field.Bounds), selfRules(storedBounds)) {
+		return !model.PropertyBoundsEqual(selfRules(field.Bounds), selfRules(translatedBounds))
+	}
+	return false
+}
+
+func selfRules(bounds model.PropertyBounds) model.PropertyBounds {
+	var out model.PropertyBounds
+	for _, r := range bounds {
+		if r.Reference == model.PropertyBoundsReferenceSelf {
+			out = append(out, r)
+		}
+	}
+	return out
 }
 
 // validateBoundsChange refuses a new bounds rule, or a mutability that newly
