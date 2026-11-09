@@ -18,6 +18,43 @@ type PropertyValueStore struct {
 	mock.Mock
 }
 
+// CountValuesHoldingOptions provides a mock function with given fields: groupID, fieldID, optionIDs, scope, examples
+func (_m *PropertyValueStore) CountValuesHoldingOptions(groupID string, fieldID string, optionIDs []string, scope *store.PostValueScope, examples int) (int64, []string, error) {
+	ret := _m.Called(groupID, fieldID, optionIDs, scope, examples)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CountValuesHoldingOptions")
+	}
+
+	var r0 int64
+	var r1 []string
+	var r2 error
+	if rf, ok := ret.Get(0).(func(string, string, []string, *store.PostValueScope, int) (int64, []string, error)); ok {
+		return rf(groupID, fieldID, optionIDs, scope, examples)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, []string, *store.PostValueScope, int) int64); ok {
+		r0 = rf(groupID, fieldID, optionIDs, scope, examples)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, []string, *store.PostValueScope, int) []string); ok {
+		r1 = rf(groupID, fieldID, optionIDs, scope, examples)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(2).(func(string, string, []string, *store.PostValueScope, int) error); ok {
+		r2 = rf(groupID, fieldID, optionIDs, scope, examples)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
 // CountValuesOutsideOptions provides a mock function with given fields: groupID, fieldID, optionIDs, scope, examples
 func (_m *PropertyValueStore) CountValuesOutsideOptions(groupID string, fieldID string, optionIDs []string, scope *store.PostValueScope, examples int) (int64, []string, error) {
 	ret := _m.Called(groupID, fieldID, optionIDs, scope, examples)

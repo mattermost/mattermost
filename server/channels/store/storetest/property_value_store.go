@@ -36,6 +36,7 @@ func TestPropertyValueStore(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 	t.Run("UpdateIfUnchanged", func(t *testing.T) { testUpdateIfUnchanged(t, rctx, ss) })
 	t.Run("GetReferencedOptionIDs", func(t *testing.T) { testGetReferencedOptionIDs(t, rctx, ss) })
 	t.Run("CountValuesOutsideOptions", func(t *testing.T) { testCountValuesOutsideOptions(t, rctx, ss) })
+	t.Run("CountValuesHoldingOptions", func(t *testing.T) { testCountValuesHoldingOptions(t, rctx, ss) })
 }
 
 func testCreatePropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
@@ -2393,6 +2394,125 @@ func testCountValuesOutsideOptions(t *testing.T, rctx request.CTX, ss store.Stor
 			n, _ = countScope(t, &store.PostValueScope{ChannelFieldID: k, ChannelValue: optA})
 			require.EqualValues(t, 2, n)
 		})
+	})
+}
+
+func testCountValuesHoldingOptions(t *testing.T, rctx request.CTX, ss store.Store) {
+	groupID := model.NewId()
+	fieldID := model.NewId()
+	optA, optB, optC := model.NewId(), model.NewId(), model.NewId()
+
+	put := func(t *testing.T, gID, fID, targetType, targetID, raw string) *model.PropertyValue {
+		t.Helper()
+		value, err := ss.PropertyValue().Create(&model.PropertyValue{
+			TargetID:   targetID,
+			TargetType: targetType,
+			GroupID:    gID,
+			FieldID:    fID,
+			Value:      json.RawMessage(raw),
+		})
+		require.NoError(t, err)
+		return value
+	}
+	count := func(t *testing.T, optionIDs []string, scope *store.PostValueScope, examples int) (int64, []string) {
+		t.Helper()
+		n, targets, err := ss.PropertyValue().CountValuesHoldingOptions(groupID, fieldID, optionIDs, scope, examples)
+		require.NoError(t, err)
+		return n, targets
+	}
+
+	t.Run("should fail on input that cannot be counted", func(t *testing.T) {
+		var invalidErr *store.ErrInvalidInput
+
+		_, _, err := ss.PropertyValue().CountValuesHoldingOptions(groupID, "", []string{optA}, nil, 1)
+		require.ErrorAs(t, err, &invalidErr)
+
+		_, _, err = ss.PropertyValue().CountValuesHoldingOptions(groupID, fieldID, []string{}, nil, 1)
+		require.ErrorAs(t, err, &invalidErr)
+
+		_, _, err = ss.PropertyValue().CountValuesHoldingOptions(groupID, fieldID, nil, nil, 1)
+		require.ErrorAs(t, err, &invalidErr)
+
+		_, _, err = ss.PropertyValue().CountValuesHoldingOptions(groupID, fieldID, []string{optA}, nil, -1)
+		require.ErrorAs(t, err, &invalidErr)
+
+		_, _, err = ss.PropertyValue().CountValuesHoldingOptions(groupID, fieldID, []string{optA}, &store.PostValueScope{ChannelValue: optA}, 1)
+		require.ErrorAs(t, err, &invalidErr)
+	})
+
+	t.Run("should count the values that name one of the options and nothing else", func(t *testing.T) {
+		raws := []string{
+			`"` + optA + `"`, `"` + optB + `"`, `"` + optC + `"`,
+			`["` + optB + `","` + optC + `"]`, `["` + optA + `","` + optC + `"]`,
+			`null`, `""`, `[]`, `5`, `{"` + optA + `":1}`,
+		}
+		targets := make([]string, len(raws))
+		for i, raw := range raws {
+			targets[i] = model.NewId()
+			put(t, groupID, fieldID, "test_type", targets[i], raw)
+		}
+
+		n, examples := count(t, []string{optA}, nil, 10)
+		require.EqualValues(t, 2, n)
+		require.ElementsMatch(t, []string{targets[0], targets[4]}, examples)
+		require.True(t, sort.StringsAreSorted(examples))
+
+		n, _ = count(t, []string{optA, optB}, nil, 0)
+		require.EqualValues(t, 4, n)
+	})
+
+	t.Run("should ignore other fields, groups and soft-deleted rows", func(t *testing.T) {
+		before, _ := count(t, []string{optA}, nil, 0)
+
+		deleted := put(t, groupID, fieldID, "test_type", model.NewId(), `"`+optA+`"`)
+		require.NoError(t, ss.PropertyValue().Delete(groupID, deleted.ID))
+		put(t, groupID, model.NewId(), "test_type", model.NewId(), `"`+optA+`"`)
+		put(t, model.NewId(), fieldID, "test_type", model.NewId(), `"`+optA+`"`)
+
+		after, _ := count(t, []string{optA}, nil, 0)
+		require.Equal(t, before, after)
+	})
+
+	t.Run("should return the lowest target IDs as examples", func(t *testing.T) {
+		g, f := model.NewId(), model.NewId()
+		ids := []string{model.NewId(), model.NewId(), model.NewId()}
+		for _, id := range ids {
+			put(t, g, f, "test_type", id, `"`+optA+`"`)
+		}
+		sort.Strings(ids)
+
+		n, examples, err := ss.PropertyValue().CountValuesHoldingOptions(g, f, []string{optA}, nil, 1)
+		require.NoError(t, err)
+		require.EqualValues(t, 3, n)
+		require.Equal(t, ids[:1], examples)
+
+		n, examples, err = ss.PropertyValue().CountValuesHoldingOptions(g, f, []string{optA}, nil, 0)
+		require.NoError(t, err)
+		require.EqualValues(t, 3, n)
+		require.Empty(t, examples)
+	})
+
+	t.Run("should count values on live posts only with a scope", func(t *testing.T) {
+		g, f := model.NewId(), model.NewId()
+		channelID := model.NewId()
+		post := func() *model.Post {
+			p, err := ss.Post().Save(rctx, &model.Post{ChannelId: channelID, UserId: model.NewId(), Message: NewTestID()})
+			require.NoError(t, err)
+			put(t, g, f, model.PropertyValueTargetTypePost, p.Id, `"`+optA+`"`)
+			return p
+		}
+		live, gone := post(), post()
+		require.NoError(t, ss.Post().Delete(rctx, gone.Id, model.GetMillis(), model.NewId()))
+		put(t, g, f, model.PropertyValueTargetTypeChannel, channelID, `"`+optA+`"`)
+
+		n, _, err := ss.PropertyValue().CountValuesHoldingOptions(g, f, []string{optA}, nil, 0)
+		require.NoError(t, err)
+		require.EqualValues(t, 3, n)
+
+		n, examples, err := ss.PropertyValue().CountValuesHoldingOptions(g, f, []string{optA}, &store.PostValueScope{}, 10)
+		require.NoError(t, err)
+		require.EqualValues(t, 1, n)
+		require.Equal(t, []string{live.Id}, examples)
 	})
 }
 

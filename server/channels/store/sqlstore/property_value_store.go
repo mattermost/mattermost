@@ -505,16 +505,6 @@ func (s *SqlPropertyValueStore) GetReferencedOptionIDs(groupID string, fieldIDs 
 const nonEmptyValueSQL = `(%[1]s.Value IS NOT NULL AND jsonb_typeof(%[1]s.Value) <> 'null' AND %[1]s.Value NOT IN ('""'::jsonb, '[]'::jsonb))`
 
 func (s *SqlPropertyValueStore) CountValuesOutsideOptions(groupID, fieldID string, optionIDs []string, scope *store.PostValueScope, examples int) (int64, []string, error) {
-	if fieldID == "" {
-		return 0, nil, store.NewErrInvalidInput("PropertyValue", "fieldID", fieldID)
-	}
-	if examples < 0 {
-		return 0, nil, store.NewErrInvalidInput("PropertyValue", "examples", examples)
-	}
-	if scope != nil && scope.ChannelValue != "" && scope.ChannelFieldID == "" {
-		return 0, nil, store.NewErrInvalidInput("PropertyValue", "scope", "channel value without a channel field")
-	}
-
 	// A nil slice would reach the database as NULL, and ANY/ALL over NULL
 	// matches nothing.
 	allowed := pq.Array(append([]string{}, optionIDs...))
@@ -531,13 +521,51 @@ func (s *SqlPropertyValueStore) CountValuesOutsideOptions(groupID, fieldID strin
 		ELSE TRUE
 	END`, allowed, allowed)
 
+	return s.countValues(groupID, fieldID, outside, scope, examples, "property_value_count_values_outside_options")
+}
+
+func (s *SqlPropertyValueStore) CountValuesHoldingOptions(groupID, fieldID string, optionIDs []string, scope *store.PostValueScope, examples int) (int64, []string, error) {
+	// Counting no option would read as "nothing holds it".
+	if len(optionIDs) == 0 {
+		return 0, nil, store.NewErrInvalidInput("PropertyValue", "optionIDs", optionIDs)
+	}
+
+	// A string value holds an option when its text is listed; an array when
+	// an element is. Any other shape (number, bool, object) names no option.
+	listed := pq.Array(optionIDs)
+	holding := sq.Expr(`CASE jsonb_typeof(pv.Value)
+		WHEN 'string' THEN (pv.Value #>> '{}') = ANY(?::text[])
+		WHEN 'array' THEN EXISTS (
+			SELECT 1 FROM jsonb_array_elements_text(pv.Value) AS elem
+			WHERE elem = ANY(?::text[])
+		)
+		ELSE FALSE
+	END`, listed, listed)
+
+	return s.countValues(groupID, fieldID, holding, scope, examples, "property_value_count_values_holding_options")
+}
+
+// countValues counts the live, non-empty values of a field that satisfy match
+// (an expression over pv.Value) and returns up to examples of their target
+// IDs, lowest first. errPrefix names the caller in a wrapped SQL error.
+func (s *SqlPropertyValueStore) countValues(groupID, fieldID string, match sq.Sqlizer, scope *store.PostValueScope, examples int, errPrefix string) (int64, []string, error) {
+	if fieldID == "" {
+		return 0, nil, store.NewErrInvalidInput("PropertyValue", "fieldID", fieldID)
+	}
+	if examples < 0 {
+		return 0, nil, store.NewErrInvalidInput("PropertyValue", "examples", examples)
+	}
+	if scope != nil && scope.ChannelValue != "" && scope.ChannelFieldID == "" {
+		return 0, nil, store.NewErrInvalidInput("PropertyValue", "scope", "channel value without a channel field")
+	}
+
 	build := func(columns string) sq.SelectBuilder {
 		builder := s.getQueryBuilder().
 			Select(columns).
 			From("PropertyValues pv").
 			Where(sq.Eq{"pv.FieldID": fieldID, "pv.DeleteAt": 0}).
 			Where(fmt.Sprintf(nonEmptyValueSQL, "pv")).
-			Where(outside)
+			Where(match)
 
 		if groupID != "" {
 			builder = builder.Where(sq.Eq{"pv.GroupID": groupID})
@@ -566,7 +594,7 @@ func (s *SqlPropertyValueStore) CountValuesOutsideOptions(groupID, fieldID strin
 	// this, so a lagging replica must not hide a value that was just written.
 	var count int64
 	if err := s.GetMaster().GetBuilder(&count, build("COUNT(*)")); err != nil {
-		return 0, nil, errors.Wrap(err, "property_value_count_values_outside_options_count")
+		return 0, nil, errors.Wrap(err, errPrefix+"_count")
 	}
 
 	targets := []string{}
@@ -575,7 +603,7 @@ func (s *SqlPropertyValueStore) CountValuesOutsideOptions(groupID, fieldID strin
 	}
 
 	if err := s.GetMaster().SelectBuilder(&targets, build("pv.TargetID").OrderBy("pv.TargetID").Limit(uint64(examples))); err != nil {
-		return 0, nil, errors.Wrap(err, "property_value_count_values_outside_options_examples")
+		return 0, nil, errors.Wrap(err, errPrefix+"_examples")
 	}
 
 	return count, targets, nil

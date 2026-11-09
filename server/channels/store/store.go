@@ -1327,6 +1327,14 @@ type PropertyValueStore interface {
 	// examples of them, lowest first. A nil scope counts every value of the
 	// field; a scope counts only values on live posts that match it.
 	CountValuesOutsideOptions(groupID, fieldID string, optionIDs []string, scope *PostValueScope, examples int) (int64, []string, error)
+	// CountValuesHoldingOptions counts the live values of a field that name
+	// one of optionIDs: a string value whose text is listed, or an array with
+	// a listed element. Empty values and values of any other shape never
+	// count. It returns that count and the target IDs of up to examples of
+	// them, lowest first. A nil scope counts every value of the field; a
+	// scope counts only values on live posts that match it. optionIDs must
+	// not be empty.
+	CountValuesHoldingOptions(groupID, fieldID string, optionIDs []string, scope *PostValueScope, examples int) (int64, []string, error)
 }
 
 type AccessControlPolicyStore interface {

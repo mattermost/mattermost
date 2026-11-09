@@ -9521,6 +9521,22 @@ func (s *TimerLayerPropertyGroupStore) SetVersion(name string, version int) erro
 	return err
 }
 
+func (s *TimerLayerPropertyValueStore) CountValuesHoldingOptions(groupID string, fieldID string, optionIDs []string, scope *store.PostValueScope, examples int) (int64, []string, error) {
+	start := time.Now()
+
+	result, resultVar1, err := s.PropertyValueStore.CountValuesHoldingOptions(groupID, fieldID, optionIDs, scope, examples)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyValueStore.CountValuesHoldingOptions", success, elapsed)
+	}
+	return result, resultVar1, err
+}
+
 func (s *TimerLayerPropertyValueStore) CountValuesOutsideOptions(groupID string, fieldID string, optionIDs []string, scope *store.PostValueScope, examples int) (int64, []string, error) {
 	start := time.Now()
 
