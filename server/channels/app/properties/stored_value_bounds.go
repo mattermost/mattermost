@@ -339,7 +339,14 @@ func (ps *PropertyService) rankChangeBreaches(rctx request.CTX, template *model.
 //
 // A value written between this check and the field's write can still land out of bounds; the
 // field's own write stays conditional on its UpdateAt, and there are no locks across objects.
+//
+// Without Enterprise Advanced nothing is checked: rules aren't enforced then, so a save isn't held to
+// the values already stored.
 func (ps *PropertyService) refuseRulesBrokenByStoredValues(rctx request.CTX, fields []*model.PropertyField, existingByID, incoming map[string]*model.PropertyField) error {
+	if !ps.boundsEnforced() {
+		return nil
+	}
+
 	// Linked fields whose rules a rank change in this call already judged with the new ranks, which
 	// includes any rule new in the call.
 	checked := map[string]bool{}

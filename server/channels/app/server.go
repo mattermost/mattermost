@@ -288,6 +288,7 @@ func NewServer(options ...Option) (*Server, error) {
 		RequestOptionsExtractor: func(rctx request.CTX) model.PropertyRequestOptions {
 			return model.PropertyRequestOptionsFromContext(rctx.Context())
 		},
+		License: func() *model.License { return s.License() },
 	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to create properties service")

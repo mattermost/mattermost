@@ -714,6 +714,44 @@ func TestRefuseRankChangeBreakingStoredValues(t *testing.T) {
 		assert.Equal(t, original, storedRanks(f))
 	})
 
+	t.Run("a rank change that breaks stored values is saved unless the license is Enterprise Advanced", func(t *testing.T) {
+		setLicense := func(provider LicenseProvider) {
+			prev := th.service.licenseProvider
+			th.service.licenseProvider = provider
+			t.Cleanup(func() { th.service.licenseProvider = prev })
+		}
+		licenseOf := func(l *model.License) LicenseProvider { return func() *model.License { return l } }
+		// breaking seeds a swap that puts a channel value above the system's.
+		breaking := func() fixture {
+			f := setup(t, below, nil)
+			seedSystem(f, "optmid")
+			channel(f, "optlow")
+			return f
+		}
+
+		for _, c := range []struct {
+			name     string
+			provider LicenseProvider
+			enforced bool
+		}{
+			{"no license", licenseOf(nil), false},
+			{"Enterprise", licenseOf(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise)), false},
+			{"Enterprise Advanced", licenseOf(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced)), true},
+			{"no provider configured", nil, true},
+		} {
+			setLicense(c.provider)
+			f := breaking()
+			err := saveOptions(f, options(3, 2, 1, nil))
+			if c.enforced {
+				requireAppErrorID(t, err, ranksID, http.StatusConflict)
+				assert.Equal(t, original, storedRanks(f), c.name)
+			} else {
+				require.NoError(t, err, c.name)
+				assert.Equal(t, swapped, storedRanks(f), c.name)
+			}
+		}
+	})
+
 	t.Run("an option sent without a rank is refused as invalid options", func(t *testing.T) {
 		f := setup(t, below, nil)
 		th.service.AddHook(NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{}, f.template.GroupID))
@@ -723,4 +761,25 @@ func TestRefuseRankChangeBreakingStoredValues(t *testing.T) {
 		require.ErrorIs(t, err, ErrInvalidFieldAttrs)
 		assert.Equal(t, original, storedRanks(f))
 	})
+}
+
+func TestBoundsEnforced(t *testing.T) {
+	licensed := func(sku string) LicenseProvider {
+		return func() *model.License { return model.NewTestLicenseSKU(sku) }
+	}
+	cases := map[string]struct {
+		provider LicenseProvider
+		want     bool
+	}{
+		"no provider":         {nil, true},
+		"nil license":         {func() *model.License { return nil }, false},
+		"Enterprise":          {licensed(model.LicenseShortSkuEnterprise), false},
+		"Enterprise Advanced": {licensed(model.LicenseShortSkuEnterpriseAdvanced), true},
+	}
+	for name, c := range cases {
+		t.Run(name, func(t *testing.T) {
+			ps := &PropertyService{licenseProvider: c.provider}
+			assert.Equal(t, c.want, ps.boundsEnforced())
+		})
+	}
 }
