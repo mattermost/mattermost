@@ -41,7 +41,7 @@ const messages = defineMessages({
     },
     basicContentsDescription: {
         id: 'commercial_support_modal.basic_contents.description',
-        defaultMessage: 'Server version, license details, system diagnostics, sanitized configuration, usage counts, job status, permissions, plugin list, database schema, performance profiles, and diagnostic data from installed plugins. Data collected by the server itself does not include message content.',
+        defaultMessage: 'Server version, license details, system diagnostics, sanitized configuration, usage counts, job status, permissions, plugin list, database schema, and performance profiles. Does not include message content.',
     },
     whatsIncluded: {
         id: 'commercial_support_modal.basic_contents.whats_included',
@@ -84,7 +84,7 @@ const basicContentsIncludedItems = defineMessages({
     },
     pluginData: {
         id: 'commercial_support_modal.basic_contents.included.plugin_data',
-        defaultMessage: 'Diagnostic data from installed plugins (contents vary by plugin)',
+        defaultMessage: 'Usage counts and settings from installed plugins',
     },
     databaseSchema: {
         id: 'commercial_support_modal.basic_contents.included.database_schema',

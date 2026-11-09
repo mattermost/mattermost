@@ -22136,7 +22136,7 @@
     "description": "Pronoun substituted for the current user's own username inside combined join/leave system messages (e.g. 'You joined the channel'); subject position."
   },
   "commercial_support_modal.basic_contents.description": {
-    "defaultMessage": "Server version, license details, system diagnostics, sanitized configuration, usage counts, job status, permissions, plugin list, database schema, performance profiles, and diagnostic data from installed plugins. Data collected by the server itself does not include message content.",
+    "defaultMessage": "Server version, license details, system diagnostics, sanitized configuration, usage counts, job status, permissions, plugin list, database schema, and performance profiles. Does not include message content.",
     "description": "Helper text under the mandatory 'Basic contents' checkbox in the Commercial Support modal, summarizing what the Support Packet always includes; 'Support Packet' is a product term."
   },
   "commercial_support_modal.basic_contents.included.config": {
@@ -22160,8 +22160,8 @@
     "description": "Item in the expandable 'What's included' list for Basic contents in the Commercial Support modal: permission schemes and user roles."
   },
   "commercial_support_modal.basic_contents.included.plugin_data": {
-    "defaultMessage": "Diagnostic data from installed plugins (contents vary by plugin)",
-    "description": "Item in the expandable 'What's included' list for Basic contents in the Commercial Support modal: extra diagnostic files that installed plugins add to the Support Packet; what each plugin adds is up to that plugin."
+    "defaultMessage": "Usage counts and settings from installed plugins",
+    "description": "Item in the expandable 'What's included' list for Basic contents in the Commercial Support modal: usage counts and settings flags that installed plugins add to the Support Packet."
   },
   "commercial_support_modal.basic_contents.included.plugins": {
     "defaultMessage": "Installed plugins and their versions",
