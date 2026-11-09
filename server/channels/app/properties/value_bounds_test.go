@@ -608,3 +608,132 @@ func TestEnforceMutability(t *testing.T) {
 		}
 	})
 }
+
+func TestEnforceSelfRules(t *testing.T) {
+	th := Setup(t)
+	rctx := th.Context
+	groupID, create, _ := boundsSetup(t, th, rctx)
+	// Made before the hook is registered: it would refuse these fixtures' names.
+	create(model.PropertyFieldObjectTypeSystem, nil)
+	raiseOnly := create(model.PropertyFieldObjectTypeChannel, model.PropertyBounds{{Operator: model.PropertyBoundsOperatorAtOrAbove, Reference: model.PropertyBoundsReferenceSelf}})
+	lowerOnly := create(model.PropertyFieldObjectTypeChannel, model.PropertyBounds{{Operator: model.PropertyBoundsOperatorAtOrBelow, Reference: model.PropertyBoundsReferenceSelf}})
+	hook := NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{PropertyFieldBounds: func() bool { return true }}, groupID)
+	th.service.AddHook(hook)
+	injector := &injectingHook{}
+	th.service.AddHook(injector)
+
+	value := func(f *model.PropertyField, targetID, raw string) *model.PropertyValue {
+		return &model.PropertyValue{GroupID: groupID, FieldID: f.ID, TargetID: targetID, TargetType: model.PropertyValueTargetTypeChannel, Value: json.RawMessage(raw)}
+	}
+	opt := func(id string) string { return `"` + id + `"` }
+	write := func(f *model.PropertyField, targetID, raw string) error {
+		_, err := th.service.UpsertPropertyValue(rctx, value(f, targetID, raw))
+		return err
+	}
+	stored := func(f *model.PropertyField, targetID string) string {
+		vals, err := th.dbStore.PropertyValue().SearchPropertyValues(rctx, model.PropertyValueSearchOpts{GroupID: groupID, FieldID: f.ID, TargetIDs: []string{targetID}, PerPage: 10})
+		require.NoError(t, err)
+		if len(vals) == 0 {
+			return ""
+		}
+		return string(vals[0].Value)
+	}
+	const violatedID = "app.property_value.bounds_violated.app_error"
+	const checkFailedID = "app.property_value.bounds_check_failed.app_error"
+
+	t.Run("raise-only", func(t *testing.T) {
+		target := model.NewId()
+		require.NoError(t, write(raiseOnly, target, opt("optmid")))
+		require.NoError(t, write(raiseOnly, target, opt("opthigh")))
+
+		err := write(raiseOnly, target, opt("optlow"))
+		requireAppErrorID(t, err, violatedID, http.StatusForbidden)
+		require.ErrorIs(t, err, errBoundsViolated)
+		assert.Equal(t, opt("opthigh"), stored(raiseOnly, target))
+
+		require.NoError(t, write(raiseOnly, target, opt("opthigh")))
+
+		requireAppErrorID(t, write(raiseOnly, target, `null`), violatedID, http.StatusForbidden)
+		assert.Equal(t, opt("opthigh"), stored(raiseOnly, target))
+	})
+
+	t.Run("lower-only", func(t *testing.T) {
+		target := model.NewId()
+		require.NoError(t, write(lowerOnly, target, opt("optmid")))
+		require.NoError(t, write(lowerOnly, target, opt("optlow")))
+		requireAppErrorID(t, write(lowerOnly, target, opt("opthigh")), violatedID, http.StatusForbidden)
+		assert.Equal(t, opt("optlow"), stored(lowerOnly, target))
+		require.NoError(t, write(lowerOnly, target, opt("optlow")))
+	})
+
+	t.Run("a clear with nothing stored is free", func(t *testing.T) {
+		target := model.NewId()
+		require.NoError(t, write(raiseOnly, target, `null`))
+	})
+
+	t.Run("a null-valued row counts as nothing stored", func(t *testing.T) {
+		target := model.NewId()
+		_, err := th.dbStore.PropertyValue().Create(value(raiseOnly, target, `null`))
+		require.NoError(t, err)
+
+		require.NoError(t, write(raiseOnly, target, opt("optlow")))
+		assert.Equal(t, opt("optlow"), stored(raiseOnly, target))
+	})
+
+	t.Run("a soft delete of a set value is a clear and is refused", func(t *testing.T) {
+		target := model.NewId()
+		row, err := th.dbStore.PropertyValue().Create(value(raiseOnly, target, opt("optmid")))
+		require.NoError(t, err)
+
+		upd := *row
+		upd.DeleteAt = model.GetMillis()
+		_, err = th.service.UpdatePropertyValue(rctx, groupID, &upd)
+		requireAppErrorID(t, err, violatedID, http.StatusForbidden)
+		assert.Equal(t, opt("optmid"), stored(raiseOnly, target))
+	})
+
+	t.Run("a stored option the template no longer has refuses the write", func(t *testing.T) {
+		target := model.NewId()
+		_, err := th.dbStore.PropertyValue().Upsert([]*model.PropertyValue{value(raiseOnly, target, opt("gone"))})
+		require.NoError(t, err)
+
+		requireAppErrorID(t, write(raiseOnly, target, opt("opthigh")), checkFailedID, http.StatusConflict)
+		assert.Equal(t, opt("gone"), stored(raiseOnly, target))
+	})
+
+	t.Run("an unknown reference refuses the write", func(t *testing.T) {
+		f := *raiseOnly
+		f.Bounds = model.PropertyBounds{{Operator: model.PropertyBoundsOperatorAtOrBelow, Reference: "sibling"}}
+		wctx, _ := withValueWriteConditions(rctx)
+
+		err := hook.enforceBounds(wctx, []*model.PropertyValue{value(&f, model.NewId(), opt("optlow"))}, map[string]*model.PropertyField{f.ID: &f})
+		require.ErrorIs(t, err, errBoundsCheckFailed)
+	})
+
+	t.Run("a refusal never reveals a limit", func(t *testing.T) {
+		target := model.NewId()
+		require.NoError(t, write(raiseOnly, target, opt("opthigh")))
+		err := write(raiseOnly, target, opt("optlow"))
+		var appErr *model.AppError
+		require.True(t, errors.As(err, &appErr))
+		for _, secret := range []string{"optlow", "optmid", "opthigh"} {
+			assert.NotContains(t, appErr.Message, secret)
+			assert.NotContains(t, appErr.DetailedError, secret)
+			assert.NotContains(t, appErr.Error(), secret)
+		}
+	})
+
+	t.Run("a raise landing between the check and the write is refused", func(t *testing.T) {
+		t.Cleanup(func() { injector.inject = nil })
+		target := model.NewId()
+		require.NoError(t, write(raiseOnly, target, opt("optlow")))
+		injector.field = raiseOnly
+		injector.inject = func() {
+			_, err := th.dbStore.PropertyValue().Upsert([]*model.PropertyValue{value(raiseOnly, target, opt("opthigh"))})
+			require.NoError(t, err)
+		}
+
+		requireWriteConflict(t, write(raiseOnly, target, opt("optmid")))
+		assert.Equal(t, opt("opthigh"), stored(raiseOnly, target))
+	})
+}

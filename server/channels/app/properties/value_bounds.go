@@ -141,7 +141,8 @@ func fieldGoverned(field *model.PropertyField) bool {
 // storedValueMatters reports whether checking a write to field means comparing it with the object's
 // own stored value, which is what makes the write conditional on that value not having changed.
 func storedValueMatters(field *model.PropertyField) bool {
-	return field.Mutability.OrMutable() != model.PropertyFieldMutabilityMutable
+	return field.Mutability.OrMutable() != model.PropertyFieldMutabilityMutable ||
+		slices.ContainsFunc(field.Bounds, func(r model.PropertyBoundsRule) bool { return r.Reference == model.PropertyBoundsReferenceSelf })
 }
 
 // enforceBounds is the one entry point for the bounds and mutability checks on a value write. The
@@ -208,11 +209,57 @@ func (h *AccessControlAttributeValidationHook) enforceBounds(rctx request.CTX, v
 		if v.DeleteAt != 0 {
 			next = nil
 		}
-		if err := checkMutability(fieldMap[v.FieldID], storedValue, next); err != nil {
+		field := fieldMap[v.FieldID]
+		if err := checkMutability(field, storedValue, next); err != nil {
 			return err
+		}
+		for _, rule := range field.Bounds {
+			var err error
+			switch rule.Reference {
+			case model.PropertyBoundsReferenceSelf:
+				err = checkSelfRule(field, rule, storedValue, next)
+			case model.PropertyBoundsReferenceParent:
+				// Not enforced yet.
+			default:
+				// Save refuses unknown references, so this is bad data; skipping would quietly stop the rule applying.
+				err = fmt.Errorf("field %s: unknown reference %q: %w", field.ID, rule.Reference, errBoundsCheckFailed)
+			}
+			if err != nil {
+				return boundsRefusal(err)
+			}
 		}
 	}
 	return nil
+}
+
+// checkSelfRule decides whether next, replacing stored, satisfies a rule that compares an object with
+// its own value. stored is nil when the object has no value; next is empty for a clear.
+func checkSelfRule(field *model.PropertyField, rule model.PropertyBoundsRule, stored, next json.RawMessage) error {
+	// The first write has nothing to compare with.
+	if stored == nil || samePropertyValue(stored, next) {
+		return nil
+	}
+	// Clearing is the biggest change there is, and allowing it would let a writer clear a value and
+	// then make any "first" write.
+	if model.IsEmptyPropertyValue(next) {
+		return fmt.Errorf("field %s: operator %q: a value can't be cleared: %w", field.ID, rule.Operator, errBoundsViolated)
+	}
+	return compareByRank(field, rule.Operator, next, stored)
+}
+
+// boundsRefusal turns a bounds sentinel into the AppError the caller sees, keeping the sentinel
+// reachable through Unwrap. Details come from err, which never names a value or option. Any other
+// error is returned as is.
+//
+// Each key is written inline: i18n-extract only sees IDs passed literally to NewAppError.
+func boundsRefusal(err error) error {
+	switch {
+	case errors.Is(err, errBoundsViolated):
+		return model.NewAppError("UpsertPropertyValues", "app.property_value.bounds_violated.app_error", nil, err.Error(), http.StatusForbidden).Wrap(err)
+	case errors.Is(err, errBoundsCheckFailed):
+		return model.NewAppError("UpsertPropertyValues", "app.property_value.bounds_check_failed.app_error", nil, err.Error(), http.StatusConflict).Wrap(err)
+	}
+	return err
 }
 
 // checkMutability decides whether field's mutability permits replacing stored with next. stored is
