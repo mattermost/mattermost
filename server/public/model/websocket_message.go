@@ -125,6 +125,7 @@ const (
 	WebsocketEventSharedChannelRemoteUpdated WebsocketEventType = "shared_channel_remote_updated"
 	WebsocketEventChannelJoinRequestCreated  WebsocketEventType = "channel_join_request_created"
 	WebsocketEventChannelJoinRequestUpdated  WebsocketEventType = "channel_join_request_updated"
+	WebsocketEventSessionAttributesExpired   WebsocketEventType = "session_attributes_expired"
 
 	WebSocketMsgTypeResponse = "response"
 	WebSocketMsgTypeEvent    = "event"
@@ -148,6 +149,9 @@ type WSQueues struct {
 	DeadQ      []json.RawMessage `json:"dead_queue"`   // websocketEvent
 	ReuseCount int               `json:"reuse_count"`
 	Status     WSQueuesStatus    `json:"status,omitempty"`
+
+	SessionAttributesEpoch    string `json:"session_attributes_epoch,omitempty"`
+	SessionAttributesExpireAt int64  `json:"session_attributes_expire_at,omitempty"`
 }
 
 type WebSocketMessage interface {

@@ -128,7 +128,7 @@ import type {Role} from '@mattermost/types/roles';
 import type {SamlCertificateStatus, SamlMetadataResponse} from '@mattermost/types/saml';
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
 import type {Scheme} from '@mattermost/types/schemes';
-import type {Session} from '@mattermost/types/sessions';
+import type {Session, SessionAttributeManifestEntry} from '@mattermost/types/sessions';
 import type {CompleteOnboardingRequest} from '@mattermost/types/setup';
 import type {RemoteClusterInfo, SharedChannelRemote} from '@mattermost/types/shared_channels';
 import type {
@@ -1131,6 +1131,13 @@ export default class Client4 {
         return this.doFetch<StatusOK>(
             `${this.getUsersRoute()}/sessions/revoke/all`,
             {method: 'post'},
+        );
+    };
+
+    getSessionAttributesManifest = () => {
+        return this.doFetch<SessionAttributeManifestEntry[]>(
+            `${this.getUsersRoute()}/sessions/attributes/manifest`,
+            {method: 'get'},
         );
     };
 

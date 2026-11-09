@@ -431,6 +431,13 @@ function handleFirstConnect() {
     DesktopApp.resendSessionAttributes();
 }
 
+// Session attributes are only refreshed by HTTP requests, so an idle client is told when
+// they lapse and makes a request to refresh them before the server stops counting them.
+function handleSessionAttributesExpired() {
+    DesktopApp.resendSessionAttributes();
+    Client4.getSessionAttributesManifest().catch(() => {});
+}
+
 function handleClose(failCount: number) {
     if (failCount > MAX_WEBSOCKET_FAILS) {
         dispatch(logError({type: 'critical', message: AnnouncementBarMessages.WEBSOCKET_PORT_ERROR}));
@@ -802,6 +809,9 @@ export function handleEvent(msg: WebSocketMessage) {
         break;
     case WebSocketEvents.ShowToast:
         dispatch(handleShowToast(msg));
+        break;
+    case WebSocketEvents.SessionAttributesExpired:
+        handleSessionAttributesExpired();
         break;
     default:
     }

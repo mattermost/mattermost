@@ -21,10 +21,7 @@ import (
 )
 
 func (a *App) sessionAttributesEnabled() bool {
-	if !a.Config().FeatureFlags.SessionAttributes {
-		return false
-	}
-	return model.MinimumEnterpriseAdvancedLicense(a.License())
+	return a.Srv().Platform().SessionAttributesEnabled()
 }
 
 func (a *App) getSessionAttributeFieldsByName(rctx request.CTX) (map[string]*model.PropertyField, *model.AppError) {
@@ -286,6 +283,46 @@ func (a *App) GetSessionAttributes(rctx request.CTX, sessionID string) (map[stri
 	}
 
 	return filterStaleSessionAttributes(attrs, timestamps, fieldsByName), nil
+}
+
+// GetSessionAttributeDeadlines returns the TTL and grace deadlines of each attribute cached
+// for the session, so a websocket connection, which never refreshes them itself, can
+// prompt its client to resend them before they stop counting.
+func (a *App) GetSessionAttributeDeadlines(rctx request.CTX, sessionID string) (map[string]model.SessionAttributeDeadline, *model.AppError) {
+	if !a.sessionAttributesEnabled() {
+		return nil, nil
+	}
+
+	_, timestamps, err := a.Srv().Store().SessionAttribute().Get(sessionID)
+	if err != nil {
+		if errors.Is(err, cache.ErrKeyNotFound) {
+			return nil, nil
+		}
+		return nil, model.NewAppError("GetSessionAttributeDeadlines", "app.access_control.get_session_attributes.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	fieldsByName, appErr := a.getSessionAttributeFieldsByName(rctx)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	deadlines := make(map[string]model.SessionAttributeDeadline, len(timestamps))
+	for name, timestamp := range timestamps {
+		field, ok := fieldsByName[name]
+		if !ok {
+			continue
+		}
+		saField, err := model.SAFieldFromPropertyField(field)
+		if err != nil {
+			continue
+		}
+		staleAt := timestamp + int64(saField.Attrs.TTLSeconds)*1000
+		deadlines[name] = model.SessionAttributeDeadline{
+			StaleAt:   staleAt,
+			ExpiresAt: staleAt + int64(saField.Attrs.GracePeriodSeconds)*1000,
+		}
+	}
+	return deadlines, nil
 }
 
 func filterStaleSessionAttributes(attrs map[string]any, timestamps map[string]int64, fieldsByName map[string]*model.PropertyField) map[string]any {

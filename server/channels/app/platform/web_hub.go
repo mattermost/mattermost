@@ -32,6 +32,7 @@ type SuiteIFace interface {
 	HasPermissionToReadChannel(rctx request.CTX, userID string, channel *model.Channel) (bool, bool)
 	HasPermissionToResolveChannelMention(rctx request.CTX, userID string, channel *model.Channel) bool
 	HasPermissionToChannelAction(rctx request.CTX, userID string, roles string, channelID string, action string) bool
+	GetSessionAttributeDeadlines(rctx request.CTX, sessionID string) (map[string]model.SessionAttributeDeadline, *model.AppError)
 	UserCanSeeOtherUser(rctx request.CTX, userID string, otherUserId string) (bool, *model.AppError)
 	MFARequired(rctx request.CTX, method string) *model.AppError
 	MakeAuditRecord(rctx request.CTX, event string, initialStatus string) *model.AuditRecord
@@ -359,6 +360,8 @@ func (ps *PlatformService) CheckWebConn(userID, connectionID string, seqNum int6
 
 		connRes.ActiveQueue = aq
 		connRes.ReuseCount = queues.ReuseCount
+		connRes.SessionAttributesEpoch = queues.SessionAttributesEpoch
+		connRes.SessionAttributesExpireAt = queues.SessionAttributesExpireAt
 
 		// parse the deadq
 		if queues.DeadQ != nil {
@@ -660,6 +663,9 @@ func (h *Hub) Start() {
 						DeadQueue:        conn.deadQueue,
 						DeadQueuePointer: conn.deadQueuePointer,
 						ReuseCount:       conn.reuseCount + 1,
+
+						SessionAttributesEpoch:    conn.sessionAttributesEpoch,
+						SessionAttributesExpireAt: conn.sessionAttributesExpireAt,
 					}
 				} else if conn := connIndex.ForConnection(req.connectionID); conn != nil && conn.UserId == req.userID {
 					res.active = conn.Active.Load()

@@ -539,6 +539,10 @@ export type FileUploadRejected = BaseWebSocketMessage<WebSocketEvents.FileUpload
     channel_id: string;
 }>;
 
+export type SessionAttributesExpired = BaseWebSocketMessage<WebSocketEvents.SessionAttributesExpired, {
+    attributes: string[];
+}>;
+
 export type ShowToast = BaseWebSocketMessage<WebSocketEvents.ShowToast, {
     message: string;
     position?: string;

@@ -147,6 +147,13 @@ type SAAttrs struct {
 	DisplayName        string   `json:"display_name,omitempty"`
 }
 
+// SessionAttributeDeadline holds, in epoch milliseconds, when a session attribute's TTL
+// runs out (StaleAt) and when its grace period ends and it stops counting (ExpiresAt).
+type SessionAttributeDeadline struct {
+	StaleAt   int64
+	ExpiresAt int64
+}
+
 type SessionAttributeManifestEntry struct {
 	Name               string   `json:"name"`
 	Type               string   `json:"type"`
