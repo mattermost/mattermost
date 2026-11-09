@@ -247,6 +247,8 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 					paramsWithType = append(paramsWithType, fmt.Sprintf("%s store.%s", param.Name, param.Type))
 				case "*UserGetByIdsOpts", "*SidebarCategorySearchOpts", "*ChannelGuard":
 					paramsWithType = append(paramsWithType, fmt.Sprintf("%s *store.%s", param.Name, strings.TrimPrefix(param.Type, "*")))
+				case "map[PropertyValueKey]json.RawMessage":
+					paramsWithType = append(paramsWithType, fmt.Sprintf("%s map[store.PropertyValueKey]json.RawMessage", param.Name))
 				default:
 					paramsWithType = append(paramsWithType, fmt.Sprintf("%s %s", param.Name, param.Type))
 				}
@@ -261,6 +263,8 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 					paramsWithType = append(paramsWithType, fmt.Sprintf("%s store.%s", param.Name, param.Type))
 				case "*UserGetByIdsOpts", "*SidebarCategorySearchOpts", "*ChannelGuard":
 					paramsWithType = append(paramsWithType, fmt.Sprintf("%s *store.%s", param.Name, strings.TrimPrefix(param.Type, "*")))
+				case "map[PropertyValueKey]json.RawMessage":
+					paramsWithType = append(paramsWithType, fmt.Sprintf("%s map[store.PropertyValueKey]json.RawMessage", param.Name))
 				default:
 					paramsWithType = append(paramsWithType, fmt.Sprintf("%s %s", param.Name, param.Type))
 				}

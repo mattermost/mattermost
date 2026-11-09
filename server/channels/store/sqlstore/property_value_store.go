@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"slices"
 
@@ -15,6 +16,26 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
+
+// uniqueValueIndex allows one live value per field and target.
+const uniqueValueIndex = "idx_propertyvalues_unique"
+
+// wrapCreateError reports a second live value for one field and target as a
+// conflict, not a driver error, so a lost race is an answer and not a 500.
+func wrapCreateError(err error, msg string) error {
+	if IsUniqueConstraintError(err, []string{uniqueValueIndex}) {
+		return store.NewErrConflict("PropertyValue", err, "a live value already exists for this field and target")
+	}
+	return errors.Wrap(err, msg)
+}
+
+// expectedValueArg encodes a value the way the Value column is written.
+func (s *SqlPropertyValueStore) expectedValueArg(expected json.RawMessage) []byte {
+	if s.IsBinaryParamEnabled() {
+		return AppendBinaryFlag(expected)
+	}
+	return expected
+}
 
 type SqlPropertyValueStore struct {
 	*SqlStore
@@ -53,7 +74,7 @@ func (s *SqlPropertyValueStore) Create(value *model.PropertyValue) (*model.Prope
 		Columns("ID", "TargetID", "TargetType", "GroupID", "FieldID", "Value", "CreateAt", "UpdateAt", "DeleteAt", "CreatedBy", "UpdatedBy").
 		Values(value.ID, value.TargetID, value.TargetType, value.GroupID, value.FieldID, valueJSON, value.CreateAt, value.UpdateAt, value.DeleteAt, value.CreatedBy, value.UpdatedBy)
 	if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
-		return nil, errors.Wrap(err, "property_value_create_insert")
+		return nil, wrapCreateError(err, "property_value_create_insert")
 	}
 
 	return value, nil
@@ -88,7 +109,7 @@ func (s *SqlPropertyValueStore) CreateMany(values []*model.PropertyValue) ([]*mo
 			Values(value.ID, value.TargetID, value.TargetType, value.GroupID, value.FieldID, valueJSON, value.CreateAt, value.UpdateAt, value.DeleteAt, value.CreatedBy, value.UpdatedBy)
 
 		if _, err := transaction.ExecBuilder(builder); err != nil {
-			return nil, errors.Wrap(err, "property_value_create_many_exec")
+			return nil, wrapCreateError(err, "property_value_create_many_exec")
 		}
 	}
 
@@ -217,7 +238,15 @@ func (s *SqlPropertyValueStore) SearchPropertyValues(rctx request.CTX, opts mode
 	return values, nil
 }
 
-func (s *SqlPropertyValueStore) Update(groupID string, values []*model.PropertyValue) (_ []*model.PropertyValue, err error) {
+func (s *SqlPropertyValueStore) Update(groupID string, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	return s.update(groupID, values, nil)
+}
+
+func (s *SqlPropertyValueStore) UpdateIfUnchanged(groupID string, values []*model.PropertyValue, read map[store.PropertyValueKey]json.RawMessage) ([]*model.PropertyValue, error) {
+	return s.update(groupID, values, read)
+}
+
+func (s *SqlPropertyValueStore) update(groupID string, values []*model.PropertyValue, read map[store.PropertyValueKey]json.RawMessage) (_ []*model.PropertyValue, err error) {
 	if len(values) == 0 {
 		return nil, nil
 	}
@@ -233,6 +262,7 @@ func (s *SqlPropertyValueStore) Update(groupID string, values []*model.PropertyV
 	deleteAtCase := sq.Case("id")
 	updatedByCase := sq.Case("id")
 	ids := make([]string, len(values))
+	var conditions []sq.Sqlizer
 
 	for i, value := range values {
 		value.UpdateAt = updateTime
@@ -249,6 +279,15 @@ func (s *SqlPropertyValueStore) Update(groupID string, values []*model.PropertyV
 		valueCase = valueCase.When(sq.Expr("?", value.ID), sq.Expr("?::jsonb", valueJSON))
 		deleteAtCase = deleteAtCase.When(sq.Expr("?", value.ID), sq.Expr("?::bigint", value.DeleteAt))
 		updatedByCase = updatedByCase.When(sq.Expr("?", value.ID), sq.Expr("?::text", value.UpdatedBy))
+
+		// Only the named row is held to its condition: the others are free.
+		if expected, ok := read[store.PropertyValueKey{FieldID: value.FieldID, TargetID: value.TargetID}]; ok {
+			if len(expected) == 0 {
+				conditions = append(conditions, sq.Expr("(id <> ? OR DeleteAt <> 0)", value.ID))
+			} else {
+				conditions = append(conditions, sq.Expr("(id <> ? OR (DeleteAt = 0 AND Value = ?::jsonb))", value.ID, s.expectedValueArg(expected)))
+			}
+		}
 	}
 
 	builder := s.getQueryBuilder().
@@ -263,8 +302,15 @@ func (s *SqlPropertyValueStore) Update(groupID string, values []*model.PropertyV
 		builder = builder.Where(sq.Eq{"GroupID": groupID})
 	}
 
+	for _, condition := range conditions {
+		builder = builder.Where(condition)
+	}
+
 	result, err := transaction.ExecBuilder(builder)
 	if err != nil {
+		if len(conditions) > 0 {
+			return nil, wrapCreateError(err, "property_value_update_exec")
+		}
 		return nil, errors.Wrap(err, "property_value_update_exec")
 	}
 
@@ -273,6 +319,9 @@ func (s *SqlPropertyValueStore) Update(groupID string, values []*model.PropertyV
 		return nil, errors.Wrap(err, "property_value_update_rowsaffected")
 	}
 	if count != int64(len(values)) {
+		if len(conditions) > 0 {
+			return nil, store.NewErrConflict("PropertyValue", nil, "concurrent modification detected; retry the update")
+		}
 		return nil, errors.Errorf("failed to update, some property values were not found, got %d of %d", count, len(values))
 	}
 
@@ -283,7 +332,15 @@ func (s *SqlPropertyValueStore) Update(groupID string, values []*model.PropertyV
 	return values, nil
 }
 
-func (s *SqlPropertyValueStore) Upsert(values []*model.PropertyValue) (_ []*model.PropertyValue, err error) {
+func (s *SqlPropertyValueStore) Upsert(values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	return s.upsert(values, nil)
+}
+
+func (s *SqlPropertyValueStore) UpsertIfUnchanged(values []*model.PropertyValue, read map[store.PropertyValueKey]json.RawMessage) ([]*model.PropertyValue, error) {
+	return s.upsert(values, read)
+}
+
+func (s *SqlPropertyValueStore) upsert(values []*model.PropertyValue, read map[store.PropertyValueKey]json.RawMessage) (_ []*model.PropertyValue, err error) {
 	if len(values) == 0 {
 		return nil, nil
 	}
@@ -319,17 +376,34 @@ func (s *SqlPropertyValueStore) Upsert(values []*model.PropertyValue) (_ []*mode
 			Columns("ID", "TargetID", "TargetType", "GroupID", "FieldID", "Value", "CreateAt", "UpdateAt", "DeleteAt", "CreatedBy", "UpdatedBy").
 			Values(value.ID, value.TargetID, value.TargetType, value.GroupID, value.FieldID, valueJSON, value.CreateAt, value.UpdateAt, value.DeleteAt, value.CreatedBy, value.UpdatedBy)
 
+		// Guard on the live row, not UpdateAt: the check depends on the value,
+		// and UpdateAt is a clock taken on whichever node wrote.
+		conflictGuard := ""
+		guardArgs := []any{}
+		expected, conditional := read[store.PropertyValueKey{FieldID: value.FieldID, TargetID: value.TargetID}]
+		if conditional {
+			if len(expected) == 0 {
+				conflictGuard = " WHERE false"
+			} else {
+				conflictGuard = " WHERE PropertyValues.Value = ?::jsonb"
+				guardArgs = append(guardArgs, s.expectedValueArg(expected))
+			}
+		}
+
+		args := append([]any{valueJSON, value.UpdateAt, 0, value.UpdatedBy}, guardArgs...)
 		builder = builder.SuffixExpr(sq.Expr(
-			"ON CONFLICT (GroupID, TargetID, FieldID) WHERE DeleteAt = 0 DO UPDATE SET Value = ?, UpdateAt = ?, DeleteAt = ?, UpdatedBy = ? RETURNING ID, TargetID, TargetType, GroupID, FieldID, Value, CreateAt, UpdateAt, DeleteAt, COALESCE(CreatedBy, '') as CreatedBy, COALESCE(UpdatedBy, '') as UpdatedBy",
-			valueJSON,
-			value.UpdateAt,
-			0,
-			value.UpdatedBy,
+			"ON CONFLICT (GroupID, TargetID, FieldID) WHERE DeleteAt = 0 DO UPDATE SET Value = ?, UpdateAt = ?, DeleteAt = ?, UpdatedBy = ?"+conflictGuard+" RETURNING ID, TargetID, TargetType, GroupID, FieldID, Value, CreateAt, UpdateAt, DeleteAt, COALESCE(CreatedBy, '') as CreatedBy, COALESCE(UpdatedBy, '') as UpdatedBy",
+			args...,
 		))
 
 		var values []*model.PropertyValue
 		if err := transaction.SelectBuilder(&values, builder); err != nil {
 			return nil, errors.Wrapf(err, "failed to upsert property value with id: %s", value.ID)
+		}
+
+		// The guard failed: the live row is not what the caller read.
+		if conditional && len(values) == 0 {
+			return nil, store.NewErrConflict("PropertyValue", nil, "concurrent modification detected; retry the write")
 		}
 
 		if len(values) != 1 {
@@ -426,6 +500,14 @@ func (s *SqlPropertyValueStore) GetReferencedOptionIDs(groupID string, fieldIDs 
 }
 
 func (s *SqlPropertyValueStore) DeleteForTarget(groupID string, targetType string, targetID string) error {
+	return s.deleteForTarget(groupID, targetType, targetID, nil)
+}
+
+func (s *SqlPropertyValueStore) DeleteForTargetExceptFields(groupID, targetType, targetID string, keepFieldIDs []string) error {
+	return s.deleteForTarget(groupID, targetType, targetID, keepFieldIDs)
+}
+
+func (s *SqlPropertyValueStore) deleteForTarget(groupID, targetType, targetID string, keepFieldIDs []string) error {
 	if targetType == "" || targetID == "" {
 		return store.NewErrInvalidInput("PropertyValue", "target", "type or id empty")
 	}
@@ -439,6 +521,10 @@ func (s *SqlPropertyValueStore) DeleteForTarget(groupID string, targetType strin
 
 	if groupID != "" {
 		builder = builder.Where(sq.Eq{"GroupID": groupID})
+	}
+
+	if len(keepFieldIDs) > 0 {
+		builder = builder.Where(sq.NotEq{"FieldID": keepFieldIDs})
 	}
 
 	if _, err := s.GetMaster().ExecBuilder(builder); err != nil {

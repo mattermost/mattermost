@@ -7,6 +7,7 @@
 package retrylayer
 
 import (
+	"encoding/json"
 	timepkg "time"
 
 	"github.com/lib/pq"
@@ -12008,6 +12009,27 @@ func (s *RetryLayerPropertyValueStore) DeleteForTarget(groupID string, targetTyp
 
 }
 
+func (s *RetryLayerPropertyValueStore) DeleteForTargetExceptFields(groupID string, targetType string, targetID string, keepFieldIDs []string) error {
+
+	tries := 0
+	for {
+		err := s.PropertyValueStore.DeleteForTargetExceptFields(groupID, targetType, targetID, keepFieldIDs)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPropertyValueStore) Get(groupID string, id string) (*model.PropertyValue, error) {
 
 	tries := 0
@@ -12113,11 +12135,53 @@ func (s *RetryLayerPropertyValueStore) Update(groupID string, values []*model.Pr
 
 }
 
+func (s *RetryLayerPropertyValueStore) UpdateIfUnchanged(groupID string, values []*model.PropertyValue, read map[store.PropertyValueKey]json.RawMessage) ([]*model.PropertyValue, error) {
+
+	tries := 0
+	for {
+		result, err := s.PropertyValueStore.UpdateIfUnchanged(groupID, values, read)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPropertyValueStore) Upsert(values []*model.PropertyValue) ([]*model.PropertyValue, error) {
 
 	tries := 0
 	for {
 		result, err := s.PropertyValueStore.Upsert(values)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPropertyValueStore) UpsertIfUnchanged(values []*model.PropertyValue, read map[store.PropertyValueKey]json.RawMessage) ([]*model.PropertyValue, error) {
+
+	tries := 0
+	for {
+		result, err := s.PropertyValueStore.UpsertIfUnchanged(values, read)
 		if err == nil {
 			return result, nil
 		}

@@ -7,6 +7,7 @@ package store
 
 import (
 	"database/sql"
+	"encoding/json"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -1262,6 +1263,12 @@ type PropertyFieldStore interface {
 	HasGrantForIdentity(rctx request.CTX, ownerType, ownerID string) (bool, error)
 }
 
+// PropertyValueKey names the one live value a field can hold for a target.
+type PropertyValueKey struct {
+	FieldID  string
+	TargetID string
+}
+
 type PropertyValueStore interface {
 	Create(value *model.PropertyValue) (*model.PropertyValue, error)
 	CreateMany(values []*model.PropertyValue) ([]*model.PropertyValue, error)
@@ -1273,6 +1280,26 @@ type PropertyValueStore interface {
 	Delete(groupID string, id string) error
 	DeleteForField(groupID, fieldID string) error
 	DeleteForTarget(groupID string, targetType string, targetID string) error
+	// DeleteForTargetExceptFields does what DeleteForTarget does, but leaves
+	// the rows whose field is in keepFieldIDs alone, whatever their value.
+	// Rows are kept by field, which never changes, so a row written while
+	// the delete runs cannot be removed by it.
+	DeleteForTargetExceptFields(groupID, targetType, targetID string, keepFieldIDs []string) error
+	// UpsertIfUnchanged does what Upsert does, but each value with a key in
+	// read is written only if its live row still holds what the caller read:
+	// a nil or empty entry means the caller found no live row, anything else
+	// is the value it read. A value that fails its condition returns
+	// *ErrConflict and nothing in the batch is written. A value with no live
+	// row is always inserted, so a first write is never refused here. A nil
+	// or empty read map makes this the same as Upsert.
+	UpsertIfUnchanged(values []*model.PropertyValue, read map[PropertyValueKey]json.RawMessage) ([]*model.PropertyValue, error)
+	// UpdateIfUnchanged does what Update does, but each value with a key in
+	// read is written only if its row is still live and holds the value the
+	// caller read, or, for a nil or empty entry, is still not live. Any
+	// value that fails its condition, including one whose ID names no row,
+	// returns *ErrConflict and nothing in the batch is written. A nil or
+	// empty read map makes this the same as Update.
+	UpdateIfUnchanged(groupID string, values []*model.PropertyValue, read map[PropertyValueKey]json.RawMessage) ([]*model.PropertyValue, error)
 	// GetReferencedOptionIDs returns the distinct option IDs that live values
 	// of the given select-shaped fields reference, from both single-option
 	// (JSON string) and multi-option (JSON string array) values. Pass a

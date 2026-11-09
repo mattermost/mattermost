@@ -6,6 +6,7 @@ package storetest
 import (
 	"encoding/json"
 	"fmt"
+	"sync"
 	"testing"
 	"time"
 
@@ -29,6 +30,9 @@ func TestPropertyValueStore(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 	t.Run("SearchPropertyValues", func(t *testing.T) { testSearchPropertyValues(t, rctx, ss, s) })
 	t.Run("DeleteForField", func(t *testing.T) { testDeleteForField(t, rctx, ss) })
 	t.Run("DeleteForTarget", func(t *testing.T) { testDeleteForTarget(t, rctx, ss) })
+	t.Run("DeleteForTargetExceptFields", func(t *testing.T) { testDeleteForTargetExceptFields(t, rctx, ss) })
+	t.Run("UpsertIfUnchanged", func(t *testing.T) { testUpsertIfUnchanged(t, rctx, ss) })
+	t.Run("UpdateIfUnchanged", func(t *testing.T) { testUpdateIfUnchanged(t, rctx, ss) })
 	t.Run("GetReferencedOptionIDs", func(t *testing.T) { testGetReferencedOptionIDs(t, rctx, ss) })
 }
 
@@ -79,8 +83,9 @@ func testCreatePropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 	t.Run("should enforce the value's uniqueness", func(t *testing.T) {
 		newValue.ID = ""
 		value, err := ss.PropertyValue().Create(newValue)
-		require.Error(t, err)
 		require.Zero(t, value)
+		var ec *store.ErrConflict
+		require.ErrorAs(t, err, &ec)
 	})
 
 	t.Run("should allow empty CreatedBy and UpdatedBy", func(t *testing.T) {
@@ -245,8 +250,9 @@ func testCreateManyPropertyValues(t *testing.T, rctx request.CTX, ss store.Store
 		}
 
 		values, err := ss.PropertyValue().CreateMany([]*model.PropertyValue{value2, value3})
-		require.Error(t, err)
 		require.Zero(t, values)
+		var ec *store.ErrConflict
+		require.ErrorAs(t, err, &ec)
 
 		// Verify the unique value was not created due to transaction rollback
 		results, err := ss.PropertyValue().SearchPropertyValues(rctx, model.PropertyValueSearchOpts{
@@ -2224,5 +2230,312 @@ func testGetReferencedOptionIDs(t *testing.T, _ request.CTX, ss store.Store) {
 		ids, err := ss.PropertyValue().GetReferencedOptionIDs("", []string{fieldID})
 		require.NoError(t, err)
 		require.ElementsMatch(t, []string{optA, optB, optD}, ids)
+	})
+}
+
+// liveValueRow is the one live value a test field holds for a test target.
+type liveValueRow struct {
+	groupID, fieldID, targetID string
+}
+
+func newLiveValueRow() liveValueRow {
+	return liveValueRow{groupID: model.NewId(), fieldID: model.NewId(), targetID: model.NewId()}
+}
+
+func (r liveValueRow) value(raw string) *model.PropertyValue {
+	return &model.PropertyValue{
+		TargetID:   r.targetID,
+		TargetType: "test_type",
+		GroupID:    r.groupID,
+		FieldID:    r.fieldID,
+		Value:      json.RawMessage(raw),
+	}
+}
+
+func (r liveValueRow) key() store.PropertyValueKey {
+	return store.PropertyValueKey{FieldID: r.fieldID, TargetID: r.targetID}
+}
+
+// stored returns the live value of the row, or nil when it has none.
+func (r liveValueRow) stored(t *testing.T, rctx request.CTX, ss store.Store) json.RawMessage {
+	t.Helper()
+	results, err := ss.PropertyValue().SearchPropertyValues(rctx, model.PropertyValueSearchOpts{
+		GroupID:   r.groupID,
+		FieldID:   r.fieldID,
+		TargetIDs: []string{r.targetID},
+		PerPage:   10,
+	})
+	require.NoError(t, err)
+	if len(results) == 0 {
+		return nil
+	}
+	require.Len(t, results, 1)
+	return results[0].Value
+}
+
+func testUpsertIfUnchanged(t *testing.T, rctx request.CTX, ss store.Store) {
+	// seed creates a live row holding "a".
+	seed := func(t *testing.T) liveValueRow {
+		row := newLiveValueRow()
+		_, err := ss.PropertyValue().Create(row.value(`"a"`))
+		require.NoError(t, err)
+		return row
+	}
+
+	t.Run("should write when the row still holds what was read", func(t *testing.T) {
+		row := seed(t)
+		read := map[store.PropertyValueKey]json.RawMessage{row.key(): json.RawMessage(`"a"`)}
+		values, err := ss.PropertyValue().UpsertIfUnchanged([]*model.PropertyValue{row.value(`"b"`)}, read)
+		require.NoError(t, err)
+		require.Len(t, values, 1)
+		require.JSONEq(t, `"b"`, string(row.stored(t, rctx, ss)))
+	})
+
+	t.Run("should compare as jsonb, so spacing does not matter", func(t *testing.T) {
+		row := newLiveValueRow()
+		_, err := ss.PropertyValue().Create(row.value(`["x","y"]`))
+		require.NoError(t, err)
+		read := map[store.PropertyValueKey]json.RawMessage{row.key(): json.RawMessage(`["x",   "y"]`)}
+		_, err = ss.PropertyValue().UpsertIfUnchanged([]*model.PropertyValue{row.value(`["z"]`)}, read)
+		require.NoError(t, err)
+		require.JSONEq(t, `["z"]`, string(row.stored(t, rctx, ss)))
+	})
+
+	t.Run("should refuse when the row holds something else", func(t *testing.T) {
+		row := seed(t)
+		read := map[store.PropertyValueKey]json.RawMessage{row.key(): json.RawMessage(`"z"`)}
+		values, err := ss.PropertyValue().UpsertIfUnchanged([]*model.PropertyValue{row.value(`"b"`)}, read)
+		require.Nil(t, values)
+		var ec *store.ErrConflict
+		require.ErrorAs(t, err, &ec)
+		require.JSONEq(t, `"a"`, string(row.stored(t, rctx, ss)))
+	})
+
+	t.Run("should refuse when no live row was expected but one exists", func(t *testing.T) {
+		row := seed(t)
+		read := map[store.PropertyValueKey]json.RawMessage{row.key(): nil}
+		_, err := ss.PropertyValue().UpsertIfUnchanged([]*model.PropertyValue{row.value(`"b"`)}, read)
+		var ec *store.ErrConflict
+		require.ErrorAs(t, err, &ec)
+		require.JSONEq(t, `"a"`, string(row.stored(t, rctx, ss)))
+	})
+
+	t.Run("should write unconditionally when the key is absent", func(t *testing.T) {
+		row := seed(t)
+		other := map[store.PropertyValueKey]json.RawMessage{
+			{FieldID: model.NewId(), TargetID: row.targetID}: json.RawMessage(`"zzz"`),
+		}
+		_, err := ss.PropertyValue().UpsertIfUnchanged([]*model.PropertyValue{row.value(`"b"`)}, other)
+		require.NoError(t, err)
+		require.JSONEq(t, `"b"`, string(row.stored(t, rctx, ss)))
+	})
+
+	t.Run("should insert when there is no live row, whatever was expected", func(t *testing.T) {
+		for _, expected := range []json.RawMessage{nil, json.RawMessage(`"a"`)} {
+			row := newLiveValueRow()
+			read := map[store.PropertyValueKey]json.RawMessage{row.key(): expected}
+			_, err := ss.PropertyValue().UpsertIfUnchanged([]*model.PropertyValue{row.value(`"b"`)}, read)
+			require.NoError(t, err)
+			require.JSONEq(t, `"b"`, string(row.stored(t, rctx, ss)))
+		}
+	})
+
+	t.Run("should write nothing when a later value of the batch conflicts", func(t *testing.T) {
+		first := newLiveValueRow()
+		second := seed(t)
+		read := map[store.PropertyValueKey]json.RawMessage{second.key(): json.RawMessage(`"z"`)}
+		_, err := ss.PropertyValue().UpsertIfUnchanged([]*model.PropertyValue{first.value(`"b"`), second.value(`"b"`)}, read)
+		var ec *store.ErrConflict
+		require.ErrorAs(t, err, &ec)
+		require.Nil(t, first.stored(t, rctx, ss))
+		require.JSONEq(t, `"a"`, string(second.stored(t, rctx, ss)))
+	})
+
+	t.Run("should let exactly one of two simultaneous first writes win", func(t *testing.T) {
+		for round := range 20 {
+			row := newLiveValueRow()
+			read := map[store.PropertyValueKey]json.RawMessage{row.key(): nil}
+			start := make(chan struct{})
+			errs := make([]error, 2)
+			var wg sync.WaitGroup
+			for i, raw := range []string{`"one"`, `"two"`} {
+				wg.Go(func() {
+					<-start
+					_, errs[i] = ss.PropertyValue().UpsertIfUnchanged([]*model.PropertyValue{row.value(raw)}, read)
+				})
+			}
+			close(start)
+			wg.Wait()
+
+			winner := 0
+			if errs[0] != nil {
+				winner = 1
+			}
+			require.NoError(t, errs[winner], "round %d", round)
+			var ec *store.ErrConflict
+			require.ErrorAs(t, errs[1-winner], &ec, "round %d", round)
+			require.JSONEq(t, []string{`"one"`, `"two"`}[winner], string(row.stored(t, rctx, ss)), "round %d", round)
+		}
+	})
+}
+
+func testUpdateIfUnchanged(t *testing.T, rctx request.CTX, ss store.Store) {
+	seed := func(t *testing.T) (liveValueRow, *model.PropertyValue) {
+		row := newLiveValueRow()
+		created, err := ss.PropertyValue().Create(row.value(`"a"`))
+		require.NoError(t, err)
+		return row, created
+	}
+	withValue := func(v *model.PropertyValue, raw string) []*model.PropertyValue {
+		c := *v
+		c.Value = json.RawMessage(raw)
+		return []*model.PropertyValue{&c}
+	}
+
+	t.Run("should write when the row still holds what was read", func(t *testing.T) {
+		row, created := seed(t)
+		read := map[store.PropertyValueKey]json.RawMessage{row.key(): json.RawMessage(`"a"`)}
+		_, err := ss.PropertyValue().UpdateIfUnchanged(row.groupID, withValue(created, `"b"`), read)
+		require.NoError(t, err)
+		require.JSONEq(t, `"b"`, string(row.stored(t, rctx, ss)))
+	})
+
+	t.Run("should refuse when the row holds something else", func(t *testing.T) {
+		row, created := seed(t)
+		read := map[store.PropertyValueKey]json.RawMessage{row.key(): json.RawMessage(`"z"`)}
+		values, err := ss.PropertyValue().UpdateIfUnchanged(row.groupID, withValue(created, `"b"`), read)
+		require.Nil(t, values)
+		var ec *store.ErrConflict
+		require.ErrorAs(t, err, &ec)
+		require.JSONEq(t, `"a"`, string(row.stored(t, rctx, ss)))
+	})
+
+	t.Run("should write a row that is still not live when no live row was expected", func(t *testing.T) {
+		row, created := seed(t)
+		require.NoError(t, ss.PropertyValue().Delete(row.groupID, created.ID))
+		read := map[store.PropertyValueKey]json.RawMessage{row.key(): nil}
+		toWrite := withValue(created, `"b"`)
+		toWrite[0].DeleteAt = 0
+		_, err := ss.PropertyValue().UpdateIfUnchanged(row.groupID, toWrite, read)
+		require.NoError(t, err)
+		require.JSONEq(t, `"b"`, string(row.stored(t, rctx, ss)))
+	})
+
+	t.Run("should refuse a live row when no live row was expected", func(t *testing.T) {
+		row, created := seed(t)
+		read := map[store.PropertyValueKey]json.RawMessage{row.key(): nil}
+		_, err := ss.PropertyValue().UpdateIfUnchanged(row.groupID, withValue(created, `"b"`), read)
+		var ec *store.ErrConflict
+		require.ErrorAs(t, err, &ec)
+		require.JSONEq(t, `"a"`, string(row.stored(t, rctx, ss)))
+	})
+
+	t.Run("should refuse a soft-deleted row when a value was expected", func(t *testing.T) {
+		row, created := seed(t)
+		require.NoError(t, ss.PropertyValue().Delete(row.groupID, created.ID))
+		read := map[store.PropertyValueKey]json.RawMessage{row.key(): json.RawMessage(`"a"`)}
+		_, err := ss.PropertyValue().UpdateIfUnchanged(row.groupID, withValue(created, `"b"`), read)
+		var ec *store.ErrConflict
+		require.ErrorAs(t, err, &ec)
+	})
+
+	t.Run("should report an ID with no row as a conflict", func(t *testing.T) {
+		row, created := seed(t)
+		missing := withValue(created, `"b"`)
+		missing[0].ID = model.NewId()
+		read := map[store.PropertyValueKey]json.RawMessage{row.key(): json.RawMessage(`"a"`)}
+		_, err := ss.PropertyValue().UpdateIfUnchanged(row.groupID, missing, read)
+		var ec *store.ErrConflict
+		require.ErrorAs(t, err, &ec)
+	})
+
+	t.Run("should behave as Update when the key is absent", func(t *testing.T) {
+		row, created := seed(t)
+		_, err := ss.PropertyValue().UpdateIfUnchanged(row.groupID, withValue(created, `"b"`), nil)
+		require.NoError(t, err)
+		require.JSONEq(t, `"b"`, string(row.stored(t, rctx, ss)))
+
+		missing := withValue(created, `"c"`)
+		missing[0].ID = model.NewId()
+		other := map[store.PropertyValueKey]json.RawMessage{{FieldID: model.NewId(), TargetID: row.targetID}: json.RawMessage(`"zzz"`)}
+		_, err = ss.PropertyValue().UpdateIfUnchanged(row.groupID, missing, other)
+		require.Error(t, err)
+		var ec *store.ErrConflict
+		require.NotErrorAs(t, err, &ec)
+	})
+
+	t.Run("should write nothing when one value of the batch conflicts", func(t *testing.T) {
+		row1, created1 := seed(t)
+		row2, created2 := seed(t)
+		read := map[store.PropertyValueKey]json.RawMessage{row2.key(): json.RawMessage(`"z"`)}
+		batch := append(withValue(created1, `"b"`), withValue(created2, `"b"`)...)
+		_, err := ss.PropertyValue().UpdateIfUnchanged("", batch, read)
+		var ec *store.ErrConflict
+		require.ErrorAs(t, err, &ec)
+		require.JSONEq(t, `"a"`, string(row1.stored(t, rctx, ss)))
+		require.JSONEq(t, `"a"`, string(row2.stored(t, rctx, ss)))
+	})
+
+	t.Run("should report reviving a row beside a live one as a conflict", func(t *testing.T) {
+		row, created := seed(t)
+		require.NoError(t, ss.PropertyValue().Delete(row.groupID, created.ID))
+		_, err := ss.PropertyValue().Create(row.value(`"live"`))
+		require.NoError(t, err)
+		read := map[store.PropertyValueKey]json.RawMessage{row.key(): nil}
+		toWrite := withValue(created, `"b"`)
+		toWrite[0].DeleteAt = 0
+		_, err = ss.PropertyValue().UpdateIfUnchanged(row.groupID, toWrite, read)
+		var ec *store.ErrConflict
+		require.ErrorAs(t, err, &ec)
+		require.JSONEq(t, `"live"`, string(row.stored(t, rctx, ss)))
+	})
+}
+
+func testDeleteForTargetExceptFields(t *testing.T, rctx request.CTX, ss store.Store) {
+	groupID := model.NewId()
+	targetID := model.NewId()
+	otherTargetID := model.NewId()
+	fieldA, fieldB, fieldC := model.NewId(), model.NewId(), model.NewId()
+
+	seed := func(t *testing.T) {
+		for _, tc := range []struct{ target, field string }{
+			{targetID, fieldA}, {targetID, fieldB}, {targetID, fieldC}, {otherTargetID, fieldA},
+		} {
+			_, err := ss.PropertyValue().Create(&model.PropertyValue{
+				TargetID: tc.target, TargetType: "test_type", GroupID: groupID, FieldID: tc.field,
+				Value: json.RawMessage(`"v"`),
+			})
+			require.NoError(t, err)
+		}
+	}
+	fieldsOf := func(t *testing.T, target string) []string {
+		results, err := ss.PropertyValue().SearchPropertyValues(rctx, model.PropertyValueSearchOpts{
+			GroupID: groupID, TargetIDs: []string{target}, PerPage: 10,
+		})
+		require.NoError(t, err)
+		ids := make([]string, len(results))
+		for i, r := range results {
+			ids[i] = r.FieldID
+		}
+		return ids
+	}
+
+	t.Run("should return error if targetType or targetID is empty", func(t *testing.T) {
+		var eii *store.ErrInvalidInput
+		require.ErrorAs(t, ss.PropertyValue().DeleteForTargetExceptFields(groupID, "", targetID, nil), &eii)
+		require.ErrorAs(t, ss.PropertyValue().DeleteForTargetExceptFields(groupID, "test_type", "", nil), &eii)
+	})
+
+	t.Run("should keep the listed fields and delete the rest of the target", func(t *testing.T) {
+		seed(t)
+		require.NoError(t, ss.PropertyValue().DeleteForTargetExceptFields(groupID, "test_type", targetID, []string{fieldB}))
+		require.Equal(t, []string{fieldB}, fieldsOf(t, targetID))
+		require.Equal(t, []string{fieldA}, fieldsOf(t, otherTargetID))
+	})
+
+	t.Run("should delete every value of the target when nothing is kept", func(t *testing.T) {
+		require.NoError(t, ss.PropertyValue().DeleteForTargetExceptFields(groupID, "test_type", targetID, nil))
+		require.Empty(t, fieldsOf(t, targetID))
+		require.Equal(t, []string{fieldA}, fieldsOf(t, otherTargetID))
 	})
 }
