@@ -276,6 +276,55 @@ func (ps *PropertyService) deletedOptionBreaches(existing *model.PropertyField) 
 	return breaches, nil
 }
 
+// refuseDeletingHeldOptions refuses deleting options of owner while a write-once or set-on-create
+// value of owner, or of a live field linked to it, holds one of them: the lock refuses the move to
+// another option, so the value would be left naming nothing. Every option in the request is judged
+// together, and a field is judged by its own mutability. A linked field in incoming is judged by
+// its copy there; owner is passed as it will be stored. Without Enterprise Advanced nothing is
+// checked, because mutability isn't enforced then. A value written between this check and the
+// delete can still land on the option; there are no locks across objects.
+func (ps *PropertyService) refuseDeletingHeldOptions(rctx request.CTX, caller string, owner *model.PropertyField, optionIDs []string, incoming map[string]*model.PropertyField) error {
+	if !ps.boundsEnforced() || len(optionIDs) == 0 {
+		return nil
+	}
+
+	linked, err := ps.fieldStore.GetLinkedFields([]string{owner.ID}, nil)
+	if err != nil {
+		return fmt.Errorf("field %s: failed to look up the fields linked to it: %w", owner.ID, err)
+	}
+	var locked storedValueBreaches
+	firstID := ""
+	for _, field := range append([]*model.PropertyField{owner}, linked...) {
+		if inc, ok := incoming[field.ID]; ok && field.ID != owner.ID {
+			field = inc
+		}
+		if field.IsPSAv1() || field.Mutability.OrMutable() == model.PropertyFieldMutabilityMutable {
+			continue
+		}
+		var scope *store.PostValueScope
+		if field.ObjectType == model.PropertyFieldObjectTypePost {
+			// Values on deleted posts are not live: nobody can open or correct them.
+			scope = &store.PostValueScope{}
+		}
+		count, examples, err := ps.valueStore.CountValuesHoldingOptions(field.GroupID, field.ID, optionIDs, scope, storedValueExamples)
+		if err != nil {
+			return fmt.Errorf("field %s: failed to count the values of field %s that hold the options: %w", owner.ID, field.ID, err)
+		}
+		if count > 0 && firstID == "" {
+			firstID = field.ID
+		}
+		locked.add(count, examples)
+	}
+	if locked.Count > 0 {
+		examples := strings.Join(locked.Examples, ", ")
+		return model.NewAppError(caller, "app.property_field.option_delete_locked_values.app_error",
+			map[string]any{"Count": locked.Count, "Examples": examples},
+			fmt.Sprintf("field %s: deleting options: %d locked values of field %s hold them, e.g. %s", owner.ID, locked.Count, firstID, examples),
+			http.StatusConflict)
+	}
+	return nil
+}
+
 // optionRanksChange reports whether saving field over existing changes the rank of an option both
 // hold. Only a rank field that supplies its options can; adding an option or leaving the ranks
 // alone changes no comparison.

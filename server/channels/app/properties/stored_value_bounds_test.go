@@ -783,3 +783,160 @@ func TestBoundsEnforced(t *testing.T) {
 		})
 	}
 }
+
+func TestRefuseDeletingHeldOptions(t *testing.T) {
+	th := Setup(t)
+	rctx := th.Context
+	const refusedID = "app.property_field.option_delete_locked_values.app_error"
+	team := th.CreateTeam(t)
+	once, onSet, mutable := model.PropertyFieldMutabilityWriteOnce, model.PropertyFieldMutabilitySetOnCreate, model.PropertyFieldMutabilityMutable
+
+	groupID := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV3).ID
+	selectField := func(t *testing.T, fieldType model.PropertyFieldType, objectType string, m model.PropertyFieldMutability) *model.PropertyField {
+		t.Helper()
+		return th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:     groupID,
+			ObjectType:  objectType,
+			TargetType:  string(model.PropertyFieldTargetLevelSystem),
+			Type:        fieldType,
+			Name:        "Select " + model.NewId(),
+			Mutability:  m,
+			Permissions: openPermissions(),
+			Attrs: model.StringInterface{model.PropertyFieldAttributeOptions: []any{
+				map[string]any{"id": "o1", "name": "One"},
+				map[string]any{"id": "o2", "name": "Two"},
+			}},
+		})
+	}
+	linkedTo := func(t *testing.T, template *model.PropertyField, m model.PropertyFieldMutability) *model.PropertyField {
+		t.Helper()
+		return th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:       groupID,
+			ObjectType:    model.PropertyFieldObjectTypeChannel,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Type:          model.PropertyFieldTypeSelect,
+			Name:          "Linked " + model.NewId(),
+			Mutability:    m,
+			Permissions:   openPermissions(),
+			LinkedFieldID: &template.ID,
+		})
+	}
+	seed := func(f *model.PropertyField, targetType, targetID, raw string) {
+		t.Helper()
+		_, err := th.dbStore.PropertyValue().Upsert([]*model.PropertyValue{{GroupID: f.GroupID, FieldID: f.ID, TargetType: targetType, TargetID: targetID, Value: json.RawMessage(raw)}})
+		require.NoError(t, err)
+	}
+	deleteOptions := func(f *model.PropertyField, ids ...string) error {
+		_, err := th.service.DeleteFieldOptions(rctx, f.GroupID, f.ID, ids)
+		return err
+	}
+	liveOptions := func(f *model.PropertyField) []string {
+		got, err := th.dbStore.PropertyField().GetExistingOptionIDs(f, []string{"o1", "o2"})
+		require.NoError(t, err)
+		slices.Sort(got)
+		return got
+	}
+	examplesOf := func(err error) []string {
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		_, list, ok := strings.Cut(appErr.DetailedError, "e.g. ")
+		require.True(t, ok, appErr.DetailedError)
+		return strings.Split(list, ", ")
+	}
+	requireRefused := func(t *testing.T, err error, count string, examples ...string) {
+		t.Helper()
+		requireAppErrorID(t, err, refusedID, http.StatusConflict)
+		assert.Contains(t, err.Error(), count+" locked values")
+		assert.Equal(t, examples, examplesOf(err))
+		assert.NotContains(t, err.Error(), "o2")
+	}
+
+	for _, m := range []model.PropertyFieldMutability{once, onSet} {
+		t.Run(string(m)+" value holding the option refuses its deletion", func(t *testing.T) {
+			f := selectField(t, model.PropertyFieldTypeSelect, model.PropertyFieldObjectTypeChannel, m)
+			target := model.NewId()
+			seed(f, model.PropertyValueTargetTypeChannel, target, `"o2"`)
+
+			requireRefused(t, deleteOptions(f, "o2"), "1", target)
+			assert.Equal(t, []string{"o1", "o2"}, liveOptions(f))
+
+			require.NoError(t, deleteOptions(f, "o1"))
+			assert.Equal(t, []string{"o2"}, liveOptions(f))
+		})
+	}
+
+	t.Run("a multiselect value holding the option refuses its deletion", func(t *testing.T) {
+		f := selectField(t, model.PropertyFieldTypeMultiselect, model.PropertyFieldObjectTypeChannel, once)
+		target := model.NewId()
+		seed(f, model.PropertyValueTargetTypeChannel, target, `["o1","o2"]`)
+		requireRefused(t, deleteOptions(f, "o2"), "1", target)
+	})
+
+	t.Run("one held option refuses the whole request", func(t *testing.T) {
+		f := selectField(t, model.PropertyFieldTypeSelect, model.PropertyFieldObjectTypeChannel, once)
+		seed(f, model.PropertyValueTargetTypeChannel, model.NewId(), `"o2"`)
+		requireAppErrorID(t, deleteOptions(f, "o1", "o2"), refusedID, http.StatusConflict)
+		assert.Equal(t, []string{"o1", "o2"}, liveOptions(f))
+	})
+
+	t.Run("the count totals every value holding any of the options", func(t *testing.T) {
+		f := selectField(t, model.PropertyFieldTypeSelect, model.PropertyFieldObjectTypeChannel, once)
+		for _, raw := range []string{`"o1"`, `"o2"`} {
+			seed(f, model.PropertyValueTargetTypeChannel, model.NewId(), raw)
+		}
+		requireAppErrorID(t, deleteOptions(f, "o1", "o2"), refusedID, http.StatusConflict)
+		err := deleteOptions(f, "o1", "o2")
+		assert.Contains(t, err.Error(), "2 locked values")
+		assert.Len(t, examplesOf(err), 2)
+	})
+
+	t.Run("a locked field linked to a template refuses deleting the template's option", func(t *testing.T) {
+		template := selectField(t, model.PropertyFieldTypeSelect, model.PropertyFieldObjectTypeTemplate, "")
+		linked := linkedTo(t, template, once)
+		target := model.NewId()
+		seed(linked, model.PropertyValueTargetTypeChannel, target, `"o2"`)
+		requireRefused(t, deleteOptions(template, "o2"), "1", target)
+		assert.Equal(t, []string{"o1", "o2"}, liveOptions(template))
+
+		// An unlocked linked field's value is left alone.
+		template = selectField(t, model.PropertyFieldTypeSelect, model.PropertyFieldObjectTypeTemplate, "")
+		linked = linkedTo(t, template, mutable)
+		seed(linked, model.PropertyValueTargetTypeChannel, model.NewId(), `"o2"`)
+		require.NoError(t, deleteOptions(template, "o2"))
+	})
+
+	t.Run("a mutable field's values don't block the deletion", func(t *testing.T) {
+		f := selectField(t, model.PropertyFieldTypeSelect, model.PropertyFieldObjectTypeChannel, "")
+		seed(f, model.PropertyValueTargetTypeChannel, model.NewId(), `"o2"`)
+		require.NoError(t, deleteOptions(f, "o2"))
+	})
+
+	t.Run("a value on a deleted post doesn't block the deletion", func(t *testing.T) {
+		f := selectField(t, model.PropertyFieldTypeSelect, model.PropertyFieldObjectTypePost, once)
+		channel := th.CreateChannel(t, team.Id)
+		post, err := th.dbStore.Post().Save(rctx, &model.Post{ChannelId: channel.Id, UserId: model.NewId(), Message: "m"})
+		require.NoError(t, err)
+		seed(f, model.PropertyValueTargetTypePost, post.Id, `"o2"`)
+		requireRefused(t, deleteOptions(f, "o2"), "1", post.Id)
+
+		require.NoError(t, th.dbStore.Post().Delete(rctx, post.Id, model.GetMillis(), model.NewId()))
+		require.NoError(t, deleteOptions(f, "o2"))
+	})
+
+	t.Run("a value on an archived channel blocks the deletion", func(t *testing.T) {
+		f := selectField(t, model.PropertyFieldTypeSelect, model.PropertyFieldObjectTypeChannel, once)
+		channel := th.CreateChannel(t, team.Id)
+		seed(f, model.PropertyValueTargetTypeChannel, channel.Id, `"o2"`)
+		require.NoError(t, th.dbStore.Channel().Delete(channel.Id, model.GetMillis()))
+		requireRefused(t, deleteOptions(f, "o2"), "1", channel.Id)
+	})
+
+	t.Run("nothing is checked unless the license is Enterprise Advanced", func(t *testing.T) {
+		f := selectField(t, model.PropertyFieldTypeSelect, model.PropertyFieldObjectTypeChannel, once)
+		seed(f, model.PropertyValueTargetTypeChannel, model.NewId(), `"o2"`)
+		prev := th.service.licenseProvider
+		t.Cleanup(func() { th.service.licenseProvider = prev })
+		th.service.licenseProvider = func() *model.License { return nil }
+		require.NoError(t, deleteOptions(f, "o2"))
+	})
+}
