@@ -5,15 +5,12 @@ package localcachelayer
 
 import "sync/atomic"
 
-// MembershipChangeListener is told when channel memberships, or the roles they carry, change
-// through this store. It runs on the node that made the change only; the listener is
-// responsible for reaching the rest of the cluster.
+// MembershipChangeListener is told, on the originating node only, when channel memberships or
+// their roles change.
 type MembershipChangeListener interface {
-	// ChannelMembershipsChanged reports that userIDs' memberships of channelID were added,
-	// removed or had their roles changed.
+	// ChannelMembershipsChanged: userIDs were added to, removed from or re-roled in channelID.
 	ChannelMembershipsChanged(channelID string, userIDs []string)
-	// AllChannelMembershipsChanged reports a change that touched memberships without saying
-	// which, such as a guest promotion or a bulk delete.
+	// AllChannelMembershipsChanged: a bulk change, such as a guest promotion.
 	AllChannelMembershipsChanged()
 }
 
@@ -25,7 +22,6 @@ type membershipListenerSlot struct {
 	p atomic.Pointer[membershipListenerHolder]
 }
 
-// SetMembershipChangeListener sets the listener told about membership changes.
 func (s LocalCacheStore) SetMembershipChangeListener(l MembershipChangeListener) {
 	if s.membership != nil {
 		s.membership.p.Store(&membershipListenerHolder{listener: l})

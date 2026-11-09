@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
 )
@@ -30,7 +31,7 @@ func TestAccessDecisionBroadcasterBatches(t *testing.T) {
 		assert.Equal(t, []string{sessionID}, inv.Sessions)
 		assert.Equal(t, [][2]string{{userID, channelID}}, inv.UserResources)
 	case <-time.After(time.Second):
-		t.Fatal("batch was not flushed after the delay")
+		require.Fail(t, "batch was not flushed after the delay")
 	}
 
 	// Reaching maxIDs flushes immediately.
@@ -40,7 +41,7 @@ func TestAccessDecisionBroadcasterBatches(t *testing.T) {
 	case inv := <-sent:
 		assert.Len(t, inv.Resources, 4)
 	default:
-		t.Fatal("a full batch must be sent without waiting")
+		require.Fail(t, "a full batch must be sent without waiting")
 	}
 
 	// A global invalidation supersedes the IDs queued with it.
@@ -54,7 +55,7 @@ func TestAccessDecisionBroadcasterBatches(t *testing.T) {
 	b.flush()
 	select {
 	case <-sent:
-		t.Fatal("nothing pending, nothing sent")
+		require.Fail(t, "nothing pending, nothing sent")
 	default:
 	}
 }

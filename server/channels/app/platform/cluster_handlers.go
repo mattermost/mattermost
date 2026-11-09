@@ -165,7 +165,7 @@ func (ps *PlatformService) InvalidateAllCachesSkipSend() *model.AppError {
 	if err := linkCache.Purge(); err != nil {
 		ps.logger.Warn("Failed to clear the link cache", mlog.Err(err))
 	}
-	// Runs on every node, through the purge-all cluster handler, so no broadcast.
+	// Runs on every node, so no broadcast.
 	ps.invalidateAllAccessDecisions(false)
 	ps.LoadLicense()
 	return nil

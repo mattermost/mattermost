@@ -104,7 +104,6 @@ func (ps *PlatformService) ClearAllUsersSessionCacheLocal() error {
 
 func (ps *PlatformService) ClearUserSessionCache(userID string) {
 	ps.ClearSessionCacheForUserSkipClusterSend(userID)
-	// Session roles are part of an access-control subject.
 	ps.invalidateAccessDecisionsForUser(userID)
 
 	if ps.clusterIFace != nil {

@@ -119,7 +119,7 @@ type LocalCacheStore struct {
 	cluster   einterfaces.ClusterInterface
 	logger    mlog.LoggerIFace
 
-	// membership is shared by every copy of the store: NewLocalCacheLayer returns it by value.
+	// Pointer so every by-value copy of the store shares one listener.
 	membership *membershipListenerSlot
 
 	reaction      LocalCacheReactionStore

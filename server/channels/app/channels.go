@@ -84,7 +84,6 @@ type Channels struct {
 	AccessControl    einterfaces.AccessControlServiceInterface
 	Intune           einterfaces.IntuneInterface
 
-	// accessDecisions caches PDP decisions on this node; see access_decision_cache.go.
 	accessDecisions           *accessDecisionCache
 	accessDecisionBroadcaster *accessDecisionBroadcaster
 	accessDecisionStop        chan struct{}

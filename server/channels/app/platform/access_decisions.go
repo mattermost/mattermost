@@ -3,22 +3,16 @@
 
 package platform
 
-// AccessDecisionInvalidator is implemented by the app layer's access-control decision cache.
-// Platform calls it from the invalidation paths it owns, on the node where the change happened;
-// the app layer carries the change to the rest of the cluster.
+// AccessDecisionInvalidator is the app layer's ABAC decision cache. Platform calls it on the
+// node where a change happened; the app layer broadcasts it.
 type AccessDecisionInvalidator interface {
-	// InvalidateAccessDecisionsForUser drops every cached decision whose subject is userID,
-	// across all of the user's sessions.
 	InvalidateAccessDecisionsForUser(userID string)
-	// InvalidateAccessDecisionsForSession drops every cached decision for one session.
 	InvalidateAccessDecisionsForSession(sessionID string)
-	// InvalidateAllAccessDecisions drops every cached decision. With broadcast false the
-	// change is applied on this node only, for callers that already run on every node.
+	// InvalidateAllAccessDecisions with broadcast false is for callers that run on every node.
 	InvalidateAllAccessDecisions(broadcast bool)
 }
 
-// SetAccessDecisionInvalidator sets the access-control decision cache platform notifies. It must
-// be called during server construction, before any traffic.
+// SetAccessDecisionInvalidator must be called during server construction.
 func (ps *PlatformService) SetAccessDecisionInvalidator(inv AccessDecisionInvalidator) {
 	ps.accessDecisionInvalidator = inv
 }

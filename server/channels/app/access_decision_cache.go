@@ -4,6 +4,7 @@
 package app
 
 import (
+	"maps"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -11,19 +12,12 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
-// The access decision cache holds PDP answers (model.AccessDecision.Decision) only. Nothing in it
-// is combined with RBAC: role-permission checks, bypasses and governance short-circuits stay with
-// the callers. It is node-local in every cache mode; other nodes learn about changes through
-// ClusterEventInvalidateAccessDecisions.
+// Node-local cache of PDP decisions (AccessDecision.Decision only, never RBAC).
 //
-// Staleness is tracked with version numbers rather than by deleting entries. Every value comes
-// from one node-wide sequence, so a value is never reused. Each entry records the versions of its
-// subject's user, session, resource and (user, resource) pair, plus the global version, as they
-// were read before the decision was computed. A change bumps the matching version; an entry whose
-// recorded versions no longer match is a miss. An ID that was never bumped reads as version 0.
-//
-// Versions are swept once they are older than the max age: every entry captured before that bump
-// has expired by then, so dropping the version can never make an old entry match again.
+// Staleness uses version numbers, not deletes. Each entry stores the global, user, session,
+// resource and (user, resource) versions read before its decision was computed; a bump to any
+// of them makes the entry miss. Versions come from one node-wide sequence and are never reused.
+// An ID never bumped reads as 0.
 
 const (
 	accessDecisionCacheName = "AccessDecision"
@@ -31,8 +25,7 @@ const (
 	accessDecisionLRUShards     = 256
 	accessDecisionVersionShards = 64
 
-	// accessDecisionMaxOps caps how many (resource type, action) pairs are interned. Core pairs
-	// are a handful; the rest are plugin-defined, and past the cap those bypass the cache.
+	// Max interned (resource type, action) pairs; past it, plugin pairs bypass the cache.
 	accessDecisionMaxOps = 4096
 
 	accessDecisionNoSlot int32 = -1
@@ -41,11 +34,9 @@ const (
 type accessSubjectKind uint8
 
 const (
-	// accessSubjectSession is a subject built from the session's own user, its roles and its
-	// session attributes. It is keyed by session ID.
+	// Keyed by session ID: session roles and session attributes.
 	accessSubjectSession accessSubjectKind = iota + 1
-	// accessSubjectUser is a subject built from a user's stored roles, with no session
-	// attributes. It is keyed by user ID.
+	// Keyed by user ID: stored roles, no session attributes.
 	accessSubjectUser
 )
 
@@ -72,16 +63,18 @@ func toAccessPairID(userID, resourceID string) (accessPairID, bool) {
 	return k, true
 }
 
-// fnv1a hashes an ID without allocating. IDs are random, so a short hash spreads them evenly.
+const (
+	fnvOffset uint64 = 14695981039346656037
+	fnvPrime  uint64 = 1099511628211
+)
+
 func fnv1a(h uint64, b []byte) uint64 {
 	for _, c := range b {
 		h ^= uint64(c)
-		h *= 1099511628211
+		h *= fnvPrime
 	}
 	return h
 }
-
-const fnvOffset uint64 = 14695981039346656037
 
 type accessDecisionKey struct {
 	subject  accessID
@@ -98,18 +91,16 @@ type accessDecisionVersions struct {
 	userResource uint64
 }
 
-// accessDecisionLookup carries one lookup's keys and the versions read before the decision was
-// computed. put stores those versions, so an invalidation that lands while a miss is being
-// computed makes the stored entry miss next time.
+// accessDecisionLookup is filled by prepare and get, then consumed by put.
 type accessDecisionLookup struct {
-	key      accessDecisionKey
-	user     accessID
-	pair     accessPairID
-	versions accessDecisionVersions
-	shard    uint32
+	key        accessDecisionKey
+	user       accessID
+	pair       accessPairID
+	versions   accessDecisionVersions
+	capturedAt int64
+	shard      uint32
 }
 
-// accessVersionCell is one ID's current version and when it was last bumped (unix nanos).
 type accessVersionCell struct {
 	version  uint64
 	bumpedAt int64
@@ -120,7 +111,7 @@ type accessVersionShard[K comparable] struct {
 	cells map[K]accessVersionCell
 }
 
-// accessVersionTable maps an ID to its current version. Absent IDs read as 0.
+// accessVersionTable maps an ID to its current version.
 type accessVersionTable[K accessID | accessPairID] struct {
 	shards [accessDecisionVersionShards]accessVersionShard[K]
 }
@@ -152,14 +143,16 @@ func (t *accessVersionTable[K]) get(k K) uint64 {
 	return v
 }
 
-func (t *accessVersionTable[K]) bump(k K, version uint64, now int64) {
+// bump reads the clock under the write lock, so bumpedAt is later than the capture time of any
+// lookup that read the old version. sweep relies on that.
+func (t *accessVersionTable[K]) bump(k K, version uint64, now func() int64) {
 	s := t.shardFor(&k)
 	s.mu.Lock()
-	s.cells[k] = accessVersionCell{version: version, bumpedAt: now}
+	s.cells[k] = accessVersionCell{version: version, bumpedAt: now()}
 	s.mu.Unlock()
 }
 
-// sweep drops versions bumped at or before cutoff and returns how many it dropped.
+// sweep drops versions bumped at or before cutoff.
 func (t *accessVersionTable[K]) sweep(cutoff int64) int {
 	dropped := 0
 	for i := range t.shards {
@@ -187,7 +180,7 @@ func (t *accessVersionTable[K]) len() int {
 	return n
 }
 
-// accessDecisionSlot is one LRU entry. It holds no pointers, so the slab is never scanned by the GC.
+// accessDecisionSlot holds no pointers, so the GC never scans the slab.
 type accessDecisionSlot struct {
 	key       accessDecisionKey
 	versions  accessDecisionVersions
@@ -197,8 +190,8 @@ type accessDecisionSlot struct {
 	allowed   bool
 }
 
-// accessDecisionShard is a fixed-capacity LRU over a preallocated slab. Slots are linked by index,
-// most recently used at head, and reused in place, so it allocates nothing after warm-up.
+// accessDecisionShard is a fixed-capacity LRU over a preallocated slab, linked by index with the
+// most recent at head. Slots are reused in place, so it allocates nothing once full.
 type accessDecisionShard struct {
 	mu    sync.Mutex
 	index map[accessDecisionKey]int32
@@ -247,8 +240,8 @@ func (s *accessDecisionShard) moveToFront(i int32) {
 	s.pushFront(i)
 }
 
-// accessOpTable interns (resource type, action) pairs to small integers. Reads go through an
-// immutable snapshot, so a lookup takes no lock and allocates nothing; adding a pair copies it.
+// accessOpTable interns (resource type, action) to a small integer. Reads use an immutable
+// snapshot (no lock, no allocation); adding a pair copies it.
 type accessOpTable struct {
 	mu       sync.Mutex
 	snapshot atomic.Pointer[map[string]map[string]uint16]
@@ -290,13 +283,9 @@ func (t *accessOpTable) id(resourceType, action string) (uint16, bool) {
 	}
 
 	next := make(map[string]map[string]uint16, len(current)+1)
-	for typ, actions := range current {
-		next[typ] = actions
-	}
+	maps.Copy(next, current)
 	actions := make(map[string]uint16, len(current[resourceType])+1)
-	for a, id := range current[resourceType] {
-		actions[a] = id
-	}
+	maps.Copy(actions, current[resourceType])
 	t.count++
 	id := uint16(t.count)
 	actions[action] = id
@@ -306,13 +295,11 @@ func (t *accessOpTable) id(resourceType, action string) (uint16, bool) {
 }
 
 type accessDecisionStats struct {
-	hits          uint64
-	misses        uint64
-	evictions     uint64
-	invalidations uint64
+	hits      uint64
+	misses    uint64
+	evictions uint64
 }
 
-// accessDecisionCache is the node-local cache of PDP decisions.
 type accessDecisionCache struct {
 	maxAge int64 // nanoseconds
 	now    func() int64
@@ -327,15 +314,10 @@ type accessDecisionCache struct {
 	userResources *accessVersionTable[accessPairID]
 
 	ops *accessOpTable
-
-	invalidations atomic.Uint64
 }
 
 func newAccessDecisionCache(size int, maxAge time.Duration) *accessDecisionCache {
-	perShard := size / accessDecisionLRUShards
-	if perShard < 1 {
-		perShard = 1
-	}
+	perShard := max(size/accessDecisionLRUShards, 1)
 
 	c := &accessDecisionCache{
 		maxAge:        int64(maxAge),
@@ -355,8 +337,8 @@ func newAccessDecisionCache(size int, maxAge time.Duration) *accessDecisionCache
 	return c
 }
 
-// prepare builds the lookup for one decision. It reports false when the decision can't be cached:
-// an ID that isn't a Mattermost ID, or a (resource type, action) pair past the interning cap.
+// prepare reports false when the decision can't be cached: a non-26-byte ID, or an op past the
+// interning cap.
 func (c *accessDecisionCache) prepare(kind accessSubjectKind, subjectID, userID, resourceType, resourceID, action string) (accessDecisionLookup, bool) {
 	var l accessDecisionLookup
 
@@ -385,14 +367,16 @@ func (c *accessDecisionCache) prepare(kind accessSubjectKind, subjectID, userID,
 	h := fnv1a(fnvOffset, subject[:])
 	h = fnv1a(h, resource[:])
 	h ^= uint64(op)<<8 | uint64(kind)
-	h *= 1099511628211
+	h *= fnvPrime
 	l.shard = uint32(h % accessDecisionLRUShards)
 	return l, true
 }
 
-// get reads the current versions into l, then returns the cached decision if one is stored under
-// exactly those versions and hasn't expired. The versions stay in l for a following put.
+// get captures the clock and current versions into l, then returns the stored decision if it was
+// stored under exactly those versions and hasn't expired. On a miss, l is ready for put.
 func (c *accessDecisionCache) get(l *accessDecisionLookup) (allowed bool, hit bool) {
+	// The clock is read before the versions; see bump.
+	l.capturedAt = c.now()
 	l.versions.global = c.global.Load()
 	l.versions.user = c.users.get(l.user)
 	if l.key.kind == accessSubjectSession {
@@ -401,13 +385,11 @@ func (c *accessDecisionCache) get(l *accessDecisionLookup) (allowed bool, hit bo
 	l.versions.resource = c.resources.get(l.key.resource)
 	l.versions.userResource = c.userResources.get(l.pair)
 
-	now := c.now()
 	s := &c.shards[l.shard]
 	s.mu.Lock()
-	i, ok := s.index[l.key]
-	if ok {
+	if i, ok := s.index[l.key]; ok {
 		slot := &s.slots[i]
-		if slot.versions == l.versions && now < slot.expiresAt {
+		if slot.versions == l.versions && l.capturedAt < slot.expiresAt {
 			s.moveToFront(i)
 			allowed = slot.allowed
 			s.hits++
@@ -420,9 +402,9 @@ func (c *accessDecisionCache) get(l *accessDecisionLookup) (allowed bool, hit bo
 	return false, false
 }
 
-// put stores a decision under the versions get read into l.
+// put stores a decision under the versions get captured. Expiry counts from the capture, not
+// from now, so a slow build can't outlive a swept version.
 func (c *accessDecisionCache) put(l *accessDecisionLookup, allowed bool) {
-	expiresAt := c.now() + c.maxAge
 	s := &c.shards[l.shard]
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -448,48 +430,40 @@ func (c *accessDecisionCache) put(l *accessDecisionLookup, allowed bool) {
 	slot := &s.slots[i]
 	slot.key = l.key
 	slot.versions = l.versions
-	slot.expiresAt = expiresAt
+	slot.expiresAt = l.capturedAt + c.maxAge
 	slot.allowed = allowed
 }
 
-func (c *accessDecisionCache) nextVersion() uint64 {
-	return c.seq.Add(1)
-}
-
 func (c *accessDecisionCache) invalidateAll() {
-	c.global.Store(c.nextVersion())
-	c.invalidations.Add(1)
+	c.global.Store(c.seq.Add(1))
 }
 
 func (c *accessDecisionCache) invalidateUser(userID string) {
 	if k, ok := toAccessID(userID); ok {
-		c.users.bump(k, c.nextVersion(), c.now())
-		c.invalidations.Add(1)
+		c.users.bump(k, c.seq.Add(1), c.now)
 	}
 }
 
 func (c *accessDecisionCache) invalidateSession(sessionID string) {
 	if k, ok := toAccessID(sessionID); ok {
-		c.sessions.bump(k, c.nextVersion(), c.now())
-		c.invalidations.Add(1)
+		c.sessions.bump(k, c.seq.Add(1), c.now)
 	}
 }
 
 func (c *accessDecisionCache) invalidateResource(resourceID string) {
 	if k, ok := toAccessID(resourceID); ok {
-		c.resources.bump(k, c.nextVersion(), c.now())
-		c.invalidations.Add(1)
+		c.resources.bump(k, c.seq.Add(1), c.now)
 	}
 }
 
 func (c *accessDecisionCache) invalidateUserResource(userID, resourceID string) {
 	if k, ok := toAccessPairID(userID, resourceID); ok {
-		c.userResources.bump(k, c.nextVersion(), c.now())
-		c.invalidations.Add(1)
+		c.userResources.bump(k, c.seq.Add(1), c.now)
 	}
 }
 
-// sweep drops versions old enough that no live entry can have been captured before them.
+// sweep drops versions bumped more than maxAge ago. Any entry captured before such a bump has
+// expired, so dropping the version (reads as 0 again) can't revive it.
 func (c *accessDecisionCache) sweep() int {
 	cutoff := c.now() - c.maxAge
 	return c.users.sweep(cutoff) +
@@ -508,7 +482,6 @@ func (c *accessDecisionCache) stats() accessDecisionStats {
 		st.evictions += s.evictions
 		s.mu.Unlock()
 	}
-	st.invalidations = c.invalidations.Load()
 	return st
 }
 

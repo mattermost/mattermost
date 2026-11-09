@@ -547,8 +547,6 @@ func (s LocalCacheChannelStore) SaveMember(rctx request.CTX, member *model.Chann
 	} else {
 		s.InvalidateMemberCount(member.ChannelId)
 	}
-	// A new membership gives the user a channel role, so decisions made while they weren't a
-	// member are stale.
 	s.rootStore.notifyChannelMembershipsChanged(member.ChannelId, []string{member.UserId})
 	return member, nil
 }

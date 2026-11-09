@@ -52,7 +52,7 @@ func (a *App) invalidateUserPropertyValuesEpochs(values []*model.PropertyValue) 
 		if v == nil {
 			continue
 		}
-		// A channel's own attribute values feed rules that read resource.attributes.*.
+		// Channel values feed rules that read resource.attributes.*.
 		if v.TargetType == model.PropertyFieldObjectTypeChannel && !seenChannels[v.TargetID] {
 			seenChannels[v.TargetID] = true
 			channelIDs = append(channelIDs, v.TargetID)

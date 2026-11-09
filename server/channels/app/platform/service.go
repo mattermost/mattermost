@@ -159,8 +159,7 @@ type PlatformService struct {
 	// serialized. Set by the app layer, which platform can't call into directly.
 	prePublishHook func(message *model.WebSocketEvent)
 
-	// accessDecisionInvalidator drops cached access-control decisions when the user,
-	// session and cache state that platform owns changes. Set by the app layer.
+	// accessDecisionInvalidator is told about user and session changes. Set by the app layer.
 	accessDecisionInvalidator AccessDecisionInvalidator
 }
 

@@ -35,7 +35,7 @@ func readLookup(t *testing.T, c *accessDecisionCache, kind accessSubjectKind, su
 	return l
 }
 
-// store caches a decision the way evaluateAccessCached does: a get that misses, then a put.
+// storeDecision does what evaluateAccessCached does on a miss.
 func storeDecision(t *testing.T, c *accessDecisionCache, l accessDecisionLookup, allowed bool) {
 	t.Helper()
 	_, hit := c.get(&l)
@@ -75,8 +75,7 @@ func TestAccessDecisionCacheKeepsKindsAndActionsApart(t *testing.T) {
 	c, _ := newTestAccessDecisionCache(t, 10_000, time.Minute)
 	userID, channelID := model.NewId(), model.NewId()
 
-	// A user subject keyed by the user's ID, and a session subject whose session ID happens to
-	// equal it, must not share an entry.
+	// A user subject and a session subject with the same ID must not share an entry.
 	userRef := readLookup(t, c, accessSubjectUser, userID, userID, channelID)
 	sessionRef := readLookup(t, c, accessSubjectSession, userID, userID, channelID)
 	storeDecision(t, c, userRef, true)
@@ -205,6 +204,26 @@ func TestAccessDecisionCacheSweep(t *testing.T) {
 
 	// The version is gone again, but the old entry has expired by now, so it can't match.
 	_, hit := cached(c, readLookup(t, c, accessSubjectSession, sessionID, userID, channelID))
+	require.False(t, hit)
+}
+
+func TestAccessDecisionCacheSlowBuildDoesNotOutliveSweep(t *testing.T) {
+	c, clock := newTestAccessDecisionCache(t, 10_000, time.Minute)
+	sessionID, userID, channelID := model.NewId(), model.NewId(), model.NewId()
+
+	// Capture at version 0, bump during a slow build, then store.
+	l := readLookup(t, c, accessSubjectSession, sessionID, userID, channelID)
+	_, hit := c.get(&l)
+	require.False(t, hit)
+	clock.advance(time.Second)
+	c.invalidateUser(userID)
+	clock.advance(10 * time.Second)
+	c.put(&l, true)
+
+	// Sweeping the bump makes the user read as 0 again; the entry must have expired by then.
+	clock.advance(51 * time.Second) // 1s past the sweep cutoff, well before put + maxAge
+	require.Equal(t, 1, c.sweep())
+	_, hit = cached(c, readLookup(t, c, accessSubjectSession, sessionID, userID, channelID))
 	require.False(t, hit)
 }
 

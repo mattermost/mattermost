@@ -525,8 +525,7 @@ func (a *App) evaluateChannelAccess(rctx request.CTX, userID string, channel *mo
 		return true
 	}
 
-	// Read access is the hottest check (every recipient of every channel event), so its PDP
-	// decisions are cached across requests. Other actions evaluate every time for now.
+	// Only read access, the hottest check, is cached so far.
 	var ref accessSubjectRef
 	if action == model.AccessControlPolicyActionChannelReadAccess {
 		ref = accessSubjectRefFor(rctx, userID)
