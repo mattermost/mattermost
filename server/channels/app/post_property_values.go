@@ -285,12 +285,12 @@ func (a *App) CanSetPostPropertyValueOnCreate(rctx request.CTX, userID string, f
 	}
 }
 
-// setPostPropertyValuesOnCreate writes a new post's attribute values and removes the post
-// again if that write fails.
+// setPostPropertyValuesOnCreate writes a new post's attribute values, returning them as written,
+// and removes the post again if that write fails.
 //
 // The write runs before anything announces the post: no `posted` event, no notification and no
 // MessageHasBeenPosted hook has fired yet.
-func (a *App) setPostPropertyValuesOnCreate(rctx request.CTX, post *model.Post, values []*model.PropertyValue) *model.AppError {
+func (a *App) setPostPropertyValuesOnCreate(rctx request.CTX, post *model.Post, values []*model.PropertyValue) ([]*model.PropertyValue, *model.AppError) {
 	// The permission hook behind UpsertPropertyValues loads the post to resolve its channel
 	// and author. The post was saved a moment ago, so a replica may not have it yet.
 	rctx = RequestContextWithMaster(rctxWithSessionCallerID(rctx))
@@ -304,16 +304,14 @@ func (a *App) setPostPropertyValuesOnCreate(rctx request.CTX, post *model.Post, 
 
 	written, appErr := a.UpsertPropertyValues(rctx, values, model.PropertyFieldObjectTypePost, post.Id, "")
 	if appErr == nil {
-		// Attach rather than re-read: this runs before PreparePostForClient and
-		// handlePostEvents, so both the response and the `posted` event carry them.
-		if post.Metadata == nil {
-			post.Metadata = &model.PostMetadata{}
-		}
-		// These values go to every channel member in the single `posted` payload. That is only
-		// correct while nothing redacts post attribute values per viewer; once post attributes
-		// are subject to per-viewer access control, this attach must be filtered per recipient.
-		post.Metadata.PropertyValues = written
-		return nil
+		// Clearing is required, not tidying: post still carries the values the caller
+		// submitted, and CreatePost sends it as is in the `posted` event to every channel
+		// member, with nothing filtering a value per reader. Members get the values from the
+		// property_values_updated event the write above sent, which withholds any a member
+		// may not read. CreatePost gives the written values back to its caller only, once
+		// that event has gone out.
+		post.Metadata.PropertyValues = nil
+		return written, nil
 	}
 
 	if deleteErr := a.PermanentDeletePost(rctx, post.Id, post.UserId); deleteErr != nil {
@@ -325,5 +323,5 @@ func (a *App) setPostPropertyValuesOnCreate(rctx request.CTX, post *model.Post, 
 			mlog.Err(deleteErr))
 	}
 
-	return appErr
+	return nil, appErr
 }

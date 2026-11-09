@@ -449,13 +449,16 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		}
 	}
 
-	// Runs before the MessageHasBeenPosted hook, PreparePostForClient and handlePostEvents,
-	// so on success all three see the values. On failure the post is removed before any
-	// `posted` event or notification goes out.
+	// Runs before anything announces the post, so a failed write removes it before any
+	// `posted` event, notification or MessageHasBeenPosted hook. On success the values are
+	// taken off rpost and only handed back to the caller at the end.
+	var writtenPropertyValues []*model.PropertyValue
 	if propertyValues := rpost.Metadata.GetPropertyValues(); len(propertyValues) > 0 {
-		if appErr := a.setPostPropertyValuesOnCreate(rctx, rpost, propertyValues); appErr != nil {
+		written, appErr := a.setPostPropertyValuesOnCreate(rctx, rpost, propertyValues)
+		if appErr != nil {
 			return nil, false, appErr
 		}
+		writtenPropertyValues = written
 	}
 
 	// MessageWillBePosted ran before the post had an ID, so this is recorded here, now that
@@ -576,6 +579,20 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 	rpost, isMemberForPreviews, err = a.SanitizePostMetadataForUser(rctx, rpost, rctx.Session().UserId)
 	if err != nil {
 		return nil, false, err
+	}
+
+	// The caller wrote these values, so it gets them back the way the property value API
+	// returns a write: unfiltered, to that caller only. The `posted` event above went out
+	// without them. Set on a copy, because the work handlePostEvents started in the
+	// background holds rpost and shares its metadata.
+	if len(writtenPropertyValues) > 0 {
+		rpost = rpost.Clone()
+		if rpost.Metadata != nil {
+			rpost.Metadata = rpost.Metadata.Copy()
+		} else {
+			rpost.Metadata = &model.PostMetadata{}
+		}
+		rpost.Metadata.PropertyValues = writtenPropertyValues
 	}
 
 	return rpost, isMemberForPreviews, nil

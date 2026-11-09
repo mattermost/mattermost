@@ -857,19 +857,35 @@ func TestCreatePostPropertyValues(t *testing.T) {
 			"Failed to remove post after its attribute values could not be written")
 	})
 
-	// Values are attached to the post before handlePostEvents runs, so a client that is
-	// watching the channel sees them without refetching the post.
-	t.Run("the posted websocket event carries the values", func(t *testing.T) {
+	// The `posted` event reaches every channel member as one payload, with nothing filtering a
+	// value per reader, so it carries no values. Members get them from property_values_updated,
+	// which withholds a value not every member may read; the author gets them back from
+	// CreatePost.
+	t.Run("values reach members through property_values_updated, not the posted event", func(t *testing.T) {
 		th := setupPropertyValuesCreateTest(t, true)
 		th.asUser(t, th.BasicUser.Id)
-		field := th.createField(t, string(model.PropertyFieldTargetLevelChannel), th.BasicChannel.Id, "sensitivity")
+		openField := th.createField(t, string(model.PropertyFieldTargetLevelChannel), th.BasicChannel.Id, "sensitivity")
+		restrictedField, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    th.groupID,
+			Name:       "f_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypePost,
+			TargetType: string(model.PropertyFieldTargetLevelChannel),
+			TargetID:   th.BasicChannel.Id,
+			Permissions: &model.Permissions{Restrictions: &model.Restrictions{
+				Value:  model.ReadWrite{Read: model.PermissionLevelSysadmin, Write: model.PermissionLevelMember},
+				Option: model.ReadWrite{Read: model.PermissionLevelEveryone},
+				Field:  model.WriteOnly{Write: model.PermissionLevelSysadmin},
+			}},
+		}, false, "")
+		require.Nil(t, appErr)
 
 		// Joining generates its own `posted` event, so it has to happen before the socket is
-		// connected or that event would be the one read below.
+		// connected or that event would be one of those read below.
 		th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
 
 		messages, closeWS := connectFakeWebSocket(t, th.TestHelper, th.BasicUser2.Id, "",
-			[]model.WebsocketEventType{model.WebsocketEventPosted})
+			[]model.WebsocketEventType{model.WebsocketEventPosted, model.WebsocketEventPropertyValuesUpdated})
 		defer closeWS()
 
 		created, _, appErr := th.App.CreatePost(th.Context, &model.Post{
@@ -877,35 +893,56 @@ func TestCreatePostPropertyValues(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 			Message:   "broadcast with attributes",
 			Metadata: &model.PostMetadata{
-				PropertyValues: []*model.PropertyValue{th.staged(field, `"confidential"`)},
+				PropertyValues: []*model.PropertyValue{
+					th.staged(openField, `"confidential"`),
+					th.staged(restrictedField, `"secret"`),
+				},
 			},
 		}, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, appErr)
 
-		var received *model.WebSocketEvent
-		select {
-		case received = <-messages:
-		case <-time.After(10 * time.Second):
-			require.FailNow(t, "timed out waiting for the posted event")
+		// The author wrote both values and gets both back, unfiltered.
+		require.NotNil(t, created.Metadata)
+		require.Len(t, created.Metadata.PropertyValues, 2)
+
+		received := map[model.WebsocketEventType]*model.WebSocketEvent{}
+		for len(received) < 2 {
+			select {
+			case event := <-messages:
+				received[event.EventType()] = event
+			case <-time.After(10 * time.Second):
+				require.FailNow(t, "timed out waiting for the posted and property_values_updated events")
+			}
 		}
-		require.Equal(t, model.WebsocketEventPosted, received.EventType())
 
-		postJSON, ok := received.GetData()["post"].(string)
+		postJSON, ok := received[model.WebsocketEventPosted].GetData()["post"].(string)
 		require.True(t, ok, "the posted event must carry the post")
-
 		var broadcast model.Post
 		require.NoError(t, json.Unmarshal([]byte(postJSON), &broadcast))
 		require.Equal(t, created.Id, broadcast.Id)
-		require.NotNil(t, broadcast.Metadata)
-		require.Len(t, broadcast.Metadata.PropertyValues, 1)
-		assert.Equal(t, field.ID, broadcast.Metadata.PropertyValues[0].FieldID)
-		assert.Equal(t, created.Id, broadcast.Metadata.PropertyValues[0].TargetID)
-		assert.JSONEq(t, `"confidential"`, string(broadcast.Metadata.PropertyValues[0].Value))
+		if broadcast.Metadata != nil {
+			assert.Empty(t, broadcast.Metadata.PropertyValues)
+		}
+
+		valuesEvent := received[model.WebsocketEventPropertyValuesUpdated]
+		assert.Equal(t, created.Id, valuesEvent.GetData()["target_id"])
+		valuesJSON, ok := valuesEvent.GetData()["values"].(string)
+		require.True(t, ok, "the values event must carry the values")
+		var values []*model.PropertyValue
+		require.NoError(t, json.Unmarshal([]byte(valuesJSON), &values))
+		byField := map[string]string{}
+		for _, v := range values {
+			byField[v.FieldID] = string(v.Value)
+		}
+		require.Len(t, byField, 2)
+		assert.JSONEq(t, `"confidential"`, byField[openField.ID])
+		assert.JSONEq(t, model.PropertyValueWithheldJSON, byField[restrictedField.ID])
 	})
 
-	// PreparePostForClient replaces Metadata wholesale for an unrevealed burn-on-read post, so
-	// attaching values earlier in CreatePost cannot leak them to a non-author. Pinned here
-	// because the two are far apart and nothing else couples them.
+	// CreatePost hands the author's post back carrying the values. PreparePostForClient
+	// replaces Metadata wholesale for an unrevealed burn-on-read post, so preparing that post
+	// for anyone else cannot leak them to a non-author. Pinned here because the two are far
+	// apart and nothing else couples them.
 	t.Run("an unrevealed burn-on-read post carries no values for a non-author", func(t *testing.T) {
 		th := setupPropertyValuesCreateTest(t, true)
 		th.asUser(t, th.BasicUser.Id)

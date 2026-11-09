@@ -370,6 +370,39 @@ func TestCreatePostWithPropertyValues(t *testing.T) {
 		assert.Zero(t, info.DeleteAt)
 	})
 
+	// The author wrote the value, so the response gives it back even where the field doesn't let
+	// the author read it later: the same as the property value API returns a write.
+	t.Run("a value the author may write but not read comes back in the response", func(t *testing.T) {
+		restrictedField, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:          th.groupID,
+			Name:             "f_" + model.NewId(),
+			Type:             model.PropertyFieldTypeText,
+			ObjectType:       model.PropertyFieldObjectTypePost,
+			TargetType:       string(model.PropertyFieldTargetLevelChannel),
+			TargetID:         th.BasicChannel.Id,
+			PermissionValues: model.NewPointer(memberLevel),
+			Permissions: &model.Permissions{Restrictions: &model.Restrictions{
+				Value:  model.ReadWrite{Read: model.PermissionLevelSysadmin, Write: model.PermissionLevelMember},
+				Option: model.ReadWrite{Read: model.PermissionLevelEveryone},
+				Field:  model.WriteOnly{Write: model.PermissionLevelSysadmin},
+			}},
+		}, false, "")
+		require.Nil(t, appErr)
+		t.Cleanup(func() {
+			require.Nil(t, th.App.DeletePropertyField(th.Context, th.groupID, restrictedField.ID, true, ""))
+		})
+
+		created, resp, err := th.Client.CreatePost(context.Background(), postWithPropertyValues(th.BasicChannel.Id,
+			submittedPropertyValue(restrictedField.ID, `"secret"`),
+		))
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		require.NotNil(t, created.Metadata)
+		requirePropertyValues(t, created.Metadata.PropertyValues, map[string]string{restrictedField.ID: `"secret"`})
+		requirePropertyValues(t, th.storedValues(t, created.Id), map[string]string{restrictedField.ID: `"secret"`})
+	})
+
 	t.Run("a sysadmin-level field is refused for a member and accepted for a sysadmin", func(t *testing.T) {
 		field := th.createField(t, model.PropertyFieldTargetLevelChannel, th.BasicChannel.Id, model.PermissionLevelSysadmin)
 
