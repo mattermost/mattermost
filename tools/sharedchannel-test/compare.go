@@ -120,7 +120,8 @@ func setDiff(x, y []string) []string {
 // waitForChannelsToMatch polls both servers until channel B matches channel A or
 // the timeout passes, and then returns the remaining differences. A failed read
 // is retried until the timeout, since a server can briefly fail a request while
-// it is busy syncing.
+// it is busy syncing. Each attempt is cut short at the timeout and no retry
+// starts too close to it, so the call never runs past it.
 func (tr *TestRunner) waitForChannelsToMatch(ctx context.Context, channelA, channelB string, labels map[string]string,
 	timeout time.Duration) ([]string, error) {
 	deadline := time.Now().Add(timeout)
@@ -128,7 +129,7 @@ func (tr *TestRunner) waitForChannelsToMatch(ctx context.Context, channelA, chan
 	var fetchErr error
 	for {
 		// Bound each attempt, since the API clients have no request timeout.
-		attemptCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+		attemptCtx, cancel := context.WithTimeout(ctx, min(30*time.Second, time.Until(deadline)))
 		a, errA := fetchChannelState(attemptCtx, tr.clientA, channelA)
 		b, errB := fetchChannelState(attemptCtx, tr.clientB, channelB)
 		cancel()
@@ -139,7 +140,9 @@ func (tr *TestRunner) waitForChannelsToMatch(ctx context.Context, channelA, chan
 				return nil, nil
 			}
 		}
-		if time.Now().After(deadline) {
+		// Retry only while a pause still leaves the next attempt at least 5 seconds,
+		// so a final read can't fail on a timeout of a few milliseconds.
+		if time.Until(deadline) <= 10*time.Second {
 			if fetchErr != nil {
 				return nil, fetchErr
 			}

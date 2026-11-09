@@ -86,7 +86,9 @@ func (tr *TestRunner) runCursorRewindTests(ctx context.Context) error {
 		tr.fail("rewind/not-synced-before-rewind", err.Error())
 		return err
 	}
-	stateB, err := fetchChannelState(ctx, tr.clientB, channelB)
+	readCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	stateB, err := fetchChannelState(readCtx, tr.clientB, channelB)
+	cancel()
 	if err != nil {
 		tr.fail("rewind/not-synced-before-rewind", err.Error())
 		return err
@@ -165,7 +167,7 @@ func (tr *TestRunner) setSyncCursor(ctx context.Context, channelA string, update
 	url := strings.TrimRight(tr.cfg.ServerAURL, "/") + "/plugins/" + cursorPluginID + "/cursor"
 
 	// The plugin can take a moment to start after it is enabled, so retry while its
-	// route is missing or failing.
+	// route is missing. Errors from the plugin itself don't clear on retry.
 	client := &http.Client{Timeout: 30 * time.Second}
 	var lastErr error
 	for range 15 {
@@ -187,7 +189,7 @@ func (tr *TestRunner) setSyncCursor(ctx context.Context, channelA string, update
 				return nil
 			}
 			lastErr = fmt.Errorf("set cursor: status %d: %s", resp.StatusCode, strings.TrimSpace(string(msg)))
-			if resp.StatusCode != http.StatusNotFound && resp.StatusCode < http.StatusInternalServerError {
+			if resp.StatusCode != http.StatusNotFound {
 				return lastErr
 			}
 		}

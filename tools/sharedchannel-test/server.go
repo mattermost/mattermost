@@ -166,6 +166,8 @@ func (sm *ServerManager) commonEnv() []string {
 		// The catch-up and rewind tests write more posts than one batch holds, so
 		// they cover sync continuing across batches.
 		"MM_CONNECTEDWORKSPACESSETTINGS_MAXPOSTSPERSYNC=50",
+		// Post reads leave out acknowledgements when post priority is off.
+		"MM_SERVICESETTINGS_POSTPRIORITY=true",
 	}
 }
 
