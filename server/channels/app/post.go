@@ -2680,7 +2680,7 @@ func (a *App) GetPostsByIdsForUser(rctx request.CTX, userID string, postIDs []st
 // prepareBurnOnReadPostsForUser applies the same per-reader burn-on-read handling
 // used by other post reads. Posts removed by that handling are omitted.
 func (a *App) prepareBurnOnReadPostsForUser(rctx request.CTX, posts []*model.Post, userID string) ([]*model.Post, *model.AppError) {
-	if len(posts) == 0 || !a.isBurnOnReadEnabled() {
+	if len(posts) == 0 || !a.Config().FeatureFlags.BurnOnRead || !model.SafeDereference(a.Config().ServiceSettings.EnableBurnOnRead) {
 		return posts, nil
 	}
 
