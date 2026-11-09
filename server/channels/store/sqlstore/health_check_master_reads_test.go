@@ -14,9 +14,10 @@ import (
 )
 
 // TestHealthCheckReadsFromMaster verifies that the reads behind starting a health check run and
-// reloading its results go to master. A client reloads the findings as soon as a run reports
+// reconciling and reloading its results go to master. A client reloads the findings as soon as a run reports
 // success, and Run now decides from the active run whether to start one, so a lagging replica would
-// show a previous run's findings or a finished run as still in progress. The replica is a separate,
+// show a previous run's findings or a finished run as still in progress, and a run started right
+// after another could miss the findings that run created. The replica is a separate,
 // empty database, so a read from it would find nothing.
 func TestHealthCheckReadsFromMaster(t *testing.T) {
 	if testing.Short() {
@@ -59,8 +60,9 @@ func TestHealthCheckReadsFromMaster(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	fingerprint := model.NewId()
 	require.NoError(t, ss.HealthFinding().Upsert([]*model.HealthFinding{{
-		Fingerprint:     model.NewId(),
+		Fingerprint:     fingerprint,
 		Code:            "check_cluster_status",
 		Subject:         "subject",
 		Severity:        "warning",
@@ -86,4 +88,8 @@ func TestHealthCheckReadsFromMaster(t *testing.T) {
 	findings, err := ss.HealthFinding().List(model.HealthFindingFilter{})
 	require.NoError(t, err)
 	require.Len(t, findings, 1, "findings must be read from master, not the empty replica")
+
+	byFingerprint, err := ss.HealthFinding().GetByFingerprints([]string{fingerprint})
+	require.NoError(t, err)
+	require.Len(t, byFingerprint, 1, "the reconciler's findings lookup must read master, not the empty replica")
 }

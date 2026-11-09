@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useCallback, useEffect, useId, useState} from 'react';
+import React, {useCallback, useEffect, useId, useRef, useState} from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 
@@ -114,6 +114,10 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, jobs, action
     const [runId, setRunId] = useState<string | null>(null);
     const run = runId ? jobs[runId] : undefined;
     const [runError, setRunError] = useState<RunError | null>(null);
+
+    // Runs this page has already reported. A job list fetched after a run finishes can still show
+    // it in progress (it may come from a lagging replica), and that run must not be followed again.
+    const finishedRunIds = useRef(new Set<string>());
     const idPrefix = useId();
     const panelId = `${idPrefix}-panel`;
 
@@ -124,13 +128,28 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, jobs, action
             setLoading(false);
         });
 
-        // Pick up a run that is already going, whoever started it, so the page shows it running.
-        actions.getJobsByType('health_check', 0, 1).then(({data}) => {
-            if (data?.[0] && isRunActive(data[0])) {
-                setRunId((current) => current ?? data[0].id);
-            }
-        });
+        // Loads the latest run into the store, where the effect below picks it up if it is still going.
+        actions.getJobsByType('health_check', 0, 1);
     }, [actions]);
+
+    // Follows a run that is going while the page isn't following one, whoever started it: the run
+    // found on page load, or one started later by another admin, mmctl or the scheduler, whose
+    // job_updated events put it in the store. This also catches a run the page-load lookup missed
+    // because it read a lagging replica.
+    useEffect(() => {
+        if (runId) {
+            return;
+        }
+        let newest: Job | undefined;
+        for (const job of Object.values(jobs)) {
+            if (job.type === 'health_check' && !finishedRunIds.current.has(job.id) && isRunActive(job) && (!newest || job.create_at > newest.create_at)) {
+                newest = job;
+            }
+        }
+        if (newest) {
+            setRunId(newest.id);
+        }
+    }, [runId, jobs]);
 
     // Reports a finished run: fresh findings on success, the job's error otherwise. A failed reload
     // keeps the findings on screen rather than replacing the page with the load error.
@@ -153,6 +172,7 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, jobs, action
     // job_updated events, by startRun and by the backstop below.
     useEffect(() => {
         if (run && !isRunActive(run)) {
+            finishedRunIds.current.add(run.id);
             setRunId(null);
             finishRun(run);
         }

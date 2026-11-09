@@ -404,6 +404,14 @@ func cancelJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// A health check run can't be stopped: its worker doesn't watch for cancellation, so a
+	// cancel_requested run keeps going while no longer counting as active, and another run could
+	// start alongside it.
+	if job.Type == model.JobTypeHealthCheck {
+		c.Err = model.NewAppError("unableToCancelJob", "api.job.cancel.not_supported", nil, "type="+job.Type, http.StatusBadRequest)
+		return
+	}
+
 	if err := c.App.CancelJob(c.AppContext, c.Params.JobId); err != nil {
 		c.Err = err
 		return

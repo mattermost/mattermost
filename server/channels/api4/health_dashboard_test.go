@@ -566,6 +566,16 @@ func TestHealthCheckRun(t *testing.T) {
 		assert.Len(t, healthCheckJobs(t, th), 1)
 	})
 
+	t.Run("the run can't be canceled", func(t *testing.T) {
+		resp, err := client.CancelJob(context.Background(), first.Id)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+
+		got, _, err := client.GetJob(context.Background(), first.Id)
+		require.NoError(t, err)
+		assert.Equal(t, model.JobStatusInProgress, got.Status)
+	})
+
 	t.Run("the run is followed through GET /api/v4/jobs/{id}", func(t *testing.T) {
 		first.Status = model.JobStatusError
 		first.Data = map[string]string{"error": "collect failed"}

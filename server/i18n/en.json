@@ -3324,6 +3324,11 @@
     "description": "Generic lowercase API error for a low-level input/output failure; developer/log audience."
   },
   {
+    "id": "api.job.cancel.not_supported",
+    "translation": "Jobs of this type can't be canceled.",
+    "description": "Admin API error when a request tries to cancel a background job whose type does not support cancellation, such as a health check run."
+  },
+  {
     "id": "api.job.retrieve.nopermissions",
     "translation": "The job type of the job you are trying to retrieve does not have permissions defined.",
     "description": "Admin API error when a background job's type has no permission metadata defined, so access cannot be checked; developer-leaning register."

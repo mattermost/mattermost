@@ -738,6 +738,47 @@ describe('components/admin_console/health_dashboard', () => {
             expect(runButton()).toBeEnabled();
         });
 
+        test('follows a run started elsewhere after the page loaded, and refreshes the findings when it succeeds', async () => {
+            const {store} = await renderRunDashboard(stale);
+            const getHealthFindings = jest.spyOn(Client4, 'getHealthFindings').mockResolvedValue(fresh);
+            getHealthFindings.mockClear();
+            expect(runButton()).toBeEnabled();
+
+            // The page-load lookup found nothing, e.g. because it read a lagging replica, or the run
+            // was started afterwards by another admin, mmctl or the scheduler.
+            await jobUpdated(store, makeRun('pending', {id: 'elsewhere'}));
+            expect(runButton()).toHaveTextContent('Running checks…');
+            expect(runButton()).toBeDisabled();
+
+            await jobUpdated(store, makeRun('success', {id: 'elsewhere'}));
+            expect(await screen.findByText('Fresh finding')).toBeInTheDocument();
+            expect(getHealthFindings).toHaveBeenCalledTimes(1);
+            expect(runButton()).toBeEnabled();
+        });
+
+        test('does not follow a finished run again when an outdated copy says it is still in progress', async () => {
+            const user = setupUser();
+            const {store} = await renderRunDashboard(stale);
+            const getHealthFindings = jest.spyOn(Client4, 'getHealthFindings').mockResolvedValue(fresh);
+
+            await startRun(user);
+            await jobUpdated(store, makeRun('success'));
+            expect(await screen.findByText('Fresh finding')).toBeInTheDocument();
+            getHealthFindings.mockClear();
+
+            // e.g. the job list re-fetched after the run finished, read from a lagging replica.
+            await jobUpdated(store, makeRun('in_progress'));
+            expect(runButton()).toBeEnabled();
+            expect(getHealthFindings).not.toHaveBeenCalled();
+        });
+
+        test('does not follow jobs of other types', async () => {
+            const {store} = await renderRunDashboard(stale);
+
+            await jobUpdated(store, makeRun('in_progress', {id: 'indexing', type: 'elasticsearch_post_indexing'}));
+            expect(runButton()).toBeEnabled();
+        });
+
         test('does not follow a run that had already finished when the page loaded', async () => {
             jest.spyOn(Client4, 'getJobsByType').mockResolvedValue([makeRun('error', {data: {error: 'old failure'}})]);
             const getJob = jest.spyOn(Client4, 'getJob');

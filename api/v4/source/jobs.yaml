@@ -216,6 +216,8 @@
         - `create_ldap_sync_job` — `ldap_sync`
         - `manage_jobs` — `migrations`, `plugins`, `product_notices`, `expiry_notify`, `active_users`, `import_process`, `import_delete`, `export_process`, `export_delete`, `cloud`, `extract_content`
         - `access_control_sync` — `manage_system`, or `manage_channel_access_rules` / `manage_team_access_rules` for scoped jobs as when creating
+
+        `health_check` jobs can't be canceled. Canceling one returns 400.
       operationId: CancelJob
       parameters:
         - name: job_id
