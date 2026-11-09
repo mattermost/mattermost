@@ -326,22 +326,6 @@ func clearRefusal(field *model.PropertyField) error {
 	return nil
 }
 
-// refuseLockedRowDelete refuses deleting the value row id when its field refuses clears. A null
-// row is refused too: a by-ID delete can't be made conditional on the value, so letting a null
-// row go would let it race a first write and make a second "first" write possible.
-func (h *AccessControlAttributeValidationHook) refuseLockedRowDelete(rctx request.CTX, groupID, id string) error {
-	master := store.RequestContextWithMaster(rctx)
-	rows, err := h.propertyService.searchPropertyValues(master, groupID, model.PropertyValueSearchOpts{IDs: []string{id}, PerPage: 1})
-	if err != nil {
-		return fmt.Errorf("failed to read value %s before deleting it: %w", id, err)
-	}
-	// No live row: nothing to protect, and the store handles the missing ID.
-	if len(rows) == 0 {
-		return nil
-	}
-	return h.refuseLockedFieldClear(master, groupID, rows[0].FieldID)
-}
-
 // refuseLockedFieldClear returns the field's clearRefusal, reading the field from master.
 func (h *AccessControlAttributeValidationHook) refuseLockedFieldClear(master request.CTX, groupID, fieldID string) error {
 	fields, err := h.propertyService.getPropertyFields(master, groupID, []string{fieldID})

@@ -848,16 +848,6 @@ func TestEnforceParentRules(t *testing.T) {
 			assert.NotContains(t, appErr.Error(), secret)
 		}
 	})
-
-	t.Run("a field with only parent rules records nothing", func(t *testing.T) {
-		t.Cleanup(func() { recorder.record = nil })
-		setSystem(opt("optmid"))
-		target := model.NewId()
-		recorder.record = func(c *valueWriteConditions) {
-			assert.Empty(t, c.read)
-		}
-		require.NoError(t, write(channelField, model.PropertyValueTargetTypeChannel, target, opt("optlow")))
-	})
 }
 
 func TestClearRefusal(t *testing.T) {
@@ -1033,6 +1023,48 @@ func TestRefuseLockedDeletes(t *testing.T) {
 		target := model.NewId()
 		seed(parentOnlyChannel, channel, target, `"optlow"`)
 		require.NoError(t, th.service.DeletePropertyValuesForField(rctx, groupID, parentOnlyChannel.ID))
+		assert.Equal(t, "", stored(parentOnlyChannel, target))
+	})
+
+	// Plugins pass "" for the group; the delete is judged by the group of what it deletes.
+	t.Run("a delete naming no group still refuses a write-once row", func(t *testing.T) {
+		f, target := newWriteOnce(), model.NewId()
+		set := seed(f, channel, target, `"a"`)
+		requireAppErrorID(t, th.service.DeletePropertyValue(rctx, "", set.ID), writeOnceID, http.StatusForbidden)
+		assert.Equal(t, `"a"`, stored(f, target))
+	})
+
+	t.Run("a delete naming no group deletes a row of a field with only a parent rule", func(t *testing.T) {
+		target := model.NewId()
+		row := seed(parentOnlyChannel, channel, target, `"optlow"`)
+		require.NoError(t, th.service.DeletePropertyValue(rctx, "", row.ID))
+		assert.Equal(t, "", stored(parentOnlyChannel, target))
+	})
+
+	t.Run("a bulk delete naming no group still refuses a raise-only user's values", func(t *testing.T) {
+		target := model.NewId()
+		seed(raiseOnlyUser, user, target, `"optmid"`)
+		err := th.service.DeletePropertyValuesForTarget(rctx, "", user, target)
+		requireAppErrorID(t, err, violatedID, http.StatusForbidden)
+		assert.Equal(t, `"optmid"`, stored(raiseOnlyUser, target))
+	})
+
+	t.Run("a bulk delete naming no group keeps a null write-once row and deletes the rest", func(t *testing.T) {
+		f, target := newWriteOnce(), model.NewId()
+		seed(f, channel, target, `null`)
+		seed(mutableChannel, channel, target, `"m"`)
+
+		require.NoError(t, th.service.DeletePropertyValuesForTarget(rctx, "", channel, target))
+		assert.Equal(t, "", stored(mutableChannel, target))
+		assert.Equal(t, `null`, stored(f, target))
+	})
+
+	t.Run("deleting every value of a field naming no group follows the field's lock", func(t *testing.T) {
+		requireAppErrorID(t, th.service.DeletePropertyValuesForField(rctx, "", newWriteOnce().ID), writeOnceID, http.StatusForbidden)
+
+		target := model.NewId()
+		seed(parentOnlyChannel, channel, target, `"optlow"`)
+		require.NoError(t, th.service.DeletePropertyValuesForField(rctx, "", parentOnlyChannel.ID))
 		assert.Equal(t, "", stored(parentOnlyChannel, target))
 	})
 }
