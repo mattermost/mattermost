@@ -2221,6 +2221,15 @@ func TestUpdatePost(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 
+	t.Run("unknown post", func(t *testing.T) {
+		unknownPost := rpost.Clone()
+		unknownPost.Id = GenerateTestID()
+		_, resp, err := client.UpdatePost(context.Background(), unknownPost.Id, unknownPost)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+		CheckErrorID(t, err, "app.post.get.app_error")
+	})
+
 	t.Run("logged out", func(t *testing.T) {
 		_, err := client.Logout(context.Background())
 		require.NoError(t, err)
@@ -2706,7 +2715,20 @@ func TestPatchPost(t *testing.T) {
 		patch := &model.PostPatch{}
 		_, resp, err = client.PatchPost(context.Background(), GenerateTestID(), patch)
 		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
+		CheckNotFoundStatus(t, resp)
+		CheckErrorID(t, err, "app.post.get.app_error")
+	})
+
+	t.Run("deleted post", func(t *testing.T) {
+		deletedPost, _, err := client.CreatePost(context.Background(), &model.Post{ChannelId: channel.Id, Message: "to be deleted"})
+		require.NoError(t, err)
+		_, err = client.DeletePost(context.Background(), deletedPost.Id)
+		require.NoError(t, err)
+
+		_, resp, err := client.PatchPost(context.Background(), deletedPost.Id, &model.PostPatch{Message: new("edited")})
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+		CheckErrorID(t, err, "app.post.get.app_error")
 	})
 
 	t.Run("logged out", func(t *testing.T) {
@@ -3484,7 +3506,15 @@ func TestPinPost(t *testing.T) {
 
 	resp, err = client.PinPost(context.Background(), GenerateTestID())
 	require.Error(t, err)
+	CheckNotFoundStatus(t, resp)
+	CheckErrorID(t, err, "app.post.get.app_error")
+
+	privateChannel := th.CreateChannelWithClient(t, th.SystemAdminClient, model.ChannelTypePrivate)
+	unreadablePost := th.CreatePostWithClient(t, th.SystemAdminClient, privateChannel)
+	resp, err = client.PinPost(context.Background(), unreadablePost.Id)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
+	CheckErrorID(t, err, "api.context.permissions.app_error")
 
 	_, err = client.Logout(context.Background())
 	require.NoError(t, err)
@@ -3549,7 +3579,15 @@ func TestUnpinPost(t *testing.T) {
 
 	resp, err = client.UnpinPost(context.Background(), GenerateTestID())
 	require.Error(t, err)
+	CheckNotFoundStatus(t, resp)
+	CheckErrorID(t, err, "app.post.get.app_error")
+
+	privateChannel := th.CreateChannelWithClient(t, th.SystemAdminClient, model.ChannelTypePrivate)
+	unreadablePost := th.CreatePostWithClient(t, th.SystemAdminClient, privateChannel)
+	resp, err = client.UnpinPost(context.Background(), unreadablePost.Id)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
+	CheckErrorID(t, err, "api.context.permissions.app_error")
 
 	_, err = client.Logout(context.Background())
 	require.NoError(t, err)
@@ -6727,6 +6765,13 @@ func TestGetEditHistoryForPost(t *testing.T) {
 		require.Equal(t, "new message", history[1].Message)
 	})
 
+	t.Run("unknown post", func(t *testing.T) {
+		_, resp, err := client.GetEditHistoryForPost(context.Background(), GenerateTestID())
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+		CheckErrorID(t, err, "app.post.get.app_error")
+	})
+
 	t.Run("logged out", func(t *testing.T) {
 		_, err := client.Logout(context.Background())
 		require.NoError(t, err)
@@ -7793,7 +7838,8 @@ func TestRestorePostVersion(t *testing.T) {
 	t.Run("should get error when trying to restore non existent post ori history ID", func(t *testing.T) {
 		restoredPost, response, err := client.RestorePostVersion(context.Background(), model.NewId(), model.NewId())
 		require.Error(t, err)
-		CheckForbiddenStatus(t, response)
+		CheckNotFoundStatus(t, response)
+		CheckErrorID(t, err, "app.post.get.app_error")
 		require.Nil(t, restoredPost)
 
 		post := &model.Post{
@@ -7808,7 +7854,8 @@ func TestRestorePostVersion(t *testing.T) {
 
 		restoredPost, response, err = client.RestorePostVersion(context.Background(), createdPost.Id, model.NewId())
 		require.Error(t, err)
-		CheckForbiddenStatus(t, response)
+		CheckNotFoundStatus(t, response)
+		CheckErrorID(t, err, "app.post.get.app_error")
 		require.Nil(t, restoredPost)
 
 		post2 := &model.Post{
