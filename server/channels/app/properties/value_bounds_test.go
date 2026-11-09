@@ -1205,18 +1205,25 @@ func TestRefuseContainedValuesOutOfBounds(t *testing.T) {
 	channelType := model.PropertyValueTargetTypeChannel
 
 	type fixture struct {
-		channelField, postField *model.PropertyField
+		systemField, channelField, userField, postField *model.PropertyField
 	}
-	// setup gives each subtest its own group, with the channel field holding no rules and the post
-	// field holding postBounds.
-	setup := func(t *testing.T, postBounds model.PropertyBounds) fixture {
+	// setupAll gives each subtest its own group, with each field holding the bounds passed for it.
+	setupAll := func(t *testing.T, channelBounds, userBounds, postBounds model.PropertyBounds) fixture {
 		t.Helper()
 		groupID, create, _ := boundsSetup(t, th, rctx)
-		create(model.PropertyFieldObjectTypeSystem, nil)
-		f := fixture{channelField: create(model.PropertyFieldObjectTypeChannel, nil)}
-		f.postField = create(model.PropertyFieldObjectTypePost, postBounds)
+		f := fixture{
+			systemField:  create(model.PropertyFieldObjectTypeSystem, nil),
+			channelField: create(model.PropertyFieldObjectTypeChannel, channelBounds),
+			userField:    create(model.PropertyFieldObjectTypeUser, userBounds),
+			postField:    create(model.PropertyFieldObjectTypePost, postBounds),
+		}
 		th.service.AddHook(NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{PropertyFieldBounds: func() bool { return true }}, groupID))
 		return f
+	}
+	// setup leaves the channel and user fields without rules and gives the post field postBounds.
+	setup := func(t *testing.T, postBounds model.PropertyBounds) fixture {
+		t.Helper()
+		return setupAll(t, nil, nil, postBounds)
 	}
 	// seed writes straight to the store, past the hooks.
 	seed := func(f *model.PropertyField, targetType, targetID, raw string) {
@@ -1372,5 +1379,101 @@ func TestRefuseContainedValuesOutOfBounds(t *testing.T) {
 			assert.NotContains(t, appErr.DetailedError, secret)
 			assert.NotContains(t, appErr.Error(), secret)
 		}
+	})
+
+	// systemWrite writes the server's value; "" clears it.
+	systemWrite := func(f fixture, raw string) error {
+		_, err := th.service.UpsertPropertyValue(rctx, &model.PropertyValue{GroupID: f.systemField.GroupID, FieldID: f.systemField.ID, TargetType: model.PropertyValueTargetTypeSystem, TargetID: model.PropertyValueSystemTargetID, Value: json.RawMessage(raw)})
+		return err
+	}
+	seedSystem := func(f fixture, optionID string) {
+		t.Helper()
+		seed(f.systemField, model.PropertyValueTargetTypeSystem, model.PropertyValueSystemTargetID, `"`+optionID+`"`)
+	}
+	systemStored := func(f fixture) string {
+		t.Helper()
+		vals, err := th.dbStore.PropertyValue().SearchPropertyValues(rctx, model.PropertyValueSearchOpts{GroupID: f.systemField.GroupID, FieldID: f.systemField.ID, PerPage: 10})
+		require.NoError(t, err)
+		if len(vals) == 0 {
+			return ""
+		}
+		return string(vals[0].Value)
+	}
+
+	t.Run("lowering the server below a channel is refused", func(t *testing.T) {
+		f := setupAll(t, below, nil, nil)
+		seedSystem(f, "opthigh")
+		a := channel(f, "optmid")
+		channel(f, "optlow")
+
+		err := systemWrite(f, `"optlow"`)
+		requireAppErrorID(t, err, containedID, http.StatusConflict)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		assert.Contains(t, appErr.DetailedError, ": 1 contained values")
+		assert.Contains(t, appErr.DetailedError, "e.g. "+a)
+		assert.Equal(t, `"opthigh"`, systemStored(f))
+
+		require.NoError(t, systemWrite(f, `"optmid"`))
+		require.NoError(t, systemWrite(f, `null`))
+	})
+
+	t.Run("setting the server where there was none is checked", func(t *testing.T) {
+		f := setupAll(t, below, nil, nil)
+		channel(f, "opthigh")
+		requireAppErrorID(t, systemWrite(f, `"optmid"`), containedID, http.StatusConflict)
+		assert.Equal(t, "", systemStored(f))
+		require.NoError(t, systemWrite(f, `"opthigh"`))
+	})
+
+	t.Run("lowering the server below a user is refused", func(t *testing.T) {
+		f := setupAll(t, nil, below, nil)
+		seedSystem(f, "opthigh")
+		u := th.CreateUser(t)
+		seed(f.userField, model.PropertyValueTargetTypeUser, u.Id, `"opthigh"`)
+		err := systemWrite(f, `"optmid"`)
+		requireAppErrorID(t, err, containedID, http.StatusConflict)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		assert.Contains(t, appErr.DetailedError, "e.g. "+u.Id)
+	})
+
+	t.Run("posts in channels with no value are held to the server", func(t *testing.T) {
+		f := setupAll(t, below, nil, below)
+		seedSystem(f, "opthigh")
+		a, z := channel(f, "optmid"), channel(f, "")
+		post(f, a, "optmid")
+		zPost := post(f, z, "opthigh")
+
+		err := systemWrite(f, `"optmid"`)
+		requireAppErrorID(t, err, containedID, http.StatusConflict)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		assert.Contains(t, appErr.DetailedError, ": 1 contained values")
+		assert.Contains(t, appErr.DetailedError, "e.g. "+zPost)
+	})
+
+	t.Run("a channel field with no rule leaves its channels and posts free", func(t *testing.T) {
+		f := setupAll(t, nil, nil, below)
+		seedSystem(f, "opthigh")
+		a, z := channel(f, "opthigh"), channel(f, "")
+		post(f, a, "opthigh")
+		post(f, z, "opthigh")
+		require.NoError(t, systemWrite(f, `"optlow"`))
+	})
+
+	t.Run("a post in a channel with a value is held to the channel, not the server", func(t *testing.T) {
+		f := setupAll(t, below, nil, below)
+		seedSystem(f, "opthigh")
+		a := channel(f, "optmid")
+		post(f, a, "opthigh")
+		require.NoError(t, systemWrite(f, `"optmid"`))
+	})
+
+	t.Run("re-saving the server's stored value is never refused", func(t *testing.T) {
+		f := setupAll(t, below, nil, nil)
+		seedSystem(f, "optmid")
+		channel(f, "opthigh")
+		require.NoError(t, systemWrite(f, `"optmid"`))
 	})
 }
