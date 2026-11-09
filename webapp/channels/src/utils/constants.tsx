@@ -1969,6 +1969,7 @@ export const Constants = {
         stylus: {name: 'Stylus', extensions: ['styl'], aliases: ['styl']},
         swift: {name: 'Swift', extensions: ['swift']},
         text: {name: 'Text', extensions: ['txt', 'log'], aliases: ['txt']},
+        toml: {name: 'TOML', extensions: ['toml']},
         typescript: {name: 'TypeScript', extensions: ['ts', 'tsx'], aliases: ['ts', 'tsx']},
         vbnet: {name: 'VB.Net', extensions: ['vbnet', 'vb', 'bas'], aliases: ['vb', 'visualbasic']},
         vbscript: {name: 'VBScript', extensions: ['vbs'], aliases: ['vbs']},

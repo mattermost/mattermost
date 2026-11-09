@@ -179,6 +179,7 @@ async function registerLanguage(languageName: string) {
         sql: () => import('highlight.js/lib/languages/sql'),
         stylus: () => import('highlight.js/lib/languages/stylus'),
         swift: () => import('highlight.js/lib/languages/swift'),
+        toml: () => import('highlight.js/lib/languages/ini'),
         typescript: () => import('highlight.js/lib/languages/typescript'),
         vbnet: () => import('highlight.js/lib/languages/vbnet'),
         vbscript: () => import('highlight.js/lib/languages/vbscript'),
