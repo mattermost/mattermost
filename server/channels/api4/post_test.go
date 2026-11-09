@@ -2720,15 +2720,15 @@ func TestPatchPost(t *testing.T) {
 	})
 
 	t.Run("deleted post", func(t *testing.T) {
-		deletedPost, _, err := client.CreatePost(context.Background(), &model.Post{ChannelId: channel.Id, Message: "to be deleted"})
-		require.NoError(t, err)
-		_, err = client.DeletePost(context.Background(), deletedPost.Id)
-		require.NoError(t, err)
+		deletedPost, _, createErr := client.CreatePost(context.Background(), &model.Post{ChannelId: channel.Id, Message: "to be deleted"})
+		require.NoError(t, createErr)
+		_, deleteErr := client.DeletePost(context.Background(), deletedPost.Id)
+		require.NoError(t, deleteErr)
 
-		_, resp, err := client.PatchPost(context.Background(), deletedPost.Id, &model.PostPatch{Message: new("edited")})
-		require.Error(t, err)
-		CheckNotFoundStatus(t, resp)
-		CheckErrorID(t, err, "app.post.get.app_error")
+		_, patchResp, patchErr := client.PatchPost(context.Background(), deletedPost.Id, &model.PostPatch{Message: new("edited")})
+		require.Error(t, patchErr)
+		CheckNotFoundStatus(t, patchResp)
+		CheckErrorID(t, patchErr, "app.post.get.app_error")
 	})
 
 	t.Run("logged out", func(t *testing.T) {
@@ -7854,8 +7854,7 @@ func TestRestorePostVersion(t *testing.T) {
 
 		restoredPost, response, err = client.RestorePostVersion(context.Background(), createdPost.Id, model.NewId())
 		require.Error(t, err)
-		CheckNotFoundStatus(t, response)
-		CheckErrorID(t, err, "app.post.get.app_error")
+		CheckForbiddenStatus(t, response)
 		require.Nil(t, restoredPost)
 
 		post2 := &model.Post{
