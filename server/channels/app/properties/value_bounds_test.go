@@ -1792,5 +1792,28 @@ func TestBoundsEnforcementByLicense(t *testing.T) {
 			assert.Equal(t, "", stored(f.below, target))
 			assert.Empty(t, *f.events)
 		})
+
+		// The bounds check is the last refusal, so a delete another rule refuses leaves no audit record.
+		t.Run(l.name+"/a delete by ID of a locked required value is refused as required, unaudited", func(t *testing.T) {
+			f := setup(t, l.provider)
+			required := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+				GroupID:    f.groupID,
+				ObjectType: model.PropertyFieldObjectTypeChannel,
+				TargetType: string(model.PropertyFieldTargetLevelSystem),
+				Type:       model.PropertyFieldTypeText,
+				Name:       "f " + model.NewId(),
+				Mutability: model.PropertyFieldMutabilityWriteOnce,
+				Attrs:      model.StringInterface{model.PropertyFieldAttrRequired: true},
+			})
+			target := model.NewId()
+			seed(required, channelType, target, `"a"`)
+
+			err := th.service.DeletePropertyValue(rctx, f.groupID, rowOf(required, target).ID)
+			var appErr *model.AppError
+			require.ErrorAs(t, err, &appErr)
+			assert.Equal(t, "app.property_value.required.app_error", appErr.Id)
+			assert.Equal(t, `"a"`, stored(required, target))
+			assert.Empty(t, *f.events)
+		})
 	}
 }

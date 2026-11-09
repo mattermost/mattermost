@@ -1666,17 +1666,18 @@ func (h *AccessControlAttributeValidationHook) PreDeletePropertyValue(rctx reque
 		return nil
 	}
 
-	// A null row is refused too: a by-ID delete can't be made conditional on the value, so
-	// letting a null row go would let it race a first write and make a second "first" write possible.
-	if err := h.refuseLockedFieldClear(master, groupID, value.FieldID, value); err != nil {
-		return err
-	}
 	// A delete is a clear, so a participant must not be able to use it to strip
 	// a DM/GM marking that they could not have written in the first place.
 	if dcErr := h.refuseDirectChannelValueWrite(rctx, []*model.PropertyValue{value}); dcErr != nil {
 		return dcErr
 	}
-	return h.refuseGovernedDelete(rctx, groupID, []*model.PropertyValue{value})
+	if err := h.refuseGovernedDelete(rctx, groupID, []*model.PropertyValue{value}); err != nil {
+		return err
+	}
+	// Last, so a bounds_not_enforced audit record only follows a delete nothing else refused.
+	// A null row is refused too: a by-ID delete can't be made conditional on the value, so
+	// letting a null row go would let it race a first write and make a second "first" write possible.
+	return h.refuseLockedFieldClear(master, groupID, value.FieldID, value)
 }
 
 // PreDeletePropertyValuesForField refuses wiping every value of a field that refuses clears. It
@@ -1721,11 +1722,8 @@ func (h *AccessControlAttributeValidationHook) PreDeletePropertyValuesForTarget(
 }
 
 func (h *AccessControlAttributeValidationHook) preDeleteValuesForTargetInGroup(rctx request.CTX, groupID string, targetType string, targetID string) error {
-	if err := h.refuseLockedTargetDelete(rctx, groupID, targetType, targetID); err != nil {
-		return err
-	}
 	if targetType != model.PropertyValueTargetTypeChannel {
-		return nil
+		return h.refuseLockedTargetDelete(rctx, groupID, targetType, targetID)
 	}
 	// Checked against a synthetic value so a refusal costs no value load; the
 	// rule only reads TargetType and TargetID.
@@ -1739,7 +1737,11 @@ func (h *AccessControlAttributeValidationHook) preDeleteValuesForTargetInGroup(r
 	if err != nil {
 		return err
 	}
-	return h.refuseGovernedDelete(rctx, groupID, values)
+	if err := h.refuseGovernedDelete(rctx, groupID, values); err != nil {
+		return err
+	}
+	// Last, so a bounds_not_enforced audit record only follows a delete nothing else refused.
+	return h.refuseLockedTargetDelete(rctx, groupID, targetType, targetID)
 }
 
 // refuseGovernedDelete refuses to delete any set channel value that is required,
