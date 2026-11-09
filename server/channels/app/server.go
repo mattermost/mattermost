@@ -165,6 +165,9 @@ type Server struct {
 	// cwsTokenOverride overrides CWS_CLOUD_TOKEN for CWS login authentication.
 	cwsTokenOverride string
 
+	// cwsLoginIDOverride overrides CWS_CLOUD_LOGIN_ID for CWS login authentication.
+	cwsLoginIDOverride string
+
 	// notifyAdminCoolOffDaysOverride overrides MM_NOTIFY_ADMIN_COOL_OFF_DAYS.
 	notifyAdminCoolOffDaysOverride string
 }
@@ -172,6 +175,11 @@ type Server struct {
 // SetCWSTokenOverride sets the CWS token override for CWS login authentication.
 func (s *Server) SetCWSTokenOverride(v string) {
 	s.cwsTokenOverride = v
+}
+
+// SetCWSLoginIDOverride sets the CWS login ID override for CWS login authentication.
+func (s *Server) SetCWSLoginIDOverride(v string) {
+	s.cwsLoginIDOverride = v
 }
 
 // SetNotifyAdminCoolOffDaysOverride sets the cool-off period override for admin notifications.
@@ -1072,7 +1080,7 @@ func (s *Server) Start() error {
 	}
 
 	if s.MailServiceConfig().SendEmailNotifications {
-		if err := mail.TestConnection(s.MailServiceConfig()); err != nil {
+		if err := mail.TestConnection(context.Background(), s.MailServiceConfig()); err != nil {
 			mlog.Error("Mail server connection test failed", mlog.Err(err))
 		}
 	}

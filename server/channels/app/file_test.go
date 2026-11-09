@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"image"
 	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 	"testing"
@@ -21,10 +22,12 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	eMocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine/mocks"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
 func TestGeneratePublicLinkHash(t *testing.T) {
@@ -1226,5 +1229,221 @@ func TestSendFileUploadRejectedEvent(t *testing.T) {
 				return false
 			}
 		}, 1*time.Second, 100*time.Millisecond, "should not publish file_upload_rejected event when userID is empty")
+	})
+}
+
+// TestFileStoreErrorClassification covers the store and file-backend error branches
+// rewritten to errors.AsType. A typed error is recognized through wrapping, a store
+// *AppError is returned as-is, and any other error falls through to the generic one.
+func TestFileStoreErrorClassification(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	requireMapped := func(t *testing.T, got *model.AppError, id string, status int, cause error) {
+		t.Helper()
+		require.NotNil(t, got)
+		assert.Equal(t, id, got.Id)
+		assert.Equal(t, status, got.StatusCode)
+		assert.ErrorIs(t, got, cause)
+	}
+
+	t.Run("connectionTestErrorToAppError", func(t *testing.T) {
+		auth := &filestore.FileBackendAuthError{DetailedError: "InvalidAccessKeyId"}
+		got := connectionTestErrorToAppError(fmt.Errorf("driver: %w", auth))
+		requireMapped(t, got, "api.file.test_connection_auth.app_error", http.StatusInternalServerError, auth)
+		assert.Equal(t, auth.Error(), got.DetailedError)
+
+		// Auth is checked first. A missing-bucket error that wraps an auth error
+		// still takes the auth branch, because errors.As walks the chain.
+		noBucketWrappingAuth := &filestore.FileBackendNoBucketError{Err: auth}
+		got = connectionTestErrorToAppError(noBucketWrappingAuth)
+		requireMapped(t, got, "api.file.test_connection_auth.app_error", http.StatusInternalServerError, auth)
+		assert.Equal(t, auth.Error(), got.DetailedError)
+
+		noBucket := &filestore.FileBackendNoBucketError{Err: errors.New("missing")}
+		got = connectionTestErrorToAppError(fmt.Errorf("driver: %w", noBucket))
+		requireMapped(t, got, "api.file.test_connection_no_bucket.app_error", http.StatusInternalServerError, noBucket)
+		assert.Equal(t, noBucket.Error(), got.DetailedError)
+
+		plain := errors.New("timeout")
+		got = connectionTestErrorToAppError(plain)
+		requireMapped(t, got, "api.file.test_connection.app_error", http.StatusInternalServerError, plain)
+		assert.Equal(t, plain.Error(), got.DetailedError)
+	})
+
+	th := SetupConfigWithStoreMock(t, func(cfg *model.Config) {
+		*cfg.FileSettings.ExtractContent = false
+	})
+	mockStore := th.App.Srv().Store().(*storemocks.Store)
+
+	var fileInfoBinding *mock.Call
+	bindFileInfo := func(fileInfoStore *storemocks.FileInfoStore) {
+		t.Helper()
+		if fileInfoBinding != nil {
+			fileInfoBinding.Unset()
+		}
+		fileInfoBinding = mockStore.On("FileInfo").Return(fileInfoStore)
+	}
+
+	storeAppErr := func() *model.AppError {
+		return model.NewAppError("store", "custom.file.app_error", nil, "", http.StatusTeapot)
+	}
+	notFound := func() error {
+		return fmt.Errorf("query: %w", store.NewErrNotFound("FileInfo", model.NewId()))
+	}
+	plain := func() error {
+		return errors.New("db down")
+	}
+	textFile := func(id string) *model.FileInfo {
+		return &model.FileInfo{Id: id, Name: "notes.txt", MimeType: "text/plain", Path: "notes.txt"}
+	}
+
+	t.Run("UploadFileX", func(t *testing.T) {
+		sent := storeAppErr()
+		fileInfoStore := &storemocks.FileInfoStore{}
+		fileInfoStore.On("Save", mock.Anything, mock.Anything).Return((*model.FileInfo)(nil), fmt.Errorf("save: %w", sent)).Once()
+		bindFileInfo(fileInfoStore)
+		info, got := th.App.UploadFileX(th.Context, model.NewId(), "notes.txt", bytes.NewReader([]byte("hello")))
+		require.Nil(t, info)
+		require.Same(t, sent, got)
+
+		cause := plain()
+		fileInfoStore = &storemocks.FileInfoStore{}
+		fileInfoStore.On("Save", mock.Anything, mock.Anything).Return((*model.FileInfo)(nil), cause).Once()
+		bindFileInfo(fileInfoStore)
+		_, got = th.App.UploadFileX(th.Context, model.NewId(), "notes.txt", bytes.NewReader([]byte("hello")))
+		requireMapped(t, got, "app.file_info.save.app_error", http.StatusInternalServerError, cause)
+	})
+
+	t.Run("DoUploadFileExpectModification", func(t *testing.T) {
+		sent := storeAppErr()
+		fileInfoStore := &storemocks.FileInfoStore{}
+		fileInfoStore.On("Save", mock.Anything, mock.Anything).Return((*model.FileInfo)(nil), fmt.Errorf("save: %w", sent)).Once()
+		bindFileInfo(fileInfoStore)
+		info, _, got := th.App.DoUploadFileExpectModification(th.Context, time.Now(), model.NewId(), model.NewId(), model.NewId(), "notes.txt", []byte("hello"), false)
+		require.Nil(t, info)
+		require.Same(t, sent, got)
+
+		cause := plain()
+		fileInfoStore = &storemocks.FileInfoStore{}
+		fileInfoStore.On("Save", mock.Anything, mock.Anything).Return((*model.FileInfo)(nil), cause).Once()
+		bindFileInfo(fileInfoStore)
+		_, _, got = th.App.DoUploadFileExpectModification(th.Context, time.Now(), model.NewId(), model.NewId(), model.NewId(), "notes.txt", []byte("hello"), false)
+		requireMapped(t, got, "app.file_info.save.app_error", http.StatusInternalServerError, cause)
+	})
+
+	t.Run("GetFileInfo", func(t *testing.T) {
+		fileID := model.NewId()
+		cause := notFound()
+		fileInfoStore := &storemocks.FileInfoStore{}
+		fileInfoStore.On("Get", fileID).Return((*model.FileInfo)(nil), cause).Once()
+		bindFileInfo(fileInfoStore)
+		info, got := th.App.GetFileInfo(th.Context, fileID)
+		require.Nil(t, info)
+		requireMapped(t, got, "app.file_info.get.app_error", http.StatusNotFound, cause)
+
+		cause = plain()
+		fileInfoStore = &storemocks.FileInfoStore{}
+		fileInfoStore.On("Get", fileID).Return((*model.FileInfo)(nil), cause).Once()
+		bindFileInfo(fileInfoStore)
+		_, got = th.App.GetFileInfo(th.Context, fileID)
+		requireMapped(t, got, "app.file_info.get.app_error", http.StatusInternalServerError, cause)
+	})
+
+	t.Run("SetFileSearchableContent", func(t *testing.T) {
+		fileID := model.NewId()
+		cause := notFound()
+		fileInfoStore := &storemocks.FileInfoStore{}
+		fileInfoStore.On("Get", fileID).Return(textFile(fileID), nil).Once()
+		fileInfoStore.On("SetContent", mock.Anything, fileID, "body").Return(cause).Once()
+		bindFileInfo(fileInfoStore)
+		got := th.App.SetFileSearchableContent(th.Context, fileID, "body")
+		requireMapped(t, got, "app.file_info.set_searchable_content.app_error", http.StatusNotFound, cause)
+
+		cause = plain()
+		fileInfoStore = &storemocks.FileInfoStore{}
+		fileInfoStore.On("Get", fileID).Return(textFile(fileID), nil).Once()
+		fileInfoStore.On("SetContent", mock.Anything, fileID, "body").Return(cause).Once()
+		bindFileInfo(fileInfoStore)
+		got = th.App.SetFileSearchableContent(th.Context, fileID, "body")
+		requireMapped(t, got, "app.file_info.set_searchable_content.app_error", http.StatusInternalServerError, cause)
+	})
+
+	t.Run("GetFileInfos", func(t *testing.T) {
+		cause := fmt.Errorf("query: %w", store.NewErrInvalidInput("FileInfo", "Page", -1))
+		fileInfoStore := &storemocks.FileInfoStore{}
+		fileInfoStore.On("GetWithOptions", 0, 10, (*model.GetFileInfosOptions)(nil)).Return(([]*model.FileInfo)(nil), cause).Once()
+		bindFileInfo(fileInfoStore)
+		infos, got := th.App.GetFileInfos(th.Context, 0, 10, nil)
+		require.Nil(t, infos)
+		requireMapped(t, got, "app.file_info.get_with_options.app_error", http.StatusBadRequest, cause)
+
+		cause = fmt.Errorf("query: %w", store.NewErrLimitExceeded("files", 10, ""))
+		fileInfoStore = &storemocks.FileInfoStore{}
+		fileInfoStore.On("GetWithOptions", 0, 10, (*model.GetFileInfosOptions)(nil)).Return(([]*model.FileInfo)(nil), cause).Once()
+		bindFileInfo(fileInfoStore)
+		_, got = th.App.GetFileInfos(th.Context, 0, 10, nil)
+		requireMapped(t, got, "app.file_info.get_with_options.app_error", http.StatusBadRequest, cause)
+
+		cause = plain()
+		fileInfoStore = &storemocks.FileInfoStore{}
+		fileInfoStore.On("GetWithOptions", 0, 10, (*model.GetFileInfosOptions)(nil)).Return(([]*model.FileInfo)(nil), cause).Once()
+		bindFileInfo(fileInfoStore)
+		_, got = th.App.GetFileInfos(th.Context, 0, 10, nil)
+		requireMapped(t, got, "app.file_info.get_with_options.app_error", http.StatusInternalServerError, cause)
+	})
+
+	t.Run("CopyFileInfos", func(t *testing.T) {
+		fileID := model.NewId()
+		userID := model.NewId()
+		cause := notFound()
+		fileInfoStore := &storemocks.FileInfoStore{}
+		fileInfoStore.On("Get", fileID).Return((*model.FileInfo)(nil), cause).Once()
+		bindFileInfo(fileInfoStore)
+		ids, got := th.App.CopyFileInfos(th.Context, userID, []string{fileID})
+		require.Nil(t, ids)
+		requireMapped(t, got, "app.file_info.get.app_error", http.StatusNotFound, cause)
+
+		cause = plain()
+		fileInfoStore = &storemocks.FileInfoStore{}
+		fileInfoStore.On("Get", fileID).Return((*model.FileInfo)(nil), cause).Once()
+		bindFileInfo(fileInfoStore)
+		_, got = th.App.CopyFileInfos(th.Context, userID, []string{fileID})
+		requireMapped(t, got, "app.file_info.get.app_error", http.StatusInternalServerError, cause)
+
+		sent := storeAppErr()
+		fileInfoStore = &storemocks.FileInfoStore{}
+		fileInfoStore.On("Get", fileID).Return(textFile(fileID), nil).Once()
+		fileInfoStore.On("Save", mock.Anything, mock.Anything).Return((*model.FileInfo)(nil), fmt.Errorf("save: %w", sent)).Once()
+		bindFileInfo(fileInfoStore)
+		_, got = th.App.CopyFileInfos(th.Context, userID, []string{fileID})
+		require.Same(t, sent, got)
+
+		cause = plain()
+		fileInfoStore = &storemocks.FileInfoStore{}
+		fileInfoStore.On("Get", fileID).Return(textFile(fileID), nil).Once()
+		fileInfoStore.On("Save", mock.Anything, mock.Anything).Return((*model.FileInfo)(nil), cause).Once()
+		bindFileInfo(fileInfoStore)
+		_, got = th.App.CopyFileInfos(th.Context, userID, []string{fileID})
+		requireMapped(t, got, "app.file_info.save.app_error", http.StatusInternalServerError, cause)
+	})
+
+	t.Run("SearchFilesInTeamForUser", func(t *testing.T) {
+		userID := model.NewId()
+		teamID := model.NewId()
+		sent := storeAppErr()
+		fileInfoStore := &storemocks.FileInfoStore{}
+		fileInfoStore.On("Search", mock.Anything, mock.Anything, userID, teamID, 0, 10).Return((*model.FileInfoList)(nil), fmt.Errorf("search: %w", sent)).Once()
+		bindFileInfo(fileInfoStore)
+		results, allHaveMembership, got := th.App.SearchFilesInTeamForUser(th.Context, "report", userID, teamID, false, false, 0, 0, 10)
+		require.Nil(t, results)
+		assert.False(t, allHaveMembership)
+		require.Same(t, sent, got)
+
+		cause := plain()
+		fileInfoStore = &storemocks.FileInfoStore{}
+		fileInfoStore.On("Search", mock.Anything, mock.Anything, userID, teamID, 0, 10).Return((*model.FileInfoList)(nil), cause).Once()
+		bindFileInfo(fileInfoStore)
+		_, _, got = th.App.SearchFilesInTeamForUser(th.Context, "report", userID, teamID, false, false, 0, 0, 10)
+		requireMapped(t, got, "app.post.search.app_error", http.StatusInternalServerError, cause)
 	})
 }
