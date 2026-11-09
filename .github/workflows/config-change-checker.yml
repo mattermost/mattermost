@@ -19,11 +19,6 @@ on:
     # `edited` is included so retargeting the base branch re-runs the check;
     # the job-level `if` skips edits that don't change the base.
     types: [opened, synchronize, reopened, edited]
-    paths:
-      - 'server/public/model/config.go'
-      - 'server/channels/api4/**'
-      - 'server/public/model/audit_events.go'
-      - 'server/build/Dockerfile.buildenv'
 
 permissions: {}
 
@@ -72,4 +67,5 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           REPO: ${{ github.repository }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: python3 .github/scripts/check_config_changes_ci.py
