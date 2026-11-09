@@ -543,6 +543,50 @@ func TestFilterStaleSessionAttributes(t *testing.T) {
 	})
 }
 
+func TestGetSessionAttributeDeadlines(t *testing.T) {
+	th := Setup(t)
+	sessionID := model.NewId()
+	refreshedAt := model.GetMillis() - 10*1000
+	require.NoError(t, th.App.Srv().Store().SessionAttribute().Refresh(sessionID, map[string]any{
+		model.SessionAttributesPropertyFieldIPAddress: "192.0.2.10",
+		"not_a_session_attribute":                     "ignored",
+	}, refreshedAt))
+
+	t.Run("returns nothing while session attributes are disabled", func(t *testing.T) {
+		deadlines, appErr := th.App.GetSessionAttributeDeadlines(th.Context, sessionID)
+		require.Nil(t, appErr)
+		assert.Nil(t, deadlines)
+	})
+
+	enableSessionAttributesCollection(t, th)
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.SessionAttributesPropertyGroupName)
+	require.Nil(t, appErr)
+	ipField, appErr := th.App.GetPropertyFieldByName(th.Context, group.ID, "", model.SessionAttributesPropertyFieldIPAddress)
+	require.Nil(t, appErr)
+	ipField.Attrs[model.SAAttrTTLSeconds] = 30
+	ipField.Attrs[model.SAAttrGracePeriodSeconds] = 90
+	_, _, appErr = th.App.UpdatePropertyFields(th.Context, group.ID, []*model.PropertyField{ipField}, true, "")
+	require.Nil(t, appErr)
+
+	t.Run("dates each cached attribute from its last refresh by its TTL and grace period", func(t *testing.T) {
+		deadlines, appErr := th.App.GetSessionAttributeDeadlines(th.Context, sessionID)
+		require.Nil(t, appErr)
+		assert.Equal(t, map[string]model.SessionAttributeDeadline{
+			model.SessionAttributesPropertyFieldIPAddress: {
+				StaleAt:   refreshedAt + 30*1000,
+				ExpiresAt: refreshedAt + (30+90)*1000,
+			},
+		}, deadlines)
+	})
+
+	t.Run("returns nothing for a session without cached attributes", func(t *testing.T) {
+		deadlines, appErr := th.App.GetSessionAttributeDeadlines(th.Context, model.NewId())
+		require.Nil(t, appErr)
+		assert.Nil(t, deadlines)
+	})
+}
+
 func TestRevokeAllSessionsInvalidatesSessionAttributes(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	enableSessionAttributesCollection(t, th)
