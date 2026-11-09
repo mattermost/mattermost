@@ -463,6 +463,11 @@ def strip_old_note(body: str) -> str:
             line for line in content.split("\n")
             if not _AUTO_LINE_RE.match(line.strip())
         ]
+        # If only generated lines were in the fence, leave NONE rather than an
+        # empty fence: the changelog tooling treats an empty fence as a missing
+        # release note, but NONE as a deliberate "no note" decision.
+        if not "".join(cleaned_lines).strip() and content.strip():
+            return f"{open_tag}\nNONE\n{close_tag}"
         return open_tag + "\n".join(cleaned_lines) + close_tag
  
     cleaned = re.sub(
