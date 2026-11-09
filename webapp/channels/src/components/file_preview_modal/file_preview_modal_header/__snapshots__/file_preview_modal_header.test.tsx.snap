@@ -35,13 +35,13 @@ exports[`components/file_preview_modal/file_preview_modal_header/FilePreviewModa
     >
       <button
         aria-label="Previous file"
-        class="_icon-button_13ryy_2 _icon-button--size-medium_13ryy_91 _icon-button--padding-compact_13ryy_72 _icon-button--style-inverted_13ryy_159 file-preview-modal__icon-button file_preview_modal_main_nav__prev"
+        class="_icon-button_ft92e_2 _icon-button--size-medium_ft92e_91 _icon-button--padding-compact_ft92e_72 _icon-button--style-inverted_ft92e_162 file-preview-modal__icon-button file_preview_modal_main_nav__prev"
         id="previewArrowLeft"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_13ryy_41"
+          class="_icon-button__icon-slot_ft92e_41"
         >
           <div
             aria-hidden="true"
@@ -75,13 +75,13 @@ exports[`components/file_preview_modal/file_preview_modal_header/FilePreviewModa
       </span>
       <button
         aria-label="Next file"
-        class="_icon-button_13ryy_2 _icon-button--size-medium_13ryy_91 _icon-button--padding-compact_13ryy_72 _icon-button--style-inverted_13ryy_159 file-preview-modal__icon-button file_preview_modal_main_nav__next"
+        class="_icon-button_ft92e_2 _icon-button--size-medium_ft92e_91 _icon-button--padding-compact_ft92e_72 _icon-button--style-inverted_ft92e_162 file-preview-modal__icon-button file_preview_modal_main_nav__next"
         id="previewArrowRight"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_13ryy_41"
+          class="_icon-button__icon-slot_ft92e_41"
         >
           <div
             aria-hidden="true"
@@ -112,12 +112,12 @@ exports[`components/file_preview_modal/file_preview_modal_header/FilePreviewModa
     >
       <button
         aria-label="Copy code"
-        class="_icon-button_13ryy_2 _icon-button--size-medium_13ryy_91 _icon-button--padding-compact_13ryy_72 _icon-button--style-inverted_13ryy_159 file-preview-modal__icon-button"
+        class="_icon-button_ft92e_2 _icon-button--size-medium_ft92e_91 _icon-button--padding-compact_ft92e_72 _icon-button--style-inverted_ft92e_162 file-preview-modal__icon-button"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_13ryy_41"
+          class="_icon-button__icon-slot_ft92e_41"
         >
           <div
             aria-hidden="true"
@@ -144,7 +144,7 @@ exports[`components/file_preview_modal/file_preview_modal_header/FilePreviewModa
       </button>
       <a
         aria-label="Download"
-        class="_icon-button_13ryy_2 _icon-button--size-medium_13ryy_91 _icon-button--padding-compact_13ryy_72 _icon-button--style-inverted_13ryy_159 file-preview-modal__icon-button file-preview-modal-main-actions__download"
+        class="_icon-button_ft92e_2 _icon-button--size-medium_ft92e_91 _icon-button--padding-compact_ft92e_72 _icon-button--style-inverted_ft92e_162 file-preview-modal__icon-button file-preview-modal-main-actions__download"
         download="img.png"
         href="http://example.com/img.png"
         location="file_preview_modal_main_actions"
@@ -153,7 +153,7 @@ exports[`components/file_preview_modal/file_preview_modal_header/FilePreviewModa
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_13ryy_41"
+          class="_icon-button__icon-slot_ft92e_41"
         >
           <div
             aria-hidden="true"
@@ -180,12 +180,12 @@ exports[`components/file_preview_modal/file_preview_modal_header/FilePreviewModa
       </a>
       <button
         aria-label="Close"
-        class="_icon-button_13ryy_2 _icon-button--size-medium_13ryy_91 _icon-button--padding-compact_13ryy_72 _icon-button--style-inverted_13ryy_159 file-preview-modal__icon-button"
+        class="_icon-button_ft92e_2 _icon-button--size-medium_ft92e_91 _icon-button--padding-compact_ft92e_72 _icon-button--style-inverted_ft92e_162 file-preview-modal__icon-button"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_13ryy_41"
+          class="_icon-button__icon-slot_ft92e_41"
         >
           <div
             aria-hidden="true"
@@ -225,12 +225,12 @@ exports[`components/file_preview_modal/file_preview_modal_header/FilePreviewModa
     >
       <button
         aria-label="Close"
-        class="_icon-button_13ryy_2 _icon-button--size-medium_13ryy_91 _icon-button--padding-compact_13ryy_72 _icon-button--style-inverted_13ryy_159 file-preview-modal__icon-button"
+        class="_icon-button_ft92e_2 _icon-button--size-medium_ft92e_91 _icon-button--padding-compact_ft92e_72 _icon-button--style-inverted_ft92e_162 file-preview-modal__icon-button"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_13ryy_41"
+          class="_icon-button__icon-slot_ft92e_41"
         >
           <div
             aria-hidden="true"
@@ -261,13 +261,13 @@ exports[`components/file_preview_modal/file_preview_modal_header/FilePreviewModa
     >
       <button
         aria-label="Previous file"
-        class="_icon-button_13ryy_2 _icon-button--size-medium_13ryy_91 _icon-button--padding-compact_13ryy_72 _icon-button--style-inverted_13ryy_159 file-preview-modal__icon-button file_preview_modal_main_nav__prev"
+        class="_icon-button_ft92e_2 _icon-button--size-medium_ft92e_91 _icon-button--padding-compact_ft92e_72 _icon-button--style-inverted_ft92e_162 file-preview-modal__icon-button file_preview_modal_main_nav__prev"
         id="previewArrowLeft"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_13ryy_41"
+          class="_icon-button__icon-slot_ft92e_41"
         >
           <div
             aria-hidden="true"
@@ -301,13 +301,13 @@ exports[`components/file_preview_modal/file_preview_modal_header/FilePreviewModa
       </span>
       <button
         aria-label="Next file"
-        class="_icon-button_13ryy_2 _icon-button--size-medium_13ryy_91 _icon-button--padding-compact_13ryy_72 _icon-button--style-inverted_13ryy_159 file-preview-modal__icon-button file_preview_modal_main_nav__next"
+        class="_icon-button_ft92e_2 _icon-button--size-medium_ft92e_91 _icon-button--padding-compact_ft92e_72 _icon-button--style-inverted_ft92e_162 file-preview-modal__icon-button file_preview_modal_main_nav__next"
         id="previewArrowRight"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_13ryy_41"
+          class="_icon-button__icon-slot_ft92e_41"
         >
           <div
             aria-hidden="true"

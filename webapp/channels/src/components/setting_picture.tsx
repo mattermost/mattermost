@@ -5,7 +5,10 @@ import React, {Component, createRef} from 'react';
 import type {ChangeEvent, CSSProperties, MouseEvent, ReactNode, RefObject} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {CloseIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import FormError from 'components/form_error';
@@ -221,6 +224,10 @@ export default class SettingPicture extends Component<Props, State> {
                 handler = this.handleSetDefaultSrc;
             }
 
+            const removeAriaLabel = this.props.onRemove ?
+                localizeMessage({id: 'setting_picture.remove', defaultMessage: 'Remove This Icon'}) :
+                localizeMessage({id: 'setting_picture.remove_profile_picture', defaultMessage: 'Remove Profile Picture'});
+
             return (
                 <div className={`${imageContext}-img__container`}>
                     <div
@@ -229,19 +236,22 @@ export default class SettingPicture extends Component<Props, State> {
                     >
                         {imageElement}
                     </div>
-                    <WithTooltip
-                        title={title ?? ''}
-                        disabled={!title}
-                    >
-                        <button
-                            data-testid='removeSettingPicture'
-                            className={`${imageContext}-img__remove`}
-                            onClick={handler}
+                    <div className={`${imageContext}-img__remove`}>
+                        <WithTooltip
+                            title={title ?? ''}
+                            disabled={!title}
                         >
-                            <span aria-hidden={true}>{'×'}</span>
-                            <span className='sr-only'>{title}</span>
-                        </button>
-                    </WithTooltip>
+                            <IconButton
+                                data-testid='removeSettingPicture'
+                                size='x-small'
+                                padding='compact'
+                                rounded={true}
+                                icon={<Icon glyph={<CloseIcon/>}/>}
+                                onClick={handler}
+                                aria-label={removeAriaLabel}
+                            />
+                        </WithTooltip>
+                    </div>
                 </div>
             );
         }

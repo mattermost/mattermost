@@ -273,6 +273,7 @@ jobs:
       - check-changes
     if: needs.resolve-pr.outputs.PR_NUMBER != ''
     permissions:
+      actions: read
       contents: read
       statuses: write
       id-token: write
@@ -302,6 +303,7 @@ jobs:
       - check-changes
     if: needs.resolve-pr.outputs.PR_NUMBER != ''
     permissions:
+      actions: read
       contents: read
       statuses: write
       id-token: write
@@ -329,6 +331,7 @@ jobs:
       - check-changes
     if: needs.resolve-pr.outputs.PR_NUMBER != '' && needs.check-changes.outputs.should_run_subpath == 'true'
     permissions:
+      actions: read
       contents: read
       statuses: write
       id-token: write
@@ -355,6 +358,7 @@ jobs:
       - check-changes
     if: needs.resolve-pr.outputs.PR_NUMBER != '' && needs.check-changes.outputs.should_run_fips == 'true'
     permissions:
+      actions: read
       contents: read
       statuses: write
       id-token: write
@@ -384,6 +388,7 @@ jobs:
       - check-changes
     if: needs.resolve-pr.outputs.PR_NUMBER != '' && needs.check-changes.outputs.should_run_fips == 'true'
     permissions:
+      actions: read
       contents: read
       statuses: write
       id-token: write

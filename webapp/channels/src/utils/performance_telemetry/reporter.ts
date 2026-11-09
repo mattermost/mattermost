@@ -265,9 +265,12 @@ export default class PerformanceReporter {
                 };
             }
         } else if (isINPMetric(metric)) {
-            labels = {
-                interaction: metric.attribution?.interactionType,
-            };
+            const interaction = metric.attribution?.interactionType;
+            if (interaction) {
+                labels = {
+                    interaction,
+                };
+            }
         }
 
         this.histogramMeasures.push({
