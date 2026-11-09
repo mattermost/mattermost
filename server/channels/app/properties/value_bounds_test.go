@@ -737,3 +737,124 @@ func TestEnforceSelfRules(t *testing.T) {
 		assert.Equal(t, opt("opthigh"), stored(raiseOnly, target))
 	})
 }
+
+func TestEnforceParentRules(t *testing.T) {
+	th := Setup(t)
+	rctx := th.Context
+	groupID, create, _ := boundsSetup(t, th, rctx)
+	below := model.PropertyBounds{{Operator: model.PropertyBoundsOperatorAtOrBelow, Reference: model.PropertyBoundsReferenceParent}}
+	above := model.PropertyBounds{{Operator: model.PropertyBoundsOperatorAtOrAbove, Reference: model.PropertyBoundsReferenceParent}}
+	// Made before the hook is registered: it would refuse these fixtures' names.
+	system := create(model.PropertyFieldObjectTypeSystem, nil)
+	channelField := create(model.PropertyFieldObjectTypeChannel, below)
+	userField := create(model.PropertyFieldObjectTypeUser, above)
+	postField := create(model.PropertyFieldObjectTypePost, below)
+
+	postChannels := map[string]string{}
+	resolver := func(_ request.CTX, postID string) (string, error) {
+		if channelID, ok := postChannels[postID]; ok {
+			return channelID, nil
+		}
+		return "", errors.New("no such post")
+	}
+	hook := NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{
+		PropertyFieldBounds: func() bool { return true },
+		PostChannelResolver: resolver,
+	}, groupID)
+	th.service.AddHook(hook)
+	// Registered after the validation hook, so it sees what the hook recorded.
+	recorder := &recordingHook{}
+	th.service.AddHook(recorder)
+
+	opt := func(id string) string { return `"` + id + `"` }
+	// seed writes straight to the store, past the hooks.
+	seed := func(f *model.PropertyField, targetType, targetID, raw string) {
+		_, err := th.dbStore.PropertyValue().Upsert([]*model.PropertyValue{{GroupID: groupID, FieldID: f.ID, TargetType: targetType, TargetID: targetID, Value: json.RawMessage(raw)}})
+		require.NoError(t, err)
+	}
+	// setSystem replaces the one system value every subtest shares; `null` is no value.
+	setSystem := func(raw string) {
+		seed(system, model.PropertyValueTargetTypeSystem, model.PropertyValueSystemTargetID, raw)
+	}
+	write := func(f *model.PropertyField, targetType, targetID, raw string) error {
+		_, err := th.service.UpsertPropertyValue(rctx, &model.PropertyValue{GroupID: groupID, FieldID: f.ID, TargetType: targetType, TargetID: targetID, Value: json.RawMessage(raw)})
+		return err
+	}
+	newPost := func(channelID string) string {
+		postID := model.NewId()
+		postChannels[postID] = channelID
+		return postID
+	}
+	const violatedID = "app.property_value.bounds_violated.app_error"
+	const checkFailedID = "app.property_value.bounds_check_failed.app_error"
+
+	t.Run("a channel is held at or below the system", func(t *testing.T) {
+		setSystem(opt("optmid"))
+		target := model.NewId()
+		err := write(channelField, model.PropertyValueTargetTypeChannel, target, opt("opthigh"))
+		requireAppErrorID(t, err, violatedID, http.StatusForbidden)
+		require.ErrorIs(t, err, errBoundsViolated)
+		require.NoError(t, write(channelField, model.PropertyValueTargetTypeChannel, target, opt("optmid")))
+		require.NoError(t, write(channelField, model.PropertyValueTargetTypeChannel, target, opt("optlow")))
+	})
+
+	t.Run("a system with no value sets no limit", func(t *testing.T) {
+		setSystem(`null`)
+		require.NoError(t, write(channelField, model.PropertyValueTargetTypeChannel, model.NewId(), opt("opthigh")))
+	})
+
+	t.Run("a user is held at or above the system", func(t *testing.T) {
+		setSystem(opt("optmid"))
+		target := model.NewId()
+		requireAppErrorID(t, write(userField, model.PropertyValueTargetTypeUser, target, opt("optlow")), violatedID, http.StatusForbidden)
+		require.NoError(t, write(userField, model.PropertyValueTargetTypeUser, target, opt("opthigh")))
+	})
+
+	t.Run("a post is held to its channel, and clearing needs no lookup", func(t *testing.T) {
+		setSystem(`null`)
+		channelID := model.NewId()
+		seed(channelField, model.PropertyValueTargetTypeChannel, channelID, opt("optlow"))
+		postID := newPost(channelID)
+		requireAppErrorID(t, write(postField, model.PropertyValueTargetTypePost, postID, opt("optmid")), violatedID, http.StatusForbidden)
+		require.NoError(t, write(postField, model.PropertyValueTargetTypePost, postID, opt("optlow")))
+
+		// No entry for postID in the resolver: a lookup would refuse.
+		require.NoError(t, write(postField, model.PropertyValueTargetTypePost, model.NewId(), `null`))
+	})
+
+	t.Run("a channel with no value passes the post up to the system", func(t *testing.T) {
+		setSystem(opt("optmid"))
+		postID := newPost(model.NewId())
+		requireAppErrorID(t, write(postField, model.PropertyValueTargetTypePost, postID, opt("opthigh")), violatedID, http.StatusForbidden)
+		require.NoError(t, write(postField, model.PropertyValueTargetTypePost, postID, opt("optmid")))
+	})
+
+	t.Run("a post whose channel can't be found is refused", func(t *testing.T) {
+		setSystem(opt("optmid"))
+		err := write(postField, model.PropertyValueTargetTypePost, model.NewId(), opt("optlow"))
+		requireAppErrorID(t, err, checkFailedID, http.StatusConflict)
+		require.ErrorIs(t, err, errBoundsCheckFailed)
+	})
+
+	t.Run("a refusal never reveals the parent's value", func(t *testing.T) {
+		setSystem(opt("optmid"))
+		err := write(channelField, model.PropertyValueTargetTypeChannel, model.NewId(), opt("opthigh"))
+		var appErr *model.AppError
+		require.True(t, errors.As(err, &appErr))
+		for _, secret := range []string{"optlow", "optmid", "opthigh"} {
+			assert.NotContains(t, appErr.Message, secret)
+			assert.NotContains(t, appErr.DetailedError, secret)
+			assert.NotContains(t, appErr.Error(), secret)
+		}
+	})
+
+	t.Run("a field with only parent rules records nothing", func(t *testing.T) {
+		t.Cleanup(func() { recorder.record = nil })
+		setSystem(opt("optmid"))
+		target := model.NewId()
+		recorder.record = func(c *valueWriteConditions) {
+			assert.Empty(t, c.read)
+		}
+		require.NoError(t, write(channelField, model.PropertyValueTargetTypeChannel, target, opt("optlow")))
+	})
+}

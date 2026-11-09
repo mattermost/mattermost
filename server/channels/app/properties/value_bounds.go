@@ -219,7 +219,11 @@ func (h *AccessControlAttributeValidationHook) enforceBounds(rctx request.CTX, v
 			case model.PropertyBoundsReferenceSelf:
 				err = checkSelfRule(field, rule, storedValue, next)
 			case model.PropertyBoundsReferenceParent:
-				// Not enforced yet.
+				// Records no read: the container is another object whose value can change between this read
+				// and the write, and that takes two writes within milliseconds, one an admin's.
+				checked := *v
+				checked.Value = next
+				err = h.checkParentRule(store.RequestContextWithMaster(rctx), field, rule, &checked)
 			default:
 				// Save refuses unknown references, so this is bad data; skipping would quietly stop the rule applying.
 				err = fmt.Errorf("field %s: unknown reference %q: %w", field.ID, rule.Reference, errBoundsCheckFailed)
