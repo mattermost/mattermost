@@ -35,6 +35,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
+	"github.com/mattermost/mattermost/server/v8/channels/web"
 	einterfacesmocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
@@ -43,6 +44,7 @@ func enableBurnOnReadFeature(th *TestHelper) {
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.ServiceSettings.EnableBurnOnRead = new(true)
+		cfg.FeatureFlags.BurnOnRead = true
 	})
 }
 
@@ -3236,6 +3238,109 @@ func TestPatchPost(t *testing.T) {
 	})
 }
 
+func TestPatchBurnOnReadPost(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	enableBurnOnReadFeature(th)
+
+	recipientClient := th.CreateClient()
+	th.LoginBasic2WithClient(t, recipientClient)
+
+	createBurnOnReadPost := func(t *testing.T) *model.Post {
+		t.Helper()
+		post, resp, err := th.Client.CreatePost(context.Background(), &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "burn on read https://example.com",
+			Type:      model.PostTypeBurnOnRead,
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		return post
+	}
+
+	removeLinkPreviewPatch := func() *model.PostPatch {
+		return &model.PostPatch{Props: &model.StringInterface{model.PostPropsRemoveLinkPreview: "true"}}
+	}
+
+	t.Run("author can remove the link preview for every viewer", func(t *testing.T) {
+		post := createBurnOnReadPost(t)
+
+		patchedPost, resp, err := th.Client.PatchPost(context.Background(), post.Id, removeLinkPreviewPatch())
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		assert.Equal(t, post.Message, patchedPost.Message)
+		assert.Equal(t, model.PostTypeBurnOnRead, patchedPost.Type)
+		assert.Equal(t, "true", patchedPost.GetProp(model.PostPropsRemoveLinkPreview))
+		assert.Equal(t, post.GetProp(model.PostPropsExpireAt), patchedPost.GetProp(model.PostPropsExpireAt))
+		assert.Equal(t, post.GetProp(model.PostPropsReadDurationSeconds), patchedPost.GetProp(model.PostPropsReadDurationSeconds))
+		assert.Zero(t, patchedPost.EditAt)
+
+		revealedPost, resp, err := recipientClient.RevealPost(context.Background(), post.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		assert.Equal(t, post.Message, revealedPost.Message)
+		assert.Equal(t, "true", revealedPost.GetProp(model.PostPropsRemoveLinkPreview))
+	})
+
+	t.Run("admin removing the link preview does not receive the content", func(t *testing.T) {
+		th.LinkUserToTeam(t, th.SystemAdminUser, th.BasicTeam)
+		th.AddUserToChannel(t, th.SystemAdminUser, th.BasicChannel)
+		post := createBurnOnReadPost(t)
+
+		patchedPost, resp, err := th.SystemAdminClient.PatchPost(context.Background(), post.Id, removeLinkPreviewPatch())
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		assert.Empty(t, patchedPost.Message)
+		assert.Empty(t, patchedPost.FileIds)
+		assert.Equal(t, "true", patchedPost.GetProp(model.PostPropsRemoveLinkPreview))
+
+		revealedPost, _, err := recipientClient.RevealPost(context.Background(), post.Id)
+		require.NoError(t, err)
+		assert.Equal(t, post.Message, revealedPost.Message)
+		assert.Equal(t, "true", revealedPost.GetProp(model.PostPropsRemoveLinkPreview))
+	})
+
+	t.Run("other changes are still rejected", func(t *testing.T) {
+		post := createBurnOnReadPost(t)
+
+		withMessage := removeLinkPreviewPatch()
+		withMessage.Message = new("edited message")
+		withPin := removeLinkPreviewPatch()
+		withPin.IsPinned = new(true)
+
+		for name, patch := range map[string]*model.PostPatch{
+			"message":                     {Message: new("edited message")},
+			"pin":                         {IsPinned: new(true)},
+			"other props":                 {Props: &model.StringInterface{"custom": "value"}},
+			"keep preview":                {Props: &model.StringInterface{model.PostPropsRemoveLinkPreview: "false"}},
+			"remove preview with message": withMessage,
+			"remove preview with pin":     withPin,
+		} {
+			t.Run(name, func(t *testing.T) {
+				_, resp, err := th.Client.PatchPost(context.Background(), post.Id, patch)
+				CheckErrorID(t, err, "api.post.patch_post.can_not_update_burn_on_read_post.error")
+				CheckBadRequestStatus(t, resp)
+			})
+		}
+
+		_, resp, err := th.Client.UpdatePost(context.Background(), post.Id, &model.Post{
+			Id:        post.Id,
+			ChannelId: post.ChannelId,
+			Message:   "edited message",
+			Type:      model.PostTypeBurnOnRead,
+		})
+		CheckErrorID(t, err, "api.post.update_post.burn_on_read.app_error")
+		CheckBadRequestStatus(t, resp)
+
+		revealedPost, _, err := recipientClient.RevealPost(context.Background(), post.Id)
+		require.NoError(t, err)
+		assert.Equal(t, post.Message, revealedPost.Message)
+		assert.False(t, revealedPost.IsPinned)
+		assert.Nil(t, revealedPost.GetProp("custom"))
+	})
+}
+
 func TestPinPost(t *testing.T) {
 	mainHelper.Parallel(t)
 
@@ -3886,6 +3991,7 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 	// Playbooks DB job requires a plugin mock
 	pluginStore := mocks.PluginStore{}
 	pluginStore.On("List", mock.Anything, mock.Anything, mock.Anything).Return([]string{}, nil)
+	pluginStore.On("ListWithOptions", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return([]string{}, nil)
 	mockStore.On("Plugin").Return(&pluginStore)
 
 	th.App.Srv().SetStore(&mockStore)
@@ -5440,6 +5546,223 @@ func TestGetPostThread(t *testing.T) {
 
 	_, _, err = th.SystemAdminClient.GetPostThread(context.Background(), th.BasicPost.Id, "", false)
 	require.NoError(t, err)
+}
+
+func TestGetPostThreadResultCount(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+
+	createThread := func(t *testing.T, replyCount int) *model.Post {
+		root := th.CreatePost(t)
+
+		replies := make([]*model.Post, 0, replyCount)
+		for i := range replyCount {
+			replies = append(replies, &model.Post{
+				UserId:    th.BasicUser.Id,
+				ChannelId: root.ChannelId,
+				RootId:    root.Id,
+				Message:   fmt.Sprintf("reply %d", i),
+			})
+		}
+
+		_, _, nErr := th.App.Srv().Store().Post().SaveMultiple(th.Context, replies)
+		require.NoError(t, nErr)
+
+		return root
+	}
+
+	readThread := func(t *testing.T, as *model.Client4, postID, query string) (*model.PostList, int) {
+		r, err := as.DoAPIGet(context.Background(), "/posts/"+postID+"/thread"+query, "")
+		if r == nil {
+			// Only a transport-level failure leaves no response to report on.
+			require.NoError(t, err)
+		}
+		if err != nil {
+			return nil, r.StatusCode
+		}
+		defer r.Body.Close()
+
+		var list model.PostList
+		require.NoError(t, json.NewDecoder(r.Body).Decode(&list))
+
+		return &list, r.StatusCode
+	}
+
+	shortThread := createThread(t, 5)
+	longThread := createThread(t, web.PerPageMaximum+50)
+
+	// minOrder and maxOrder bracket the number of entries the response may hold: the
+	// upper bound is a page plus the root post, the lower bound keeps a request that
+	// asks for a full page from being answered with a short one.
+	testCases := []struct {
+		description string
+		as          *model.Client4
+		root        *model.Post
+		query       string
+		statusCode  int
+		minOrder    int
+		maxOrder    int
+	}{
+		{
+			description: "whole thread when it fits in a page",
+			root:        shortThread,
+			statusCode:  http.StatusOK,
+			minOrder:    6,
+			maxOrder:    6,
+		},
+		{
+			description: "whole collapsed thread when it fits in a page",
+			root:        shortThread,
+			query:       "?collapsedThreads=true",
+			statusCode:  http.StatusOK,
+			minOrder:    6,
+			maxOrder:    6,
+		},
+		{
+			description: "no page size given",
+			root:        longThread,
+			statusCode:  http.StatusOK,
+			minOrder:    web.PerPageMaximum,
+			maxOrder:    web.PerPageMaximum + 1,
+		},
+		{
+			description: "no page size given for a collapsed thread",
+			root:        longThread,
+			query:       "?collapsedThreads=true",
+			statusCode:  http.StatusOK,
+			minOrder:    web.PerPageMaximum,
+			maxOrder:    web.PerPageMaximum + 1,
+		},
+		{
+			description: "empty page size",
+			root:        longThread,
+			query:       "?perPage=",
+			statusCode:  http.StatusOK,
+			minOrder:    web.PerPageMaximum,
+			maxOrder:    web.PerPageMaximum + 1,
+		},
+		{
+			description: "page size of zero",
+			root:        longThread,
+			query:       "?perPage=0",
+			statusCode:  http.StatusOK,
+			minOrder:    web.PerPageMaximum,
+			maxOrder:    web.PerPageMaximum + 1,
+		},
+		{
+			description: "page size of zero for a collapsed thread",
+			root:        longThread,
+			query:       "?collapsedThreads=true&perPage=0",
+			statusCode:  http.StatusOK,
+			minOrder:    web.PerPageMaximum,
+			maxOrder:    web.PerPageMaximum + 1,
+		},
+		{
+			description: "page size at the maximum",
+			root:        longThread,
+			query:       fmt.Sprintf("?perPage=%d", web.PerPageMaximum),
+			statusCode:  http.StatusOK,
+			minOrder:    web.PerPageMaximum,
+			maxOrder:    web.PerPageMaximum + 1,
+		},
+		{
+			description: "percent-encoded page size",
+			root:        longThread,
+			query:       "?perPage=%32%30%30",
+			statusCode:  http.StatusOK,
+			minOrder:    web.PerPageMaximum,
+			maxOrder:    web.PerPageMaximum + 1,
+		},
+		{
+			description: "page size repeated in the query string",
+			root:        longThread,
+			query:       "?perPage=2&perPage=5000",
+			statusCode:  http.StatusOK,
+			maxOrder:    3,
+		},
+		{
+			description: "no page size given for a system administrator",
+			as:          th.SystemAdminClient,
+			root:        longThread,
+			statusCode:  http.StatusOK,
+			minOrder:    web.PerPageMaximum,
+			maxOrder:    web.PerPageMaximum + 1,
+		},
+		{
+			description: "page size above the maximum",
+			root:        longThread,
+			query:       "?perPage=5000",
+			statusCode:  http.StatusBadRequest,
+		},
+		{
+			description: "negative page size",
+			root:        longThread,
+			query:       "?perPage=-1",
+			statusCode:  http.StatusBadRequest,
+		},
+		{
+			description: "non-numeric page size",
+			root:        longThread,
+			query:       "?perPage=abc",
+			statusCode:  http.StatusBadRequest,
+		},
+		{
+			description: "page size written with full-width digits",
+			root:        longThread,
+			query:       "?perPage=%EF%BC%92%EF%BC%90%EF%BC%90",
+			statusCode:  http.StatusBadRequest,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.description, func(t *testing.T) {
+			as := testCase.as
+			if as == nil {
+				as = client
+			}
+
+			list, statusCode := readThread(t, as, testCase.root.Id, testCase.query)
+			require.Equal(t, testCase.statusCode, statusCode)
+
+			if testCase.statusCode != http.StatusOK {
+				return
+			}
+
+			require.NotNil(t, list)
+			assert.LessOrEqual(t, len(list.Order), testCase.maxOrder)
+			assert.GreaterOrEqual(t, len(list.Order), testCase.minOrder)
+		})
+	}
+
+	t.Run("returns at most a page of posts for concurrent readers", func(t *testing.T) {
+		root := longThread
+
+		const readers = 20
+
+		counts := make([]int, readers)
+		errs := make([]error, readers)
+
+		var wg sync.WaitGroup
+		for i := range readers {
+			wg.Add(1)
+			go func(i int) {
+				defer wg.Done()
+
+				list, _, err := client.GetPostThread(context.Background(), root.Id, "", false)
+				if err != nil {
+					errs[i] = err
+					return
+				}
+				counts[i] = len(list.Order)
+			}(i)
+		}
+		wg.Wait()
+
+		require.NoError(t, errors.Join(errs...))
+		assert.LessOrEqual(t, slices.Max(counts), web.PerPageMaximum+1, "largest response across concurrent readers")
+	})
 }
 
 func TestGetPostThreadUpdatesOnlyDeletedReplies(t *testing.T) {

@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"os"
@@ -47,6 +48,24 @@ const (
 	reconnectFound    = "success"
 	reconnectNotFound = "failure"
 	reconnectLossless = "lossless"
+)
+
+const (
+	// reconnectFailureOldConnStillOpen means the old connection is still considered active,
+	// usually because its network vanished and the server is waiting out its pong deadline.
+	reconnectFailureOldConnStillOpen = "old_conn_still_open"
+
+	// reconnectFailureMissedEventsEvicted means the old connection was found, but the events
+	// the client missed have already been evicted from its dead queue.
+	reconnectFailureMissedEventsEvicted = "missed_events_evicted"
+
+	// reconnectFailureConnNotFound means no node has the old connection: it was reaped, its
+	// node restarted, or its send queue overflowed while it was inactive.
+	reconnectFailureConnNotFound = "conn_not_found"
+
+	// reconnectFailureClusterLookupFailed means the other nodes could not be asked for the
+	// old connection.
+	reconnectFailureClusterLookupFailed = "cluster_lookup_failed"
 )
 
 const websocketMessagePluginPrefix = "custom_"
@@ -177,12 +196,20 @@ func (ps *PlatformService) PopulateWebConnConfig(s *model.Session, cfg *WebConnC
 		return nil, fmt.Errorf("invalid sequence number %s in query param: %w", seqVal, err)
 	}
 
-	// This does not handle reconnect requests across nodes in a cluster.
-	// It falls back to the non-reliable case in that scenario.
-	res := ps.CheckWebConn(s.UserId, cfg.ConnectionID, seqNum)
+	res, reason, isRemote := ps.CheckWebConn(s.UserId, cfg.ConnectionID, seqNum)
 	if res == nil {
-		// If the connection is not present, then we assume either timeout,
-		// or server restart. In that case, we set a new one.
+		ps.Log().Debug("Websocket resume failed, issuing new connection id",
+			mlog.String("user_id", s.UserId),
+			mlog.String("connection_id", cfg.ConnectionID),
+			mlog.Int("sequence_number", seqNum),
+			mlog.String("reason", reason),
+			mlog.Bool("is_remote", isRemote),
+			mlog.String("origin_client", cfg.OriginClient),
+			mlog.String("disconnect_err_code", cfg.DisconnectErrCode))
+		if m := ps.metricsIFace; m != nil {
+			m.IncrementWebsocketReconnectEvent(reconnectNotFound, cfg.DisconnectErrCode, cfg.OriginClient)
+			m.IncrementWebsocketReconnectFailure(reason, isRemote, cfg.DisconnectErrCode, cfg.OriginClient)
+		}
 		cfg.ConnectionID = model.NewId()
 	} else {
 		// Connection is present, we get the active queue, dead queue
@@ -521,16 +548,13 @@ func (wc *WebConn) readPump() {
 			return
 		}
 
-		var decoder interface {
-			Decode(v any) error
-		}
-		if msgType == websocket.TextMessage {
-			decoder = json.NewDecoder(rd)
-		} else {
-			decoder = msgpack.NewDecoder(rd)
-		}
 		var req model.WebSocketRequest
-		if err = decoder.Decode(&req); err != nil {
+		if msgType == websocket.TextMessage {
+			err = json.NewDecoder(rd).Decode(&req)
+		} else {
+			err = decodeBinaryRequest(rd, &req)
+		}
+		if err != nil {
 			wc.logSocketErr("websocket.Decode", err)
 			return
 		}
@@ -561,6 +585,40 @@ func (wc *WebConn) readPump() {
 	}
 }
 
+var errBinaryFrameTooLarge = errors.New("websocket frame exceeds max size")
+
+// binaryFramePool holds buffers one byte larger than the max frame size, so a
+// completely filled buffer means the frame is too large.
+var binaryFramePool = sync.Pool{
+	New: func() any {
+		b := make([]byte, model.SocketMaxMessageSizeKb+1)
+		return &b
+	},
+}
+
+// decodeBinaryRequest reads a binary frame into memory and walks its structure
+// before decoding it, so that the lengths its headers declare are matched
+// against the bytes the frame carries.
+func decodeBinaryRequest(rd io.Reader, req *model.WebSocketRequest) error {
+	bp := binaryFramePool.Get().(*[]byte)
+	defer binaryFramePool.Put(bp)
+
+	n, err := io.ReadFull(rd, *bp)
+	switch {
+	case err == nil:
+		return errBinaryFrameTooLarge
+	case err != io.EOF && err != io.ErrUnexpectedEOF:
+		return err
+	}
+	frame := (*bp)[:n]
+
+	if err := msgpack.NewDecoder(bytes.NewReader(frame)).Skip(); err != nil {
+		return err
+	}
+
+	return msgpack.NewDecoder(bytes.NewReader(frame)).Decode(req)
+}
+
 func (wc *WebConn) writePump() {
 	ticker := time.NewTicker(pingInterval)
 	authTicker := time.NewTicker(authCheckInterval)
@@ -578,9 +636,16 @@ func (wc *WebConn) writePump() {
 				return
 			}
 			if m := wc.Platform.metricsIFace; m != nil {
-				m.IncrementWebsocketReconnectEventWithDisconnectErrCode(reconnectFound, wc.DisconnectErrCode)
+				m.IncrementWebsocketReconnectEvent(reconnectFound, wc.DisconnectErrCode, wc.originClient)
 			}
 		} else if wc.hasMsgLoss() {
+			wc.Platform.Log().Debug("Websocket resume failed, missed events evicted from dead queue",
+				mlog.String("user_id", wc.UserId),
+				mlog.String("connection_id", wc.GetConnectionID()),
+				mlog.Int("sequence_number", wc.Sequence),
+				mlog.String("origin_client", wc.originClient),
+				mlog.String("disconnect_err_code", wc.DisconnectErrCode))
+
 			// If the seq number is not in dead queue, but it was supposed to be,
 			// then generate a different connection ID,
 			// and set sequence to 0, and clear dead queue.
@@ -596,11 +661,12 @@ func (wc *WebConn) writePump() {
 				return
 			}
 			if m := wc.Platform.metricsIFace; m != nil {
-				m.IncrementWebsocketReconnectEventWithDisconnectErrCode(reconnectNotFound, wc.DisconnectErrCode)
+				m.IncrementWebsocketReconnectEvent(reconnectNotFound, wc.DisconnectErrCode, wc.originClient)
+				m.IncrementWebsocketReconnectFailure(reconnectFailureMissedEventsEvicted, false, wc.DisconnectErrCode, wc.originClient)
 			}
 		} else {
 			if m := wc.Platform.metricsIFace; m != nil {
-				m.IncrementWebsocketReconnectEventWithDisconnectErrCode(reconnectLossless, wc.DisconnectErrCode)
+				m.IncrementWebsocketReconnectEvent(reconnectLossless, wc.DisconnectErrCode, wc.originClient)
 			}
 		}
 	}
