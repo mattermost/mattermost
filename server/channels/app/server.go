@@ -340,7 +340,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	// License check hook — must run before other hooks so unlicensed
 	// operations are rejected early.
-	licenseCheckHook := properties.NewLicenseCheckHook(func() *model.License {
+	licenseCheckHook := properties.NewLicenseCheckHook(s.propertyService, func() *model.License {
 		return s.License()
 	}, cpaGroup.ID)
 	s.propertyService.AddHook(licenseCheckHook)
