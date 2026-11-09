@@ -210,8 +210,13 @@ func TestAccessControlAttributeValidationHook(t *testing.T) {
 	})
 
 	t.Run("required and editable round-trip through create, patch, and clear", func(t *testing.T) {
+		// editable=false locks a channel field, which only a v3 group can hold.
+		v3Group, v3Err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_attr_validation_v3", Version: model.PropertyGroupVersionV3})
+		require.NoError(t, v3Err)
+		th.service.AddHook(NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{}, v3Group.ID))
+
 		field, createErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
-			GroupID:    group.ID,
+			GroupID:    v3Group.ID,
 			Name:       "field_" + model.NewId(),
 			Type:       model.PropertyFieldTypeText,
 			TargetType: "system",
@@ -229,7 +234,7 @@ func TestAccessControlAttributeValidationHook(t *testing.T) {
 			model.PropertyFieldAttrRequired: false,
 			model.PropertyFieldAttrEditable: true,
 		}
-		updated, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		updated, _, updateErr := th.service.UpdatePropertyField(th.Context, v3Group.ID, field)
 		require.NoError(t, updateErr)
 		require.Equal(t, false, updated.Attrs[model.PropertyFieldAttrRequired])
 		require.Equal(t, true, updated.Attrs[model.PropertyFieldAttrEditable])
@@ -240,7 +245,7 @@ func TestAccessControlAttributeValidationHook(t *testing.T) {
 			model.PropertyFieldAttrRequired: nil,
 			model.PropertyFieldAttrEditable: nil,
 		}
-		cleared, _, clearErr := th.service.UpdatePropertyField(th.Context, group.ID, updated)
+		cleared, _, clearErr := th.service.UpdatePropertyField(th.Context, v3Group.ID, updated)
 		require.NoError(t, clearErr)
 		require.NotContains(t, cleared.Attrs, model.PropertyFieldAttrRequired)
 		require.NotContains(t, cleared.Attrs, model.PropertyFieldAttrEditable)
@@ -3073,7 +3078,7 @@ func TestAccessControlAttributeValidationHookOptionLookupStoreFailure(t *testing
 func TestAccessControlAttributeValidationHookChangePolicy(t *testing.T) {
 	th := Setup(t)
 
-	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_attr_change_policy", Version: model.PropertyGroupVersionV2})
+	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_attr_change_policy", Version: model.PropertyGroupVersionV3})
 	require.NoError(t, err)
 
 	hook := NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{}, group.ID)
@@ -4267,7 +4272,7 @@ func TestAccessControlAttributeValidationHookBoundsFlag(t *testing.T) {
 
 	t.Run("a nil provider is off", func(t *testing.T) {
 		hook := NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{}, group.ID)
-		err := hook.validateBoundsChange(&model.PropertyField{Bounds: model.PropertyBounds{raiseOnly}}, nil)
+		err := hook.validateBoundsChange(&model.PropertyField{Bounds: model.PropertyBounds{raiseOnly}}, nil, false)
 		requireAppError(t, err, disabledErrID)
 	})
 
@@ -4281,5 +4286,166 @@ func TestAccessControlAttributeValidationHookBoundsFlag(t *testing.T) {
 			requireAppError(t, createErr, "app.property_field.set_on_create_unsupported.app_error")
 		}
 		boundsEnabled = false
+	})
+}
+
+func TestAccessControlAttributeValidationHookChangePolicyTranslation(t *testing.T) {
+	th := Setup(t)
+
+	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_attr_change_policy_translation", Version: model.PropertyGroupVersionV3})
+	require.NoError(t, err)
+
+	boundsEnabled := false
+	th.service.AddHook(NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{
+		PropertyFieldBounds: func() bool { return boundsEnabled },
+	}, group.ID))
+
+	raiseOnly := model.PropertyBoundsRule{Operator: model.PropertyBoundsOperatorAtOrAbove, Reference: model.PropertyBoundsReferenceSelf}
+	lowerOnly := model.PropertyBoundsRule{Operator: model.PropertyBoundsOperatorAtOrBelow, Reference: model.PropertyBoundsReferenceSelf}
+
+	newField := func(fieldType model.PropertyFieldType, objectType string, attrs model.StringInterface) *model.PropertyField {
+		f := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       fieldType,
+			TargetType: "system",
+			ObjectType: objectType,
+			Attrs:      attrs,
+		}
+		if fieldType == model.PropertyFieldTypeRank {
+			if f.Attrs == nil {
+				f.Attrs = model.StringInterface{}
+			}
+			f.Attrs[model.PropertyFieldAttributeOptions] = []any{
+				map[string]any{"id": model.NewId(), "name": "Low", "rank": 1},
+				map[string]any{"id": model.NewId(), "name": "High", "rank": 2},
+			}
+		}
+		return f
+	}
+	stored := func(t *testing.T, id string) *model.PropertyField {
+		t.Helper()
+		f, getErr := th.service.fieldStore.Get(th.Context, group.ID, id)
+		require.NoError(t, getErr)
+		return f
+	}
+	create := func(t *testing.T, field *model.PropertyField) *model.PropertyField {
+		t.Helper()
+		created, createErr := th.service.CreatePropertyField(th.Context, field)
+		require.NoError(t, createErr)
+		return stored(t, created.ID)
+	}
+	setLicense := func(t *testing.T, sku string) {
+		prev := th.service.licenseProvider
+		th.service.licenseProvider = func() *model.License {
+			if sku == "" {
+				return nil
+			}
+			return model.NewTestLicenseSKU(sku)
+		}
+		t.Cleanup(func() { th.service.licenseProvider = prev })
+	}
+
+	t.Run("create: raise_only on a rank channel field becomes a self rule", func(t *testing.T) {
+		f := create(t, newField(model.PropertyFieldTypeRank, model.PropertyFieldObjectTypeChannel, model.StringInterface{model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyRaiseOnly}))
+		assert.Equal(t, model.PropertyBounds{raiseOnly}, f.Bounds)
+		assert.Equal(t, model.PropertyFieldMutability(""), f.Mutability)
+		assert.Equal(t, model.PropertyFieldChangePolicyRaiseOnly, f.Attrs[model.PropertyFieldAttrChangePolicy])
+	})
+
+	t.Run("create: never, or editable false alone, becomes write_once with both old keys", func(t *testing.T) {
+		for name, attrs := range map[string]model.StringInterface{
+			"never":          {model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyNever},
+			"editable false": {model.PropertyFieldAttrEditable: false},
+		} {
+			f := create(t, newField(model.PropertyFieldTypeText, model.PropertyFieldObjectTypeChannel, attrs))
+			assert.Equal(t, model.PropertyFieldMutabilityWriteOnce, f.Mutability, name)
+			assert.Empty(t, f.Bounds, name)
+			assert.Equal(t, model.PropertyFieldChangePolicyNever, f.Attrs[model.PropertyFieldAttrChangePolicy], name)
+			assert.Equal(t, false, f.Attrs[model.PropertyFieldAttrEditable], name)
+		}
+	})
+
+	t.Run("create: write_once with no old key writes the old keys", func(t *testing.T) {
+		boundsEnabled = true
+		t.Cleanup(func() { boundsEnabled = false })
+		field := newField(model.PropertyFieldTypeText, model.PropertyFieldObjectTypeChannel, nil)
+		field.Mutability = model.PropertyFieldMutabilityWriteOnce
+		f := create(t, field)
+		assert.Equal(t, model.PropertyFieldMutabilityWriteOnce, f.Mutability)
+		assert.Equal(t, model.PropertyFieldChangePolicyNever, f.Attrs[model.PropertyFieldAttrChangePolicy])
+		assert.Equal(t, false, f.Attrs[model.PropertyFieldAttrEditable])
+	})
+
+	t.Run("update: policy changes swap the self rule, any unlocks", func(t *testing.T) {
+		f := create(t, newField(model.PropertyFieldTypeRank, model.PropertyFieldObjectTypeChannel, model.StringInterface{model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyRaiseOnly}))
+
+		f.Attrs[model.PropertyFieldAttrChangePolicy] = model.PropertyFieldChangePolicyLowerOnly
+		_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, f)
+		require.NoError(t, updateErr)
+		f = stored(t, f.ID)
+		assert.Equal(t, model.PropertyBounds{lowerOnly}, f.Bounds)
+		assert.Equal(t, model.PropertyFieldChangePolicyLowerOnly, f.Attrs[model.PropertyFieldAttrChangePolicy])
+
+		f.Attrs[model.PropertyFieldAttrChangePolicy] = model.PropertyFieldChangePolicyAny
+		_, _, updateErr = th.service.UpdatePropertyField(th.Context, group.ID, f)
+		require.NoError(t, updateErr)
+		f = stored(t, f.ID)
+		assert.Empty(t, f.Bounds)
+		assert.Equal(t, model.PropertyFieldMutability(""), f.Mutability)
+		assert.NotContains(t, f.Attrs, model.PropertyFieldAttrChangePolicy)
+	})
+
+	t.Run("update: stating mutable beats an echoed change_policy", func(t *testing.T) {
+		f := create(t, newField(model.PropertyFieldTypeText, model.PropertyFieldObjectTypeChannel, model.StringInterface{model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyNever}))
+		require.Equal(t, model.PropertyFieldMutabilityWriteOnce, f.Mutability)
+
+		f.Mutability = model.PropertyFieldMutabilityMutable
+		_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, f)
+		require.NoError(t, updateErr)
+		f = stored(t, f.ID)
+		assert.Equal(t, model.PropertyFieldMutability(""), f.Mutability)
+		assert.NotContains(t, f.Attrs, model.PropertyFieldAttrChangePolicy)
+		assert.NotContains(t, f.Attrs, model.PropertyFieldAttrEditable)
+	})
+
+	t.Run("update: a stored change_policy with no mutability is the baseline", func(t *testing.T) {
+		f := create(t, newField(model.PropertyFieldTypeText, model.PropertyFieldObjectTypeChannel, nil))
+		f.Attrs = model.StringInterface{model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyNever}
+		_, updateErr := th.service.fieldStore.Update(group.ID, []*model.PropertyField{f}, nil)
+		require.NoError(t, updateErr)
+
+		renamed := stored(t, f.ID)
+		require.Equal(t, model.PropertyFieldMutability(""), renamed.Mutability)
+		renamed.Name = "renamed_" + model.NewId()
+		_, _, updateErr = th.service.UpdatePropertyField(th.Context, group.ID, renamed)
+		require.NoError(t, updateErr)
+
+		renamed = stored(t, f.ID)
+		assert.Equal(t, model.PropertyFieldMutabilityWriteOnce, renamed.Mutability)
+		assert.Equal(t, false, renamed.Attrs[model.PropertyFieldAttrEditable])
+	})
+
+	t.Run("an old-format write that adds a lock needs Enterprise Advanced, removing one does not", func(t *testing.T) {
+		unlocked := create(t, newField(model.PropertyFieldTypeText, model.PropertyFieldObjectTypeChannel, nil))
+		locked := create(t, newField(model.PropertyFieldTypeText, model.PropertyFieldObjectTypeChannel, model.StringInterface{model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyNever}))
+
+		setLicense(t, "")
+		unlocked.Attrs = model.StringInterface{model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyNever}
+		_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, unlocked)
+		var appErr *model.AppError
+		require.ErrorAs(t, updateErr, &appErr)
+		assert.Equal(t, "app.property_field.bounds_license.app_error", appErr.Id)
+
+		locked.Attrs = model.StringInterface{model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyAny}
+		_, _, updateErr = th.service.UpdatePropertyField(th.Context, group.ID, locked)
+		require.NoError(t, updateErr)
+		assert.Equal(t, model.PropertyFieldMutability(""), stored(t, locked.ID).Mutability)
+	})
+
+	t.Run("a non-channel field keeps change_policy as it was", func(t *testing.T) {
+		f := create(t, newField(model.PropertyFieldTypeText, model.PropertyFieldObjectTypeUser, model.StringInterface{model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyNever}))
+		assert.Equal(t, model.PropertyFieldMutability(""), f.Mutability)
+		assert.Equal(t, model.PropertyFieldChangePolicyNever, f.Attrs[model.PropertyFieldAttrChangePolicy])
 	})
 }

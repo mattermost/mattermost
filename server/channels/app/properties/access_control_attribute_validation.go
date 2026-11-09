@@ -261,7 +261,20 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(fie
 	if err := refuseSetOnCreate(field); err != nil {
 		return err
 	}
-	if err := h.validateBoundsChange(field, existing); err != nil {
+	// Both old keys are validated first: the translation below reads them.
+	for _, key := range boolFieldAttrKeys {
+		if err := model.SanitizeAndValidatePropertyFieldBoolAttr(field, key); err != nil {
+			return fmt.Errorf("%s: %w", err.Error(), ErrInvalidFieldAttrs)
+		}
+	}
+	if err := model.SanitizeAndValidatePropertyFieldChangePolicy(field); err != nil {
+		return fmt.Errorf("%s: %w", err.Error(), ErrInvalidFieldAttrs)
+	}
+	oldFormatWrite, err := translateChangePolicy(field, existing)
+	if err != nil {
+		return err
+	}
+	if err := h.validateBoundsChange(field, existing, oldFormatWrite); err != nil {
 		return err
 	}
 
@@ -290,11 +303,6 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(fie
 	if err := model.ValidatePropertyFieldSortOrder(field); err != nil {
 		return fmt.Errorf("%s: %w", err.Error(), ErrInvalidFieldAttrs)
 	}
-	for _, key := range boolFieldAttrKeys {
-		if err := model.SanitizeAndValidatePropertyFieldBoolAttr(field, key); err != nil {
-			return fmt.Errorf("%s: %w", err.Error(), ErrInvalidFieldAttrs)
-		}
-	}
 	// The kill switch blocks only newly marking a channel field required: a
 	// field that predates the switch being engaged keeps its required=true
 	// attr untouched (same lenient-grandfather rationale as Name and
@@ -304,9 +312,6 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(fie
 	if field.ObjectType == model.PropertyFieldObjectTypeChannel && !h.requiredEnforced() &&
 		model.IsPropertyFieldRequired(field) && !prevRequired {
 		return newRequiredAttrDisabledError(field)
-	}
-	if err := model.SanitizeAndValidatePropertyFieldChangePolicy(field); err != nil {
-		return fmt.Errorf("%s: %w", err.Error(), ErrInvalidFieldAttrs)
 	}
 	// Lenient grandfather, same rationale as Name: a PATCH merges attrs, so a
 	// field carrying an actions value that predates (or has since fallen out of)
@@ -1503,21 +1508,82 @@ func refuseSetOnCreate(field *model.PropertyField) error {
 	return model.NewAppError("UpsertPropertyField", "app.property_field.set_on_create_unsupported.app_error", nil, details, http.StatusBadRequest)
 }
 
-// validateBoundsChange refuses a new bounds rule, or a mutability that newly
-// becomes write_once. With the PropertyFieldBounds flag off it is refused whatever
-// the license; with the flag on it is refused unless the server is licensed for
-// Enterprise Advanced. Rules and locks already on the field ride along, and
-// removing them is always allowed. Unstated bounds (nil) and mutability ("") add
-// nothing; the update path fills them in from the stored field. This hook manages
-// only the access_control group, the one v3 group that can carry bounds, so every
-// field that can gain them passes through here.
-func (h *AccessControlAttributeValidationHook) validateBoundsChange(field, existing *model.PropertyField) error {
-	var prevBounds model.PropertyBounds
-	prevMutability := model.PropertyFieldMutabilityMutable
-	if existing != nil {
-		prevBounds = existing.Bounds
-		prevMutability = existing.Mutability.OrMutable()
+// changePolicyBaseline returns the mutability and bounds a save is judged
+// against: the stored field's, or for a channel field locked only by its old
+// change_policy (the startup conversion hasn't reached it yet) that policy
+// translated. On create it is mutable with no rules.
+func changePolicyBaseline(existing *model.PropertyField) (model.PropertyFieldMutability, model.PropertyBounds) {
+	if existing == nil {
+		return model.PropertyFieldMutabilityMutable, nil
 	}
+	mutability, bounds := existing.Mutability.OrMutable(), existing.Bounds
+	if existing.ObjectType != model.PropertyFieldObjectTypeChannel ||
+		model.PropertyFieldChangePolicyFromSettings(mutability, bounds) != model.PropertyFieldChangePolicyAny {
+		return mutability, bounds
+	}
+	if m, b, err := model.PropertyFieldSettingsFromChangePolicy(model.GetPropertyFieldChangePolicy(existing), bounds); err == nil {
+		return m, b
+	}
+	return mutability, bounds
+}
+
+// translateChangePolicy settles a channel field's mutability and bounds from the
+// old change_policy / editable keys, then rewrites the old keys from the result so
+// they always match (v2 readers, mobile and a rolled-back server read them). Only
+// channel fields translate: change_policy was never enforced on others. It reports
+// whether the save is an old-format write, one whose old policy differs from the
+// stored field's. That write sets the settings from the policy; any other save
+// keeps the settings it states, with unstated ones (mutability "", bounds nil)
+// taken from the baseline. A caller sending back the policy it was shown is not
+// using the old format.
+func translateChangePolicy(field, existing *model.PropertyField) (bool, error) {
+	if field.ObjectType != model.PropertyFieldObjectTypeChannel {
+		return false, nil
+	}
+
+	policy := model.GetPropertyFieldChangePolicy(field)
+	oldFormatWrite := existing == nil && policy != model.PropertyFieldChangePolicyAny ||
+		existing != nil && policy != model.GetPropertyFieldChangePolicy(existing)
+
+	mutability, bounds := field.Mutability, field.Bounds
+	baseMutability, baseBounds := changePolicyBaseline(existing)
+	if mutability == "" {
+		mutability = baseMutability
+	}
+	if bounds == nil {
+		bounds = baseBounds
+	}
+	if oldFormatWrite {
+		var err error
+		if mutability, bounds, err = model.PropertyFieldSettingsFromChangePolicy(policy, bounds); err != nil {
+			return false, fmt.Errorf("%s: %w", err.Error(), ErrInvalidFieldAttrs)
+		}
+	}
+
+	// Mutable and no rules stay unstated, as the update path refills them from the
+	// stored field. An old-format write states them: that is how it unlocks.
+	if oldFormatWrite || mutability != model.PropertyFieldMutabilityMutable {
+		field.Mutability = mutability
+	}
+	if oldFormatWrite || (field.Bounds == nil && len(bounds) > 0) {
+		field.Bounds = bounds
+	}
+	field.Attrs = model.SetPropertyFieldChangePolicyAttrs(field.Attrs, model.PropertyFieldChangePolicyFromSettings(mutability, bounds))
+	return oldFormatWrite, nil
+}
+
+// validateBoundsChange refuses a new bounds rule, or a mutability that newly
+// becomes write_once, judged against changePolicyBaseline. With the
+// PropertyFieldBounds flag off it is refused whatever the license, except what an
+// old-format write adds: that carries the shipped change_policy feature over and
+// needs only the license. With the flag on it is refused unless the server is
+// licensed for Enterprise Advanced. Rules and locks already on the field ride
+// along, and removing them is always allowed. Unstated bounds (nil) and mutability
+// ("") add nothing; the update path fills them in from the stored field. This hook
+// manages only the access_control group, the one v3 group that can carry bounds,
+// so every field that can gain them passes through here.
+func (h *AccessControlAttributeValidationHook) validateBoundsChange(field, existing *model.PropertyField, oldFormatWrite bool) error {
+	prevMutability, prevBounds := changePolicyBaseline(existing)
 
 	var adding string
 	for _, rule := range field.Bounds {
@@ -1533,7 +1599,7 @@ func (h *AccessControlAttributeValidationHook) validateBoundsChange(field, exist
 		return nil
 	}
 
-	if !h.propertyFieldBoundsEnabled() {
+	if !oldFormatWrite && !h.propertyFieldBoundsEnabled() {
 		details := fmt.Sprintf("field %s: cannot %s while the PropertyFieldBounds feature flag is off", field.ID, adding)
 		return model.NewAppError("UpsertPropertyField", "app.property_field.bounds_disabled.app_error", nil, details, http.StatusBadRequest)
 	}
