@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {useMemo} from 'react';
 import type {FocusEventHandler, ReactElement} from 'react';
 import {defineMessages, useIntl} from 'react-intl';
@@ -14,6 +15,8 @@ import {sortOptionsByRank} from 'mattermost-redux/utils/property_utils';
 import RankBadge from 'components/admin_console/system_properties/rank_badge';
 
 import {AttributeOptionSwatch, AttributeOptionVisualPlaceholder} from './attribute_option_swatch';
+
+import './attribute_combobox.scss';
 
 const messages = defineMessages({
     listbox: {
@@ -197,7 +200,7 @@ export function AttributeCombobox({
             data-testid={testId}
             aria-label={label}
             aria-describedby={ariaDescribedBy}
-            className={className}
+            className={classNames('AttributeCombobox', className)}
             options={comboboxOptions}
             multiple={multiple}
             value={multiple ? values : values[0] ?? ''}
