@@ -296,7 +296,8 @@ func (h *AccessControlAttributeValidationHook) enforceBounds(rctx request.CTX, v
 }
 
 // refuseContainedValuesOutOfBounds refuses a request that sets a channel's or the server's value
-// when the objects beneath would end up out of bounds under a child field's parent rule. Only
+// when the objects beneath would end up out of bounds under a child field's parent rule (without
+// Enterprise Advanced it audits the break and lets the write go ahead). Only
 // linked channel and system fields are looked at, and each pays one search for the child fields
 // whose parent rule reads from it, even when there are none; unlinked fields and other object types
 // pay nothing. Clearing is never refused (what's beneath only gets a looser limit), and
@@ -524,7 +525,8 @@ func (h *AccessControlAttributeValidationHook) refuseLockedFieldClear(master req
 // refuseLockedTargetDelete refuses deleting everything on a target when it holds a set value of a
 // field that refuses clears, and otherwise tells the delete to leave those fields' rows alone. A
 // first write that lands between this read and the delete keeps its value, the same outcome as
-// the delete having run first.
+// the delete having run first. Without Enterprise Advanced it audits each such value and lets the
+// delete take everything.
 func (h *AccessControlAttributeValidationHook) refuseLockedTargetDelete(rctx request.CTX, groupID, targetType, targetID string) error {
 	master := store.RequestContextWithMaster(rctx)
 	// Loads every live field of the group with its options on each call; target-wide deletes are
