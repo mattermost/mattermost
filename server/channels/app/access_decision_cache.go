@@ -195,7 +195,8 @@ type accessDecisionSlot struct {
 type accessDecisionShard struct {
 	mu    sync.Mutex
 	index map[accessDecisionKey]int32
-	slots []accessDecisionSlot
+	slots []accessDecisionSlot // grows on demand up to limit, then recycles the LRU tail
+	limit int
 	head  int32
 	tail  int32
 
@@ -330,8 +331,9 @@ func newAccessDecisionCache(size int, maxAge time.Duration) *accessDecisionCache
 	}
 	for i := range c.shards {
 		s := &c.shards[i]
-		s.index = make(map[accessDecisionKey]int32, perShard)
-		s.slots = make([]accessDecisionSlot, 0, perShard)
+		// Not preallocated: the default size would cost hundreds of MB per server before any use.
+		s.index = make(map[accessDecisionKey]int32)
+		s.limit = perShard
 		s.head, s.tail = accessDecisionNoSlot, accessDecisionNoSlot
 	}
 	return c
@@ -413,8 +415,8 @@ func (c *accessDecisionCache) put(l *accessDecisionLookup, allowed bool) {
 	switch {
 	case ok:
 		s.moveToFront(i)
-	case len(s.slots) < cap(s.slots):
-		s.slots = s.slots[:len(s.slots)+1]
+	case len(s.slots) < s.limit:
+		s.slots = append(s.slots, accessDecisionSlot{})
 		i = int32(len(s.slots) - 1)
 		s.slots[i].prev, s.slots[i].next = accessDecisionNoSlot, accessDecisionNoSlot
 		s.pushFront(i)
