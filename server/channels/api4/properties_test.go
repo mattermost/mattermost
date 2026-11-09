@@ -8387,6 +8387,50 @@ func TestPatchPropertyValuesChangePolicy(t *testing.T) {
 	})
 }
 
+func TestPatchPropertyValuesWriteOnce(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.ChannelAttributes = true
+		cfg.FeatureFlags.PropertyFieldPermissionsV3 = true
+		cfg.FeatureFlags.PropertyFieldBounds = true
+	}).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	memberLevel := model.PermissionLevelMember
+	field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+		Name:              "attr_" + model.NewId(),
+		Type:              model.PropertyFieldTypeText,
+		GroupID:           group.ID,
+		ObjectType:        "channel",
+		TargetType:        "system",
+		Mutability:        model.PropertyFieldMutabilityWriteOnce,
+		PermissionField:   &memberLevel,
+		PermissionValues:  &memberLevel,
+		PermissionOptions: &memberLevel,
+	}, false, "")
+	require.Nil(t, appErr)
+
+	patch := func(raw string) (*model.Response, error) {
+		items := []model.PropertyValuePatchItem{{FieldID: field.ID, Value: json.RawMessage(raw)}}
+		_, resp, err := th.Client.PatchPropertyValues(context.Background(), group.Name, "channel", th.BasicChannel.Id, items)
+		return resp, err
+	}
+
+	th.LoginBasic(t)
+
+	resp, err := patch(`"first"`)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+
+	resp, err = patch(`"second"`)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+	CheckErrorID(t, err, "app.property_value.write_once.app_error")
+}
+
 // End-to-end proof of the DM/GM rule against the REAL access_control group,
 // which is the only group the attribute validation hook is registered for.
 // TestPatchPropertyValuesChannelTargetAccess is the sibling suite on a

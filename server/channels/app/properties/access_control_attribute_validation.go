@@ -1265,7 +1265,10 @@ func (h *AccessControlAttributeValidationHook) validateValues(rctx request.CTX, 
 		}
 	}
 
-	return h.validateChangePolicy(rctx, groupID, values, fieldMap)
+	if err := h.validateChangePolicy(rctx, groupID, values, fieldMap); err != nil {
+		return err
+	}
+	return h.enforceBounds(rctx, values, fieldMap)
 }
 
 // validateChangePolicy enforces attrs.change_policy: a value may be set once,

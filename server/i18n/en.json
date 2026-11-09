@@ -11586,6 +11586,11 @@
     "description": "API error returned when a search query over property values fails."
   },
   {
+    "id": "app.property_value.set_on_create.app_error",
+    "translation": "This value can only be set when the object is created.",
+    "description": "API error (403) when a user tries to set an attribute value whose field allows it to be set only when the object is created."
+  },
+  {
     "id": "app.property_value.template_no_values.app_error",
     "translation": "Template fields cannot have values.",
     "description": "API error when someone tries to store a value against a template property field; templates only define fields and hold no values."
@@ -11644,6 +11649,11 @@
     "id": "app.property_value.write_conflict.app_error",
     "translation": "This value was changed while your change was being saved. Reload it and try again.",
     "description": "API error (409) when a property value changed between the moment its rules were checked and the moment the write was saved, so the write was refused instead of overwriting the other change."
+  },
+  {
+    "id": "app.property_value.write_once.app_error",
+    "translation": "This value has already been set and can't be changed.",
+    "description": "API error (403) when a user tries to change or clear an attribute value whose field allows it to be set only once, and it has already been set."
   },
   {
     "id": "app.reaction.delete_all_with_emoji_name.get_reactions.app_error",

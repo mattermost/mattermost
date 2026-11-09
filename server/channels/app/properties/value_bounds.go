@@ -7,10 +7,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
+	"reflect"
 	"slices"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 // errBoundsCheckFailed marks a bounds rule that can't be checked because the
@@ -127,4 +130,134 @@ func (h *AccessControlAttributeValidationHook) checkParentRule(rctx request.CTX,
 		}
 		current, targetID = parentField, parentTargetID
 	}
+}
+
+// fieldGoverned reports whether any bounds or mutability rule applies to field's values. Values of
+// other fields skip every check here, so ordinary writes cost nothing new.
+func fieldGoverned(field *model.PropertyField) bool {
+	return len(field.Bounds) > 0 || field.Mutability.OrMutable() != model.PropertyFieldMutabilityMutable
+}
+
+// storedValueMatters reports whether checking a write to field means comparing it with the object's
+// own stored value, which is what makes the write conditional on that value not having changed.
+func storedValueMatters(field *model.PropertyField) bool {
+	return field.Mutability.OrMutable() != model.PropertyFieldMutabilityMutable
+}
+
+// enforceBounds is the one entry point for the bounds and mutability checks on a value write. The
+// request is refused whole on the first value that breaks a rule.
+//
+// Stored values are read from master and recorded on the request, so the write lands only if each
+// row is still what the check judged against. That is what stops two simultaneous first writes
+// both passing write-once.
+func (h *AccessControlAttributeValidationHook) enforceBounds(rctx request.CTX, values []*model.PropertyValue, fieldMap map[string]*model.PropertyField) error {
+	var governed []*model.PropertyValue
+	seen := make(map[store.PropertyValueKey]struct{})
+	targetsByField := make(map[string][]string)
+	for _, v := range values {
+		field, ok := fieldMap[v.FieldID]
+		if !ok || !fieldGoverned(field) {
+			continue
+		}
+		key := store.PropertyValueKey{FieldID: v.FieldID, TargetID: v.TargetID}
+		if _, dup := seen[key]; dup {
+			return fmt.Errorf("field %s: target %s is written more than once: %w", v.FieldID, v.TargetID, ErrInvalidValue)
+		}
+		seen[key] = struct{}{}
+		governed = append(governed, v)
+		if storedValueMatters(field) {
+			targetsByField[v.FieldID] = append(targetsByField[v.FieldID], v.TargetID)
+		}
+	}
+
+	var conditions *valueWriteConditions
+	if len(targetsByField) > 0 {
+		// Only the service's write methods attach a record, and hooks run only inside them, so this
+		// guards against a new caller rather than a path users reach.
+		if conditions = valueWriteConditionsFrom(rctx); conditions == nil {
+			return errors.New("no write conditions on the request")
+		}
+	}
+
+	stored := make(map[store.PropertyValueKey]*model.PropertyValue)
+	for fieldID, targetIDs := range targetsByField {
+		field := fieldMap[fieldID]
+		rows, err := h.propertyService.searchPropertyValues(store.RequestContextWithMaster(rctx), field.GroupID, model.PropertyValueSearchOpts{
+			FieldID:   fieldID,
+			TargetIDs: targetIDs,
+			PerPage:   len(targetIDs),
+		})
+		if err != nil {
+			return fmt.Errorf("field %s: failed to read the stored values: %w", fieldID, err)
+		}
+		for _, row := range rows {
+			stored[store.PropertyValueKey{FieldID: fieldID, TargetID: row.TargetID}] = row
+		}
+		for _, targetID := range targetIDs {
+			conditions.expectStored(fieldID, targetID, stored[store.PropertyValueKey{FieldID: fieldID, TargetID: targetID}])
+		}
+	}
+
+	for _, v := range governed {
+		var storedValue json.RawMessage
+		if row := stored[store.PropertyValueKey{FieldID: v.FieldID, TargetID: v.TargetID}]; row != nil && !model.IsEmptyPropertyValue(row.Value) {
+			storedValue = row.Value
+		}
+		// A soft delete is a clear.
+		next := v.Value
+		if v.DeleteAt != 0 {
+			next = nil
+		}
+		if err := checkMutability(fieldMap[v.FieldID], storedValue, next); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// checkMutability decides whether field's mutability permits replacing stored with next. stored is
+// nil when the object has no value; next is empty for a clear.
+func checkMutability(field *model.PropertyField, stored, next json.RawMessage) error {
+	// Writing the stored value again changes nothing, so re-saving an unchanged form never fails.
+	if samePropertyValue(stored, next) {
+		return nil
+	}
+	switch field.Mutability.OrMutable() {
+	case model.PropertyFieldMutabilityMutable:
+		return nil
+	case model.PropertyFieldMutabilityWriteOnce:
+		if stored == nil {
+			return nil
+		}
+	}
+	// set_on_create, and any mutability this server doesn't recognise: a mutability must never
+	// quietly stop applying.
+	return newMutabilityError(field)
+}
+
+// samePropertyValue compares decoded JSON: Postgres returns jsonb with its own spacing, so a client
+// echoing a stored value back can differ byte for byte. Array order still counts, and two empty
+// values are the same.
+func samePropertyValue(a, b json.RawMessage) bool {
+	if model.IsEmptyPropertyValue(a) || model.IsEmptyPropertyValue(b) {
+		return model.IsEmptyPropertyValue(a) && model.IsEmptyPropertyValue(b)
+	}
+	var x, y any
+	if json.Unmarshal(a, &x) != nil || json.Unmarshal(b, &y) != nil {
+		return false
+	}
+	return reflect.DeepEqual(x, y)
+}
+
+// newMutabilityError returns the refusal for a write a field's mutability forbids, written like
+// newChangePolicyError. Details name the field only, never a value or option.
+//
+// Each key is written inline: i18n-extract only sees IDs passed literally to NewAppError.
+func newMutabilityError(field *model.PropertyField) error {
+	mutability := field.Mutability.OrMutable()
+	details := fmt.Sprintf("field %s: mutability %s does not permit this change", field.ID, mutability)
+	if mutability == model.PropertyFieldMutabilityWriteOnce {
+		return model.NewAppError("UpsertPropertyValues", "app.property_value.write_once.app_error", nil, details, http.StatusForbidden)
+	}
+	return model.NewAppError("UpsertPropertyValues", "app.property_value.set_on_create.app_error", nil, details, http.StatusForbidden)
 }

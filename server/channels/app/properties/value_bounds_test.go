@@ -6,6 +6,8 @@ package properties
 import (
 	"encoding/json"
 	"errors"
+	"net/http"
+	"sync"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -345,5 +347,264 @@ func TestCheckParentRule(t *testing.T) {
 			c := newChain(t, nil, model.PropertyBounds{below})
 			require.ErrorIs(t, check(c, c.post, below, model.NewId(), opt("optlow")), errBoundsCheckFailed)
 		})
+	})
+}
+
+// injectingHook writes a value straight to the store inside a pre-hook of a write to field,
+// standing in for a concurrent writer that lands between a check and the write it judged.
+type injectingHook struct {
+	BasePropertyHook
+	field  *model.PropertyField
+	inject func()
+}
+
+func (h *injectingHook) run(v *model.PropertyValue) {
+	if h.inject != nil && v.FieldID == h.field.ID {
+		h.inject()
+	}
+}
+
+func (h *injectingHook) PreCreatePropertyValue(_ request.CTX, v *model.PropertyValue) (*model.PropertyValue, error) {
+	h.run(v)
+	return v, nil
+}
+
+func (h *injectingHook) PreUpsertPropertyValue(_ request.CTX, v *model.PropertyValue) (*model.PropertyValue, error) {
+	h.run(v)
+	return v, nil
+}
+
+func requireAppErrorID(t *testing.T, err error, id string, status int) {
+	t.Helper()
+	var appErr *model.AppError
+	require.True(t, errors.As(err, &appErr), "got %v", err)
+	assert.Equal(t, id, appErr.Id)
+	assert.Equal(t, status, appErr.StatusCode)
+}
+
+func TestSamePropertyValue(t *testing.T) {
+	cases := map[string]struct {
+		a, b string
+		want bool
+	}{
+		"identical":             {`"a"`, `"a"`, true},
+		"different":             {`"a"`, `"b"`, false},
+		"spacing differs":       {`["a","b"]`, `["a", "b"]`, true},
+		"array order counts":    {`["a","b"]`, `["b","a"]`, false},
+		"two empty values":      {`null`, `[]`, true},
+		"empty against a value": {`""`, `"a"`, false},
+		"absent against null":   {``, `null`, true},
+		"a value against none":  {`"a"`, ``, false},
+	}
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			assert.Equal(t, tc.want, samePropertyValue(json.RawMessage(tc.a), json.RawMessage(tc.b)))
+		})
+	}
+}
+
+func TestEnforceMutability(t *testing.T) {
+	th := Setup(t)
+	rctx := th.Context
+	groupID, create, createDirect := boundsSetup(t, th, rctx)
+	// Made before the hook is registered: it would refuse these fixtures' names.
+	create(model.PropertyFieldObjectTypeSystem, nil)
+	parentRuleField := create(model.PropertyFieldObjectTypeChannel, model.PropertyBounds{{Operator: model.PropertyBoundsOperatorAtOrBelow, Reference: model.PropertyBoundsReferenceParent}})
+	noRuleField := createDirect(model.PropertyFieldObjectTypeChannel)
+	hook := NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{PropertyFieldBounds: func() bool { return true }}, groupID)
+	th.service.AddHook(hook)
+	// Registered after the validation hook, so it sees what the hook recorded.
+	recorder := &recordingHook{}
+	th.service.AddHook(recorder)
+	injector := &injectingHook{}
+	th.service.AddHook(injector)
+
+	newField := func(fieldType model.PropertyFieldType, mutability model.PropertyFieldMutability, bounds model.PropertyBounds) *model.PropertyField {
+		return th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    groupID,
+			ObjectType: model.PropertyFieldObjectTypeChannel,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       fieldType,
+			Name:       "f " + model.NewId(),
+			Mutability: mutability,
+			Bounds:     bounds,
+		})
+	}
+	writeOnce := func() *model.PropertyField {
+		return newField(model.PropertyFieldTypeText, model.PropertyFieldMutabilityWriteOnce, nil)
+	}
+	value := func(f *model.PropertyField, targetID, raw string) *model.PropertyValue {
+		return &model.PropertyValue{GroupID: groupID, FieldID: f.ID, TargetID: targetID, TargetType: model.PropertyValueTargetTypeChannel, Value: json.RawMessage(raw)}
+	}
+	// seed writes straight to the store, past the hooks.
+	seed := func(f *model.PropertyField, targetID, raw string) *model.PropertyValue {
+		created, err := th.dbStore.PropertyValue().Create(value(f, targetID, raw))
+		require.NoError(t, err)
+		return created
+	}
+	stored := func(f *model.PropertyField, targetID string) string {
+		vals, err := th.dbStore.PropertyValue().SearchPropertyValues(rctx, model.PropertyValueSearchOpts{GroupID: groupID, FieldID: f.ID, TargetIDs: []string{targetID}, PerPage: 10})
+		require.NoError(t, err)
+		if len(vals) == 0 {
+			return ""
+		}
+		return string(vals[0].Value)
+	}
+	const writeOnceID = "app.property_value.write_once.app_error"
+
+	t.Run("write-once takes a first write and refuses a change", func(t *testing.T) {
+		f, target := writeOnce(), model.NewId()
+
+		_, err := th.service.UpsertPropertyValue(rctx, value(f, target, `"a"`))
+		require.NoError(t, err)
+
+		_, err = th.service.UpsertPropertyValue(rctx, value(f, target, `"b"`))
+		requireAppErrorID(t, err, writeOnceID, http.StatusForbidden)
+		assert.Equal(t, `"a"`, stored(f, target))
+
+		_, err = th.service.UpsertPropertyValue(rctx, value(f, target, `"a"`))
+		require.NoError(t, err)
+
+		_, err = th.service.UpsertPropertyValue(rctx, value(f, target, `null`))
+		requireAppErrorID(t, err, writeOnceID, http.StatusForbidden)
+		assert.Equal(t, `"a"`, stored(f, target))
+	})
+
+	t.Run("write-once accepts the stored value with different spacing", func(t *testing.T) {
+		f := newField(model.PropertyFieldTypeMultiuser, model.PropertyFieldMutabilityWriteOnce, nil)
+		target, a, b := model.NewId(), model.NewId(), model.NewId()
+
+		_, err := th.service.UpsertPropertyValue(rctx, value(f, target, `["`+a+`","`+b+`"]`))
+		require.NoError(t, err)
+		_, err = th.service.UpsertPropertyValue(rctx, value(f, target, `[ "`+a+`" , "`+b+`" ]`))
+		require.NoError(t, err)
+		_, err = th.service.UpsertPropertyValue(rctx, value(f, target, `["`+b+`","`+a+`"]`))
+		requireAppErrorID(t, err, writeOnceID, http.StatusForbidden)
+	})
+
+	t.Run("write-once counts a null-valued row as no value", func(t *testing.T) {
+		f, target := writeOnce(), model.NewId()
+		seed(f, target, `null`)
+
+		_, err := th.service.UpsertPropertyValue(rctx, value(f, target, `"a"`))
+		require.NoError(t, err)
+		assert.Equal(t, `"a"`, stored(f, target))
+	})
+
+	t.Run("set-on-create refuses even a first write", func(t *testing.T) {
+		f, target := newField(model.PropertyFieldTypeText, model.PropertyFieldMutabilitySetOnCreate, nil), model.NewId()
+
+		_, err := th.service.UpsertPropertyValue(rctx, value(f, target, `"a"`))
+		requireAppErrorID(t, err, "app.property_value.set_on_create.app_error", http.StatusForbidden)
+		assert.Equal(t, "", stored(f, target))
+	})
+
+	t.Run("an update that soft-deletes a set write-once value is refused", func(t *testing.T) {
+		f, target := writeOnce(), model.NewId()
+		row := seed(f, target, `"a"`)
+
+		upd := *row
+		upd.DeleteAt = model.GetMillis()
+		_, err := th.service.UpdatePropertyValue(rctx, groupID, &upd)
+		requireAppErrorID(t, err, writeOnceID, http.StatusForbidden)
+		assert.Equal(t, `"a"`, stored(f, target))
+	})
+
+	t.Run("one refused value refuses the whole batch", func(t *testing.T) {
+		f, free, locked := writeOnce(), model.NewId(), model.NewId()
+		seed(f, locked, `"a"`)
+
+		_, err := th.service.UpsertPropertyValues(rctx, []*model.PropertyValue{value(f, free, `"x"`), value(f, locked, `"b"`)})
+		requireAppErrorID(t, err, writeOnceID, http.StatusForbidden)
+		assert.Equal(t, "", stored(f, free))
+		assert.Equal(t, `"a"`, stored(f, locked))
+	})
+
+	t.Run("a batch naming one governed field and target twice is refused", func(t *testing.T) {
+		f, target := writeOnce(), model.NewId()
+
+		_, err := th.service.UpsertPropertyValues(rctx, []*model.PropertyValue{value(f, target, `"a"`), value(f, target, `"b"`)})
+		require.ErrorIs(t, err, ErrInvalidValue)
+		assert.Equal(t, "", stored(f, target))
+	})
+
+	t.Run("fields that don't compare with the stored value record nothing", func(t *testing.T) {
+		for name, f := range map[string]*model.PropertyField{"no rule": noRuleField, "parent rule": parentRuleField} {
+			t.Run(name, func(t *testing.T) {
+				target := model.NewId()
+				seed(f, target, `"optlow"`)
+				var recorded = -1
+				recorder.record = func(c *valueWriteConditions) { recorded = len(c.read) }
+				t.Cleanup(func() { recorder.record = nil })
+
+				_, err := th.service.UpsertPropertyValue(rctx, value(f, target, `"optmid"`))
+				require.NoError(t, err)
+				assert.Equal(t, 0, recorded)
+				assert.Equal(t, `"optmid"`, stored(f, target))
+			})
+		}
+	})
+
+	t.Run("a write with no record on the request is refused", func(t *testing.T) {
+		f, target := writeOnce(), model.NewId()
+
+		_, err := hook.PreUpsertPropertyValues(rctx, []*model.PropertyValue{value(f, target, `"a"`)})
+		require.Error(t, err)
+		assert.Equal(t, "", stored(f, target))
+	})
+
+	t.Run("a writer landing between the check and the write is refused", func(t *testing.T) {
+		t.Cleanup(func() { injector.inject = nil })
+
+		t.Run("upsert", func(t *testing.T) {
+			f, target := writeOnce(), model.NewId()
+			injector.field = f
+			injector.inject = func() {
+				_, err := th.dbStore.PropertyValue().Upsert([]*model.PropertyValue{value(f, target, `"b"`)})
+				require.NoError(t, err)
+			}
+
+			_, err := th.service.UpsertPropertyValue(rctx, value(f, target, `"a"`))
+			requireWriteConflict(t, err)
+			assert.Equal(t, `"b"`, stored(f, target))
+		})
+
+		t.Run("create", func(t *testing.T) {
+			f, target := writeOnce(), model.NewId()
+			injector.field = f
+			injector.inject = func() {
+				_, err := th.dbStore.PropertyValue().Upsert([]*model.PropertyValue{value(f, target, `"b"`)})
+				require.NoError(t, err)
+			}
+
+			_, err := th.service.CreatePropertyValue(rctx, value(f, target, `"a"`))
+			requireWriteConflict(t, err)
+			assert.Equal(t, `"b"`, stored(f, target))
+		})
+	})
+
+	t.Run("of two simultaneous first writes exactly one wins", func(t *testing.T) {
+		f := writeOnce()
+		for range 20 {
+			target := model.NewId()
+			var wg sync.WaitGroup
+			errs := make([]error, 2)
+			for i, raw := range []string{`"a"`, `"b"`} {
+				wg.Go(func() {
+					_, errs[i] = th.service.UpsertPropertyValue(rctx, value(f, target, raw))
+				})
+			}
+			wg.Wait()
+
+			winner := 0
+			if errs[0] != nil {
+				winner = 1
+			}
+			require.NoError(t, errs[winner])
+			var appErr *model.AppError
+			require.True(t, errors.As(errs[1-winner], &appErr), "got %v", errs[1-winner])
+			assert.Contains(t, []string{"app.property_value.write_conflict.app_error", writeOnceID}, appErr.Id)
+			assert.Equal(t, []string{`"a"`, `"b"`}[winner], stored(f, target))
+		}
 	})
 }
