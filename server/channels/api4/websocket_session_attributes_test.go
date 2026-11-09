@@ -246,6 +246,31 @@ func TestWebSocketPromptsChallengeAuthenticatedClient(t *testing.T) {
 	}
 }
 
+func TestWebSocketPromptsClientAfterSessionCacheInvalidation(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupSessionAttributesWebSocketTest(t)
+	setIPAddressAttributeDuration(t, th, 2, 30)
+
+	ws := dialWebSocket(t, th, th.Client.AuthToken, "", "", 0)
+	defer ws.conn.Close()
+	ws.hello(t)
+	// Let the connect-time status change through first: any event delivered after the
+	// invalidation would reload the session itself.
+	select {
+	case <-ws.events:
+	case <-time.After(500 * time.Millisecond):
+	}
+	th.App.Srv().Platform().InvalidateChannelCacheForUser(th.BasicUser.Id)
+
+	for {
+		event := ws.next(t)
+		if event.EventType() == model.WebsocketEventSessionAttributesExpired {
+			requireIPAddressPrompt(t, event)
+			return
+		}
+	}
+}
+
 // rawWebSocket authenticates the upgrade request itself, as the webapp does with its cookie,
 // so the request records the session's attributes, and can set X-Forwarded-For to choose
 // the network the connection comes from.
