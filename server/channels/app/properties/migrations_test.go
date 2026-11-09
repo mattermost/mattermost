@@ -2413,3 +2413,75 @@ func TestMigrateRemoveUnenforcedChangePolicy_ConflictIsRetryable(t *testing.T) {
 	require.NoError(t, getErr)
 	assert.Equal(t, model.PropertyFieldChangePolicyNever, got.Attrs[model.PropertyFieldAttrChangePolicy])
 }
+
+// outcomeStore fails a multi-field Update when failBatch is set, as a batch is
+// all or nothing, and answers a one-field Update from outcomes by field ID
+// (nil is success).
+type outcomeStore struct {
+	store.PropertyFieldStore
+	failBatch bool
+	outcomes  map[string]error
+	gotRead   map[string]int64
+}
+
+func (s *outcomeStore) Update(_ string, fields []*model.PropertyField, readUpdateAts map[string]int64) ([]*model.PropertyField, error) {
+	if len(fields) != 1 {
+		if s.failBatch {
+			return nil, errors.New("batch refused")
+		}
+		return fields, nil
+	}
+	s.gotRead[fields[0].ID] = readUpdateAts[fields[0].ID]
+	return fields, s.outcomes[fields[0].ID]
+}
+
+func TestWriteFieldsIfUnchanged(t *testing.T) {
+	conflict := store.NewErrConflict("PropertyField", errors.New("changed"), "")
+	other := errors.New("boom")
+	ok, c, o := &model.PropertyField{ID: "ok"}, &model.PropertyField{ID: "conflict"}, &model.PropertyField{ID: "other"}
+	batch := []*model.PropertyField{ok, c, o}
+	readUpdateAts := map[string]int64{"ok": 1, "conflict": 2, "other": 3}
+
+	tests := []struct {
+		name          string
+		failBatch     bool
+		wantWritten   []*model.PropertyField
+		wantConflicts []*model.PropertyField
+		wantFailures  []*model.PropertyField
+		wantRead      map[string]int64
+	}{
+		{name: "batch succeeds", wantWritten: batch, wantRead: map[string]int64{}},
+		{
+			name: "batch fails and each field is written alone", failBatch: true,
+			wantWritten:   []*model.PropertyField{ok},
+			wantConflicts: []*model.PropertyField{c},
+			wantFailures:  []*model.PropertyField{o},
+			wantRead:      readUpdateAts, // each retry carries that field's own read UpdateAt
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			stub := &outcomeStore{
+				failBatch: tt.failBatch,
+				outcomes:  map[string]error{"conflict": conflict, "other": other},
+				gotRead:   map[string]int64{},
+			}
+			ps := &PropertyService{fieldStore: stub}
+
+			written, conflicts, failures := ps.writeFieldsIfUnchanged("g", batch, readUpdateAts)
+
+			assert.Equal(t, tt.wantWritten, written)
+			assert.Equal(t, tt.wantRead, stub.gotRead)
+			require.Len(t, conflicts, len(tt.wantConflicts))
+			for i, f := range tt.wantConflicts {
+				assert.Same(t, f, conflicts[i].field)
+				assert.Equal(t, conflict, conflicts[i].err)
+			}
+			require.Len(t, failures, len(tt.wantFailures))
+			for i, f := range tt.wantFailures {
+				assert.Same(t, f, failures[i].field)
+				assert.Equal(t, other, failures[i].err)
+			}
+		})
+	}
+}
