@@ -114,7 +114,7 @@ jobs:
         # The diagnostic summary runs even on cancellation. A cancelled lane
         # must leave its current pending status (or a newer owner's result) alone.
         if: ${{ !cancelled() }}
-        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-test-status@30c00f6c20ab50557b39e7c925516098a1061d44  # actions/e2e-test-status
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-test-status@cc3c7fd2cc1c01a1d6706b2708666547b7afac9d  # actions/e2e-test-status
         with:
           composite-identity: ${{ inputs.composite_identity_json }}
           status-context: ${{ inputs.context_name }}
@@ -157,7 +157,7 @@ jobs:
         # it to change.
         if: ${{ !cancelled() && steps.result.outputs.state != 'success' }}
         continue-on-error: true
-        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-test-triage@30c00f6c20ab50557b39e7c925516098a1061d44 # actions/e2e-test-triage
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-test-triage@cc3c7fd2cc1c01a1d6706b2708666547b7afac9d # actions/e2e-test-triage
         with:
           composite-identity: ${{ inputs.composite_identity_json }}
           status-context: ${{ inputs.context_name }}
@@ -199,7 +199,7 @@ jobs:
           key: e2e-triage-answers-${{ inputs.context_name }}-${{ fromJSON(inputs.composite_identity_json).gh_pr_number && format('pr{0}', fromJSON(inputs.composite_identity_json).gh_pr_number) || fromJSON(inputs.composite_identity_json).commit_sha }}-${{ github.run_id }}-${{ github.run_attempt }}
       - name: ci/refresh-lane-summary
         if: ${{ !cancelled() }}
-        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-test-status@30c00f6c20ab50557b39e7c925516098a1061d44  # actions/e2e-test-status
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-test-status@cc3c7fd2cc1c01a1d6706b2708666547b7afac9d  # actions/e2e-test-status
         with:
           composite-identity: ${{ inputs.composite_identity_json }}
           status-context: ${{ inputs.context_name }}
