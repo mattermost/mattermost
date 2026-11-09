@@ -11116,6 +11116,11 @@
     "description": "API error when editing a property field whose values are controlled by an external sync source (e.g. LDAP) and thus read-only."
   },
   {
+    "id": "app.property_field.bounds_check_failed.app_error",
+    "translation": "The rule can't be checked against the values already stored.",
+    "description": "API error (409) when a parent bounds rule is added to a property field but the values already stored can't be compared with it, such as the parent holding an option that no longer exists; the change is refused instead of skipping the check."
+  },
+  {
     "id": "app.property_field.bounds_disabled.app_error",
     "translation": "Bounds and a locking mutability can't be added to a field while the PropertyFieldBounds feature flag is off.",
     "description": "API error (400) when a property field is given a new bounds rule or made write_once while the PropertyFieldBounds feature flag is off."
@@ -11134,6 +11139,11 @@
     "id": "app.property_field.bounds_requires_v3_group.app_error",
     "translation": "Only fields in a version 3 property group can have bounds or a mutability other than mutable.",
     "description": "API error when a property field in a property group older than version 3 is saved with bounds or a write_once or set_on_create mutability; only version 3 groups enforce them."
+  },
+  {
+    "id": "app.property_field.bounds_stored_values.app_error",
+    "translation": "{{.Count}} stored values already break this rule, for example on {{.Examples}}. Change those values first.",
+    "description": "API error (409) when a parent bounds rule is added to a property field while stored values of that field already break it; Examples lists up to five target IDs."
   },
   {
     "id": "app.property_field.count_for_group.app_error",
