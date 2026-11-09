@@ -1556,8 +1556,9 @@ func selfRules(bounds model.PropertyBounds) model.PropertyBounds {
 func (h *AccessControlAttributeValidationHook) validateBoundsChange(field, existing *model.PropertyField, oldFormatWrite bool) error {
 	prevMutability, prevBounds := changePolicyBaseline(existing)
 
-	// adding is anything new, for the license; flagGated is what the flag also
-	// covers, which skips what an old-format write's translation can add.
+	// adding is the first thing the write adds, which the license check names;
+	// flagGated is the first of those the flag also refuses, so it skips the self
+	// rules and write_once that an old-format write's translation adds.
 	var adding, flagGated string
 	for _, rule := range field.Bounds {
 		if slices.Contains(prevBounds, rule) {

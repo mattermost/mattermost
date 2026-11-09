@@ -4617,13 +4617,14 @@ func TestAccessControlAttributeValidationHookChangePolicyTranslation(t *testing.
 
 	t.Run("a parent rule saved beside change_policy stays behind the flag", func(t *testing.T) {
 		// A rank template with valid option IDs, so a linked field can be updated, and a
-		// system field on it to be the channel fields' parent. The system field is created
-		// before the hook is added because its name wouldn't pass the charset check.
+		// system field linked to it to be the channel fields' parent. The system field is
+		// created before the hook is added because its name wouldn't pass the charset check.
 		groupID := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV3).ID
 		template := newField(model.PropertyFieldTypeRank, model.PropertyFieldObjectTypeTemplate, nil)
 		template.GroupID = groupID
-		// The hook's option sanitizing adds color "", and an update that differs from the
-		// stored linked field's options in it is refused.
+		// The hook's option sanitizing adds color "" to options, and a linked-field update
+		// whose options differ from the template's in that is refused. Setting it here
+		// keeps the update below from tripping on it.
 		for _, opt := range template.Attrs[model.PropertyFieldAttributeOptions].([]any) {
 			opt.(map[string]any)["color"] = ""
 		}

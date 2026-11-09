@@ -952,7 +952,7 @@ func convertChangePolicy(field *model.PropertyField) (removed []removedOldKey, c
 	return removed, changed
 }
 
-// fieldWriteFailure is a field the store refused to write, with why.
+// fieldWriteFailure is a field the store did not write, with the store's error.
 type fieldWriteFailure struct {
 	field *model.PropertyField
 	err   error
