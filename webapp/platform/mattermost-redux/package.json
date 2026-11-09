@@ -63,5 +63,8 @@
     "build": "tsc --build --verbose",
     "postbuild": "sh postbuild.sh",
     "clean": "rm -rf lib node_modules *.tsbuildinfo"
+  },
+  "devDependencies": {
+    "@typescript/native": "npm:typescript@7.0.2"
   }
 }

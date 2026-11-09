@@ -27,6 +27,7 @@
     "@types/react-bootstrap": "^0.32.37",
     "@types/react-dom": "19.3.0",
     "@types/styled-components": "^5.1.36",
+    "@typescript/native": "npm:typescript@7.0.2",
     "babel-plugin-styled-components": "2.3.1",
     "jest-environment-jsdom": "30.5.2",
     "react": "19.3.1",

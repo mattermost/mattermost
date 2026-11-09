@@ -3,7 +3,6 @@
     "compilerOptions": {
         "noEmit": false,
         "emitDeclarationOnly": true,
-        "declarationMap": true,
         "composite": false,
         "incremental": false,
         "outDir": "./dist"
