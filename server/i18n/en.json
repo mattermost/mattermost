@@ -11536,6 +11536,11 @@
     "description": "API error (409) when a bounds rule on a property value can't be checked because the data it depends on is missing or broken, such as a stored option that no longer exists; the write is refused instead of skipping the rule."
   },
   {
+    "id": "app.property_value.bounds_contained_values.app_error",
+    "translation": "{{.Count}} values inside would be out of bounds after this change, for example on {{.Examples}}. Change those values first.",
+    "description": "API error (409) when a channel's property value is changed while values of posts in that channel would then break a parent bounds rule; Examples lists up to five post IDs."
+  },
+  {
     "id": "app.property_value.bounds_violated.app_error",
     "translation": "This value isn't allowed for this field.",
     "description": "API error (403) when a property value write breaks one of the field's bounds rules, such as lowering a raise-only value; the message never says what the limit is."

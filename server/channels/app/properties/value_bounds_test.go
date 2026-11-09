@@ -1192,3 +1192,185 @@ func TestRefuseMisaddressedUpdate(t *testing.T) {
 		assert.Equal(t, `"new"`, stored(m))
 	})
 }
+
+func TestRefuseContainedValuesOutOfBounds(t *testing.T) {
+	th := Setup(t)
+	rctx := th.Context
+	below := model.PropertyBounds{{Operator: model.PropertyBoundsOperatorAtOrBelow, Reference: model.PropertyBoundsReferenceParent}}
+	above := model.PropertyBounds{{Operator: model.PropertyBoundsOperatorAtOrAbove, Reference: model.PropertyBoundsReferenceParent}}
+	self := model.PropertyBounds{{Operator: model.PropertyBoundsOperatorAtOrAbove, Reference: model.PropertyBoundsReferenceSelf}}
+	team := th.CreateTeam(t)
+	const containedID = "app.property_value.bounds_contained_values.app_error"
+	const checkFailedID = "app.property_value.bounds_check_failed.app_error"
+	channelType := model.PropertyValueTargetTypeChannel
+
+	type fixture struct {
+		channelField, postField *model.PropertyField
+	}
+	// setup gives each subtest its own group, with the channel field holding no rules and the post
+	// field holding postBounds.
+	setup := func(t *testing.T, postBounds model.PropertyBounds) fixture {
+		t.Helper()
+		groupID, create, _ := boundsSetup(t, th, rctx)
+		create(model.PropertyFieldObjectTypeSystem, nil)
+		f := fixture{channelField: create(model.PropertyFieldObjectTypeChannel, nil)}
+		f.postField = create(model.PropertyFieldObjectTypePost, postBounds)
+		th.service.AddHook(NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{PropertyFieldBounds: func() bool { return true }}, groupID))
+		return f
+	}
+	// seed writes straight to the store, past the hooks.
+	seed := func(f *model.PropertyField, targetType, targetID, raw string) {
+		t.Helper()
+		_, err := th.dbStore.PropertyValue().Upsert([]*model.PropertyValue{{GroupID: f.GroupID, FieldID: f.ID, TargetType: targetType, TargetID: targetID, Value: json.RawMessage(raw)}})
+		require.NoError(t, err)
+	}
+	// channel returns a channel holding optionID for the channel field; "" leaves it with no value.
+	channel := func(f fixture, optionID string) string {
+		t.Helper()
+		id := th.CreateChannel(t, team.Id).Id
+		if optionID != "" {
+			seed(f.channelField, channelType, id, `"`+optionID+`"`)
+		}
+		return id
+	}
+	post := func(f fixture, channelID, optionID string) string {
+		t.Helper()
+		p, err := th.dbStore.Post().Save(rctx, &model.Post{ChannelId: channelID, UserId: model.NewId(), Message: "m " + model.NewId()})
+		require.NoError(t, err)
+		seed(f.postField, model.PropertyValueTargetTypePost, p.Id, `"`+optionID+`"`)
+		return p.Id
+	}
+	write := func(f fixture, channelID, raw string) error {
+		_, err := th.service.UpsertPropertyValue(rctx, &model.PropertyValue{GroupID: f.channelField.GroupID, FieldID: f.channelField.ID, TargetType: channelType, TargetID: channelID, Value: json.RawMessage(raw)})
+		return err
+	}
+	stored := func(f fixture, channelID string) string {
+		t.Helper()
+		vals, err := th.dbStore.PropertyValue().SearchPropertyValues(rctx, model.PropertyValueSearchOpts{GroupID: f.channelField.GroupID, FieldID: f.channelField.ID, TargetIDs: []string{channelID}, PerPage: 10})
+		require.NoError(t, err)
+		if len(vals) == 0 {
+			return ""
+		}
+		return string(vals[0].Value)
+	}
+
+	t.Run("lowering a channel below a post is refused", func(t *testing.T) {
+		f := setup(t, below)
+		x := channel(f, "optmid")
+		mid := post(f, x, "optmid")
+		post(f, x, "optlow")
+
+		err := write(f, x, `"optlow"`)
+		requireAppErrorID(t, err, containedID, http.StatusConflict)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		assert.Contains(t, appErr.DetailedError, ": target "+x+": 1 contained values of field "+f.postField.ID+" out of bounds, e.g. "+mid)
+		assert.Equal(t, `"optmid"`, stored(f, x))
+
+		require.NoError(t, write(f, x, `"opthigh"`))
+	})
+
+	t.Run("clearing is allowed", func(t *testing.T) {
+		f := setup(t, below)
+		x, y := channel(f, "optmid"), channel(f, "optmid")
+		post(f, x, "optmid")
+		post(f, y, "optmid")
+		require.NoError(t, write(f, x, `null`))
+
+		row, err := th.dbStore.PropertyValue().SearchPropertyValues(rctx, model.PropertyValueSearchOpts{GroupID: f.channelField.GroupID, FieldID: f.channelField.ID, TargetIDs: []string{y}, PerPage: 1})
+		require.NoError(t, err)
+		row[0].DeleteAt = model.GetMillis()
+		_, err = th.service.UpdatePropertyValue(rctx, f.channelField.GroupID, row[0])
+		require.NoError(t, err)
+	})
+
+	t.Run("setting a value where there was none is checked", func(t *testing.T) {
+		f := setup(t, below)
+		y := channel(f, "")
+		post(f, y, "opthigh")
+		requireAppErrorID(t, write(f, y, `"optmid"`), containedID, http.StatusConflict)
+		assert.Equal(t, "", stored(f, y))
+		require.NoError(t, write(f, y, `"opthigh"`))
+	})
+
+	t.Run("a deleted post doesn't block", func(t *testing.T) {
+		f := setup(t, below)
+		x := channel(f, "optmid")
+		gone := post(f, x, "opthigh")
+		require.NoError(t, th.dbStore.Post().Delete(rctx, gone, model.GetMillis(), model.NewId()))
+		require.NoError(t, write(f, x, `"optlow"`))
+	})
+
+	t.Run("an at_or_above post rule refuses raising", func(t *testing.T) {
+		f := setup(t, above)
+		x := channel(f, "optlow")
+		post(f, x, "optlow")
+		requireAppErrorID(t, write(f, x, `"optmid"`), containedID, http.StatusConflict)
+		require.NoError(t, write(f, x, `"optlow"`))
+	})
+
+	t.Run("a post field with no parent rule leaves the channel free", func(t *testing.T) {
+		for name, bounds := range map[string]model.PropertyBounds{"none": nil, "self only": self} {
+			f := setup(t, bounds)
+			x := channel(f, "optmid")
+			post(f, x, "opthigh")
+			require.NoError(t, write(f, x, `"optlow"`), name)
+		}
+	})
+
+	t.Run("re-saving the stored value is never refused", func(t *testing.T) {
+		f := setup(t, below)
+		x := channel(f, "optmid")
+		post(f, x, "opthigh")
+		require.NoError(t, write(f, x, `"optmid"`))
+	})
+
+	t.Run("a refused batch writes nothing", func(t *testing.T) {
+		f := setup(t, below)
+		x, y := channel(f, "optmid"), channel(f, "optmid")
+		post(f, x, "optmid")
+		_, err := th.service.UpsertPropertyValues(rctx, []*model.PropertyValue{
+			{GroupID: f.channelField.GroupID, FieldID: f.channelField.ID, TargetType: channelType, TargetID: y, Value: json.RawMessage(`"opthigh"`)},
+			{GroupID: f.channelField.GroupID, FieldID: f.channelField.ID, TargetType: channelType, TargetID: x, Value: json.RawMessage(`"optlow"`)},
+		})
+		requireAppErrorID(t, err, containedID, http.StatusConflict)
+		assert.Equal(t, `"optmid"`, stored(f, x))
+		assert.Equal(t, `"optmid"`, stored(f, y))
+	})
+
+	t.Run("a value that can't be ranked is refused", func(t *testing.T) {
+		f := setup(t, below)
+		x := channel(f, "optmid")
+		post(f, x, "optmid")
+		// The option check refuses an unknown option first, so call the check with a field that
+		// has lost its option.
+		unranked := *f.channelField
+		unranked.Attrs = model.StringInterface{model.PropertyFieldAttributeOptions: []any{map[string]any{"id": "optlow", "name": "LOW", "rank": 1}}}
+		hook := NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{PropertyFieldBounds: func() bool { return true }}, f.channelField.GroupID)
+		err := hook.refuseContainedValuesOutOfBounds(rctx,
+			[]*model.PropertyValue{{GroupID: f.channelField.GroupID, FieldID: unranked.ID, TargetType: channelType, TargetID: x, Value: json.RawMessage(`"optmid2"`)}},
+			map[string]*model.PropertyField{unranked.ID: &unranked})
+		requireAppErrorID(t, err, checkFailedID, http.StatusConflict)
+		require.ErrorIs(t, err, errBoundsCheckFailed)
+	})
+
+	t.Run("a post value that can't be ranked counts as out of bounds", func(t *testing.T) {
+		f := setup(t, below)
+		x := channel(f, "optmid")
+		post(f, x, "optgone")
+		requireAppErrorID(t, write(f, x, `"opthigh"`), containedID, http.StatusConflict)
+	})
+
+	t.Run("a refusal never names an option", func(t *testing.T) {
+		f := setup(t, below)
+		x := channel(f, "optmid")
+		post(f, x, "optmid")
+		var appErr *model.AppError
+		require.ErrorAs(t, write(f, x, `"optlow"`), &appErr)
+		for _, secret := range []string{"optlow", "optmid", "opthigh"} {
+			assert.NotContains(t, appErr.Message, secret)
+			assert.NotContains(t, appErr.DetailedError, secret)
+			assert.NotContains(t, appErr.Error(), secret)
+		}
+	})
+}

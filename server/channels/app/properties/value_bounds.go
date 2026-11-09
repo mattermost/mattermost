@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"reflect"
 	"slices"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -231,6 +232,77 @@ func (h *AccessControlAttributeValidationHook) enforceBounds(rctx request.CTX, v
 			if err != nil {
 				return boundsRefusal(err)
 			}
+		}
+	}
+	return h.refuseContainedValuesOutOfBounds(rctx, values, fieldMap)
+}
+
+// refuseContainedValuesOutOfBounds refuses a request that sets a channel's value when the posts
+// inside would end up out of bounds under a post field's parent rule. Only channel fields linked
+// to a template that a post field's parent rule reads from are looked at, so other writes pay
+// nothing. Clearing is never refused (the posts only get a looser limit), and neither is writing
+// the stored value again, so re-saving a form doesn't fail on values the writer didn't touch.
+func (h *AccessControlAttributeValidationHook) refuseContainedValuesOutOfBounds(rctx request.CTX, values []*model.PropertyValue, fieldMap map[string]*model.PropertyField) error {
+	for _, v := range values {
+		field, ok := fieldMap[v.FieldID]
+		if !ok || field.ObjectType != model.PropertyFieldObjectTypeChannel || field.LinkSourceID() == "" ||
+			v.DeleteAt != 0 || model.IsEmptyPropertyValue(v.Value) {
+			continue
+		}
+		postFields, err := h.propertyService.childFieldsWithParentRule(rctx, field)
+		if err != nil {
+			return fmt.Errorf("field %s: failed to look up the post fields: %w", field.ID, err)
+		}
+		if len(postFields) == 0 {
+			continue
+		}
+
+		// Records nothing for the conditional write: a post value written between this read and the
+		// channel's write can land above the new value, and no lock spans the two objects.
+		rows, err := h.propertyService.searchPropertyValues(store.RequestContextWithMaster(rctx), field.GroupID, model.PropertyValueSearchOpts{
+			FieldID:   field.ID,
+			TargetIDs: []string{v.TargetID},
+			PerPage:   1,
+		})
+		if err != nil {
+			return fmt.Errorf("field %s: failed to read the stored value of target %s: %w", field.ID, v.TargetID, err)
+		}
+		if len(rows) > 0 && samePropertyValue(rows[0].Value, v.Value) {
+			continue
+		}
+
+		ranks := buildOptionRankMap(field)
+		newRank, ok := singleOptionRank(field.Type, v.Value, ranks)
+		if !ok {
+			return boundsRefusal(fmt.Errorf("field %s: target %s: the new value can't be ranked: %w", field.ID, v.TargetID, errBoundsCheckFailed))
+		}
+		var breaches storedValueBreaches
+		var postFieldID string
+		for _, postField := range postFields {
+			for _, rule := range postField.Bounds {
+				if rule.Reference != model.PropertyBoundsReferenceParent {
+					continue
+				}
+				allowed, err := allowedByRule(ranks, rule.Operator, newRank)
+				if err != nil {
+					return boundsRefusal(fmt.Errorf("field %s: %w", postField.ID, err))
+				}
+				count, examples, err := h.propertyService.valueStore.CountValuesOutsideOptions(postField.GroupID, postField.ID, allowed, &store.PostValueScope{ChannelID: v.TargetID}, storedValueExamples)
+				if err != nil {
+					return fmt.Errorf("field %s: failed to count the values of post field %s: %w", field.ID, postField.ID, err)
+				}
+				if count > 0 && postFieldID == "" {
+					postFieldID = postField.ID
+				}
+				breaches.add(count, examples)
+			}
+		}
+		if breaches.Count > 0 {
+			examples := strings.Join(breaches.Examples, ", ")
+			return model.NewAppError("UpsertPropertyValues", "app.property_value.bounds_contained_values.app_error",
+				map[string]any{"Count": breaches.Count, "Examples": examples},
+				fmt.Sprintf("field %s: target %s: %d contained values of field %s out of bounds, e.g. %s", field.ID, v.TargetID, breaches.Count, postFieldID, examples),
+				http.StatusConflict)
 		}
 	}
 	return nil
