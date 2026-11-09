@@ -162,23 +162,35 @@ class LifecycleTest(unittest.TestCase):
         h.ask("sre-freemium-pro", date(2026, 11, 12))  # remind_after only: one reminder in all
         self.assertEqual(len(h.sent("i8rxygnihpbfjnin7s3m4py6te", root=ask["id"])), 1)
 
-    def test_docs_reminders_repeat_every_two_working_days_with_the_counts(self):
+    def test_docs_reminders_repeat_every_two_working_days_listing_the_prs_left(self):
         h = Harness()
-        self.docs_needed(h, server=3, mobile=1)
-        h.ask("docs-ask", date(2026, 10, 23))  # Fri
+        server = [{"number": 39001, "title": "Add shared drafts", "html_url": "https://github.com/mattermost/mattermost/pull/39001"}]
+        h.github.searches = {r"mattermost/mattermost .*Docs/Needed": server,
+                             r"mattermost-mobile .*Docs/Needed": [{"number": 9100, "title": "Offline  mode"}]}
+        h.ask("docs-ask", date(2026, 10, 23))  # Fri, T-16
         ask = h.sent("c122")[0]
+        # Labelled Docs/Needed after the ask went out: the next reminder lists it too.
+        server.append({"number": 39050, "title": "Audit exports", "html_url": "https://github.com/mattermost/mattermost/pull/39050"})
         for day in (26, 27, 28, 29):  # Mon to Thu
             h.ask("docs-ask", date(2026, 10, day))
         reminders = h.sent("c122", root=ask["id"])
         self.assertEqual([datetime.fromtimestamp(r["create_at"] / 1000, timezone.utc).day for r in reminders], [27, 29])
-        self.assertEqual(reminders[0]["message"], "Reminder: docs for v12.2 / Mobile v2.47 / Desktop v6.4 are due by "
-                                                  "November 12th. PRs still labelled Docs/Needed: 3 server, 1 mobile, 0 desktop. "
-                                                  "@eric.sethna @john.combs")
+        self.assertEqual(reminders[0]["message"], (
+            "Reminder: docs for v12.2 / Mobile v2.47 / Desktop v6.4 are due by November 12th. PRs still labelled Docs/Needed:\n"
+            "- Server: [mattermost#39001](https://github.com/mattermost/mattermost/pull/39001) Add shared drafts; "
+            "[mattermost#39050](https://github.com/mattermost/mattermost/pull/39050) Audit exports\n"
+            "- Mobile: [mattermost-mobile#9100](https://github.com/mattermost/mattermost-mobile/pull/9100) Offline mode\n"
+            "- Desktop: none\n\n"
+            "@eric.sethna @john.combs"))
+        server.clear()
+        h.github.searches[r"mattermost-mobile .*Docs/Needed"] = []
+        self.assertEqual(h.ask("docs-ask", date(2026, 10, 30)).state, asks.DONE)  # none left: no more reminders
+        self.assertEqual(len(h.sent("c122", root=ask["id"])), 2)
 
-    def test_escalated_from_escalate_at(self):
+    def test_overdue_a_working_day_after_the_sre_ask_was_sent(self):
         h = Harness(tags={(12, 2)})
-        self.assertFalse(h.ask("sre-freemium-pro", date(2026, 11, 10)).escalated)
-        self.assertTrue(h.ask("sre-freemium-pro", date(2026, 11, 11)).escalated)  # T-3
+        self.assertFalse(h.ask("sre-freemium-pro", date(2026, 11, 10)).escalated)  # sent today
+        self.assertTrue(h.ask("sre-freemium-pro", date(2026, 11, 11)).escalated)  # a working day later
 
     def test_done_when_the_check_passes(self):
         h = Harness()
@@ -285,10 +297,22 @@ class LoadtestTest(unittest.TestCase):
         h.rc = [1]
         handoff = h.ask("loadtest-ask", date(2026, 10, 27))
         self.assertEqual(handoff.state, asks.DONE)
+        # No RC build announcement in the release channel: the build on releases.mattermost.com.
         self.assertEqual(h.sent("c122")[0]["message"],
-                         "v12.2.0-RC1 is available for loadtesting: [v12.2.0-rc1 build](https://github.com/mattermost/mattermost/"
-                         "releases/tag/v12.2.0-rc1). Loadtest epic: [MM-71198](https://jira.example/browse/MM-71198). "
-                         "cc @alejandro.garcia @dylan.haussermann")
+                         "v12.2.0-RC1 is available for loadtesting: [v12.2.0-rc1 build](https://releases.mattermost.com/"
+                         "12.2.0-rc1/mattermost-12.2.0-rc1-linux-amd64.tar.gz). Loadtest epic: [MM-71198](https://jira.example/"
+                         "browse/MM-71198). cc @alejandro.garcia @dylan.haussermann")
+
+    def test_links_the_rc_build_announcement_in_the_release_channel_and_never_another_releases(self):
+        h = Harness()
+        cut = ms(date(2026, 10, 20))
+        h.hub.add_post("c122", "v12.20.0-rc1 is out", user_id="build-bot", create_at=cut)  # another release
+        h.hub.add_post("c122", "v12.2.0-rc10 build", user_id="build-bot", create_at=cut + 1)  # another RC
+        h.hub.add_post("other", "v12.2.0-rc1 build is available", user_id="build-bot", create_at=cut + 2)  # another channel
+        announcement = h.hub.add_post("c122", "Mattermost v12.2.0-RC1 build is available: https://releases/…", user_id="build-bot",
+                                      create_at=cut + 3)
+        h.ask("loadtest-ask", date(2026, 10, 26))
+        self.assertIn(f"[v12.2.0-rc1 build](https://hub.example/_redirect/pl/{announcement['id']})", h.sent("c122")[0]["message"])
 
     def test_results_check_needs_the_epic_closed_and_a_results_post(self):
         hub = hub_with_people()
@@ -351,6 +375,17 @@ class ManualTestsTest(unittest.TestCase):
         h2.hub.react(h2.sent("c122")[0]["id"], asks.APPROVE_EMOJI, user_id="saturn.abril")
         self.assertEqual(h2.ask("manual-tests", date(2026, 10, 27)).summary, "QA reacted to the ask as done")
 
+    def test_overdue_from_the_working_day_before_the_final_build(self):
+        h = self.harness(mobile_files=["share_extension/index.tsx"])
+        h.ask("manual-tests", date(2026, 10, 26))
+        self.assertFalse(h.ask("manual-tests", date(2026, 11, 5)).escalated)
+        self.assertTrue(h.ask("manual-tests", date(2026, 11, 6)).escalated)  # final build Mon Nov 9, so Fri Nov 6
+        later = self.harness(mobile_files=["share_extension/index.tsx"])
+        later.release = Release(12, 2, {**V122.milestones, "final_build": date(2026, 11, 11)})  # the build moved: so does the date
+        later.ask("manual-tests", date(2026, 10, 26))
+        self.assertFalse(later.ask("manual-tests", date(2026, 11, 9)).escalated)
+        self.assertTrue(later.ask("manual-tests", date(2026, 11, 10)).escalated)
+
     def test_a_newer_guidelines_page_is_flagged(self):
         h = Harness()
         h.confluence.page_version = lambda page_id: 41
@@ -384,7 +419,7 @@ class SreTest(unittest.TestCase):
         freemium = h.ask("sre-freemium-pro", date(2026, 11, 10))
         self.assertEqual((freemium.state, freemium.summary), (asks.DONE, "SRE says freemium and professional are done"))
         enterprise = h.ask("sre-enterprise", date(2026, 11, 11))
-        self.assertEqual((enterprise.state, enterprise.summary), (asks.DONE, "SRE says enterprise is done, so it wasn't asked"))
+        self.assertEqual((enterprise.state, enterprise.summary), (asks.DONE, "Already done, ask not sent: SRE says enterprise is done"))
         self.assertEqual(len(h.sent(self.CHANNEL, root=None)), 1)  # only the first ask
 
     def test_the_enterprise_ask_replies_in_the_rollout_thread(self):
@@ -396,11 +431,16 @@ class SreTest(unittest.TestCase):
         self.assertEqual([r["props"] for r in replies], [{asks.ASK_PROP: "sre-enterprise:v12.2"}])
         self.assertIn("to the Cloud Enterprise ring?", replies[0]["message"])
 
-    def test_the_enterprise_ask_moves_off_a_friday(self):
-        # Release Day Wed Dec 16: T-3 is Fri Dec 11, so it's due Mon Dec 14.
+    def test_the_enterprise_ask_moves_off_a_friday_and_isnt_overdue_the_day_it_goes_out(self):
+        # Release Day Wed Dec 16: T-4 is Thu Dec 10; T-3 is Fri Dec 11, so Enterprise is due Mon Dec 14.
         v = Release(12, 2, {"branch_cut": date(2026, 11, 10), "code_freeze": date(2026, 12, 8), "release_day": date(2026, 12, 16)})
         h = Harness(release=v, tags={(12, 2)})
-        self.assertEqual(h.ask("sre-enterprise", date(2026, 12, 11)).due, date(2026, 12, 14))
+        h.ask("sre-freemium-pro", date(2026, 12, 10))
+        friday = h.ask("sre-enterprise", date(2026, 12, 11))
+        self.assertEqual((friday.state, friday.due), (asks.NOT_DUE, date(2026, 12, 14)))
+        monday = h.ask("sre-enterprise", date(2026, 12, 14))
+        self.assertEqual((monday.state, monday.asked_on, monday.escalated), (asks.WAITING, date(2026, 12, 14), False))
+        self.assertTrue(h.ask("sre-enterprise", date(2026, 12, 15)).escalated)
 
 
 class ContributorsTest(unittest.TestCase):
@@ -466,6 +506,35 @@ class ContributorsTest(unittest.TestCase):
 
 # ── People, accessibility, renamed owners ───────────────────────────────────────────
 
+class CompanionVersionsTest(unittest.TestCase):
+    ICS = "\n".join([
+        "BEGIN:VCALENDAR",
+        *[line for title, day in (("v12.2 & Mobile v2.47 Release Day", "20261116"), ("Desktop v6.4 Release Day", "20261116"),
+                                  ("Mobile v2.48 Release Day", "20261216"), ("Desktop v6.3 Feature Complete", "20261102"))
+          for line in ("BEGIN:VEVENT", f"SUMMARY:{title}", f"DTSTART;VALUE=DATE:{day}", "END:VEVENT")],
+        "END:VCALENDAR"])
+
+    def test_from_the_calendars_mobile_and_desktop_events(self):
+        events = release_calendar.parse_ics(self.ICS)
+        self.assertEqual(release_calendar.companion_versions(events, V122, "Release Day"), {"mobile": "v2.47", "desktop": "v6.4"})
+        self.assertEqual(release_calendar.companion_versions([], V122, "Release Day"), {})
+
+    def test_the_calendar_wins_over_milestones_and_a_difference_is_flagged_in_hub(self):
+        h = Harness()
+        h.github.milestone_list[MOBILE] = [{"title": "v2.48.0", "due_on": "2026-11-16T00:00:00Z"}]
+        env = h.env(date(2026, 10, 23))
+        env.calendar_versions = {"mobile": "v2.47"}
+        self.assertEqual(asks.same_month_versions(env), {"mobile": "v2.47", "desktop": "v6.4"})  # desktop: from its milestone
+        self.assertEqual(env.private_flags, ["The Release Dates calendar says Mobile v2.47 ships with v12.2, but the GitHub "
+                                             "milestone due in November is v2.48.0: the asks use v2.47."])
+        self.assertEqual(env.flags, [])
+
+    def test_milestones_only_when_the_calendar_names_none(self):
+        env = Harness().env(date(2026, 10, 23))
+        self.assertEqual(asks.same_month_versions(env), {"mobile": "v2.47", "desktop": "v6.4"})
+        self.assertEqual(env.private_flags, [])
+
+
 class PeopleTest(unittest.TestCase):
     def test_parse(self):
         self.assertEqual(asks.parse_people('{"sre": ["@a", "b"], "ces_github": "x"}'), ({"sre": ["a", "b"], "ces_github": "x"}, ""))
@@ -501,7 +570,7 @@ class AccessibilityTest(unittest.TestCase):
         values = {**asks.base_values(h.env(date(2026, 11, 10))), "manager": "@amy.blais", "ces": "@adit.yadav",
                   "issue_title": "t", "issue_body": "b", "new_issue_link": "[Open a new issue](https://x)", "changes": "2 PRs",
                   "since": "v12.1", "versions": "v12.2", "due_date": "November 12th", "links": " - [Server PRs](https://x)",
-                  "docs": "@d", "left": "1 server", "rc_name": "v12.2.0-RC1", "rc_link": "[v12.2.0-rc1 build](https://x)",
+                  "docs": "@d", "left": "1 server", "left_list": "- Server: [mattermost#1](https://x) A fix", "rc_name": "v12.2.0-RC1", "rc_link": "[v12.2.0-rc1 build](https://x)",
                   "epic_line": "", "loadtest": "@l", "qa": "@q", "areas": "- **A**", "compared": "Mobile v2.47",
                   "guidelines_link": "[guidelines](https://x)", "sre": "@s", "title": "T", "to": "@t"}
         for name in sorted(p.name for p in asks.TEMPLATES.iterdir()):
@@ -591,6 +660,22 @@ class AgentTest(unittest.TestCase):
         post = next(p for p in svc.hub.created if p["channel_id"] == "c122" and posting.MARKER_PROP in p["props"])
         replies = [p["message"] for p in svc.hub.created if p.get("root_id") == post["id"]]
         self.assertIn("Ticked **Notify CES…** in the playbook run: not needed: no Support Packet changes since v12.1", replies)
+
+    def test_already_done_on_its_day_is_ticked_unsent_with_the_evidence(self):
+        from release_agent.tests.test_agent import TODAY
+        svc = self.services()
+        svc.github.branch_commits[(MM, "release-12.2")] = [commit("a1", "Packet change (#38838)", "server/channels/app/support_packet.go")]
+        svc.github.branch_commits[(MM, "v12.1.0")] = []
+        issue = "https://github.com/mattermost/mattermost-healthcheck/issues/31"
+        svc.healthcheck_github.searches[r"Support Packet changes"] = [{"title": "Mattermost v12.2 Support Packet changes",
+                                                                       "html_url": issue}]
+        body, _ = self.run_on(svc, TODAY)
+        self.assertFalse(any("Support Packet changed" in p["message"] for p in svc.hub.created))  # not sent
+        status = next(p for p in svc.hub.created if p["channel_id"] == "c122" and posting.MARKER_PROP in p["props"])
+        replies = [p["message"] for p in svc.hub.created if p.get("root_id") == status["id"]]
+        self.assertIn("Ticked **Notify CES…** in the playbook run: Already done, ask not sent: the issue is open in "
+                      f"mattermost-healthcheck (private repo) · [proof]({issue})", replies)
+        self.assertNotIn(issue, json.dumps(body) + step_summary(body))
 
     def test_test_mode_sends_nothing_to_other_teams(self):
         from release_agent.tests.test_agent import TODAY

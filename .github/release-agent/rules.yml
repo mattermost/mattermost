@@ -81,7 +81,9 @@ channels:
 ask_settings:
   # Formatted with the release's values, as the rules' queries are.
   changelog_url: "https://docs.mattermost.com/product-overview/mattermost-v{major}-changelog.html#release-v{major}-{minor}-feature-release"
-  rc_build_url: "https://github.com/mattermost/mattermost/releases/tag/{rc1_tag}"
+  # The loadtest ask links the RC build's announcement in the release channel (a post naming
+  # the exact RC tag); with none, this build.
+  rc_build_url: "https://releases.mattermost.com/{rc1_plain}/mattermost-{rc1_plain}-linux-amd64.tar.gz"
   healthcheck_repo: mattermost/mattermost-healthcheck  # private: read with the read app, never written
   # The mobile and desktop releases shipping with a server release are the ones whose GitHub
   # milestone (vA.B.0) is due in Release Day's month. Desktop ships quarterly.
@@ -506,7 +508,9 @@ rules:
   #   remind_after working days with no answer before one reminder (0: none); remind_every
   #                repeats it every that many working days
   #   escalate_at  from then on it's listed under Needs attention for the release manager
-  #   done_before_ask  false to send even when the done check already passes
+  #   escalate_after  or: overdue this many working days after the ask was actually sent
+  #   done_before_ask  false to send even when the done check already passes; otherwise an ask
+  #                whose work is already done is ticked unsent ("Already done, ask not sent")
   # Titles that name people leave them out ("…"), so a new owner in the title still matches.
 
   # Notify CES of Support Packet changes: the agent prepares the mattermost-healthcheck issue
@@ -555,7 +559,7 @@ rules:
     send: {channel: release, to: [qa], template: manual-tests.md}
     done_when: qa_reply
     remind_after: 2
-    escalate_at: T-6
+    escalate_at: final_build-1
 
   # On the first working day of each month, for the month before, whichever release is
   # active: its item is ticked in the first active release's run.
@@ -579,7 +583,7 @@ rules:
     done_when: sre_reply
     rings: [freemium, professional]
     remind_after: 1
-    escalate_at: T-3
+    escalate_after: 1
 
   # A reply in the Freemium and Professional thread. Not asked when SRE already said
   # Enterprise is done; a Friday T-3 moves to the next working day.
@@ -594,5 +598,5 @@ rules:
     done_when: sre_reply
     rings: [enterprise]
     remind_after: 1
-    escalate_at: T-2
+    escalate_after: 1
 

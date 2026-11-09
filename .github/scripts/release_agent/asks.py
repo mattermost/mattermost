@@ -35,6 +35,7 @@ ASK_PROP = "release_agent_ask"
 REMINDER_PROP = "release_agent_ask_reminder"
 APPROVE_EMOJI = "white_check_mark"
 MAX_POST_CHARS = 15000
+MAX_LISTED = 25  # PRs listed per repo in a docs reminder
 SERVER_REPO = "mattermost/mattermost"
 
 DONE = "done"
@@ -97,6 +98,7 @@ class AskEnv:
     manager: dict | None = None  # the playbook run's owner, a Hub user
     healthcheck_github: object = None  # a client that can read mattermost-healthcheck, or None
     sleep: object = None  # time.sleep when None; waits out a GitHub rate limit
+    calendar_versions: dict = field(default_factory=dict)  # {"mobile": "v2.47", ...} from the Release Dates calendar
     flags: list = field(default_factory=list)  # public: never names a person
     private_flags: list = field(default_factory=list)  # Hub only
     cache: dict = field(default_factory=dict)
@@ -218,7 +220,7 @@ def long_date(day: date) -> str:
 
 def base_values(env: AskEnv) -> dict:
     release = env.ctx.release
-    values = {**env.ctx.vars, "rc1_tag": f"{release.version}-rc1",
+    values = {**env.ctx.vars, "rc1_tag": f"{release.version}-rc1", "rc1_plain": f"{release.major}.{release.minor}.0-rc1",
               "release_day_iso": release.release_day.isoformat() if release.release_day else "not on the calendar"}
     values["changelog_url"] = env.settings.get("changelog_url", "").format_map(values)
     values["changelog_link"] = f"[{release.short_version} changelog]({values['changelog_url']})"
@@ -226,19 +228,28 @@ def base_values(env: AskEnv) -> dict:
 
 
 def same_month_versions(env: AskEnv) -> dict:
-    """{"mobile": "v2.47", "desktop": "v6.5"} for the mobile and desktop releases shipping in
-    Release Day's month, from their GitHub milestones' due dates (desktop ships quarterly)."""
+    """{"mobile": "v2.47", "desktop": "v6.4"}: the mobile and desktop releases shipping with this
+    one. The Release Dates calendar's "Mobile vA.B" and "Desktop vC.D" events come first; a
+    kind the calendar doesn't name comes from the GitHub milestone due in Release Day's month
+    (desktop ships quarterly, so most months have none). When both name one and disagree, the
+    calendar's is used and the difference is flagged in Hub."""
     if "versions" in env.cache:
         return env.cache["versions"]
     day = env.ctx.release.release_day
-    found = {}
+    from_milestones = {}
     for key in ("mobile", "desktop"):
         repo = env.settings[f"{key}_repo"]
         for milestone in env.ctx.github.milestones(repo):
             match = re.fullmatch(r"v(\d+)\.(\d+)\.0", milestone.get("title") or "")
             due_on = (milestone.get("due_on") or "")[:7]
             if match and day and due_on == f"{day.year}-{day.month:02d}":
-                found[key] = f"v{match.group(1)}.{match.group(2)}"
+                from_milestones[key] = f"v{match.group(1)}.{match.group(2)}"
+    found = {**from_milestones, **env.calendar_versions}
+    for key, version in env.calendar_versions.items():
+        other = from_milestones.get(key)
+        if other and other != version:
+            env.flag(f"The Release Dates calendar says {key.title()} {version} ships with {env.ctx.release.short_version}, "
+                     f"but the GitHub milestone due in {day:%B} is {other}.0: the asks use {version}.", private=True)
     env.cache["versions"] = found
     return found
 
@@ -421,8 +432,9 @@ def docs_url(repo: str, milestone: str) -> str:
 
 
 def done_docs_labels(env: AskEnv, rule: dict, post: dict | None, facts: dict):
-    counts = {key: len(env.ctx.github.search_issues(docs_query(repo, milestone)))
-              for key, _, repo, milestone in docs_searches(env)}
+    found = {key: env.ctx.github.search_issues(docs_query(repo, milestone)) for key, _, repo, milestone in docs_searches(env)}
+    facts["docs_prs"] = found  # every PR still labelled Docs/Needed, for the reminder (Hub only)
+    counts = {key: len(prs) for key, prs in found.items()}
     facts["counts"] = counts
     left = sum(counts.values())
     text = ", ".join(f"{count} {key}" for key, count in counts.items())
@@ -529,6 +541,13 @@ def values_ces(env: AskEnv, rule: dict, facts: dict) -> dict:
             "changes": f"{len(facts['changes'])} PR{'s' if len(facts['changes']) != 1 else ''}", "since": facts["since"]}
 
 
+def _pr_line(repo: str, pr: dict) -> str:
+    """"[mattermost#39001](url) Add shared drafts": the link names the PR, then its title."""
+    url = pr.get("html_url") or f"https://github.com/{repo}/pull/{pr['number']}"
+    title = " ".join((pr.get("title") or "").split())
+    return f"[{repo.split('/')[-1]}#{pr['number']}]({url})" + (f" {title}" if title else "")
+
+
 def values_docs(env: AskEnv, rule: dict, facts: dict) -> dict:
     values = base_values(env)
     versions = same_month_versions(env)
@@ -537,8 +556,14 @@ def values_docs(env: AskEnv, rule: dict, facts: dict) -> dict:
     links = "\n".join(f" - [{label} PRs]({docs_url(repo, milestone)})" for _, label, repo, milestone in docs_searches(env))
     counts = facts.get("counts") or {}
     left = ", ".join(f"{counts.get(key, 0)} {label.lower()}" for key, label, _, _ in docs_searches(env))
+    lines = []
+    for key, label, repo, _ in docs_searches(env):
+        prs = (facts.get("docs_prs") or {}).get(key) or []
+        shown = [_pr_line(repo, pr) for pr in prs[:MAX_LISTED]]
+        more = f", and {len(prs) - MAX_LISTED} more" if len(prs) > MAX_LISTED else ""
+        lines.append(f"- {label}: " + ("; ".join(shown) + more if shown else "none"))
     return {**values, "versions": " / ".join(names), "due_date": long_date(due), "links": links,
-            "docs": mentions(env, "docs"), "left": left}
+            "docs": mentions(env, "docs"), "left": left, "left_list": "\n".join(lines)}
 
 
 def loadtest_epic(env: AskEnv):
@@ -549,6 +574,30 @@ def loadtest_epic(env: AskEnv):
     return found[0] if found else None
 
 
+def rc_announcement(env: AskEnv, rc: int = 1) -> dict | None:
+    """The RC build's announcement in the release channel: the first post there since the
+    branch cut that names this release's exact RC tag (v12.2.0-rc1 or 12.2.0-RC1), never
+    another release's (v12.20.0-rc1) or another RC's (rc10). The agent's own posts don't count."""
+    release, hub = env.ctx.release, env.ctx.hub
+    if not env.release_channel:
+        return None
+    tag = re.compile(rf"(?<![\w.])v?{release.major}\.{release.minor}\.0-rc0*{rc}(?!\d)", re.IGNORECASE)
+    bot = hub.me()["id"]
+    found = [p for p in hub.posts_since(env.release_channel, since_ms(env))
+             if not p.get("root_id") and not p.get("delete_at") and tag.search(p.get("message") or "")
+             and not (p.get("user_id") == bot and (p.get("props") or {}))]
+    return min(found, key=lambda p: p.get("create_at", 0)) if found else None
+
+
+def rc_build_link(env: AskEnv, values: dict) -> str:
+    """The announcement post, as the release manager links it; else the build on
+    releases.mattermost.com (``ask_settings.rc_build_url``)."""
+    post = rc_announcement(env)
+    if post:
+        return env.ctx.hub.post_link(post["id"])
+    return env.settings["rc_build_url"].format_map(values)
+
+
 def values_loadtest(env: AskEnv, rule: dict, facts: dict) -> dict:
     values = base_values(env)
     epic = loadtest_epic(env)
@@ -557,7 +606,7 @@ def values_loadtest(env: AskEnv, rule: dict, facts: dict) -> dict:
     else:
         epic_line = ""
         env.flag(f"No loadtest epic for {env.ctx.release.short_version} was found in Jira, so the ask doesn't link it.")
-    rc_url = env.settings["rc_build_url"].format_map(values)
+    rc_url = rc_build_link(env, values)
     rc_name = f"{env.ctx.release.version}-RC1"
     return {**values, "rc_name": rc_name, "rc_link": f"[{values['rc1_tag']} build]({rc_url})", "epic_line": epic_line,
             "loadtest": mentions(env, "loadtest")}
@@ -713,7 +762,7 @@ def process(env: AskEnv, rule: dict, due: date | None, escalate_on: date | None)
         if rule.get("done_before_ask", True) and rule["done_when"] != "sent":
             done, summary, proof = done_check(env, rule, None, facts)
             if done:
-                handoff.state, handoff.summary, handoff.proof_url = DONE, f"{summary}, so it wasn't asked", proof
+                handoff.state, handoff.summary, handoff.proof_url = DONE, f"Already done, ask not sent: {summary}", proof
                 return handoff
         template = send_config["template"]
         text = render(template, VALUES[template](env, rule, facts))
@@ -762,7 +811,12 @@ def _remind(env: AskEnv, rule: dict, handoff: Handoff, post: dict, facts: dict):
 
 
 def _escalate(env: AskEnv, handoff: Handoff, escalate_on: date | None):
+    """Overdue from ``escalate_at``, or ``escalate_after`` working days after the ask was sent
+    (so an ask that went out late isn't overdue the day it goes out)."""
     if escalate_on and env.today >= escalate_on:
+        handoff.escalated = True
+    after = handoff.rule.get("escalate_after")
+    if after and handoff.asked_on and workdays.working_days_between(handoff.asked_on, env.today, env.holidays) >= after:
         handoff.escalated = True
 
 

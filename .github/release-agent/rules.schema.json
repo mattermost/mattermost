@@ -152,7 +152,8 @@
         "rings": {"description": "For sre_reply: the Cloud rings that must be done.", "type": "array", "minItems": 1, "items": {"enum": ["beta", "freemium", "professional", "enterprise"]}},
         "remind_after": {"description": "Working days with no answer before one reminder; 0 for none.", "type": "integer", "minimum": 0},
         "remind_every": {"description": "After the first reminder, another every this many working days.", "type": "integer", "minimum": 1},
-        "escalate_at": {"type": "string", "pattern": "^(T[-+]\\d+|[a-z][a-z0-9_]*([-+]\\d+)?)$"}
+        "escalate_at": {"type": "string", "pattern": "^(T[-+]\\d+|[a-z][a-z0-9_]*([-+]\\d+)?)$"},
+        "escalate_after": {"description": "Overdue this many working days after the ask was sent.", "type": "integer", "minimum": 1}
       },
       "allOf": [{"if": {"properties": {"done_when": {"const": "sre_reply"}}}, "then": {"required": ["rings"]}}]
     },

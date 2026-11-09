@@ -128,7 +128,7 @@ def evaluate(ctx: checks.Context, rule: dict, due: date | None, today: date) -> 
 
 def check_release(release, rules: dict, settings: Settings, services: Services, today: date,
                   holidays: frozenset, branches: set, tags: set, ls_remote: str,
-                  primary: bool = True) -> posting.ReleaseReport:
+                  primary: bool = True, events: list | None = None) -> posting.ReleaseReport:
     t_day = workdays.t_day(today, release.release_day, holidays) if release.release_day else None
     report = posting.ReleaseReport(release, t_day, settings.mode)
     report.flags += release_calendar.cross_check(release, branches, tags, today)
@@ -183,7 +183,9 @@ def check_release(release, rules: dict, settings: Settings, services: Services, 
         report.flags.append(f"Couldn't read the playbook runs: {public_error(err)}")
     report.run = run
 
-    report.handoffs = run_asks(ctx, report, rules, settings, services, holidays)
+    calendar_versions = release_calendar.companion_versions(events or [], release,
+                                                            rules["calendar"]["milestones"]["release_day"])
+    report.handoffs = run_asks(ctx, report, rules, settings, services, holidays, calendar_versions)
 
     # A report's item asks for the list in the run's channel, so it is ticked only when the
     # status post goes there.
@@ -207,7 +209,7 @@ def check_release(release, rules: dict, settings: Settings, services: Services, 
 
 
 def run_asks(ctx: checks.Context, report: posting.ReleaseReport, rules: dict, settings: Settings,
-             services: Services, holidays: frozenset) -> list:
+             services: Services, holidays: frozenset, calendar_versions: dict | None = None) -> list:
     """The release's asks to other teams (asks.py). Their flags naming people are Hub only."""
     if not asks.ask_rules(rules):
         return []
@@ -218,7 +220,8 @@ def run_asks(ctx: checks.Context, report: posting.ReleaseReport, rules: dict, se
         manager = found if found and found is not checks.LOOKUP_FAILED and not found.get("delete_at") else None
     env = asks.AskEnv(ctx=ctx, rules=rules, people=settings.people, mode=settings.mode, holidays=holidays,
                       release_channel=report.release_channel or (report.run or {}).get("channel_id", ""),
-                      run=report.run, manager=manager, healthcheck_github=services.healthcheck_github)
+                      run=report.run, manager=manager, healthcheck_github=services.healthcheck_github,
+                      calendar_versions=calendar_versions or {})
     if settings.people_problem and ctx.primary:
         env.flag(settings.people_problem)
     report.manager = manager
@@ -346,7 +349,7 @@ def run(rules: dict, settings: Settings, services: Services, today: date) -> tup
     problem_flags = [settings.dev_leads_problem] if settings.dev_leads_problem and selected else []
     for index, release in enumerate(selected):
         report = check_release(release, rules, settings, services, today, holidays, branches, tags, ls_remote,
-                               primary=index == 0)
+                               primary=index == 0, events=events)
         report.flags += problem_flags + lead_flags
         report.private_flags |= set(lead_flags)  # they name people from a private variable: Hub only
         try:

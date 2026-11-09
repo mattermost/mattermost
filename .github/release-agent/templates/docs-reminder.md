@@ -1,1 +1,4 @@
-Reminder: docs for {versions} are due by {due_date}. PRs still labelled Docs/Needed: {left}. {docs}
+Reminder: docs for {versions} are due by {due_date}. PRs still labelled Docs/Needed:
+{left_list}
+
+{docs}
