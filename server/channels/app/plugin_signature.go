@@ -11,9 +11,9 @@ import (
 	"regexp"
 	"slices"
 
+	"github.com/ProtonMail/go-crypto/openpgp"
+	"github.com/ProtonMail/go-crypto/openpgp/armor"
 	"github.com/pkg/errors"
-	"golang.org/x/crypto/openpgp"       //nolint:staticcheck
-	"golang.org/x/crypto/openpgp/armor" //nolint:staticcheck
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -176,7 +176,7 @@ func verifyBinarySignature(publicKey, signedFile, signature io.Reader) error {
 	if err != nil {
 		return errors.Wrap(err, "can't read public key")
 	}
-	if _, err = openpgp.CheckDetachedSignature(keyring, signedFile, signature); err != nil {
+	if _, err = openpgp.CheckDetachedSignature(keyring, signedFile, signature, nil); err != nil {
 		return errors.Wrap(err, "error while checking the signature")
 	}
 	return nil
