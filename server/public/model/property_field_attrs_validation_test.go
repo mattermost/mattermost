@@ -251,6 +251,134 @@ func TestGetPropertyFieldChangePolicy(t *testing.T) {
 	}}))
 }
 
+var (
+	selfAbove   = PropertyBoundsRule{Operator: PropertyBoundsOperatorAtOrAbove, Reference: PropertyBoundsReferenceSelf}
+	selfBelow   = PropertyBoundsRule{Operator: PropertyBoundsOperatorAtOrBelow, Reference: PropertyBoundsReferenceSelf}
+	parentBelow = PropertyBoundsRule{Operator: PropertyBoundsOperatorAtOrBelow, Reference: PropertyBoundsReferenceParent}
+)
+
+func TestPropertyFieldSettingsFromChangePolicy(t *testing.T) {
+	tests := []struct {
+		name        string
+		policy      string
+		bounds      PropertyBounds
+		wantMutable PropertyFieldMutability
+		wantBounds  PropertyBounds
+		wantErr     bool
+	}{
+		{"never", PropertyFieldChangePolicyNever, nil, PropertyFieldMutabilityWriteOnce, PropertyBounds{}, false},
+		{"never keeps parent rule", PropertyFieldChangePolicyNever, PropertyBounds{parentBelow}, PropertyFieldMutabilityWriteOnce, PropertyBounds{parentBelow}, false},
+		{"raise_only", PropertyFieldChangePolicyRaiseOnly, nil, PropertyFieldMutabilityMutable, PropertyBounds{selfAbove}, false},
+		{"raise_only keeps parent rule", PropertyFieldChangePolicyRaiseOnly, PropertyBounds{parentBelow}, PropertyFieldMutabilityMutable, PropertyBounds{parentBelow, selfAbove}, false},
+		{"raise_only replaces opposite self rule", PropertyFieldChangePolicyRaiseOnly, PropertyBounds{selfBelow}, PropertyFieldMutabilityMutable, PropertyBounds{selfAbove}, false},
+		{"lower_only", PropertyFieldChangePolicyLowerOnly, nil, PropertyFieldMutabilityMutable, PropertyBounds{selfBelow}, false},
+		{"lower_only keeps parent rule", PropertyFieldChangePolicyLowerOnly, PropertyBounds{parentBelow}, PropertyFieldMutabilityMutable, PropertyBounds{parentBelow, selfBelow}, false},
+		{"lower_only replaces opposite self rule", PropertyFieldChangePolicyLowerOnly, PropertyBounds{selfAbove}, PropertyFieldMutabilityMutable, PropertyBounds{selfBelow}, false},
+		{"any", PropertyFieldChangePolicyAny, nil, PropertyFieldMutabilityMutable, PropertyBounds{}, false},
+		{"any drops self rule, non-nil empty", PropertyFieldChangePolicyAny, PropertyBounds{selfAbove}, PropertyFieldMutabilityMutable, PropertyBounds{}, false},
+		{"any keeps parent rule", PropertyFieldChangePolicyAny, PropertyBounds{parentBelow, selfAbove}, PropertyFieldMutabilityMutable, PropertyBounds{parentBelow}, false},
+		{"unknown policy", "sometimes", nil, "", nil, true},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			m, b, err := PropertyFieldSettingsFromChangePolicy(tc.policy, tc.bounds)
+			if tc.wantErr {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			require.Equal(t, tc.wantMutable, m)
+			require.NotNil(t, b)
+			require.True(t, PropertyBoundsEqual(tc.wantBounds, b), "got %v want %v", b, tc.wantBounds)
+		})
+	}
+}
+
+func TestPropertyFieldChangePolicyFromSettings(t *testing.T) {
+	tests := []struct {
+		name       string
+		mutability PropertyFieldMutability
+		bounds     PropertyBounds
+		want       string
+	}{
+		{"write_once", PropertyFieldMutabilityWriteOnce, nil, PropertyFieldChangePolicyNever},
+		{"set_on_create", PropertyFieldMutabilitySetOnCreate, nil, PropertyFieldChangePolicyNever},
+		{"both self rules", PropertyFieldMutabilityMutable, PropertyBounds{selfAbove, selfBelow}, PropertyFieldChangePolicyNever},
+		{"at_or_above self", PropertyFieldMutabilityMutable, PropertyBounds{selfAbove}, PropertyFieldChangePolicyRaiseOnly},
+		{"at_or_below self", PropertyFieldMutabilityMutable, PropertyBounds{selfBelow}, PropertyFieldChangePolicyLowerOnly},
+		{"parent rule alone", PropertyFieldMutabilityMutable, PropertyBounds{parentBelow}, PropertyFieldChangePolicyAny},
+		{"parent and self rule", PropertyFieldMutabilityMutable, PropertyBounds{parentBelow, selfAbove}, PropertyFieldChangePolicyRaiseOnly},
+		{"empty mutability reads mutable", "", nil, PropertyFieldChangePolicyAny},
+		{"empty mutability with self rule", "", PropertyBounds{selfBelow}, PropertyFieldChangePolicyLowerOnly},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			require.Equal(t, tc.want, PropertyFieldChangePolicyFromSettings(tc.mutability, tc.bounds))
+		})
+	}
+}
+
+func TestSetPropertyFieldChangePolicyAttrs(t *testing.T) {
+	t.Run("never sets both keys", func(t *testing.T) {
+		attrs := SetPropertyFieldChangePolicyAttrs(StringInterface{"other": 1}, PropertyFieldChangePolicyNever)
+		require.Equal(t, StringInterface{"other": 1, PropertyFieldAttrChangePolicy: PropertyFieldChangePolicyNever, PropertyFieldAttrEditable: false}, attrs)
+	})
+	t.Run("nil map is created", func(t *testing.T) {
+		attrs := SetPropertyFieldChangePolicyAttrs(nil, PropertyFieldChangePolicyRaiseOnly)
+		require.Equal(t, StringInterface{PropertyFieldAttrChangePolicy: PropertyFieldChangePolicyRaiseOnly}, attrs)
+	})
+	t.Run("mutates in place", func(t *testing.T) {
+		in := StringInterface{}
+		SetPropertyFieldChangePolicyAttrs(in, PropertyFieldChangePolicyLowerOnly)
+		require.Equal(t, PropertyFieldChangePolicyLowerOnly, in[PropertyFieldAttrChangePolicy])
+	})
+	t.Run("directional removes editable false", func(t *testing.T) {
+		attrs := SetPropertyFieldChangePolicyAttrs(StringInterface{PropertyFieldAttrEditable: false}, PropertyFieldChangePolicyLowerOnly)
+		require.Equal(t, StringInterface{PropertyFieldAttrChangePolicy: PropertyFieldChangePolicyLowerOnly}, attrs)
+	})
+	t.Run("any removes change_policy and editable false", func(t *testing.T) {
+		attrs := SetPropertyFieldChangePolicyAttrs(StringInterface{
+			PropertyFieldAttrChangePolicy: PropertyFieldChangePolicyNever,
+			PropertyFieldAttrEditable:     false,
+		}, PropertyFieldChangePolicyAny)
+		require.Empty(t, attrs)
+	})
+	t.Run("any keeps editable true", func(t *testing.T) {
+		attrs := SetPropertyFieldChangePolicyAttrs(StringInterface{
+			PropertyFieldAttrChangePolicy: PropertyFieldChangePolicyRaiseOnly,
+			PropertyFieldAttrEditable:     true,
+		}, PropertyFieldChangePolicyAny)
+		require.Equal(t, StringInterface{PropertyFieldAttrEditable: true}, attrs)
+	})
+	t.Run("never overwrites editable true", func(t *testing.T) {
+		attrs := SetPropertyFieldChangePolicyAttrs(StringInterface{PropertyFieldAttrEditable: true}, PropertyFieldChangePolicyNever)
+		require.Equal(t, false, attrs[PropertyFieldAttrEditable])
+	})
+	t.Run("directional keeps editable true", func(t *testing.T) {
+		attrs := SetPropertyFieldChangePolicyAttrs(StringInterface{PropertyFieldAttrEditable: true}, PropertyFieldChangePolicyRaiseOnly)
+		require.Equal(t, true, attrs[PropertyFieldAttrEditable])
+	})
+}
+
+func TestPropertyFieldChangePolicyRoundTrip(t *testing.T) {
+	for _, policy := range []string{PropertyFieldChangePolicyAny, PropertyFieldChangePolicyRaiseOnly, PropertyFieldChangePolicyLowerOnly, PropertyFieldChangePolicyNever} {
+		t.Run(policy, func(t *testing.T) {
+			m, b, err := PropertyFieldSettingsFromChangePolicy(policy, PropertyBounds{parentBelow})
+			require.NoError(t, err)
+			require.Equal(t, policy, PropertyFieldChangePolicyFromSettings(m, b))
+		})
+	}
+}
+
+func TestPropertyFieldChangePolicyDescribes(t *testing.T) {
+	require.False(t, PropertyFieldChangePolicyDescribes(PropertyFieldMutabilitySetOnCreate, nil))
+	require.False(t, PropertyFieldChangePolicyDescribes(PropertyFieldMutabilityMutable, PropertyBounds{selfAbove, selfBelow}))
+	require.True(t, PropertyFieldChangePolicyDescribes(PropertyFieldMutabilityWriteOnce, nil))
+	require.True(t, PropertyFieldChangePolicyDescribes("", PropertyBounds{selfAbove}))
+	require.True(t, PropertyFieldChangePolicyDescribes(PropertyFieldMutabilityMutable, PropertyBounds{selfBelow, parentBelow}))
+	require.True(t, PropertyFieldChangePolicyDescribes(PropertyFieldMutabilityMutable, nil))
+}
+
 func TestSanitizeAndValidatePropertyFieldActions(t *testing.T) {
 	tests := []struct {
 		name      string
