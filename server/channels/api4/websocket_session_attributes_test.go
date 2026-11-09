@@ -396,6 +396,28 @@ func TestWebSocketResumeRechecksSessionAttributes(t *testing.T) {
 		require.Nil(t, findPosted(t, reconnected.eventsUntilSentinel(t, th), queued.Id))
 	})
 
+	t.Run("does not replay queued events when the session cache was cleared just before the drop", func(t *testing.T) {
+		setIPAddressAttributeDuration(t, th, 60, 60)
+
+		ws := dialWebSocket(t, th, token, officeIP, "", 0)
+		connectionID := ws.hello(t)
+		// Let the connect-time status change through first: any event delivered after the
+		// invalidation would reload the session and hide the cleared cache.
+		select {
+		case <-ws.events:
+		case <-time.After(500 * time.Millisecond):
+		}
+		th.App.Srv().Platform().InvalidateChannelCacheForUser(userID)
+		ws.disconnect(t, th, userID)
+
+		queued := postWithFile(t, th, "posted while alice was on the office network")
+
+		reconnected := dialWebSocket(t, th, token, homeIP, connectionID, ws.lastSeq+1)
+		defer reconnected.conn.Close()
+		require.NotEqual(t, connectionID, reconnected.hello(t))
+		require.Nil(t, findPosted(t, reconnected.eventsUntilSentinel(t, th), queued.Id))
+	})
+
 	t.Run("does not replay queued events once the attributes expired while offline", func(t *testing.T) {
 		setIPAddressAttributeDuration(t, th, 1, 3)
 

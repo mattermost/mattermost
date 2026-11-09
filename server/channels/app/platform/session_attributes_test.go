@@ -31,13 +31,14 @@ func TestStaleSessionAttributes(t *testing.T) {
 	t.Run("prompts each attribute once per lapse of its TTL", func(t *testing.T) {
 		prompted := map[string]int64{}
 		deadlines := map[string]model.SessionAttributeDeadline{
-			"ssid":       {StaleAt: now - 1000, ExpiresAt: now + 59_000},
-			"ip_address": {StaleAt: now, ExpiresAt: now + 60_000},
-			"os_version": {StaleAt: now + 3000, ExpiresAt: now + 63_000},
+			"ssid":         {StaleAt: now - 1000, ExpiresAt: now + 59_000},
+			"ip_address":   {StaleAt: now, ExpiresAt: now + 60_000},
+			"mdm_enrolled": {StaleAt: now - 2000, ExpiresAt: now + 58_000},
+			"os_version":   {StaleAt: now + 3000, ExpiresAt: now + 63_000},
 		}
 
 		stale, next := staleSessionAttributes(deadlines, prompted, now)
-		assert.Equal(t, []string{"ip_address", "ssid"}, stale)
+		assert.Equal(t, []string{"ip_address", "mdm_enrolled", "ssid"}, stale)
 		assert.Equal(t, now+3000, next)
 
 		stale, _ = staleSessionAttributes(deadlines, prompted, now+5000)
@@ -60,17 +61,18 @@ func TestNewSessionAttributesRecord(t *testing.T) {
 	const now = int64(100_000)
 
 	record := newSessionAttributesRecord(map[string]model.SessionAttributeDeadline{
-		"ip_address": {StaleAt: now - 10_000, ExpiresAt: now + 50_000},
-		"ssid":       {StaleAt: now - 5000, ExpiresAt: now + 20_000},
-		"vpn_active": {StaleAt: now - 90_000, ExpiresAt: now - 30_000},
-		"os_version": {StaleAt: now - 70_000, ExpiresAt: now},
+		"ip_address":  {StaleAt: now - 10_000, ExpiresAt: now + 50_000},
+		"ssid":        {StaleAt: now - 5000, ExpiresAt: now + 20_000},
+		"vpn_active":  {StaleAt: now - 90_000, ExpiresAt: now - 30_000},
+		"os_version":  {StaleAt: now - 70_000, ExpiresAt: now},
+		"hardware_id": {StaleAt: now - 600_000, ExpiresAt: now - 300_000},
 	}, "1234", now)
 
 	assert.Equal(t, &model.SessionAttributesRecord{
 		Epoch:      "1234",
 		RecordedAt: now,
 		ExpireAt:   now + 20_000,
-		Lapsed:     []string{"os_version", "vpn_active"},
+		Lapsed:     []string{"hardware_id", "os_version", "vpn_active"},
 	}, record)
 
 	assert.Equal(t, &model.SessionAttributesRecord{Epoch: "0", RecordedAt: now},
@@ -94,6 +96,12 @@ func TestSessionAttributesChangedSince(t *testing.T) {
 
 	t.Run("allows a resume without a record", func(t *testing.T) {
 		assert.False(t, th.Service.sessionAttributesChangedSince(model.NewId(), nil))
+	})
+
+	t.Run("allows a resume for a session that never had attributes", func(t *testing.T) {
+		sessionID := model.NewId()
+		record := newSessionAttributesRecord(nil, "0", model.GetMillis())
+		assert.False(t, th.Service.sessionAttributesChangedSince(sessionID, record))
 	})
 
 	t.Run("allows a resume while the recorded attributes hold", func(t *testing.T) {
@@ -140,6 +148,17 @@ func TestSessionAttributesChangedSince(t *testing.T) {
 		now := model.GetMillis()
 		refresh(t, sessionID, map[string]any{"ip_address": "10.1.2.3", "ssid": "office"}, now-200_000)
 		record := recordFor(t, sessionID, now, 0, "ip_address", "ssid")
+
+		refresh(t, sessionID, map[string]any{"ssid": "office"}, now+500)
+		assert.True(t, th.Service.sessionAttributesChangedSince(sessionID, record))
+	})
+
+	t.Run("refuses a resume once a lapsed attribute was refreshed while another stayed live", func(t *testing.T) {
+		sessionID := model.NewId()
+		now := model.GetMillis()
+		refresh(t, sessionID, map[string]any{"ip_address": "10.1.2.3", "ssid": "office"}, now-200_000)
+		refresh(t, sessionID, map[string]any{"ip_address": "10.1.2.3"}, now-1000)
+		record := recordFor(t, sessionID, now, now+60_000, "ssid")
 
 		refresh(t, sessionID, map[string]any{"ssid": "office"}, now+500)
 		assert.True(t, th.Service.sessionAttributesChangedSince(sessionID, record))

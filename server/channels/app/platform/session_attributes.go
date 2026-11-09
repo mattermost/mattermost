@@ -10,6 +10,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 )
 
@@ -58,13 +59,11 @@ func (wc *WebConn) checkSessionAttributes(prompted map[string]int64) time.Durati
 	if !wc.Platform.SessionAttributesEnabled() {
 		return sessionAttributesRecheckInterval
 	}
-	// Challenge-authenticated connections have an empty session until the challenge
-	// arrives, and invalidating the session cache clears it until the next event reloads it.
-	session := wc.GetSession()
-	if session == nil || session.Id == "" {
+	session, rctx := wc.loadSession()
+	if session == nil {
 		return sessionAttributesFollowUpInterval
 	}
-	deadlines, appErr := wc.Suite.GetSessionAttributeDeadlines(wc.getRCtx(), session.Id)
+	deadlines, appErr := wc.Suite.GetSessionAttributeDeadlines(rctx, session.Id)
 	if appErr != nil {
 		wc.Platform.Log().Warn("Failed to get session attribute deadlines",
 			mlog.String("user_id", session.UserId),
@@ -106,6 +105,24 @@ func staleSessionAttributes(deadlines map[string]model.SessionAttributeDeadline,
 	return stale, nextStaleAt
 }
 
+// loadSession returns the connection's session, loading it by token when invalidating the
+// session cache cleared it and no event has reloaded it yet. It returns nil until a
+// challenge-authenticated connection, which starts with an empty session, authenticates.
+func (wc *WebConn) loadSession() (*model.Session, request.CTX) {
+	if session := wc.GetSession(); session != nil && session.Id != "" {
+		return session, wc.getRCtx()
+	}
+	token := wc.GetSessionToken()
+	if token == "" {
+		return nil, nil
+	}
+	session, appErr := wc.Suite.GetSession(token)
+	if appErr != nil {
+		return nil, nil
+	}
+	return session, request.EmptyContext(wc.Platform.Log()).WithSession(session)
+}
+
 func (wc *WebConn) sendSessionAttributesExpired(userID string, attributes []string) {
 	hub := wc.Platform.GetHubForUserId(userID)
 	if hub == nil {
@@ -120,20 +137,24 @@ func (wc *WebConn) sendSessionAttributesExpired(userID string, attributes []stri
 // inactive. Every event queued for it from then on is evaluated against them, so a resume
 // is only safe while they still hold.
 func (wc *WebConn) recordSessionAttributes() {
-	if !wc.Platform.SessionAttributesEnabled() {
-		return
-	}
-	session := wc.GetSession()
-	if session == nil || session.Id == "" {
+	if !wc.Platform.SessionAttributesEnabled() || wc.GetSessionToken() == "" {
 		return
 	}
 
 	now := model.GetMillis()
-	deadlines, appErr := wc.Suite.GetSessionAttributeDeadlines(wc.getRCtx(), session.Id)
+	// Without a record nothing vouches for the queued events, so one that refuses the
+	// resume stands in when the attributes cannot be read.
+	refuse := &model.SessionAttributesRecord{RecordedAt: now, ExpireAt: now}
+
+	session, rctx := wc.loadSession()
+	if session == nil {
+		wc.sessionAttributes = refuse
+		return
+	}
+	deadlines, appErr := wc.Suite.GetSessionAttributeDeadlines(rctx, session.Id)
 	epoch, err := wc.Platform.Store.SessionAttribute().GetEpoch(session.Id)
 	if appErr != nil || err != nil {
-		// Without a record nothing vouches for the queued events; refuse to replay them.
-		wc.sessionAttributes = &model.SessionAttributesRecord{RecordedAt: now, ExpireAt: now}
+		wc.sessionAttributes = refuse
 		return
 	}
 	wc.sessionAttributes = newSessionAttributesRecord(deadlines, epoch, now)
