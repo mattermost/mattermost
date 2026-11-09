@@ -212,10 +212,55 @@ func (ps *PropertyService) postRuleBreaches(rctx request.CTX, post *model.Proper
 	return breaches, nil
 }
 
+// locksField reports whether saving next over existing applies a lock: the new mutability is not
+// mutable and differs from the stored one.
+func locksField(existing, next model.PropertyFieldMutability) bool {
+	next = next.OrMutable()
+	return next != model.PropertyFieldMutabilityMutable && next != existing.OrMutable()
+}
+
+// deletedOptionBreaches counts the live values of an option field that name an option the field no
+// longer holds. A store error is returned wrapped. Messages name IDs, never an option.
+func (ps *PropertyService) deletedOptionBreaches(existing *model.PropertyField) (storedValueBreaches, error) {
+	var breaches storedValueBreaches
+	if !existing.Type.SupportsOptions() {
+		return breaches, nil
+	}
+	referenced, err := ps.valueStore.GetReferencedOptionIDs(existing.GroupID, []string{existing.ID})
+	if err != nil {
+		return breaches, fmt.Errorf("field %s: failed to read the options its values name: %w", existing.ID, err)
+	}
+	if len(referenced) == 0 {
+		return breaches, nil
+	}
+	// Asked of the option rows, not the hydrated list: a linked field serves its template's options,
+	// and a field with very many options is read back without its list.
+	live, err := ps.fieldStore.GetExistingOptionIDs(existing, referenced)
+	if err != nil {
+		return breaches, fmt.Errorf("field %s: failed to look up its options: %w", existing.ID, err)
+	}
+	if !slices.ContainsFunc(referenced, func(id string) bool { return !slices.Contains(live, id) }) {
+		return breaches, nil
+	}
+	var scope *store.PostValueScope
+	if existing.ObjectType == model.PropertyFieldObjectTypePost {
+		// Values on deleted posts are not live, whichever option they name.
+		scope = &store.PostValueScope{}
+	}
+	count, examples, err := ps.valueStore.CountValuesOutsideOptions(existing.GroupID, existing.ID, live, scope, storedValueExamples)
+	if err != nil {
+		return breaches, fmt.Errorf("field %s: failed to count the stored values: %w", existing.ID, err)
+	}
+	breaches.add(count, examples)
+	return breaches, nil
+}
+
 // refuseRulesBrokenByStoredValues refuses a field save that adds a parent rule some stored value
-// of the field already breaks, or whose check can't be completed. Removing or keeping a rule is
-// never checked, and a self rule can't be broken by a value that is already stored. fields hold
-// the rules about to be stored; a field missing from existingByID, or a PSAv1 field, is skipped.
+// of the field already breaks, or whose check can't be completed, and one that locks a field whose
+// values name a deleted option: they would be stuck, since the lock refuses the replacement value.
+// Removing or keeping a rule is never checked, a self rule can't be broken by a value that is
+// already stored, and no other mutability change depends on stored values. fields hold the rules
+// and mutability about to be stored; a field missing from existingByID, or a PSAv1 field, is skipped.
 //
 // A value written between this check and the field's write can still land out of bounds; the
 // field's own write stays conditional on its UpdateAt, and there are no locks across objects.
@@ -244,6 +289,20 @@ func (ps *PropertyService) refuseRulesBrokenByStoredValues(rctx request.CTX, fie
 					fmt.Sprintf("field %s: bounds rule %s %s: %d stored values out of bounds, e.g. %s", field.ID, rule.Operator, rule.Reference, breaches.Count, examples),
 					http.StatusConflict)
 			}
+		}
+		if !locksField(existing.Mutability, field.Mutability) {
+			continue
+		}
+		breaches, err := ps.deletedOptionBreaches(existing)
+		if err != nil {
+			return err
+		}
+		if breaches.Count > 0 {
+			examples := strings.Join(breaches.Examples, ", ")
+			return model.NewAppError("UpdatePropertyFields", "app.property_field.mutability_deleted_options.app_error",
+				map[string]any{"Count": breaches.Count, "Examples": examples},
+				fmt.Sprintf("field %s: mutability %s: %d values name a deleted option, e.g. %s", field.ID, field.Mutability, breaches.Count, examples),
+				http.StatusConflict)
 		}
 	}
 	return nil

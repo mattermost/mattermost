@@ -347,3 +347,175 @@ func TestRefuseRulesBrokenByStoredPostValues(t *testing.T) {
 		assert.Empty(t, storedBounds(f.post))
 	})
 }
+
+func TestLocksField(t *testing.T) {
+	const (
+		mutable = model.PropertyFieldMutabilityMutable
+		once    = model.PropertyFieldMutabilityWriteOnce
+		onSet   = model.PropertyFieldMutabilitySetOnCreate
+	)
+	for name, tc := range map[string]struct {
+		existing, next model.PropertyFieldMutability
+		want           bool
+	}{
+		"unset to write_once":         {"", once, true},
+		"mutable to write_once":       {mutable, once, true},
+		"write_once to set_on_create": {once, onSet, true},
+		"set_on_create to write_once": {onSet, once, true},
+		"write_once kept":             {once, once, false},
+		"write_once to mutable":       {once, mutable, false},
+		"write_once to unset":         {once, "", false},
+		"unset kept":                  {"", "", false},
+	} {
+		t.Run(name, func(t *testing.T) {
+			assert.Equal(t, tc.want, locksField(tc.existing, tc.next))
+		})
+	}
+}
+
+func TestRefuseLockWhileValuesNameDeletedOption(t *testing.T) {
+	th := Setup(t)
+	rctx := th.Context
+	const refusedID = "app.property_field.mutability_deleted_options.app_error"
+	team := th.CreateTeam(t)
+
+	seed := func(f *model.PropertyField, targetType, targetID, raw string) {
+		t.Helper()
+		_, err := th.dbStore.PropertyValue().Upsert([]*model.PropertyValue{{GroupID: f.GroupID, FieldID: f.ID, TargetType: targetType, TargetID: targetID, Value: json.RawMessage(raw)}})
+		require.NoError(t, err)
+	}
+	// setMutability saves a fresh copy of f, so an option dropped since f was read isn't
+	// mistaken for an edit of a linked field's options.
+	setMutability := func(f *model.PropertyField, m model.PropertyFieldMutability) error {
+		c, err := th.service.GetPropertyField(rctx, f.GroupID, f.ID)
+		require.NoError(t, err)
+		c.Mutability = m
+		_, _, err = th.service.UpdatePropertyField(rctx, f.GroupID, c)
+		return err
+	}
+	storedMutability := func(f *model.PropertyField) model.PropertyFieldMutability {
+		got, err := th.service.GetPropertyField(rctx, f.GroupID, f.ID)
+		require.NoError(t, err)
+		return got.Mutability
+	}
+	// linkedField is a rank field linked to a template holding optlow, optmid and opthigh; the
+	// template is returned by ID so a test can drop one of its options.
+	linkedField := func(t *testing.T, objectType string) (*model.PropertyField, string) {
+		t.Helper()
+		_, create, _ := boundsSetup(t, th, rctx)
+		f := create(objectType, nil)
+		require.NotNil(t, f.LinkedFieldID)
+		return f, *f.LinkedFieldID
+	}
+	selectField := func(t *testing.T, fieldType model.PropertyFieldType, objectType string) *model.PropertyField {
+		t.Helper()
+		return th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:     th.RegisterPropertyGroup(t, model.PropertyGroupVersionV3).ID,
+			ObjectType:  objectType,
+			TargetType:  string(model.PropertyFieldTargetLevelSystem),
+			Type:        fieldType,
+			Name:        "Select " + model.NewId(),
+			Permissions: openPermissions(),
+			Attrs: model.StringInterface{model.PropertyFieldAttributeOptions: []any{
+				map[string]any{"id": "o1", "name": "One"},
+				map[string]any{"id": "o2", "name": "Two"},
+			}},
+		})
+	}
+	dropOption := func(f *model.PropertyField, ownerID, optionID string) {
+		t.Helper()
+		require.NoError(t, th.dbStore.PropertyField().DeleteOptions(f.GroupID, ownerID, 0, []string{optionID}))
+	}
+	examplesOf := func(err error) []string {
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		_, list, ok := strings.Cut(appErr.DetailedError, "e.g. ")
+		require.True(t, ok, appErr.DetailedError)
+		return strings.Split(list, ", ")
+	}
+
+	t.Run("a value naming a deleted option refuses the lock until it is cleared", func(t *testing.T) {
+		f := selectField(t, model.PropertyFieldTypeSelect, model.PropertyFieldObjectTypeChannel)
+		target := model.NewId()
+		seed(f, model.PropertyValueTargetTypeChannel, target, `"o2"`)
+		dropOption(f, f.ID, "o2")
+
+		err := setMutability(f, model.PropertyFieldMutabilityWriteOnce)
+		requireAppErrorID(t, err, refusedID, http.StatusConflict)
+		assert.Contains(t, err.Error(), "1 values name a deleted option")
+		assert.Equal(t, []string{target}, examplesOf(err))
+		assert.NotContains(t, err.Error(), "o2")
+		assert.Equal(t, model.PropertyFieldMutability(""), storedMutability(f))
+
+		seed(f, model.PropertyValueTargetTypeChannel, target, `null`)
+		require.NoError(t, setMutability(f, model.PropertyFieldMutabilityWriteOnce))
+		assert.Equal(t, model.PropertyFieldMutabilityWriteOnce, storedMutability(f))
+	})
+
+	t.Run("a multiselect value is refused when one element is deleted", func(t *testing.T) {
+		f := selectField(t, model.PropertyFieldTypeMultiselect, model.PropertyFieldObjectTypeChannel)
+		target := model.NewId()
+		seed(f, model.PropertyValueTargetTypeChannel, target, `["o1","o2"]`)
+		dropOption(f, f.ID, "o2")
+		requireAppErrorID(t, setMutability(f, model.PropertyFieldMutabilityWriteOnce), refusedID, http.StatusConflict)
+
+		seed(f, model.PropertyValueTargetTypeChannel, target, `["o1"]`)
+		require.NoError(t, setMutability(f, model.PropertyFieldMutabilityWriteOnce))
+	})
+
+	t.Run("a linked field is judged against its template's options", func(t *testing.T) {
+		f, templateID := linkedField(t, model.PropertyFieldObjectTypeChannel)
+		seed(f, model.PropertyValueTargetTypeChannel, model.NewId(), `"optmid"`)
+		dropOption(f, templateID, "optmid")
+		requireAppErrorID(t, setMutability(f, model.PropertyFieldMutabilityWriteOnce), refusedID, http.StatusConflict)
+	})
+
+	t.Run("no deleted option, or no value, allows the lock", func(t *testing.T) {
+		f := selectField(t, model.PropertyFieldTypeSelect, model.PropertyFieldObjectTypeChannel)
+		require.NoError(t, setMutability(f, model.PropertyFieldMutabilityWriteOnce))
+
+		g := selectField(t, model.PropertyFieldTypeSelect, model.PropertyFieldObjectTypeChannel)
+		seed(g, model.PropertyValueTargetTypeChannel, model.NewId(), `"o1"`)
+		dropOption(g, g.ID, "o2")
+		require.NoError(t, setMutability(g, model.PropertyFieldMutabilityWriteOnce))
+	})
+
+	t.Run("a text field is not looked at", func(t *testing.T) {
+		f := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:     th.RegisterPropertyGroup(t, model.PropertyGroupVersionV3).ID,
+			ObjectType:  model.PropertyFieldObjectTypeChannel,
+			TargetType:  string(model.PropertyFieldTargetLevelSystem),
+			Type:        model.PropertyFieldTypeText,
+			Name:        "Text " + model.NewId(),
+			Permissions: openPermissions(),
+		})
+		seed(f, model.PropertyValueTargetTypeChannel, model.NewId(), `"o2"`)
+		require.NoError(t, setMutability(f, model.PropertyFieldMutabilityWriteOnce))
+	})
+
+	t.Run("unlocking, or saving a lock unchanged, is not checked", func(t *testing.T) {
+		f := selectField(t, model.PropertyFieldTypeSelect, model.PropertyFieldObjectTypeChannel)
+		require.NoError(t, setMutability(f, model.PropertyFieldMutabilityWriteOnce))
+		seed(f, model.PropertyValueTargetTypeChannel, model.NewId(), `"o2"`)
+		dropOption(f, f.ID, "o2")
+
+		require.NoError(t, setMutability(f, ""))
+		assert.Equal(t, model.PropertyFieldMutabilityWriteOnce, storedMutability(f))
+		require.NoError(t, setMutability(f, model.PropertyFieldMutabilityWriteOnce))
+		// Mutable is stored as NULL, which reads back as unset.
+		require.NoError(t, setMutability(f, model.PropertyFieldMutabilityMutable))
+		assert.Equal(t, model.PropertyFieldMutability(""), storedMutability(f))
+	})
+
+	t.Run("a value on a deleted post does not count", func(t *testing.T) {
+		f, templateID := linkedField(t, model.PropertyFieldObjectTypePost)
+		p, err := th.dbStore.Post().Save(rctx, &model.Post{ChannelId: th.CreateChannel(t, team.Id).Id, UserId: model.NewId(), Message: "m " + model.NewId()})
+		require.NoError(t, err)
+		seed(f, model.PropertyValueTargetTypePost, p.Id, `"optmid"`)
+		dropOption(f, templateID, "optmid")
+		requireAppErrorID(t, setMutability(f, model.PropertyFieldMutabilityWriteOnce), refusedID, http.StatusConflict)
+
+		require.NoError(t, th.dbStore.Post().Delete(rctx, p.Id, model.GetMillis(), model.NewId()))
+		require.NoError(t, setMutability(f, model.PropertyFieldMutabilityWriteOnce))
+	})
+}

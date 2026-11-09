@@ -11306,6 +11306,11 @@
     "description": "Permission error when a non-admin tries to flag a custom property field as admin-managed."
   },
   {
+    "id": "app.property_field.mutability_deleted_options.app_error",
+    "translation": "{{.Count}} values name a deleted option, for example on {{.Examples}}. Fix or clear them before locking the field.",
+    "description": "API error (409) when a property field is changed to write_once or set_on_create while stored values of that field name an option that has been deleted; Examples lists up to five target IDs."
+  },
+  {
     "id": "app.property_field.not_found.app_error",
     "translation": "The specified property field does not exist.",
     "description": "API error when a requested custom property field (attribute definition) does not exist."
