@@ -133,7 +133,7 @@ func (h *AccessControlAttributeValidationHook) checkParentRule(rctx request.CTX,
 }
 
 // fieldGoverned reports whether any bounds or mutability rule applies to field's values. Values of
-// other fields skip every check here, so ordinary writes cost nothing new.
+// other fields skip every check here, so ordinary writes pay no extra cost.
 func fieldGoverned(field *model.PropertyField) bool {
 	return len(field.Bounds) > 0 || field.Mutability.OrMutable() != model.PropertyFieldMutabilityMutable
 }
@@ -174,7 +174,7 @@ func (h *AccessControlAttributeValidationHook) enforceBounds(rctx request.CTX, v
 	var conditions *valueWriteConditions
 	if len(targetsByField) > 0 {
 		// Only the service's write methods attach a record, and hooks run only inside them, so this
-		// guards against a new caller rather than a path users reach.
+		// guards against a caller outside those methods rather than a path users reach.
 		if conditions = valueWriteConditionsFrom(rctx); conditions == nil {
 			return errors.New("no write conditions on the request")
 		}
@@ -239,7 +239,6 @@ func (h *AccessControlAttributeValidationHook) enforceBounds(rctx request.CTX, v
 // checkSelfRule decides whether next, replacing stored, satisfies a rule that compares an object with
 // its own value. stored is nil when the object has no value; next is empty for a clear.
 func checkSelfRule(field *model.PropertyField, rule model.PropertyBoundsRule, stored, next json.RawMessage) error {
-	// The first write has nothing to compare with.
 	if stored == nil || samePropertyValue(stored, next) {
 		return nil
 	}
@@ -336,7 +335,7 @@ func (h *AccessControlAttributeValidationHook) refuseLockedRowDelete(rctx reques
 	if err != nil {
 		return fmt.Errorf("failed to read value %s before deleting it: %w", id, err)
 	}
-	// No live row: the store answers the delete as it always has.
+	// No live row: nothing to protect, and the store handles the missing ID.
 	if len(rows) == 0 {
 		return nil
 	}

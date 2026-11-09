@@ -2256,7 +2256,6 @@ func (r liveValueRow) key() store.PropertyValueKey {
 	return store.PropertyValueKey{FieldID: r.fieldID, TargetID: r.targetID}
 }
 
-// stored returns the live value of the row, or nil when it has none.
 func (r liveValueRow) stored(t *testing.T, rctx request.CTX, ss store.Store) json.RawMessage {
 	t.Helper()
 	results, err := ss.PropertyValue().SearchPropertyValues(rctx, model.PropertyValueSearchOpts{
@@ -2274,7 +2273,6 @@ func (r liveValueRow) stored(t *testing.T, rctx request.CTX, ss store.Store) jso
 }
 
 func testUpsertIfUnchanged(t *testing.T, rctx request.CTX, ss store.Store) {
-	// seed creates a live row holding "a".
 	seed := func(t *testing.T) liveValueRow {
 		row := newLiveValueRow()
 		_, err := ss.PropertyValue().Create(row.value(`"a"`))
