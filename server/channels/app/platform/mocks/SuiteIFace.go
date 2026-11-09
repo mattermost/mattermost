@@ -66,6 +66,24 @@ func (_m *SuiteIFace) HasChannelReadAccessByID(rctx request.CTX, userID string, 
 	return r0
 }
 
+// HasChannelReadAccessGoverned provides a mock function with given fields: rctx, userID, channelID, byChannelPolicy
+func (_m *SuiteIFace) HasChannelReadAccessGoverned(rctx request.CTX, userID string, channelID string, byChannelPolicy bool) bool {
+	ret := _m.Called(rctx, userID, channelID, byChannelPolicy)
+
+	if len(ret) == 0 {
+		panic("no return value specified for HasChannelReadAccessGoverned")
+	}
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, bool) bool); ok {
+		r0 = rf(rctx, userID, channelID, byChannelPolicy)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
 // HasPermissionToChannelAction provides a mock function with given fields: rctx, userID, roles, channelID, action
 func (_m *SuiteIFace) HasPermissionToChannelAction(rctx request.CTX, userID string, roles string, channelID string, action string) bool {
 	ret := _m.Called(rctx, userID, roles, channelID, action)
@@ -221,6 +239,11 @@ func (_m *SuiteIFace) UserCanSeeOtherUser(rctx request.CTX, userID string, other
 	}
 
 	return r0, r1
+}
+
+// WarmChannelAccessSubject provides a mock function with given fields: session
+func (_m *SuiteIFace) WarmChannelAccessSubject(session *model.Session) {
+	_m.Called(session)
 }
 
 // NewSuiteIFace creates a new instance of SuiteIFace. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

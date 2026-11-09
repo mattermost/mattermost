@@ -133,6 +133,9 @@ func (ps *PlatformService) ClearAllUsersSessionCache() error {
 }
 
 func (ps *PlatformService) invalidateSessionAttributes(sessionID string) {
+	if hook := ps.accessInvalidationHooks.Session; hook != nil {
+		hook(sessionID)
+	}
 	if !ps.Config().FeatureFlags.SessionAttributes || !model.MinimumEnterpriseAdvancedLicense(ps.License()) {
 		return
 	}

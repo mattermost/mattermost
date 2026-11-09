@@ -67,6 +67,7 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 		conn.Platform.Go(func() {
 			conn.Platform.SetStatusOnline(session.UserId, false)
 			conn.Platform.UpdateLastActivityAtIfNeeded(*session)
+			conn.Suite.WarmChannelAccessSubject(session)
 		})
 
 		resp := model.NewWebSocketResponse(model.StatusOk, r.Seq, nil)

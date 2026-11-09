@@ -61,6 +61,9 @@ func (ps *PlatformService) ClusterUpdateSessionAttributesHandler(msg *model.Clus
 	if err := ps.Store.SessionAttribute().Refresh(payload.SessionID, payload.Attrs, payload.Timestamp); err != nil {
 		ps.logger.Warn("Failed to merge session attributes from cluster", mlog.String("session_id", payload.SessionID), mlog.Err(err))
 	}
+	if hook := ps.accessInvalidationHooks.Session; hook != nil {
+		hook(payload.SessionID)
+	}
 }
 
 func (ps *PlatformService) ClusterInvalidateAllCachesHandler(msg *model.ClusterMessage) {
@@ -121,6 +124,9 @@ func (ps *PlatformService) invalidateWebConnSessionCacheForUserSkipClusterSend(u
 	if hub != nil {
 		hub.InvalidateUser(userID)
 	}
+	if hook := ps.accessInvalidationHooks.User; hook != nil {
+		hook(userID)
+	}
 }
 
 // invalidateWebConnSessionCacheForAllUsersSkipClusterSend signals
@@ -132,6 +138,9 @@ func (ps *PlatformService) invalidateWebConnSessionCacheForAllUsersSkipClusterSe
 			hub.InvalidateAll()
 		}
 	}
+	if hook := ps.accessInvalidationHooks.AllUsers; hook != nil {
+		hook()
+	}
 }
 
 // softInvalidateWebConnSessionCacheForAllUsersSkipClusterSend is like
@@ -142,6 +151,9 @@ func (ps *PlatformService) softInvalidateWebConnSessionCacheForAllUsersSkipClust
 		if hub != nil {
 			hub.InvalidateAllCache()
 		}
+	}
+	if hook := ps.accessInvalidationHooks.AllUsers; hook != nil {
+		hook()
 	}
 }
 

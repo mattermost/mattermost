@@ -155,6 +155,7 @@ type MetricsInterfaceImpl struct {
 	WebSocketBroadcastBufferGauge                *prometheus.GaugeVec
 	WebSocketBroadcastBufferUsersRegisteredGauge *prometheus.GaugeVec
 	WebSocketReconnectCounter                    *prometheus.CounterVec
+	WebSocketSlowConnectionCloseCounter          prometheus.Counter
 	WebSocketReconnectFailureCounter             *prometheus.CounterVec
 
 	SearchEngineStatusGauge    prometheus.GaugeFunc
@@ -780,6 +781,17 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		[]string{"type", "disconnect_err_code", "origin_client"},
 	)
 	m.Registry.MustRegister(m.WebSocketReconnectCounter)
+
+	m.WebSocketSlowConnectionCloseCounter = prometheus.NewCounter(
+		prometheus.CounterOpts{
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemWebsocket,
+			Name:        "slow_connection_closes_total",
+			Help:        "Total number of active websocket connections a hub closed because their send queue was full",
+			ConstLabels: additionalLabels,
+		},
+	)
+	m.Registry.MustRegister(m.WebSocketSlowConnectionCloseCounter)
 
 	m.WebSocketReconnectFailureCounter = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
@@ -2007,6 +2019,10 @@ func (mi *MetricsInterfaceImpl) AddMemCacheHitCounter(cacheName string, amount f
 
 func (mi *MetricsInterfaceImpl) IncrementWebsocketEvent(eventType model.WebsocketEventType) {
 	mi.WebsocketEventCounters.With(prometheus.Labels{"type": string(eventType)}).Inc()
+}
+
+func (mi *MetricsInterfaceImpl) IncrementWebSocketSlowConnectionClose() {
+	mi.WebSocketSlowConnectionCloseCounter.Inc()
 }
 
 func (mi *MetricsInterfaceImpl) IncrementWebsocketReconnectEvent(eventType, disconnectErrCode, originClient string) {
