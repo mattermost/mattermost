@@ -3278,7 +3278,7 @@ func (a *App) CleanUpAfterPostDeletion(rctx request.CTX, post *model.Post, delet
 	}
 
 	if post.RootId == "" {
-		if appErr := a.DeletePersistentNotification(rctx, post); appErr != nil {
+		if appErr = a.DeletePersistentNotification(rctx, post); appErr != nil {
 			return appErr
 		}
 	}
