@@ -5,6 +5,7 @@ package properties
 
 import (
 	"encoding/json"
+	"maps"
 	"net/http"
 	"slices"
 	"strings"
@@ -517,5 +518,196 @@ func TestRefuseLockWhileValuesNameDeletedOption(t *testing.T) {
 
 		require.NoError(t, th.dbStore.Post().Delete(rctx, p.Id, model.GetMillis(), model.NewId()))
 		require.NoError(t, setMutability(f, model.PropertyFieldMutabilityWriteOnce))
+	})
+}
+
+func TestRefuseRankChangeBreakingStoredValues(t *testing.T) {
+	th := Setup(t)
+	rctx := th.Context
+	below := model.PropertyBounds{{Operator: model.PropertyBoundsOperatorAtOrBelow, Reference: model.PropertyBoundsReferenceParent}}
+	self := model.PropertyBounds{{Operator: model.PropertyBoundsOperatorAtOrAbove, Reference: model.PropertyBoundsReferenceSelf}}
+	const ranksID = "app.property_field.option_ranks_stored_values.app_error"
+	const checkFailedID = "app.property_field.bounds_check_failed.app_error"
+	team := th.CreateTeam(t)
+
+	type fixture struct {
+		template, system, channel, post *model.PropertyField
+	}
+	// setup creates the template's linked fields, the channel and post ones with the given bounds.
+	setup := func(t *testing.T, channelBounds, postBounds model.PropertyBounds) fixture {
+		t.Helper()
+		_, create, _ := boundsSetup(t, th, rctx)
+		f := fixture{system: create(model.PropertyFieldObjectTypeSystem, nil)}
+		f.channel = create(model.PropertyFieldObjectTypeChannel, channelBounds)
+		f.post = create(model.PropertyFieldObjectTypePost, postBounds)
+		var err error
+		f.template, err = th.service.GetPropertyField(rctx, f.system.GroupID, *f.system.LinkedFieldID)
+		require.NoError(t, err)
+		return f
+	}
+	seed := func(f *model.PropertyField, targetType, targetID, optionID string) {
+		t.Helper()
+		raw := json.RawMessage(`"` + optionID + `"`)
+		_, err := th.dbStore.PropertyValue().Upsert([]*model.PropertyValue{{GroupID: f.GroupID, FieldID: f.ID, TargetType: targetType, TargetID: targetID, Value: raw}})
+		require.NoError(t, err)
+	}
+	seedSystem := func(f fixture, optionID string) {
+		seed(f.system, model.PropertyValueTargetTypeSystem, model.PropertyValueSystemTargetID, optionID)
+	}
+	channel := func(f fixture, optionID string) string {
+		id := th.CreateChannel(t, team.Id).Id
+		if optionID != "" {
+			seed(f.channel, model.PropertyValueTargetTypeChannel, id, optionID)
+		}
+		return id
+	}
+	post := func(f fixture, channelID, optionID string) string {
+		t.Helper()
+		p, err := th.dbStore.Post().Save(rctx, &model.Post{ChannelId: channelID, UserId: model.NewId(), Message: "m " + model.NewId()})
+		require.NoError(t, err)
+		seed(f.post, model.PropertyValueTargetTypePost, p.Id, optionID)
+		return p.Id
+	}
+	// options is the template's option list with the given ranks; extra edits each option map.
+	options := func(low, mid, high int, extra func(opt map[string]any)) []any {
+		opts := []any{
+			map[string]any{"id": "optlow", "name": "LOW", "rank": low},
+			map[string]any{"id": "optmid", "name": "MID", "rank": mid},
+			map[string]any{"id": "opthigh", "name": "HIGH", "rank": high},
+		}
+		if extra != nil {
+			for _, o := range opts {
+				extra(o.(map[string]any))
+			}
+		}
+		return opts
+	}
+	withOptions := func(f fixture, opts []any) *model.PropertyField {
+		c := *f.template
+		c.Attrs = maps.Clone(f.template.Attrs)
+		c.Attrs[model.PropertyFieldAttributeOptions] = opts
+		return &c
+	}
+	saveOptions := func(f fixture, opts []any) error {
+		_, _, err := th.service.UpdatePropertyField(rctx, f.template.GroupID, withOptions(f, opts))
+		return err
+	}
+	storedRanks := func(f fixture) map[string]int {
+		got, err := th.service.GetPropertyField(rctx, f.template.GroupID, f.template.ID)
+		require.NoError(t, err)
+		return buildOptionRankMap(got)
+	}
+	swapped := map[string]int{"optlow": 3, "optmid": 2, "opthigh": 1}
+	original := map[string]int{"optlow": 1, "optmid": 2, "opthigh": 3}
+	examplesOf := func(err error) []string {
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		_, list, ok := strings.Cut(appErr.DetailedError, "e.g. ")
+		require.True(t, ok, appErr.DetailedError)
+		return strings.Split(list, ", ")
+	}
+
+	t.Run("a swap that puts a channel value above the system's is refused", func(t *testing.T) {
+		f := setup(t, below, nil)
+		seedSystem(f, "optmid")
+		a := channel(f, "optlow")
+
+		err := saveOptions(f, options(3, 2, 1, nil))
+		requireAppErrorID(t, err, ranksID, http.StatusConflict)
+		assert.Contains(t, err.Error(), "field "+f.template.ID)
+		assert.Contains(t, err.Error(), "of field "+f.channel.ID)
+		assert.Contains(t, err.Error(), "1 stored values")
+		assert.Equal(t, []string{a}, examplesOf(err))
+		for _, secret := range []string{"optlow", "optmid", "opthigh"} {
+			assert.NotContains(t, err.Error(), secret)
+		}
+		assert.Equal(t, original, storedRanks(f))
+
+		g := setup(t, below, nil)
+		seedSystem(g, "optmid")
+		channel(g, "optmid")
+		require.NoError(t, saveOptions(g, options(3, 2, 1, nil)))
+		assert.Equal(t, swapped, storedRanks(g))
+	})
+
+	t.Run("a post held by a channel is judged against it", func(t *testing.T) {
+		f := setup(t, nil, below)
+		x := channel(f, "optmid")
+		p := post(f, x, "optlow")
+
+		err := saveOptions(f, options(3, 2, 1, nil))
+		requireAppErrorID(t, err, ranksID, http.StatusConflict)
+		assert.Equal(t, []string{p}, examplesOf(err))
+		assert.Equal(t, original, storedRanks(f))
+	})
+
+	t.Run("a system with no value sets no limit", func(t *testing.T) {
+		f := setup(t, below, nil)
+		channel(f, "optlow")
+		channel(f, "opthigh")
+		require.NoError(t, saveOptions(f, options(3, 2, 1, nil)))
+	})
+
+	t.Run("an edit that moves no rank is allowed", func(t *testing.T) {
+		f := setup(t, below, nil)
+		seedSystem(f, "optmid")
+		channel(f, "optlow")
+
+		require.NoError(t, saveOptions(f, options(1, 2, 3, func(o map[string]any) { o["name"] = o["name"].(string) + "!" })))
+		require.NoError(t, saveOptions(f, options(1, 2, 3, func(o map[string]any) { o["color"] = "#123456" })))
+		reordered := options(1, 2, 3, nil)
+		slices.Reverse(reordered)
+		require.NoError(t, saveOptions(f, reordered))
+		added := append(options(1, 2, 3, nil), map[string]any{"id": "optmax", "name": "MAX", "rank": 4})
+		require.NoError(t, saveOptions(f, added))
+		assert.Equal(t, map[string]int{"optlow": 1, "optmid": 2, "opthigh": 3, "optmax": 4}, storedRanks(f))
+	})
+
+	t.Run("a field with only a self rule is not checked", func(t *testing.T) {
+		f := setup(t, self, nil)
+		seedSystem(f, "optmid")
+		channel(f, "optlow")
+		require.NoError(t, saveOptions(f, options(3, 2, 1, nil)))
+	})
+
+	t.Run("a new rule in the same call is judged with the new ranks", func(t *testing.T) {
+		saveBoth := func(f fixture) error {
+			c := *f.channel
+			c.Bounds = below
+			_, _, _, err := th.service.UpdatePropertyFields(rctx, f.template.GroupID, []*model.PropertyField{withOptions(f, options(3, 2, 1, nil)), &c})
+			return err
+		}
+		f := setup(t, nil, nil)
+		seedSystem(f, "optmid")
+		channel(f, "optlow")
+		requireAppErrorID(t, saveBoth(f), ranksID, http.StatusConflict)
+		assert.Equal(t, original, storedRanks(f))
+		got, err := th.service.GetPropertyField(rctx, f.channel.GroupID, f.channel.ID)
+		require.NoError(t, err)
+		assert.Empty(t, got.Bounds)
+
+		g := setup(t, nil, nil)
+		seedSystem(g, "optmid")
+		channel(g, "opthigh")
+		require.NoError(t, saveBoth(g))
+		assert.Equal(t, swapped, storedRanks(g))
+	})
+
+	t.Run("a system value that can't be ranked refuses the change", func(t *testing.T) {
+		f := setup(t, below, nil)
+		seedSystem(f, "optgone")
+		channel(f, "optlow")
+		requireAppErrorID(t, saveOptions(f, options(3, 2, 1, nil)), checkFailedID, http.StatusConflict)
+		assert.Equal(t, original, storedRanks(f))
+	})
+
+	t.Run("an option sent without a rank is refused as invalid options", func(t *testing.T) {
+		f := setup(t, below, nil)
+		th.service.AddHook(NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{}, f.template.GroupID))
+		opts := options(1, 2, 3, nil)
+		delete(opts[1].(map[string]any), "rank")
+		err := saveOptions(f, opts)
+		require.ErrorIs(t, err, ErrInvalidFieldAttrs)
+		assert.Equal(t, original, storedRanks(f))
 	})
 }

@@ -255,16 +255,91 @@ func (ps *PropertyService) deletedOptionBreaches(existing *model.PropertyField) 
 	return breaches, nil
 }
 
+// optionRanksChange reports whether saving field over existing changes the rank of an option both
+// hold. Only a rank field that supplies its options can; adding an option or leaving the ranks
+// alone changes no comparison.
+func optionRanksChange(existing, field *model.PropertyField) bool {
+	if existing.Type != model.PropertyFieldTypeRank || field.Type != model.PropertyFieldTypeRank || !model.PropertyFieldSuppliesOptions(field.Attrs) {
+		return false
+	}
+	old := buildOptionRankMap(existing)
+	for id, rank := range buildOptionRankMap(field) {
+		if was, ok := old[id]; ok && was != rank {
+			return true
+		}
+	}
+	return false
+}
+
+// rankChangeBreaches counts the stored values that break a parent rule of a field linked to
+// template once template takes ranks, and names the first linked field with a breach. Every rule
+// is checked, not only new ones, and a linked field in the call is judged by its copy there. The
+// IDs of the linked fields it judged are added to checked.
+func (ps *PropertyService) rankChangeBreaches(rctx request.CTX, template *model.PropertyField, ranks map[string]int, incoming map[string]*model.PropertyField, checked map[string]bool) (breaches storedValueBreaches, linkedID string, err error) {
+	linked, err := ps.fieldStore.GetLinkedFields([]string{template.ID}, nil)
+	if err != nil {
+		return breaches, "", fmt.Errorf("field %s: failed to look up the fields linked to it: %w", template.ID, err)
+	}
+	for _, child := range linked {
+		if inc, ok := incoming[child.ID]; ok {
+			child = inc
+		}
+		if child.IsPSAv1() {
+			continue
+		}
+		checked[child.ID] = true
+		for _, rule := range child.Bounds {
+			if rule.Reference != model.PropertyBoundsReferenceParent {
+				continue
+			}
+			found, err := ps.parentRuleBreaches(rctx, child, rule, ranks, incoming)
+			if err != nil {
+				return breaches, "", err
+			}
+			if found.Count > 0 && linkedID == "" {
+				linkedID = child.ID
+			}
+			breaches.add(found.Count, found.Examples)
+		}
+	}
+	return breaches, linkedID, nil
+}
+
 // refuseRulesBrokenByStoredValues refuses a field save that adds a parent rule some stored value
 // of the field already breaks, or whose check can't be completed, and one that locks a field whose
 // values name a deleted option: they would be stuck, since the lock refuses the replacement value.
-// Removing or keeping a rule is never checked, a self rule can't be broken by a value that is
-// already stored, and no other mutability change depends on stored values. fields hold the rules
+// It also refuses a change to the rank of an option that would put a stored value outside the
+// parent rules of the fields linked to it. Removing or keeping a rule is never checked, a self rule
+// can't be broken by a value that is already stored, and no other mutability change depends on stored values. fields hold the rules
 // and mutability about to be stored; a field missing from existingByID, or a PSAv1 field, is skipped.
 //
 // A value written between this check and the field's write can still land out of bounds; the
 // field's own write stays conditional on its UpdateAt, and there are no locks across objects.
 func (ps *PropertyService) refuseRulesBrokenByStoredValues(rctx request.CTX, fields []*model.PropertyField, existingByID, incoming map[string]*model.PropertyField) error {
+	// Linked fields whose rules a rank change in this call already judged with the new ranks, which
+	// includes any rule new in the call.
+	checked := map[string]bool{}
+	for _, field := range fields {
+		existing, ok := existingByID[field.ID]
+		if !ok || field.IsPSAv1() || existing.IsPSAv1() || !optionRanksChange(existing, field) {
+			continue
+		}
+		breaches, linkedID, err := ps.rankChangeBreaches(rctx, field, buildOptionRankMap(field), incoming, checked)
+		if errors.Is(err, errBoundsCheckFailed) {
+			return model.NewAppError("UpdatePropertyFields", "app.property_field.bounds_check_failed.app_error", nil, err.Error(), http.StatusConflict).Wrap(err)
+		}
+		if err != nil {
+			return err
+		}
+		if breaches.Count > 0 {
+			examples := strings.Join(breaches.Examples, ", ")
+			return model.NewAppError("UpdatePropertyFields", "app.property_field.option_ranks_stored_values.app_error",
+				map[string]any{"Count": breaches.Count, "Examples": examples},
+				fmt.Sprintf("field %s: new option ranks put %d stored values of field %s out of bounds, e.g. %s", field.ID, breaches.Count, linkedID, examples),
+				http.StatusConflict)
+		}
+	}
+
 	for _, field := range fields {
 		existing, ok := existingByID[field.ID]
 		if !ok || field.IsPSAv1() || existing.IsPSAv1() {
@@ -272,7 +347,7 @@ func (ps *PropertyService) refuseRulesBrokenByStoredValues(rctx request.CTX, fie
 		}
 		ranks := buildOptionRankMap(existing)
 		for _, rule := range field.Bounds {
-			if rule.Reference != model.PropertyBoundsReferenceParent || slices.Contains(existing.Bounds, rule) {
+			if rule.Reference != model.PropertyBoundsReferenceParent || slices.Contains(existing.Bounds, rule) || checked[field.ID] {
 				continue
 			}
 			breaches, err := ps.parentRuleBreaches(rctx, field, rule, ranks, incoming)

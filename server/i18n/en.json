@@ -11118,7 +11118,7 @@
   {
     "id": "app.property_field.bounds_check_failed.app_error",
     "translation": "The rule can't be checked against the values already stored.",
-    "description": "API error (409) when a parent bounds rule is added to a property field but the values already stored can't be compared with it, such as the parent holding an option that no longer exists; the change is refused instead of skipping the check."
+    "description": "API error (409) when a parent bounds rule is added to a property field, or the ranks of its options change, but the values already stored can't be compared with the rule, such as the parent holding an option that no longer exists; the change is refused instead of skipping the check."
   },
   {
     "id": "app.property_field.bounds_disabled.app_error",
@@ -11319,6 +11319,11 @@
     "id": "app.property_field.openid_sync_disabled.app_error",
     "translation": "An attribute can't be linked to an OpenID Connect claim while OpenID Connect attribute sync is turned off.",
     "description": "API error (400) when an admin links a custom attribute to an OpenID Connect claim, or changes the claim, while the OpenIdAttributeSync feature flag is off. 'OpenID Connect' is a product name and should stay as-is."
+  },
+  {
+    "id": "app.property_field.option_ranks_stored_values.app_error",
+    "translation": "Changing these ranks would put {{.Count}} stored values out of bounds, for example on {{.Examples}}. Change those values first.",
+    "description": "API error (409) when the rank of an option of a rank field is changed and the new order would put stored values of fields linked to it outside their parent bounds rules; Examples lists up to five target IDs."
   },
   {
     "id": "app.property_field.options.create.app_error",
