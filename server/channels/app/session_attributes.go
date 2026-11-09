@@ -300,6 +300,9 @@ func (a *App) GetSessionAttributeDeadlines(rctx request.CTX, sessionID string) (
 		}
 		return nil, model.NewAppError("GetSessionAttributeDeadlines", "app.access_control.get_session_attributes.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+	if len(timestamps) == 0 {
+		return nil, nil
+	}
 
 	fieldsByName, appErr := a.getSessionAttributeFieldsByName(rctx)
 	if appErr != nil {
