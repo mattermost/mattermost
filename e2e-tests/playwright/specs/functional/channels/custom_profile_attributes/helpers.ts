@@ -195,14 +195,13 @@ export async function editSelectAttribute(
     await page.locator(`#customAttribute_${fieldId}Edit`).scrollIntoViewIfNeeded();
     await page.locator(`#customAttribute_${fieldId}Edit`).click();
 
-    // The Combobox input carries the field-scoped id and takes focus when the section opens;
-    // clicking it opens the menu if it isn't open yet.
-    // A closed menu stays mounted at opacity 0, so check aria-expanded rather than visibility.
+    // The Combobox input carries the field-scoped id and takes focus when the section opens.
     const input = page.locator(`#customProfileAttribute_${fieldId}`);
     await expect(input).toBeFocused();
     await input.scrollIntoViewIfNeeded();
     await input.click();
 
+    // A closed menu stays mounted at opacity 0, so check aria-expanded rather than visibility.
     // The menu is portaled out of the modal; its listbox id is derived from the input id.
     await expect(input).toHaveAttribute('aria-expanded', 'true');
     const listbox = page.locator(`#customProfileAttribute_${fieldId}-listbox`);
