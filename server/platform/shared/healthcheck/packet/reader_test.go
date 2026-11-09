@@ -38,6 +38,7 @@ const (
 
 	complianceDirSubject      = "ComplianceSettings.Directory"
 	expiresAtSubject          = "license.expires_at"
+	filestoreDiskSubject      = "FileSettings.Directory"
 	globalRelayTimeoutSubject = "MessageExportSettings.GlobalRelaySettings.SMTPServerTimeout"
 	seatsSubject              = "license.users"
 )
@@ -142,6 +143,8 @@ func TestReadGoldenPackets(t *testing.T) {
 				{Code: "LICENSE_EXPIRED", State: healthcheck.StateUnknown, Subject: expiresAtSubject},
 				{Code: "LICENSE_EXPIRING", State: healthcheck.StateUnknown, Subject: expiresAtSubject},
 				{Code: "METRICS_OFF", State: healthcheck.StateFiring, Subject: "MetricsSettings.Enable"},
+				{Code: "NODE_GOMAXPROCS_ABOVE_CPU_LIMIT", State: healthcheck.StateUnknown, Subject: "Server.GoMaxProcs", Scope: "mm.example.com"},
+				{Code: "NODE_HOST_LOAD_HIGH", State: healthcheck.StateUnknown, Subject: "Server.LoadAverage15m", Scope: "mm.example.com"},
 				{Code: "PLUGIN_NOT_RUNNING", State: healthcheck.StateFiring, Subject: "PluginSettings.PluginStates"},
 				{Code: "PUSH_ID_ONLY", State: healthcheck.StateFiring, Subject: "EmailSettings.PushNotificationContents"},
 				{Code: "PUSH_TEST_PROXY", State: healthcheck.StateFiring, Subject: pushSubject},
@@ -157,10 +160,18 @@ func TestReadGoldenPackets(t *testing.T) {
 				{Code: "DB_HA_FAILOVER_STORM_RISK", State: healthcheck.StateFiring, Subject: "SqlSettings.MaxOpenConns"},
 				{Code: "ES_LIVE_BATCH_SYNC", State: healthcheck.StateFiring, Subject: "ElasticsearchSettings.LiveIndexingBatchSize"},
 				{Code: "EXPORT_GR_TIMEOUT_LOW", State: healthcheck.StateFiring, Subject: globalRelayTimeoutSubject},
+				{Code: "FILESTORE_DISK_FULL", State: healthcheck.StateFiring, Subject: filestoreDiskSubject, Scope: "app-3.example.com"},
+				{Code: "FILESTORE_DISK_LOW", State: healthcheck.StateFiring, Subject: filestoreDiskSubject, Scope: "app-1.example.com"},
 				{Code: "FILESTORE_LOCAL_IN_CLUSTER", State: healthcheck.StateFiring, Subject: "FileSettings.Directory"},
 				{Code: "JOB_STUCK", State: healthcheck.StateFiring, Subject: model.JobTypeMessageExport},
 				{Code: "JOB_WEDGED_AT_ZERO", State: healthcheck.StateFiring, Subject: model.JobTypeMessageExport},
 				{Code: "LICENSE_EXPIRING", State: healthcheck.StateFiring, Subject: expiresAtSubject},
+				{Code: "NODE_GOMAXPROCS_ABOVE_CPU_LIMIT", State: healthcheck.StateUnknown, Subject: "Server.GoMaxProcs", Scope: "app-1.example.com"},
+				{Code: "NODE_GOMAXPROCS_ABOVE_CPU_LIMIT", State: healthcheck.StateUnknown, Subject: "Server.GoMaxProcs", Scope: "app-2.example.com"},
+				{Code: "NODE_GOMAXPROCS_ABOVE_CPU_LIMIT", State: healthcheck.StateUnknown, Subject: "Server.GoMaxProcs", Scope: "app-3.example.com"},
+				{Code: "NODE_HOST_LOAD_HIGH", State: healthcheck.StateUnknown, Subject: "Server.LoadAverage15m", Scope: "app-1.example.com"},
+				{Code: "NODE_HOST_LOAD_HIGH", State: healthcheck.StateUnknown, Subject: "Server.LoadAverage15m", Scope: "app-2.example.com"},
+				{Code: "NODE_HOST_LOAD_HIGH", State: healthcheck.StateUnknown, Subject: "Server.LoadAverage15m", Scope: "app-3.example.com"},
 				{Code: "OAUTH_PROBE_FAILED", State: healthcheck.StateUnknown, Subject: model.ServiceGitlab},
 				{Code: "OAUTH_PROBE_FAILED", State: healthcheck.StateUnknown, Subject: model.ServiceGoogle},
 				{Code: "OAUTH_PROBE_FAILED", State: healthcheck.StateUnknown, Subject: model.ServiceOffice365},
