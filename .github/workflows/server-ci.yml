@@ -444,6 +444,7 @@ jobs:
       contents: read
       actions: read
       statuses: write
+      id-token: write
     needs:
       - buildenv
       - ci-complete

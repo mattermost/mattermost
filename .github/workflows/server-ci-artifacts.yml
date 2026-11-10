@@ -33,6 +33,7 @@ on:
 
 env:
   COSIGN_VERSION: 2.2.0
+  CHAINCTL_IDENTITY: ee399b4c72dd4e58e3d617f78fc47b74733c9557/922f2d48307d6f5f
 
 permissions: {}
 
@@ -108,6 +109,7 @@ jobs:
     permissions:
       actions: read
       contents: read
+      id-token: write
     runs-on: ubuntu-22.04
     needs:
       - upload-artifacts
@@ -119,6 +121,11 @@ jobs:
         with:
           username: mattermostdev
           password: ${{ secrets.DOCKERHUB_DEV_TOKEN }}
+
+      - name: cd/setup-chainctl
+        uses: chainguard-dev/setup-chainctl@c125f765e82b09a42af3185f3214465314d75c5d # v0.5.0
+        with:
+          identity: ${{ env.CHAINCTL_IDENTITY }}
 
       - name: cd/checkout-build-files
         if: inputs.head-repository != github.repository
@@ -160,9 +167,10 @@ jobs:
         run: |
           cd server/build
           docker buildx build --no-cache --platform linux/amd64 --load --build-arg MM_PACKAGE=${MM_PACKAGE} -t mattermostdevelopment/mm-te-test:${TAG} -t mattermostdevelopment/mattermost-team-edition:${TAG} .
-          # docconv needs both poppler tools; a failure here blocks the push.
-          for bin in pdfinfo pdftotext; do
-            docker run --rm --entrypoint "/usr/bin/${bin}" "mattermostdevelopment/mattermost-team-edition:${TAG}" -v
+          # Document extraction tools must start in the image; a failure here blocks the push.
+          for check in "pdfinfo -v" "pdftotext -v" "unrtf --version" "tidy -v"; do
+            read -r bin flag <<< "${check}"
+            docker run --rm --entrypoint "/usr/bin/${bin}" "mattermostdevelopment/mattermost-team-edition:${TAG}" "${flag}"
           done
           docker push mattermostdevelopment/mm-te-test:${TAG}
           docker push mattermostdevelopment/mattermost-team-edition:${TAG}
