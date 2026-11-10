@@ -1,0 +1,55 @@
+.MissingRequiredAttributesNotice {
+    display: flex;
+    justify-content: center;
+    padding: 8px 24px 0;
+
+    &__pill {
+        display: inline-flex;
+        max-width: 100%;
+        align-items: center;
+        padding: 4px 4px 4px 12px;
+        border-radius: 16px;
+        background: var(--error-text);
+        color: var(--button-color);
+        font-family: 'Open Sans', sans-serif;
+        font-size: 12px;
+        font-weight: 600;
+        gap: 8px;
+        line-height: 16px;
+
+        svg {
+            flex-shrink: 0;
+            fill: currentColor;
+        }
+    }
+
+    &__text {
+        overflow: hidden;
+        min-width: 0;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &__button {
+        flex-shrink: 0;
+        padding: 2px 8px;
+        border: none;
+        border-radius: 12px;
+        background: rgba(var(--button-color-rgb), 0.16);
+        color: var(--button-color);
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 16px;
+
+        &:hover {
+            background: rgba(var(--button-color-rgb), 0.24);
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--button-color);
+            outline-offset: 1px;
+        }
+    }
+}

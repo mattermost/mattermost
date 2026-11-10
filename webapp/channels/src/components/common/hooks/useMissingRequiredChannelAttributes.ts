@@ -31,6 +31,31 @@ type RequestState = {
 
 const EMPTY_MISSING: PropertyField[] = [];
 
+// Indicators for one channel mount together; they share the first value request
+// rather than each sending their own.
+type ValuesResult = Awaited<ReturnType<ReturnType<typeof fetchPropertyValues>>>;
+const valueFetchesInFlight = new WeakMap<object, Map<string, Promise<ValuesResult>>>();
+
+function fetchValuesOnce(owner: object, channelId: string, fetch: () => Promise<ValuesResult>): Promise<ValuesResult> {
+    let byChannel = valueFetchesInFlight.get(owner);
+    if (!byChannel) {
+        byChannel = new Map();
+        valueFetchesInFlight.set(owner, byChannel);
+    }
+    const existing = byChannel.get(channelId);
+    if (existing) {
+        return existing;
+    }
+    const channels = byChannel;
+    const started: Promise<ValuesResult> = Promise.resolve(fetch()).finally(() => {
+        if (channels.get(channelId) === started) {
+            channels.delete(channelId);
+        }
+    });
+    channels.set(channelId, started);
+    return started;
+}
+
 const IDLE: RequestState = {channelId: '', status: 'loaded', missing: []};
 
 // RECEIVED_PROPERTY_VALUES only merges, so a cached value for a field the
@@ -102,8 +127,14 @@ export default function useMissingRequiredChannelAttributes(
 ): MissingRequiredChannelAttributesState {
     const dispatch = useDispatch();
 
-    const {enabled: attributesEnabled, loading: fieldsLoading, fields} = useChannelAttributes();
     const requiredEnforced = useSelector(isChannelAttributesRequiredEnabled);
+
+    // The indicators have nothing to show while Required is off, so they must not
+    // be what fetches the field definitions.
+    const {enabled: attributesEnabled, loading: fieldsLoading, fields} = useChannelAttributes({
+        reuseLoadedFields: preferStore,
+        skip: skip || (preferStore && !requiredEnforced),
+    });
     const enabled = !skip && attributesEnabled && requiredEnforced;
     const requiredFields = useMemo(() => fields.filter(isPropertyFieldRequired), [fields]);
 
@@ -128,7 +159,7 @@ export default function useMissingRequiredChannelAttributes(
         inFlightChannelId.current = channelId;
         setRequest({channelId, status: 'loading', missing: []});
 
-        dispatch(fetchPropertyValues(ACCESS_CONTROL_PROPERTY_GROUP, CHANNEL_OBJECT_TYPE, channelId)).then((result) => {
+        fetchValuesOnce(dispatch, channelId, () => dispatch(fetchPropertyValues(ACCESS_CONTROL_PROPERTY_GROUP, CHANNEL_OBJECT_TYPE, channelId))).then((result) => {
             dropOmittedValues(dispatch, channelId, requiredFields, result.data);
             setRequest({channelId, status: 'loaded', missing: []});
         }).catch(() => {

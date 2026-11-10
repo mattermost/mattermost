@@ -163,6 +163,15 @@ describe('useFixableMissingRequiredAttributes', () => {
         const {result} = renderHookWithContext(() => useFixableMissingRequiredAttributes(CHANNEL_ID), makeState({requiredFlag: 'false'}));
 
         expect(result.current.fields).toEqual([]);
+        expect(mockUseChannelAttributes).toHaveBeenLastCalledWith(expect.objectContaining({skip: true}));
+        expect(mockGetPropertyValues).not.toHaveBeenCalled();
+    });
+
+    test('skip sends no request for fields', () => {
+        const {result} = renderHookWithContext(() => useFixableMissingRequiredAttributes(CHANNEL_ID, {skip: true}), makeState());
+
+        expect(result.current.fields).toEqual([]);
+        expect(mockUseChannelAttributes).toHaveBeenLastCalledWith(expect.objectContaining({skip: true}));
         expect(mockGetPropertyValues).not.toHaveBeenCalled();
     });
 

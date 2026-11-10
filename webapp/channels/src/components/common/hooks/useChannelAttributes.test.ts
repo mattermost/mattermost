@@ -1,16 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {waitFor} from '@testing-library/react';
+import {act, waitFor} from '@testing-library/react';
+import {useStore} from 'react-redux';
 
 import type {PropertyField} from '@mattermost/types/properties';
 
+import {GeneralTypes} from 'mattermost-redux/action_types';
 import {fetchPropertyFields} from 'mattermost-redux/actions/properties';
 import {ACCESS_CONTROL_PROPERTY_GROUP, CHANNEL_OBJECT_TYPE} from 'mattermost-redux/constants/properties';
 
 import {renderHookWithContext} from 'tests/react_testing_utils';
 
 import useChannelAttributes from './useChannelAttributes';
+import useMissingRequiredChannelAttributes from './useMissingRequiredChannelAttributes';
 
 type PartialState = Parameters<typeof renderHookWithContext>[1];
 
@@ -103,6 +106,75 @@ describe('useChannelAttributes', () => {
 
         expect(result.current.enabled).toBe(false);
         expect(result.current.fields).toEqual([]);
+        expect(mockedFetch).not.toHaveBeenCalled();
+    });
+
+    test('reuses fields already in the store when asked to, and fetches otherwise', async () => {
+        const {result} = renderHookWithContext(() => useChannelAttributes({reuseLoadedFields: true}), stateWith({groupResolved: true}));
+
+        expect(result.current.loading).toBe(false);
+        expect(result.current.fields).toHaveLength(1);
+        expect(mockedFetch).not.toHaveBeenCalled();
+
+        const empty = stateWith({groupResolved: true}) as {entities: {properties: {fields: {byId: object; byObjectType: object}}}};
+        empty.entities.properties.fields = {byId: {}, byObjectType: {}};
+        renderHookWithContext(() => useChannelAttributes({reuseLoadedFields: true}), empty as PartialState);
+
+        await waitFor(() => expect(mockedFetch).toHaveBeenCalledTimes(1));
+    });
+
+    test('mounts that start together share one fields request', async () => {
+        const state = stateWith({groupResolved: true});
+        renderHookWithContext(() => [useChannelAttributes(), useChannelAttributes(), useChannelAttributes()], state);
+
+        await waitFor(() => expect(mockedFetch).toHaveBeenCalledTimes(1));
+    });
+
+    test('refetches reused fields once after a websocket reconnect, shared across mounts', async () => {
+        // A first, non-reusing mount records the connect time its fetch saw, then goes away.
+        let withFetcher = true;
+        const {result, rerender} = renderHookWithContext(
+            () => {
+                const store = useStore();
+                const fetcher = useChannelAttributes({skip: !withFetcher});
+                const a = useChannelAttributes({reuseLoadedFields: true});
+                const b = useChannelAttributes({reuseLoadedFields: true});
+                return {store, fetcher, a, b};
+            },
+            stateWith({groupResolved: true}),
+        );
+        await waitFor(() => expect(result.current.fetcher.loading).toBe(false));
+
+        // The reusing mounts took the cache without asking.
+        expect(mockedFetch).toHaveBeenCalledTimes(1);
+        mockedFetch.mockClear();
+
+        withFetcher = false;
+        rerender();
+        act(() => {
+            result.current.store.dispatch({type: GeneralTypes.WEBSOCKET_SUCCESS, timestamp: 100});
+        });
+
+        // Only the reusing mounts remain, and together they send one request.
+        await waitFor(() => expect(mockedFetch).toHaveBeenCalledTimes(1));
+        await waitFor(() => expect(result.current.a.loading).toBe(false));
+        expect(mockedFetch).toHaveBeenCalledTimes(1);
+    });
+
+    test('does not fetch when skipped', () => {
+        const {result} = renderHookWithContext(() => useChannelAttributes({skip: true}), stateWith({groupResolved: true}));
+
+        expect(result.current.enabled).toBe(false);
+        expect(result.current.fields).toEqual([]);
+        expect(mockedFetch).not.toHaveBeenCalled();
+    });
+
+    test('the missing-required indicator path sends no fields request while Required is off', () => {
+        const state = stateWith({groupResolved: false}) as {entities: {general: {config: Record<string, string>}}};
+        state.entities.general.config.FeatureFlagChannelAttributesRequired = 'false';
+
+        renderHookWithContext(() => useMissingRequiredChannelAttributes('channel1', {preferStore: true}), state as PartialState);
+
         expect(mockedFetch).not.toHaveBeenCalled();
     });
 });

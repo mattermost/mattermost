@@ -415,6 +415,7 @@ class ChannelHeader extends React.PureComponent<Props> {
                                         <ChannelAttributeLabels
                                             channelId={channel.id}
                                             surface={[ChannelLabelSurface.INFO, ChannelLabelSurface.HEADER]}
+                                            showMissingPlaceholders={true}
                                         />
                                     )}
                                 </div>

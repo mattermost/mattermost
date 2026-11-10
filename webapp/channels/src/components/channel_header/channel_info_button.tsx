@@ -12,11 +12,15 @@ import type {Channel} from '@mattermost/types/channels';
 import {closeRightHandSide, showChannelInfo} from 'actions/views/rhs';
 import {getIsRhsOpen, getRhsState} from 'selectors/rhs';
 
+import useFixableMissingRequiredAttributes from 'components/common/hooks/useFixableMissingRequiredAttributes';
+
 import {RHSStates} from 'utils/constants';
 
 import type {RhsState} from 'types/store/rhs';
 
 import HeaderIconWrapper from './components/header_icon_wrapper';
+
+import './channel_info_button.scss';
 
 interface Props {
     channel: Channel;
@@ -25,6 +29,9 @@ interface Props {
 const ChannelInfoButton = ({channel}: Props) => {
     const dispatch = useDispatch();
     const intl = useIntl();
+
+    const {fields: missingFields} = useFixableMissingRequiredAttributes(channel.id);
+    const hasMissingValues = missingFields.length > 0;
 
     const rhsState: RhsState = useSelector(getRhsState);
     const isRhsOpen: boolean = useSelector(getIsRhsOpen);
@@ -50,8 +57,17 @@ const ChannelInfoButton = ({channel}: Props) => {
         tooltip = intl.formatMessage({id: 'channel_header.openChannelInfo', defaultMessage: 'View Info'});
     }
 
+    const ariaLabelOverride = hasMissingValues ? intl.formatMessage(
+        {
+            id: 'channel_header.openChannelInfo.missing_values',
+            defaultMessage: '{label}, channel attribute values are missing',
+        },
+        {label: tooltip},
+    ) : undefined;
+
     return (
         <HeaderIconWrapper
+            ariaLabelOverride={ariaLabelOverride}
             active={buttonActive}
             buttonClass='channel-header__icon channel-header__icon--small'
             buttonId='channel-info-btn'
@@ -59,7 +75,10 @@ const ChannelInfoButton = ({channel}: Props) => {
             size='small'
             tooltip={tooltip}
         >
-            <Icon glyph={<InformationOutlineIcon/>}/>
+            <Icon
+                className={hasMissingValues ? 'channelInfoButton__icon--missingValues' : undefined}
+                glyph={<InformationOutlineIcon/>}
+            />
         </HeaderIconWrapper>
     );
 };

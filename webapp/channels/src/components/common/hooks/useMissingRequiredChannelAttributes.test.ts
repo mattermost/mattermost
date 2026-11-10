@@ -337,6 +337,14 @@ describe('useMissingRequiredChannelAttributes', () => {
             expect(result.current.loading).toBe(false);
             expect(result.current.missing).toEqual([]);
             expect(mockGetPropertyValues).not.toHaveBeenCalled();
+            expect(mockUseChannelAttributes).toHaveBeenLastCalledWith(expect.objectContaining({skip: true}));
+        });
+
+        test('asks for no fields when skipped', () => {
+            renderHookWithContext(() => useMissingRequiredChannelAttributes('channel1', {preferStore: true, skip: true}), requiredEnforcedState);
+
+            expect(mockUseChannelAttributes).toHaveBeenLastCalledWith(expect.objectContaining({skip: true}));
+            expect(mockGetPropertyValues).not.toHaveBeenCalled();
         });
 
         test('makes no request while channel attributes are disabled (no license)', () => {

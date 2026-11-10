@@ -35,10 +35,14 @@ const NONE: FixableMissingRequiredAttributes = {fields: []};
  * Values come from the store when the channel's are already loaded, so switching to
  * a loaded channel makes no request.
  */
-export default function useFixableMissingRequiredAttributes(channelId: string): FixableMissingRequiredAttributes {
+export default function useFixableMissingRequiredAttributes(
+    channelId: string,
+    {skip = false}: {skip?: boolean} = {},
+): FixableMissingRequiredAttributes {
     const channel = useSelector((state: GlobalState) => getChannel(state, channelId));
     const isBoard = useChannelKind({id: channelId}) === 'board';
-    const eligible = Boolean(channel) &&
+    const eligible = !skip &&
+        Boolean(channel) &&
         (channel?.type === Constants.OPEN_CHANNEL || channel?.type === Constants.PRIVATE_CHANNEL) &&
         !channel?.delete_at &&
         !isBoard;

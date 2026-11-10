@@ -57,6 +57,13 @@
         color: rgb(var(--center-channel-color-rgb));
     }
 
+    // A prompt to set a missing value rather than a value itself.
+    &--missing {
+        border-style: dashed;
+        border-color: rgba(var(--center-channel-color-rgb), 0.48);
+        background: transparent;
+    }
+
     &--pending {
         .AttributeChip__value {
             width: 64px;
