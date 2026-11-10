@@ -30,6 +30,8 @@ type Config struct {
 	Manage      bool
 	AdminUser   string
 	AdminPass   string
+	DBNameA     string
+	DBNameB     string
 }
 
 func main() {
@@ -42,7 +44,24 @@ func main() {
 	flag.BoolVar(&cfg.Manage, "manage", true, "Manage server lifecycle (build/start/stop)")
 	flag.StringVar(&cfg.AdminUser, "admin-user", "admin", "Admin username to create")
 	flag.StringVar(&cfg.AdminPass, "admin-pass", "Admin1234567890", "Admin password")
+	flag.StringVar(&cfg.DBNameA, "db-a", "", "Server A database (default sharedchannel_test_a when managed, mattermost_test otherwise)")
+	flag.StringVar(&cfg.DBNameB, "db-b", "", "Server B database (default sharedchannel_test_b when managed, mattermost_node_test otherwise)")
 	flag.Parse()
+
+	// Managed mode drops and recreates its databases, so its defaults must not be
+	// the ones make run-server and make run-node use.
+	if cfg.DBNameA == "" {
+		cfg.DBNameA = "mattermost_test"
+		if cfg.Manage {
+			cfg.DBNameA = "sharedchannel_test_a"
+		}
+	}
+	if cfg.DBNameB == "" {
+		cfg.DBNameB = "mattermost_node_test"
+		if cfg.Manage {
+			cfg.DBNameB = "sharedchannel_test_b"
+		}
+	}
 
 	if cfg.LicensePath == "" {
 		fmt.Fprintln(os.Stderr, "error: --license is required")
