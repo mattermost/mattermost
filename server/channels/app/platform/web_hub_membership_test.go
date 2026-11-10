@@ -540,3 +540,79 @@ func BenchmarkHubInvalidateUser(b *testing.B) {
 		})
 	}
 }
+
+// BenchmarkHubMembershipBurst measures a burst of membership loads while every load takes a
+// millisecond: 1000 connections registering at once, as after a node restart, or 1000 connected
+// users invalidated at once, as when a channel with that many members changes. One op is the whole
+// burst. The hubs=one cases put every user on the same hub, the worst case for anything the hub
+// serializes; hubs=all spreads them as production does.
+func BenchmarkHubMembershipBurst(b *testing.B) {
+	logger, err := mlog.NewLogger()
+	require.NoError(b, err)
+	mlog.InitGlobalLogger(logger)
+	b.Cleanup(func() { mlog.InitGlobalLogger(nil) })
+	for _, invalidate := range []bool{false, true} {
+		for _, oneHub := range []bool{false, true} {
+			op, hubs := "register", "all"
+			if invalidate {
+				op = "invalidate"
+			}
+			if oneHub {
+				hubs = "one"
+			}
+			b.Run(fmt.Sprintf("op=%s/hubs=%s", op, hubs), func(b *testing.B) {
+				benchHubMembershipBurst(b, logger, invalidate, oneHub)
+			})
+		}
+	}
+}
+
+func benchHubMembershipBurst(b *testing.B, logger *mlog.Logger, invalidate, oneHub bool) {
+	const users = 1000
+	channelStore := &broadcastBenchChannelStore{memberships: make(map[string][]string, users)}
+	ps := newBroadcastBenchPlatform(b, logger, &broadcastBenchStore{channel: channelStore}, true)
+	hub := ps.hubs[0]
+	userIDs := make([]string, 0, users)
+	for len(userIDs) < users {
+		userID := model.NewId()
+		if oneHub && ps.GetHubForUserId(userID) != hub {
+			continue
+		}
+		userIDs = append(userIDs, userID)
+		channelStore.memberships[userID] = []string{model.NewId()}
+	}
+
+	// Every connection registered here stays in its hub's index until the hubs stop.
+	var mu sync.Mutex
+	var conns []*WebConn
+	defer func() { broadcastBenchStop(ps, conns, channelEvent("")) }()
+	register := func(userID string) {
+		wc := newBroadcastBenchConn(ps, userID)
+		require.NoError(b, ps.HubRegister(wc))
+		mu.Lock()
+		conns = append(conns, wc)
+		mu.Unlock()
+	}
+	invalidateUser := func(userID string) { ps.GetHubForUserId(userID).InvalidateUser(userID) }
+	burst := func(f func(userID string)) {
+		var wg sync.WaitGroup
+		for _, userID := range userIDs {
+			wg.Go(func() { f(userID) })
+		}
+		wg.Wait()
+	}
+
+	op := register
+	if invalidate {
+		op = invalidateUser
+		for _, userID := range userIDs {
+			register(userID)
+		}
+	}
+	channelStore.latency.Store(int64(broadcastBenchLoadLatency))
+	for b.Loop() {
+		burst(op)
+	}
+	channelStore.latency.Store(0)
+	b.ReportMetric(float64(len(ps.hubs)), "hubs")
+}
