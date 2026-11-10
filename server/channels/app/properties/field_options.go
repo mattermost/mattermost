@@ -459,11 +459,17 @@ func (ps *PropertyService) UpdateFieldOptions(rctx request.CTX, groupID, fieldID
 // branch of a hierarchy is one call even though every option in it but the
 // lowest has options below it.
 //
-// Values pointing at a removed option of a mutable field are left alone. A value
-// naming an option that no longer exists is ignored everywhere it is read, which
-// is how the property system has always treated one. A write-once or
-// set-on-create value can't be moved to another option, so deleting an option
-// one holds, on this field or a field linked to it, is refused.
+// Deleting an option is refused while a value of this field, or of a field linked
+// to it, holds it and:
+//   - the value is write-once or set-on-create, so it can't be moved to another option;
+//   - the value is raise-only or lower-only, so it could no longer be ranked and
+//     every later change or clear would be refused;
+//   - it is the system's or a channel's value and a child field's parent rule
+//     compares against it, so every capped write below it would be refused.
+//
+// Otherwise a value pointing at a removed option is left alone. A value naming an
+// option that no longer exists is ignored everywhere it is read, which is how the
+// property system has always treated one.
 //
 // Resolves a concurrent edit last-writer-wins, per the package comment above.
 func (ps *PropertyService) DeleteFieldOptions(rctx request.CTX, groupID, fieldID string, optionIDs []string) ([]*model.PropertyFieldOption, error) {
