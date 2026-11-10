@@ -133,6 +133,7 @@ jobs:
   e2e-cypress:
     needs: generate-build-variables
     permissions:
+      actions: read
       contents: read
       statuses: write
       id-token: write
@@ -159,6 +160,7 @@ jobs:
       - generate-build-variables
       - check-changes
     permissions:
+      actions: read
       contents: read
       statuses: write
       id-token: write
@@ -182,6 +184,7 @@ jobs:
     needs: generate-build-variables
     if: needs.generate-build-variables.outputs.should_run_subpath == 'true'
     permissions:
+      actions: read
       contents: read
       statuses: write
       id-token: write
@@ -206,6 +209,7 @@ jobs:
     needs: generate-build-variables
     if: needs.generate-build-variables.outputs.fips_supported == 'true'
     permissions:
+      actions: read
       contents: read
       statuses: write
       id-token: write
@@ -234,6 +238,7 @@ jobs:
       - check-changes
     if: needs.generate-build-variables.outputs.fips_supported == 'true'
     permissions:
+      actions: read
       contents: read
       statuses: write
       id-token: write

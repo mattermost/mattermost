@@ -4,6 +4,7 @@
 package healthcheck
 
 import (
+	"cmp"
 	"slices"
 	"time"
 
@@ -30,12 +31,16 @@ type VersionInfo struct {
 	BuildDate time.Time
 }
 
-// NewSnapshot returns a snapshot over nodes. The node list is fixed at construction, so
-// Nodes() and Leader() are consistent for the snapshot's lifetime.
+// NewSnapshot returns a snapshot over nodes, sorted by hostname so results do not depend on
+// the order the nodes were collected in. The node list is fixed at construction, so Nodes()
+// and Leader() are consistent for the snapshot's lifetime.
 func NewSnapshot(nodes []*NodeSnapshot) *Snapshot {
-	return &Snapshot{nodes: slices.Clone(nodes)}
+	nodes = slices.Clone(nodes)
+	slices.SortStableFunc(nodes, func(a, b *NodeSnapshot) int { return cmp.Compare(a.Hostname, b.Hostname) })
+	return &Snapshot{nodes: nodes}
 }
 
+// Nodes returns a copy of the snapshot's nodes, sorted by hostname.
 func (s *Snapshot) Nodes() []*NodeSnapshot {
 	if s == nil || len(s.nodes) == 0 {
 		return nil

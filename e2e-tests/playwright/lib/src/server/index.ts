@@ -57,6 +57,16 @@ export {
     getPluginStatus,
 } from './plugin';
 export type {EnsureDemoPluginOptions} from './plugin';
+export {
+    buildWebappPluginBundle,
+    ensureTestWebappPlugins,
+    postAuthTestPluginId,
+    preAuthTestPluginId,
+    removeTestWebappPlugins,
+    testWebappPluginMarkerTestId,
+    testWebappPluginRoute,
+} from './test_webapp_plugin';
+export type {WebappPluginBundleOptions} from './test_webapp_plugin';
 export {isWebhookTestServerReachable, setupWebhookTestServer} from './webhook_server';
 export {
     generateLdapUser,

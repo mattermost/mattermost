@@ -353,7 +353,7 @@ Post identity and display-override props (`from_webhook`, `from_bot`, `override_
 
 <Note>
 
-When using the Mattermost Desktop App, additional configuration is required to open the link within the Desktop App instead of in a browser. See the [desktop managed resources](/deployment-guide/desktop/desktop-app-managed-resources) documentation for details.
+When using the Mattermost Desktop App, additional configuration is required to open the link within the Desktop App instead of in a browser. See the [desktop managed resources](/deployment-guide/desktop/distribute-a-custom-desktop-app#managedresources) documentation for details.
 
 </Note>
 
@@ -1167,6 +1167,16 @@ You can configure Mattermost enterprise search by going to **System Console \> E
 If indexing is disabled and then re-enabled after an index is created, purge and rebuild the index to ensure complete search results.
 
 </Note>
+
+<Warning>
+
+Before permanently deleting a large number of channels, turn off **Enable Elasticsearch indexing**. Each permanent delete reindexes every member of that channel, and that indexing work can exhaust Mattermost memory on a delete of about 100,000 memberships.
+
+Leave the Elasticsearch or OpenSearch cluster running. Save and restart, run the deletes with [`mmctl channel delete`](/administration-guide/manage/mmctl-command-line-tool#mmctl-channel-delete) or `DELETE /api/v4/channels/&#123;channel_id&#125;?permanent=true`, then turn indexing back on and run **Index Now** so changes made while indexing was off are included. The System Console clears search queries and autocomplete when indexing is turned off, because the server will not store those while indexing is off. Turn them back on with indexing.
+
+Documents for those channels can remain in the search index, because indexing is off while they are deleted. Post search only queries channels the user currently belongs to, then loads the posts from the database. Channel search also loads its matches from the database, so a permanently deleted channel is left out. A full index purge is not required to restore search results. Retention requirements may require a scoped cleanup of those leftover copies.
+
+</Warning>
 
 ### Backend type
 
@@ -3933,6 +3943,12 @@ This setting isn’t available in the System Console and can only be set in `con
 This setting isn’t available in the System Console and can only be set in `config.json`.
 
 </Note>
+
+<Warning>
+
+Before a large bulk permanent channel delete, turn off [Elasticsearch indexing](#enable-elasticsearch-indexing) and leave the Elasticsearch or OpenSearch cluster running. Each delete reindexes every channel member, and that indexing work can exhaust server memory on a delete of about 100,000 memberships. Restore indexing when the deletes finish, then run **Index Now**. Documents for those channels can remain in the search index. Search omits them through current channel membership and database checks, so a full index purge is not required to restore search results. Retention requirements may require a scoped cleanup of those leftover copies.
+
+</Warning>
 
 ### Enable desktop app developer mode
 

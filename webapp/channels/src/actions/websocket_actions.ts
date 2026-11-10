@@ -19,7 +19,7 @@ import type {OpenDialogRequest} from '@mattermost/types/integrations';
 import type {Job} from '@mattermost/types/jobs';
 import type {Post, PostAcknowledgement} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
-import {supportsHierarchy, type PropertyField, type PropertyValue} from '@mattermost/types/properties';
+import {supportsHierarchy, type PropertyField, type PropertyFieldsScope, type PropertyValue} from '@mattermost/types/properties';
 import {SESSION_ATTRIBUTES_OBJECT_TYPE, USER_OBJECT_TYPE} from '@mattermost/types/properties_user';
 import type {Reaction} from '@mattermost/types/reactions';
 import type {Role} from '@mattermost/types/roles';
@@ -172,6 +172,7 @@ import {
     CLASSIFICATIONS_FIELD_TARGET_TYPE,
     CLASSIFICATIONS_FIELD_TARGET_ID,
 } from 'components/admin_console/classification_markings/utils';
+import {notifyAttributeFieldChanged} from 'components/admin_console/global_attributes/listing_events';
 import {EntityType, invalidateAccessControlAttributesCache} from 'components/common/hooks/useAccessControlAttributes';
 import DialogRouter from 'components/dialog_router';
 import InfoToast from 'components/info_toast/info_toast';
@@ -362,16 +363,14 @@ export function reconnect() {
             fetchPropertyFields(
                 ACCESS_CONTROL_PROPERTY_GROUP,
                 CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
-                CLASSIFICATIONS_FIELD_TARGET_TYPE,
-                CLASSIFICATIONS_FIELD_TARGET_ID,
+                {targetType: CLASSIFICATIONS_FIELD_TARGET_TYPE, targetId: CLASSIFICATIONS_FIELD_TARGET_ID},
             ),
         );
         dispatch(
             fetchPropertyFields(
                 ACCESS_CONTROL_PROPERTY_GROUP,
                 CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
-                CLASSIFICATIONS_FIELD_TARGET_TYPE,
-                CLASSIFICATIONS_FIELD_TARGET_ID,
+                {targetType: CLASSIFICATIONS_FIELD_TARGET_TYPE, targetId: CLASSIFICATIONS_FIELD_TARGET_ID},
             ),
         );
         dispatch(fetchSystemPropertyValues(ACCESS_CONTROL_PROPERTY_GROUP));
@@ -1540,7 +1539,17 @@ export function handlePropertyFieldCreatedOrUpdated(
 
             const groupName = getPropertyGroupById(state, field.group_id)?.name;
             if (groupName) {
-                doDispatch(fetchPropertyFields(groupName, field.object_type, field.target_type, field.target_id));
+                /*
+                 * A field's target_type is a plain string, so it cannot narrow
+                 * to the scope union's literal arms on its own. Sending both
+                 * keys is what the positional call did before the scope object
+                 * existed, and the scope is spread straight into the query, so
+                 * the request is unchanged.
+                 */
+                doDispatch(fetchPropertyFields(groupName, field.object_type, {
+                    targetType: field.target_type,
+                    targetId: field.target_id,
+                } as PropertyFieldsScope));
             }
         }
 
@@ -1565,6 +1574,8 @@ export function handlePropertyFieldCreatedOrUpdated(
             type: PropertyTypes.RECEIVED_PROPERTY_FIELDS,
             data: {fields: [field]},
         });
+
+        notifyAttributeFieldChanged(field.group_id);
 
         if (isUserAttributeField(doGetState(), field)) {
             if (optionsOmitted) {
@@ -1621,11 +1632,16 @@ export function handlePropertyFieldCreatedOrUpdated(
 export function handlePropertyFieldDeleted(
     msg: WebSocketMessages.PropertyFieldDeleted,
 ): ThunkActionFunc<void> {
-    return (doDispatch) => {
+    return (doDispatch, doGetState) => {
+        // Read before the reducer drops the field; the payload itself names no group.
+        const groupId = getPropertyFieldById(doGetState(), msg.data.field_id)?.group_id;
+
         doDispatch({
             type: PropertyTypes.PROPERTY_FIELD_DELETED,
             data: {fieldId: msg.data.field_id},
         });
+
+        notifyAttributeFieldChanged(groupId);
 
         // The payload carries no field, so the group it belonged to is unknown
         // here. The reducer leaves the slice alone for an id it doesn't hold,

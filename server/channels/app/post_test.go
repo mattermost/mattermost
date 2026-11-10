@@ -2383,6 +2383,49 @@ func TestPatchPost(t *testing.T) {
 		})
 	})
 
+	t.Run("removing link preview from burn-on-read post keeps content out of the Posts row", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.BurnOnRead = true })
+		enableBoRFeature(th)
+
+		fileInfo, appErr := th.App.UploadFile(th.Context, []byte("data"), th.BasicChannel.Id, "test.txt")
+		require.Nil(t, appErr)
+
+		authorCtx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
+		post, _, appErr := th.App.CreatePost(authorCtx, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "burn on read https://example.com",
+			Type:      model.PostTypeBurnOnRead,
+			FileIds:   []string{fileInfo.Id},
+		}, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+
+		patch := &model.PostPatch{Props: &model.StringInterface{
+			model.PostPropsRemoveLinkPreview: "true",
+			model.PostPropsExpireAt:          int64(1),
+		}}
+		patchedPost, _, appErr := th.App.PatchPost(authorCtx, post.Id, patch, nil)
+		require.Nil(t, appErr)
+		assert.Equal(t, "burn on read https://example.com", patchedPost.Message)
+		assert.Equal(t, model.StringArray{fileInfo.Id}, patchedPost.FileIds)
+		assert.Equal(t, "true", patchedPost.GetProp(model.PostPropsRemoveLinkPreview))
+
+		storedPost, err := th.App.Srv().Store().Post().GetSingle(th.Context, post.Id, false)
+		require.NoError(t, err)
+		assert.Empty(t, storedPost.Message)
+		assert.Empty(t, storedPost.FileIds)
+		assert.Equal(t, "true", storedPost.GetProp(model.PostPropsRemoveLinkPreview))
+		assert.EqualValues(t, post.GetProp(model.PostPropsExpireAt), storedPost.GetProp(model.PostPropsExpireAt))
+		assert.EqualValues(t, post.GetProp(model.PostPropsReadDurationSeconds), storedPost.GetProp(model.PostPropsReadDurationSeconds))
+
+		tmpPost, err := th.App.Srv().Store().TemporaryPost().Get(th.Context, post.Id, false)
+		require.NoError(t, err)
+		assert.Equal(t, "burn on read https://example.com", tmpPost.Message)
+		assert.Equal(t, model.StringArray{fileInfo.Id}, tmpPost.FileIDs)
+	})
+
 	t.Run("cannot patch post in restricted DM", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
@@ -6114,6 +6157,44 @@ func TestCleanUpAfterPostDeletion(t *testing.T) {
 		require.NoError(t, json.Unmarshal([]byte(memberPostJSON), &memberPost))
 		assert.Equal(t, post.Id, memberPost.Id)
 		assert.Nil(t, memberPost.GetProp(model.PostPropsMmBlocksActions))
+	})
+
+	t.Run("burn-on-read post deletion is still broadcast when the temporary post is gone", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.EnableBurnOnRead = new(true)
+		})
+
+		post := &model.Post{
+			Message:       "burn on read message #tag",
+			ChannelId:     th.BasicChannel.Id,
+			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+			UserId:        th.BasicUser.Id,
+			Type:          model.PostTypeBurnOnRead,
+		}
+		post.AddProp(model.PostPropsExpireAt, model.GetMillis()+int64(model.DefaultExpirySeconds*1000))
+
+		post, _, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+		require.Equal(t, model.PostTypeBurnOnRead, post.Type)
+
+		require.NoError(t, th.App.Srv().Store().TemporaryPost().Delete(th.Context, post.Id))
+
+		memberMessages, closeMemberWS := connectFakeWebSocket(t, th, th.BasicUser2.Id, "", []model.WebsocketEventType{model.WebsocketEventPostDeleted})
+		defer closeMemberWS()
+
+		appErr = th.App.CleanUpAfterPostDeletion(th.Context, post, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		memberEvent := waitForPostDeleted(t, memberMessages)
+		memberPostJSON, ok := memberEvent.GetData()["post"].(string)
+		require.True(t, ok)
+
+		var memberPost model.Post
+		require.NoError(t, json.Unmarshal([]byte(memberPostJSON), &memberPost))
+		assert.Equal(t, post.Id, memberPost.Id)
+		assert.Empty(t, memberPost.Message)
+		assert.Empty(t, memberPost.Hashtags)
 	})
 }
 
