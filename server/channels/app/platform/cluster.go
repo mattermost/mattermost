@@ -195,7 +195,7 @@ func (ps *PlatformService) Publish(message *model.WebSocketEvent) {
 		ps.prePublishHook(message)
 	}
 
-	ps.PublishSkipClusterSend(message)
+	ps.publishSkipClusterSend(message, true)
 
 	if cluster := ps.clusterIFace; cluster != nil {
 		data, err := message.ToJSON()
@@ -208,12 +208,7 @@ func (ps *PlatformService) Publish(message *model.WebSocketEvent) {
 			Data:     data,
 		}
 
-		if message.EventType() == model.WebsocketEventPosted ||
-			message.EventType() == model.WebsocketEventPostEdited ||
-			message.EventType() == model.WebsocketEventDirectAdded ||
-			message.EventType() == model.WebsocketEventGroupAdded ||
-			message.EventType() == model.WebsocketEventAddedToTeam ||
-			message.GetBroadcast().ReliableClusterSend {
+		if isReliableClusterPublish(message) {
 			cm.SendType = model.ClusterSendReliable
 		}
 
@@ -221,7 +216,22 @@ func (ps *PlatformService) Publish(message *model.WebSocketEvent) {
 	}
 }
 
+func isReliableClusterPublish(message *model.WebSocketEvent) bool {
+	return message.EventType() == model.WebsocketEventPosted ||
+		message.EventType() == model.WebsocketEventPostEdited ||
+		message.EventType() == model.WebsocketEventDirectAdded ||
+		message.EventType() == model.WebsocketEventGroupAdded ||
+		message.EventType() == model.WebsocketEventAddedToTeam ||
+		message.GetBroadcast().ReliableClusterSend
+}
+
 func (ps *PlatformService) PublishSkipClusterSend(event *model.WebSocketEvent) {
+	ps.publishSkipClusterSend(event, false)
+}
+
+// publishSkipClusterSend broadcasts the event to this node's clients. local is true when the
+// event was published on this node rather than received from another node.
+func (ps *PlatformService) publishSkipClusterSend(event *model.WebSocketEvent, local bool) {
 	if event.GetBroadcast().UserId != "" {
 		hub := ps.GetHubForUserId(event.GetBroadcast().UserId)
 		if hub != nil {
@@ -234,7 +244,7 @@ func (ps *PlatformService) PublishSkipClusterSend(event *model.WebSocketEvent) {
 	}
 
 	// Notify shared channel sync service
-	ps.SharedChannelSyncHandler(event)
+	ps.SharedChannelSyncHandler(event, local)
 }
 
 func (ps *PlatformService) ListPluginKeys(pluginID string, page, perPage int) ([]string, *model.AppError) {

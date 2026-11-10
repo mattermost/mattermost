@@ -49,7 +49,7 @@ class MockWebSocket {
 
     public url: string = '';
     readonly protocol: string = '';
-    public readyState: number = WebSocket.CONNECTING;
+    public readyState: WebSocket['readyState'] = WebSocket.CONNECTING;
 
     public onopen: (() => void) | null = null;
     public onclose: (() => void) | null = null;

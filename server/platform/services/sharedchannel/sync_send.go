@@ -6,6 +6,7 @@ package sharedchannel
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"slices"
@@ -15,6 +16,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 )
 
@@ -293,8 +295,8 @@ func (scs *Service) addTask(task syncTask) {
 	}
 }
 
-// syncLoop is called via a dedicated goroutine to wait for notifications of channel changes and
-// updates each remote based on those changes.
+// syncLoop runs on every node, via a dedicated goroutine, to wait for notifications of channel
+// changes. The leader updates each remote based on those changes; other nodes send them to the leader.
 func (scs *Service) syncLoop(done chan struct{}) {
 	// create a timer to periodically check the task queue, but only if there is
 	// a delayed task in the queue.
@@ -305,12 +307,12 @@ func (scs *Service) syncLoop(done chan struct{}) {
 	for {
 		select {
 		case <-scs.changeSignal:
-			if wait := scs.doSync(); wait > 0 {
+			if wait := scs.doSync(done); wait > 0 {
 				stopTimer(delay)
 				delay.Reset(wait)
 			}
 		case <-delay.C:
-			if wait := scs.doSync(); wait > 0 {
+			if wait := scs.doSync(done); wait > 0 {
 				delay.Reset(wait)
 			}
 		case <-done:
@@ -327,9 +329,10 @@ func stopTimer(timer *time.Timer) {
 	}
 }
 
-// doSync checks the task queue for any tasks to be processed and processes all that are ready.
-// If any delayed tasks remain in queue then the duration until the next scheduled task is returned.
-func (scs *Service) doSync() time.Duration {
+// doSync checks the task queue for any tasks to be processed and processes, or sends to the
+// leader, all that are ready, until done is closed. If any delayed tasks remain in queue then
+// the duration until the next scheduled task is returned.
+func (scs *Service) doSync(done <-chan struct{}) time.Duration {
 	var task syncTask
 	var ok bool
 	var shortestWait time.Duration
@@ -343,6 +346,12 @@ func (scs *Service) doSync() time.Duration {
 	}
 
 	for {
+		select {
+		case <-done:
+			return 0
+		default:
+		}
+
 		task, ok, shortestWait = scs.removeOldestTask()
 		if !ok {
 			break
@@ -350,6 +359,12 @@ func (scs *Service) doSync() time.Duration {
 
 		if metrics != nil {
 			metrics.ObserveSharedChannelsTaskInQueueDuration(time.Since(task.AddedAt).Seconds())
+		}
+
+		// Checked before each task so a node that loses leadership stops processing its backlog.
+		if cluster := scs.server.GetCluster(); cluster != nil && !scs.server.IsLeader() {
+			scs.sendTaskToCluster(cluster, task, false)
+			continue
 		}
 
 		if err := scs.processTask(task); err != nil {
@@ -367,6 +382,141 @@ func (scs *Service) doSync() time.Duration {
 		}
 	}
 	return shortestWait
+}
+
+// clusterSyncTask is a sync task sent by a node that is not the leader. Only the leader queues it.
+type clusterSyncTask struct {
+	ID             string         `json:"id"`
+	ChannelID      string         `json:"channel_id,omitempty"`
+	UserID         string         `json:"user_id,omitempty"`
+	RemoteID       string         `json:"remote_id,omitempty"`
+	OriginRemoteID string         `json:"origin_remote_id,omitempty"`
+	ExistingMsg    *model.SyncMsg `json:"existing_msg,omitempty"`
+	RetryMsg       *model.SyncMsg `json:"retry_msg,omitempty"`
+	RetryCount     int            `json:"retry_count,omitempty"`
+	CatchUp        bool           `json:"catch_up,omitempty"`
+	// Handoff marks tasks sent by a node that stopped its sync loop. The next leader may not
+	// be elected yet, so other nodes hold them until the next leader change.
+	Handoff bool `json:"handoff,omitempty"`
+}
+
+func (ct *clusterSyncTask) isValid() error {
+	if ct.ID == "" {
+		return errors.New("missing task id")
+	}
+	if ct.ChannelID == "" && ct.RemoteID == "" {
+		return errors.New("task has neither a channel id nor a remote id")
+	}
+	for name, id := range map[string]string{"channel_id": ct.ChannelID, "remote_id": ct.RemoteID, "origin_remote_id": ct.OriginRemoteID} {
+		if id != "" && !model.IsValidId(id) {
+			return fmt.Errorf("invalid %s", name)
+		}
+	}
+	if ct.RetryCount < 0 || ct.RetryCount > MaxRetries {
+		return fmt.Errorf("invalid retry count %d", ct.RetryCount)
+	}
+	return nil
+}
+
+func (scs *Service) sendTaskToCluster(cluster einterfaces.ClusterInterface, task syncTask, handoff bool) {
+	data, err := json.Marshal(clusterSyncTask{
+		ID:             task.id,
+		ChannelID:      task.channelID,
+		UserID:         task.userID,
+		RemoteID:       task.remoteID,
+		OriginRemoteID: task.originRemoteID,
+		ExistingMsg:    task.existingMsg,
+		RetryMsg:       task.retryMsg,
+		RetryCount:     task.retryCount,
+		CatchUp:        task.catchUp,
+		Handoff:        handoff,
+	})
+	if err != nil {
+		scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "Failed to marshal sync task for the cluster leader",
+			mlog.String("channel_id", task.channelID),
+			mlog.String("remote_id", task.remoteID),
+			mlog.Err(err),
+		)
+		return
+	}
+
+	cluster.SendClusterMessage(&model.ClusterMessage{
+		Event:    model.ClusterEventSharedChannelSyncTask,
+		SendType: model.ClusterSendReliable,
+		Data:     data,
+	})
+}
+
+// handOffTasks sends every queued task to the cluster. Called once the sync loop has stopped.
+func (scs *Service) handOffTasks() {
+	cluster := scs.server.GetCluster()
+	if cluster == nil {
+		return
+	}
+
+	scs.mux.Lock()
+	tasks := scs.tasks
+	scs.tasks = make(map[string]syncTask)
+	scs.mux.Unlock()
+
+	for _, task := range tasks {
+		scs.sendTaskToCluster(cluster, task, true)
+	}
+}
+
+// HandleClusterSyncTask queues a sync task sent by another node on the leader. Other nodes never
+// send a received task on, or every node would rebroadcast every task.
+func (scs *Service) HandleClusterSyncTask(msg *model.ClusterMessage) {
+	var data clusterSyncTask
+	if err := json.Unmarshal(msg.Data, &data); err != nil {
+		scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "Failed to unmarshal sync task from cluster",
+			mlog.Err(err),
+		)
+		return
+	}
+	if err := data.isValid(); err != nil {
+		scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "Invalid sync task from cluster",
+			mlog.String("channel_id", data.ChannelID),
+			mlog.String("remote_id", data.RemoteID),
+			mlog.Err(err),
+		)
+		return
+	}
+
+	task := syncTask{
+		id:             data.ID,
+		channelID:      data.ChannelID,
+		userID:         data.UserID,
+		remoteID:       data.RemoteID,
+		originRemoteID: data.OriginRemoteID,
+		existingMsg:    data.ExistingMsg,
+		retryMsg:       data.RetryMsg,
+		retryCount:     data.RetryCount,
+		catchUp:        data.CatchUp,
+		schedule:       time.Now(),
+	}
+
+	// The leader check and the hold share mux with takeHandoffTasks, so a task cannot be held
+	// after this node has already taken its held tasks on becoming leader.
+	scs.mux.Lock()
+	leader := scs.server.IsLeader()
+	stopped := scs.stopped
+	if !leader && data.Handoff {
+		scs.holdHandoffTask(task)
+	}
+	scs.mux.Unlock()
+
+	// A handoff reaches every node and the others hold it, so a stopped leader drops it.
+	if !leader || (stopped && data.Handoff) {
+		return
+	}
+	if stopped {
+		if cluster := scs.server.GetCluster(); cluster != nil {
+			scs.sendTaskToCluster(cluster, task, true)
+		}
+		return
+	}
+	scs.addTask(task)
 }
 
 // removeOldestTask removes and returns the oldest task in the task map.
