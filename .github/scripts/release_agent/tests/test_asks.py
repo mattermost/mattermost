@@ -551,6 +551,23 @@ class SreTest(unittest.TestCase):
         self.assertEqual([r["props"] for r in replies], [{asks.ASK_PROP: "sre-enterprise:v12.2"}])
         self.assertIn("to the Cloud Enterprise ring?", replies[0]["message"])
 
+    def test_the_enterprise_ask_waits_for_the_rollout_ask(self):
+        h = Harness(tags={(12, 2)})
+        enterprise = h.ask("sre-enterprise", date(2026, 11, 11))
+        self.assertEqual((enterprise.state, enterprise.summary),
+                         (asks.NOT_READY, "waiting for the Cloud Freemium and Professional rollout ask to be sent"))
+        self.assertEqual(h.sent(self.CHANNEL, root=None), [])
+
+    def test_the_enterprise_ask_goes_out_alone_when_a_person_handled_the_rollout_item(self):
+        for state in ("closed", "in_progress"):
+            h = Harness(tags={(12, 2)})
+            h.tick(title_of("sre-freemium-pro"), state=state)
+            enterprise = h.ask("sre-enterprise", date(2026, 11, 11))
+            self.assertEqual((enterprise.state, enterprise.asked_on), (asks.WAITING, date(2026, 11, 11)), state)
+            posts = h.sent(self.CHANNEL, root=None)
+            self.assertEqual([(p["props"], p.get("root_id", "")) for p in posts], [({asks.ASK_PROP: "sre-enterprise:v12.2"}, "")])
+            self.assertTrue(h.ask("sre-enterprise", date(2026, 11, 12)).escalated)
+
     def test_the_enterprise_ask_moves_off_a_friday_and_isnt_overdue_the_day_it_goes_out(self):
         # Release Day Wed Dec 16: T-4 is Thu Dec 10; T-3 is Fri Dec 11, so Enterprise is due Mon Dec 14.
         v = Release(12, 2, {"branch_cut": date(2026, 11, 10), "code_freeze": date(2026, 12, 8), "release_day": date(2026, 12, 16)})

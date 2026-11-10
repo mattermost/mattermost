@@ -587,8 +587,9 @@ rules:
     remind_after: 1
     escalate_after: 1
 
-  # A reply in the Freemium and Professional thread. Not asked when SRE already said
-  # Enterprise is done; a Friday T-3 moves to the next working day.
+  # A reply in the Freemium and Professional thread, or its own post when a person handled
+  # that playbook item without one. Not asked when SRE already said Enterprise is done; a
+  # Friday T-3 moves to the next working day.
   - task: sre-enterprise
     title: Cloud Enterprise rollout
     playbook_item: SRE team rolls out the release to the Enterprise ring.

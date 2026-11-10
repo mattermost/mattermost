@@ -803,11 +803,13 @@ def process(env: AskEnv, rule: dict, due: date | None, escalate_on: date | None)
     if send_config.get("reply_to"):
         parent_rule = next(r for r in env.rules["rules"] if r["task"] == send_config["reply_to"])
         parent = find_ask(env, channel, ask_marker(env, parent_rule)) or find_by_hand(env, parent_rule, channel)
-        if not parent:
+        if parent:
+            facts["parent"], root = parent, parent["id"]
+        elif item_state(env, parent_rule) not in ("closed", "touched"):
             handoff.state, handoff.summary = NOT_READY, f"waiting for the {parent_rule['title']} ask to be sent"
             _escalate(env, handoff, escalate_on)
             return handoff
-        facts["parent"], root = parent, parent["id"]
+        # Otherwise a person handled the parent without an ask on Hub, so this one goes out on its own.
     post = find_ask(env, channel, marker) or (None if root else find_by_hand(env, rule, channel))
     done_check = DONE_WHEN[rule["done_when"]]
     if post is None:
