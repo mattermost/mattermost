@@ -7720,6 +7720,16 @@
     "description": "API error when checking whether a user is a member of any of a given list of channels fails."
   },
   {
+    "id": "app.channel_attributes.new_admin_missing_value.dm",
+    "translation": "Channel attribute values are missing in:{{.ChannelList}}\n\nYou're a channel admin there. Open the channel and select **Add values**, or set them in **Channel Info**.",
+    "description": "Direct message from the system bot to a user who just became channel admin of channels that are missing required channel attribute values; {{.ChannelList}} is a Markdown bullet list with one line per channel. Keep the Markdown formatting. 'Add values' is the button shown in the channel and 'Channel Info' is the channel's info panel; match the labels used in the web app."
+  },
+  {
+    "id": "app.channel_attributes.new_admin_missing_value.dm_channel_line",
+    "translation": "\n- [{{.ChannelDisplayName}}]({{.ChannelLink}}) ({{.TeamDisplayName}}) needs: {{.AttributeNames}}",
+    "description": "One Markdown bullet line in the new-channel-admin direct message, linking to a channel that is missing required channel attribute values; {{.TeamDisplayName}} is the channel's team and {{.AttributeNames}} is the comma-separated list of attribute names to set, already in bold. Keep the leading newline, the dash and the [text](link) syntax."
+  },
+  {
     "id": "app.channel_attributes.notify_assignment_counts.app_error",
     "translation": "Unable to count the channel admins and channels affected by this attribute.",
     "description": "Server error when counting the channel admins and channels to notify about a missing channel attribute value fails."

@@ -72,6 +72,7 @@ func (a *App) JoinDefaultChannels(rctx request.CTX, teamID string, user *model.U
 		}
 	}
 
+	var adminChannels []*model.Channel
 	for _, channelName := range a.DefaultChannelNames(rctx) {
 		channel, channelErr := a.Srv().Store().Channel().GetByName(teamID, channelName, true)
 		if channelErr != nil {
@@ -93,6 +94,9 @@ func (a *App) JoinDefaultChannels(rctx request.CTX, teamID string, user *model.U
 		}
 
 		_, nErr = a.Srv().Store().Channel().SaveMember(rctx, cm)
+		if nErr == nil && shouldBeAdmin {
+			adminChannels = append(adminChannels, channel)
+		}
 		if histErr := a.Srv().Store().ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); histErr != nil {
 			return model.NewAppError("JoinDefaultChannels", "app.channel_member_history.log_join_event.internal_error", nil, "", http.StatusInternalServerError).Wrap(histErr)
 		}
@@ -109,6 +113,10 @@ func (a *App) JoinDefaultChannels(rctx request.CTX, teamID string, user *model.U
 		message.Add("user_id", user.Id)
 		message.Add("team_id", channel.TeamId)
 		a.Publish(message)
+	}
+
+	if len(adminChannels) > 0 {
+		a.queueNewChannelAdminMissingAttributesNotice(rctx, user.Id, adminChannels...)
 	}
 
 	if nErr != nil {
@@ -356,6 +364,10 @@ func (a *App) CreateChannel(rctx request.CTX, channel *model.Channel, addMember 
 		if appErr := a.setChannelPropertyValuesOnCreate(rctx, sc, propertyValues); appErr != nil {
 			return nil, appErr
 		}
+	}
+
+	if addMember {
+		a.queueNewChannelAdminMissingAttributesNotice(rctx, channel.CreatorId, sc)
 	}
 
 	if sc.IsSpace() {
@@ -1475,6 +1487,7 @@ func (a *App) updateChannelMemberRolesInternal(rctx request.CTX, channelID strin
 	if member, err = a.GetChannelMember(rctx, channelID, userID); err != nil {
 		return nil, err
 	}
+	wasSchemeAdmin := member.SchemeAdmin
 
 	schemeGuestRole, schemeUserRole, schemeAdminRole, err := a.GetSchemeRolesForChannel(rctx, channelID)
 	if err != nil {
@@ -1539,7 +1552,14 @@ func (a *App) updateChannelMemberRolesInternal(rctx request.CTX, channelID strin
 
 	member.ExplicitRoles = strings.Join(newExplicitRoles, " ")
 
-	return a.updateChannelMember(rctx, member)
+	updated, err := a.updateChannelMember(rctx, member)
+	if err != nil {
+		return nil, err
+	}
+	if !wasSchemeAdmin && updated.SchemeAdmin {
+		a.queueNewChannelAdminMissingAttributesNoticeByID(rctx, userID, channelID)
+	}
+	return updated, nil
 }
 
 func (a *App) UpdateChannelMemberSchemeRoles(rctx request.CTX, channelID string, userID string, isSchemeGuest bool, isSchemeUser bool, isSchemeAdmin bool) (*model.ChannelMember, *model.AppError) {
@@ -1547,6 +1567,7 @@ func (a *App) UpdateChannelMemberSchemeRoles(rctx request.CTX, channelID string,
 	if err != nil {
 		return nil, err
 	}
+	wasSchemeAdmin := member.SchemeAdmin
 
 	if member.SchemeGuest {
 		return nil, model.NewAppError("UpdateChannelMemberSchemeRoles", "api.channel.update_channel_member_roles.guest.app_error", nil, "", http.StatusBadRequest)
@@ -1569,7 +1590,14 @@ func (a *App) UpdateChannelMemberSchemeRoles(rctx request.CTX, channelID string,
 		member.ExplicitRoles = removeRoles([]string{model.ChannelGuestRoleId, model.ChannelUserRoleId, model.ChannelAdminRoleId}, member.ExplicitRoles)
 	}
 
-	return a.updateChannelMember(rctx, member)
+	updated, err := a.updateChannelMember(rctx, member)
+	if err != nil {
+		return nil, err
+	}
+	if !wasSchemeAdmin && updated.SchemeAdmin {
+		a.queueNewChannelAdminMissingAttributesNoticeByID(rctx, userID, channelID)
+	}
+	return updated, nil
 }
 
 func (a *App) UpdateChannelMemberNotifyProps(rctx request.CTX, data map[string]string, channelID string, userID string) (*model.ChannelMember, *model.AppError) {
