@@ -4129,7 +4129,12 @@ func (a *App) GetPinnedPosts(rctx request.CTX, channelID string) (*model.PostLis
 		return nil, model.NewAppError("GetPinnedPosts", "app.channel.pinned_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if appErr := a.filterInaccessiblePosts(posts, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
+	posts, appErr := a.revealBurnOnReadPostsForUser(rctx, posts, rctx.Session().UserId)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	if appErr = a.filterInaccessiblePosts(posts, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
 		return nil, appErr
 	}
 

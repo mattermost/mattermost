@@ -64,6 +64,7 @@ const (
 	ClusterEventInvalidateAccessDecisions                   ClusterEvent = "inv_access_decisions"
 	ClusterEventAutoTranslationTask                         ClusterEvent = "autotranslation_task"
 	ClusterEventBusyStateChanged                            ClusterEvent = "busy_state_change"
+	ClusterEventSharedChannelSyncTask                       ClusterEvent = "shared_channel_sync_task"
 	// Note: if you are adding a new event, please also add it in the slice of
 	// m.ClusterEventMap in metrics/metrics.go file.
 

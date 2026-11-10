@@ -353,7 +353,7 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
             return (
                 <AdminHeader>
                     <div className='admin-console__header-left'>
-                        {name}
+                        <span>{name}</span>
                         {pluginStateBadge}
                         {betaBadge}
                     </div>
