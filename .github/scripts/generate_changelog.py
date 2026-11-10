@@ -1109,19 +1109,22 @@ _NOT_PLACED_RE = re.compile(r"\n*<!-- changelog-not-placed -->.*?<!-- /changelog
 _NOT_PLACED_ITEM_RE = re.compile(r"^- (?:\[( |x|X)\] )?`([^`]+)`: (.*)$")
 
 
-def render_not_placed(body: str, dropped: list[dict], recorded: set | frozenset = frozenset()) -> str:
+def render_not_placed(body: str, dropped: list[dict], recorded: set | frozenset = frozenset(),
+                      sent: set | frozenset = frozenset()) -> str:
     """Write the notes the model left out into a PR body for a reviewer, as a task list.
 
     A note whose PR has no other note in the text is listed until a run places it: its PR
     isn't recorded in changelog-sources, so the next run sends it again. A note whose PR
     is recorded (another of its notes was placed) is never sent again, so it stays on the
     list, carried over from the last body, until a reviewer adds it by hand and ticks it.
+    A PR whose notes were sent this run (``sent``) is never carried: its notes were either
+    placed, and so are off the list, or dropped again, and so are in ``dropped``.
     """
     carried = []
     block = _NOT_PLACED_RE.search(body)
     for line in (block.group(0).splitlines() if block else []):
         match = _NOT_PLACED_ITEM_RE.match(line.strip())
-        if match and match.group(1) in (None, " ") and match.group(2) in recorded:
+        if match and match.group(1) in (None, " ") and match.group(2) in recorded and match.group(2) not in sent:
             carried.append((match.group(2), match.group(3)))
     body = _NOT_PLACED_RE.sub("\n\n", body).rstrip() + "\n"
     entries = [(note["source"], " ".join(note["text"].split())[:160].replace("`", "'")) for note in dropped]
@@ -2620,7 +2623,8 @@ def main():
         pr_body = render_pr_body(pr_body, included)
         # A dry run pushes nothing; its report carries the list instead of the PR body.
         if os.environ.get("DRY_RUN", "").strip().lower() != "true":
-            pr_body = render_not_placed(pr_body, dropped_notes(all_notes, referenced) if ai_polished else [], included)
+            pr_body = render_not_placed(pr_body, dropped_notes(all_notes, referenced) if ai_polished else [], included,
+                                        set(sources_by_id.values()))
 
     urls = changelog_release.docs_urls(entry)
     readiness["links_checked"] = len(urls)

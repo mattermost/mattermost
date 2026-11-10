@@ -204,15 +204,34 @@ def net_changes(before: set, head: set, tip: Optional[set]) -> tuple[set, set]:
     return added, removed
 
 
-def before_ref_for(path: str) -> str:
-    """The state of `path` before this PR: the merge base with the current default branch.
+@lru_cache(maxsize=1)
+def release_merge_base() -> str:
+    """Merge base of HEAD and the base branch's tip when the PR targets a release branch
+    (``release-X.Y``), or "".
 
-    That works when GitHub's base ref is not an ancestor of the work (retarget),
-    where MERGE_BASE would be too old, and it does not count work master already
-    has as this PR's. Without a default branch in the clone, falls back to the
-    parent of the oldest unique commit that touches `path`.
+    A release line has files and routes master never had at the cut (later cherry-picks),
+    so the merge base with master is too old for it: a route the line added and this PR
+    removes would not count as removed, and a file the line added would look new.
     """
-    merge_base = default_merge_base()
+    if not re.fullmatch(r"release-\d+\.\d+", BASE_REF or ""):
+        return ""
+    tip = base_tip_ref()
+    if not tip:
+        return ""
+    result = _git(["merge-base", tip, HEAD_SHA], check=False)
+    return result.stdout.strip() if result.returncode == 0 else ""
+
+
+def before_ref_for(path: str) -> str:
+    """The state of `path` before this PR: the merge base with its release branch when it
+    targets one, otherwise with the current default branch.
+
+    The default branch works when GitHub's base ref is not an ancestor of the work
+    (retarget), where MERGE_BASE would be too old, and it does not count work master
+    already has as this PR's. Without either in the clone, falls back to the parent of
+    the oldest unique commit that touches `path`.
+    """
+    merge_base = release_merge_base() or default_merge_base()
     if merge_base:
         return merge_base
     oldest = None
@@ -288,6 +307,7 @@ def reset_git_caches() -> None:
     unique_commits.cache_clear()
     _commit_files.cache_clear()
     default_merge_base.cache_clear()
+    release_merge_base.cache_clear()
     base_tip_ref.cache_clear()
  
  

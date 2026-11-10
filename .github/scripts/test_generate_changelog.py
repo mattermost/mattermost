@@ -267,6 +267,11 @@ class AttributionTest(unittest.TestCase):
         self.assertIn("- [ ] `mattermost/mattermost#1`: Second note of PR 1.", kept)
         ticked = kept.replace("- [ ] `mattermost/mattermost#1`", "- [x] `mattermost/mattermost#1`")
         self.assertNotIn("not-placed", gc.render_not_placed(ticked, [], recorded))
+        # PR #2's note was listed while #2 wasn't recorded; this run sent it again and placed
+        # it, so #2 is now recorded: the stale item must not be carried over.
+        placed_later = gc.render_not_placed("Body\n", [{"source": "mattermost/mattermost#2", "text": "Fixed x."}])
+        self.assertNotIn("not-placed", gc.render_not_placed(placed_later, [], {"mattermost/mattermost#2"},
+                                                            {"mattermost/mattermost#2"}))
         # A list written before the checkboxes is carried over too.
         old = body.replace("- [ ] `", "- `")
         self.assertIn("- [ ] `mattermost/mattermost#1`: Second note of PR 1.", gc.render_not_placed(old, [], recorded))
@@ -963,6 +968,22 @@ class MainTest(unittest.TestCase):
         gc.main()  # a reviewer added it by hand and ticked it
         self.assertNotIn("Second note of PR 1", (self.out / "pr_body.md").read_text())
         self.assertIn("body_changed=true", (self.tmp / "gh_output").read_text())
+
+    def test_update_drops_a_listed_note_once_a_later_run_places_it(self):
+        self.changelog.write_text(ENTRY_V12_1)
+        sources = {"mattermost/mattermost#1", "plugin:mattermost-plugin-calls@v1.12.6"}
+        listed = gc.render_not_placed(gc.render_pr_body("Body\n", sources),
+                                      [{"source": "mattermost/mattermost#2", "text": "Fixed an issue found later."}])
+        body = self.tmp / "body.md"
+        body.write_text(listed)
+        os.environ.update({"MODE": "update", "PR_BODY_FILE": str(body)})
+        gc.polish_with_ai = lambda notes: ("### Bug Fixes\n" + "".join(
+            f" - {' '.join(n['text'].split())} [[{n['id']}]]\n" for n in notes), True)
+        gc.place_missing_with_ai = lambda notes: ("", True)
+        gc.main()  # PR #2 is sent again and placed this time
+        out = (self.out / "pr_body.md").read_text()
+        self.assertIn("mattermost/mattermost#2", gc.parse_sources_comment(out))
+        self.assertNotIn("did not place", out)
 
     def test_a_note_only_under_go_version_is_retried(self):
         gc.polish_with_ai = lambda notes: (self.FIRST_ANSWER + "\n### Go Version\n - Go bump. [[N2]]\n", True)

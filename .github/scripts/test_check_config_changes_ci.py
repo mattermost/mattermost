@@ -259,6 +259,30 @@ class UniqueCommitFilterTest(unittest.TestCase):
         result = checker.check_api(checker.split_patch_by_file(checker.get_full_patch()))
         self.assertEqual(result.additions, ["`GET /api/v4/foo` (`getFoo`)"])
 
+    def test_a_release_branch_pr_is_compared_with_the_release_line_not_master(self):
+        # The release line added /foo and a new file after it was cut from master; a PR to the
+        # release branch that removes /foo and edits that file is judged against the release line.
+        _write(self.tmpdir, "server/channels/api4/post.go", "package api4\n")
+        self._commit("root")
+        _git(self.tmpdir, "checkout", "-b", "release-12.0")
+        _write(self.tmpdir, "server/channels/api4/post.go", _HANDLE)
+        _write(self.tmpdir, "server/channels/api4/extra.go", "package api4\n")
+        release_tip = self._commit("release-only: GET /foo and extra.go")
+
+        _git(self.tmpdir, "checkout", "-b", "fix", "release-12.0")
+        _write(self.tmpdir, "server/channels/api4/post.go", "package api4\n")
+        _write(self.tmpdir, "server/channels/api4/extra.go", "package api4\n\n// a comment\n")
+        head = self._commit("remove GET /foo and touch extra.go on the release branch")
+
+        _git(self.tmpdir, "checkout", "master")
+        _write(self.tmpdir, "README", "master moves on\n")
+        self._commit("master moves on")
+
+        self._point_checker(release_tip, head, "release-12.0")
+        result = checker.check_api(checker.split_patch_by_file(checker.get_full_patch()))
+        self.assertEqual(result.removals, ["`GET /api/v4/foo` (`getFoo`)"])
+        self.assertNotIn("🆕 New API file: `extra.go`", result.changes)
+
     def test_a_route_master_already_removed_is_not_this_prs_removal(self):
         both = _HANDLE.replace("}\n", '\tr.Handle("/api/v4/baz", r.APIHandler(getBaz)).Methods("GET")\n}\n')
         _write(self.tmpdir, "server/channels/api4/post.go", both)
