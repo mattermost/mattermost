@@ -33,15 +33,11 @@ test(
         const post = await channelsPage.getLastPost();
         await expect(post.container.getByText(pdfFile, {exact: true})).toBeVisible();
 
-        // # Open Files search
-        await channelsPage.globalHeader.openSearch();
-        await channelsPage.searchBox.toBeVisible();
-        await channelsPage.searchBox.filesButton.click();
-
         // * Verify the PDF is found by its extracted content
         await expect
             .poll(
                 async () => {
+                    await channelsPage.globalHeader.openSearch();
                     await channelsPage.searchBox.search(contentTerm);
                     await channelsPage.searchResultsPanel.toBeVisible();
                     await channelsPage.searchResultsPanel.filesTab.click();

@@ -32,15 +32,11 @@ test('finds a .doc in Files search by extracted content', {tag: ['@search', '@fi
     const post = await channelsPage.getLastPost();
     await expect(post.container.getByText(docFile, {exact: true})).toBeVisible();
 
-    // # Open Files search
-    await channelsPage.globalHeader.openSearch();
-    await channelsPage.searchBox.toBeVisible();
-    await channelsPage.searchBox.filesButton.click();
-
     // * Verify the .doc is found by its extracted content
     await expect
         .poll(
             async () => {
+                await channelsPage.globalHeader.openSearch();
                 await channelsPage.searchBox.search(contentTerm);
                 await channelsPage.searchResultsPanel.toBeVisible();
                 await channelsPage.searchResultsPanel.filesTab.click();
