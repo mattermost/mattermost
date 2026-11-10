@@ -10,6 +10,9 @@ ARG MM_PACKAGE="https://latest.mattermost.com/mattermost-enterprise-linux"
 
 USER 0:0
 # poppler-utils: PDF feature to text extraction for file search indexing.
+# wv: kept for parity, but .doc extraction does not work in the runtime image:
+# wvText is a /bin/sh script and docconv ignores its failure (indexes empty).
+# See e2e doc_file_content_search.spec.ts.
 RUN apk add --no-cache \
   curl \
   ca-certificates \
