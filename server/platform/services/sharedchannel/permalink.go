@@ -44,7 +44,7 @@ func (scs *Service) processPermalinkToRemote(p *model.Post) string {
 			return msg
 		}
 		if len(postList.Order) == 0 {
-			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "No post found for permalink", mlog.String("postID", postID))
+			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "No post found for permalink", mlog.String("post_id", postID))
 			return msg
 		}
 

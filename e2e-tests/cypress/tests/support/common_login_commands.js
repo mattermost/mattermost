@@ -58,14 +58,14 @@ Cypress.Commands.add('checkLeftSideBar', (settings = {}) => {
 
     if (settings.user.userType === 'Admin' || settings.user.isAdmin) {
         // # Check that user is an admin
-        cy.uiOpenProductMenu().findByText('System Console');
+        cy.uiOpenSwitchProductMenu().findByText('System Console');
     } else {
         // # Check that user is not an admin
-        cy.uiOpenProductMenu().findByText('System Console').should('not.exist');
+        cy.uiOpenSwitchProductMenu().findByText('System Console').should('not.exist');
     }
 
     // # Close product switch menu
-    cy.uiGetProductMenuButton().click();
+    cy.get('body').type('{esc}');
 
     cy.get('#channel_view').should('be.visible');
 });

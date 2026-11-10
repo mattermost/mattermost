@@ -19,6 +19,11 @@ jest.mock('actions/views/modals', () => ({
     openModal: jest.fn(() => ({type: ''})),
 }));
 
+jest.mock('actions/views/create_comment', () => ({
+    ...jest.requireActual('actions/views/create_comment'),
+    onSubmit: jest.fn(() => () => Promise.resolve({data: true})),
+}));
+
 describe('useSubmit', () => {
     const mockDraft: PostDraft = {
         message: 'Test message',

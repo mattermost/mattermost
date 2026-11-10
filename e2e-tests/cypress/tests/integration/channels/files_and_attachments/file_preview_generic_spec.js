@@ -125,7 +125,7 @@ function testGenericFile(properties) {
 
     // * Download button should exist
     cy.get('@filePreviewModal').uiGetDownloadFilePreviewModal().then((downloadLink) => {
-        cy.wrap(downloadLink).parent().should('have.attr', 'download', fileName).then((link) => {
+        cy.wrap(downloadLink).should('have.attr', 'download', fileName).then((link) => {
             const fileAttachmentURL = link.attr('href');
 
             // * Verify that download link has correct name

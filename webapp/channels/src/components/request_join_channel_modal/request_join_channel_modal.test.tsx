@@ -49,27 +49,30 @@ describe('RequestJoinChannelModal', () => {
     };
 
     test('renders as a stacked modal above an existing parent modal', async () => {
-        const parentBackdrop = document.createElement('div');
-        parentBackdrop.className = 'modal-backdrop';
-        parentBackdrop.style.opacity = '0.5';
-        document.body.appendChild(parentBackdrop);
+        const parentBackdrop = React.createRef<HTMLDivElement>();
 
         renderWithContext(
-            <RequestJoinChannelModal
-                channel={baseChannel}
-                teamName='team_1'
-            />,
+            <>
+                <div
+                    ref={parentBackdrop}
+                    className='modal-backdrop'
+                    style={{opacity: 0.5}}
+                />
+                <RequestJoinChannelModal
+                    channel={baseChannel}
+                    teamName='team_1'
+                />
+            </>,
             baseState,
         );
 
         await screen.findByTestId('request-join-channel-modal');
 
         const stackedBackdrop = document.querySelectorAll('.modal-backdrop');
-        expect(stackedBackdrop.length).toBeGreaterThanOrEqual(2);
-        expect(parentBackdrop.style.opacity).toBe('0');
 
-        parentBackdrop.remove();
-        document.querySelectorAll('.modal-backdrop').forEach((el) => el.remove());
+        expect(stackedBackdrop.length).toBeGreaterThanOrEqual(2);
+
+        expect(parentBackdrop.current?.style.opacity).toBe('0');
     });
 
     test('renders the simplified step-1 body and header channel name', async () => {

@@ -53,7 +53,7 @@ export async function setupBoardAttributesTest(pw: PlaywrightExtended): Promise<
     // Feature flags are read at server start from MM_FEATUREFLAGS_* env,
     // not from runtime config patches — CI sets it in server.generate.sh;
     // locally, export it before running the server.
-    await pw.skipIfFeatureFlagNotSet('IntegratedBoards', true);
+    await pw.ensureFeatureFlag('IntegratedBoards', true);
 
     const {adminUser, adminClient} = await pw.initSetup();
     cachedAdminClient = adminClient;
@@ -88,7 +88,9 @@ export async function cleanupCustomBoardFields(nameFilter?: (name: string) => bo
 
 async function deleteNonProtectedFields(adminClient: Client4, nameFilter?: (name: string) => boolean): Promise<void> {
     try {
-        const fields = await adminClient.getPropertyFields(BOARDS_GROUP, OBJECT_TYPE_POST, SYSTEM_TARGET_TYPE);
+        const fields = await adminClient.getPropertyFields(BOARDS_GROUP, OBJECT_TYPE_POST, {
+            targetType: SYSTEM_TARGET_TYPE,
+        });
         for (const field of fields ?? []) {
             if (field.protected) {
                 continue;

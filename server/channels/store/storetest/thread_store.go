@@ -4,7 +4,6 @@
 package storetest
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -117,6 +116,7 @@ func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err, "couldn't get thread")
 		require.NotNil(t, thread)
 		require.Equal(t, int64(2), thread.ReplyCount)
+		require.Equal(t, max(newPosts[1].CreateAt, newPosts[2].CreateAt), thread.LastReplyAt)
 		require.ElementsMatch(t, model.StringArray{newPosts[0].UserId, newPosts[1].UserId}, thread.Participants)
 
 		teamId := model.NewId()
@@ -269,6 +269,7 @@ func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 		thread, err = ss.Thread().Get(rootPost.Id)
 		require.NoError(t, err)
 		require.EqualValues(t, thread.ReplyCount, 2)
+		require.Equal(t, replyPost3.CreateAt, thread.LastReplyAt)
 		require.EqualValues(t, thread.Participants, model.StringArray{replyPost.UserId, replyPost3.UserId})
 
 		err = ss.Post().Delete(rctx, replyPost.Id, 123, model.NewId())
@@ -276,6 +277,7 @@ func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 		thread, err = ss.Thread().Get(rootPost.Id)
 		require.NoError(t, err)
 		require.EqualValues(t, thread.ReplyCount, 1)
+		require.Equal(t, replyPost3.CreateAt, thread.LastReplyAt)
 		require.EqualValues(t, thread.Participants, model.StringArray{replyPost3.UserId})
 	})
 
@@ -1284,7 +1286,7 @@ func testVarious(t *testing.T, rctx request.CTX, ss store.Store) {
 			require.NoError(t, err)
 			require.Len(t, userIDs, 1)
 
-			u, err := ss.User().Get(context.Background(), userIDs[0])
+			u, err := ss.User().Get(rctx, userIDs[0])
 			require.NoError(t, err)
 
 			assert.Equal(t, u.Username, members[0].Username)
@@ -1300,7 +1302,7 @@ func testVarious(t *testing.T, rctx request.CTX, ss store.Store) {
 			require.Len(t, userIDs, 2)
 
 			for i := range userIDs {
-				u, err := ss.User().Get(context.Background(), userIDs[i])
+				u, err := ss.User().Get(rctx, userIDs[i])
 				require.NoError(t, err)
 
 				assert.Equal(t, u.Username, members[i].Username)
@@ -1334,7 +1336,7 @@ func testVarious(t *testing.T, rctx request.CTX, ss store.Store) {
 			require.NoError(t, err)
 			require.Len(t, userIDs, 1)
 
-			u, err := ss.User().Get(context.Background(), userIDs[0])
+			u, err := ss.User().Get(rctx, userIDs[0])
 			require.NoError(t, err)
 
 			assert.Equal(t, u.Username, members[0].Username)

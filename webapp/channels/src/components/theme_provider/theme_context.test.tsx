@@ -31,6 +31,13 @@ describe('useAppBodyClass', () => {
         '/myteam/channels/town-square',
         '/myteam/messages/@someone',
         '/myteam/channels/integrations',
+        '/myteam/integrations',
+        '/myteam/integrations/',
+        '/myteam/integrations/bots',
+        '/myteam/integrations/incoming_webhooks',
+        '/myteam/emoji',
+        '/myteam/emoji/add',
+        '/my-team_1/integrations',
         '/admin_console/integrations/bot_accounts',
         '/create_team',
         '/select_team',
@@ -46,21 +53,7 @@ describe('useAppBodyClass', () => {
         expect(document.body.classList.contains('app__body')).toBe(false);
     });
 
-    it.each([
-        '/myteam/integrations',
-        '/myteam/integrations/',
-        '/myteam/integrations/bots',
-        '/myteam/integrations/incoming_webhooks',
-        '/myteam/emoji',
-        '/myteam/emoji/add',
-        '/my-team_1/integrations',
-    ])('does not add app__body on backstage route %s', (pathname) => {
-        renderUseAppBodyClass(pathname);
-
-        expect(document.body.classList.contains('app__body')).toBe(false);
-    });
-
-    it('toggles app__body as the route changes', () => {
+    it('keeps app__body when navigating between a channel and backstage', () => {
         const {history} = renderUseAppBodyClass('/myteam/channels/town-square');
 
         expect(document.body.classList.contains('app__body')).toBe(true);
@@ -68,10 +61,10 @@ describe('useAppBodyClass', () => {
         act(() => {
             history.push('/myteam/integrations');
         });
-        expect(document.body.classList.contains('app__body')).toBe(false);
+        expect(document.body.classList.contains('app__body')).toBe(true);
 
         act(() => {
-            history.push('/myteam/channels/town-square');
+            history.push('/myteam/emoji/add');
         });
         expect(document.body.classList.contains('app__body')).toBe(true);
     });
@@ -104,8 +97,12 @@ describe('WithUserTheme', () => {
         expect(document.body.classList.contains('app__body')).toBe(false);
     });
 
-    it('does not add app__body on a backstage route', () => {
-        renderWithUserTheme('/myteam/integrations');
+    it('adds app__body on a backstage route', () => {
+        const {unmount} = renderWithUserTheme('/myteam/integrations');
+
+        expect(document.body.classList.contains('app__body')).toBe(true);
+
+        unmount();
 
         expect(document.body.classList.contains('app__body')).toBe(false);
     });

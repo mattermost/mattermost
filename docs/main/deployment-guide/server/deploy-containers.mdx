@@ -244,7 +244,7 @@ docker exec -ti mattermost-preview /bin/bash
 
 <Note>
 
-See the [deployment troubleshooting](/deployment-guide/deployment-troubleshooting) documentation for resolutions to common deployment issues.
+See [Docker deployment troubleshooting](/deployment-guide/server/docker-troubleshooting) for resolutions to common container issues, or [Deployment troubleshooting](/deployment-guide/server/troubleshooting) for issues that aren't specific to containers.
 
 </Note>
 
@@ -258,28 +258,7 @@ Deploying Mattermost using Docker containers can be made secure with proper conf
 > - Bind Docker volumes for NGINX configuration files and TLS certificates to ensure persistent and secure storage of these assets.
 > - Use permission restrictions on host directories where sensitive files such as TLS keys are stored.
 
-3.  Create the NGINX Configuration File by designing a robust `nginx.conf` file to configure reverse proxying and HTTPS. Here's a basic example:
-
-    ``` nginx
-    server {
-        listen 443 ssl;
-        server_name your-domain.com;
-
-        ssl_certificate /etc/nginx/certs/fullchain.pem;
-        ssl_certificate_key /etc/nginx/certs/privkey.pem;
-
-        ssl_protocols TLSv1.2 TLSv1.3;
-        ssl_ciphers HIGH:!aNULL:!MD5;
-
-        location / {
-            proxy_pass http://mattermost:8065;
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto https;
-        }
-    }
-    ```
+3.  Create the NGINX configuration file for reverse proxying and HTTPS. For a complete, commented configuration, see [Set up an NGINX proxy](/deployment-guide/server/setup-nginx-proxy). In a container setup, point the `upstream` to the Mattermost container, for example `mattermost:8065`.
 
 Verify the configuration with `nginx -t` before applying.
 
@@ -319,9 +298,9 @@ Verify the configuration with `nginx -t` before applying.
 
 10. Use tools such as SSL Labs : [https://www.ssllabs.com/ssltest/](https://www.ssllabs.com/ssltest/) to validate the quality of your TLS setup.
 
-11. Enable HTTP Strict Transport Security (HSTS) in your NGINX configuration to prevent downgrade attacks.
+11. Enable HTTP Strict Transport Security (HSTS) in your NGINX configuration to prevent downgrade attacks. The [recommended NGINX configuration](/deployment-guide/server/setup-nginx-proxy) already does this.
 
-12. Use NGINX rate-limiting features to restrict abusive traffic, such as excessive requests:
+12. To limit abusive traffic, use Mattermost's [rate limiting settings](/administration-guide/configure/rate-limiting-configuration-settings).
 
 Additionally, consider:
 

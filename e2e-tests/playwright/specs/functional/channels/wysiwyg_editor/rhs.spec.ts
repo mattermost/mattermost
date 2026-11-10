@@ -6,6 +6,10 @@ import {expect, setWysiwygUserPreference, test, WysiwygEditor} from '@mattermost
 const TAGS = {tag: ['@channels', '@wysiwyg_editor']};
 
 test.describe('WYSIWYG editor - RHS reply composer', TAGS, () => {
+    test.beforeEach(async ({pw}) => {
+        await pw.ensureFeatureFlag('WysiwygEditor', true);
+    });
+
     test('WYSIWYG replaces the classic composer in the RHS thread', async ({pw}) => {
         const {user, userClient, team} = await pw.initSetup();
         await setWysiwygUserPreference(userClient, user.id, true);

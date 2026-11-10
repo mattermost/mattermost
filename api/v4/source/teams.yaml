@@ -954,6 +954,9 @@
         with whether the team currently enforces a membership policy. `policy` is
         null when no policy is assigned or attribute-based access control is not
         available on the server.
+
+        __Minimum server version__: 11.9
+
         ##### Permissions
         Must have the `manage_system` permission or the `manage_team_access_rules`
         permission for the team.
@@ -980,6 +983,14 @@
                   enforced:
                     type: boolean
                     description: Whether the team currently enforces a membership access control policy.
+                  parent_policies:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AccessControlPolicy"
+                    description: >
+                      The `parent` policies that the team's policy imports,
+                      with only their `id`, `name` and `rules`. Omitted when
+                      there are none.
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -999,6 +1010,9 @@
         membership surfaces explain the requirement to join the team. Values that
         are source-only or shared-only are stripped, so no sensitive value is
         disclosed. The map is empty when no membership policy governs the team.
+
+        __Minimum server version__: 11.10
+
         ##### Permissions
         Must have the `view_team` permission for the team.
       operationId: GetTeamAccessControlAttributes
@@ -1570,62 +1584,6 @@
           $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-  "/api/v4/teams/{team_id}/import":
-    post:
-      tags:
-        - teams
-      summary: Import a Team from other application
-      description: >
-        Import a team into a existing team. Import users, channels, posts,
-        hooks.
-
-        ##### Permissions
-
-        Must have `permission_import_team` permission.
-      operationId: ImportTeam
-      parameters:
-        - name: team_id
-          in: path
-          description: Team GUID
-          required: true
-          schema:
-            type: string
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                file:
-                  description: A file to be uploaded in zip format.
-                  type: string
-                  format: binary
-                filesize:
-                  description: The size of the zip file to be imported.
-                  type: integer
-                importFrom:
-                  description: String that defines from which application the team was
-                    exported to be imported into Mattermost.
-                  type: string
-              required:
-                - file
-                - filesize
-                - importFrom
-      responses:
-        "200":
-          description: JSON object containing a base64 encoded text file of the import logs
-            in its `results` property.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  results:
-                    type: string
-        "400":
-          $ref: "#/components/responses/BadRequest"
         "403":
           $ref: "#/components/responses/Forbidden"
   "/api/v4/teams/invite/{invite_id}":

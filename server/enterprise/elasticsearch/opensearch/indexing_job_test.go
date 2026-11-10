@@ -5,18 +5,78 @@ package opensearch
 
 import (
 	"context"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
 	"github.com/opensearch-project/opensearch-go/v4/opensearchapi"
+	"github.com/opensearch-project/opensearch-go/v4/opensearchutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/api4"
 )
+
+func TestOpenSearchIndexerClientTimesOutStalledResponse(t *testing.T) {
+	release := make(chan struct{})
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{"took":1,`))
+		w.(http.Flusher).Flush()
+		select {
+		case <-r.Context().Done():
+		case <-release:
+		}
+	}))
+	t.Cleanup(ts.Close)
+	t.Cleanup(func() { close(release) })
+
+	cfg := &model.Config{}
+	cfg.SetDefaults()
+	cfg.ElasticsearchSettings.ConnectionURL = model.NewPointer(ts.URL)
+	cfg.ElasticsearchSettings.RequestTimeoutSeconds = model.NewPointer(1)
+	cfg.ElasticsearchSettings.Sniff = model.NewPointer(false)
+
+	client, appErr := createIndexerClient(mlog.CreateConsoleTestLogger(t), cfg, nil)
+	require.Nil(t, appErr)
+
+	bi, err := opensearchutil.NewBulkIndexer(opensearchutil.BulkIndexerConfig{
+		Client:     client,
+		NumWorkers: 1,
+		FlushBytes: 1,
+	})
+	require.NoError(t, err)
+
+	var failed atomic.Int64
+	err = bi.Add(context.Background(), opensearchutil.BulkIndexerItem{
+		Index:      "posts",
+		Action:     "index",
+		DocumentID: model.NewId(),
+		Body:       strings.NewReader(`{}`),
+		OnFailure: func(_ context.Context, _ opensearchutil.BulkIndexerItem, _ opensearchapi.BulkRespItem, err error) {
+			assert.Error(t, err)
+			failed.Add(1)
+		},
+	})
+	require.NoError(t, err)
+
+	closeErr := make(chan error, 1)
+	go func() { closeErr <- bi.Close(context.Background()) }()
+	select {
+	case err := <-closeErr:
+		require.NoError(t, err)
+	case <-time.After(10 * time.Second):
+		require.FailNow(t, "bulk indexer blocked on a stalled response")
+	}
+	assert.Equal(t, int64(1), failed.Load())
+}
 
 func TestOpenSearchIndexerJobIsEnabled(t *testing.T) {
 	t.Run("ElasticSearch feature is enabled then job is enabled", func(t *testing.T) {
@@ -162,7 +222,7 @@ func TestOpenSearchIndexerBulkWriteFailures(t *testing.T) {
 	settingsResp, err := client.Indices.Settings.Get(context.Background(), &opensearchapi.SettingsGetReq{})
 	require.NoError(t, err)
 	var indexNames []string
-	for name := range settingsResp.Indices {
+	for name := range settingsResp.GetIndices() {
 		if !strings.HasPrefix(name, ".") {
 			indexNames = append(indexNames, name)
 		}

@@ -43,6 +43,7 @@ const (
 	ClusterEventInvalidateCacheForPostsUsage                ClusterEvent = "inv_posts_usage"
 	ClusterEventInvalidateCacheForTeams                     ClusterEvent = "inv_teams"
 	ClusterEventInvalidateCacheForContentFlagging           ClusterEvent = "inv_content_flagging"
+	ClusterEventInvalidateCacheForDeliveryTracking          ClusterEvent = "inv_delivery_tracking"
 	ClusterEventInvalidateCacheForSessionAttributes         ClusterEvent = "inv_session_attributes"
 	ClusterEventUpdateSessionAttributes                     ClusterEvent = "update_session_attributes"
 	ClusterEventInvalidateCacheForPropertyFields            ClusterEvent = "inv_property_fields"
@@ -56,8 +57,12 @@ const (
 	ClusterEventInvalidateCacheForTermsOfService            ClusterEvent = "inv_terms_of_service"
 	ClusterEventInvalidateCacheForUserAutoTranslation       ClusterEvent = "inv_user_autotranslation"
 	ClusterEventInvalidateCacheForPostTranslationEtag       ClusterEvent = "inv_post_translation_etag"
+	ClusterEventInvalidateCacheForAccessControlPolicyEtag   ClusterEvent = "inv_access_control_policy_etag"
+	ClusterEventInvalidateCacheForUserPropertyValuesEpoch   ClusterEvent = "inv_user_property_values_epoch"
+	ClusterEventInvalidateCacheForUserAttributes            ClusterEvent = "inv_user_attributes"
 	ClusterEventAutoTranslationTask                         ClusterEvent = "autotranslation_task"
 	ClusterEventBusyStateChanged                            ClusterEvent = "busy_state_change"
+	ClusterEventSharedChannelSyncTask                       ClusterEvent = "shared_channel_sync_task"
 	// Note: if you are adding a new event, please also add it in the slice of
 	// m.ClusterEventMap in metrics/metrics.go file.
 
@@ -76,6 +81,8 @@ const (
 	ClusterGossipEventResponseWebConnCount          = "gossip_response_webconn_count"
 	ClusterGossipEventRequestWSQueues               = "gossip_request_ws_queues"
 	ClusterGossipEventResponseWSQueues              = "gossip_response_ws_queues"
+	ClusterGossipEventRequestHealthDiagnostics      = "gossip_request_health_diagnostics"
+	ClusterGossipEventResponseHealthDiagnostics     = "gossip_response_health_diagnostics"
 
 	// SendTypes for ClusterMessage.
 	ClusterSendBestEffort = "best_effort"

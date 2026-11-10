@@ -15,6 +15,7 @@ exports[`components/drafts/panel/panel_body should have called handleFormattedTe
         aria-haspopup="dialog"
         class="status-wrapper style--none"
         style="border-radius: 50%; width: 32px; height: 32px;"
+        type="button"
       >
         <span
           class="profile-icon "
@@ -102,6 +103,7 @@ exports[`components/drafts/panel/panel_body should match snapshot 1`] = `
         aria-haspopup="dialog"
         class="status-wrapper style--none"
         style="border-radius: 50%; width: 32px; height: 32px;"
+        type="button"
       >
         <span
           class="profile-icon "
@@ -189,6 +191,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
         aria-haspopup="dialog"
         class="status-wrapper style--none"
         style="border-radius: 50%; width: 32px; height: 32px;"
+        type="button"
       >
         <span
           class="profile-icon "
@@ -247,7 +250,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
                   class="priorityLabelsContainer"
                 >
                   <div
-                    class="TagWrapper-kezsCu cA-dXXM Tag Tag--info Tag--xs"
+                    class="TagWrapper-fyxyxN doEirW Tag Tag--info Tag--xs"
                     data-testid="post-priority-label"
                   >
                     <svg
@@ -263,7 +266,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
                       />
                     </svg>
                     <span
-                      class="TagText-bWoQAI beIloY"
+                      class="TagText-hckUNX ldIWSD"
                     >
                       Important
                     </span>
@@ -302,6 +305,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for requested_
         aria-haspopup="dialog"
         class="status-wrapper style--none"
         style="border-radius: 50%; width: 32px; height: 32px;"
+        type="button"
       >
         <span
           class="profile-icon "

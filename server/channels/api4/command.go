@@ -53,7 +53,7 @@ func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if _, err := c.App.GetUser(cmd.CreatorId); err != nil {
+		if _, err := c.App.GetUser(c.AppContext, cmd.CreatorId); err != nil {
 			c.Err = err
 			return
 		}

@@ -74,6 +74,14 @@ export default function ImagePreview({fileInfo, canDownloadFiles, scale, transla
     if (isZoomed) {
         imgStyle.cursor = 'grab';
     }
+
+    // An SVG declaring only a viewBox has no intrinsic size and renders at the browser's 300px
+    // default, so it needs the width the server derived. A width of 0 would collapse it instead.
+    if (getFileType(fileInfo.extension) === FileTypes.SVG && fileInfo.width > 0) {
+        imgStyle.width = fileInfo.width;
+        imgStyle.height = 'auto';
+    }
+
     const imgClassName = classNames('image_preview__image', {
         'image_preview__image--zoomed': isZoomed,
     });
@@ -84,7 +92,7 @@ export default function ImagePreview({fileInfo, canDownloadFiles, scale, transla
     if (!canDownloadFiles) {
         return (
             <span
-                ref={wrapperRef as React.RefObject<HTMLSpanElement>}
+                ref={wrapperRef as React.RefObject<HTMLSpanElement | null>}
                 className={wrapperClassName}
                 onMouseDown={onMouseDown}
             >
@@ -98,17 +106,11 @@ export default function ImagePreview({fileInfo, canDownloadFiles, scale, transla
         );
     }
 
-    const finalImgStyle: React.CSSProperties = {...imgStyle};
-    if (getFileType(fileInfo.extension) === FileTypes.SVG) {
-        finalImgStyle.width = fileInfo.width;
-        finalImgStyle.height = 'auto';
-    }
-
     const preventLinkNav = (e: React.SyntheticEvent) => e.preventDefault();
 
     return (
         <a
-            ref={wrapperRef as React.RefObject<HTMLAnchorElement>}
+            ref={wrapperRef as React.RefObject<HTMLAnchorElement | null>}
             className={wrapperClassName}
             href='#'
             onMouseDown={onMouseDown}
@@ -121,7 +123,7 @@ export default function ImagePreview({fileInfo, canDownloadFiles, scale, transla
                 data-testid='imagePreview'
                 alt={'preview url image'}
                 src={previewUrl}
-                style={finalImgStyle}
+                style={imgStyle}
                 draggable={false}
             />
         </a>

@@ -24,50 +24,72 @@ describe('Scroll', () => {
     it('MM-T2369 Aspect Ratio is preserved in RHS', () => {
         const uploadedImages = [
             {
-                alt: 'Wide image',
-                width: 960,
-                height: 246,
-                src:
-                    'https://cdn.pixabay.com/photo/2017/10/10/22/24/wide-format-2839089_960_720.jpg',
+                file: 'image-small-height.png',
+                width: 340,
+                height: 25,
             },
             {
-                alt: 'Tall image',
-                width: 400,
-                height: 950,
-                src:
-                    'https://media.npr.org/programs/atc/features/2009/may/short/abetall3-0483922b5fb40887fc9fbe20a606e256cbbd10ee-s800-c85.jpg',
+                file: 'image-small-width.png',
+                width: 22,
+                height: 352,
             },
         ];
 
         uploadedImages.forEach((uploadedImage) => {
-            // # Post the image as markdown image in the center
-            cy.uiPostMessageQuickly(`![${uploadedImage.alt}](${uploadedImage.src})`);
+            // # Upload the image
+            cy.intercept('POST', '**/api/v4/files').as('uploadFile');
+            cy.get('#fileUploadInput').should('exist').attachFile(uploadedImage.file);
+            cy.wait('@uploadFile').its('response.statusCode').should('be.oneOf', [200, 201]);
 
-            // # Get uploaded image in the center
-            cy.getLastPost().within(() => {
-                // * Verify image was uploaded and its aspect ratio is unchanged
-                verifyImageAspectRatioCorrectness(uploadedImage);
+            // * Verify the file preview is shown
+            cy.get('[data-testid="file-preview-item"]').should('be.visible');
+
+            // # Post the image
+            cy.postMessage(uploadedImage.file);
+
+            // * Verify the last post includes the uploaded file
+            cy.findAllByTestId('postView').last().should(($post) => {
+                expect($post.find('.file-view--single').length, 'file attach').to.be.greaterThan(0);
             });
 
-            // # Open the message with image in RHS
-            cy.clickPostCommentIcon();
+            cy.getLastPostId().then((postId) => {
+                // # Get uploaded image in the center
+                cy.get(`#post_${postId}`).within(() => {
+                    cy.contains(uploadedImage.file).should('be.visible');
 
-            // # Go to RHS where image is now opened
-            cy.get('#rhsContainer').within(() => {
-                // * Verify image in the RHS has correct aspect ratio
-                verifyImageAspectRatioCorrectness(uploadedImage);
+                    // * Verify image was uploaded and its aspect ratio is unchanged
+                    verifyImageAspectRatioCorrectness(uploadedImage);
+                });
+
+                // # Open the message with image in RHS
+                cy.clickPostCommentIcon(postId);
+
+                // # Go to RHS where image is now opened
+                cy.get('#rhsContainer').within(() => {
+                    // * Verify image in the RHS has correct aspect ratio
+                    verifyImageAspectRatioCorrectness(uploadedImage);
+                });
+
+                cy.uiCloseRHS();
             });
         });
     });
 });
 
 function verifyImageAspectRatioCorrectness(originalImage) {
-    cy.findByAltText(originalImage.alt).
-        should('exist').
-        and((img) => {
-            expect(img.width() / img.height()).to.be.closeTo(
-                originalImage.width / originalImage.height,
-                0.02,
-            );
+    const expected = originalImage.width / originalImage.height;
+    cy.get('.file-view--single').then(($view) => {
+        const $toggle = $view.find('.single-image-view__toggle');
+        if ($toggle.length && $toggle.attr('data-expanded') === 'false') {
+            cy.wrap($toggle).click({force: true});
+        }
+    });
+    cy.get('.file-view--single .image-loaded img').
+        should('be.visible').
+        and(($img) => {
+            const img = $img[0];
+            expect(img.complete, 'decoded').to.equal(true);
+            expect(img.naturalWidth, 'loaded').to.be.greaterThan(0);
+            expect(img.naturalWidth / img.naturalHeight).to.be.closeTo(expected, 0.02);
         });
 }

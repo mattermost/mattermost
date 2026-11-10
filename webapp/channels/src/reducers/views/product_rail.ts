@@ -1,0 +1,93 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import {combineReducers} from 'redux';
+
+import {UserTypes} from 'mattermost-redux/action_types';
+
+import {ActionTypes} from 'utils/constants';
+
+import type {MMAction} from 'types/store';
+import type {ProductRailSection} from 'types/store/views';
+
+function section(state: ProductRailSection = 'channels', action: MMAction): ProductRailSection {
+    switch (action.type) {
+    case ActionTypes.SET_PRODUCT_RAIL_SECTION:
+        return action.data.section;
+    case ActionTypes.PRODUCT_RAIL_PATH_VIEWED:
+        return action.data.section ?? state;
+    case UserTypes.LOGOUT_SUCCESS:
+        return 'channels';
+    default:
+        return state;
+    }
+}
+
+type LastPaths = Record<string, Record<string, string>>;
+
+function lastPathByTeam(state: LastPaths = {}, action: MMAction): LastPaths {
+    switch (action.type) {
+    case ActionTypes.PRODUCT_RAIL_PATH_VIEWED: {
+        const {tab, teamId, path} = action.data;
+
+        // A channel can be filed under Channels before its plugin says it's a board (or the
+        // reverse), so viewing it in the section its kind picks takes it out of the other. A board
+        // viewed in Channels while that lists boards too comes with no section, and stays put.
+        const otherSections: Record<string, string> = {channels: 'boards', boards: 'channels'};
+        const otherSection = otherSections[tab];
+        const misfiled = action.data.section !== undefined && otherSection !== undefined && state[otherSection]?.[teamId] === path;
+
+        if (state[tab]?.[teamId] === path && !misfiled) {
+            return state;
+        }
+
+        const nextState: LastPaths = {
+            ...state,
+            [tab]: {
+                ...state[tab],
+                [teamId]: path,
+            },
+        };
+        if (misfiled) {
+            const otherPaths = {...state[otherSection]};
+            delete otherPaths[teamId];
+            nextState[otherSection] = otherPaths;
+        }
+        return nextState;
+    }
+    case ActionTypes.PRODUCT_RAIL_PATHS_LOADED: {
+        // Saved paths fill in around what's been viewed since the page loaded, which is newer.
+        const loaded: LastPaths = action.data;
+        const merged: LastPaths = {...state};
+        for (const [tab, paths] of Object.entries(loaded)) {
+            merged[tab] = {...paths, ...state[tab]};
+        }
+        return merged;
+    }
+
+    // Logging out doesn't reload the page, so the next user to log in on it mustn't inherit these.
+    case UserTypes.LOGOUT_SUCCESS:
+        return {};
+    default:
+        return state;
+    }
+}
+
+// Whether the paths saved from earlier sessions have been restored, before which saving the
+// current ones would overwrite them.
+function lastPathsLoaded(state = false, action: MMAction): boolean {
+    switch (action.type) {
+    case ActionTypes.PRODUCT_RAIL_PATHS_LOADED:
+        return true;
+    case UserTypes.LOGOUT_SUCCESS:
+        return false;
+    default:
+        return state;
+    }
+}
+
+export default combineReducers({
+    section,
+    lastPathByTeam,
+    lastPathsLoaded,
+});

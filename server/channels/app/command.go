@@ -71,17 +71,52 @@ func (a *App) CreateCommandPost(rctx request.CTX, post *model.Post, teamID strin
 	}
 
 	if response.ResponseType == model.CommandResponseTypeInChannel {
-		// Bot-style (non-builtin) command responses are flagged via from_webhook by HandleCommandResponsePost.
-		// Strip the prop here and pass the marker through the server-set FromIncomingWebhook flag so
-		// SanitizeProps does not drop it on save.
+		// Bot-style (non-builtin) command responses are flagged via from_webhook by
+		// HandleCommandResponsePost, which also sets override_username/override_icon_url
+		// from the slash command and response configuration. A command response's
+		// free-form Props (copied onto the post via post.SetProps in
+		// HandleCommandResponsePost) can additionally carry override_icon_emoji.
+		// Strip these props here and forward them through CreatePostFlags so
+		// SanitizeProps cannot drop them on save and the values land on the post
+		// only under verified integration authority (FromIncomingWebhook flag).
+		// webhook_display_name is not a slash command concept and is
+		// intentionally not forwarded.
 		fromWebhook := post.GetProp(model.PostPropsFromWebhook) == "true"
 		if fromWebhook {
 			post.DelProp(model.PostPropsFromWebhook)
+		}
+		overrideUsername, _ := post.GetProp(model.PostPropsOverrideUsername).(string)
+		if overrideUsername != "" {
+			post.DelProp(model.PostPropsOverrideUsername)
+		}
+		overrideIconURL, _ := post.GetProp(model.PostPropsOverrideIconURL).(string)
+		if overrideIconURL != "" {
+			post.DelProp(model.PostPropsOverrideIconURL)
+		}
+		overrideIconEmoji, _ := post.GetProp(model.PostPropsOverrideIconEmoji).(string)
+		if overrideIconEmoji != "" {
+			post.DelProp(model.PostPropsOverrideIconEmoji)
+		}
+		// HandleCommandResponsePost gates command.Username / response.Username and
+		// command.IconURL / response.IconURL on the EnablePostUsernameOverride /
+		// EnablePostIconOverride configs upstream, but a slash command response can
+		// also drop override_* directly into response.Props (carried onto post.Props
+		// via post.SetProps). Apply the same gates here so the response.Props pathway
+		// cannot bypass admin intent. Symmetric with CreateWebhookPost.
+		if !*a.Config().ServiceSettings.EnablePostUsernameOverride {
+			overrideUsername = ""
+		}
+		if !*a.Config().ServiceSettings.EnablePostIconOverride {
+			overrideIconURL = ""
+			overrideIconEmoji = ""
 		}
 		createdPost, _, appErr := a.CreatePostMissingChannelWithFlags(rctx, post, model.CreatePostFlags{
 			TriggerWebhooks:     true,
 			SetOnline:           true,
 			FromIncomingWebhook: fromWebhook,
+			OverrideUsername:    overrideUsername,
+			OverrideIconURL:     overrideIconURL,
+			OverrideIconEmoji:   overrideIconEmoji,
 		})
 		if appErr != nil {
 			return nil, appErr
@@ -233,7 +268,7 @@ func (a *App) ExecuteCommand(rctx request.CTX, args *model.CommandArgs) (*model.
 
 	trigger = strings.TrimPrefix(trigger, "/")
 
-	clientTriggerId, triggerId, appErr := model.GenerateTriggerId(args.UserId, a.AsymmetricSigningKey())
+	clientTriggerId, triggerId, appErr := model.GenerateTriggerId(args.UserId, args.ChannelId, a.AsymmetricSigningKey())
 	if appErr != nil {
 		rctx.Logger().Warn("error occurred in generating trigger Id for a user ", mlog.Err(appErr))
 	}
@@ -422,7 +457,7 @@ func (a *App) tryExecuteCustomCommand(rctx request.CTX, args *model.CommandArgs,
 
 	userChan := make(chan store.StoreResult[*model.User], 1)
 	go func() {
-		user, err := a.Srv().Store().User().Get(context.Background(), args.UserId)
+		user, err := a.Srv().Store().User().Get(rctx, args.UserId)
 		userChan <- store.StoreResult[*model.User]{Data: user, NErr: err}
 		close(userChan)
 	}()
@@ -434,38 +469,29 @@ func (a *App) tryExecuteCustomCommand(rctx request.CTX, args *model.CommandArgs,
 
 	tr := <-teamChan
 	if tr.NErr != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(tr.NErr, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](tr.NErr); ok {
 			return nil, nil, model.NewAppError("tryExecuteCustomCommand", "app.team.get.find.app_error", nil, "", http.StatusNotFound).Wrap(tr.NErr)
-		default:
-			return nil, nil, model.NewAppError("tryExecuteCustomCommand", "app.team.get.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(tr.NErr)
 		}
+		return nil, nil, model.NewAppError("tryExecuteCustomCommand", "app.team.get.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(tr.NErr)
 	}
 	team := tr.Data
 
 	ur := <-userChan
 	if ur.NErr != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(ur.NErr, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](ur.NErr); ok {
 			return nil, nil, model.NewAppError("tryExecuteCustomCommand", MissingAccountError, nil, "", http.StatusNotFound).Wrap(ur.NErr)
-		default:
-			return nil, nil, model.NewAppError("tryExecuteCustomCommand", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(ur.NErr)
 		}
+		return nil, nil, model.NewAppError("tryExecuteCustomCommand", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(ur.NErr)
 	}
 	user := ur.Data
 
 	cr := <-chanChan
 	if cr.NErr != nil {
 		errCtx := map[string]any{"channel_id": args.ChannelId}
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(cr.NErr, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](cr.NErr); ok {
 			return nil, nil, model.NewAppError("tryExecuteCustomCommand", "app.channel.get.existing.app_error", errCtx, "", http.StatusNotFound).Wrap(cr.NErr)
-		default:
-			return nil, nil, model.NewAppError("tryExecuteCustomCommand", "app.channel.get.find.app_error", errCtx, "", http.StatusInternalServerError).Wrap(cr.NErr)
 		}
+		return nil, nil, model.NewAppError("tryExecuteCustomCommand", "app.channel.get.find.app_error", errCtx, "", http.StatusInternalServerError).Wrap(cr.NErr)
 	}
 	channel := cr.Data
 
@@ -529,7 +555,7 @@ func (a *App) tryExecuteCustomCommand(rctx request.CTX, args *model.CommandArgs,
 }
 
 func (a *App) DoCommandRequest(rctx request.CTX, cmd *model.Command, p url.Values) (*model.Command, *model.CommandResponse, *model.AppError) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
+	ctx, cancel := context.WithTimeout(a.Srv().Platform().GoContext(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
 	defer cancel()
 
 	var accessToken *model.OutgoingOAuthConnectionToken
@@ -595,11 +621,18 @@ func (a *App) DoCommandRequest(rctx request.CTX, cmd *model.Command, p url.Value
 	// Handle the response
 	body := io.LimitReader(resp.Body, MaxIntegrationResponseSize)
 
-	if resp.StatusCode != http.StatusOK {
+	// Any 2xx status is a success; integrations legitimately answer a webhook with 201 or 202.
+	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
 		// Ignore the error below because the resulting string will just be the empty string if bodyBytes is nil
 		bodyBytes, _ := io.ReadAll(body)
 
 		return cmd, nil, model.NewAppError("command", "api.command.execute_command.failed_resp.app_error", map[string]any{"Trigger": cmd.Trigger, "Status": resp.Status}, string(bodyBytes), http.StatusInternalServerError)
+	}
+
+	// 204 and 205 carry no body by definition, so there is nothing to parse even when the
+	// integration still advertises a Content-Type. An empty response posts nothing.
+	if resp.StatusCode == http.StatusNoContent || resp.StatusCode == http.StatusResetContent {
+		return cmd, &model.CommandResponse{}, nil
 	}
 
 	response, err := model.CommandResponseFromHTTPBody(resp.Header.Get("Content-Type"), body)
@@ -723,13 +756,10 @@ func (a *App) createCommand(cmd *model.Command) (*model.Command, *model.AppError
 
 	command, nErr := a.Srv().Store().Command().Save(cmd)
 	if nErr != nil {
-		var appErr *model.AppError
-		switch {
-		case errors.As(nErr, &appErr):
+		if appErr, ok := errors.AsType[*model.AppError](nErr); ok {
 			return nil, appErr
-		default:
-			return nil, model.NewAppError("CreateCommand", "app.command.createcommand.internal_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
+		return nil, model.NewAppError("CreateCommand", "app.command.createcommand.internal_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	return command, nil
@@ -766,13 +796,10 @@ func (a *App) GetCommand(commandID string) (*model.Command, *model.AppError) {
 
 	command, err := a.Srv().Store().Command().Get(commandID)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("SqlCommandStore.Get", "store.sql_command.get.missing.app_error", map[string]any{"command_id": commandID}, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("GetCommand", "app.command.getcommand.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("GetCommand", "app.command.getcommand.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return command, nil
 }
@@ -798,16 +825,12 @@ func (a *App) UpdateCommand(oldCmd, updatedCmd *model.Command) (*model.Command, 
 
 	command, err := a.Srv().Store().Command().Update(updatedCmd)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		var appErr *model.AppError
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("SqlCommandStore.Update", "store.sql_command.update.missing.app_error", map[string]any{"command_id": updatedCmd.Id}, "", http.StatusNotFound).Wrap(err)
-		case errors.As(err, &appErr):
+		} else if appErr, ok := errors.AsType[*model.AppError](err); ok {
 			return nil, appErr
-		default:
-			return nil, model.NewAppError("UpdateCommand", "app.command.updatecommand.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("UpdateCommand", "app.command.updatecommand.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return command, nil
@@ -822,16 +845,12 @@ func (a *App) MoveCommand(team *model.Team, command *model.Command) *model.AppEr
 
 	_, err := a.Srv().Store().Command().Update(command)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		var appErr *model.AppError
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return model.NewAppError("SqlCommandStore.Update", "store.sql_command.update.missing.app_error", map[string]any{"command_id": command.Id}, "", http.StatusNotFound).Wrap(err)
-		case errors.As(err, &appErr):
+		} else if appErr, ok := errors.AsType[*model.AppError](err); ok {
 			return appErr
-		default:
-			return model.NewAppError("MoveCommand", "app.command.movecommand.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return model.NewAppError("MoveCommand", "app.command.movecommand.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil
@@ -846,16 +865,12 @@ func (a *App) RegenCommandToken(cmd *model.Command) (*model.Command, *model.AppE
 
 	command, err := a.Srv().Store().Command().Update(cmd)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		var appErr *model.AppError
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("SqlCommandStore.Update", "store.sql_command.update.missing.app_error", map[string]any{"command_id": cmd.Id}, "", http.StatusNotFound).Wrap(err)
-		case errors.As(err, &appErr):
+		} else if appErr, ok := errors.AsType[*model.AppError](err); ok {
 			return nil, appErr
-		default:
-			return nil, model.NewAppError("RegenCommandToken", "app.command.regencommandtoken.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("RegenCommandToken", "app.command.regencommandtoken.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return command, nil

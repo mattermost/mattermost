@@ -31,16 +31,16 @@ In this scenario there is one Mattermost application server and one NGINX server
 
 ### Configuring NGINX
 
-On the NGINX server, connect to both servers with a sudo or root user. Open the Mattermost proxy configuration and search for the following line twice:
+On the NGINX server, connect to both servers with a sudo or root user. Open the Mattermost proxy configuration from [Set up an NGINX proxy](/deployment-guide/server/setup-nginx-proxy). It forwards to an upstream named `backend` from every `location` block that proxies, so change every occurrence of the following line. The base configuration has two, and a subpath location or the pre-authentication locations add more. Find them all with `grep -rn 'proxy_pass http://backend' /etc/nginx/`:
 
-``` text
-proxy_pass http://backend;
+``` nginx
+proxy_pass http://backend;  # forward to the upstream over HTTP
 ```
 
 Change the protocol from `http` to `https`:
 
-``` text
-proxy_pass https://backend;
+``` nginx
+proxy_pass https://backend;  # forward to the upstream over HTTPS
 ```
 
 Afterwards do not reload the NGINX server yet to minimize the downtime of the service.
@@ -105,7 +105,7 @@ systemctl status mattermost
 
 ``` text
 ● mattermost.service - Mattermost
-   Loaded: loaded (/lib/systemd/system/mattermost.service; static; vendor preset: enabled)
+   Loaded: loaded (/etc/systemd/system/mattermost.service; static; vendor preset: enabled)
    Active: active (running) since Mon 2019-10-28 16:45:29 UTC; 1h 15min ago
    [...]
 ```
@@ -209,7 +209,7 @@ systemctl status mattermost
 
 ``` text
 ● mattermost.service - Mattermost
-   Loaded: loaded (/lib/systemd/system/mattermost.service; static; vendor preset: enabled)
+   Loaded: loaded (/etc/systemd/system/mattermost.service; static; vendor preset: enabled)
    Active: active (running) since Fri 2019-10-18 16:47:08 UTC; 3s ago
   Process: 3424 ExecStartPre=/opt/mattermost/bin/pre_start.sh (code=exited, status=0/SUCCESS)
  Main PID: 3443 (mattermost)
@@ -440,7 +440,7 @@ systemctl status mattermost.service
 
 ``` text
 ● mattermost.service - Mattermost
-   Loaded: loaded (/lib/systemd/system/mattermost.service; static; vendor preset: enabled)
+   Loaded: loaded (/etc/systemd/system/mattermost.service; static; vendor preset: enabled)
    Active: active (running) since Fri 2019-10-04 19:44:20 UTC; 5min ago
   Process: 16734 ExecStartPre=/opt/mattermost/bin/pre_start.sh (code=exited, status=0/SUCCESS)
 ```

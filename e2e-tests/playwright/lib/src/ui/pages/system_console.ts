@@ -3,12 +3,16 @@
 
 import type {Page} from '@playwright/test';
 
+import LoginPage from './login';
+
 import SystemConsoleNavbar from '@/ui/components/system_console/navbar';
 import SystemConsoleSidebar from '@/ui/components/system_console/sidebar';
 import SystemConsoleHeader from '@/ui/components/system_console/header';
 import EditionAndLicense from '@/ui/components/system_console/sections/about/edition_and_license';
 import TeamStatistics from '@/ui/components/system_console/sections/reporting/team_statistics';
+import ServerLogs from '@/ui/components/system_console/sections/reporting/server_logs';
 import Users from '@/ui/components/system_console/sections/user_management/users';
+import ChannelDetail from '@/ui/components/system_console/sections/user_management/channel_detail';
 import DelegatedGranularAdministration from '@/ui/components/system_console/sections/user_management/delegated_granular_administration';
 import PermissionsSystemScheme from '@/ui/components/system_console/sections/user_management/permissions_system_scheme';
 import MobileSecurity from '@/ui/components/system_console/sections/environment/mobile_security';
@@ -16,10 +20,16 @@ import Localization from '@/ui/components/system_console/sections/site_configura
 import Notifications from '@/ui/components/system_console/sections/site_configuration/notifications';
 import UsersAndTeams from '@/ui/components/system_console/sections/site_configuration/users_and_teams';
 import BoardAttributes from '@/ui/components/system_console/sections/system_attributes/board_attributes';
+import GlobalAttributes from '@/ui/components/system_console/sections/system_attributes/global_attributes';
 import SystemProperties from '@/ui/components/system_console/sections/system_attributes/system_properties';
 import SessionAttributes from '@/ui/components/system_console/sections/system_attributes/session_attributes';
 import FeatureDiscovery from '@/ui/components/system_console/sections/system_users/feature_discovery';
 import PluginManagement from '@/ui/components/system_console/sections/plugins/plugin_management';
+import OpenIdConnect from '@/ui/components/system_console/sections/authentication/openid_connect';
+import AdLdap from '@/ui/components/system_console/sections/authentication/ad_ldap';
+import PasswordSettings from '@/ui/components/system_console/sections/authentication/password';
+import MfaSettings from '@/ui/components/system_console/sections/authentication/mfa';
+import PublicLinks from '@/ui/components/system_console/sections/site_configuration/public_links';
 
 export default class SystemConsolePage {
     readonly page: Page;
@@ -34,9 +44,11 @@ export default class SystemConsolePage {
 
     // Reporting
     readonly teamStatistics: TeamStatistics;
+    readonly serverLogs: ServerLogs;
 
     // User Management
     readonly users: Users;
+    readonly channelDetail: ChannelDetail;
     readonly delegatedGranularAdministration: DelegatedGranularAdministration;
     readonly permissionsSystemScheme: PermissionsSystemScheme;
 
@@ -49,6 +61,7 @@ export default class SystemConsolePage {
     readonly usersAndTeams: UsersAndTeams;
 
     // System Attributes
+    readonly globalAttributes: GlobalAttributes;
     readonly systemProperties: SystemProperties;
     readonly sessionAttributes: SessionAttributes;
     readonly boardAttributes: BoardAttributes;
@@ -58,6 +71,16 @@ export default class SystemConsolePage {
 
     // Plugins
     readonly pluginManagement: PluginManagement;
+
+    // Authentication
+    readonly openIdConnect: OpenIdConnect;
+    readonly adLdap: AdLdap;
+    readonly passwordSettings: PasswordSettings;
+    readonly mfaSettings: MfaSettings;
+    readonly publicLinks: PublicLinks;
+
+    // Same page after logging out of the System Console
+    readonly loginPage: LoginPage;
 
     constructor(page: Page) {
         this.page = page;
@@ -74,9 +97,11 @@ export default class SystemConsolePage {
 
         // Reporting
         this.teamStatistics = new TeamStatistics(adminConsoleWrapper);
+        this.serverLogs = new ServerLogs(adminConsoleWrapper);
 
         // User Management
         this.users = new Users(adminConsoleWrapper);
+        this.channelDetail = new ChannelDetail(adminConsoleWrapper);
         this.delegatedGranularAdministration = new DelegatedGranularAdministration(adminConsoleWrapper);
         this.permissionsSystemScheme = new PermissionsSystemScheme(adminConsoleWrapper);
 
@@ -89,6 +114,7 @@ export default class SystemConsolePage {
         this.usersAndTeams = new UsersAndTeams(adminConsoleWrapper);
 
         // System Attributes
+        this.globalAttributes = new GlobalAttributes(adminConsoleWrapper);
         this.systemProperties = new SystemProperties(adminConsoleWrapper);
         this.sessionAttributes = new SessionAttributes(adminConsoleWrapper);
         this.boardAttributes = new BoardAttributes(adminConsoleWrapper);
@@ -98,6 +124,15 @@ export default class SystemConsolePage {
 
         // Plugins
         this.pluginManagement = new PluginManagement(adminConsoleWrapper);
+
+        // Authentication
+        this.openIdConnect = new OpenIdConnect(adminConsoleWrapper);
+        this.adLdap = new AdLdap(adminConsoleWrapper);
+        this.passwordSettings = new PasswordSettings(adminConsoleWrapper);
+        this.mfaSettings = new MfaSettings(adminConsoleWrapper);
+        this.publicLinks = new PublicLinks(adminConsoleWrapper);
+
+        this.loginPage = new LoginPage(page);
     }
 
     async toBeVisible() {
@@ -113,11 +148,63 @@ export default class SystemConsolePage {
     /** Notifications settings URL is environment/notifications (sidebar groups under Site Configuration). */
     async gotoNotificationsSettings() {
         await this.page.goto('/admin_console/environment/notifications');
-        await this.page.waitForLoadState('networkidle');
     }
 
     async gotoPluginManagement() {
         await this.page.goto('/admin_console/plugins/plugin_management');
+        await this.pluginManagement.toBeVisible();
+    }
+
+    async gotoEditionAndLicense() {
+        await this.page.goto('/admin_console/about/license');
+        await this.editionAndLicense.toBeVisible();
+    }
+
+    /**
+     * @param query - Filters to open the page with, e.g. '?search=timeout&range=60'
+     */
+    async gotoServerLogs(query = '') {
+        await this.page.goto(`/admin_console/reporting/server_logs${query}`);
         await this.page.waitForLoadState('networkidle');
+    }
+
+    async gotoOpenIdConnect() {
+        await this.page.goto('/admin_console/authentication/openid');
+        await this.openIdConnect.toBeVisible();
+    }
+
+    async gotoUser(userId: string) {
+        await this.page.goto(`/admin_console/user_management/user/${userId}`);
+        await this.users.userDetail.toBeVisible();
+    }
+
+    async gotoUsers() {
+        await this.page.goto('/admin_console/user_management/users');
+        await this.users.toBeVisible();
+    }
+
+    async gotoAdLdap() {
+        await this.page.goto('/admin_console/authentication/ldap');
+        await this.adLdap.toBeVisible();
+    }
+
+    async gotoPasswordSettings() {
+        await this.page.goto('/admin_console/authentication/password');
+        await this.passwordSettings.toBeVisible();
+    }
+
+    async gotoMfaSettings() {
+        await this.page.goto('/admin_console/authentication/mfa');
+        await this.mfaSettings.toBeVisible();
+    }
+
+    async gotoPublicLinks() {
+        await this.page.goto('/admin_console/site_config/public_links');
+        await this.publicLinks.toBeVisible();
+    }
+
+    async logOut() {
+        await this.sidebar.header.logOut();
+        await this.loginPage.toBeVisible();
     }
 }

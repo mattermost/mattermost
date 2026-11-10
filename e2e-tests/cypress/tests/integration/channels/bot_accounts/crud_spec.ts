@@ -143,18 +143,15 @@ describe('Bot accounts - CRUD Testing', () => {
             // # Click the 'Create token' button
             cy.wrap(el[0].parentElement!.parentElement!).findByText('Create New Token').should('be.visible').click();
 
-            // # Try saving without description
-            cy.findByTestId('saveSetting').click();
+            // * Save is disabled until a description is entered.
+            cy.findByTestId('saveSetting').should('be.disabled');
             cy.wrap(el[0].parentElement!.parentElement!).find('input').scrollIntoView();
-
-            // * Check for error message
-            cy.get('#clientError').should('be.visible');
 
             // # Add description
             cy.wrap(el[0].parentElement!.parentElement!).find('input').click().type(testBot.username + 'description!');
 
             // # Save and check that no error is visible
-            cy.findByTestId('saveSetting').click();
+            cy.findByTestId('saveSetting').should('be.enabled').click();
 
             cy.get('#clientError').should('not.exist');
 

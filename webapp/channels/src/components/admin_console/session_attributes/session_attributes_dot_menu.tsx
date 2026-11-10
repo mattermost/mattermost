@@ -6,6 +6,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {AlertCircleOutlineIcon, CancelIcon, CheckIcon, CheckCircleOutlineIcon, ChevronRightIcon, DotsVerticalIcon, UpdateIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 
 import {openModal} from 'actions/views/modals';
 
@@ -15,8 +16,10 @@ import {ModalIdentifiers} from 'utils/constants';
 
 import DisableAttributeModal from './disable_attribute_modal';
 import type {StagedAttrs} from './use_session_attribute_edits';
-import {DURATION_PRESETS_SECONDS, formatDuration, getSessionAttrs, getSessionDisplayName} from './utils';
+import {DURATION_PRESETS_SECONDS, formatDuration, getSessionAttrs, getSessionDisplayName, isServerSourced} from './utils';
 import type {SessionAttributeField} from './utils';
+
+const SessionAttributesMenuTrigger = Menu.createMenuIconButtonTrigger({size: 'small'});
 
 type Props = {
     field: SessionAttributeField;
@@ -30,6 +33,7 @@ export default function SessionAttributesDotMenu({field, onStageChange, disabled
 
     const attrs = getSessionAttrs(field);
     const menuId = `session-attribute-dotmenu-${field.id}`;
+    const isServerAttribute = isServerSourced(field.name);
 
     const handleTtlChange = useCallback((seconds: number) => {
         onStageChange(field.id, {ttl_seconds: seconds});
@@ -66,59 +70,69 @@ export default function SessionAttributesDotMenu({field, onStageChange, disabled
         />
     ));
 
+    const buttonLabel = formatMessage({id: 'admin.session_attributes.dotmenu.button.aria_label', defaultMessage: 'Attribute actions'});
+
     return (
         <Menu.Container
             menuButton={{
                 id: menuId,
-                class: 'btn btn-transparent',
-                children: <DotsVerticalIcon size={18}/>,
+                as: SessionAttributesMenuTrigger,
+                'aria-label': buttonLabel,
+                children: <Icon glyph={<DotsVerticalIcon/>}/>,
                 dataTestId: menuId,
                 disabled,
+            }}
+            menuButtonTooltip={{
+                text: buttonLabel,
             }}
             menu={{
                 id: `${menuId}-menu`,
                 'aria-label': formatMessage({id: 'admin.session_attributes.dotmenu.menu.aria_label', defaultMessage: 'Select an action'}),
             }}
         >
-            <Menu.SubMenu
-                id={`${menuId}-ttl`}
-                menuId={`${menuId}-ttl-menu`}
-                leadingElement={<UpdateIcon size={18}/>}
-                labels={(
-                    <FormattedMessage
-                        id='admin.session_attributes.dotmenu.ttl.label'
-                        defaultMessage='Time-to-live (TTL)'
-                    />
-                )}
-                trailingElements={(
-                    <>
-                        {formatDuration(attrs.ttl_seconds)}
-                        <ChevronRightIcon size={16}/>
-                    </>
-                )}
-            >
-                {renderPresets(attrs.ttl_seconds, `session-attribute-ttl-option-${field.id}`, handleTtlChange)}
-            </Menu.SubMenu>
-            <Menu.SubMenu
-                id={`${menuId}-grace`}
-                menuId={`${menuId}-grace-menu`}
-                leadingElement={<AlertCircleOutlineIcon size={18}/>}
-                labels={(
-                    <FormattedMessage
-                        id='admin.session_attributes.dotmenu.grace.label'
-                        defaultMessage='Grace Period'
-                    />
-                )}
-                trailingElements={(
-                    <>
-                        {formatDuration(attrs.grace_period_seconds)}
-                        <ChevronRightIcon size={16}/>
-                    </>
-                )}
-            >
-                {renderPresets(attrs.grace_period_seconds, `session-attribute-grace-option-${field.id}`, (seconds) => onStageChange(field.id, {grace_period_seconds: seconds}))}
-            </Menu.SubMenu>
-            <Menu.Separator/>
+            {!isServerAttribute && ([
+                <Menu.SubMenu
+                    key={`${menuId}-ttl`}
+                    id={`${menuId}-ttl`}
+                    menuId={`${menuId}-ttl-menu`}
+                    leadingElement={<UpdateIcon size={18}/>}
+                    labels={(
+                        <FormattedMessage
+                            id='admin.session_attributes.dotmenu.ttl.label'
+                            defaultMessage='Time-to-live (TTL)'
+                        />
+                    )}
+                    trailingElements={(
+                        <>
+                            {formatDuration(attrs.ttl_seconds)}
+                            <ChevronRightIcon size={16}/>
+                        </>
+                    )}
+                >
+                    {renderPresets(attrs.ttl_seconds, `session-attribute-ttl-option-${field.id}`, handleTtlChange)}
+                </Menu.SubMenu>,
+                <Menu.SubMenu
+                    key={`${menuId}-grace`}
+                    id={`${menuId}-grace`}
+                    menuId={`${menuId}-grace-menu`}
+                    leadingElement={<AlertCircleOutlineIcon size={18}/>}
+                    labels={(
+                        <FormattedMessage
+                            id='admin.session_attributes.dotmenu.grace.label'
+                            defaultMessage='Grace Period'
+                        />
+                    )}
+                    trailingElements={(
+                        <>
+                            {formatDuration(attrs.grace_period_seconds)}
+                            <ChevronRightIcon size={16}/>
+                        </>
+                    )}
+                >
+                    {renderPresets(attrs.grace_period_seconds, `session-attribute-grace-option-${field.id}`, (seconds) => onStageChange(field.id, {grace_period_seconds: seconds}))}
+                </Menu.SubMenu>,
+                <Menu.Separator key={`${menuId}-separator`}/>,
+            ])}
             {attrs.enabled ? (
                 <Menu.Item
                     id={`session-attribute-disable-${field.id}`}

@@ -4,7 +4,7 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 
 type Props = {
     teamId: string;
@@ -20,7 +20,7 @@ const RemoveFromTeamButton = ({teamId, handleRemoveUserFromTeam}: Props) => {
     return (
         <Button
             type='button'
-            variant='destructive'
+            destructive={true}
             onClick={handleClick}
         >
             <FormattedMessage

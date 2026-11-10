@@ -202,6 +202,14 @@ describe('custom plugin sections', () => {
         enterpriseReady: false,
     };
 
+    beforeEach(() => {
+        config = {
+            PluginSettings: {
+                Plugins: {},
+            } as unknown as PluginSettings,
+        };
+    });
+
     it('empty sections', () => {
         const schema = {
             id: 'testplugin',

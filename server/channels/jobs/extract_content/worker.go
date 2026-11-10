@@ -74,8 +74,6 @@ func runCatchupExtraction(logger mlog.LoggerIFace, job *model.Job, jobServer *jo
 				continue
 			}
 
-			logger.Debug("Extracting file", mlog.String("filename", fileInfo.Name), mlog.String("filepath", fileInfo.Path))
-
 			err = app.ExtractContentFromFileInfo(request.EmptyContext(logger), fileInfo)
 			if err != nil {
 				logger.Warn("Failed to extract file content", mlog.Err(err), mlog.String("file_info_id", fileInfo.Id))
@@ -135,8 +133,6 @@ func runRangeExtraction(logger mlog.LoggerIFace, job *model.Job, jobServer *jobs
 		}
 		for _, fileInfo := range fileInfos {
 			if !ignoredFiles[fileInfo.Extension] {
-				logger.Debug("Extracting file", mlog.String("filename", fileInfo.Name), mlog.String("filepath", fileInfo.Path))
-
 				err = app.ExtractContentFromFileInfo(request.EmptyContext(logger), fileInfo)
 				if err != nil {
 					logger.Warn("Failed to extract file content", mlog.Err(err), mlog.String("file_info_id", fileInfo.Id))

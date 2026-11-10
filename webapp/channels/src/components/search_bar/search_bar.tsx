@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React, {useEffect, useRef} from 'react';
-import type {ChangeEvent, CSSProperties, FormEvent} from 'react';
+import type {ChangeEvent, CSSProperties, FormEvent, JSX} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import type Provider from 'components/suggestion/provider';
@@ -53,7 +53,7 @@ const SearchBar: React.FunctionComponent<Props> = (props: Props): JSX.Element =>
         children = null,
     } = props;
 
-    const searchRef = useRef<SuggestionBoxComponent>();
+    const searchRef = useRef<SuggestionBoxComponent>(undefined);
     const intl = useIntl();
 
     useEffect((): void => {
@@ -155,7 +155,7 @@ const SearchBar: React.FunctionComponent<Props> = (props: Props): JSX.Element =>
                     // @ts-ignore
                     ref={getSearch}
                     id={props.isSideBarRight ? 'sbrSearchBox' : 'searchBox'}
-                    tabIndex='0'
+                    tabIndex={0}
                     className={'search-bar form-control a11y__region'}
                     containerClass='w-full'
                     data-a11y-sort-order='9'

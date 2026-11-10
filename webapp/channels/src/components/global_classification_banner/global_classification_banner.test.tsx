@@ -7,13 +7,11 @@ import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {Client4} from 'mattermost-redux/client';
+import {ACCESS_CONTROL_PROPERTY_GROUP, DISPLAY_BANNER_BOTTOM, DISPLAY_BANNER_TOP} from 'mattermost-redux/constants/properties';
 
 import {
-    DISPLAY_BANNER_BOTTOM,
-    DISPLAY_BANNER_TOP,
     CLASSIFICATIONS_FIELD_TARGET_ID,
     CLASSIFICATIONS_FIELD_TARGET_TYPE,
-    CLASSIFICATIONS_GROUP_NAME,
     CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
     CLASSIFICATIONS_SYSTEM_VALUE_TARGET_ID,
 } from 'components/admin_console/classification_markings/utils';
@@ -34,7 +32,7 @@ const LINKED_FIELD_ID = 'linked_field1';
 function makeLinkedField(actions: string[], options: Array<{id: string; name: string; color: string}> = []): PropertyField {
     return {
         id: LINKED_FIELD_ID,
-        group_id: CLASSIFICATIONS_GROUP_NAME,
+        group_id: ACCESS_CONTROL_PROPERTY_GROUP,
         name: 'classification',
         type: 'select',
         object_type: CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
@@ -58,7 +56,7 @@ function makeSystemValue(optionId: string): PropertyValue<string> {
         id: 'value1',
         target_id: CLASSIFICATIONS_SYSTEM_VALUE_TARGET_ID,
         target_type: CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
-        group_id: CLASSIFICATIONS_GROUP_NAME,
+        group_id: ACCESS_CONTROL_PROPERTY_GROUP,
         field_id: LINKED_FIELD_ID,
         value: optionId,
         create_at: 3000,
@@ -73,12 +71,14 @@ type StateOptions = {
     linkedField?: PropertyField | null;
     systemValue?: PropertyValue<string> | null;
     featureFlagEnabled?: boolean;
+    currentUserId?: string;
 };
 
 function makeState({
     linkedField = null,
     systemValue = null,
     featureFlagEnabled = true,
+    currentUserId = MOCK_USER_ID,
 }: StateOptions = {}): DeepPartial<GlobalState> {
     const fieldsById: Record<string, PropertyField> = {};
     if (linkedField) {
@@ -95,7 +95,7 @@ function makeState({
     return {
         entities: {
             users: {
-                currentUserId: MOCK_USER_ID,
+                currentUserId,
             },
             general: {
                 config: {
@@ -275,11 +275,26 @@ describe('GlobalClassificationBanner', () => {
         );
 
         expect(Client4.getPropertyFields).toHaveBeenCalledWith(
-            CLASSIFICATIONS_GROUP_NAME,
+            ACCESS_CONTROL_PROPERTY_GROUP,
             CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
-            CLASSIFICATIONS_FIELD_TARGET_TYPE,
-            CLASSIFICATIONS_FIELD_TARGET_ID,
-            expect.anything(),
+            expect.objectContaining({
+                targetType: CLASSIFICATIONS_FIELD_TARGET_TYPE,
+                targetId: CLASSIFICATIONS_FIELD_TARGET_ID,
+            }),
         );
+    });
+
+    test('does not fetch fields or values while logged out', () => {
+        renderWithContext(
+            <GlobalClassificationBanner position='top'/>,
+            makeState({linkedField: makeLinkedField([DISPLAY_BANNER_TOP]), currentUserId: ''}),
+        );
+        renderWithContext(
+            <GlobalClassificationBanner position='top'/>,
+            makeState({linkedField: null, currentUserId: ''}),
+        );
+
+        expect(Client4.getPropertyFields).not.toHaveBeenCalled();
+        expect(Client4.getSystemPropertyValues).not.toHaveBeenCalled();
     });
 });

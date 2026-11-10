@@ -274,7 +274,8 @@
 
         .post,
         .SidebarMenu,
-        .GlobalThreads {
+        .GlobalThreads,
+        .post-actions-menu-mobile {
             .Menu {
                 position: fixed;
                 z-index: 9999;
@@ -351,10 +352,6 @@
         }
     }
 
-    .line-switch__toggle {
-        margin: 8px 0;
-    }
-
     .backstage-list__item {
         .item-actions,
         .actions {
@@ -387,13 +384,6 @@
 
     .emoji-picker__header {
         display: block;
-    }
-
-    .emoji-picker__categories {
-        .emoji-picker__category {
-            width: 30px;
-            height: 30px;
-        }
     }
 
     .emoji-picker__items {
@@ -531,8 +521,7 @@
     .integration-option {
         width: 100%;
         height: auto;
-        flex: 0 0 100%;
-        margin: 0 0 30px;
+        margin: 0;
         margin-left: 0;
     }
 
@@ -558,7 +547,7 @@
     }
 
     .multi-select__container, .multi-select__error {
-        .btn {
+        > button {
             display: block;
             min-width: 50px;
         }
@@ -650,7 +639,7 @@
     .backstage-form__footer {
         .has-error {
             max-width: 100%;
-            margin-bottom: 16px;
+            margin: 0 0 16px;
             float: none !important;
         }
     }

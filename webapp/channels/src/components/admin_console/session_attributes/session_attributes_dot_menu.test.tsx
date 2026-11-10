@@ -42,7 +42,7 @@ function makeField(name: string, extra: ExtraAttrs = {}): SessionAttributeField 
     } as UserPropertyField;
 }
 
-const enabledField = makeField('ip_address', {
+const enabledField = makeField('client_ip_address', {
     display_name: 'Client IP',
     enabled: true,
     ttl_seconds: 300,
@@ -52,8 +52,15 @@ const enabledField = makeField('ip_address', {
 const disabledField = makeField('vpn_active', {
     display_name: 'VPN active',
     enabled: false,
-    ttl_seconds: 30,
-    grace_period_seconds: 30,
+    ttl_seconds: 60,
+    grace_period_seconds: 60,
+});
+
+const serverSourcedField = makeField('ip_address', {
+    display_name: 'IP Address',
+    enabled: true,
+    ttl_seconds: 300,
+    grace_period_seconds: 60,
 });
 
 function renderMenu(field: SessionAttributeField, onStageChange = jest.fn()) {
@@ -121,8 +128,27 @@ describe('SessionAttributesDotMenu', () => {
         const selected = await screen.findByTestId(`session-attribute-ttl-option-${enabledField.id}-300`);
         expect(selected).toHaveAttribute('aria-checked', 'true');
 
-        const unselected = screen.getByTestId(`session-attribute-ttl-option-${enabledField.id}-30`);
+        const unselected = screen.getByTestId(`session-attribute-ttl-option-${enabledField.id}-60`);
         expect(unselected).toHaveAttribute('aria-checked', 'false');
+    });
+
+    it('does not offer a 30 second TTL preset', async () => {
+        renderMenu(enabledField);
+
+        await userEvent.click(screen.getByTestId(`session-attribute-dotmenu-${enabledField.id}`));
+        await userEvent.hover(screen.getByRole('menuitem', {name: /Time-to-live/}));
+
+        await screen.findByTestId(`session-attribute-ttl-option-${enabledField.id}-60`);
+        expect(screen.queryByTestId(`session-attribute-ttl-option-${enabledField.id}-30`)).not.toBeInTheDocument();
+    });
+
+    it('hides the TTL and Grace submenus for server-sourced attributes', async () => {
+        renderMenu(serverSourcedField);
+
+        await userEvent.click(screen.getByTestId(`session-attribute-dotmenu-${serverSourcedField.id}`));
+
+        expect(screen.queryByRole('menuitem', {name: /Time-to-live/})).not.toBeInTheDocument();
+        expect(screen.queryByRole('menuitem', {name: /Grace Period/})).not.toBeInTheDocument();
     });
 
     it('opens the confirmation modal for Disable without staging immediately', async () => {

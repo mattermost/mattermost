@@ -20,17 +20,9 @@ const (
 	useMaster contextValue = "useMaster"
 )
 
-// WithMaster adds the context value that master DB should be selected for this request.
-//
-// Deprecated: This method is deprecated and there's ongoing change to use `request.CTX` across
-// instead of `context.Context`. Please use `RequestContextWithMaster` instead.
-func WithMaster(ctx context.Context) context.Context {
-	return context.WithValue(ctx, storeContextKey(useMaster), true)
-}
-
 // RequestContextWithMaster adds the context value that master DB should be selected for this request.
 func RequestContextWithMaster(rctx request.CTX) request.CTX {
-	ctx := WithMaster(rctx.Context())
+	ctx := context.WithValue(rctx.Context(), storeContextKey(useMaster), true)
 	rctx = rctx.WithContext(ctx)
 	return rctx
 }

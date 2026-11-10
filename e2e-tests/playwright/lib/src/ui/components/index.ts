@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 // Shared / Global Components
+import AboutBuildModal from './about_build_modal';
 import Footer from './footer';
 import GlobalHeader from './global_header';
 import MainHeader from './main_header';
@@ -10,6 +11,7 @@ import UserAccountMenu from './user_account_menu';
 import BrowseChannelsModal from './channels/browse_channels_modal';
 import ChannelsAppBar from './channels/app_bar';
 import ChannelsCenterView from './channels/center_view';
+import {ChannelAttributeLabels} from './channels/channel_attributes';
 import CreateTeamForm from './channels/create_team_form';
 import ChannelsHeader from './channels/header';
 import ChannelsPost from './channels/post';
@@ -39,6 +41,8 @@ import NewChannelModal from './channels/new_channel_modal';
 import FlagPostConfirmationDialog from './channels/flag_post_confirmation_dialog';
 import GenericConfirmModal from './channels/generic_confirm_modal';
 import InvitePeopleModal from './channels/invite_people_modal';
+import ImagePreviewModal from './channels/image_preview_modal';
+import LinkPreview from './channels/link_preview';
 import MembersInvitedModal from './channels/members_invited_modal';
 import MessagePriority from './channels/message_priority';
 import ChannelsMobileNavbar from './channels/mobile_navbar';
@@ -56,6 +60,7 @@ import SearchBox from './channels/search_box';
 import SearchResultsPanel from './channels/search_results_panel';
 import SendMessageNowModal from './channels/send_message_now_modal';
 import SettingsModal from './channels/settings/settings_modal';
+import SwitchProductMenu from './channels/switch_product_menu';
 import TeamMenu from './channels/team_menu';
 import TeamSettingsModal from './channels/team_settings/team_settings_modal';
 import ThreadFooter from './channels/thread_footer';
@@ -90,12 +95,14 @@ import Users from './system_console/sections/user_management/users';
 
 const components = {
     // Shared / Global
+    AboutBuildModal,
     Footer,
     GlobalHeader,
     MainHeader,
     UserAccountMenu,
 
     // Channels
+    ChannelAttributeLabels,
     ChannelsAppBar,
     ChannelsCenterView,
     CreateTeamForm,
@@ -128,6 +135,8 @@ const components = {
     BrowseChannelsModal,
     GenericConfirmModal,
     InvitePeopleModal,
+    ImagePreviewModal,
+    LinkPreview,
     MembersInvitedModal,
     MessagePriority,
     ChannelsMobileNavbar,
@@ -145,6 +154,7 @@ const components = {
     SearchResultsPanel,
     SendMessageNowModal,
     SettingsModal,
+    SwitchProductMenu,
     TeamMenu,
     TeamSettingsModal,
     ThreadFooter,
@@ -182,12 +192,14 @@ export {
     components,
 
     // Shared / Global
+    AboutBuildModal,
     Footer,
     GlobalHeader,
     MainHeader,
     UserAccountMenu,
 
     // Channels Page
+    ChannelAttributeLabels,
     ChannelsAppBar,
     ChannelsCenterView,
     CreateTeamForm,
@@ -220,6 +232,8 @@ export {
     DirectChannelsModal,
     GenericConfirmModal,
     InvitePeopleModal,
+    ImagePreviewModal,
+    LinkPreview,
     MembersInvitedModal,
     MessagePriority,
     ChannelsMobileNavbar,
@@ -237,6 +251,7 @@ export {
     SearchResultsPanel,
     SendMessageNowModal,
     SettingsModal,
+    SwitchProductMenu,
     TeamMenu,
     TeamSettingsModal,
     ThreadFooter,
@@ -269,3 +284,5 @@ export {
     UserDetail,
     Users,
 };
+
+export type {PriorityOption} from './channels/message_priority';

@@ -10,6 +10,24 @@
         }
     }
 
+    .team-access-rules__locked-notice {
+        display: flex;
+        align-items: flex-start;
+        padding: 12px 16px;
+        border: 1px solid rgba(var(--button-bg-rgb), 0.16);
+        border-radius: 4px;
+        margin-bottom: 12px;
+        background: rgba(var(--button-bg-rgb), 0.08);
+        color: var(--center-channel-color);
+        font-size: 14px;
+        gap: 8px;
+        line-height: 20px;
+
+        .icon {
+            color: var(--button-bg);
+        }
+    }
+
     .team-access-rules__error {
         display: flex;
         align-items: center;

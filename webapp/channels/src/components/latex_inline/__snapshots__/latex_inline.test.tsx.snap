@@ -84,10 +84,10 @@ exports[`components/LatexInline should match snapshot 1`] = `
         class="katex-html"
       >
         <span
-          class="base"
+          class="katex-base"
         >
           <span
-            class="strut"
+            class="katex-strut"
             style="height:0.908em;vertical-align:-0.0833em;"
           />
           <span
@@ -119,14 +119,14 @@ exports[`components/LatexInline should match snapshot 1`] = `
                         style="height:2.7em;"
                       />
                       <span
-                        class="sizing reset-size6 size3 mtight"
+                        class="katex-sizing reset-size6 size3 mtight"
                       >
                         <span
                           class="mord mtight"
                         >
                           <span
                             class="mord mathnormal mtight"
-                            style="margin-right:0.03588em;"
+                            style="margin-right:0.0359em;"
                           >
                             iπ
                           </span>
@@ -153,10 +153,10 @@ exports[`components/LatexInline should match snapshot 1`] = `
           />
         </span>
         <span
-          class="base"
+          class="katex-base"
         >
           <span
-            class="strut"
+            class="katex-strut"
             style="height:0.6444em;"
           />
           <span
@@ -179,10 +179,10 @@ exports[`components/LatexInline should match snapshot 1`] = `
           />
         </span>
         <span
-          class="base"
+          class="katex-base"
         >
           <span
-            class="strut"
+            class="katex-strut"
             style="height:0.6444em;"
           />
           <span

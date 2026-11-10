@@ -4,15 +4,12 @@
 package app
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
-	"os"
 	"os/user"
-	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -29,13 +26,15 @@ import (
 // See [github.com/mattermost/mattermost/server/public/shared/mlog.LvlAuditAPI],
 // [github.com/mattermost/mattermost/server/public/shared/mlog.LvlAuditContent],
 // [github.com/mattermost/mattermost/server/public/shared/mlog.LvlAuditPerms],
-// [github.com/mattermost/mattermost/server/public/shared/mlog.LvlAuditCLI]
+// [github.com/mattermost/mattermost/server/public/shared/mlog.LvlAuditCLI],
+// [github.com/mattermost/mattermost/server/public/shared/mlog.LvlAuditDelivery]
 // for detailed documentation on when to use each level.
 var (
-	LevelAPI     = mlog.LvlAuditAPI
-	LevelContent = mlog.LvlAuditContent
-	LevelPerms   = mlog.LvlAuditPerms
-	LevelCLI     = mlog.LvlAuditCLI
+	LevelAPI      = mlog.LvlAuditAPI
+	LevelContent  = mlog.LvlAuditContent
+	LevelPerms    = mlog.LvlAuditPerms
+	LevelCLI      = mlog.LvlAuditCLI
+	LevelDelivery = mlog.LvlAuditDelivery
 )
 
 const (
@@ -124,6 +123,8 @@ func (a *App) MakeAuditRecord(rctx request.CTX, event string, initialStatus stri
 	return rec
 }
 
+const accessControlAuditTargetMissingWarning = "AccessControlSettings.EnableAccessControlAuditLogging is enabled but no active audit log target is configured; ABAC policy-decision audit logging will have no effect. Enable ExperimentalAuditSettings.FileEnabled, or configure a target bound to an audit level via ExperimentalAuditSettings.AdvancedLoggingJSON or the MM_EXPERIMENTALAUDITSETTINGS_ADDITIONAL environment variable."
+
 func (s *Server) configureAudit(adt *audit.Audit, bAllowAdvancedLogging bool) error {
 	adt.OnQueueFull = s.onAuditTargetQueueFull
 	adt.OnError = s.onAuditError
@@ -144,26 +145,16 @@ func (s *Server) configureAudit(adt *audit.Audit, bAllowAdvancedLogging bool) er
 	}
 
 	// ExperimentalAuditSettings provides basic file audit (E0, E10); logConfigSrc provides advanced config (E20).
-	cfg, err := config.MloggerConfigFromAuditConfig(s.platform.Config().ExperimentalAuditSettings, logConfigSrc)
+	cfg, err := config.EffectiveAuditConfig(s.platform.Config().ExperimentalAuditSettings, logConfigSrc)
 	if err != nil {
-		return fmt.Errorf("invalid config for audit, %w", err)
-	}
-
-	// Append additional config from env var; any target name collisions will be overwritten.
-	additionalJSON := strings.TrimSpace(os.Getenv("MM_EXPERIMENTALAUDITSETTINGS_ADDITIONAL"))
-	if additionalJSON != "" {
-		cfgAdditional := make(mlog.LoggerConfiguration)
-		if err := json.Unmarshal([]byte(additionalJSON), &cfgAdditional); err != nil {
-			return fmt.Errorf("invalid additional config for audit, %w", err)
-		}
-		cfg.Append(cfgAdditional)
+		return err
 	}
 
 	return adt.Configure(cfg)
 }
 
 func (s *Server) onAuditTargetQueueFull(qname string, maxQSize int) bool {
-	s.Log().Error("Audit queue full, dropping record.", mlog.String("qname", qname), mlog.Int("queueSize", maxQSize))
+	s.Log().Error("Audit queue full, dropping record.", mlog.String("qname", qname), mlog.Int("queue_size", maxQSize))
 	return true // drop it
 }
 

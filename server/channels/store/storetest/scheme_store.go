@@ -4,7 +4,6 @@
 package storetest
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -144,49 +143,49 @@ func testSchemeStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
 	assert.Len(t, d1.DefaultChannelGuestRole, 26)
 
 	// Check the default roles were created correctly.
-	role1, err := ss.Role().GetByName(context.Background(), d1.DefaultTeamAdminRole)
+	role1, err := ss.Role().GetByName(rctx, d1.DefaultTeamAdminRole)
 	assert.NoError(t, err)
 	assert.Equal(t, role1.Permissions, []string{"delete_others_posts"})
 	assert.True(t, role1.SchemeManaged)
 
-	role2, err := ss.Role().GetByName(context.Background(), d1.DefaultTeamUserRole)
+	role2, err := ss.Role().GetByName(rctx, d1.DefaultTeamUserRole)
 	assert.NoError(t, err)
 	assert.Equal(t, role2.Permissions, []string{"view_team", "add_user_to_team"})
 	assert.True(t, role2.SchemeManaged)
 
-	role3, err := ss.Role().GetByName(context.Background(), d1.DefaultChannelAdminRole)
+	role3, err := ss.Role().GetByName(rctx, d1.DefaultChannelAdminRole)
 	assert.NoError(t, err)
 	assert.Equal(t, role3.Permissions, []string{"manage_public_channel_members", "manage_private_channel_members"})
 	assert.True(t, role3.SchemeManaged)
 
-	role4, err := ss.Role().GetByName(context.Background(), d1.DefaultChannelUserRole)
+	role4, err := ss.Role().GetByName(rctx, d1.DefaultChannelUserRole)
 	assert.NoError(t, err)
 	assert.Equal(t, role4.Permissions, []string{"read_channel", "read_channel_content", "create_post"})
 	assert.True(t, role4.SchemeManaged)
 
-	role5, err := ss.Role().GetByName(context.Background(), d1.DefaultTeamGuestRole)
+	role5, err := ss.Role().GetByName(rctx, d1.DefaultTeamGuestRole)
 	assert.NoError(t, err)
 	assert.Equal(t, role5.Permissions, []string{"view_team"})
 	assert.True(t, role5.SchemeManaged)
 
-	role6, err := ss.Role().GetByName(context.Background(), d1.DefaultChannelGuestRole)
+	role6, err := ss.Role().GetByName(rctx, d1.DefaultChannelGuestRole)
 	assert.NoError(t, err)
 	assert.Equal(t, role6.Permissions, []string{"read_channel", "read_channel_content", "create_post"})
 	assert.True(t, role6.SchemeManaged)
 
-	role7, err := ss.Role().GetByName(context.Background(), d1.DefaultPlaybookAdminRole)
+	role7, err := ss.Role().GetByName(rctx, d1.DefaultPlaybookAdminRole)
 	assert.NoError(t, err)
 	assert.True(t, role7.SchemeManaged)
 
-	role8, err := ss.Role().GetByName(context.Background(), d1.DefaultPlaybookMemberRole)
+	role8, err := ss.Role().GetByName(rctx, d1.DefaultPlaybookMemberRole)
 	assert.NoError(t, err)
 	assert.True(t, role8.SchemeManaged)
 
-	role9, err := ss.Role().GetByName(context.Background(), d1.DefaultRunAdminRole)
+	role9, err := ss.Role().GetByName(rctx, d1.DefaultRunAdminRole)
 	assert.NoError(t, err)
 	assert.True(t, role9.SchemeManaged)
 
-	role10, err := ss.Role().GetByName(context.Background(), d1.DefaultRunMemberRole)
+	role10, err := ss.Role().GetByName(rctx, d1.DefaultRunMemberRole)
 	assert.NoError(t, err)
 	assert.True(t, role10.SchemeManaged)
 
@@ -394,32 +393,32 @@ func testSchemeStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 	assert.Len(t, d1.DefaultChannelGuestRole, 26)
 
 	// Check the default roles were created correctly.
-	role1, err := ss.Role().GetByName(context.Background(), d1.DefaultTeamAdminRole)
+	role1, err := ss.Role().GetByName(rctx, d1.DefaultTeamAdminRole)
 	assert.NoError(t, err)
 	assert.Equal(t, role1.Permissions, []string{"delete_others_posts"})
 	assert.True(t, role1.SchemeManaged)
 
-	role2, err := ss.Role().GetByName(context.Background(), d1.DefaultTeamUserRole)
+	role2, err := ss.Role().GetByName(rctx, d1.DefaultTeamUserRole)
 	assert.NoError(t, err)
 	assert.Equal(t, role2.Permissions, []string{"view_team", "add_user_to_team"})
 	assert.True(t, role2.SchemeManaged)
 
-	role3, err := ss.Role().GetByName(context.Background(), d1.DefaultChannelAdminRole)
+	role3, err := ss.Role().GetByName(rctx, d1.DefaultChannelAdminRole)
 	assert.NoError(t, err)
 	assert.Equal(t, role3.Permissions, []string{"manage_public_channel_members", "manage_private_channel_members"})
 	assert.True(t, role3.SchemeManaged)
 
-	role4, err := ss.Role().GetByName(context.Background(), d1.DefaultChannelUserRole)
+	role4, err := ss.Role().GetByName(rctx, d1.DefaultChannelUserRole)
 	assert.NoError(t, err)
 	assert.Equal(t, role4.Permissions, []string{"read_channel", "read_channel_content", "create_post"})
 	assert.True(t, role4.SchemeManaged)
 
-	role5, err := ss.Role().GetByName(context.Background(), d1.DefaultTeamGuestRole)
+	role5, err := ss.Role().GetByName(rctx, d1.DefaultTeamGuestRole)
 	assert.NoError(t, err)
 	assert.Equal(t, role5.Permissions, []string{"view_team"})
 	assert.True(t, role5.SchemeManaged)
 
-	role6, err := ss.Role().GetByName(context.Background(), d1.DefaultChannelGuestRole)
+	role6, err := ss.Role().GetByName(rctx, d1.DefaultChannelGuestRole)
 	assert.NoError(t, err)
 	assert.Equal(t, role6.Permissions, []string{"read_channel", "read_channel_content", "create_post"})
 	assert.True(t, role6.SchemeManaged)
@@ -430,27 +429,27 @@ func testSchemeStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 	assert.NotZero(t, d2.DeleteAt)
 
 	// Check that the roles are deleted too.
-	role7, err := ss.Role().GetByName(context.Background(), d1.DefaultTeamAdminRole)
+	role7, err := ss.Role().GetByName(rctx, d1.DefaultTeamAdminRole)
 	assert.NoError(t, err)
 	assert.NotZero(t, role7.DeleteAt)
 
-	role8, err := ss.Role().GetByName(context.Background(), d1.DefaultTeamUserRole)
+	role8, err := ss.Role().GetByName(rctx, d1.DefaultTeamUserRole)
 	assert.NoError(t, err)
 	assert.NotZero(t, role8.DeleteAt)
 
-	role9, err := ss.Role().GetByName(context.Background(), d1.DefaultChannelAdminRole)
+	role9, err := ss.Role().GetByName(rctx, d1.DefaultChannelAdminRole)
 	assert.NoError(t, err)
 	assert.NotZero(t, role9.DeleteAt)
 
-	role10, err := ss.Role().GetByName(context.Background(), d1.DefaultChannelUserRole)
+	role10, err := ss.Role().GetByName(rctx, d1.DefaultChannelUserRole)
 	assert.NoError(t, err)
 	assert.NotZero(t, role10.DeleteAt)
 
-	role11, err := ss.Role().GetByName(context.Background(), d1.DefaultTeamGuestRole)
+	role11, err := ss.Role().GetByName(rctx, d1.DefaultTeamGuestRole)
 	assert.NoError(t, err)
 	assert.NotZero(t, role11.DeleteAt)
 
-	role12, err := ss.Role().GetByName(context.Background(), d1.DefaultChannelGuestRole)
+	role12, err := ss.Role().GetByName(rctx, d1.DefaultChannelGuestRole)
 	assert.NoError(t, err)
 	assert.NotZero(t, role12.DeleteAt)
 
@@ -596,10 +595,10 @@ func testCountWithoutPermission(t *testing.T, rctx request.CTX, ss store.Store) 
 
 	getRoles := func(scheme *model.Scheme) (channelUser, channelGuest *model.Role) {
 		var err error
-		channelUser, err = ss.Role().GetByName(context.Background(), scheme.DefaultChannelUserRole)
+		channelUser, err = ss.Role().GetByName(rctx, scheme.DefaultChannelUserRole)
 		require.NoError(t, err)
 		require.NotNil(t, channelUser)
-		channelGuest, err = ss.Role().GetByName(context.Background(), scheme.DefaultChannelGuestRole)
+		channelGuest, err = ss.Role().GetByName(rctx, scheme.DefaultChannelGuestRole)
 		require.NoError(t, err)
 		require.NotNil(t, channelGuest)
 		return

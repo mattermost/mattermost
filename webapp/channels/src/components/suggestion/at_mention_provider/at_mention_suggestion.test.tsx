@@ -137,4 +137,32 @@ describe('at mention suggestion', () => {
             });
         }
     });
+
+    test('should render ImportedInactiveTag for imported inactive user', () => {
+        const item = {
+            ...TestHelper.getUserMock({username: 'inactive-user'}),
+            isCurrentUser: false,
+            props: {importedInactive: 'true'},
+        } as Item;
+
+        renderWithContext(
+            <AtMentionSuggestion
+                {...baseProps}
+                item={item}
+            />,
+        );
+
+        expect(screen.getByText('IMPORTED - INACTIVE')).toBeInTheDocument();
+    });
+
+    test('should not render ImportedInactiveTag for regular user', () => {
+        renderWithContext(
+            <AtMentionSuggestion
+                {...baseProps}
+                item={userid2}
+            />,
+        );
+
+        expect(screen.queryByText('IMPORTED - INACTIVE')).not.toBeInTheDocument();
+    });
 });
