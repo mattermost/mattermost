@@ -9,6 +9,8 @@ import type {ScheduledPost} from '@mattermost/types/schedule_post';
 import {Client4} from 'mattermost-redux/client';
 import {Permissions} from 'mattermost-redux/constants';
 
+import {setGlobalItem} from 'actions/storage';
+
 import {act, fireEvent, renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
 import {ModalIdentifiers, StoragePrefixes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
@@ -109,7 +111,7 @@ describe('components/edit_scheduled_post/edit_post', () => {
             },
         };
 
-        function renderEditor() {
+        function renderEditor(state: Record<string, unknown> = scheduledPostState) {
             const afterSave = jest.fn();
             const onCancel = jest.fn();
             const editor = (
@@ -120,7 +122,7 @@ describe('components/edit_scheduled_post/edit_post', () => {
                     onDeleteScheduledPost={jest.fn().mockResolvedValue({})}
                 />
             );
-            const result = renderWithContext(editor, scheduledPostState);
+            const result = renderWithContext(editor, state);
 
             return {
                 ...result,
@@ -235,6 +237,173 @@ describe('components/edit_scheduled_post/edit_post', () => {
             await waitFor(() => {
                 expect(afterSave).toHaveBeenCalledTimes(1);
             });
+        });
+
+        test('should allow retrying the save after a server error without changing the text', async () => {
+            nock(Client4.getBaseRoute()).
+                put(`/posts/schedule/${scheduledPost.id}`).
+                reply(400, {message: 'Unable to update scheduled post'});
+            const retry = nock(Client4.getBaseRoute()).
+                put(`/posts/schedule/${scheduledPost.id}`).
+                reply(200, {...scheduledPost, message: 'Updated message'});
+
+            const {afterSave} = renderEditor();
+
+            fireEvent.input(getTextbox(), {target: {value: 'Updated message'}});
+            fireEvent.click(screen.getByText('Save'));
+            expect(await screen.findByText('Unable to update scheduled post')).toBeInTheDocument();
+
+            fireEvent.click(screen.getByText('Save'));
+
+            await waitFor(() => {
+                expect(afterSave).toHaveBeenCalledTimes(1);
+            });
+            expect(retry.isDone()).toBe(true);
+            expect(screen.queryByText('Unable to update scheduled post')).not.toBeInTheDocument();
+        });
+
+        test('should allow retrying the save after a plugin hook error without changing the text', async () => {
+            const hook = jest.fn().
+                mockResolvedValueOnce({error: {message: 'Rejected by plugin'}}).
+                mockImplementation((newPost) => Promise.resolve({post: newPost}));
+            const update = nock(Client4.getBaseRoute()).
+                put(`/posts/schedule/${scheduledPost.id}`).
+                reply(200, {...scheduledPost, message: 'Updated message'});
+
+            const {afterSave} = renderEditor({
+                ...scheduledPostState,
+                plugins: {components: {MessageWillBeUpdated: [{id: 'hook', pluginId: 'plugin', hook}]}},
+            });
+
+            fireEvent.input(getTextbox(), {target: {value: 'Updated message'}});
+            fireEvent.click(screen.getByText('Save'));
+            expect(await screen.findByText('Rejected by plugin')).toBeInTheDocument();
+            expect(afterSave).not.toHaveBeenCalled();
+
+            fireEvent.click(screen.getByText('Save'));
+
+            await waitFor(() => {
+                expect(afterSave).toHaveBeenCalledTimes(1);
+            });
+            expect(hook).toHaveBeenCalledTimes(2);
+            expect(update.isDone()).toBe(true);
+        });
+
+        test('should block saving a message over the length limit until it is shortened', async () => {
+            const update = nock(Client4.getBaseRoute()).
+                put(`/posts/schedule/${scheduledPost.id}`).
+                reply(200, {...scheduledPost, message: 'Short'});
+
+            const {afterSave} = renderEditor({
+                ...scheduledPostState,
+                entities: {...scheduledPostState.entities, general: {config: {MaxPostSize: '10'}}},
+            });
+
+            fireEvent.input(getTextbox(), {target: {value: 'This message is far too long'}});
+            fireEvent.click(screen.getByText('Save'));
+            await act(async () => {});
+
+            expect(update.isDone()).toBe(false);
+            expect(afterSave).not.toHaveBeenCalled();
+
+            fireEvent.input(getTextbox(), {target: {value: 'Short'}});
+            fireEvent.click(screen.getByText('Save'));
+
+            await waitFor(() => {
+                expect(afterSave).toHaveBeenCalledTimes(1);
+            });
+            expect(update.isDone()).toBe(true);
+        });
+
+        test('should not write an edit draft when the editor is opened and closed without typing', async () => {
+            const {store, remount} = renderEditor();
+
+            remount();
+            await act(async () => {
+                await new Promise((resolve) => setTimeout(resolve, 600));
+            });
+
+            expect(store.getState().storage.storage[draftStorageKey]).toBeUndefined();
+            expect(getTextbox().value).toBe('Original scheduled message');
+        });
+
+        test('should not rewrite the edit draft on unmount once it has already been saved', async () => {
+            const {store, remount} = renderEditor();
+
+            await typeAndPersistDraft(store, 'Saved edit');
+            store.dispatch(setGlobalItem(draftStorageKey, null));
+            remount();
+
+            expect(store.getState().storage.storage[draftStorageKey].value).toBeNull();
+        });
+
+        test('should not leave an edit draft behind when the delete confirmation is shown', async () => {
+            const {store, unmount} = renderEditor();
+
+            fireEvent.input(getTextbox(), {target: {value: ''}});
+            fireEvent.click(screen.getByText('Save'));
+
+            await waitFor(() => {
+                expect(store.getState().views.modals.modalState[ModalIdentifiers.DELETE_DRAFT]?.open).toBe(true);
+            });
+            unmount();
+
+            expect(store.getState().storage.storage[draftStorageKey]?.value ?? null).toBeNull();
+        });
+
+        test('should restore text added by a markdown hotkey when the editor is closed without cancelling', () => {
+            const {remount} = renderEditor();
+
+            fireEvent.keyDown(getTextbox(), {key: 'b', keyCode: 66, ctrlKey: true});
+            const hotkeyText = getTextbox().value;
+            expect(hotkeyText).not.toBe('Original scheduled message');
+            remount();
+
+            expect(getTextbox().value).toBe(hotkeyText);
+        });
+
+        test('should restore text added by a line break key combo when the editor is closed without cancelling', () => {
+            const {remount} = renderEditor();
+
+            fireEvent.keyDown(getTextbox(), {key: 'Enter', keyCode: 13, altKey: true});
+            expect(getTextbox().value).toContain('\n');
+            const lineBreakText = getTextbox().value;
+            remount();
+
+            expect(getTextbox().value).toBe(lineBreakText);
+        });
+
+        test('should restore pasted markdown when the editor is closed without cancelling', () => {
+            const {remount} = renderEditor();
+
+            fireEvent.paste(getTextbox(), {
+                clipboardData: {
+                    items: [1],
+                    types: ['text/html', 'text/plain'],
+                    getData: (type: string) => (type === 'text/plain' ? 'unformatted' : '<strong>bold</strong>'),
+                },
+            });
+            const pastedText = getTextbox().value;
+            expect(pastedText).toContain('**bold**');
+            remount();
+
+            expect(getTextbox().value).toBe(pastedText);
+        });
+
+        test('should fall back to the scheduled message when the stored edit draft is whitespace only', () => {
+            renderEditor({
+                ...scheduledPostState,
+                storage: {
+                    storage: {
+                        [draftStorageKey]: {
+                            value: {message: '   ', fileInfos: [], uploadsInProgress: []},
+                            timestamp: new Date(),
+                        },
+                    },
+                },
+            });
+
+            expect(getTextbox().value).toBe('Original scheduled message');
         });
     });
 });

@@ -109,11 +109,12 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
     const dispatch = useDispatch();
 
     const [editText, setEditText] = useState<string>(
-        draft.message || editingPost?.post?.message_source || editingPost?.post?.message || scheduledPost?.message || '',
+        draft.message.trim() ? draft.message : (editingPost?.post?.message_source || editingPost?.post?.message || scheduledPost?.message || ''),
     );
     const [selectionRange, setSelectionRange] = useState<State['selectionRange']>({start: editText.length, end: editText.length});
     const caretPosition = useRef<number>(editText.length);
     const [postError, setPostError] = useState<React.ReactNode | null>(null);
+    const [hasLengthError, setHasLengthError] = useState<boolean>(false);
     const [errorClass, setErrorClass] = useState<string>('');
     const [showEmojiPicker, setShowEmojiPicker] = useState<boolean>(false);
     const [renderScrollbar, setRenderScrollbar] = useState<boolean>(false);
@@ -127,6 +128,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
     // function closure on initial render
     const draftRef = useRef<PostDraft>(draft);
     const saveDraftFrame = useRef<number | null>(undefined);
+    const isFirstRender = useRef(true);
 
     const id = scheduledPost ? scheduledPost.id : editingPost.postId;
     const draftStorageId = `${StoragePrefixes.EDIT_DRAFT}${id}`;
@@ -145,13 +147,21 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
     useEffect(() => saveDraft, [saveDraft]);
 
     useEffect(() => {
-        if (saveDraftFrame.current) {
-            clearTimeout(saveDraftFrame.current);
-        }
+        // paste, hotkeys and line breaks update editText without going through handleChange
+        draftRef.current = {...draftRef.current, message: editText};
 
-        saveDraftFrame.current = window.setTimeout(() => {
-            actions.setDraft(draftStorageId, draftRef.current);
-        }, Constants.SAVE_DRAFT_TIMEOUT);
+        if (isFirstRender.current) {
+            isFirstRender.current = false;
+        } else {
+            if (saveDraftFrame.current) {
+                clearTimeout(saveDraftFrame.current);
+            }
+
+            saveDraftFrame.current = window.setTimeout(() => {
+                saveDraftFrame.current = null;
+                actions.setDraft(draftStorageId, draftRef.current);
+            }, Constants.SAVE_DRAFT_TIMEOUT);
+        }
 
         if (!scheduledPost) {
             const isMentions = allAtMentions(editText).length > 0;
@@ -337,6 +347,14 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
             return;
         }
 
+        if (hasLengthError) {
+            setErrorClass('animation--highlight');
+            setTimeout(() => setErrorClass(''), Constants.ANIMATION_TIMEOUT);
+            return;
+        }
+
+        setPostError(null);
+
         const post = scheduledPostToPost(scheduledPost);
 
         let updatedPost = {
@@ -353,12 +371,6 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
 
         updatedPost = hookResult.data;
 
-        if (postError) {
-            setErrorClass('animation--highlight');
-            setTimeout(() => setErrorClass(''), Constants.ANIMATION_TIMEOUT);
-            return;
-        }
-
         if (updatedPost.message === post.message) {
             handleAutomatedRefocusAndExit();
             afterSave?.();
@@ -369,7 +381,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
             scheduledPost.file_ids && scheduledPost.file_ids.length > 0,
         );
         if (updatedPost.message.trim().length === 0 && !hasAttachment) {
-            handleRefocusAndExit(null);
+            handleAutomatedRefocusAndExit();
 
             const deleteScheduledPostModalData = {
                 modalId: ModalIdentifiers.DELETE_DRAFT,
@@ -403,7 +415,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         handleAutomatedRefocusAndExit,
         handleRefocusAndExit,
         isSaveDisabled,
-        postError,
+        hasLengthError,
         scheduledPost,
         afterSave,
         channel,
@@ -500,6 +512,10 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
     const handleHeightChange = (height: number, maxHeight: number) => setRenderScrollbar(height > maxHeight);
 
     const handlePostError = (_postError: React.ReactNode) => {
+        if (hasLengthError !== Boolean(_postError)) {
+            setHasLengthError(Boolean(_postError));
+        }
+
         if (_postError !== postError) {
             setPostError(_postError);
         }
