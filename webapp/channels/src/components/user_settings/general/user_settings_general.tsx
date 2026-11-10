@@ -1611,6 +1611,16 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
 
                     if (valueRefersToOptions(attribute)) {
                         const comboboxId = 'customProfileAttribute_' + attribute.id;
+                        const comboboxType = getAttributeComboboxType(attribute);
+                        const placeholder = comboboxType === 'multiselect' ?
+                            formatMessage({
+                                id: 'admin.user.selectOptions',
+                                defaultMessage: 'Select options',
+                            }) :
+                            formatMessage({
+                                id: 'admin.userManagement.userDetail.selectOption',
+                                defaultMessage: 'Select an option',
+                            });
 
                         inputs.push(
                             <AttributeCombobox
@@ -1619,12 +1629,9 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                                 testId={comboboxId}
                                 label={getUserPropertyFieldLabel(attribute)}
                                 options={attribute.attrs?.options ?? []}
-                                placeholder={formatMessage({
-                                    id: 'user.settings.general.select',
-                                    defaultMessage: 'Select',
-                                })}
+                                placeholder={placeholder}
                                 zIndex={ZIndex.MENU}
-                                type={getAttributeComboboxType(attribute)}
+                                type={comboboxType}
                                 value={this.state.customAttributeValues[attribute.id]}
                                 onChange={(value) => this.updateComboboxAttribute(attribute.id, value)}
                             />,

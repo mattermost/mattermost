@@ -68,7 +68,8 @@ const ChannelAttributesForm = ({fields, values, onChange, disabled}: Props) => {
         return null;
     }
 
-    const selectPlaceholder = formatMessage({id: 'channel_attributes.select_value', defaultMessage: 'Select a value'});
+    const selectOptionPlaceholder = formatMessage({id: 'admin.userManagement.userDetail.selectOption', defaultMessage: 'Select an option'});
+    const selectOptionsPlaceholder = formatMessage({id: 'admin.user.selectOptions', defaultMessage: 'Select options'});
     const textPlaceholder = formatMessage({id: 'channel_attributes.enter_value', defaultMessage: 'Enter a value'});
     const requiredMessage = formatMessage({id: 'widget.input.required', defaultMessage: 'This field is required'});
 
@@ -105,7 +106,7 @@ const ChannelAttributesForm = ({fields, values, onChange, disabled}: Props) => {
                             field={field}
                             value={selected}
                             onChange={onChange}
-                            placeholder={selectPlaceholder}
+                            placeholder={selectOptionPlaceholder}
                             ariaLabel={label}
                             disabled={disabled}
                         />
@@ -126,16 +127,18 @@ const ChannelAttributesForm = ({fields, values, onChange, disabled}: Props) => {
                         />
                     );
                 } else {
+                    const comboboxType = getAttributeComboboxType(field);
+                    const placeholder = comboboxType === 'multiselect' ? selectOptionsPlaceholder : selectOptionPlaceholder;
                     control = (
                         <AttributeCombobox
                             id={comboboxId}
                             testId={`channelAttribute-${field.name}`}
-                            type={getAttributeComboboxType(field)}
+                            type={comboboxType}
                             label={label}
                             options={getOptions(field)}
                             value={selected ?? ''}
                             onChange={(next) => handleOptionsChange(field.id, next)}
-                            placeholder={selectPlaceholder}
+                            placeholder={placeholder}
                             zIndex={ZIndex.MENU}
                             required={required}
                             disabled={disabled}
