@@ -107,12 +107,12 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                       class="BooleanRadioGroup-caqMkq klbaOn"
                     >
                       <label
-                        class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                        class="_radio_1v3hu_13 _radio--size-medium_1v3hu_154"
                         for="settingbtrue"
                       >
                         <input
                           checked=""
-                          class="_radio__input_h0rbb_17"
+                          class="_radio__input_1v3hu_28"
                           data-testid="settingbtrue"
                           id="settingbtrue"
                           name="settingb"
@@ -120,25 +120,25 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                           value="true"
                         />
                         <span
-                          class="_radio__circle_h0rbb_36"
+                          class="_radio__circle_1v3hu_47"
                         >
                           <span
                             aria-hidden="true"
-                            class="_radio__dot_h0rbb_62"
+                            class="_radio__dot_1v3hu_73"
                           />
                         </span>
                         <span
-                          class="_radio__label_h0rbb_119"
+                          class="_radio__label_1v3hu_130"
                         >
                           True
                         </span>
                       </label>
                       <label
-                        class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                        class="_radio_1v3hu_13 _radio--size-medium_1v3hu_154"
                         for="settingbfalse"
                       >
                         <input
-                          class="_radio__input_h0rbb_17"
+                          class="_radio__input_1v3hu_28"
                           data-testid="settingbfalse"
                           id="settingbfalse"
                           name="settingb"
@@ -146,15 +146,15 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                           value="false"
                         />
                         <span
-                          class="_radio__circle_h0rbb_36"
+                          class="_radio__circle_1v3hu_47"
                         >
                           <span
                             aria-hidden="true"
-                            class="_radio__dot_h0rbb_62"
+                            class="_radio__dot_1v3hu_73"
                           />
                         </span>
                         <span
-                          class="_radio__label_h0rbb_119"
+                          class="_radio__label_1v3hu_130"
                         >
                           False
                         </span>
@@ -228,26 +228,26 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                     class="col-sm-8"
                   >
                     <label
-                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143 RadioSetting__radio"
+                      class="_radio_1v3hu_13 _radio--size-medium_1v3hu_154 RadioSetting__radio"
                       for="_r_b_"
                     >
                       <input
-                        class="_radio__input_h0rbb_17"
+                        class="_radio__input_1v3hu_28"
                         id="_r_b_"
                         name="settingd"
                         type="radio"
                         value="option1"
                       />
                       <span
-                        class="_radio__circle_h0rbb_36"
+                        class="_radio__circle_1v3hu_47"
                       >
                         <span
                           aria-hidden="true"
-                          class="_radio__dot_h0rbb_62"
+                          class="_radio__dot_1v3hu_73"
                         />
                       </span>
                       <span
-                        class="_radio__label_h0rbb_119"
+                        class="_radio__label_1v3hu_130"
                       >
                         <span
                           class="RadioSetting__text"
@@ -257,27 +257,27 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                       </span>
                     </label>
                     <label
-                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143 RadioSetting__radio"
+                      class="_radio_1v3hu_13 _radio--size-medium_1v3hu_154 RadioSetting__radio"
                       for="_r_c_"
                     >
                       <input
                         checked=""
-                        class="_radio__input_h0rbb_17"
+                        class="_radio__input_1v3hu_28"
                         id="_r_c_"
                         name="settingd"
                         type="radio"
                         value="option2"
                       />
                       <span
-                        class="_radio__circle_h0rbb_36"
+                        class="_radio__circle_1v3hu_47"
                       >
                         <span
                           aria-hidden="true"
-                          class="_radio__dot_h0rbb_62"
+                          class="_radio__dot_1v3hu_73"
                         />
                       </span>
                       <span
-                        class="_radio__label_h0rbb_119"
+                        class="_radio__label_1v3hu_130"
                       >
                         <span
                           class="RadioSetting__text"
@@ -287,26 +287,26 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                       </span>
                     </label>
                     <label
-                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143 RadioSetting__radio"
+                      class="_radio_1v3hu_13 _radio--size-medium_1v3hu_154 RadioSetting__radio"
                       for="_r_d_"
                     >
                       <input
-                        class="_radio__input_h0rbb_17"
+                        class="_radio__input_1v3hu_28"
                         id="_r_d_"
                         name="settingd"
                         type="radio"
                         value="option3"
                       />
                       <span
-                        class="_radio__circle_h0rbb_36"
+                        class="_radio__circle_1v3hu_47"
                       >
                         <span
                           aria-hidden="true"
-                          class="_radio__dot_h0rbb_62"
+                          class="_radio__dot_1v3hu_73"
                         />
                       </span>
                       <span
-                        class="_radio__label_h0rbb_119"
+                        class="_radio__label_1v3hu_130"
                       >
                         <span
                           class="RadioSetting__text"
@@ -354,11 +354,11 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                       class="help-text"
                     >
                       <button
-                        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
+                        class="_button_1pij1_13 _button--emphasis-tertiary_1pij1_141 _button--size-medium_1pij1_88"
                         type="button"
                       >
                         <span
-                          class="_button__label_we8pe_31"
+                          class="_button__label_1pij1_55"
                         >
                           Regenerate
                         </span>
@@ -447,14 +447,14 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
       class="admin-console-save"
     >
       <button
-        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+        class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
         type="submit"
       >
         <span
-          class="_button__label_we8pe_31"
+          class="_button__label_1pij1_55"
         >
           Save
         </span>
@@ -502,14 +502,14 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
       class="admin-console-save"
     >
       <button
-        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+        class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
         type="submit"
       >
         <span
-          class="_button__label_we8pe_31"
+          class="_button__label_1pij1_55"
         >
           Save
         </span>
@@ -630,11 +630,11 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                       class="BooleanRadioGroup-caqMkq klbaOn"
                     >
                       <label
-                        class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                        class="_radio_1v3hu_13 _radio--size-medium_1v3hu_154"
                         for="PluginSettings.Plugins.testplugin.settingbtrue"
                       >
                         <input
-                          class="_radio__input_h0rbb_17"
+                          class="_radio__input_1v3hu_28"
                           data-testid="PluginSettings.Plugins.testplugin.settingbtrue"
                           id="PluginSettings.Plugins.testplugin.settingbtrue"
                           name="PluginSettings.Plugins.testplugin.settingb"
@@ -642,26 +642,26 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                           value="true"
                         />
                         <span
-                          class="_radio__circle_h0rbb_36"
+                          class="_radio__circle_1v3hu_47"
                         >
                           <span
                             aria-hidden="true"
-                            class="_radio__dot_h0rbb_62"
+                            class="_radio__dot_1v3hu_73"
                           />
                         </span>
                         <span
-                          class="_radio__label_h0rbb_119"
+                          class="_radio__label_1v3hu_130"
                         >
                           True
                         </span>
                       </label>
                       <label
-                        class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
+                        class="_radio_1v3hu_13 _radio--size-medium_1v3hu_154"
                         for="PluginSettings.Plugins.testplugin.settingbfalse"
                       >
                         <input
                           checked=""
-                          class="_radio__input_h0rbb_17"
+                          class="_radio__input_1v3hu_28"
                           data-testid="PluginSettings.Plugins.testplugin.settingbfalse"
                           id="PluginSettings.Plugins.testplugin.settingbfalse"
                           name="PluginSettings.Plugins.testplugin.settingb"
@@ -669,15 +669,15 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                           value="false"
                         />
                         <span
-                          class="_radio__circle_h0rbb_36"
+                          class="_radio__circle_1v3hu_47"
                         >
                           <span
                             aria-hidden="true"
-                            class="_radio__dot_h0rbb_62"
+                            class="_radio__dot_1v3hu_73"
                           />
                         </span>
                         <span
-                          class="_radio__label_h0rbb_119"
+                          class="_radio__label_1v3hu_130"
                         >
                           False
                         </span>
@@ -751,27 +751,27 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                     class="col-sm-8"
                   >
                     <label
-                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143 RadioSetting__radio"
+                      class="_radio_1v3hu_13 _radio--size-medium_1v3hu_154 RadioSetting__radio"
                       for="_r_2_"
                     >
                       <input
                         checked=""
-                        class="_radio__input_h0rbb_17"
+                        class="_radio__input_1v3hu_28"
                         id="_r_2_"
                         name="PluginSettings.Plugins.testplugin.settingd"
                         type="radio"
                         value="option1"
                       />
                       <span
-                        class="_radio__circle_h0rbb_36"
+                        class="_radio__circle_1v3hu_47"
                       >
                         <span
                           aria-hidden="true"
-                          class="_radio__dot_h0rbb_62"
+                          class="_radio__dot_1v3hu_73"
                         />
                       </span>
                       <span
-                        class="_radio__label_h0rbb_119"
+                        class="_radio__label_1v3hu_130"
                       >
                         <span
                           class="RadioSetting__text"
@@ -781,26 +781,26 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                       </span>
                     </label>
                     <label
-                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143 RadioSetting__radio"
+                      class="_radio_1v3hu_13 _radio--size-medium_1v3hu_154 RadioSetting__radio"
                       for="_r_3_"
                     >
                       <input
-                        class="_radio__input_h0rbb_17"
+                        class="_radio__input_1v3hu_28"
                         id="_r_3_"
                         name="PluginSettings.Plugins.testplugin.settingd"
                         type="radio"
                         value="option2"
                       />
                       <span
-                        class="_radio__circle_h0rbb_36"
+                        class="_radio__circle_1v3hu_47"
                       >
                         <span
                           aria-hidden="true"
-                          class="_radio__dot_h0rbb_62"
+                          class="_radio__dot_1v3hu_73"
                         />
                       </span>
                       <span
-                        class="_radio__label_h0rbb_119"
+                        class="_radio__label_1v3hu_130"
                       >
                         <span
                           class="RadioSetting__text"
@@ -810,26 +810,26 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                       </span>
                     </label>
                     <label
-                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143 RadioSetting__radio"
+                      class="_radio_1v3hu_13 _radio--size-medium_1v3hu_154 RadioSetting__radio"
                       for="_r_4_"
                     >
                       <input
-                        class="_radio__input_h0rbb_17"
+                        class="_radio__input_1v3hu_28"
                         id="_r_4_"
                         name="PluginSettings.Plugins.testplugin.settingd"
                         type="radio"
                         value="option3"
                       />
                       <span
-                        class="_radio__circle_h0rbb_36"
+                        class="_radio__circle_1v3hu_47"
                       >
                         <span
                           aria-hidden="true"
-                          class="_radio__dot_h0rbb_62"
+                          class="_radio__dot_1v3hu_73"
                         />
                       </span>
                       <span
-                        class="_radio__label_h0rbb_119"
+                        class="_radio__label_1v3hu_130"
                       >
                         <span
                           class="RadioSetting__text"
@@ -877,11 +877,11 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
                       class="help-text"
                     >
                       <button
-                        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
+                        class="_button_1pij1_13 _button--emphasis-tertiary_1pij1_141 _button--size-medium_1pij1_88"
                         type="button"
                       >
                         <span
-                          class="_button__label_we8pe_31"
+                          class="_button__label_1pij1_55"
                         >
                           Regenerate
                         </span>
@@ -970,14 +970,14 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
       class="admin-console-save"
     >
       <button
-        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+        class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
         type="submit"
       >
         <span
-          class="_button__label_we8pe_31"
+          class="_button__label_1pij1_55"
         >
           Save
         </span>
