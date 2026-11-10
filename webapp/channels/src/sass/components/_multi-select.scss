@@ -12,6 +12,11 @@
         flex-shrink: 0;
     }
 
+    .react-select__control.react-select-auto {
+        overflow: auto;
+        max-height: 125px;
+    }
+
     &.has-error.react-select .react-select__control.react-select-auto {
         border-color: var(--error-text);
     }
