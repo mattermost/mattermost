@@ -5,6 +5,9 @@ import classNames from 'classnames';
 import React, {useEffect} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {SendIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
@@ -140,12 +143,16 @@ const Member = ({channel, member, index, totalUsers, editing, actions}: Props) =
                         defaultMessage: 'Send message',
                     })}
                 >
-                    <button
+                    <IconButton
+                        size='small'
                         className='channel-members-rhs__send-message'
+                        icon={<Icon glyph={<SendIcon/>}/>}
                         onClick={() => actions.openDirectMessage(member.user)}
-                    >
-                        <i className='icon icon-send'/>
-                    </button>
+                        aria-label={formatMessage({
+                            id: 'channel_members_rhs.member.send_message',
+                            defaultMessage: 'Send message',
+                        })}
+                    />
                 </WithTooltip>
             )}
         </div>
