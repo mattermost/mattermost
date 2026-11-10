@@ -3774,6 +3774,11 @@
     "description": "Admin console error when a plugin's cryptographic signature cannot be verified during installation."
   },
   {
+    "id": "api.post.access_control_resource.denied.app_error",
+    "translation": "You do not have permission to access this post.",
+    "description": "API error when a user acts on a post whose plugin-owned access control policy does not admit them."
+  },
+  {
     "id": "api.post.burn_post.user_not_in_channel.app_error",
     "translation": "You do not have permission to burn this post. You must be a member of the channel.",
     "description": "API error when a user tries to 'burn' (permanently destroy) a burn-on-read message in a channel they are not a member of; 'burn' refers to the burn-on-read feature."
@@ -3993,6 +3998,11 @@
     "id": "api.post.get_posts_for_reporting.channel_not_found",
     "translation": "Channel not found",
     "description": "API error in an admin reporting endpoint when the channel whose posts were requested does not exist."
+  },
+  {
+    "id": "api.post.move_thread.access_control_resource.app_error",
+    "translation": "This thread is managed by a plugin and cannot be moved.",
+    "description": "API error when a user tries to move a message thread that a plugin has placed under an access control policy."
   },
   {
     "id": "api.post.move_thread.disabled.app_error",

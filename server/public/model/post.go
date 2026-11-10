@@ -127,6 +127,15 @@ const (
 	PostPropsAdaptiveCards   = "cards"
 	PostPropsMmBlocksActions = "mm_blocks_actions"
 
+	// PostPropsAccessControlResource marks a post as governed by a plugin-owned
+	// access control policy. Its value is
+	// "<pluginID>:<resourceType>:<resourceID>:<action>" (see
+	// ParsePostAccessControlResource). Only the owning plugin can set it; the
+	// server copies it from a root onto its replies, filters the post out of
+	// reads, notifications, and websocket broadcasts for users the policy
+	// denies, and refuses moving a marked thread.
+	PostPropsAccessControlResource = "access_control_resource"
+
 	PostPriorityUrgent = "urgent"
 
 	DefaultExpirySeconds       = 60 * 60 * 24 * 7 // 7 days
@@ -429,6 +438,11 @@ type CreatePostFlags struct {
 	// by CreateWebhookPost — from_webhook is user-forgeable on the REST API.
 	AllowMmBlocksActions bool
 
+	// AllowAccessControlResource keeps props.access_control_resource on
+	// create. Set only by PluginAPI.CreatePost after verifying the value names
+	// the calling plugin; SanitizeProps strips it for every other caller.
+	AllowAccessControlResource bool
+
 	// Display-identity overrides applied by trusted integration entry points
 	// (incoming webhooks, slash commands). SanitizeProps strips the matching
 	// post.Props keys by default so clients cannot forge them; the CreatePost
@@ -685,6 +699,13 @@ func (o *Post) SanitizeProps() {
 		)
 	}
 
+	// access_control_resource is stripped for every origin, federation
+	// included: a remote cluster's policies do not exist here, so the marker
+	// could only ever collide with a local plugin's resource IDs. The plugin
+	// API re-injects it under verified ownership (CreatePostFlags.
+	// AllowAccessControlResource / UpdatePostOptions.AllowAccessControlResourceUpdate).
+	membersToSanitize = append(membersToSanitize, PostPropsAccessControlResource)
+
 	for _, member := range membersToSanitize {
 		if _, ok := o.GetProps()[member]; ok {
 			o.DelProp(member)
@@ -746,6 +767,7 @@ var postIdentityPropsPreservedOnUpdate = []string{
 	PostPropsOverrideIconURL,
 	PostPropsOverrideIconEmoji,
 	PostPropsWebhookDisplayName,
+	PostPropsAccessControlResource,
 }
 
 func (o *Post) PreserveIdentityPropsFrom(old *Post) {
@@ -794,6 +816,7 @@ func ContainsIntegrationsReservedProps(props StringInterface) []string {
 			PostPropsOverrideIconURL,
 			PostPropsOverrideIconEmoji,
 			PostPropsMmBlocksActions,
+			PostPropsAccessControlResource,
 		}
 
 		for _, key := range reservedProps {
@@ -1581,6 +1604,13 @@ type UpdatePostOptions struct {
 	// the incoming value, and PluginAPI.UpdatePostWithOptions.
 	AllowMmBlocksActionsUpdate bool
 
+	// AllowAccessControlResourceUpdate lets the caller set
+	// props.access_control_resource on edit. Without it UpdatePost restores
+	// the prior post's value, so a regular edit can neither add nor strip the
+	// marker. Set only by the plugin API after verifying the value names the
+	// calling plugin.
+	AllowAccessControlResourceUpdate bool
+
 	// AllowIdentityPropsUpdate grants the caller permission to change the
 	// display-identity props (override_username, override_icon_url,
 	// override_icon_emoji, webhook_display_name) on edit. Without it,
@@ -1626,11 +1656,12 @@ func (o *UpdatePostOptions) Copy() *UpdatePostOptions {
 		return nil
 	}
 	return &UpdatePostOptions{
-		SafeUpdate:                 o.SafeUpdate,
-		IsRestorePost:              o.IsRestorePost,
-		AllowMmBlocksActionsUpdate: o.AllowMmBlocksActionsUpdate,
-		AllowIdentityPropsUpdate:   o.AllowIdentityPropsUpdate,
-		FileCreatorID:              o.FileCreatorID,
+		SafeUpdate:                       o.SafeUpdate,
+		IsRestorePost:                    o.IsRestorePost,
+		AllowMmBlocksActionsUpdate:       o.AllowMmBlocksActionsUpdate,
+		AllowAccessControlResourceUpdate: o.AllowAccessControlResourceUpdate,
+		AllowIdentityPropsUpdate:         o.AllowIdentityPropsUpdate,
+		FileCreatorID:                    o.FileCreatorID,
 	}
 }
 

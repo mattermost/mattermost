@@ -82,6 +82,11 @@ func (_m *MetricsInterface) IncrementAccessControlCacheInvalidation() {
 	_m.Called()
 }
 
+// ObserveAccessControlRecipientFill provides a mock function with given fields: status, elapsed, setSize
+func (_m *MetricsInterface) ObserveAccessControlRecipientFill(status string, elapsed float64, setSize int) {
+	_m.Called(status, elapsed, setSize)
+}
+
 // IncrementAutoTranslateNormHash provides a mock function with given fields: result
 func (_m *MetricsInterface) IncrementAutoTranslateNormHash(result string) {
 	_m.Called(result)

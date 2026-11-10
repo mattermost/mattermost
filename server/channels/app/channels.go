@@ -88,6 +88,10 @@ type Channels struct {
 	attributeViewRefreshLast  time.Time
 	attributeViewNeedsRefresh atomic.Bool
 
+	// accessControlRecipients caches the users allowed by plugin policies
+	// behind posts marked with props.access_control_resource.
+	accessControlRecipients *accessControlRecipientCache
+
 	// These are used to prevent concurrent upload requests
 	// for a given upload session which could cause inconsistencies
 	// and data corruption.
@@ -117,6 +121,7 @@ func NewChannels(s *Server) (*Channels, error) {
 		interruptQuitChan: make(chan struct{}),
 	}
 	ch.guardCache.Store(&sync.Map{})
+	ch.accessControlRecipients = newAccessControlRecipientCache(accessControlRecipientCacheSize, accessControlRecipientCacheTTL)
 
 	if s.agentsBridgeOverride != nil {
 		ch.agentsBridge = s.agentsBridgeOverride
