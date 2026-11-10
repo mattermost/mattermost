@@ -543,6 +543,7 @@ func TestChannelStoreChannelMemberRolesCache(t *testing.T) {
 
 		mockChannelStore.On("UpdateMember", ctxType, mock.Anything).Return(func(_ request.CTX, m *model.ChannelMember) *model.ChannelMember { return m }, nil)
 		mockChannelStore.On("UpdateMultipleMembers", mock.Anything).Return(func(ms []*model.ChannelMember) []*model.ChannelMember { return ms }, nil)
+		mockChannelStore.On("SaveMultipleMembers", mock.Anything).Return(func(ms []*model.ChannelMember) []*model.ChannelMember { return ms }, nil)
 		mockChannelStore.On("RemoveMember", ctxType, mock.Anything, mock.Anything).Return(nil)
 		mockChannelStore.On("RemoveMembers", ctxType, mock.Anything, mock.Anything).Return(nil)
 		mockChannelStore.On("UpdateMembersRole", "channel1", []string{"user1"}).Return([]*model.ChannelMember{member}, nil)
@@ -686,7 +687,7 @@ func TestChannelStoreChannelMemberRolesCache(t *testing.T) {
 		write func(t *testing.T, cachedStore LocalCacheStore)
 		want  string
 	}{
-		{"updating the membership", invalidations["updating the membership"], "members channel1 user1"},
+		{"updating the membership", invalidations["updating the membership"], "members user1/channel1"},
 		{"removing deactivated members", invalidations["removing deactivated members"], "channel channel1"},
 		{"deleting the channel's members", invalidations["deleting the channel's members"], "channel channel1"},
 		{"deleting the user's memberships", invalidations["deleting the user's memberships"], "user user1"},
@@ -705,6 +706,37 @@ func TestChannelStoreChannelMemberRolesCache(t *testing.T) {
 			assert.Equal(t, []string{tc.want}, listener.calls)
 		})
 	}
+
+	// A batch write reports all of its memberships in one call, across channels.
+	batch := []*model.ChannelMember{member, {ChannelId: "channel2", UserId: "user2"}}
+	batchWrites := map[string]func(t *testing.T, cachedStore LocalCacheStore){
+		"saving several members": func(t *testing.T, cachedStore LocalCacheStore) {
+			_, err := cachedStore.Channel().SaveMultipleMembers(batch)
+			require.NoError(t, err)
+		},
+		"updating several members": func(t *testing.T, cachedStore LocalCacheStore) {
+			_, err := cachedStore.Channel().UpdateMultipleMembers(batch)
+			require.NoError(t, err)
+		},
+	}
+	for name, write := range batchWrites {
+		t.Run(name+" notifies the listener once", func(t *testing.T) {
+			cachedStore, _ := newCachedStore(t)
+			listener := &recordingMembershipListener{}
+			cachedStore.SetMembershipChangeListener(listener)
+
+			write(t, cachedStore)
+			assert.Equal(t, []string{"members user1/channel1,user2/channel2"}, listener.calls)
+		})
+	}
+	t.Run("removing several members notifies the listener once", func(t *testing.T) {
+		cachedStore, _ := newCachedStore(t)
+		listener := &recordingMembershipListener{}
+		cachedStore.SetMembershipChangeListener(listener)
+
+		require.NoError(t, cachedStore.Channel().RemoveMembers(rctx, "channel1", []string{"user1", "user2"}))
+		assert.Equal(t, []string{"members user1/channel1,user2/channel1"}, listener.calls)
+	})
 
 	// Per-user invalidations (profile updates, moderation patches) must not cost every one of
 	// the user's memberships a re-read on the websocket hub.
@@ -753,8 +785,12 @@ type recordingMembershipListener struct {
 	calls []string
 }
 
-func (l *recordingMembershipListener) ChannelMembershipsChanged(channelID string, userIDs []string) {
-	l.calls = append(l.calls, "members "+channelID+" "+strings.Join(userIDs, ","))
+func (l *recordingMembershipListener) ChannelMembershipsChanged(memberships []UserChannel) {
+	parts := make([]string, len(memberships))
+	for i, m := range memberships {
+		parts[i] = m[0] + "/" + m[1]
+	}
+	l.calls = append(l.calls, "members "+strings.Join(parts, ","))
 }
 
 func (l *recordingMembershipListener) UserChannelMembershipsChanged(userID string) {

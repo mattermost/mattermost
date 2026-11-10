@@ -127,12 +127,8 @@ func (ch *Channels) InvalidateAllAccessDecisions(broadcast bool) {
 }
 
 // ChannelMembershipsChanged implements localcachelayer.MembershipChangeListener.
-func (ch *Channels) ChannelMembershipsChanged(channelID string, userIDs []string) {
-	pairs := make([][2]string, 0, len(userIDs))
-	for _, userID := range userIDs {
-		pairs = append(pairs, [2]string{userID, channelID})
-	}
-	ch.invalidateAccessDecisions(accessDecisionInvalidation{UserResources: pairs}, true)
+func (ch *Channels) ChannelMembershipsChanged(memberships []localcachelayer.UserChannel) {
+	ch.invalidateAccessDecisions(accessDecisionInvalidation{UserResources: memberships}, true)
 }
 
 // UserChannelMembershipsChanged implements localcachelayer.MembershipChangeListener.

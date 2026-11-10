@@ -5,11 +5,15 @@ package localcachelayer
 
 import "sync/atomic"
 
+// UserChannel is a {userID, channelID} membership.
+type UserChannel = [2]string
+
 // MembershipChangeListener is told, on the originating node only, when channel memberships or
 // their roles change.
 type MembershipChangeListener interface {
-	// ChannelMembershipsChanged: userIDs were added to, removed from or re-roled in channelID.
-	ChannelMembershipsChanged(channelID string, userIDs []string)
+	// ChannelMembershipsChanged: each membership was added, removed or re-roled. A batch write
+	// reports all of its memberships in one call. The listener must not keep the slice.
+	ChannelMembershipsChanged(memberships []UserChannel)
 	// UserChannelMembershipsChanged: any of userID's memberships may have changed, such as on a
 	// guest promotion.
 	UserChannelMembershipsChanged(userID string)
@@ -43,9 +47,9 @@ func (s *LocalCacheStore) membershipListener() MembershipChangeListener {
 	return nil
 }
 
-func (s *LocalCacheStore) notifyChannelMembershipsChanged(channelID string, userIDs []string) {
-	if l := s.membershipListener(); l != nil && len(userIDs) > 0 {
-		l.ChannelMembershipsChanged(channelID, userIDs)
+func (s *LocalCacheStore) notifyChannelMembershipsChanged(memberships []UserChannel) {
+	if l := s.membershipListener(); l != nil && len(memberships) > 0 {
+		l.ChannelMembershipsChanged(memberships)
 	}
 }
 
