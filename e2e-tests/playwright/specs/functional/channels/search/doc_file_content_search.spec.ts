@@ -4,8 +4,8 @@
 import {expect, test} from '@mattermost/playwright-lib';
 
 /**
- * docconv extracts .doc through wvText (a /bin/sh script calling wvWare) and ignores its
- * failure, so a broken extractor indexes the file as empty instead of erroring.
+ * docconv extracts .doc through wvText (a /bin/sh script calling wvWare). When it fails, docconv
+ * retries the file as .docx, which errors, so the file is stored with empty content.
  */
 const docFile = 'sample-doc.doc';
 const contentTerm = 'simple';

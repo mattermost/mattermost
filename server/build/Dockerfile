@@ -1,111 +1,76 @@
-# Chainguard lineage (public free catalog, no registry auth).
-#   FROM cgr.dev/chainguard/wolfi-base@sha256:<digest> AS builder
-#   FROM cgr.dev/chainguard/glibc-dynamic@sha256:<digest>
-FROM cgr.dev/chainguard/wolfi-base@sha256:b6bfe8564bb0630778b04df06b42e78acf221e9540703cfc03d040ab7f91e357 AS builder
+# Chainguard org registry: runtime packages are installed with Chainguard's chroot method so the apk database,
+# and therefore scanners and SBOMs, see them:
+# https://www.chainguard.dev/docs/chainguard/containers/building-and-modifying/install-apks-in-distroless-variants
+FROM cgr.dev/mattermost.com/static:latest-glibc-tzdata@sha256:36542c5fe401475745257d2ee33717242b5284f3016dce1b9516f9b5ee4c6d37 AS base
+
+FROM cgr.dev/mattermost.com/go:v1.27.3-dev@sha256:b58f86ef28ccbfefda1b86f57cbc5640c7fadaf91c220354cffb2a0da32736ab AS builder
 SHELL ["/bin/sh", "-o", "pipefail", "-c"]
 
+# Build Arguments
 ARG PUID=2000
 ARG PGID=2000
+# MM_PACKAGE build arguments controls which version of mattermost to install, defaults to latest stable enterprise
+# e.g. https://releases.mattermost.com/9.7.1/mattermost-9.7.1-linux-amd64.tar.gz
 ARG MM_PACKAGE="https://latest.mattermost.com/mattermost-enterprise-linux"
 
-USER 0:0
-# poppler-utils: PDF feature to text extraction for file search indexing.
-# wv: kept for parity, but .doc extraction does not work in the runtime image:
-# wvText is a /bin/sh script and docconv ignores its failure (indexes empty).
-# See e2e doc_file_content_search.spec.ts.
-RUN apk add --no-cache \
-  curl \
-  ca-certificates \
-  mailcap \
-  unrtf \
-  wv \
-  poppler-utils \
-  tidy-html5 \
-  tzdata
+RUN apk add --no-cache curl
 
-# PDF feature (CJK): Wolfi has no poppler-data apk. Vendor upstream CMaps only
-# (cMap + cidToUnicode) so predefined-CMap PDFs extract for search. Pin URL +
-# SHA-256 so the tarball cannot change silently; drop when Wolfi ships the pkg.
+# static has no glibc, so it is installed here.
+# Document extraction for file search (see DOCKER_IMAGE_PLAN.md):
+#   poppler-utils: pdfinfo + pdftotext (docconv needs both)
+#   unrtf + glibc-iconv: RTF
+#   tidy-html5: HTML
+#   wv: kept for parity; .doc does not work because wvText is a /bin/sh script
+COPY --from=base / /base-chroot
+RUN apk add --no-cache --no-scripts --root /base-chroot \
+    glibc \
+    ld-linux \
+    glibc-iconv \
+    mailcap \
+    poppler-utils \
+    tidy-html5 \
+    tzdata \
+    unrtf \
+    wv \
+  && ldconfig -r /base-chroot
+
+# CJK PDFs: Wolfi has no poppler-data package. Pinned and checksummed until it ships one.
 ARG POPPLER_DATA_VERSION=0.4.12
 ARG POPPLER_DATA_SHA256=c835b640a40ce357e1b83666aabd95edffa24ddddd49b8daff63adb851cdab74
 RUN curl -fsSL "https://poppler.freedesktop.org/poppler-data-${POPPLER_DATA_VERSION}.tar.gz" \
       -o /tmp/poppler-data.tar.gz \
   && echo "${POPPLER_DATA_SHA256}  /tmp/poppler-data.tar.gz" | sha256sum -c - \
   && tar -xzf /tmp/poppler-data.tar.gz -C /tmp \
-  && mkdir -p /usr/share/poppler \
-  && cp -a "/tmp/poppler-data-${POPPLER_DATA_VERSION}/cMap" /usr/share/poppler/ \
-  && cp -a "/tmp/poppler-data-${POPPLER_DATA_VERSION}/cidToUnicode" /usr/share/poppler/ \
-  && test -d /usr/share/poppler/cMap \
-  && test -d /usr/share/poppler/cidToUnicode \
+  && mkdir -p /base-chroot/usr/share/poppler \
+  && cp -a "/tmp/poppler-data-${POPPLER_DATA_VERSION}/cMap" \
+           "/tmp/poppler-data-${POPPLER_DATA_VERSION}/cidToUnicode" /base-chroot/usr/share/poppler/ \
   && rm -rf /tmp/poppler-data.tar.gz "/tmp/poppler-data-${POPPLER_DATA_VERSION}"
 
+RUN chown -R "${PUID}:${PGID}" /base-chroot/etc/ssl/certs \
+  && chmod 1777 /base-chroot/var/tmp
+
+# Download Mattermost
 RUN mkdir -p /mattermost/data /mattermost/plugins /mattermost/client/plugins \
-  && addgroup -g ${PGID} mattermost \
-  && adduser -D -u ${PUID} -G mattermost -g "" -s /bin/sh -h /mattermost mattermost \
   && curl -L $MM_PACKAGE | tar -xvz \
-  && chown -R mattermost:mattermost /mattermost /mattermost/data /mattermost/plugins /mattermost/client/plugins
+  && chown -R ${PUID}:${PGID} /mattermost /mattermost/data /mattermost/plugins /mattermost/client/plugins
 
 # Create PostgreSQL client SSL directory structure for ssl_mode=require
 RUN mkdir -p /mattermost/.postgresql \
   && chmod 700 /mattermost/.postgresql
 
-RUN mkdir -p /var/tmp \
-  && chmod 755 /var/tmp
+# Final stage using distroless for minimal attack surface
+FROM scratch
 
-FROM cgr.dev/chainguard/glibc-dynamic@sha256:3a06f226c257c2934900ef6a0bff311ceb5fe9df184f6d8159812b2dabb852f9
-
-ENV PATH="/mattermost/bin:${PATH}"
+# Some ENV variables
+ENV PATH="/mattermost/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 ENV MM_SERVICESETTINGS_ENABLELOCALMODE="true"
 ENV MM_INSTALL_TYPE="docker"
 
-# Copy over metadata files needed by runtime
-COPY --from=builder /etc/mime.types /etc
-
-# Copy CA certificates for SSL/TLS validation with proper ownership
-COPY --from=builder --chown=2000:2000 /etc/ssl/certs /etc/ssl/certs
-
-# PDF feature: pdftotext for search indexing of uploaded PDFs
-COPY --from=builder /usr/bin/pdftotext /usr/bin/pdftotext
-# PDF feature (CJK): predefined CMap PDFs need these (e.g. Adobe-GB1 / Japan1).
-COPY --from=builder /usr/share/poppler/cMap /usr/share/poppler/cMap
-COPY --from=builder /usr/share/poppler/cidToUnicode /usr/share/poppler/cidToUnicode
-COPY --from=builder /usr/bin/wvText /usr/bin/wvText
-COPY --from=builder /usr/bin/wvWare /usr/bin/wvWare
-COPY --from=builder /usr/bin/unrtf /usr/bin/unrtf
-COPY --from=builder /usr/bin/tidy /usr/bin/tidy
-COPY --from=builder /usr/share/wv /usr/share/wv
-COPY --from=builder /usr/lib/libjpeg.so.8 /usr/lib/
-COPY --from=builder /usr/lib/libopenjp2.so.7 /usr/lib/
-COPY --from=builder /usr/lib/liblcms2.so.2 /usr/lib/
-COPY --from=builder /usr/lib/libtiff.so.6 /usr/lib/
-COPY --from=builder /usr/lib/libsmime3.so /usr/lib/
-COPY --from=builder /usr/lib/libnss3.so /usr/lib/
-COPY --from=builder /usr/lib/libplc4.so /usr/lib/
-COPY --from=builder /usr/lib/libnspr4.so /usr/lib/
-COPY --from=builder /usr/lib/libbz2.so.1 /usr/lib/
-COPY --from=builder /usr/lib/libbrotlidec.so.1 /usr/lib/
-COPY --from=builder /usr/lib/libexpat.so.1 /usr/lib/
-COPY --from=builder /usr/lib/libwebp.so.7 /usr/lib/
-COPY --from=builder /usr/lib/libzstd.so.1 /usr/lib/
-COPY --from=builder /usr/lib/libnssutil3.so /usr/lib/
-COPY --from=builder /usr/lib/libplds4.so /usr/lib/
-COPY --from=builder /usr/lib/libbrotlicommon.so.1 /usr/lib/
-COPY --from=builder /usr/lib/libsharpyuv.so.0 /usr/lib/
-
-# Copy necessary libraries for document processing utilities
-COPY --from=builder /usr/lib/libpoppler.so.163 /usr/lib/
-COPY --from=builder /usr/lib/libfreetype.so.6 /usr/lib/
-COPY --from=builder /usr/lib/libpng16.so.16 /usr/lib/
-COPY --from=builder /usr/lib/libfontconfig.so.1 /usr/lib/
-COPY --from=builder /usr/lib/libz.so.1 /usr/lib/
-COPY --from=builder /usr/lib/libwv-1.2.so.4 /usr/lib/
-COPY --from=builder /usr/lib/libtidy.so.58 /usr/lib/
-
-# Copy mattermost from builder stage
+COPY --from=builder /base-chroot /
 COPY --from=builder --chown=2000:2000 /mattermost /mattermost
-COPY --from=builder /etc/passwd /etc/passwd
-COPY --from=builder /etc/group /etc/group
-COPY --from=builder --chown=2000:2000 /var/tmp /var/tmp
+
+# Copy passwd including mattermost user
+COPY  passwd /etc/passwd
 
 # We should refrain from running as privileged user
 USER mattermost
