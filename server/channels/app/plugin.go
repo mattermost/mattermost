@@ -91,6 +91,14 @@ func (ch *Channels) syncPluginsActiveState() {
 			return
 		}
 
+		if ch.installEnabledPrepackagedPlugins(pluginsEnvironment, availablePlugins) {
+			availablePlugins, err = pluginsEnvironment.Available()
+			if err != nil {
+				ch.srv.Log().Error("Unable to get available plugins", mlog.Err(err))
+				return
+			}
+		}
+
 		// Determine which plugins need to be activated or deactivated.
 		disabledPlugins := []*model.BundleInfo{}
 		enabledPlugins := []*model.BundleInfo{}
@@ -1056,6 +1064,48 @@ func (ch *Channels) processPrepackagedPlugin(pluginPath *pluginSignaturePath) (*
 	}
 
 	return plugin, nil
+}
+
+// installEnabledPrepackagedPlugins installs prepackaged plugins that were enabled after the plugin
+// environment started, e.g. the Metrics plugin once Performance Monitoring is turned on. It returns
+// true if any plugin was installed.
+func (ch *Channels) installEnabledPrepackagedPlugins(pluginsEnvironment *plugin.Environment, availablePlugins []*model.BundleInfo) bool {
+	pluginSettings := ch.cfgSvc.Config().PluginSettings
+	if !*pluginSettings.AutomaticPrepackagedPlugins {
+		return false
+	}
+
+	installed := false
+	for _, p := range pluginsEnvironment.PrepackagedPlugins() {
+		pluginID := p.Manifest.Id
+		if state := pluginSettings.PluginStates[pluginID]; state == nil || !state.Enable {
+			continue
+		}
+		if slices.ContainsFunc(availablePlugins, func(b *model.BundleInfo) bool { return b.Manifest.Id == pluginID }) {
+			continue
+		}
+
+		if _, err := ch.processPrepackagedPlugin(&pluginSignaturePath{
+			pluginID:      pluginID,
+			bundlePath:    p.Path,
+			signaturePath: p.SignaturePath,
+		}); err != nil {
+			ch.srv.Log().Error("Failed to install enabled prepackaged plugin", mlog.String("plugin_id", pluginID), mlog.Err(err))
+			continue
+		}
+		installed = true
+
+		for _, active := range pluginsEnvironment.Active() {
+			if active.Manifest.Id != pluginID {
+				continue
+			}
+			if err := ch.notifyPluginEnabled(active.Manifest); err != nil {
+				ch.srv.Log().Error("Failed to notify cluster on plugin enable", mlog.String("plugin_id", pluginID), mlog.Err(err))
+			}
+		}
+	}
+
+	return installed
 }
 
 var transitionallyPrepackagedPlugins = []string{
