@@ -4060,6 +4060,7 @@ func (a *App) GetPinnedPosts(rctx request.CTX, channelID string) (*model.PostLis
 	if appErr = a.filterInaccessiblePosts(posts, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
 		return nil, appErr
 	}
+	a.filterPostsByAccessControlResource(rctx, rctx.Session().UserId, posts)
 
 	return posts, nil
 }

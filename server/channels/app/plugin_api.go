@@ -908,6 +908,7 @@ func (api *PluginAPI) CreatePost(post *model.Post) (*model.Post, *model.AppError
 	}
 
 	silent := post.HasSilentNotification()
+	accessControlResource := api.ownedAccessControlResource(post)
 	// Display-identity props (override_username/override_icon_url/
 	// override_icon_emoji/webhook_display_name) are not captured here: plugins
 	// don't get them re-injected by CreatePost (scoped to FromIncomingWebhook
@@ -918,12 +919,20 @@ func (api *PluginAPI) CreatePost(post *model.Post) (*model.Post, *model.AppError
 	// UserId, system types, etc.); we do not clear RemoteId here.
 	post.SanitizeProps()
 
-	post, _, appErr = api.app.CreatePost(api.ctx, post, channel, model.CreatePostFlags{
+	// access_control_resource was stripped above with everything else; put it
+	// back and grant it only when it names this plugin.
+	flags := model.CreatePostFlags{
 		TriggerWebhooks:    true,
 		SetOnline:          true,
 		FromPlugin:         true,
 		SilentNotification: silent,
-	})
+	}
+	if accessControlResource != "" {
+		post.AddProp(model.PostPropsAccessControlResource, accessControlResource)
+		flags.AllowAccessControlResource = true
+	}
+
+	post, _, appErr = api.app.CreatePost(api.ctx, post, channel, flags)
 	if post != nil {
 		post = post.ForPlugin()
 	}
@@ -1075,6 +1084,7 @@ func (api *PluginAPI) UpdatePost(post *model.Post) (*model.Post, *model.AppError
 	if appErr := api.grantPluginMmBlocksActionsUpdate("UpdatePost", post, options); appErr != nil {
 		return nil, appErr
 	}
+	api.grantPluginAccessControlResourceUpdate(post, options)
 	return api.updatePostForPlugin(post, options)
 }
 
@@ -1100,7 +1110,34 @@ func (api *PluginAPI) UpdatePostWithOptions(post *model.Post, options *model.Upd
 		}
 	}
 
+	api.grantPluginAccessControlResourceUpdate(post, options)
+
 	return api.updatePostForPlugin(post, options)
+}
+
+// ownedAccessControlResource returns the post's access_control_resource when
+// it parses and names the calling plugin, and "" otherwise. A plugin cannot
+// mark a post with another plugin's resource.
+func (api *PluginAPI) ownedAccessControlResource(post *model.Post) string {
+	value := post.GetAccessControlResource()
+	if value == "" {
+		return ""
+	}
+	parsed, err := model.ParsePostAccessControlResource(value)
+	if err != nil || parsed.PluginID != api.id {
+		return ""
+	}
+	return value
+}
+
+// grantPluginAccessControlResourceUpdate lets the edit carry
+// access_control_resource exactly when the value names this plugin. The
+// grant is derived here rather than trusted from the plugin's options, so a
+// plugin cannot mark a post with another plugin's resource. Any other value
+// is stripped by UpdatePost like every reserved prop, and the stored marker
+// is kept.
+func (api *PluginAPI) grantPluginAccessControlResourceUpdate(post *model.Post, options *model.UpdatePostOptions) {
+	options.AllowAccessControlResourceUpdate = api.ownedAccessControlResource(post) != ""
 }
 
 // grantPluginMmBlocksActionsUpdate sets the grant when the post carries a
