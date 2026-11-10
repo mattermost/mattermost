@@ -134,7 +134,7 @@
         },
         "avoid_friday": {"description": "When due falls on a Friday, send on the next working day.", "type": "boolean"},
         "type": {"const": "ask"},
-        "needed_when": {"enum": ["always", "rc1_tagged", "final_build_tagged", "support_packet_changed", "manual_test_areas_changed", "monthly"]},
+        "needed_when": {"enum": ["always", "rc1_tagged", "rc1_announced", "final_build_tagged", "support_packet_changed", "manual_test_areas_changed", "monthly"]},
         "send": {
           "type": "object",
           "additionalProperties": false,

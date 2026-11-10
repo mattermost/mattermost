@@ -387,6 +387,39 @@ class Mattermost:
         return f"{self.base_url}/{team_name}/pl/{post_id}"
 
 
+class Community:
+    """community.mattermost.com, read only, with its own bot (RELEASE_AGENT_COMMUNITY_TOKEN).
+
+    It has no method that posts, replies, reacts or edits: everything the agent writes goes
+    to Hub. A failed read is tried once more, as Hub lookups are.
+    """
+
+    def __init__(self, base_url: str, token: str, http: Http | None = None):
+        self.base_url = base_url.rstrip("/")
+        self.http = http or Http("Community", self.base_url, {"Authorization": f"Bearer {token}"})
+
+    def _get(self, path: str, **params):
+        try:
+            return self.http.get(path, **params)
+        except ServiceError:
+            return self.http.get(path, **params)
+
+    def posts_since(self, channel_id: str, since_ms: int) -> list[dict]:
+        result = self._get(f"/api/v4/channels/{urllib.parse.quote(channel_id)}/posts", since=since_ms) or {}
+        return list((result.get("posts") or {}).values())
+
+    def user_by_username(self, username: str) -> dict | None:
+        try:
+            return self._get(f"/api/v4/users/username/{urllib.parse.quote(username)}")
+        except ServiceError as err:
+            if err.status == 404:
+                return None
+            raise
+
+    def post_link(self, post_id: str) -> str:
+        return f"{self.base_url}/_redirect/pl/{post_id}"
+
+
 class Playbooks:
     """The Playbooks plugin REST API (server/api/playbook_runs.go in mattermost-plugin-playbooks)."""
 

@@ -247,3 +247,40 @@ DEV_LEADS_ROUTES = [
     {"teams": ["Agents"], "username": "christopher", "name": "Christopher Speller"},
     {"teams": ["Platform Integration", "Integrations"], "username": "doug.lauder", "name": "Doug Lauder"},
 ]
+
+
+class FakeCommunity:
+    """The read-only Community client: posts by channel, users by username. It has no write
+    methods, as the real one hasn't; ``reads`` records every call."""
+
+    base_url = "https://community.example"
+
+    def __init__(self):
+        self.posts = {}  # channel -> [post]
+        self.users = {}  # username -> user
+        self.reads = []
+        self.broken = False  # every read raises, as when the bot isn't in the channel
+
+    def add_post(self, channel, message, user_id="someone", create_at=0, post_id=None, root_id=""):
+        post = {"id": post_id or f"c{sum(len(p) for p in self.posts.values()) + 1}", "channel_id": channel,
+                "message": message, "user_id": user_id, "create_at": create_at, "root_id": root_id, "delete_at": 0}
+        self.posts.setdefault(channel, []).append(post)
+        return post
+
+    def _read(self, what):
+        self.reads.append(what)
+        if self.broken:
+            from release_agent.clients import ServiceError
+            raise ServiceError("Community", 403)
+
+    def posts_since(self, channel_id, since_ms):
+        self._read(("posts_since", channel_id))
+        return [p for p in self.posts.get(channel_id, []) if p["create_at"] >= since_ms]
+
+    def user_by_username(self, username):
+        self._read(("user_by_username", username))
+        return self.users.get(username)
+
+    def post_link(self, post_id):
+        return f"{self.base_url}/_redirect/pl/{post_id}"
+

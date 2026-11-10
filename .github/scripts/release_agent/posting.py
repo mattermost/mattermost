@@ -134,7 +134,9 @@ def _items(items: list) -> list[str]:
 
 
 def _proof(result, label: str = "proof") -> str:
-    return f" · [{label}]({result.proof_url})" if result and result.proof_url else ""
+    if not (result and result.proof_url):
+        return ""
+    return f" · [{getattr(result, 'proof_label', '') or label}]({result.proof_url})"
 
 
 def _tick_note(ticks_by_task: dict, task: str) -> str:

@@ -99,6 +99,9 @@ class AskEnv:
     healthcheck_github: object = None  # a client that can read mattermost-healthcheck, or None
     sleep: object = None  # time.sleep when None; waits out a GitHub rate limit
     calendar_versions: dict = field(default_factory=dict)  # {"mobile": "v2.47", ...} from the Release Dates calendar
+    community: object = None  # clients.Community, read only, or None
+    rc_announce_channel: str = ""  # the RC build announcements channel on Community
+    rc_announce_author: str = ""  # a Community username; when set, only their posts count
     flags: list = field(default_factory=list)  # public: never names a person
     private_flags: list = field(default_factory=list)  # Hub only
     cache: dict = field(default_factory=dict)
@@ -574,28 +577,59 @@ def loadtest_epic(env: AskEnv):
     return found[0] if found else None
 
 
+def rc1_tag_day(env: AskEnv) -> date:
+    return _parse_time(env.ctx.github.commit_date(SERVER_REPO, f"{env.ctx.release.version}-rc1")).date()
+
+
 def rc_announcement(env: AskEnv, rc: int = 1) -> dict | None:
-    """The RC build's announcement in the release channel: the first post there since the
-    branch cut that names this release's exact RC tag (v12.2.0-rc1 or 12.2.0-RC1), never
-    another release's (v12.20.0-rc1) or another RC's (rc10). The agent's own posts don't count."""
-    release, hub = env.ctx.release, env.ctx.hub
-    if not env.release_channel:
+    """The RC build's announcement on Community: the newest post in the announcements channel
+    (RELEASE_AGENT_RC_ANNOUNCE_CHANNEL_ID) since the RC was tagged that names this release's
+    exact RC (v12.2.0-rc1 or 12.2.0-RC1, never v12.20.0-rc1 or rc10), by
+    RELEASE_AGENT_RC_ANNOUNCE_AUTHOR when that is set. Only that channel is read, with the
+    read-only Community client. None when there's none, or no client or channel."""
+    release, community = env.ctx.release, env.community
+    if community is None or not env.rc_announce_channel:
         return None
-    tag = re.compile(rf"(?<![\w.])v?{release.major}\.{release.minor}\.0-rc0*{rc}(?!\d)", re.IGNORECASE)
-    bot = hub.me()["id"]
-    found = [p for p in hub.posts_since(env.release_channel, since_ms(env))
-             if not p.get("root_id") and not p.get("delete_at") and tag.search(p.get("message") or "")
-             and not (p.get("user_id") == bot and (p.get("props") or {}))]
-    return min(found, key=lambda p: p.get("create_at", 0)) if found else None
+    tag = f"{release.version}-rc{rc}"
+    since = int(_parse_time(env.ctx.github.commit_date(SERVER_REPO, tag)).timestamp() * 1000)
+    names_rc = re.compile(rf"(?<![\w.])v?{release.major}\.{release.minor}\.0-rc0*{rc}(?!\d)", re.IGNORECASE)
+    author_id = None
+    try:
+        if env.rc_announce_author:
+            author = community.user_by_username(env.rc_announce_author)
+            if not author:
+                env.flag("RELEASE_AGENT_RC_ANNOUNCE_AUTHOR isn't a Community user, so no RC build announcement is linked.")
+                return None
+            author_id = author["id"]
+        posts = community.posts_since(env.rc_announce_channel, since)
+    except ServiceError:
+        env.flag("Couldn't read the RC build announcements on Community: check the Community bot is in that channel.")
+        return None
+    found = [p for p in posts
+             if p.get("create_at", 0) >= since and not p.get("delete_at") and names_rc.search(p.get("message") or "")
+             and (author_id is None or p.get("user_id") == author_id)]
+    return max(found, key=lambda p: p.get("create_at", 0)) if found else None
 
 
-def rc_build_link(env: AskEnv, values: dict) -> str:
-    """The announcement post, as the release manager links it; else the build on
-    releases.mattermost.com (``ask_settings.rc_build_url``)."""
+def needed_rc1_announced(env: AskEnv, rule: dict):
+    """RC-1 is tagged, and its build announcement is on Community. Without one yet, the ask
+    waits a working day from when it could first go out, then links the releases.mattermost.com
+    build instead. With no Community channel set, it doesn't wait."""
+    needed, reason, facts = needed_rc1_tagged(env, rule)
+    if not needed:
+        return needed, reason, facts
+    if env.community is None or not env.rc_announce_channel:
+        return True, "", {}
     post = rc_announcement(env)
     if post:
-        return env.ctx.hub.post_link(post["id"])
-    return env.settings["rc_build_url"].format_map(values)
+        return True, "", {"announcement": post}
+    start = max(rc1_tag_day(env), env.cache.get(("due", rule["task"])) or env.today)
+    if workdays.working_days_between(start, env.today, env.holidays) < 1:
+        return None, f"waiting for the {env.ctx.release.version}-RC1 build announcement on Community", {}
+    return True, "", {}
+
+
+NEEDED["rc1_announced"] = needed_rc1_announced
 
 
 def values_loadtest(env: AskEnv, rule: dict, facts: dict) -> dict:
@@ -606,9 +640,13 @@ def values_loadtest(env: AskEnv, rule: dict, facts: dict) -> dict:
     else:
         epic_line = ""
         env.flag(f"No loadtest epic for {env.ctx.release.short_version} was found in Jira, so the ask doesn't link it.")
-    rc_url = rc_build_link(env, values)
     rc_name = f"{env.ctx.release.version}-RC1"
-    return {**values, "rc_name": rc_name, "rc_link": f"[{values['rc1_tag']} build]({rc_url})", "epic_line": epic_line,
+    announcement = facts.get("announcement")
+    if announcement:
+        rc_link = f"[{rc_name} build announcement]({env.community.post_link(announcement['id'])})"
+    else:
+        rc_link = f"[{values['rc1_tag']} build]({env.settings['rc_build_url'].format_map(values)})"
+    return {**values, "rc_name": rc_name, "rc_link": rc_link, "epic_line": epic_line,
             "loadtest": mentions(env, "loadtest")}
 
 
@@ -719,6 +757,7 @@ def send(env: AskEnv, handoff: Handoff, where: str, channel: str, text: str, pro
 
 def process(env: AskEnv, rule: dict, due: date | None, escalate_on: date | None) -> Handoff:
     handoff = Handoff(rule, due=due)
+    env.cache[("due", rule["task"])] = due
     if due is None:
         handoff.summary = "not on the calendar"
         return handoff

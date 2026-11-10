@@ -4,7 +4,7 @@ import unittest
 import urllib.error
 from unittest import mock
 
-from release_agent.clients import Confluence, GitHub, Http, Jira, Mattermost, Playbooks, ServiceError, TruncatedError, error_message
+from release_agent.clients import Community, Confluence, GitHub, Http, Jira, Mattermost, Playbooks, ServiceError, TruncatedError, error_message
 
 
 class RecordingHttp(Http):
@@ -202,3 +202,33 @@ class MattermostTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class CommunityTest(unittest.TestCase):
+    """The Community client only reads: everything the agent writes goes to Hub."""
+
+    def test_it_has_no_method_that_writes(self):
+        public = {name for name in dir(Community) if not name.startswith("_")}
+        self.assertEqual(public, {"posts_since", "user_by_username", "post_link"})
+
+    def test_every_request_is_a_get(self):
+        http = RecordingHttp([({}, {"posts": {"p1": {"id": "p1"}}}), ({}, {"id": "u1"})])
+        community = Community("https://community.example", "t", http)
+        self.assertEqual(community.posts_since("perf", 1000), [{"id": "p1"}])
+        self.assertEqual(community.user_by_username("builder"), {"id": "u1"})
+        self.assertEqual(community.post_link("p1"), "https://community.example/_redirect/pl/p1")
+        self.assertEqual([method for method, *_ in http.calls], ["GET", "GET"])
+        self.assertEqual(http.calls[0][1:3], ("/api/v4/channels/perf/posts", {"since": 1000}))
+
+    def test_a_failed_read_is_tried_once_more(self):
+        class FlakyHttp(RecordingHttp):
+            def request(self, method, path, params=None, body=None):
+                self.calls.append((method, path, params, body))
+                if len(self.calls) == 1:
+                    raise ServiceError("Community", 502)
+                return self.responses.pop(0)
+
+        http = FlakyHttp([({}, {"posts": {}})])
+        self.assertEqual(Community("https://community.example", "t", http).posts_since("perf", 0), [])
+        self.assertEqual([method for method, *_ in http.calls], ["GET", "GET"])
+

@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from . import agent
-from .clients import Confluence, GitHub, Jira, Mattermost, Playbooks, fetch_text
+from .clients import Community, Confluence, GitHub, Jira, Mattermost, Playbooks, fetch_text
 
 
 def load_rules_module():
@@ -37,6 +37,8 @@ def services_from_env() -> agent.Services:
     return agent.Services(
         github=GitHub(require("GH_TOKEN")),
         healthcheck_github=GitHub(os.environ["HEALTHCHECK_TOKEN"]) if os.environ.get("HEALTHCHECK_TOKEN") else None,
+        community=(Community(os.environ["COMMUNITY_URL"].strip(), os.environ["COMMUNITY_TOKEN"].strip())
+                   if os.environ.get("COMMUNITY_URL", "").strip() and os.environ.get("COMMUNITY_TOKEN", "").strip() else None),
         jira=Jira(*atlassian),
         confluence=Confluence(*atlassian),
         hub=hub,

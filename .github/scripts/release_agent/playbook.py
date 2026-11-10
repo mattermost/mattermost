@@ -25,6 +25,7 @@ class Tick:
     summary: str = ""
     indexes: tuple | None = None  # (checklist, item) to close, while the tick is planned but not done
     done: bool = False  # the item was closed
+    proof_label: str = ""  # the proof link's text, when "proof" says too little (Hub only)
 
 
 MARKDOWN_LINK = re.compile(r"!?\[([^\]]*)\]\([^)]*\)")
@@ -113,7 +114,8 @@ def tick_items(playbooks, run: dict, passing: list[tuple[dict, object]], live: b
     for rule, result in passing:
         title = rule["playbook_item"]
         action, indexes = plan_tick(run, title, rule.get("former_playbook_items"))
-        tick = Tick(rule["task"], title, action, result.proof_url, result.summary)
+        tick = Tick(rule["task"], title, action, result.proof_url, result.summary,
+                    proof_label=getattr(result, "proof_label", ""))
         if action == TICKED and not live:
             tick.action = WOULD_TICK
         elif action == TICKED:

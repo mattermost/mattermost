@@ -76,13 +76,13 @@ channels:
   release: "{release_channel}"
   platform_engineering: i8rxygnihpbfjnin7s3m4py6te  # Platform Engineering
   monthly_mugs: k8cagrzpitdmjpg5k4bnber45e  # Monthly Mugs
-  performance_comparisons: idsfx9p4y3do3bd9gyzrwuyyyr  # Developers: Performance Comparisons
 
 ask_settings:
   # Formatted with the release's values, as the rules' queries are.
   changelog_url: "https://docs.mattermost.com/product-overview/mattermost-v{major}-changelog.html#release-v{major}-{minor}-feature-release"
-  # The loadtest ask links the RC build's announcement in the release channel (a post naming
-  # the exact RC tag); with none, this build.
+  # The loadtest ask links the RC build's announcement on Community
+  # (RELEASE_AGENT_RC_ANNOUNCE_CHANNEL_ID); with none a working day after it could first go
+  # out, or no channel set, this build.
   rc_build_url: "https://releases.mattermost.com/{rc1_plain}/mattermost-{rc1_plain}-linux-amd64.tar.gz"
   healthcheck_repo: mattermost/mattermost-healthcheck  # private: read with the read app, never written
   # The mobile and desktop releases shipping with a server release are the ones whose GitHub
@@ -483,9 +483,10 @@ rules:
     on_fail: needs_attention
 
   # The T-6 item: the release's loadtest epic (found as in ask_settings.loadtest_epic_jql) is
-  # Closed or Resolved, and a post in Developers: Performance Comparisons names the release.
-  # The benchmarking bullet it also asks for is the changelog workflow's. The epic's key and
-  # the post are in Hub only.
+  # Closed or Resolved, and a post since RC-1 in Developers: Performance Comparisons names the
+  # release. That channel is on Community (RELEASE_AGENT_PERF_CHANNEL_ID), read with its own
+  # read-only bot; without that access the check says it can't check. The benchmarking bullet
+  # the item also asks for is the changelog workflow's. The epic and the post are Hub only.
   - task: loadtest-results
     title: Loadtest results posted
     playbook_item: "Check that the loadtests results were posted…"
@@ -493,13 +494,12 @@ rules:
     type: loadtest_results
     source: [jira, hub]
     query:
-      channel: idsfx9p4y3do3bd9gyzrwuyyyr  # Developers: Performance Comparisons
       done_statuses: [Closed, Resolved]
     pass_when: epic_closed_and_results_posted
     on_fail: needs_attention
 
   # ── Asks to other teams ─────────────────────────────────────────────────────────────
-  #   needed_when  always, rc1_tagged, final_build_tagged, support_packet_changed,
+  #   needed_when  always, rc1_tagged, rc1_announced, final_build_tagged, support_packet_changed,
   #                manual_test_areas_changed, or monthly (the contributors list)
   #   send         channel (a key of channels above), to (roles in RELEASE_AGENT_PEOPLE),
   #                template (in templates/), optional reminder template and reply_to (the
@@ -539,13 +539,14 @@ rules:
     remind_every: 2
     escalate_at: T-2
 
-  # Ticked when the ask is sent; the results are the loadtest-results check below.
+  # Ticked when the ask is sent; the results are the loadtest-results check above. It waits up
+  # to a working day for the RC1 build announcement on Community, to link it.
   - task: loadtest-ask
     title: Loadtests of RC1
     playbook_item: "Ping … to start running loadtests…"
     due: T-15
     type: ask
-    needed_when: rc1_tagged
+    needed_when: rc1_announced
     send: {channel: release, to: [loadtest], template: loadtest.md}
     done_when: sent
     remind_after: 0

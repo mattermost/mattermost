@@ -6,7 +6,7 @@ from release_agent import agent, rules
 from release_agent.__main__ import log_line, step_summary
 from release_agent.clients import ServiceError
 from release_agent.tests.test_checks import holidays_page, holidays_page_text
-from release_agent.tests.fakes import DEV_LEADS_ROUTES, FakeConfluence, FakeGitHub, FakeHub, FakeJira, checklist_run, fixture
+from release_agent.tests.fakes import DEV_LEADS_ROUTES, FakeCommunity, FakeConfluence, FakeGitHub, FakeHub, FakeJira, checklist_run, fixture
 
 MM, ENT = "mattermost/mattermost", "mattermost/enterprise"
 TODAY = date(2026, 11, 4)
@@ -46,6 +46,7 @@ def services(jira=None, confluence=None):
         "requested_teams": [], "head": {"sha": "clsha"}, "base": {"ref": "master"}}]
     github.tags = {MM: ["v12.2.0-rc1", "v12.2.0-rc2"], ENT: ["v12.2.0-rc1", "v12.2.0-rc2"]}
     github.dates[(MM, "v12.2.0-rc2")] = "2026-11-02T12:00:00Z"
+    github.dates[(MM, "v12.2.0-rc1")] = "2026-10-27T12:00:00Z"
     hub = FakeHub(("12.2.0", "abc"))
     hub.users = [{"username": route["username"], "first_name": "", "last_name": ""} for route in DEV_LEADS_ROUTES]
     hub.channels = [{"id": "c122", "display_name": "Release: v12.2"}, {"id": "c123", "display_name": "Release: v12.3"}]
@@ -53,12 +54,12 @@ def services(jira=None, confluence=None):
                 checklist_run("run123", "Release: v12.3", "c123", template_items())]
     return agent.Services(github=github, jira=jira or FakeJira(), hub=hub, playbooks=hub,
                           fetch_calendar=lambda: fixture("release-dates.ics"), ls_remote=lambda: LS_REMOTE,
-                          confluence=confluence or FakeConfluence())
+                          confluence=confluence or FakeConfluence(), community=FakeCommunity())
 
 
 def settings(mode="live", release=""):
     return agent.Settings(mode=mode, release_override=release, testing_alerts_channel="alerts", test_channel="test-chan",
-                          holidays_page_id="page9", dev_leads=DEV_LEADS_ROUTES)
+                          holidays_page_id="page9", dev_leads=DEV_LEADS_ROUTES, perf_channel="perf")
 
 
 def run(svc, mode="live", release="", today=TODAY):

@@ -35,6 +35,9 @@ class Settings:
     dev_leads: list = field(default_factory=list)  # RELEASE_AGENT_DEV_LEADS, parsed
     dev_leads_problem: str = ""  # what's wrong with it, without repeating it
     people: dict = field(default_factory=dict)  # RELEASE_AGENT_PEOPLE: role -> Hub usernames
+    perf_channel: str = ""  # RELEASE_AGENT_PERF_CHANNEL_ID: Developers: Performance Comparisons, on Community
+    rc_announce_channel: str = ""  # RELEASE_AGENT_RC_ANNOUNCE_CHANNEL_ID: RC build announcements, on Community
+    rc_announce_author: str = ""  # RELEASE_AGENT_RC_ANNOUNCE_AUTHOR: only their posts count, when set
     people_problem: str = ""
 
 
@@ -49,6 +52,7 @@ class Services:
     confluence: object = None
     fetch_page: object = None  # (url) -> page text, for the live docs page; no token
     healthcheck_github: object = None  # the read app on mattermost-healthcheck (private), for the CES ask
+    community: object = None  # clients.Community, read only, or None when its token or URL isn't set
 
 
 def resolve_mode(requested: str, variable: str) -> str:
@@ -141,7 +145,7 @@ def check_release(release, rules: dict, settings: Settings, services: Services, 
         has_branch=release.key in branches, rc_numbers=rc_numbers, github=services.github, dev_leads=settings.dev_leads,
         jira=services.jira, hub=services.hub, testing_alerts_channel=settings.testing_alerts_channel,
         confluence=services.confluence, primary=primary, branches=branches, tags=tags,
-        fetch_page=services.fetch_page,
+        fetch_page=services.fetch_page, community=services.community, perf_channel=settings.perf_channel,
     )
     for rule in rules["rules"]:
         if rule["type"] == "ask":
@@ -221,7 +225,8 @@ def run_asks(ctx: checks.Context, report: posting.ReleaseReport, rules: dict, se
     env = asks.AskEnv(ctx=ctx, rules=rules, people=settings.people, mode=settings.mode, holidays=holidays,
                       release_channel=report.release_channel or (report.run or {}).get("channel_id", ""),
                       run=report.run, manager=manager, healthcheck_github=services.healthcheck_github,
-                      calendar_versions=calendar_versions or {})
+                      calendar_versions=calendar_versions or {}, community=services.community,
+                      rc_announce_channel=settings.rc_announce_channel, rc_announce_author=settings.rc_announce_author)
     if settings.people_problem and ctx.primary:
         env.flag(settings.people_problem)
     report.manager = manager
@@ -266,7 +271,7 @@ def post_report(report: posting.ReleaseReport, rules: dict, settings: Settings, 
             report.flags.append(f"Couldn't update the status post after a failed tick: {public_error(err)}")
     for tick in report.ticks:
         if tick.action == playbook.TICKED and tick.done:
-            proof = f" · [proof]({tick.proof_url})" if tick.proof_url else ""
+            proof = f" · [{tick.proof_label or 'proof'}]({tick.proof_url})" if tick.proof_url else ""
             try:
                 services.hub.create_post(channel, f"Ticked **{tick.playbook_item}** in the playbook run: {tick.summary}{proof}",
                                          root_id=post["id"])
@@ -421,4 +426,7 @@ def env_settings(env=os.environ) -> Settings:
         dev_leads_problem=dev_leads_problem,
         people=people,
         people_problem=people_problem,
+        perf_channel=env.get("PERF_CHANNEL_ID", "").strip(),
+        rc_announce_channel=env.get("RC_ANNOUNCE_CHANNEL_ID", "").strip(),
+        rc_announce_author=env.get("RC_ANNOUNCE_AUTHOR", "").strip().lstrip("@"),
     )

@@ -9,8 +9,10 @@ name: Release Agent
 # one line to release-agent-log. Nothing is kept between runs: an ask is found again on Hub
 # by a hidden post prop.
 #
-# The bot must be a member of each release channel, Platform Engineering, Monthly Mugs,
-# Developers: Performance Comparisons and Release: Testing Alerts. Anyone on the release
+# The Hub bot must be a member of each release channel, Platform Engineering, Monthly Mugs
+# and Release: Testing Alerts. Developers: Performance Comparisons and the RC build
+# announcements are on the Community server instead, read by a separate Community bot that
+# only reads (it never posts there). Anyone on the release
 # team can run it by hand: Actions → Release Agent → Run workflow, with a release and a mode.
 #
 # This repo is public, so its Actions logs are too: check details, Hub content and
@@ -33,6 +35,10 @@ name: Release Agent
 #   RELEASE_AGENT_MM_TOKEN      — Hub bot token (posts, playbook runs, Testing Alerts channel)
 #   RELEASE_AGENT_JIRA_TOKEN    — read-only Atlassian API token for Jira, and for Confluence
 #                                 to read the holidays page
+#   RELEASE_AGENT_COMMUNITY_TOKEN — the Community bot's token (community.mattermost.com), used
+#                                 only to read Developers: Performance Comparisons and the RC
+#                                 build announcements. Without it the loadtest results check
+#                                 says it can't check, and the loadtest ask links the build.
 #   CHANGELOG_READ_PRIVATE_KEY  — the changelog workflow's read app, which can read
 #                                 mattermost/mattermost and mattermost/enterprise, and, for
 #                                 the CES ask, mattermost/mattermost-healthcheck (read only)
@@ -62,6 +68,11 @@ name: Release Agent
 #                                            "ces": […], "ces_github": "<GitHub login>", "docs": […],
 #                                            "mugs": […]}. A role not set goes out with no mention
 #                                            and is flagged. Names are shown in Hub only.
+#   RELEASE_AGENT_COMMUNITY_URL            — https://community.mattermost.com
+#   RELEASE_AGENT_PERF_CHANNEL_ID          — Developers: Performance Comparisons, on Community
+#   RELEASE_AGENT_RC_ANNOUNCE_CHANNEL_ID   — the RC build announcements channel, on Community
+#   RELEASE_AGENT_RC_ANNOUNCE_AUTHOR       — optional; the Community username that posts RC build
+#                                            announcements. When set, only their posts count.
 #   RELEASE_AGENT_MM_URL                   — optional; defaults to https://hub.mattermost.com
 #   CHANGELOG_READ_CLIENT_ID               — the read app's client ID
 on:
@@ -156,6 +167,11 @@ jobs:
           HOLIDAYS_PAGE_ID: ${{ vars.RELEASE_AGENT_HOLIDAYS_PAGE_ID }}
           DEV_LEADS: ${{ vars.RELEASE_AGENT_DEV_LEADS }}
           PEOPLE: ${{ vars.RELEASE_AGENT_PEOPLE }}
+          COMMUNITY_TOKEN: ${{ secrets.RELEASE_AGENT_COMMUNITY_TOKEN }}
+          COMMUNITY_URL: ${{ vars.RELEASE_AGENT_COMMUNITY_URL }}
+          PERF_CHANNEL_ID: ${{ vars.RELEASE_AGENT_PERF_CHANNEL_ID }}
+          RC_ANNOUNCE_CHANNEL_ID: ${{ vars.RELEASE_AGENT_RC_ANNOUNCE_CHANNEL_ID }}
+          RC_ANNOUNCE_AUTHOR: ${{ vars.RELEASE_AGENT_RC_ANNOUNCE_AUTHOR }}
           OUT_DIR: ${{ runner.temp }}/release-agent
         run: python3 -m release_agent run --out-dir "$OUT_DIR"
 

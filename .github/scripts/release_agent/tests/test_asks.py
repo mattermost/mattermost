@@ -1,6 +1,7 @@
 """Asks to other teams (asks.py): each ask sent once on its day, followed up, and its playbook
 item ticked when done or not needed; plus the seven asks' own rules."""
 
+import copy
 import json
 import re
 import unittest
@@ -9,7 +10,7 @@ from datetime import date, datetime, timezone
 from release_agent import agent, asks, checks, playbook, posting, release_calendar, rules
 from release_agent.__main__ import step_summary
 from release_agent.release_calendar import Release
-from release_agent.tests.fakes import FakeConfluence, FakeGitHub, FakeHub, FakeJira, checklist_run, fixture
+from release_agent.tests.fakes import FakeCommunity, FakeConfluence, FakeGitHub, FakeHub, FakeJira, checklist_run, fixture
 
 RULES = rules.load_rules()
 RULE = {rule["task"]: rule for rule in RULES["rules"]}
@@ -62,6 +63,7 @@ class Harness:
         self.run = run_with_items()
         self.tags, self.rc = set(tags), list(rc)
         self.confluence = FakeConfluence()
+        self.community, self.rc_announce_channel, self.rc_announce_author = FakeCommunity(), "", ""
         self.flags, self.private_flags = [], []
 
     def env(self, today: date) -> asks.AskEnv:
@@ -73,7 +75,8 @@ class Harness:
                              branches={(12, 1), self.release.key}, tags=self.tags)
         return asks.AskEnv(ctx=ctx, rules=RULES, people=self.people, mode=self.mode, holidays=frozenset(),
                            release_channel="c122", run=self.run, manager=MANAGER, healthcheck_github=self.healthcheck,
-                           sleep=lambda seconds: None)
+                           sleep=lambda seconds: None, community=self.community,
+                           rc_announce_channel=self.rc_announce_channel, rc_announce_author=self.rc_announce_author)
 
     def ask(self, task: str, today: date) -> asks.Handoff:
         env = self.env(today)
@@ -288,46 +291,131 @@ class CesTest(unittest.TestCase):
         self.assertIn("The read app can't read mattermost-healthcheck", " ".join(h.flags))
 
 
+LOADTEST_EPIC = {"Loadtest 12.2": [{"key": "MM-71198", "fields": {"summary": "📈 Loadtest 12.2, December (vs 12.1, November)"}},
+                                   {"key": "MM-1", "fields": {"summary": "📈 Loadtest 12.20"}}]}
+RELEASES_BUILD = "[v12.2.0-rc1 build](https://releases.mattermost.com/12.2.0-rc1/mattermost-12.2.0-rc1-linux-amd64.tar.gz)"
+
+
 class LoadtestTest(unittest.TestCase):
-    def test_waits_for_rc1_then_asks_and_is_done_once_sent(self):
-        jira = FakeJira({"Loadtest 12.2": [{"key": "MM-71198", "fields": {"summary": "📈 Loadtest 12.2, December (vs 12.1, November)"}},
-                                           {"key": "MM-1", "fields": {"summary": "📈 Loadtest 12.20"}}]})
-        h = Harness(rc=(), jira=jira)
+    def harness(self, author=""):
+        h = Harness(jira=FakeJira(copy.deepcopy(LOADTEST_EPIC)))
+        h.rc_announce_channel, h.rc_announce_author = "rc-announce", author
+        h.github.dates[(MM, "v12.2.0-rc1")] = "2026-10-26T08:00:00Z"  # tagged on T-15, Mon Oct 26
+        h.community.users = {"builder": {"id": "u-builder", "username": "builder"}}
+        return h
+
+    def test_waits_for_rc1_and_without_an_announcement_channel_links_the_build(self):
+        h = Harness(rc=(), jira=FakeJira(copy.deepcopy(LOADTEST_EPIC)))
         self.assertEqual(h.ask("loadtest-ask", date(2026, 10, 26)).state, asks.NOT_READY)
         h.rc = [1]
         handoff = h.ask("loadtest-ask", date(2026, 10, 27))
         self.assertEqual(handoff.state, asks.DONE)
-        # No RC build announcement in the release channel: the build on releases.mattermost.com.
         self.assertEqual(h.sent("c122")[0]["message"],
-                         "v12.2.0-RC1 is available for loadtesting: [v12.2.0-rc1 build](https://releases.mattermost.com/"
-                         "12.2.0-rc1/mattermost-12.2.0-rc1-linux-amd64.tar.gz). Loadtest epic: [MM-71198](https://jira.example/"
-                         "browse/MM-71198). cc @alejandro.garcia @dylan.haussermann")
+                         f"v12.2.0-RC1 is available for loadtesting: {RELEASES_BUILD}. Loadtest epic: "
+                         "[MM-71198](https://jira.example/browse/MM-71198). cc @alejandro.garcia @dylan.haussermann")
 
-    def test_links_the_rc_build_announcement_in_the_release_channel_and_never_another_releases(self):
-        h = Harness()
-        cut = ms(date(2026, 10, 20))
-        h.hub.add_post("c122", "v12.20.0-rc1 is out", user_id="build-bot", create_at=cut)  # another release
-        h.hub.add_post("c122", "v12.2.0-rc10 build", user_id="build-bot", create_at=cut + 1)  # another RC
-        h.hub.add_post("other", "v12.2.0-rc1 build is available", user_id="build-bot", create_at=cut + 2)  # another channel
-        announcement = h.hub.add_post("c122", "Mattermost v12.2.0-RC1 build is available: https://releases/…", user_id="build-bot",
-                                      create_at=cut + 3)
+    def test_links_the_newest_exact_announcement_on_community(self):
+        h = self.harness()
+        tagged = ms(date(2026, 10, 26), 8)
+        h.community.add_post("rc-announce", "Mattermost v12.2.0-RC1 is ready (before the tag)", create_at=tagged - 1)
+        h.community.add_post("rc-announce", "Mattermost v12.20.0-rc1 is ready", create_at=tagged + 1)  # another release
+        h.community.add_post("rc-announce", "Mattermost v12.2.0-rc10 is ready", create_at=tagged + 2)  # another RC
+        h.community.add_post("other", "Mattermost v12.2.0-rc1 is ready", create_at=tagged + 3)  # another channel
+        h.community.add_post("rc-announce", "Mattermost 12.2.0-RC1 is ready", create_at=tagged + 4)
+        newest = h.community.add_post("rc-announce", "Rebuilt: Mattermost v12.2.0-rc1 is ready", create_at=tagged + 5)
+        posts_before = copy.deepcopy(h.community.posts)
+        self.assertEqual(h.ask("loadtest-ask", date(2026, 10, 26)).state, asks.DONE)
+        self.assertIn(f"[v12.2.0-RC1 build announcement](https://community.example/_redirect/pl/{newest['id']})",
+                      h.sent("c122")[0]["message"])
+        # Only the announcements channel is read, and nothing is written to Community.
+        self.assertEqual({what for what in h.community.reads}, {("posts_since", "rc-announce")})
+        self.assertEqual(h.community.posts, posts_before)
+        self.assertFalse(any(hasattr(h.community, name) for name in ("create_post", "patch_post", "add_reaction")))
+
+    def test_a_post_by_someone_else_isnt_the_announcement_when_the_author_is_set(self):
+        h = self.harness(author="builder")
+        tagged = ms(date(2026, 10, 26), 8)
+        h.community.add_post("rc-announce", "Mattermost v12.2.0-rc1 is ready, I think", user_id="u-someone", create_at=tagged + 1)
+        self.assertEqual(h.ask("loadtest-ask", date(2026, 10, 26)).summary,
+                         "waiting for the v12.2.0-RC1 build announcement on Community")
+        mine = h.community.add_post("rc-announce", "Mattermost v12.2.0-rc1 is ready", user_id="u-builder", create_at=tagged + 2)
         h.ask("loadtest-ask", date(2026, 10, 26))
-        self.assertIn(f"[v12.2.0-rc1 build](https://hub.example/_redirect/pl/{announcement['id']})", h.sent("c122")[0]["message"])
+        self.assertIn(f"build announcement](https://community.example/_redirect/pl/{mine['id']})", h.sent("c122")[0]["message"])
 
-    def test_results_check_needs_the_epic_closed_and_a_results_post(self):
-        hub = hub_with_people()
-        jira = FakeJira({"Loadtest": [{"key": "MM-71198", "fields": {"summary": "📈 Loadtest 12.2, December", "status": {"name": "Open"}}}]})
-        ctx = checks.Context(release=V122, today=date(2026, 11, 6), vars=agent.template_vars(V122, RULES["naming"], [1]),
-                             has_branch=True, rc_numbers=[1], jira=jira, hub=hub)
-        result = checks.loadtest_results(ctx, RULE["loadtest-results"])
-        self.assertEqual(result.status, checks.FAIL)
-        self.assertEqual(result.summary, "Loadtests aren't finished: the loadtest epic is Open and no results post names the "
-                                         "release in Developers: Performance Comparisons")
-        jira.issues["Loadtest"][0]["fields"]["status"]["name"] = "Closed"
-        hub.add_post("idsfx9p4y3do3bd9gyzrwuyyyr", "Loadtest results for v12.2 vs v12.1: no regressions", create_at=ms(date(2026, 11, 2)))
-        result = checks.loadtest_results(ctx, RULE["loadtest-results"])
-        self.assertEqual((result.status, result.summary), (checks.PASS, "The loadtest epic is done and its results are posted"))
-        self.assertIsNone(result.items[0].public_label)  # the epic key stays out of public output
+    def test_without_an_announcement_it_waits_a_working_day_then_links_the_build(self):
+        h = self.harness()
+        first = h.ask("loadtest-ask", date(2026, 10, 26))  # T-15, the day RC-1 was tagged
+        self.assertEqual((first.state, first.summary),
+                         (asks.NOT_READY, "waiting for the v12.2.0-RC1 build announcement on Community"))
+        self.assertEqual(h.hub.created, [])
+        self.assertEqual(h.ask("loadtest-ask", date(2026, 10, 27)).state, asks.DONE)  # a working day later
+        self.assertIn(RELEASES_BUILD, h.sent("c122")[0]["message"])
+
+    def test_an_unreadable_announcement_channel_is_flagged_and_falls_back(self):
+        h = self.harness()
+        h.community.broken = True
+        self.assertEqual(h.ask("loadtest-ask", date(2026, 10, 26)).state, asks.NOT_READY)
+        self.assertIn("Couldn't read the RC build announcements on Community: check the Community bot is in that channel.",
+                      h.flags)
+
+
+class LoadtestResultsTest(unittest.TestCase):
+    def context(self, community=None, perf_channel="perf", rc=(1,), status="Closed"):
+        jira = FakeJira({"Loadtest": [
+            {"key": "MM-71198", "fields": {"summary": "📈 Loadtest 12.2, December", "status": {"name": status}}}]})
+        gh = FakeGitHub()
+        gh.dates[(MM, "v12.2.0-rc1")] = "2026-10-26T08:00:00Z"
+        return checks.Context(release=V122, today=date(2026, 11, 6), vars=agent.template_vars(V122, RULES["naming"], list(rc)),
+                              has_branch=True, rc_numbers=list(rc), github=gh, jira=jira, hub=hub_with_people(),
+                              community=community, perf_channel=perf_channel)
+
+    def community(self, *posts):
+        community = FakeCommunity()
+        for text, day in posts:
+            community.add_post("perf", text, create_at=ms(day))
+        return community
+
+    def test_passes_on_a_community_post_since_rc1_naming_the_release(self):
+        for text in ("Loadtest results for v12.2 vs v12.1", "12.2 comparison", "v12.2.0-rc1: no regressions"):
+            community = self.community((text, date(2026, 10, 30)))
+            result = checks.loadtest_results(self.context(community), RULE["loadtest-results"])
+            self.assertEqual((result.status, result.summary), (checks.PASS, "The loadtest epic is done and its results are posted"), text)
+            self.assertEqual(result.proof_url, f"https://community.example/_redirect/pl/{community.posts['perf'][0]['id']}")
+            self.assertEqual(result.proof_label, "v12.2 performance comparison on Community")
+            self.assertIsNone(result.items[0].public_label)  # the epic key stays out of public output
+            self.assertEqual(community.reads, [("posts_since", "perf")])
+
+    def test_no_pass_before_rc1_for_12_20_or_while_the_epic_is_open(self):
+        rc1_not_tagged = checks.loadtest_results(self.context(self.community(("v12.2 results", date(2026, 10, 30))), rc=()),
+                                                 RULE["loadtest-results"])
+        self.assertEqual(rc1_not_tagged.status, checks.FAIL)
+        before_rc1 = checks.loadtest_results(self.context(self.community(("v12.2 results", date(2026, 10, 23)))),
+                                             RULE["loadtest-results"])
+        self.assertEqual(before_rc1.summary, "Loadtests aren't finished: no post since RC-1 names the release in "
+                                             "Developers: Performance Comparisons")
+        other_release = checks.loadtest_results(self.context(self.community(("v12.20 results", date(2026, 10, 30)))),
+                                                RULE["loadtest-results"])
+        self.assertEqual(other_release.status, checks.FAIL)
+        epic_open = checks.loadtest_results(self.context(self.community(("v12.2 results", date(2026, 10, 30))), status="Open"),
+                                            RULE["loadtest-results"])
+        self.assertEqual(epic_open.summary, "Loadtests aren't finished: the loadtest epic is Open")
+
+    def test_without_community_access_it_cant_check_never_passes_or_fails(self):
+        broken = self.community(("v12.2 results", date(2026, 10, 30)))
+        broken.broken = True
+        for ctx in (self.context(None), self.context(self.community(), perf_channel=""), self.context(broken)):
+            outcome = agent.evaluate(ctx, RULE["loadtest-results"], date(2026, 11, 6), date(2026, 11, 6))
+            self.assertEqual((outcome.state, outcome.error), (posting.ERROR, "Community access not set up"))
+            report = posting.ReleaseReport(V122, -6, "live", outcomes=[outcome])
+            self.assertIn("- :warning: **Loadtest results posted** — couldn't check: Community access not set up",
+                          posting.format_post(report, date(2026, 11, 6), RULES["calendar"]["milestones"]))
+
+    def test_the_proof_reply_names_the_community_post(self):
+        community = self.community(("v12.2 results", date(2026, 10, 30)))
+        result = checks.loadtest_results(self.context(community), RULE["loadtest-results"])
+        run = checklist_run("r", "v12.2", "c", [(t, "", 0) for t in TEMPLATE_TITLES])
+        tick = playbook.tick_items(None, run, [(RULE["loadtest-results"], result)], live=True, execute=False)[0]
+        self.assertEqual(tick.proof_label, "v12.2 performance comparison on Community")
 
 
 class ManualTestsTest(unittest.TestCase):
@@ -676,6 +764,24 @@ class AgentTest(unittest.TestCase):
         self.assertIn("Ticked **Notify CES…** in the playbook run: Already done, ask not sent: the issue is open in "
                       f"mattermost-healthcheck (private repo) · [proof]({issue})", replies)
         self.assertNotIn(issue, json.dumps(body) + step_summary(body))
+
+    def test_loadtest_results_on_community_tick_with_a_named_link_and_stay_out_of_public_output(self):
+        from release_agent.tests.test_agent import services, settings
+        svc = services(jira=FakeJira({"Loadtest 12.2": [{"key": "MM-71198", "fields": {
+            "summary": "📈 Loadtest 12.2, December", "status": {"name": "Closed"}}}]}))
+        svc.github.dates[(MM, "v12.1.0")] = "2026-10-16T00:00:00Z"
+        perf = svc.community.add_post("perf", "SECRET-PERF: v12.2 vs v12.1, no regressions by @perf.person",
+                                      create_at=ms(date(2026, 10, 30)))
+        body, details = agent.run(RULES, settings(), svc, date(2026, 11, 5))  # T-6
+        status = next(p for p in svc.hub.created if p["channel_id"] == "c122" and posting.MARKER_PROP in p["props"])
+        replies = [p["message"] for p in svc.hub.created if p.get("root_id") == status["id"]]
+        link = f"[v12.2 performance comparison on Community](https://community.example/_redirect/pl/{perf['id']})"
+        self.assertTrue(any(r.startswith("Ticked **Check that the loadtests results were posted…**") and link in r for r in replies))
+        public = json.dumps(body) + step_summary(body)
+        for private in ("SECRET-PERF", "perf.person", "community.example", "MM-71198"):
+            self.assertNotIn(private, public)
+        self.assertEqual({c["task"]: c["state"] for c in body["releases"][0]["checks"]}["loadtest-results"], "ok")
+        self.assertEqual(svc.community.reads, [("posts_since", "perf")])
 
     def test_test_mode_sends_nothing_to_other_teams(self):
         from release_agent.tests.test_agent import TODAY
