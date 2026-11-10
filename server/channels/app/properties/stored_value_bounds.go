@@ -288,10 +288,10 @@ func (ps *PropertyService) deletedOptionBreaches(existing *model.PropertyField) 
 // It also refuses while a value of a mutable field with a raise-only or lower-only rule holds one
 // of them: that value can no longer be ranked, so every later change to it would be refused.
 //
-// Last, it refuses while the system's or a channel's value of one of those fields holds an option
-// and a child field's parent rule compares against that value: every capped write below it would
-// then be refused as broken data. When several apply, the lock refusal wins, then the raise-only
-// or lower-only one, then this one.
+// Last, it refuses while the system's or a channel's value of owner, or of a field linked to it,
+// holds an option and a child field's parent rule compares against that value: every capped write
+// below it would then be refused as broken data. When several apply, the write-once or
+// set-on-create refusal wins, then the raise-only or lower-only one, then this one.
 func (ps *PropertyService) refuseDeletingHeldOptions(rctx request.CTX, caller string, owner *model.PropertyField, optionIDs []string, incoming map[string]*model.PropertyField) error {
 	if !ps.boundsEnforced() || len(optionIDs) == 0 {
 		return nil
