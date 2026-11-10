@@ -3,7 +3,6 @@
 
 import classNames from 'classnames';
 import React, {useCallback, useMemo, useState} from 'react';
-import type {KeyboardEvent} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
@@ -35,14 +34,6 @@ const NO_OPTIONS: PropertyFieldOption[] = [];
 
 function getOptions(field: PropertyField): PropertyFieldOption[] {
     return (field.attrs?.options as PropertyFieldOption[] | undefined) ?? NO_OPTIONS;
-}
-
-// Compass's chip toolbar turns Enter into a remove click without stopping it, so
-// the key would otherwise reach GenericModal's confirm handler.
-function stopChipEnter(e: KeyboardEvent<HTMLDivElement>) {
-    if (e.key === 'Enter' && e.target instanceof Element && e.target.closest('[data-chip]')) {
-        e.stopPropagation();
-    }
 }
 
 const ChannelAttributesForm = ({fields, values, onChange, disabled}: Props) => {
@@ -135,12 +126,11 @@ const ChannelAttributesForm = ({fields, values, onChange, disabled}: Props) => {
                         />
                     );
                 } else {
-                    const type = getAttributeComboboxType(field);
-                    const combobox = (
+                    control = (
                         <AttributeCombobox
                             id={comboboxId}
                             testId={`channelAttribute-${field.name}`}
-                            type={type}
+                            type={getAttributeComboboxType(field)}
                             label={label}
                             options={getOptions(field)}
                             value={selected ?? ''}
@@ -154,15 +144,6 @@ const ChannelAttributesForm = ({fields, values, onChange, disabled}: Props) => {
                             onBlur={() => markTouched(field.id)}
                         />
                     );
-
-                    control = type === 'multiselect' ? (
-                        <div
-                            role='presentation'
-                            onKeyDown={stopChipEnter}
-                        >
-                            {combobox}
-                        </div>
-                    ) : combobox;
                 }
 
                 // Decorative: the control carries required for assistive technology

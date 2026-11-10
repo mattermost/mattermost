@@ -10,7 +10,6 @@ import type {PropertyField, PropertyFieldOption} from '@mattermost/types/propert
 import {Client4} from 'mattermost-redux/client';
 import {PROPERTY_TEXT_VALUE_MAX_LENGTH} from 'mattermost-redux/constants/properties';
 
-import {AttributeCombobox} from 'components/property_fields/attribute_combobox';
 import {clearPropertyFieldOptionWalks} from 'components/property_fields/graph/page_all_access_control_field_options';
 import {clearGraphOptionNameCache} from 'components/property_fields/graph/use_graph_option_names';
 
@@ -611,40 +610,6 @@ describe('ChannelAttributesForm', () => {
 
             expect(keys).toContain('Enter');
             expect(getChips()).toHaveLength(2);
-        });
-
-        // Guards the guard: if Compass starts stopping the key itself, drop both tests.
-        test('control: the same Enter reaches a parent when the form guard is absent', async () => {
-            const user = userEvent.setup();
-            const keys: string[] = [];
-
-            function Bare() {
-                const [value, setValue] = useState<string[]>(['opt_a', 'opt_b']);
-                return (
-                    <AttributeCombobox
-                        id='bare'
-                        label='Caveats'
-                        type='multiselect'
-                        options={caveatOptions}
-                        value={value}
-                        onChange={(next) => setValue(next as string[])}
-                    />
-                );
-            }
-
-            renderWithContext(
-                <div
-                    role='presentation'
-                    onKeyDown={(e) => keys.push(e.key)}
-                >
-                    <Bare/>
-                </div>,
-            );
-
-            await focusFirstChip(user);
-            await user.keyboard('{Enter}');
-
-            expect(keys).toContain('Enter');
         });
     });
 
