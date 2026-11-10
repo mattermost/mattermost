@@ -4,7 +4,7 @@
 import classNames from 'classnames';
 import React, {useCallback, useEffect, useRef, useState, type JSX} from 'react';
 import {useIntl} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import {useDispatch, useSelector, useStore} from 'react-redux';
 
 import {EmoticonPlusOutlineIcon, InformationOutlineIcon} from '@mattermost/compass-icons/components';
 import type {Emoji, SystemEmoji} from '@mattermost/types/emojis';
@@ -18,6 +18,7 @@ import {getEmojiName, isSystemEmoji} from 'mattermost-redux/utils/emoji_utils';
 
 import {openModal} from 'actions/views/modals';
 import {getConnectionId} from 'selectors/general';
+import {getPostDraft} from 'selectors/rhs';
 
 import DeletePostModal from 'components/delete_post_modal';
 import DeleteScheduledPostModal from 'components/drafts/draft_actions/schedule_post_actions/delete_scheduled_post_modal';
@@ -107,6 +108,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
     const channel = useSelector((state: GlobalState) => getChannel(state, channelId));
 
     const dispatch = useDispatch();
+    const store = useStore<GlobalState>();
 
     const [editText, setEditText] = useState<string>(
         draft.message.trim() ? draft.message : (editingPost?.post?.message_source || editingPost?.post?.message || scheduledPost?.message || ''),
@@ -375,9 +377,19 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
 
         updatedPost = hookResult.data;
 
-        if (updatedPost.message === post.message) {
-            handleAutomatedRefocusAndExit();
+        const closeEditor = () => {
+            if (draftRef.current.message === editText) {
+                handleAutomatedRefocusAndExit();
+            } else {
+                // text typed while the save was in flight is kept as a draft
+                saveDraft();
+                handleRefocusAndExit(editingPost.refocusId || null);
+            }
             afterSave?.();
+        };
+
+        if (updatedPost.message === post.message) {
+            closeEditor();
             return;
         }
 
@@ -392,7 +404,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
                 discardDraft();
 
                 const response = await onDeleteScheduledPost();
-                if (response.error) {
+                if (response.error && !getPostDraft(store.getState(), StoragePrefixes.EDIT_DRAFT, scheduledPost.id).message) {
                     actions.setDraft(draftStorageId, pendingDraft);
                 }
                 return response;
@@ -420,14 +432,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         if (response.error) {
             setPostError(response.error.message);
         } else {
-            if (draftRef.current.message === editText) {
-                handleAutomatedRefocusAndExit();
-            } else {
-                // text typed while the save was in flight is kept as a draft
-                saveDraft();
-                handleRefocusAndExit(editingPost.refocusId || null);
-            }
-            afterSave?.();
+            closeEditor();
         }
     }, [
         actions,
@@ -436,6 +441,8 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         handleAutomatedRefocusAndExit,
         handleRefocusAndExit,
         saveDraft,
+        store,
+        draftStorageId,
         isSaveDisabled,
         hasLengthError,
         scheduledPost,

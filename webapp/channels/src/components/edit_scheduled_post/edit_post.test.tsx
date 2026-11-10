@@ -256,7 +256,7 @@ describe('components/edit_scheduled_post/edit_post', () => {
         test('should not keep a draft when a plugin hook changed the submitted message', async () => {
             const hook = jest.fn().mockImplementation((newPost) => Promise.resolve({post: {...newPost, message: 'Hooked message'}}));
             nock(Client4.getBaseRoute()).
-                put(`/posts/schedule/${scheduledPost.id}`).
+                put(`/posts/schedule/${scheduledPost.id}`, (body: ScheduledPost) => body.message === 'Hooked message').
                 reply(200, {...scheduledPost, message: 'Hooked message'});
 
             const {store, afterSave, remount} = renderEditor({
@@ -270,11 +270,43 @@ describe('components/edit_scheduled_post/edit_post', () => {
             await waitFor(() => {
                 expect(afterSave).toHaveBeenCalledTimes(1);
             });
+            expect(hook).toHaveBeenCalled();
             expect(store.getState().storage.storage[draftStorageKey].value).toBeNull();
 
             remount();
 
             expect(getTextbox().value).toBe('Original scheduled message');
+        });
+
+        test('should keep text typed while a plugin hook is pending when the hook restores the original message', async () => {
+            let resolveHook: (result: unknown) => void = () => {};
+            const hook = jest.fn().mockImplementation(() => new Promise((resolve) => {
+                resolveHook = resolve;
+            }));
+
+            const {store, afterSave, remount} = renderEditor({
+                ...scheduledPostState,
+                plugins: {components: {MessageWillBeUpdated: [{id: 'hook', pluginId: 'plugin', hook}]}},
+            });
+
+            fireEvent.input(getTextbox(), {target: {value: 'Updated message'}});
+            fireEvent.click(screen.getByText('Save'));
+            await waitFor(() => {
+                expect(hook).toHaveBeenCalled();
+            });
+            fireEvent.input(getTextbox(), {target: {value: 'Typed while hook ran'}});
+
+            await act(async () => {
+                resolveHook({post: {...scheduledPost, message: 'Original scheduled message'}});
+            });
+
+            await waitFor(() => {
+                expect(afterSave).toHaveBeenCalledTimes(1);
+            });
+            remount();
+
+            expect(getTextbox().value).toBe('Typed while hook ran');
+            expect(store.getState().storage.storage[draftStorageKey].value.message).toBe('Typed while hook ran');
         });
 
         test('should close the editor when saving an unchanged message', async () => {
@@ -397,6 +429,34 @@ describe('components/edit_scheduled_post/edit_post', () => {
             });
 
             expect(store.getState().storage.storage[draftStorageKey].value).not.toBeNull();
+        });
+
+        test('should not overwrite a newer draft when deleting the scheduled post fails', async () => {
+            const {store, onDeleteScheduledPost} = renderEditor();
+            let resolveDelete: (result: {error?: string}) => void = () => {};
+            onDeleteScheduledPost.mockImplementation(() => new Promise((resolve) => {
+                resolveDelete = resolve;
+            }));
+
+            await typeAndPersistDraft(store, 'Draft text');
+            fireEvent.input(getTextbox(), {target: {value: ''}});
+            fireEvent.click(screen.getByText('Save'));
+
+            await waitFor(() => {
+                expect(store.getState().views.modals.modalState[ModalIdentifiers.DELETE_DRAFT]?.open).toBe(true);
+            });
+
+            let confirmation: Promise<unknown> = Promise.resolve();
+            act(() => {
+                confirmation = store.getState().views.modals.modalState[ModalIdentifiers.DELETE_DRAFT].dialogProps.onConfirm();
+            });
+            await act(async () => {
+                await store.dispatch(setGlobalItem(draftStorageKey, {message: 'Newer draft', fileInfos: [], uploadsInProgress: []}));
+                resolveDelete({error: 'Unable to delete'});
+                await confirmation;
+            });
+
+            expect(store.getState().storage.storage[draftStorageKey].value.message).toBe('Newer draft');
         });
 
         test('should not leave an edit draft behind when the scheduled post is deleted', async () => {
