@@ -789,6 +789,7 @@ func TestGetSupportPacketMetadata(t *testing.T) {
 		assert.Equal(t, model.CurrentVersion, metadata.ServerVersion)
 		assert.NotEmpty(t, metadata.ServerID)
 		assert.NotEmpty(t, metadata.GeneratedAt)
+		assert.True(t, model.IsValidId(metadata.PacketID))
 	})
 }
 
