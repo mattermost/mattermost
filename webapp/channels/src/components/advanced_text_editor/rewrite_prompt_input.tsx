@@ -19,11 +19,24 @@ type Props = {
 // drops, doubles, or splits multi-byte (CJK) characters while typing quickly. This input stays
 // uncontrolled and syncs the value imperatively instead — the same approach QuickInput uses for
 // the message box — so ongoing composition is never overwritten (MM-70289).
+//
+// The value prop can also lag behind what was typed (the formatting bar re-renders this input
+// from a deferred render), so a value the input already reported through onChange is an echo of
+// older input and is never written back; only other values are external changes to apply.
 const RewritePromptInput = forwardRef<HTMLInputElement, Props>(({value, placeholder, onChange, onKeyDown}, ref) => {
     const inputRef = useRef<HTMLInputElement | null>(null);
     const isComposingRef = useRef(false);
+    const reportedValuesRef = useRef<string[]>([]);
 
     useEffect(() => {
+        const reportedValues = reportedValuesRef.current;
+        const echoIndex = reportedValues.indexOf(value);
+        if (echoIndex !== -1) {
+            reportedValues.splice(0, echoIndex + 1);
+            return;
+        }
+        reportedValues.length = 0;
+
         if (isComposingRef.current) {
             return;
         }
@@ -31,6 +44,11 @@ const RewritePromptInput = forwardRef<HTMLInputElement, Props>(({value, placehol
             inputRef.current.value = value;
         }
     }, [value]);
+
+    const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        reportedValuesRef.current.push(e.target.value);
+        onChange(e);
+    }, [onChange]);
 
     const setInputRef = useCallback((node: HTMLInputElement | HTMLTextAreaElement | null) => {
         inputRef.current = node as HTMLInputElement | null;
@@ -57,7 +75,7 @@ const RewritePromptInput = forwardRef<HTMLInputElement, Props>(({value, placehol
             label={placeholder}
             placeholder={placeholder}
             defaultValue={value}
-            onChange={onChange}
+            onChange={handleChange}
             onKeyDown={onKeyDown}
             onCompositionStart={handleCompositionStart}
             onCompositionEnd={handleCompositionEnd}

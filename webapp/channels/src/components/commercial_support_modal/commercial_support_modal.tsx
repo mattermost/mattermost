@@ -3,12 +3,12 @@
 
 import React from 'react';
 import {Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import {defineMessages, FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import {ClientError} from '@mattermost/client';
 import {buildQueryString} from '@mattermost/client/lib/helpers';
-import {DownloadOutlineIcon} from '@mattermost/compass-icons/components';
+import {ChevronDownIcon, ChevronRightIcon, DownloadOutlineIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/compass-ui/components/button';
 import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 import {Icon} from '@mattermost/compass-ui/components/icon';
@@ -21,6 +21,80 @@ import AlertBanner from 'components/alert_banner';
 import ExternalLink from 'components/external_link';
 
 import './commercial_support_modal.scss';
+
+const BASIC_CONTENTS_ID = 'basic.contents';
+const SERVER_LOGS_ID = 'basic.server.logs';
+const BASIC_CONTENTS_INCLUDED_LIST_ID = 'commercialSupportModalBasicContentsIncluded';
+
+const messages = defineMessages({
+    basicContentsLabel: {
+        id: 'commercial_support_modal.basic_contents.label',
+        defaultMessage: 'Basic contents',
+    },
+    serverLogsLabel: {
+        id: 'commercial_support_modal.server_logs.label',
+        defaultMessage: 'Server logs',
+    },
+    required: {
+        id: 'commercial_support_modal.required',
+        defaultMessage: '(required)',
+    },
+    basicContentsDescription: {
+        id: 'commercial_support_modal.basic_contents.description',
+        defaultMessage: 'Server version, license details, system diagnostics, sanitized configuration, usage counts, job status, permissions, plugin list, database schema, and performance profiles. Does not include message content.',
+    },
+    whatsIncluded: {
+        id: 'commercial_support_modal.basic_contents.whats_included',
+        defaultMessage: 'What\'s included',
+    },
+    serverLogsDescription: {
+        id: 'commercial_support_modal.server_logs.description',
+        defaultMessage: 'Recent server log files, including any advanced and audit log files. May contain usernames, email addresses, IP addresses, and error details.',
+    },
+});
+
+const basicContentsIncludedItems = defineMessages({
+    serverInfo: {
+        id: 'commercial_support_modal.basic_contents.included.server_info',
+        defaultMessage: 'Server version, license, and server ID',
+    },
+    diagnostics: {
+        id: 'commercial_support_modal.basic_contents.included.diagnostics',
+        defaultMessage: 'System diagnostics: OS, CPU, memory, database, file storage, and connectivity checks',
+    },
+    config: {
+        id: 'commercial_support_modal.basic_contents.included.config',
+        defaultMessage: 'Configuration with credentials removed',
+    },
+    usage: {
+        id: 'commercial_support_modal.basic_contents.included.usage',
+        defaultMessage: 'Usage counts: users, posts, channels, teams',
+    },
+    jobs: {
+        id: 'commercial_support_modal.basic_contents.included.jobs',
+        defaultMessage: 'Background job status',
+    },
+    permissions: {
+        id: 'commercial_support_modal.basic_contents.included.permissions',
+        defaultMessage: 'Permission schemes and roles',
+    },
+    plugins: {
+        id: 'commercial_support_modal.basic_contents.included.plugins',
+        defaultMessage: 'Installed plugins and their versions',
+    },
+    pluginData: {
+        id: 'commercial_support_modal.basic_contents.included.plugin_data',
+        defaultMessage: 'Usage counts and settings from installed plugins',
+    },
+    databaseSchema: {
+        id: 'commercial_support_modal.basic_contents.included.database_schema',
+        defaultMessage: 'Database table structure (no data)',
+    },
+    profiles: {
+        id: 'commercial_support_modal.basic_contents.included.profiles',
+        defaultMessage: 'Performance profiles (CPU, memory, goroutines)',
+    },
+});
 
 type Props = {
 
@@ -48,6 +122,7 @@ type State = {
      * Error text from the server, or true when the download failed without a usable message.
      */
     error?: string | true;
+    showBasicContentsIncluded: boolean;
 };
 
 // Delay before releasing the downloaded file from memory. Revoking the object URL
@@ -74,6 +149,7 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
             showBannerWarning: props.showBannerWarning,
             packetContents: props.packetContents,
             loading: false,
+            showBasicContentsIncluded: false,
         };
     }
 
@@ -110,11 +186,81 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
     getSupportPacketOptions = () => {
         const {packetContents} = this.state;
         return {
-            basicServerLogs: packetContents.some((content) => content.id === 'basic.server.logs' && content.selected),
+            basicServerLogs: packetContents.some((content) => content.id === SERVER_LOGS_ID && content.selected),
             pluginPackets: packetContents.
-                filter((content) => content.id !== 'basic.server.logs' && !content.mandatory && content.selected).
+                filter((content) => content.id !== SERVER_LOGS_ID && !content.mandatory && content.selected).
                 map((content) => content.id),
         };
+    };
+
+    toggleBasicContentsIncluded = () => {
+        this.setState({showBasicContentsIncluded: !this.state.showBasicContentsIncluded});
+    };
+
+    renderOptionLabel = (item: SupportPacketContent) => {
+        if (item.id === BASIC_CONTENTS_ID) {
+            return <FormattedMessage {...messages.basicContentsLabel}/>;
+        }
+
+        if (item.id === SERVER_LOGS_ID) {
+            return <FormattedMessage {...messages.serverLogsLabel}/>;
+        }
+
+        return item.label;
+    };
+
+    renderOptionDescription = (id: string) => {
+        if (id === BASIC_CONTENTS_ID) {
+            const {showBasicContentsIncluded} = this.state;
+            return (
+                <div className='CommercialSupportModal__option_details'>
+                    <p
+                        id={`${id}-description`}
+                        className='CommercialSupportModal__option_description'
+                    >
+                        <FormattedMessage {...messages.basicContentsDescription}/>
+                    </p>
+                    <Button
+                        emphasis='link'
+                        size='small'
+                        className='CommercialSupportModal__whats_included_toggle'
+                        aria-expanded={showBasicContentsIncluded}
+                        aria-controls={BASIC_CONTENTS_INCLUDED_LIST_ID}
+                        onClick={this.toggleBasicContentsIncluded}
+                        leadingIcon={<Icon glyph={showBasicContentsIncluded ? <ChevronDownIcon/> : <ChevronRightIcon/>}/>}
+                    >
+                        <FormattedMessage {...messages.whatsIncluded}/>
+                    </Button>
+                    {showBasicContentsIncluded && (
+                        <ul
+                            id={BASIC_CONTENTS_INCLUDED_LIST_ID}
+                            className='CommercialSupportModal__whats_included_list'
+                        >
+                            {Object.entries(basicContentsIncludedItems).map(([key, message]) => (
+                                <li key={key}>
+                                    <FormattedMessage {...message}/>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </div>
+            );
+        }
+
+        if (id === SERVER_LOGS_ID) {
+            return (
+                <div className='CommercialSupportModal__option_details'>
+                    <p
+                        id={`${id}-description`}
+                        className='CommercialSupportModal__option_description'
+                    >
+                        <FormattedMessage {...messages.serverLogsDescription}/>
+                    </p>
+                </div>
+            );
+        }
+
+        return null;
     };
 
     downloadSupportPacket = async () => {
@@ -227,22 +373,42 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
                             </strong>
                         </div>
                         <div className='CommercialSupportModal__options'>
-                            {this.state.packetContents.map((item, index) => (
-                                <div
-                                    className='CommercialSupportModal__option'
-                                    key={item.id}
-                                >
-                                    <Checkbox
-                                        id={item.id}
-                                        name={item.id}
-                                        checked={item.selected}
-                                        disabled={item.mandatory}
-                                        onChange={() => this.updateCheckStatus(index)}
+                            {this.state.packetContents.map((item, index) => {
+                                const description = this.renderOptionDescription(item.id);
+                                const describedBy = [
+                                    item.mandatory && `${item.id}-required`,
+                                    description && `${item.id}-description`,
+                                ].filter(Boolean).join(' ');
+                                return (
+                                    <div
+                                        className='CommercialSupportModal__option'
+                                        key={item.id}
                                     >
-                                        {item.label}
-                                    </Checkbox>
-                                </div>
-                            ))}
+                                        <div className='CommercialSupportModal__option_header'>
+                                            <Checkbox
+                                                className='CommercialSupportModal__option_checkbox'
+                                                id={item.id}
+                                                name={item.id}
+                                                checked={item.selected}
+                                                disabled={item.mandatory}
+                                                onChange={() => this.updateCheckStatus(index)}
+                                                aria-describedby={describedBy || undefined}
+                                            >
+                                                {this.renderOptionLabel(item)}
+                                            </Checkbox>
+                                            {item.mandatory && (
+                                                <span
+                                                    id={`${item.id}-required`}
+                                                    className='CommercialSupportModal__option_required'
+                                                >
+                                                    <FormattedMessage {...messages.required}/>
+                                                </span>
+                                            )}
+                                        </div>
+                                        {description}
+                                    </div>
+                                );
+                            })}
                         </div>
                         <div className='CommercialSupportModal__download'>
                             {error && (

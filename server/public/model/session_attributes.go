@@ -70,14 +70,16 @@ const (
 	SAAttrDisplayName        = "display_name"
 )
 
+const SessionAttributeMinDurationSeconds = 60
+
 const (
-	SessionAttributeDefaultTTLNetworkIdentity = 15
+	SessionAttributeDefaultTTLNetworkIdentity = 60
 	SessionAttributeDefaultTTLPosture         = 60
 	SessionAttributeDefaultTTLIdentity        = 300
 )
 
 const (
-	SessionAttributeDefaultGraceNetworkIdentity = 15
+	SessionAttributeDefaultGraceNetworkIdentity = 60
 	SessionAttributeDefaultGracePosture         = 60
 	SessionAttributeDefaultGraceIdentity        = 300
 )
