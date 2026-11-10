@@ -1,13 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {act, screen, waitFor} from '@testing-library/react';
+import {act, screen, waitFor, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
 import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
+import {ChannelTypes, RoleTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
 import {PROPERTY_TEXT_VALUE_MAX_LENGTH} from 'mattermost-redux/constants/properties';
 
@@ -944,6 +945,108 @@ describe('ChannelInfoAttributes', () => {
         });
     });
 
+    describe('a required attribute with Required on', () => {
+        const requiredState = (fields: PropertyField[], values: Array<PropertyValue<unknown>>) => {
+            const state = makeState(fields, values);
+            state.entities!.general!.config!.FeatureFlagChannelAttributesRequired = 'true';
+
+            // Already loaded, so the missing-value indicators don't fetch.
+            state.entities!.properties!.loadedValueTargets = {[CHANNEL_ID]: true};
+            return state;
+        };
+        const multiOptions = [
+            {id: 'opt_a', name: 'VALUE_A'},
+            {id: 'opt_b', name: 'VALUE_B'},
+        ];
+
+        test('offers no remove control on a set single-select value', () => {
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                requiredState([field('program', {required: true})], [value('program', 'opt_program')]),
+            );
+
+            expect(screen.getByTestId('channelInfoAttributeEdit-program')).toHaveTextContent('VALUE_PROGRAM');
+            expect(screen.queryByRole('button', {name: 'Remove VALUE_PROGRAM'})).not.toBeInTheDocument();
+        });
+
+        test('still offers the remove control while Required is off', () => {
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState([field('program', {required: true})], [value('program', 'opt_program')]),
+            );
+
+            expect(screen.getByRole('button', {name: 'Remove VALUE_PROGRAM'})).toBeInTheDocument();
+        });
+
+        test('keeps the last multiselect value but lets either of two go', () => {
+            const tags = field('tags', {type: 'multiselect', options: multiOptions, required: true});
+            const {unmount} = renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                requiredState([tags], [value('tags', ['opt_a'])]),
+            );
+            expect(screen.queryByRole('button', {name: 'Remove VALUE_A'})).not.toBeInTheDocument();
+            unmount();
+
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                requiredState([tags], [value('tags', ['opt_a', 'opt_b'])]),
+            );
+            expect(screen.getByRole('button', {name: 'Remove VALUE_A'})).toBeInTheDocument();
+            expect(screen.getByRole('button', {name: 'Remove VALUE_B'})).toBeInTheDocument();
+        });
+
+        test('unpicking the last multiselect value from the menu sends nothing', async () => {
+            const patchSpy = jest.spyOn(Client4, 'patchPropertyValues').mockResolvedValue([]);
+
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                requiredState([field('tags', {type: 'multiselect', options: multiOptions, required: true})], [value('tags', ['opt_a'])]),
+            );
+
+            await userEvent.click(screen.getByTestId('channelInfoAttributeEdit-tags'));
+            await userEvent.click(within(await screen.findByRole('menu', {name: 'Tags'})).getByText('VALUE_A'));
+
+            expect(patchSpy).not.toHaveBeenCalled();
+        });
+
+        test('emptying a text value sends nothing and keeps the old value', async () => {
+            const patchSpy = jest.spyOn(Client4, 'patchPropertyValues').mockResolvedValue([]);
+
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                requiredState([field('note', {required: true, type: 'text'})], [value('note', 'hello')]),
+            );
+
+            await userEvent.click(screen.getByTestId('channelInfoAttributeEdit-note'));
+            const input = await screen.findByTestId('channelAttributeEdit-note');
+            await userEvent.clear(input);
+            await userEvent.type(input, '{Enter}');
+
+            expect(patchSpy).not.toHaveBeenCalled();
+            expect(await screen.findByText('hello')).toBeInTheDocument();
+        });
+
+        test('says the attribute is required when the server refuses an empty value', async () => {
+            jest.spyOn(Client4, 'patchPropertyValues').mockRejectedValue({
+                message: 'This attribute is required and cannot be left empty.',
+                server_error_id: 'app.property_value.required.app_error',
+                status_code: 400,
+            });
+
+            // Required off: the remove control is offered, the server still refuses.
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState([field('program', {required: true})], [value('program', 'opt_program')]),
+            );
+
+            await userEvent.click(screen.getByRole('button', {name: 'Remove VALUE_PROGRAM'}));
+
+            const error = await screen.findByTestId('channelInfoAttributeError-program');
+            expect(error).toHaveTextContent('Program is required. Choose a value instead of clearing it.');
+            expect(error).not.toHaveTextContent('Try again');
+        });
+    });
+
     describe('deferred mode', () => {
         test('stages an edit locally, without writing through the property API', async () => {
             const patchSpy = jest.spyOn(Client4, 'patchPropertyValues').mockResolvedValue([]);
@@ -1058,5 +1161,146 @@ describe('ChannelInfoAttributes', () => {
             expect(ref.current?.hasPendingChanges()).toBe(true);
             expect(await screen.findByTestId('channelInfoAttributeError-program')).toBeInTheDocument();
         });
+    });
+});
+
+describe('ChannelInfoAttributes missing required attributes', () => {
+    const OTHER_CHANNEL_ID = 'channel2';
+
+    function loadedState(fields: PropertyField[], values: Array<PropertyValue<unknown>> = [], pending: {channelId: string; fieldId: string} | null = null, memberLoaded = true): DeepPartial<GlobalState> {
+        return mergeObjects(makeState(fields, values), {
+            entities: {
+                general: {config: {FeatureFlagChannelAttributesRequired: 'true'}},
+                properties: {loadedValueTargets: {[CHANNEL_ID]: true}},
+                ...(memberLoaded ? {
+                    channels: {myMembers: {[CHANNEL_ID]: {channel_id: CHANNEL_ID, user_id: 'user1', roles: 'channel_user channel_admin'}}},
+                    roles: {roles: {channel_user: {name: 'channel_user', permissions: []}, channel_admin: {name: 'channel_admin', permissions: []}}},
+                } : {}),
+            },
+            views: {rhs: {pendingChannelAttributeEdit: pending}},
+        } as DeepPartial<GlobalState>);
+    }
+
+    const pendingFor = (fieldId: string, channelId = CHANNEL_ID) => ({channelId, fieldId});
+
+    beforeEach(() => {
+        mockChannelPermissions = {read_channel: true, manage_channel_roles: true};
+        Element.prototype.scrollIntoView = jest.fn();
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
+    test('a missing required select row shows a red label and a Select a value pill', () => {
+        renderWithContext(
+            <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+            loadedState([field('program', {required: true})]),
+        );
+
+        expect(screen.getByTestId('channelInfoAttributeMissing-program')).toHaveTextContent('Select a value');
+        expect(screen.getByText('Program')).toHaveClass('ChannelInfoAttributes__label--missing');
+        expect(screen.queryByText('Not set')).not.toBeInTheDocument();
+    });
+
+    test('a missing required text row shows an Enter a value pill that opens the editor', async () => {
+        renderWithContext(
+            <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+            loadedState([field('notes', {required: true, type: 'text', options: []})]),
+        );
+
+        expect(screen.getByTestId('channelInfoAttributeMissing-notes')).toHaveTextContent('Enter a value');
+        await userEvent.click(screen.getByTestId('channelInfoAttributeEdit-notes'));
+        expect(screen.getByTestId('channelAttributeEdit-notes')).toHaveFocus();
+    });
+
+    test('a row with a value, an optional row and a row the viewer cannot set are not highlighted', () => {
+        renderWithContext(
+            <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+            loadedState([
+                field('program', {required: true}),
+                field('tempo', {required: true, permissionValues: 'sysadmin'}),
+            ], [value('program', 'opt_program')]),
+        );
+
+        expect(screen.queryByTestId('channelInfoAttributeMissing-program')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('channelInfoAttributeMissing-tempo')).not.toBeInTheDocument();
+        expect(screen.getByText('Tempo')).not.toHaveClass('ChannelInfoAttributes__label--missing');
+    });
+
+    test('a pending edit opens the select editor with focus inside it, scrolls to it and is cleared', async () => {
+        const {store} = renderWithContext(
+            <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+            loadedState([field('program', {required: true})], [], pendingFor('program')),
+        );
+
+        const menu = await screen.findByRole('menu', {name: 'Program'});
+        await waitFor(() => expect(Element.prototype.scrollIntoView).toHaveBeenCalled());
+
+        // The scroll runs a frame after the menu opens; focus must still be in the menu after it.
+        await waitFor(() => expect(menu).toContainElement(document.activeElement as HTMLElement));
+        expect(store.getState().views.rhs.pendingChannelAttributeEdit).toBeNull();
+    });
+
+    test('a pending edit moves focus into a text editor', async () => {
+        const {store} = renderWithContext(
+            <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+            loadedState([field('notes', {required: true, type: 'text', options: []})], [], pendingFor('notes')),
+        );
+
+        await waitFor(() => expect(screen.getByTestId('channelAttributeEdit-notes')).toHaveFocus());
+        expect(store.getState().views.rhs.pendingChannelAttributeEdit).toBeNull();
+    });
+
+    test('a pending edit for another channel opens nothing and is cleared', async () => {
+        const {store} = renderWithContext(
+            <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+            loadedState([field('program', {required: true})], [], pendingFor('program', OTHER_CHANNEL_ID)),
+        );
+
+        await waitFor(() => expect(store.getState().views.rhs.pendingChannelAttributeEdit).toBeNull());
+        expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+    });
+
+    test('a pending edit for a row the viewer cannot edit opens nothing and is cleared', async () => {
+        const {store} = renderWithContext(
+            <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+            loadedState([field('program', {required: true}), field('tempo', {required: true, permissionValues: 'sysadmin'})], [], pendingFor('tempo')),
+        );
+
+        await waitFor(() => expect(store.getState().views.rhs.pendingChannelAttributeEdit).toBeNull());
+        expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+    });
+
+    test('the deferred instance ignores a pending edit and leaves it for the panel', () => {
+        const {store} = renderWithContext(
+            <ChannelInfoAttributes
+                channelId={CHANNEL_ID}
+                deferred={true}
+            />,
+            loadedState([field('program', {required: true})], [], pendingFor('program')),
+        );
+
+        expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+        expect(store.getState().views.rhs.pendingChannelAttributeEdit).toEqual(pendingFor('program'));
+    });
+
+    test('a pending edit waits for the member and roles to load, then opens the editor and clears', async () => {
+        const {store} = renderWithContext(
+            <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+            loadedState([field('program', {required: true})], [], pendingFor('program'), false),
+        );
+
+        // Nothing decides editability yet: the request stays and no editor opens.
+        expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+        expect(store.getState().views.rhs.pendingChannelAttributeEdit).toEqual(pendingFor('program'));
+
+        act(() => {
+            store.dispatch({type: RoleTypes.RECEIVED_ROLES, data: [{name: 'channel_user', permissions: []}, {name: 'channel_admin', permissions: []}]});
+            store.dispatch({type: ChannelTypes.RECEIVED_MY_CHANNEL_MEMBER, data: {channel_id: CHANNEL_ID, user_id: 'user1', roles: 'channel_user channel_admin'}});
+        });
+
+        expect(await screen.findByRole('menu', {name: 'Program'})).toBeInTheDocument();
+        await waitFor(() => expect(store.getState().views.rhs.pendingChannelAttributeEdit).toBeNull());
     });
 });

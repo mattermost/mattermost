@@ -19575,6 +19575,10 @@
     "defaultMessage": "Edit {label}",
     "description": "Screen-reader label for the button that edits a channel attribute's value in the channel info right-hand panel. {label} is the attribute's display name. 'Edit' is a verb."
   },
+  "channel_attributes.info.enter_a_value": {
+    "defaultMessage": "Enter a value",
+    "description": "Placeholder in a Channel Info row for a required text attribute that has no value yet. Selecting it opens the text editor."
+  },
   "channel_attributes.info.heading": {
     "defaultMessage": "Channel Attributes",
     "description": "Section heading in the channel info right-hand panel above the list of the channel's attributes, such as classification."
@@ -19610,6 +19614,14 @@
   "channel_attributes.info.save_failed": {
     "defaultMessage": "Couldn't save {label}. Try again.",
     "description": "Inline error under a channel attribute in the channel info right-hand panel when saving its new value fails. {label} is the attribute's display name."
+  },
+  "channel_attributes.info.save_failed_required": {
+    "defaultMessage": "{label} is required. Choose a value instead of clearing it.",
+    "description": "Inline error under a channel attribute in the channel info right-hand panel when the server refuses to clear a required attribute. {label} is the attribute's display name. Retrying can't help, so it asks for a different value instead."
+  },
+  "channel_attributes.info.select_a_value": {
+    "defaultMessage": "Select a value",
+    "description": "Placeholder in a Channel Info row for a required attribute that has no value yet. Selecting it opens the list of values to choose from."
   },
   "channel_attributes.labels.overflow": {
     "defaultMessage": "+{count}",

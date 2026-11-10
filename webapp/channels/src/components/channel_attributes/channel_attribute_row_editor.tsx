@@ -16,6 +16,7 @@ import {asGraphFieldRef} from 'components/property_fields/graph';
 import AssignmentGraphPicker from 'components/property_fields/hierarchical_value_menu/assignment_picker';
 
 import AttributeChip, {AttributeChipRemoveButton} from './attribute_chip';
+import MissingValuePill from './missing_value_pill';
 import type {ChannelAttributeValue} from './set_channel_attribute_value';
 
 type Option = {label: string; value: string; color?: string};
@@ -79,6 +80,16 @@ type Props = {
     onSubmit: (value: ChannelAttributeValue) => void;
     onCancel: () => void;
     saving: boolean;
+
+    // The row is a required attribute with no value yet: the empty state reads as
+    // something to fill in rather than as "Not set".
+    missing?: boolean;
+
+    // Opens the option menu each time it changes to a non-zero value.
+    openSignal?: number;
+
+    // The server refuses an empty value, so the editor never offers one.
+    required?: boolean;
 };
 
 /**
@@ -90,7 +101,7 @@ type Props = {
  * multiselect share the borderless inline chip chrome used by the graph
  * picker in Channel Info — no boxed input trigger, no Clear menu item.
  */
-const ChannelAttributeRowEditor = ({field, rawValue, displayValue, color, onSubmit, onCancel, saving}: Props) => {
+const ChannelAttributeRowEditor = ({field, rawValue, displayValue, color, onSubmit, onCancel, saving, missing = false, openSignal = 0, required = false}: Props) => {
     const {formatMessage} = useIntl();
 
     const label = getPropertyFieldLabel(field);
@@ -115,6 +126,9 @@ const ChannelAttributeRowEditor = ({field, rawValue, displayValue, color, onSubm
     );
 
     const clearable = getPropertyFieldChangePolicy(field) === 'any' || !isPropertyValueSet(rawValue);
+
+    // A required multiselect keeps its last value.
+    const lastRequiredChip = required && chosen.length === 1;
     const hasDisplay = Boolean(displayValue);
     const editLabel = formatMessage(
         {id: 'channel_attributes.info.edit', defaultMessage: 'Edit {label}'},
@@ -151,15 +165,24 @@ const ChannelAttributeRowEditor = ({field, rawValue, displayValue, color, onSubm
         return () => document.removeEventListener('pointerdown', handlePointerDown);
     }, [menuOpen, menuButtonId, menuId]);
 
+    useEffect(() => {
+        if (openSignal > 0) {
+            setMenuOpen(true);
+        }
+    }, [openSignal]);
+
     const handlePick = useCallback((optionId: string) => {
         if (isMultiselect) {
             const next = chosen.includes(optionId) ? chosen.filter((id) => id !== optionId) : [...chosen, optionId];
+            if (!next.length && required) {
+                return;
+            }
             onSubmit(next.length ? next : null);
             return;
         }
         onSubmit(optionId);
         setMenuOpen(false);
-    }, [chosen, isMultiselect, onSubmit]);
+    }, [chosen, isMultiselect, onSubmit, required]);
 
     const handleClear = useCallback(() => {
         onSubmit(null);
@@ -170,18 +193,26 @@ const ChannelAttributeRowEditor = ({field, rawValue, displayValue, color, onSubm
     const graphField = useMemo(() => (field.type === 'graph' ? asGraphFieldRef(field) : null), [field]);
 
     const handleGraphIdsChange = useCallback((next: string[]) => {
+        if (!next.length && required) {
+            return;
+        }
         onSubmit(next.length ? next : null);
-    }, [onSubmit]);
+    }, [onSubmit, required]);
 
     const handleTextKeyDown = useCallback((event: React.KeyboardEvent<HTMLInputElement>) => {
         if (event.key === 'Enter') {
             event.preventDefault();
-            onSubmit(text.trim() || null);
+            const next = text.trim();
+            if (!next && required) {
+                onCancel();
+                return;
+            }
+            onSubmit(next || null);
         } else if (event.key === 'Escape') {
             event.preventDefault();
             onCancel();
         }
-    }, [text, onSubmit, onCancel]);
+    }, [text, onSubmit, onCancel, required]);
 
     if (isText) {
         return (
@@ -201,6 +232,10 @@ const ChannelAttributeRowEditor = ({field, rawValue, displayValue, color, onSubm
                         return;
                     }
                     const next = text.trim();
+                    if (!next && required) {
+                        onCancel();
+                        return;
+                    }
                     onSubmit(next || null);
                 }}
                 disabled={saving}
@@ -220,7 +255,10 @@ const ChannelAttributeRowEditor = ({field, rawValue, displayValue, color, onSubm
                 menuId={`channelAttributeEdit-${field.name}`}
                 buttonId={`channelInfoAttributeEdit-${field.name}`}
                 buttonDataTestId={`channelInfoAttributeEdit-${field.name}`}
-                placeholder={formatMessage({
+                placeholder={missing ? formatMessage({
+                    id: 'channel_attributes.info.select_a_value',
+                    defaultMessage: 'Select a value',
+                }) : formatMessage({
                     id: 'channel_attributes.info.not_set',
                     defaultMessage: 'Not set',
                 })}
@@ -231,7 +269,9 @@ const ChannelAttributeRowEditor = ({field, rawValue, displayValue, color, onSubm
         );
     }
 
-    const emptyPlaceholder = (
+    const emptyPlaceholder = missing ? (
+        <MissingValuePill field={field}/>
+    ) : (
         <span
             className='ChannelInfoAttributes__empty'
             data-testid={`channelInfoAttributeUnset-${field.name}`}
@@ -257,7 +297,7 @@ const ChannelAttributeRowEditor = ({field, rawValue, displayValue, color, onSubm
                             label={label}
                             value={option?.label ?? optionId}
                             color={option?.color}
-                            disabled={saving || !clearable}
+                            disabled={saving || !clearable || lastRequiredChip}
                             onRemove={() => handlePick(optionId)}
                         />
                     );
@@ -265,7 +305,7 @@ const ChannelAttributeRowEditor = ({field, rawValue, displayValue, color, onSubm
             </span>
         ) : emptyPlaceholder;
     } else if (hasDisplay) {
-        triggerChildren = clearable ? (
+        triggerChildren = clearable && !required ? (
             <RemovableChip
                 label={label}
                 value={displayValue!}

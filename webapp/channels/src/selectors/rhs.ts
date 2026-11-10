@@ -18,7 +18,7 @@ import {localizeMessage} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
-import type {RhsState, FakePost, MentionFilters, SearchType} from 'types/store/rhs';
+import type {RhsState, FakePost, MentionFilters, PendingChannelAttributeEdit, SearchType} from 'types/store/rhs';
 
 export function getSelectedPostId(state: GlobalState): Post['id'] {
     return state.views.rhs.selectedPostId;
@@ -260,4 +260,8 @@ export function getIsRhsExpanded(state: GlobalState): boolean {
 
 export function getIsEditingMembers(state: GlobalState): boolean {
     return state.views.rhs.editChannelMembers === true;
+}
+
+export function getPendingChannelAttributeEdit(state: GlobalState): PendingChannelAttributeEdit | null {
+    return state.views.rhs.pendingChannelAttributeEdit;
 }

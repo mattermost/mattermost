@@ -29,6 +29,8 @@ type RequestState = {
     missing: PropertyField[];
 };
 
+const EMPTY_MISSING: PropertyField[] = [];
+
 const IDLE: RequestState = {channelId: '', status: 'loaded', missing: []};
 
 // RECEIVED_PROPERTY_VALUES only merges, so a cached value for a field the
@@ -58,6 +60,12 @@ export type MissingRequiredChannelAttributesOptions = {
      * every channel change, which the unarchive dialog wants.
      */
     preferStore?: boolean;
+
+    /**
+     * Report nothing and make no request, for a caller that has already ruled
+     * the channel out (a DM, an archived channel).
+     */
+    skip?: boolean;
 };
 
 export function missingRequiredFields(
@@ -90,14 +98,14 @@ export function missingRequiredFields(
  */
 export default function useMissingRequiredChannelAttributes(
     channelId: string,
-    {preferStore = false}: MissingRequiredChannelAttributesOptions = {},
+    {preferStore = false, skip = false}: MissingRequiredChannelAttributesOptions = {},
 ): MissingRequiredChannelAttributesState {
     const dispatch = useDispatch();
 
     const {enabled: attributesEnabled, loading: fieldsLoading, fields} = useChannelAttributes();
     const requiredEnforced = useSelector(isChannelAttributesRequiredEnabled);
-    const enabled = attributesEnabled && requiredEnforced;
-    const requiredFields = fields.filter(isPropertyFieldRequired);
+    const enabled = !skip && attributesEnabled && requiredEnforced;
+    const requiredFields = useMemo(() => fields.filter(isPropertyFieldRequired), [fields]);
 
     const [request, setRequest] = useState<RequestState>(IDLE);
 
@@ -175,11 +183,15 @@ export default function useMissingRequiredChannelAttributes(
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [enabled, channelId, requiredFields.length, preferStore]);
 
+    const storeMissing = useMemo(() => (
+        preferStore && active && loadedInStore ? missingRequiredFields(requiredFields, storeValues) : EMPTY_MISSING
+    ), [preferStore, active, loadedInStore, requiredFields, storeValues]);
+
     if (preferStore) {
         const failed = request.channelId === channelId && request.status === 'failed';
         return {
             loading: fieldsLoading || (active && !loadedInStore && !failed),
-            missing: active && loadedInStore ? missingRequiredFields(requiredFields, storeValues) : [],
+            missing: storeMissing,
         };
     }
 
