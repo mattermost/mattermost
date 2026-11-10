@@ -4,9 +4,7 @@
 import type {Client4} from '@mattermost/client';
 import type {Locator, Page} from '@playwright/test';
 
-import {expect} from '@mattermost/playwright-lib';
-
-import {patchFeatureFlags} from '@mattermost/playwright-lib';
+import {expect, patchFeatureFlags} from '@mattermost/playwright-lib';
 
 /**
  * Enable team-membership ABAC end to end: the umbrella attribute-based access
