@@ -392,7 +392,7 @@ func TestNotifyNewChannelAdminOfMissingRequiredAttributes(t *testing.T) {
 		th.AddUserToChannel(t, member, channel)
 		field := createMissingAttributesField(t, th, "Program", true, model.PermissionLevelAdmin)
 
-		_, appErr = th.App.UpdateChannelMemberSchemeRoles(th.Context, channel.Id, member.Id, false, true, true)
+		_, appErr = th.App.UpdateChannelMemberSchemeRolesAndNotifyNewAdmin(th.Context, channel.Id, member.Id, false, true, true)
 		require.Nil(t, appErr)
 
 		post := requireOneMissingAttributesPost(t, th, bot.UserId, member.Id)
@@ -409,11 +409,58 @@ func TestNotifyNewChannelAdminOfMissingRequiredAttributes(t *testing.T) {
 		th.AddUserToChannel(t, member, channel)
 		createMissingAttributesField(t, th, "Program", true, model.PermissionLevelAdmin)
 
-		_, appErr = th.App.UpdateChannelMemberRoles(th.Context, channel.Id, member.Id, model.ChannelUserRoleId+" "+model.ChannelAdminRoleId)
+		_, appErr = th.App.UpdateChannelMemberRolesAndNotifyNewAdmin(th.Context, channel.Id, member.Id, model.ChannelUserRoleId+" "+model.ChannelAdminRoleId)
 		require.Nil(t, appErr)
 
 		post := requireOneMissingAttributesPost(t, th, bot.UserId, member.Id)
 		assert.Contains(t, post.Message, "/"+team.Name+"/channels/"+channel.Name)
+	})
+
+	t.Run("plugins, bulk import and membership sync promote without a message", func(t *testing.T) {
+		th := setupMissingAttributes(t)
+		bot, appErr := th.App.GetSystemBot(th.Context)
+		require.Nil(t, appErr)
+		team, member := newAttributesTeamAndMember(t, th)
+		viaRoles := th.CreateChannel(t, team)
+		viaSchemeRoles := th.CreateChannel(t, team)
+		viaImport := th.CreateChannel(t, team)
+		viaSync := th.CreateChannel(t, team)
+		control := th.CreateChannel(t, team)
+		for _, channel := range []*model.Channel{viaRoles, viaSchemeRoles, viaImport, control} {
+			th.AddUserToChannel(t, member, channel)
+		}
+		createMissingAttributesField(t, th, "Program", true, model.PermissionLevelAdmin)
+		adminRoles := model.ChannelUserRoleId + " " + model.ChannelAdminRoleId
+
+		// The plugin API's role update
+		_, appErr = th.App.UpdateChannelMemberRoles(th.Context, viaRoles.Id, member.Id, adminRoles)
+		require.Nil(t, appErr)
+
+		// The scheme role update bulk import, membership sync and GM conversion call
+		_, appErr = th.App.UpdateChannelMemberSchemeRoles(th.Context, viaSchemeRoles.Id, member.Id, false, true, true)
+		require.Nil(t, appErr)
+
+		// Bulk import's explicit-role pass
+		_, promoted, appErr := th.App.updateChannelMemberRolesInternal(th.Context, viaImport.Id, member.Id, adminRoles, true)
+		require.Nil(t, appErr)
+		require.True(t, promoted, "sanity check: the import pass must make the member admin")
+
+		// Membership sync adding the member straight in as admin
+		current, err := th.App.Srv().Store().Channel().GetAllChannelMemberIdsByChannelId(viaSync.Id)
+		require.NoError(t, err)
+		appErr = th.App.SetChannelMembers(th.Context, viaSync, append(current, member.Id), map[string]struct{}{member.Id: {}}, th.SystemAdminUser.Id, 10, 0, func(*model.SetChannelMembersResponse) {})
+		require.Nil(t, appErr)
+		synced, appErr := th.App.GetChannelMember(th.Context, viaSync.Id, member.Id)
+		require.Nil(t, appErr)
+		require.True(t, synced.SchemeAdmin, "sanity check: the sync must make the member admin")
+
+		// A promotion through the REST path afterwards is the only one announced, so the
+		// silence above is not just a slow send.
+		_, appErr = th.App.UpdateChannelMemberSchemeRolesAndNotifyNewAdmin(th.Context, control.Id, member.Id, false, true, true)
+		require.Nil(t, appErr)
+
+		post := requireOneMissingAttributesPost(t, th, bot.UserId, member.Id)
+		assert.ElementsMatch(t, []any{control.Id}, post.GetProp("channel_ids"))
 	})
 
 	t.Run("a member who is already an admin sends nothing again", func(t *testing.T) {
@@ -423,13 +470,13 @@ func TestNotifyNewChannelAdminOfMissingRequiredAttributes(t *testing.T) {
 		team, member := newAttributesTeamAndMember(t, th)
 		channel := th.CreateChannel(t, team)
 		th.AddUserToChannel(t, member, channel)
-		_, appErr = th.App.UpdateChannelMemberSchemeRoles(th.Context, channel.Id, member.Id, false, true, true)
+		_, appErr = th.App.UpdateChannelMemberSchemeRolesAndNotifyNewAdmin(th.Context, channel.Id, member.Id, false, true, true)
 		require.Nil(t, appErr)
 		createMissingAttributesField(t, th, "Program", true, model.PermissionLevelAdmin)
 
-		_, appErr = th.App.UpdateChannelMemberSchemeRoles(th.Context, channel.Id, member.Id, false, true, true)
+		_, appErr = th.App.UpdateChannelMemberSchemeRolesAndNotifyNewAdmin(th.Context, channel.Id, member.Id, false, true, true)
 		require.Nil(t, appErr)
-		_, appErr = th.App.UpdateChannelMemberRoles(th.Context, channel.Id, member.Id, model.ChannelUserRoleId+" "+model.ChannelAdminRoleId)
+		_, appErr = th.App.UpdateChannelMemberRolesAndNotifyNewAdmin(th.Context, channel.Id, member.Id, model.ChannelUserRoleId+" "+model.ChannelAdminRoleId)
 		require.Nil(t, appErr)
 
 		requireNoMissingAttributesPost(t, th, bot.UserId, member.Id)
@@ -442,11 +489,11 @@ func TestNotifyNewChannelAdminOfMissingRequiredAttributes(t *testing.T) {
 		team, member := newAttributesTeamAndMember(t, th)
 		channel := th.CreateChannel(t, team)
 		th.AddUserToChannel(t, member, channel)
-		_, appErr = th.App.UpdateChannelMemberSchemeRoles(th.Context, channel.Id, member.Id, false, true, true)
+		_, appErr = th.App.UpdateChannelMemberSchemeRolesAndNotifyNewAdmin(th.Context, channel.Id, member.Id, false, true, true)
 		require.Nil(t, appErr)
 		createMissingAttributesField(t, th, "Program", true, model.PermissionLevelAdmin)
 
-		_, appErr = th.App.UpdateChannelMemberSchemeRoles(th.Context, channel.Id, member.Id, false, true, false)
+		_, appErr = th.App.UpdateChannelMemberSchemeRolesAndNotifyNewAdmin(th.Context, channel.Id, member.Id, false, true, false)
 		require.Nil(t, appErr)
 
 		requireNoMissingAttributesPost(t, th, bot.UserId, member.Id)
@@ -462,7 +509,7 @@ func TestNotifyNewChannelAdminOfMissingRequiredAttributes(t *testing.T) {
 		field := createMissingAttributesField(t, th, "Program", true, model.PermissionLevelAdmin)
 		setChannelPropertyValue(t, th, field.GroupID, field.ID, channel.Id, `"ALPHA"`)
 
-		_, appErr = th.App.UpdateChannelMemberSchemeRoles(th.Context, channel.Id, member.Id, false, true, true)
+		_, appErr = th.App.UpdateChannelMemberSchemeRolesAndNotifyNewAdmin(th.Context, channel.Id, member.Id, false, true, true)
 		require.Nil(t, appErr)
 
 		requireNoMissingAttributesPost(t, th, bot.UserId, member.Id)
@@ -477,7 +524,7 @@ func TestNotifyNewChannelAdminOfMissingRequiredAttributes(t *testing.T) {
 		th.AddUserToChannel(t, member, channel)
 		createMissingAttributesField(t, th, "Program", true, model.PermissionLevelAdmin)
 
-		_, appErr = th.App.UpdateChannelMemberSchemeRoles(th.Context, channel.Id, member.Id, false, true, true)
+		_, appErr = th.App.UpdateChannelMemberSchemeRolesAndNotifyNewAdmin(th.Context, channel.Id, member.Id, false, true, true)
 		require.Nil(t, appErr)
 
 		post := requireOneMissingAttributesPost(t, th, bot.UserId, member.Id)
@@ -494,7 +541,7 @@ func TestNotifyNewChannelAdminOfMissingRequiredAttributes(t *testing.T) {
 		createMissingAttributesField(t, th, "Program", true, model.PermissionLevelAdmin)
 		require.Nil(t, th.App.DeleteChannel(th.Context, channel, th.BasicUser.Id))
 
-		_, appErr = th.App.UpdateChannelMemberSchemeRoles(th.Context, channel.Id, member.Id, false, true, true)
+		_, appErr = th.App.UpdateChannelMemberSchemeRolesAndNotifyNewAdmin(th.Context, channel.Id, member.Id, false, true, true)
 		require.Nil(t, appErr)
 
 		requireNoMissingAttributesPost(t, th, bot.UserId, member.Id)
@@ -511,7 +558,7 @@ func TestNotifyNewChannelAdminOfMissingRequiredAttributes(t *testing.T) {
 		createMissingAttributesField(t, th, "Sysadmin Level", true, model.PermissionLevelSysadmin)
 		createMissingAttributesField(t, th, "Nobody Level", true, model.PermissionLevelNone)
 
-		_, appErr = th.App.UpdateChannelMemberSchemeRoles(th.Context, channel.Id, member.Id, false, true, true)
+		_, appErr = th.App.UpdateChannelMemberSchemeRolesAndNotifyNewAdmin(th.Context, channel.Id, member.Id, false, true, true)
 		require.Nil(t, appErr)
 
 		post := requireOneMissingAttributesPost(t, th, bot.UserId, member.Id)
@@ -531,7 +578,7 @@ func TestNotifyNewChannelAdminOfMissingRequiredAttributes(t *testing.T) {
 		createMissingAttributesField(t, th, "Sysadmin Level", true, model.PermissionLevelSysadmin)
 		createMissingAttributesField(t, th, "Nobody Level", true, model.PermissionLevelNone)
 
-		_, appErr = th.App.UpdateChannelMemberSchemeRoles(th.Context, channel.Id, member.Id, false, true, true)
+		_, appErr = th.App.UpdateChannelMemberSchemeRolesAndNotifyNewAdmin(th.Context, channel.Id, member.Id, false, true, true)
 		require.Nil(t, appErr)
 
 		requireNoMissingAttributesPost(t, th, bot.UserId, member.Id)
@@ -547,7 +594,7 @@ func TestNotifyNewChannelAdminOfMissingRequiredAttributes(t *testing.T) {
 		th.AddUserToChannel(t, th.SystemAdminUser, channel)
 		createMissingAttributesField(t, th, "Sysadmin Level", true, model.PermissionLevelSysadmin)
 
-		_, appErr = th.App.UpdateChannelMemberSchemeRoles(th.Context, channel.Id, th.SystemAdminUser.Id, false, true, true)
+		_, appErr = th.App.UpdateChannelMemberSchemeRolesAndNotifyNewAdmin(th.Context, channel.Id, th.SystemAdminUser.Id, false, true, true)
 		require.Nil(t, appErr)
 
 		post := requireOneMissingAttributesPost(t, th, bot.UserId, th.SystemAdminUser.Id)
@@ -571,7 +618,7 @@ func TestNotifyNewChannelAdminOfMissingRequiredAttributes(t *testing.T) {
 		th.AddUserToChannel(t, member, channel)
 		createMissingAttributesField(t, th, "Admin Level", true, model.PermissionLevelAdmin)
 
-		_, appErr = th.App.UpdateChannelMemberSchemeRoles(th.Context, channel.Id, member.Id, false, true, true)
+		_, appErr = th.App.UpdateChannelMemberSchemeRolesAndNotifyNewAdmin(th.Context, channel.Id, member.Id, false, true, true)
 		require.Nil(t, appErr)
 
 		requireNoMissingAttributesPost(t, th, bot.UserId, member.Id)
@@ -838,7 +885,7 @@ func TestNotifyNewChannelAdminOfMissingRequiredAttributes(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 		th.App.NotifyNewChannelAdminOfMissingRequiredAttributes(th.Context, member.Id, []*model.Channel{channel})
-		_, appErr = th.App.UpdateChannelMemberSchemeRoles(th.Context, channel.Id, member.Id, false, true, true)
+		_, appErr = th.App.UpdateChannelMemberSchemeRolesAndNotifyNewAdmin(th.Context, channel.Id, member.Id, false, true, true)
 		require.Nil(t, appErr)
 
 		requireNoMissingAttributesPost(t, th, bot.UserId, member.Id)
@@ -870,7 +917,7 @@ func TestNotifyNewChannelAdminOfMissingRequiredAttributes(t *testing.T) {
 		member := th.CreateUser(t)
 		th.LinkUserToTeam(t, member, team)
 		th.AddUserToChannel(t, member, channel)
-		_, appErr = th.App.UpdateChannelMemberSchemeRoles(th.Context, channel.Id, member.Id, false, true, true)
+		_, appErr = th.App.UpdateChannelMemberSchemeRolesAndNotifyNewAdmin(th.Context, channel.Id, member.Id, false, true, true)
 		require.Nil(t, appErr)
 
 		assert.NotPanics(t, func() {
@@ -902,7 +949,7 @@ func TestNotifyNewChannelAdminOfMissingRequiredAttributes(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotNil(t, createdTeam)
 
-		_, appErr = th.App.UpdateChannelMemberRoles(th.Context, channel.Id, member.Id, model.ChannelUserRoleId+" "+model.ChannelAdminRoleId)
+		_, appErr = th.App.UpdateChannelMemberRolesAndNotifyNewAdmin(th.Context, channel.Id, member.Id, model.ChannelUserRoleId+" "+model.ChannelAdminRoleId)
 		require.Nil(t, appErr)
 	})
 }

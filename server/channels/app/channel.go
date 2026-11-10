@@ -1470,7 +1470,23 @@ func buildChannelModerations(rctx request.CTX, channelType model.ChannelType, me
 // This is the public API used by REST endpoints and plugins.
 // It enforces strict validation requiring either SchemeUser or SchemeGuest to be true.
 func (a *App) UpdateChannelMemberRoles(rctx request.CTX, channelID string, userID string, newRoles string) (*model.ChannelMember, *model.AppError) {
-	return a.updateChannelMemberRolesInternal(rctx, channelID, userID, newRoles, false)
+	updated, _, err := a.updateChannelMemberRolesInternal(rctx, channelID, userID, newRoles, false)
+	return updated, err
+}
+
+// UpdateChannelMemberRolesAndNotifyNewAdmin is UpdateChannelMemberRoles for a
+// person changing roles through the REST API: a member it makes channel admin is
+// told which required channel attribute values the channel still lacks. Plugins,
+// bulk import and membership sync call UpdateChannelMemberRoles and stay quiet.
+func (a *App) UpdateChannelMemberRolesAndNotifyNewAdmin(rctx request.CTX, channelID string, userID string, newRoles string) (*model.ChannelMember, *model.AppError) {
+	updated, promoted, err := a.updateChannelMemberRolesInternal(rctx, channelID, userID, newRoles, false)
+	if err != nil {
+		return nil, err
+	}
+	if promoted {
+		a.queueNewChannelAdminMissingAttributesNoticeByID(rctx, userID, channelID)
+	}
+	return updated, nil
 }
 
 // updateChannelMemberRolesInternal is the internal implementation of UpdateChannelMemberRoles.
@@ -1481,17 +1497,19 @@ func (a *App) UpdateChannelMemberRoles(rctx request.CTX, channelID string, userI
 // that members must have a base scheme role. When true (bulk import only), this validation
 // is skipped to support the two-phase import pattern where explicit roles are set first,
 // then scheme roles are set via UpdateChannelMemberSchemeRoles immediately after.
-func (a *App) updateChannelMemberRolesInternal(rctx request.CTX, channelID string, userID string, newRoles string, allowSchemeUserUnset bool) (*model.ChannelMember, *model.AppError) {
+//
+// promoted reports whether the update made the member channel admin.
+func (a *App) updateChannelMemberRolesInternal(rctx request.CTX, channelID string, userID string, newRoles string, allowSchemeUserUnset bool) (*model.ChannelMember, bool, *model.AppError) {
 	var member *model.ChannelMember
 	var err *model.AppError
 	if member, err = a.GetChannelMember(rctx, channelID, userID); err != nil {
-		return nil, err
+		return nil, false, err
 	}
 	wasSchemeAdmin := member.SchemeAdmin
 
 	schemeGuestRole, schemeUserRole, schemeAdminRole, err := a.GetSchemeRolesForChannel(rctx, channelID)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	prevSchemeGuestValue := member.SchemeGuest
@@ -1506,13 +1524,13 @@ func (a *App) updateChannelMemberRolesInternal(rctx request.CTX, channelID strin
 		role, err = a.GetRoleByName(rctx, roleName)
 		if err != nil {
 			err.StatusCode = http.StatusBadRequest
-			return nil, err
+			return nil, false, err
 		}
 
 		if !role.SchemeManaged {
 			if model.IsBuiltInRole(roleName) && !model.IsChannelScopedBuiltInRole(roleName) {
 				err = model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.scheme_role.app_error", nil, "role_name="+roleName, http.StatusBadRequest)
-				return nil, err
+				return nil, false, err
 			}
 			newExplicitRoles = append(newExplicitRoles, roleName)
 		} else {
@@ -1526,59 +1544,76 @@ func (a *App) updateChannelMemberRolesInternal(rctx request.CTX, channelID strin
 				member.SchemeGuest = true
 			default:
 				// If not part of the scheme for this channel, then it is not allowed to apply it as an explicit role.
-				return nil, model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.scheme_role.app_error", nil, "role_name="+roleName, http.StatusBadRequest)
+				return nil, false, model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.scheme_role.app_error", nil, "role_name="+roleName, http.StatusBadRequest)
 			}
 		}
 	}
 
 	if member.SchemeUser && member.SchemeGuest {
-		return nil, model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.guest_and_user.app_error", nil, "", http.StatusBadRequest)
+		return nil, false, model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.guest_and_user.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if member.SchemeGuest && member.SchemeAdmin {
-		return nil, model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.guest_and_admin.app_error", nil, "", http.StatusBadRequest)
+		return nil, false, model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.guest_and_admin.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if prevSchemeGuestValue != member.SchemeGuest {
-		return nil, model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.changing_guest_role.app_error", nil, "", http.StatusBadRequest)
+		return nil, false, model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.changing_guest_role.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	// Validate that the member has a base scheme role (SchemeUser or SchemeGuest).
 	// This ensures members always have the minimum required permissions.
 	// Bulk import operations may skip this validation temporarily.
 	if !allowSchemeUserUnset && !member.SchemeGuest && !member.SchemeUser {
-		return nil, model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.unset_user_scheme.app_error", nil, "", http.StatusBadRequest)
+		return nil, false, model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.unset_user_scheme.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	member.ExplicitRoles = strings.Join(newExplicitRoles, " ")
 
 	updated, err := a.updateChannelMember(rctx, member)
 	if err != nil {
+		return nil, false, err
+	}
+	return updated, !wasSchemeAdmin && updated.SchemeAdmin, nil
+}
+
+// UpdateChannelMemberSchemeRoles sets a channel member's scheme roles.
+func (a *App) UpdateChannelMemberSchemeRoles(rctx request.CTX, channelID string, userID string, isSchemeGuest bool, isSchemeUser bool, isSchemeAdmin bool) (*model.ChannelMember, *model.AppError) {
+	updated, _, err := a.updateChannelMemberSchemeRoles(rctx, channelID, userID, isSchemeGuest, isSchemeUser, isSchemeAdmin)
+	return updated, err
+}
+
+// UpdateChannelMemberSchemeRolesAndNotifyNewAdmin is UpdateChannelMemberSchemeRoles
+// for a person changing roles through the REST API; see
+// UpdateChannelMemberRolesAndNotifyNewAdmin.
+func (a *App) UpdateChannelMemberSchemeRolesAndNotifyNewAdmin(rctx request.CTX, channelID string, userID string, isSchemeGuest bool, isSchemeUser bool, isSchemeAdmin bool) (*model.ChannelMember, *model.AppError) {
+	updated, promoted, err := a.updateChannelMemberSchemeRoles(rctx, channelID, userID, isSchemeGuest, isSchemeUser, isSchemeAdmin)
+	if err != nil {
 		return nil, err
 	}
-	if !wasSchemeAdmin && updated.SchemeAdmin {
+	if promoted {
 		a.queueNewChannelAdminMissingAttributesNoticeByID(rctx, userID, channelID)
 	}
 	return updated, nil
 }
 
-func (a *App) UpdateChannelMemberSchemeRoles(rctx request.CTX, channelID string, userID string, isSchemeGuest bool, isSchemeUser bool, isSchemeAdmin bool) (*model.ChannelMember, *model.AppError) {
+func (a *App) updateChannelMemberSchemeRoles(rctx request.CTX, channelID string, userID string, isSchemeGuest bool, isSchemeUser bool, isSchemeAdmin bool) (*model.ChannelMember, bool, *model.AppError) {
 	member, err := a.GetChannelMember(rctx, channelID, userID)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 	wasSchemeAdmin := member.SchemeAdmin
 
 	if member.SchemeGuest {
-		return nil, model.NewAppError("UpdateChannelMemberSchemeRoles", "api.channel.update_channel_member_roles.guest.app_error", nil, "", http.StatusBadRequest)
+		return nil, false, model.NewAppError("UpdateChannelMemberSchemeRoles", "api.channel.update_channel_member_roles.guest.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if isSchemeGuest {
-		return nil, model.NewAppError("UpdateChannelMemberSchemeRoles", "api.channel.update_channel_member_roles.user_and_guest.app_error", nil, "", http.StatusBadRequest)
+		return nil, false, model.NewAppError("UpdateChannelMemberSchemeRoles", "api.channel.update_channel_member_roles.user_and_guest.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if !isSchemeUser {
-		return nil, model.NewAppError("UpdateChannelMemberSchemeRoles", "api.channel.update_channel_member_roles.unset_user_scheme.app_error", nil, "", http.StatusBadRequest)
+		return nil, false, model.NewAppError("UpdateChannelMemberSchemeRoles", "api.channel.update_channel_member_roles.unset_user_scheme.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	member.SchemeAdmin = isSchemeAdmin
@@ -1592,12 +1627,9 @@ func (a *App) UpdateChannelMemberSchemeRoles(rctx request.CTX, channelID string,
 
 	updated, err := a.updateChannelMember(rctx, member)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
-	if !wasSchemeAdmin && updated.SchemeAdmin {
-		a.queueNewChannelAdminMissingAttributesNoticeByID(rctx, userID, channelID)
-	}
-	return updated, nil
+	return updated, !wasSchemeAdmin && updated.SchemeAdmin, nil
 }
 
 func (a *App) UpdateChannelMemberNotifyProps(rctx request.CTX, data map[string]string, channelID string, userID string) (*model.ChannelMember, *model.AppError) {

@@ -1638,7 +1638,7 @@ func (a *App) importUserChannels(rctx request.CTX, user *model.User, sourceUsern
 	for _, member := range append(newMembers, oldMembers...) {
 		if member.ExplicitRoles != rolesByChannelId[member.ChannelId] {
 			// Bulk import uses internal function to support two-phase role updates.
-			if _, err = a.updateChannelMemberRolesInternal(rctx, member.ChannelId, user.Id, rolesByChannelId[member.ChannelId], true); err != nil {
+			if _, _, err = a.updateChannelMemberRolesInternal(rctx, member.ChannelId, user.Id, rolesByChannelId[member.ChannelId], true); err != nil {
 				return err
 			}
 		}
