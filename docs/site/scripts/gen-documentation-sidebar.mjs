@@ -298,15 +298,31 @@ const DEPLOYMENT_GROUPS = {
 
   // Moved here from Administration Guide → Configure: RTCD, Offloader, and
   // the rest are deployment concerns, not settings-reference material.
+  //
+  // Two versions ship side by side (v1: built-in/RTCD, v2: LiveKit), so the
+  // landing page helps choose one and each version is its own sub-group. The
+  // v1 pages keep their existing file paths (they are linked from the product,
+  // other guides and legacy redirects); only their place in the nav changes.
+  // The offloader serves both versions, so it sits above them, not in v1.
   calls: {
-    label: 'Calls Deployment',
-    landing: 'calls/calls-deployment-guide',
+    label: 'Calls',
+    landing: 'calls/calls-overview',
     items: [
-      'calls/calls-rtcd-setup',
+      {label: 'Calls v1', landing: 'calls/calls-deployment-guide', items: [
+        'calls/calls-rtcd-setup',
+        'calls/calls-kubernetes',
+        'calls/calls-logging',
+        'calls/calls-metrics-monitoring',
+      ]},
+      {label: 'Calls v2', landing: 'calls/v2/calls-v2-overview', items: [
+        'calls/v2/deploy-docker-compose',
+        'calls/v2/deploy-kubernetes-helm',
+        'calls/v2/deploy-livekit-cloud',
+        'calls/v2/networking',
+        'calls/v2/sip-outbound',
+      ]},
       'calls/calls-offloader-setup',
-      'calls/calls-kubernetes',
-      'calls/calls-logging',
-      'calls/calls-metrics-monitoring',
+      'calls/migrate-v1-to-v2',
     ],
   },
 
