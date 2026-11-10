@@ -62,6 +62,7 @@ const (
 	ClusterEventInvalidateCacheForUserAttributes            ClusterEvent = "inv_user_attributes"
 	ClusterEventAutoTranslationTask                         ClusterEvent = "autotranslation_task"
 	ClusterEventBusyStateChanged                            ClusterEvent = "busy_state_change"
+	ClusterEventSharedChannelSyncTask                       ClusterEvent = "shared_channel_sync_task"
 	// Note: if you are adding a new event, please also add it in the slice of
 	// m.ClusterEventMap in metrics/metrics.go file.
 
@@ -80,6 +81,8 @@ const (
 	ClusterGossipEventResponseWebConnCount          = "gossip_response_webconn_count"
 	ClusterGossipEventRequestWSQueues               = "gossip_request_ws_queues"
 	ClusterGossipEventResponseWSQueues              = "gossip_response_ws_queues"
+	ClusterGossipEventRequestHealthDiagnostics      = "gossip_request_health_diagnostics"
+	ClusterGossipEventResponseHealthDiagnostics     = "gossip_response_health_diagnostics"
 
 	// SendTypes for ClusterMessage.
 	ClusterSendBestEffort = "best_effort"

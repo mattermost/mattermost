@@ -1,7 +1,8 @@
 {
     "compilerOptions": {
         "module": "commonjs",
-        "moduleResolution": "node",
+        "moduleResolution": "bundler",
+        "types": ["*"],
         "target": "es6",
         "declaration": true,
         "strict": true,
