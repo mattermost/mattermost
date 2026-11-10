@@ -5536,6 +5536,33 @@ func TestGetUserAudits(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestGetUserAudits_RequiresPermissionToTargetUser(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	t.Run("regular member cannot read another user's audits", func(t *testing.T) {
+		_, resp, err := th.Client.GetUserAudits(context.Background(), th.BasicUser2.Id, 0, 100, "")
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("regular member cannot read a system admin's audits", func(t *testing.T) {
+		_, resp, err := th.Client.GetUserAudits(context.Background(), th.SystemAdminUser.Id, 0, 100, "")
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("user can read own audits", func(t *testing.T) {
+		_, _, err := th.Client.GetUserAudits(context.Background(), th.BasicUser.Id, 0, 100, "")
+		require.NoError(t, err)
+	})
+
+	t.Run("system admin can read another user's audits", func(t *testing.T) {
+		_, _, err := th.SystemAdminClient.GetUserAudits(context.Background(), th.BasicUser.Id, 0, 100, "")
+		require.NoError(t, err)
+	})
+}
+
 func TestVerifyUserEmail(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
