@@ -404,7 +404,9 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
                 discardDraft();
 
                 const response = await onDeleteScheduledPost();
-                if (response.error && !getPostDraft(store.getState(), StoragePrefixes.EDIT_DRAFT, scheduledPost.id).message) {
+                const hasNewerDraft = draftRef.current.message !== pendingDraft.message ||
+                    Boolean(getPostDraft(store.getState(), StoragePrefixes.EDIT_DRAFT, scheduledPost.id).message);
+                if (response.error && !hasNewerDraft) {
                     actions.setDraft(draftStorageId, pendingDraft);
                 }
                 return response;

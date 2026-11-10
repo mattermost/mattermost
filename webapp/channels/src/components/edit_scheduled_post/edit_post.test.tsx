@@ -459,6 +459,37 @@ describe('components/edit_scheduled_post/edit_post', () => {
             expect(store.getState().storage.storage[draftStorageKey].value.message).toBe('Newer draft');
         });
 
+        test('should not restore the cleared draft over text typed while a failed delete was in flight', async () => {
+            const {store, onDeleteScheduledPost} = renderEditor();
+            let resolveDelete: (result: {error?: string}) => void = () => {};
+            onDeleteScheduledPost.mockImplementation(() => new Promise((resolve) => {
+                resolveDelete = resolve;
+            }));
+
+            await typeAndPersistDraft(store, 'Draft text');
+            fireEvent.input(getTextbox(), {target: {value: ''}});
+            fireEvent.click(screen.getByText('Save'));
+
+            await waitFor(() => {
+                expect(store.getState().views.modals.modalState[ModalIdentifiers.DELETE_DRAFT]?.open).toBe(true);
+            });
+
+            let confirmation: Promise<unknown> = Promise.resolve();
+            act(() => {
+                confirmation = store.getState().views.modals.modalState[ModalIdentifiers.DELETE_DRAFT].dialogProps.onConfirm();
+            });
+            fireEvent.input(getTextbox(), {target: {value: 'Typed while deleting'}});
+            await act(async () => {
+                resolveDelete({error: 'Unable to delete'});
+                await confirmation;
+            });
+
+            expect(store.getState().storage.storage[draftStorageKey].value).toBeNull();
+            await waitFor(() => {
+                expect(store.getState().storage.storage[draftStorageKey].value?.message).toBe('Typed while deleting');
+            });
+        });
+
         test('should not leave an edit draft behind when the scheduled post is deleted', async () => {
             const {store, unmount, onDeleteScheduledPost} = renderEditor();
 
