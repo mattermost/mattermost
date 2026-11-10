@@ -267,27 +267,27 @@ exports[`components/integrations/EditCommand should have match renderExtra 1`] =
             class="col-md-5 col-sm-8"
           >
             <label
-              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 backstage-form__checkbox"
+              class="_checkbox_18sf4_21 _checkbox--size-medium_18sf4_149 backstage-form__checkbox"
               for="autocomplete"
             >
               <input
                 checked=""
-                class="_checkbox__input_18swc_25"
+                class="_checkbox__input_18sf4_36"
                 id="autocomplete"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_18swc_44"
+                class="_checkbox__box_18sf4_55"
               >
                 <span
-                  class="_checkbox__icon_18swc_69"
+                  class="_checkbox__icon_18sf4_80"
                 >
                   <div
                     aria-hidden="true"
-                    class="_icon_1i355_2 _icon--size-12_1i355_30"
+                    class="_icon_1xcik_13 _icon--size-12_1xcik_41"
                   >
                     <div
-                      class="_icon__glyph-area_1i355_9"
+                      class="_icon__glyph-area_1xcik_20"
                     >
                       <svg
                         fill="currentColor"
@@ -371,22 +371,22 @@ exports[`components/integrations/EditCommand should have match renderExtra 1`] =
           class="backstage-form__footer"
         >
           <a
-            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
+            class="_button_1pij1_13 _button--emphasis-tertiary_1pij1_141 _button--size-medium_1pij1_88"
             href="/test/integrations/commands"
           >
             <span
-              class="_button__label_we8pe_31"
+              class="_button__label_1pij1_55"
             >
               Cancel
             </span>
           </a>
           <button
-            class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+            class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
             id="saveCommand"
             type="submit"
           >
             <span
-              class="_button__label_we8pe_31"
+              class="_button__label_1pij1_55"
             >
               Update
             </span>
@@ -665,27 +665,27 @@ exports[`components/integrations/EditCommand should match snapshot 1`] = `
             class="col-md-5 col-sm-8"
           >
             <label
-              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 backstage-form__checkbox"
+              class="_checkbox_18sf4_21 _checkbox--size-medium_18sf4_149 backstage-form__checkbox"
               for="autocomplete"
             >
               <input
                 checked=""
-                class="_checkbox__input_18swc_25"
+                class="_checkbox__input_18sf4_36"
                 id="autocomplete"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_18swc_44"
+                class="_checkbox__box_18sf4_55"
               >
                 <span
-                  class="_checkbox__icon_18swc_69"
+                  class="_checkbox__icon_18sf4_80"
                 >
                   <div
                     aria-hidden="true"
-                    class="_icon_1i355_2 _icon--size-12_1i355_30"
+                    class="_icon_1xcik_13 _icon--size-12_1xcik_41"
                   >
                     <div
-                      class="_icon__glyph-area_1i355_9"
+                      class="_icon__glyph-area_1xcik_20"
                     >
                       <svg
                         fill="currentColor"
@@ -769,22 +769,22 @@ exports[`components/integrations/EditCommand should match snapshot 1`] = `
           class="backstage-form__footer"
         >
           <a
-            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
+            class="_button_1pij1_13 _button--emphasis-tertiary_1pij1_141 _button--size-medium_1pij1_88"
             href="/test/integrations/commands"
           >
             <span
-              class="_button__label_we8pe_31"
+              class="_button__label_1pij1_55"
             >
               Cancel
             </span>
           </a>
           <button
-            class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+            class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
             id="saveCommand"
             type="submit"
           >
             <span
-              class="_button__label_we8pe_31"
+              class="_button__label_1pij1_55"
             >
               Update
             </span>
@@ -813,7 +813,7 @@ exports[`components/integrations/EditCommand should match snapshot when EnableCo
       >
         <span
           aria-label="Loading Icon"
-          class="_spinner_3elm7_10 spinner"
+          class="_spinner_mvrwe_21 spinner"
           role="status"
           style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
         />
@@ -841,7 +841,7 @@ exports[`components/integrations/EditCommand should match snapshot, loading 1`] 
       >
         <span
           aria-label="Loading Icon"
-          class="_spinner_3elm7_10 spinner"
+          class="_spinner_mvrwe_21 spinner"
           role="status"
           style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
         />
