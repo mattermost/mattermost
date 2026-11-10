@@ -6,11 +6,9 @@ package platform
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"net"
 	"net/http"
 	"net/http/httptest"
-	"sync"
 	"testing"
 	"time"
 
@@ -531,30 +529,6 @@ func TestWebConnCanSeeUserCached(t *testing.T) {
 		assert.True(t, canSee)
 	})
 
-	t.Run("membership changes without invalidation are picked up within the cache TTL", func(t *testing.T) {
-		th.Service.targetChannels.ttl = 50
-		defer func() { th.Service.targetChannels.ttl = 0 }()
-
-		target := th.CreateUserOrGuest(t, false)
-		joined := th.CreateChannel(t, team)
-		addToChannel(guest, joined)
-		addToChannel(target, joined)
-
-		wc := newConn(&visibilitySuite{restrictions: restrictionsFor(guest.Id)})
-		canSee, appErr := wc.canSeeUserCached(th.Context, target.Id)
-		require.Nil(t, appErr)
-		require.True(t, canSee)
-
-		// The target leaves behind the back of the app layer: no cache is invalidated.
-		require.NoError(t, th.Service.Store.Channel().RemoveMember(th.Context, joined.Id, target.Id))
-
-		require.EventuallyWithT(t, func(c *assert.CollectT) {
-			canSee, appErr := wc.canSeeUserCached(th.Context, target.Id)
-			require.Nil(c, appErr)
-			assert.False(c, canSee)
-		}, 2*time.Second, 20*time.Millisecond)
-	})
-
 	t.Run("invalidating a user drops the cached channels immediately", func(t *testing.T) {
 		target := th.CreateUserOrGuest(t, false)
 		joined := th.CreateChannel(t, team)
@@ -583,93 +557,6 @@ func TestWebConnCanSeeUserCached(t *testing.T) {
 			assert.True(t, wc.ShouldSendEventToGuest(event))
 		}
 		assert.Equal(t, 1, suite.restrictionsCalls)
-	})
-}
-
-func TestTargetChannelsCache(t *testing.T) {
-	loaded := func(calls *int, channels map[string]string) func() (map[string]string, error) {
-		return func() (map[string]string, error) {
-			*calls++
-			return channels, nil
-		}
-	}
-
-	t.Run("loads once while the entry is fresh", func(t *testing.T) {
-		var c targetChannelsCache
-		calls := 0
-		for range 5 {
-			got, err := c.get("u", loaded(&calls, map[string]string{"c": "x"}))
-			require.NoError(t, err)
-			assert.Contains(t, got, "c")
-		}
-		assert.Equal(t, 1, calls)
-	})
-
-	t.Run("reloads after the entry expires", func(t *testing.T) {
-		c := targetChannelsCache{ttl: 20}
-		calls := 0
-		_, err := c.get("u", loaded(&calls, nil))
-		require.NoError(t, err)
-		time.Sleep(40 * time.Millisecond)
-		_, err = c.get("u", loaded(&calls, nil))
-		require.NoError(t, err)
-		assert.Equal(t, 2, calls)
-	})
-
-	t.Run("remove and clearAll drop entries", func(t *testing.T) {
-		var c targetChannelsCache
-		calls := 0
-		_, _ = c.get("a", loaded(&calls, nil))
-		_, _ = c.get("b", loaded(&calls, nil))
-		c.remove("a")
-		_, _ = c.get("a", loaded(&calls, nil))
-		_, _ = c.get("b", loaded(&calls, nil))
-		assert.Equal(t, 3, calls)
-		c.clearAll()
-		_, _ = c.get("b", loaded(&calls, nil))
-		assert.Equal(t, 4, calls)
-	})
-
-	t.Run("does not cache errors", func(t *testing.T) {
-		var c targetChannelsCache
-		_, err := c.get("u", func() (map[string]string, error) { return nil, assert.AnError })
-		require.Error(t, err)
-		calls := 0
-		_, err = c.get("u", loaded(&calls, nil))
-		require.NoError(t, err)
-		assert.Equal(t, 1, calls)
-	})
-
-	t.Run("is safe for concurrent use", func(t *testing.T) {
-		c := targetChannelsCache{ttl: 5}
-		var wg sync.WaitGroup
-		for g := range 8 {
-			wg.Go(func() {
-				for i := range 500 {
-					id := fmt.Sprint(i % 20)
-					_, err := c.get(id, func() (map[string]string, error) { return map[string]string{"c": "x"}, nil })
-					assert.NoError(t, err)
-					switch {
-					case i%50 == 0 && g == 0:
-						c.clearAll()
-					case i%7 == 0:
-						c.remove(id)
-					}
-				}
-			})
-		}
-		wg.Wait()
-	})
-
-	t.Run("stays bounded", func(t *testing.T) {
-		var c targetChannelsCache
-		for i := range 3 * targetChannelsCacheMaxEntries {
-			_, err := c.get(fmt.Sprint(i), func() (map[string]string, error) { return nil, nil })
-			require.NoError(t, err)
-		}
-		c.mut.RLock()
-		defer c.mut.RUnlock()
-		assert.LessOrEqual(t, len(c.entries), targetChannelsCacheMaxEntries)
 	})
 }
 

@@ -1053,10 +1053,8 @@ func (wc *WebConn) canSeeUserCached(rctx request.CTX, otherUserID string) (bool,
 		return false, nil
 	}
 
-	// Read live from the store, shared between connections for a couple of seconds.
-	otherChannels, err := wc.Platform.targetChannels.get(otherUserID, func() (map[string]string, error) {
-		return wc.Platform.Store.Channel().GetAllChannelMembersForUser(rctx, otherUserID, false, true)
-	})
+	// The store caches this per user and drops it, cluster-wide, on membership changes.
+	otherChannels, err := wc.Platform.Store.Channel().GetAllChannelMembersForUser(rctx, otherUserID, true, true)
 	if err != nil {
 		return false, model.NewAppError("canSeeUserCached", "app.channel.get_channels.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
