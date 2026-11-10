@@ -2396,7 +2396,7 @@ func (a *App) compensateMutableGroupChannelMemberAdds(rctx request.CTX, userIDs,
 // compensateMutableGroupChannelMemberRemove restores a member after a failed
 // identity sync so Name/DisplayName cannot drift from membership.
 func (a *App) compensateMutableGroupChannelMemberRemove(rctx request.CTX, userID string, channel *model.Channel) {
-	user, err := a.GetUser(userID)
+	user, err := a.GetUser(rctx, userID)
 	if err != nil {
 		rctx.Logger().Error(
 			"Failed to compensate group channel membership after remove sync failure",
@@ -3462,7 +3462,7 @@ func (a *App) postRemoveFromChannelMessage(rctx request.CTX, removerUserId strin
 
 	message := fmt.Sprintf(i18n.T("api.channel.remove_member.removed"), fmt.Sprintf("@%s", removedUser.Username))
 	if removerUserId != "" {
-		if remover, err := a.GetUser(removerUserId); err == nil {
+		if remover, err := a.GetUser(rctx, removerUserId); err == nil {
 			props["userId"] = remover.Id
 			props["username"] = remover.Username
 			if channel.Type == model.ChannelTypeGroup {
