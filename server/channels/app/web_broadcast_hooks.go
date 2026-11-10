@@ -27,21 +27,62 @@ const (
 	broadcastAbacFiles          = "abac_files"
 	broadcastAbacBookmarks      = "abac_bookmarks"
 	broadcastOnlyChannelAdmins  = "only_channel_admins"
+	// broadcastAccessControlResource rejects post events for recipients the
+	// plugin policy behind props.access_control_resource does not admit.
+	broadcastAccessControlResource = "access_control_resource"
 )
 
 func (s *Server) makeBroadcastHooks() map[string]platform.BroadcastHook {
 	return map[string]platform.BroadcastHook{
-		broadcastAddMentions:        &addMentionsBroadcastHook{},
-		broadcastAddFollowers:       &addFollowersBroadcastHook{},
-		broadcastPostedAck:          &postedAckBroadcastHook{},
-		broadcastPermalink:          &permalinkBroadcastHook{},
-		broadcastChannelMentions:    &channelMentionsBroadcastHook{},
-		broadcastBurnOnRead:         &burnOnReadBroadcastHook{},
-		broadcastBurnOnReadReaction: &burnOnReadReactionBroadcastHook{},
-		broadcastAbacFiles:          &abacFilesBroadcastHook{},
-		broadcastAbacBookmarks:      &abacBookmarksBroadcastHook{},
-		broadcastOnlyChannelAdmins:  &onlyChannelAdminsBroadcastHook{},
+		broadcastAddMentions:           &addMentionsBroadcastHook{},
+		broadcastAddFollowers:          &addFollowersBroadcastHook{},
+		broadcastPostedAck:             &postedAckBroadcastHook{},
+		broadcastPermalink:             &permalinkBroadcastHook{},
+		broadcastChannelMentions:       &channelMentionsBroadcastHook{},
+		broadcastBurnOnRead:            &burnOnReadBroadcastHook{},
+		broadcastBurnOnReadReaction:    &burnOnReadReactionBroadcastHook{},
+		broadcastAbacFiles:             &abacFilesBroadcastHook{},
+		broadcastAbacBookmarks:         &abacBookmarksBroadcastHook{},
+		broadcastOnlyChannelAdmins:     &onlyChannelAdminsBroadcastHook{},
+		broadcastAccessControlResource: &accessControlResourceBroadcastHook{},
 	}
+}
+
+type accessControlResourceBroadcastHook struct{}
+
+// setupBroadcastHookForAccessControlResource registers the hook for a post
+// carrying access_control_resource. Only the prop value travels with the
+// event; each receiving node resolves recipients from its own cache.
+func (a *App) setupBroadcastHookForAccessControlResource(post *model.Post, message *model.WebSocketEvent) {
+	if post == nil {
+		return
+	}
+	if value := post.GetAccessControlResource(); value != "" {
+		message.GetBroadcast().AddHook(broadcastAccessControlResource, map[string]any{
+			"resource": value,
+		})
+	}
+}
+
+// Process rejects the event for every connection whose user the policy does
+// not admit. A missing session fails secure.
+func (h *accessControlResourceBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
+	resource, err := getTypedArg[string](args, "resource")
+	if err != nil {
+		return errors.Wrap(err, "Invalid resource value passed to accessControlResourceBroadcastHook")
+	}
+
+	session := webConn.GetSession()
+	if session == nil {
+		msg.Event().Reject()
+		return nil
+	}
+
+	rctx := request.EmptyContext(webConn.Platform.Log()).WithSession(session)
+	if !webConn.Suite.HasAccessToAccessControlResource(rctx, webConn.UserId, resource) {
+		msg.Event().Reject()
+	}
+	return nil
 }
 
 type addMentionsBroadcastHook struct{}
