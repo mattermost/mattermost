@@ -27,7 +27,7 @@ For a self-hosted Mattermost deployment, a Mattermost system admin must perform 
 
 <Tip>
 
-From Mattermost v12.2, the Metrics plugin is enabled automatically when you enable Performance Monitoring in step 5, so you can usually skip steps 2 and 3. See [Metrics plugin enabled by default](#metrics-plugin-enabled-by-default) for details.
+From Mattermost v12.2, enabling Performance Monitoring in step 5 also enables the Metrics plugin, so you can usually skip steps 2 and 3. If **Mattermost Metrics Plugin** isn't listed under **Installed Plugins** after step 5, install it as described in step 2. See [Metrics plugin enabled by default](#metrics-plugin-enabled-by-default) for details.
 
 </Tip>
 
@@ -46,7 +46,8 @@ For Mattermost deployments prior to v10.1, you must download the latest version 
 
 ### Metrics plugin enabled by default
 
-From Mattermost v12.2, the Metrics plugin is enabled automatically when Performance Monitoring is enabled, including on upgrade, unless a system admin has already enabled or disabled the plugin. Enabling Performance Monitoring only through the `MM_METRICSSETTINGS_ENABLE` environment variable doesn't enable the plugin. In that case, enable it manually in **System Console \> Plugins \> Plugin Management**.
+From Mattermost v12.2, the Metrics plugin is enabled automatically when Performance Monitoring is enabled, including on upgrade, unless a system admin has already enabled or disabled the plugin. If you enable Performance Monitoring while the server is running, the plugin is installed on the next server restart. To start collecting metrics right away, install it from the App Marketplace. Enabling Performance Monitoring only through the `MM_METRICSSETTINGS_ENABLE` environment variable doesn't enable the plugin. In that case, install it if needed and enable it in **System Console \> Plugins \> Plugin Management**.
+
 ## Upgrade
 
 We recommend upgrading this feature as new versions are released. Generally, updates are seamless and don't interrupt the user experience in Mattermost. Visit the [Releases page](https://github.com/mattermost/mattermost-plugin-metrics/releases) for the latest release, available releases, and compatibiilty considerations.
