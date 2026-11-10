@@ -17,6 +17,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"regexp"
 	"syscall"
 
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -44,8 +45,8 @@ func main() {
 	flag.BoolVar(&cfg.Manage, "manage", true, "Manage server lifecycle (build/start/stop)")
 	flag.StringVar(&cfg.AdminUser, "admin-user", "admin", "Admin username to create")
 	flag.StringVar(&cfg.AdminPass, "admin-pass", "Admin1234567890", "Admin password")
-	flag.StringVar(&cfg.DBNameA, "db-a", "", "Server A database (default sharedchannel_test_a when managed, mattermost_test otherwise)")
-	flag.StringVar(&cfg.DBNameB, "db-b", "", "Server B database (default sharedchannel_test_b when managed, mattermost_node_test otherwise)")
+	flag.StringVar(&cfg.DBNameA, "db-a", "", "Server A database; dropped and recreated in managed mode (default sharedchannel_test_a when managed, mattermost_test otherwise)")
+	flag.StringVar(&cfg.DBNameB, "db-b", "", "Server B database; dropped and recreated in managed mode (default sharedchannel_test_b when managed, mattermost_node_test otherwise)")
 	flag.Parse()
 
 	// Managed mode drops and recreates its databases, so its defaults must not be
@@ -61,6 +62,11 @@ func main() {
 		if cfg.Manage {
 			cfg.DBNameB = "sharedchannel_test_b"
 		}
+	}
+
+	if err := validateDBNames(cfg); err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
 	}
 
 	if cfg.LicensePath == "" {
@@ -93,6 +99,25 @@ func main() {
 		logger.Flush()
 		os.Exit(1)
 	}
+}
+
+// Names are restricted so they can be used unquoted in SQL (Postgres folds
+// unquoted identifiers to lower case) and unescaped in a datasource URL.
+var dbNamePattern = regexp.MustCompile(`^[a-z_][a-z0-9_]{0,62}$`)
+
+func validateDBNames(cfg Config) error {
+	for _, name := range []string{cfg.DBNameA, cfg.DBNameB} {
+		if !dbNamePattern.MatchString(name) {
+			return fmt.Errorf("invalid database name %q: use lower case letters, digits and underscores, starting with a letter or underscore", name)
+		}
+		if cfg.Manage && (name == "mattermost_test" || name == "mattermost_node_test") {
+			return fmt.Errorf("refusing to use %q in managed mode: it is dropped and recreated, and make run-server/run-node use it", name)
+		}
+	}
+	if cfg.DBNameA == cfg.DBNameB {
+		return fmt.Errorf("--db-a and --db-b must differ, both are %q", cfg.DBNameA)
+	}
+	return nil
 }
 
 // newLogger creates an mlog.Logger with two console targets:
